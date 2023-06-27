@@ -27,7 +27,7 @@ package dclBoldDevEx;
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'Bold For Delphi (DevEx controls)'}
-{$LIBVERSION '27'}
+{$LIBVERSION '28'}
 {$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
