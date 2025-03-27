@@ -110,8 +110,8 @@ begin
   if CurrentIndex = -1 then
   begin
     raise EBold.CreateFmt(sNoCurrentElement, [ClassName, name])
-  end 
-  else 
+  end
+  else
   begin
     BoldList := List;
     if Assigned(BoldList) and BoldList.Mutable then
@@ -140,13 +140,20 @@ begin
 end;
 
 procedure TBoldAbstractListHandle.SetCurrentElement(const Value: TBoldElement);
+var
+  vValue: TBoldElement;
 begin
   if Assigned(List) then
   begin
-    if CurrentElement <> Value then
-      CurrentIndex := List.IndexOf(Value)
+    if Value is TBoldObjectReference then
+      vValue := (Value as TBoldObjectReference).BoldObject
+    else
+      vValue := Value;
+    if CurrentElement <> vValue then
+      CurrentIndex := List.IndexOf(vValue)
   end
   else
+  if Assigned(Value) then
     raise EBold.CreateFmt(sListNotAssigned, [ClassName, Name]);
 end;
 
