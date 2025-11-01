@@ -26,7 +26,7 @@ package dclBold;
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'Bold for Delphi'}
-{$LIBVERSION '27'}
+{$LIBSUFFIX AUTO}
 {$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
@@ -144,6 +144,8 @@ contains
   BoldAbstractModificationPropagator in 'Source\Persistence\UDPPropagator\BoldAbstractModificationPropagator.pas',
   BoldUDPModificationBroadcaster in 'Source\Persistence\UDPPropagator\BoldUDPModificationBroadcaster.pas',
   BoldEnvironmentIDE in 'Source\Common\Environment\BoldEnvironmentIDE.pas',
-  BoldUDPBroadcasterReg in 'Source\Persistence\IDEUDP\BoldUDPBroadcasterReg.pas';
+  BoldUDPBroadcasterReg in 'Source\Persistence\IDEUDP\BoldUDPBroadcasterReg.pas',
+  BoldFormSaver in 'Source\Samples\FormSaver\BoldFormSaver.pas',
+  BoldFormSaverActions in 'Source\Samples\FormSaver\BoldFormSaverActions.pas';
 
 end.

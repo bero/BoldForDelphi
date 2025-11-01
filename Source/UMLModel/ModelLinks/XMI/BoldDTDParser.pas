@@ -148,6 +148,7 @@ end;
 
 function TBoldDTDParser.ParseChildren: Boolean;
 begin
+  Result := False;
   EBold.Create('Not implemented');
 end;
 

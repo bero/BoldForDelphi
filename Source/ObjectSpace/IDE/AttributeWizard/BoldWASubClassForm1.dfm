@@ -1,25 +1,23 @@
 object SubClassForm1: TSubClassForm1
   Left = 332
   Top = 238
-  Width = 465
-  Height = 304
   HelpContext = 20
   Caption = 'SubClassForm1'
+  ClientHeight = 265
+  ClientWidth = 449
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
-  OldCreateOrder = False
   OnDestroy = FormDestroy
-  PixelsPerInch = 96
   TextHeight = 13
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 457
-    Height = 277
+    Width = 449
+    Height = 265
     ActivePage = tsOverride
     Align = alClient
     Style = tsButtons
@@ -154,7 +152,6 @@ object SubClassForm1: TSubClassForm1
             Font.Height = -11
             Font.Name = 'MS Sans Serif'
             Font.Style = []
-            ItemHeight = 0
             ParentFont = False
             TabOrder = 0
             OnChange = cbParentChange
@@ -227,8 +224,8 @@ object SubClassForm1: TSubClassForm1
       object GroupBox2: TGroupBox
         Left = 0
         Top = 0
-        Width = 449
-        Height = 246
+        Width = 441
+        Height = 234
         Align = alClient
         Caption = 'Select methods to override'
         Font.Charset = DEFAULT_CHARSET
@@ -241,8 +238,8 @@ object SubClassForm1: TSubClassForm1
         object ListViewOverride: TListView
           Left = 2
           Top = 15
-          Width = 445
-          Height = 229
+          Width = 437
+          Height = 217
           Align = alClient
           Checkboxes = True
           Columns = <>

@@ -21,8 +21,8 @@ type
     fMenuItemCurrent: TMenuItem;
     procedure ChangeFocus;
   public
-    constructor create;
-    destructor destroy; override;
+    constructor Create;
+    destructor Destroy; override;
     procedure ValidateIOTAModule(Module: IOTAModule);
     procedure ValidateFormEditor(FormEditor: IOTAFormEditor);
     procedure ValidateIOTAModules;
@@ -54,7 +54,7 @@ end;
 
 
 { TBoldComponentValidatorIDE }
-constructor TBoldComponentValidatorIDE.create;
+constructor TBoldComponentValidatorIDE.Create;
 begin
   fMenuItemAll := BoldMenuExpert.AddMenuItem('mnuValidateAllForms',
                                              'Validate All Forms',

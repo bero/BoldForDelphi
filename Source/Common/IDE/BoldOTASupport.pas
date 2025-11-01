@@ -163,7 +163,7 @@ begin
   result := FindDelphiModuleForFile(FileName);
 
   WasOpen := assigned(Result);
-  
+
   if not Assigned(Result) then
   begin
     Project := GetOTAProject;
@@ -249,19 +249,17 @@ begin
 end;
 
 function GetOTAProject: IOTAProject;
-var
-  i: integer;
-  CurrentModule: IOTAModule;
 begin
-  result := (BorlandIDEServices as IOTAModuleServices).GetActiveProject;
+  Result := (BorlandIDEServices as IOTAModuleServices).GetActiveProject;
   if OTADEBUG then
   begin
-    if Assigned(result) then
-      BoldLog.LogFmt('CurrentModule:', [result.FileName])
+    if assigned(Result)
+    then
+      BoldLog.LogFmt('CurrentModule:', [Result.FileName])
     else
       BoldLog.Log('CurrentModule not found');
-        end;
-    end;
+  end;
+end;
 
 function FindFileModuleInProject(const fileName: String; Project: IOTAProject): IOTAModule;
 var
@@ -405,7 +403,7 @@ end;
 
 procedure TBoldModuleCreator.FormCreated(const FormEditor: IOTAFormEditor);
 begin
-end;   
+end;
 
 constructor TBoldUnitFile.Create(const UnitIdent: string);
 begin

@@ -70,8 +70,8 @@ begin
 end;
 
 procedure TBoldMenuExpert.ActionHelp(Sender: TObject);
-var
-  HelpHandle: HWND;
+//var
+//  HelpHandle: HWND;
 begin
 //FIXME PORT ###What happened to the helpfile property?
 { -- temproary removed during porting

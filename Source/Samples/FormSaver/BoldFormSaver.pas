@@ -583,9 +583,11 @@ begin
   SetBoldPersistenceState(bvpsInvalid);
   SetElementFlag(befDerived, true);
   SubscribeToLocatorsInList := true;
+
+{  TODO: Fix later
   Deriver.OnDeriveAndSubscribe := _MakeValid;
   Deriver.OnReverseDerive := _ReverseDerive;
-  Deriver.OnNotifyOutOfdate := _NotifyOutOfDate;
+  Deriver.OnNotifyOutOfdate := _NotifyOutOfDate; }
 end;
 
 procedure TBoldAbstractDirtyList.FreeContent;

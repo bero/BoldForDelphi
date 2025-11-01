@@ -67,14 +67,14 @@ end;
 
 function TProjectWizard.GetCurrentProject(var Project: IOTAProject): Boolean;
 var
-  ModuleServices: IOTAModuleSErvices;
+  ModuleServices: IOTAModuleServices;
   CurrentModule: IOTAModule;
   i: integer;
 begin
   Result := false;
   Project := nil;
   ModuleServices := (BorlandIDEServices as IOTAModuleServices);
-  CurrentModule:= ModuleServices.CurrentModule;
+  CurrentModule := ModuleServices.CurrentModule;
   if Assigned(CurrentModule) then
   begin
     if (CurrentModule.QueryInterface(IOTAProject, Project) = S_OK) then
@@ -83,18 +83,18 @@ begin
       Result := true;
     end;
     if not Result then
-      if (CurrentModule.GetOwnerCount > 0) then
-        for i:= 0 to CurrentModule.OwnerCount - 1 do
-          if (CurrentModule.GetOwner(i).QueryInterface(IOTAProject, Project) = S_OK) then
+      if (CurrentModule.OwnerCount > 0) then
+        for i := 0 to CurrentModule.OwnerCount - 1 do
+          if (CurrentModule.Owners[i].QueryInterface(IOTAProject, Project) = S_OK) then
           begin
-            Project := CurrentModule.GetOwner(i) as IOTAProject;
+            Project := CurrentModule.Owners[i] as IOTAProject;
             Result := true;
             Break;
           end;
 
     if not Result then
       if (ModuleServices.ModuleCount > 0) then
-        for i:=0 to ModuleServices.GetModuleCount - 1 do
+        for i := 0 to ModuleServices.ModuleCount - 1 do
           if ModuleServices.Modules[i].QueryInterface(IOTAProject, Project) = S_OK then
           begin
             Project := ModuleServices.Modules[i] as IOTAProject;
