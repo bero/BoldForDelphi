@@ -226,7 +226,8 @@ var
 implementation
 
 uses
-  SysUtils,
+  System.SysUtils,
+  System.Types,
   BoldDefs,
   BoldRev;
 
@@ -826,12 +827,10 @@ begin
 end;
 
 procedure TBoldIntegerIndex.RemoveByIndex(Index: Integer);
-var
-  Temp: TObject;
 begin
   if (Index < 0) or (Index >= FCount) then
     RangeError(Index);
-  Temp := FObjectStaticArray^[Index];
+
   Dec(FCount);
   if Index < FCount then
     System.Move(FObjectStaticArray^[Index + 1], FObjectStaticArray^[Index],
