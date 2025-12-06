@@ -59,7 +59,7 @@
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <SanitizedProjectName>dclBoldUniDAC</SanitizedProjectName>
         <DesignOnlyPackage>true</DesignOnlyPackage>
-        <DCC_UnitSearchPath>$(BoldDelphi)\Source\Common\Include;C:\Attracs\Attracs-Common\components\UniDAC\Source;C:\Attracs\Attracs-Common\components\UniDAC\Source\UniProviders\SQLServer;C:\Attracs\Attracs-Common\components\UniDAC\Source\UniProviders\TDS;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>Source\Common\Include;$(UniDAC)\Source;$(UniDAC)\Source\UniProviders\SQLServer;$(UniDAC)\Source\UniProviders\TDS;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>2077</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>

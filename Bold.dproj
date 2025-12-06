@@ -46,7 +46,7 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
-        <DCC_BplOutput>$(AttracsRepoRoot)\BPL</DCC_BplOutput>
+        <DCC_BplOutput>Bin</DCC_BplOutput>
         <DCC_F>false</DCC_F>
         <DCC_S>false</DCC_S>
         <GenPackage>true</GenPackage>
@@ -63,7 +63,7 @@
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
         <VerInfo_Locale>2077</VerInfo_Locale>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
-        <DCC_UnitSearchPath>$(BoldDelphi)\Source;$(BoldDelphi)\Source\Forms;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>Source;Source\Forms;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DllPrefix>dcl</DllPrefix>
         <DllPrefixDefined>true</DllPrefixDefined>
         <DllVersion>29</DllVersion>

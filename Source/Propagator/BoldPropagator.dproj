@@ -61,8 +61,8 @@
         <VerInfo_Locale>1053</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_UnitAlias>Windows=WinApi.Windows;Messages=WinApi.Messages;WinInet=WinApi.WinInet;Registry=System.Win.Registry;ActiveX=WinApi.ActiveX;SysUtils=System.SysUtils;Classes=System.Classes;Math=Borland.Delphi.Math;SyncObjs=System.SyncObjs;Contnrs=System.Contnrs;Variants=System.Variants;forms=Vcl.forms;Buttons=Vcl.Buttons;controls=Vcl.controls;dialogs=Vcl.dialogs;stdctrls=Vcl.stdctrls;AppEvnts=Vcl.AppEvnts;Graphics=Vcl.Graphics;ExtCtrls=Vcl.ExtCtrls;ComCtrls=Vcl.ComCtrls;Menus=Vcl.Menus;ImgList=Vcl.ImgList;db=Data.db;$(DCC_UnitAlias)</DCC_UnitAlias>
-        <DCC_UnitSearchPath>$(BoldDelphi)\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-        <DCC_ExeOutput>$(BoldDelphi)\Bin</DCC_ExeOutput>
+        <DCC_UnitSearchPath>..;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_ExeOutput>..\..\Bin</DCC_ExeOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
