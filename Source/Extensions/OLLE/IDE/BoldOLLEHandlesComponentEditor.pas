@@ -22,7 +22,8 @@ implementation
 
 uses
   SysUtils,
-  BoldUtils;
+  BoldUtils,
+  BoldCoreConsts;
 
 { TBoldOLLEHandleComponentEditor }
 
@@ -38,9 +39,9 @@ end;
 function TBoldOLLEHandleComponentEditor.GetVerb(index: Integer): string;
 begin
   case index of
-  0: result := 'Generate OLLE database';
+  0: result := sGenerateOLLEDB;
   else
-    result := 'Nonexisting action';
+    result := sNonexistingAction;
   end;
 end;
 

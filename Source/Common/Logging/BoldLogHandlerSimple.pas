@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldLogHandlerSimple;
@@ -16,14 +16,18 @@ type
   TBoldSimpleLogReceiver = class(TInterfacedObject, IBoldLogReceiver)
   private
     fLogLines: TStringList;
+    FEnabled: Boolean;
     function GetLogLines: TStringList;
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
   protected
     procedure SetProgress(const Value: integer);
     procedure SetLogHeader(const Value: string); virtual;
     procedure SetProgressMax(const Value: integer);
     procedure ProcessInterruption;
+
   public
-    destructor destroy; override;
+    destructor Destroy; override;
     procedure Clear;
     procedure Hide;
     procedure Log(const s: string; LogType: TBoldLogType); virtual;
@@ -33,14 +37,16 @@ type
     procedure StartLog(const SessionName: string); virtual;
     procedure EndLog;
     property LogLines: TStringList read GetLogLines;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
   end;
 
 implementation
 
 uses
   SysUtils,
-  BoldUtils,
-  BoldRev;
+
+  BoldCoreConsts,
+  BoldUtils;
 
 { TBoldSimpleLogReceiver }
 
@@ -49,7 +55,7 @@ begin
   LogLines.Clear;
 end;
 
-destructor TBoldSimpleLogReceiver.destroy;
+destructor TBoldSimpleLogReceiver.Destroy;
 begin
   FreeAndNil(fLogLines);
   inherited;
@@ -57,6 +63,11 @@ end;
 
 procedure TBoldSimpleLogReceiver.EndLog;
 begin
+end;
+
+function TBoldSimpleLogReceiver.GetEnabled: Boolean;
+begin
+  Result := FEnabled;
 end;
 
 function TBoldSimpleLogReceiver.GetLogLines: TStringList;
@@ -84,6 +95,11 @@ procedure TBoldSimpleLogReceiver.SetProgress(const Value: integer);
 begin
 end;
 
+procedure TBoldSimpleLogReceiver.SetEnabled(const Value: Boolean);
+begin
+  FEnabled := Value;
+end;
+
 procedure TBoldSimpleLogReceiver.SetLogHeader(const Value: string);
 begin
   Log(Value, ltInfo);
@@ -99,7 +115,7 @@ end;
 
 procedure TBoldSimpleLogReceiver.StartLog(const SessionName: String);
 begin
-  LogLines.Add('Session: ' + SessionName);
+  LogLines.Add(Format(sSessionStart, [SessionName]));
 end;
 
 procedure TBoldSimpleLogReceiver.ProcessInterruption;
@@ -109,7 +125,5 @@ end;
 procedure TBoldSimpleLogReceiver.Sync;
 begin
 end;
-
-initialization
 
 end.

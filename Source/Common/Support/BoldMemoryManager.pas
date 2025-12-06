@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////
+﻿/////////////////////////////////////////////////////////
 
 { Global compiler directives }
 {$include bold.inc}
@@ -56,21 +56,6 @@ const
   BoldMemoryManagerMaxPage = 16; // memoryblocks with 4*MaxPage will be handled, must be power of 2
 {//}  BoldMemoryManagerMask = ((1 shl BoldMemoryManagerLSBZero)-1) or (not Cardinal((BoldMemoryManagerMaxPage shl BoldMemoryManagerLSBZero)-1));  // mask for quick test of allowed size
 
-
-// Temporarly moved from BoldCommonConst
-  sMemoryManagerCalledInFinalization = 'Attempt to allocate with BoldMemoryManager during finalization';
-  sMemoryManagerDestroyed = 'MemoryManager destroyed';
-  sMemMgrSize = 'Size: %3d  InUse: %10d(%4.0f%%) Free: %10d';
-  sMemMgrAllocated = 'Allocated';
-  sMemMgrInUse = 'InUse';
-  sMemMgrOverHead = 'Overhead';
-  sMemMgrDisabled = 'The Bold Memorymanager has been disabled. ';
-  sMemMgrDisabledReason = '(caused by compilerdirective BOLD_DISABLEMEMORYMANAGER)';
-  sMemMgrTotalBigBlocks = 'Total Big blks';
-  sMemMgrBigBlockCount = 'Big block count';
-  sMemMgrNonBold = 'Non-Bold';
-  sMemMgrNonBoldCount = 'Non-Bold Count';
-
 type
   { forward declarations }
   TBoldMemoryManager = class;
@@ -127,7 +112,10 @@ function BoldMemoryManager_: TBoldMemoryManager;
 implementation
 
 uses
-  SysUtils, Types;
+  SysUtils,
+  Types,
+
+  BoldCoreConsts;
 
 {$IFDEF DEBUG_BOLDMEMORYMANAGER}
 const

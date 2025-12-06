@@ -1,4 +1,11 @@
 
+/////////////////////////////////////////////////////////
+//                                                     //
+//              Bold for Delphi                        //
+//    Copyright (c) 2002 BoldSoft AB, Sweden           //
+//                                                     //
+/////////////////////////////////////////////////////////
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldDatabaseAdapterIB;
@@ -34,7 +41,6 @@ type
     procedure CreateInterbaseDatabase(PageSize: integer = 4096);
     procedure EnsureInterbaseDatabase(PageSize: integer = 4096);
     procedure CreateDatabase(DropExisting: boolean = true); override;
-    procedure DropDatabase; override;
   published
     property DataBase: TIBDataBase read GetDataBase write SetDataBase;
     {$IFNDEF T2H}
@@ -46,8 +52,7 @@ implementation
 
 uses
   SysUtils,
-  BoldDefs,
-  BoldRev;
+  BoldDefs;
 
 { TBoldDatabaseAdapterIB }
 
@@ -70,11 +75,6 @@ begin
   inherited;
 end;
 
-procedure TBoldDatabaseAdapterIB.DropDatabase;
-begin
-  DatabaseInterface.DropDatabase;
-end;
-
 procedure TBoldDatabaseAdapterIB.EnsureInterbaseDatabase(
   PageSize: integer);
 begin
@@ -87,7 +87,7 @@ end;
 
 procedure TBoldDatabaseAdapterIB.CreateDatabase(DropExisting: boolean);
 begin
-  CreateInterbaseDatabase();
+  CreateInterbaseDatabase;
 end;
 
 function TBoldDatabaseAdapterIB.GetDataBase: TIBDataBase;
@@ -124,7 +124,5 @@ begin
       '%s.SetDatabaseEngine: value not allowed. This adapter only supports' + BOLDCRLF +
       'dbeUnknown, dbeInterbaseSQLDialect1, dbeInterbaseSQLDialect3', [classname]);
 end;
-
-initialization
 
 end.

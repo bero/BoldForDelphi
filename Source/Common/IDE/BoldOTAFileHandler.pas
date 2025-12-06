@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldOTAFileHandler;
@@ -80,14 +80,15 @@ implementation
 uses
   Dialogs,
   SysUtils,
+
+  BoldCoreConsts,
   BoldUtils,
-  BoldLogHandler,
-  BoldRev;
+  BoldLogHandler;
 
 constructor TBoldOTAFileHandler.create(const FileName: string; ModuleType: TBoldModuleType; ShowFileInGuiIfPossible: Boolean; OnInitializeFileContents: TBoldInitializeFileContents);
 begin
   if OTADEBUG then
-    BoldLog.LogFmt('Creating an OTA filehandler for file: %s', [FileName]);
+    BoldLog.LogFmt(sLogCreatingOTAFileHandler, [FileName]);
   inherited Create(ExtractFileName(FileName), ModuleType, ShowFileInGuiIfPossible, OnInitializeFileContents);
   fModuleCreator := nil;
 end;
@@ -122,9 +123,9 @@ begin
     if OTADEBUG then
     begin
       if fWasOpen then
-        BoldLog.Log(FileName + ' was already open')
+        BoldLog.LogFmt(sLogModuleWasOpen, [FileName])
       else
-        BoldLog.Log('had to open ' + FileName );
+        BoldLog.LogFmt(sLogHadToOpenModule, [FileName]);
     end;
   end;
 
@@ -147,7 +148,7 @@ begin
     end;
 
     if not Assigned(fOTASourceEditor) then
-      raise EBoldDesignTime.CreateFmt('Unable to open Source Editor for %s', [filename]);
+      raise EBoldDesignTime.CreateFmt(sUnableToOpenSourceEditor, [filename]);
   end;
 
   Result := fOTASourceEditor;
@@ -168,7 +169,7 @@ begin
     end;
   except
     on E: Exception do
-      Raise EBoldDesignTime.CreateFmt('Unable to position cursor in %s (line %d)', [FileName, Line]);
+      Raise EBoldDesignTime.CreateFmt(sUnableToPositionCursor, [FileName, Line]);
   end;
 end;
 
@@ -228,8 +229,8 @@ begin
   end
   else
   begin
-    BoldLog.LogFmt('%s is readonly!', [OTAModule.FileName], ltError);
-    ShowMessage(OTAModule.FileName + ' is readonly!');
+    BoldLog.LogFmt(sModuleReadOnly, [OTAModule.FileName], ltError);
+    ShowMessage(SysUtils.Format(sModuleReadOnly, [OTAModule.FileName]));
   end;
 end;
 
@@ -271,7 +272,7 @@ begin
   except
     on e: exception do
     begin
-      BoldLog.LogFmt('Unable to create reader: %s', [e.message], ltError);
+      BoldLog.LogFmt(sUnableToCreateReader, [e.message], ltError);
       raise
     end;
   end;
@@ -357,7 +358,7 @@ begin
         BoldLog.Log('Closed '+FileName);
     except
       on e: exception do
-        BoldLog.Log('Failed to Close '+FileName+': '+e.message);
+        BoldLog.LogFmt(sFailedToCloseModule, [FileName, e.Message]); // do not localize
     end;
     if OTADEBUG then
       BoldLog.Log('Done Closing '+FileName);

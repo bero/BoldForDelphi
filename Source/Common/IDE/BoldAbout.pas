@@ -86,17 +86,18 @@ implementation
 {$R *.dfm}
 
 uses
-  SysUtils,
+  ActiveX,
   Registry,
+  ShlObj,
+  SysUtils,
+
+  BoldCoreConsts,
   BoldUtils,
   BoldRegistry,
   BoldDefs,
   BoldWinINet,
   BoldCursorGuard,
-  BoldDefsDT,
-  ActiveX,
-  ShlObj,
-  BoldCommonConst;
+  BoldDefsDT;
 
 const
   SubItemRelease = 0;
@@ -176,8 +177,8 @@ procedure TfrmAboutBold.FormCreate(Sender: TObject);
 begin
   PageControl.ActivePage        := TabAbout;
   GetVersionInfo;
-  LabelURLBoldSoft.Caption      := URLBoldSoft;
-  LabelURLBoldForDelphi.Caption := URLBoldForDelphi;
+  LabelURLBoldSoft.Caption      := sURLBoldForDelphi;
+  LabelURLBoldForDelphi.Caption := sURLBoldForDelphi;
 
   // Hide both logos, and then redisplay the correct one.
   ImageLogoDelphi.visible := false;
@@ -228,8 +229,8 @@ begin
             if VerQueryValue(Buffer, StrPCopy(SubBlock, '\StringFileInfo\' + LangCharSetString + '\ProductName'), Data, DataLen) then // do not localize
             begin
               LabelProductName.Caption := StrPas(PChar(Data)); // marco
-              Caption := LabelProductName.Caption;
-            end;
+            Caption := LabelProductName.Caption;
+          end;
             if VerQueryValue(Buffer, StrPCopy(SubBlock, '\StringFileInfo\' + LangCharSetString + '\FileVersion'), Data, DataLen) then // do not localize
               LabelVersion.Caption := StrPas(PChar(Data));
             if VerQueryValue(Buffer, StrPCopy(SubBlock, '\StringFileInfo\' + LangCharSetString + '\LegalCopyright'), Data, DataLen) then // do not localize
@@ -309,17 +310,17 @@ end;
 procedure TfrmAboutBold.URLHomeClick(Sender: TObject);
 {Open BoldSoft homepage}
 begin
-  ShellExecute(0, 'open', URLBoldSoft, '', '', SW_SHOWMAXIMIZED); // do not localize
+  ShellExecute(0, 'open', PChar(sURLBoldForDelphi), '', '', SW_SHOWMAXIMIZED); // do not localize
 end;
 
 procedure TfrmAboutBold.URLProdClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', URLBoldForDelphi, '', '', SW_SHOWMAXIMIZED); // do not localize
+  ShellExecute(0, 'open', PChar(sURLBoldForDelphi), '', '', SW_SHOWMAXIMIZED); // do not localize
 end;
 
 procedure TfrmAboutBold.URLSupportClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', URLSupport, '', '', SW_SHOWNORMAL); // do not localize
+  ShellExecute(0, 'open', PChar(sURLSupport), '', '', SW_SHOWNORMAL); // do not localize
 end;
 
 {Register}
@@ -355,30 +356,9 @@ begin
     Result := ReadURL(Result);
 end;
 
-{
-// Activating a timer with this event when a deployment key is invalid
-// causes an AV in a releasebuild...
-// Can't say why, in a Dev-build it works fine
-
-procedure TfrmAboutBold.Timer1Timer(Sender: TObject);
-var
-  i: integer;
-const
-  ImageShifter: array[0..5] of integer = (0, 1, 2, 3, 5, 4);
-begin
-  for i := 0 to lvLicenses.Items.count - 1 do
-    lvLicenses.items[i].ImageIndex := ImageShifter[lvLicenses.items[i].ImageIndex];
-end;
-}
-
 function TfrmAboutBold.GetEffectiveLogo: TImage;
 begin
-  {$IFDEF BOLD_BCB}
-  result := imageLogoBCB;
-  {$ENDIF}
-  {$IFDEF BOLD_DELPHI}
   result := imageLogoDelphi;
-  {$ENDIF}
 end;
 
 end.

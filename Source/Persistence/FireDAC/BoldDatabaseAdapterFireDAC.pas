@@ -40,10 +40,11 @@ type
 implementation
 
 uses
-  BoldSQLDatabaseConfig,
   SysUtils,
+
+  BoldCoreConsts,
   BoldDefs,
-  BoldFireDACConsts;
+  BoldSQLDatabaseConfig;
 
 { TBoldDatabaseAdapterFireDAC }
 
@@ -79,7 +80,7 @@ function TBoldDatabaseAdapterFireDAC.GetDataBaseInterface: IBoldDatabase;
 begin
   if not Assigned(Connection) then
   begin
-    raise EBold.CreateFmt(sAdapterNotConnected, [ClassName]);
+    raise EBold.CreateFmt(sAdapterNotConnected, [ClassName, sFireDac]);
   end;
   if not Assigned(fBoldFireDACConnection) then
   begin

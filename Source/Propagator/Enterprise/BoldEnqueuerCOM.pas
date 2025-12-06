@@ -107,6 +107,4 @@ begin
   (Result as TBoldEnqueuerCOM).Enqueuer := Enqueuer;
 end;
 
-initialization
-
 end.

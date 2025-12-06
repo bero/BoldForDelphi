@@ -50,7 +50,7 @@ type
 implementation
 
 uses
-  Windows; // MSWINDOWS, InterlockedIncrement/Decrement
+  Windows;
 
 {-- TBoldAggregateableObject --------------------------------------------------}
 

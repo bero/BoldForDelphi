@@ -16,24 +16,37 @@ Only guess if the prompt actually tell this.
 ## Build Commands
 
 ```batch
-# Build main runtime package (must be built first)
-msbuild Bold.dpk /p:Config=Debug /p:Platform=Win32
-
-# Build design-time IDE package (requires Bold.dpk)
-msbuild dclBold.dpk /p:Config=Debug /p:Platform=Win32
+# Build for Delphi 12.3 (from packages\Delphi29 folder)
+cd packages\Delphi29
+msbuild Bold.dproj /p:Config=Debug /p:Platform=Win32
+msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32
 
 # Build unit tests
 msbuild UnitTest\UnitTest.dproj /p:Config=Debug /p:Platform=Win32
 ```
 
-### Database-Specific Packages
-```batch
-# Build specific database adapter packages as needed:
-msbuild BoldFireDAC.dpk   # FireDAC (recommended)
-msbuild BoldUniDAC.dpk    # UniDAC
-msbuild BoldAdo.dpk       # ADO
-msbuild BoldIB.dpk        # InterBase/IBX
+## Package Organization
+
+Packages are organized by Delphi version, with shared source code:
+
 ```
+BoldForDelphi/
+├── packages/
+│   ├── Delphi29/           ← Delphi 12.x Athens
+│   │   ├── Bold.dpk
+│   │   ├── Bold.dproj
+│   │   ├── dclBold.dpk
+│   │   └── dclBold.dproj
+│   └── Bin/                ← Compiled BPL output
+│       ├── Win32/
+│       └── Win64/
+├── Source/                 ← Shared source code
+└── ...
+```
+
+Output files:
+- `dclBold29.bpl` - Design-time package (D29 suffix for Delphi 12.x)
+- `Bold29.bpl` - Runtime package
 
 ## Environment Setup
 

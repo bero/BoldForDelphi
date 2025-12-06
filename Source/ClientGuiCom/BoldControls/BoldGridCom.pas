@@ -1,4 +1,11 @@
 
+/////////////////////////////////////////////////////////
+//                                                     //
+//              Bold for Delphi                        //
+//    Copyright (c) 2002 BoldSoft AB, Sweden           //
+//                                                     //
+/////////////////////////////////////////////////////////
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldGridCom;
@@ -1918,7 +1925,7 @@ end;
 function TBoldCustomGridCom.CanEditAcceptKey(KEY: Char): Boolean;
 begin
   Result := Assigned(CurrentCellFollower) and
-            TBoldStringFollowerControllerCom(CurrentCellFollower.Controller).ValidateCharacter(AnsiChar(Key), CurrentCellFollower);
+            TBoldStringFollowerControllerCom(CurrentCellFollower.Controller).ValidateCharacter(AnsiChar(KEY), CurrentCellFollower);
 end;
 
 function TBoldCustomGridCom.CanEditModify: Boolean;
@@ -3065,8 +3072,5 @@ begin
           CellFollowers[i, TopRow].EnsureMulti;
   end;
 end;
-
-
-initialization
 
 end.

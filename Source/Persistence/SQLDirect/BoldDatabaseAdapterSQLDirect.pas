@@ -1,4 +1,3 @@
-
 { Global compiler directives }
 {$include bold.inc}
 unit BoldDatabaseAdapterSQLDirect;
@@ -31,7 +30,6 @@ type
         E: ESDEngineError; var Action: TSDLostConnectAction);
     procedure ReconnectError(Database: TSDDatabase;
         E: ESDEngineError; var Action: TSDLostConnectAction);
-    procedure CreateDatabase; override;
   published
     property DataBase: TSDDataBase read GetDataBase write SetDataBase;
     {$IFNDEF T2H}
@@ -43,15 +41,9 @@ implementation
 
 uses
   SysUtils,
-  BoldDefs,
-  BoldRev;
+  BoldDefs;
 
 { TBoldDatabaseAdapterSQLDirect }
-
-procedure TBoldDatabaseAdapterSQLDirect.CreateDatabase;
-begin
-  DatabaseInterface.CreateDatabase;
-end;
 
 destructor TBoldDatabaseAdapterSQLDirect.Destroy;
 begin
@@ -85,6 +77,7 @@ procedure TBoldDatabaseAdapterSQLDirect.LostConnectError(
   var Action: TSDLostConnectAction);
 begin
   Action:=lcWaitReconnect;
+  DoOnDisconnect(self);
 end;
 
 procedure TBoldDatabaseAdapterSQLDirect.ReconnectError(
@@ -98,9 +91,10 @@ procedure TBoldDatabaseAdapterSQLDirect.SetDataBase(const Value: TSDDataBase);
 begin
   value.OnLostConnectError:=LostConnectError;
   value.OnReconnectError:=ReconnectError;
+  value.AfterConnect:= DoOnConnect;
+  value.AfterReConnect:= DoOnReconnect;
+  Value.AfterDisconnect := DoOnDisconnect;
   InternalDatabase := value;
 end;
-
-initialization
 
 end.

@@ -8,7 +8,7 @@ interface
 uses
   BoldDefaultTaggedValues,
   BoldUMLTaggedValues,
-  Bold_MSXML_TLB,
+  {$IFDEF OXML}OXmlPDOM{$ELSE}Bold_MSXML_TLB{$ENDIF},
   BoldTaggedValueList;
 
 type

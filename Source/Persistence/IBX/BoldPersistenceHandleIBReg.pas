@@ -51,12 +51,9 @@ end;
 
 procedure Register;
 begin
-  RegisterComponents(BOLDPAGENAME_PERSISTENCE, [TBoldDatabaseAdapterIB]);
-  RegisterComponents(BOLDPAGENAME_DEPRECATED, [TBoldPersistenceHandleIB]);
-  RegisterPropertyEditor(TypeInfo(string), TBoldPersistenceHandleIB, 'DataBaseName', TBoldIBDatabaseProperty);
-
-  RegisterActions(BOLDACTIONGROUPNAME, [TBoldIBDatabaseAction], nil);
-  RegisterComponentEditor(TBoldDatabaseAdapterIB, TBoldDatabaseAdapterIBEditor);
+    RegisterComponents(BOLDPAGENAME_PERSISTENCE, [TBoldDatabaseAdapterIB]);
+    RegisterActions(BOLDACTIONGROUPNAME, [TBoldIBDatabaseAction], nil);
+    RegisterComponentEditor(TBoldDatabaseAdapterIB, TBoldDatabaseAdapterIBEditor);
 end;
 
 { TBoldDatabaseAdapterIBEditor }

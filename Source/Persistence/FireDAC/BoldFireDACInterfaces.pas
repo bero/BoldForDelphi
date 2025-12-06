@@ -83,30 +83,31 @@ type
     fQuery: TFDQuery;
     fReadTransactionStarted: Boolean;
     fUseReadTransactions: boolean;
-    function GetQuery: TFDQuery; {$IFDEF BOLD_INLINE} inline; {$ENDIF}
+    function GetQuery: TFDQuery;
     procedure AssignParams(Sourceparams: TParams);
     function GetParamCount: Integer;
-    function GetParam(i: Integer): IBoldParameter;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
+    function GetParam(i: Integer): IBoldParameter;
     function GetParamCheck: Boolean;
     procedure SetParamCheck(value: Boolean);
     function GetRequestLiveQuery: Boolean;
-    function ParamByName(const Value: string): IBoldParameter; override;
-    function FindParam(const Value: string): IBoldParameter; override;
-    function Createparam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; override;
     procedure SetRequestLiveQuery(NewValue: Boolean);
     procedure AssignSQL(SQL: TStrings); virtual;
-    function GetSQLStrings: TStrings; override;
     function GetRecordCount: Integer;
     function GetUseReadTransactions: boolean;
     procedure SetUseReadTransactions(value: boolean);
     procedure BeginExecuteQuery;
     procedure EndExecuteQuery;
   protected
+    function ParamByName(const Value: string): IBoldParameter; override;
+    function FindParam(const Value: string): IBoldParameter; override;
+    function Createparam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; override;
     function GetParams: TParams; override;
     function GetSqlText: string; override;
+    function GetSQLStrings: TStrings; override;
     procedure AssignSQLText(const SQL: string); override;
     function GetRowsAffected: Integer;
     function GetDataSet: TDataSet; override;
+    procedure Prepare;
     procedure ClearParams;
     procedure Open; override;
     procedure Close; override;
@@ -147,7 +148,7 @@ type
     procedure BeginExecuteQuery;
     procedure EndExecuteQuery;
     function GetBatchQueryParamCount: integer;
-//    procedure Prepare;
+    procedure Prepare;
   protected
     procedure StartSQLBatch; virtual;
     procedure EndSQLBatch; virtual;
@@ -221,6 +222,8 @@ type
     function GetUpdateTransaction: TFDTransaction;
     procedure SetTransaction(const Value: TFDTransaction);
     procedure SetUpdateTransaction(const Value: TFDTransaction);
+    function CreateAnotherDatabaseConnection: IBoldDatabase;
+    function GetImplementor: TObject;
   protected
     procedure AllTableNames(Pattern: string; ShowSystemTables: Boolean; TableNameList: TStrings); override;
     function GetTable: IBoldTable; override;
@@ -282,7 +285,7 @@ end;
 
 function TBoldFireDACQuery.GetParamCheck: Boolean;
 begin
-  result := true; // ?
+  result := Query.ResourceOptions.ParamCreate;
 end;
 
 function TBoldFireDACQuery.GetParamCount: Integer;
@@ -551,10 +554,14 @@ begin
   Result := TBoldFireDACParameter.Create(lFDParam, Self)
 end;
 
+procedure TBoldFireDACQuery.Prepare;
+begin
+  Query.Prepare;
+end;
+
 procedure TBoldFireDACQuery.SetParamCheck(value: Boolean);
 begin
-//  if Query.ParamCheck <> Value then
-//    Query.ParamCheck := Value;
+  Query.ResourceOptions.ParamCreate := Value;
 end;
 
 procedure TBoldFireDACQuery.SetRequestLiveQuery(NewValue: Boolean);
@@ -742,15 +749,12 @@ var
   lAllTables: TStringList;
   lGuard: IBoldGuard;
 begin
-  lGuard := TBoldGuard.Create(lAllTables);
   Result := False;
-
-  // First we make sure we have a table component and that it is connected to a database
   if Assigned(FDTable) and Assigned(FDTable.Connection) then
   begin
-    // We now create a list that will hold all the table names in the database
+    lGuard := TBoldGuard.Create(lAllTables);
     lAllTables := TStringList.Create;
-    FDTable.Connection.GetTableNames('', '', '', lAllTables); // ?
+    FDTable.Connection.GetTableNames('', '', '', lAllTables, [osMy], [tkTable], false);
     Result := lAllTables.IndexOf(GetTableName) <> -1;
   end;
 end;
@@ -830,6 +834,11 @@ end;
 procedure TBoldFireDACConnection.Commit;
 begin
   FDConnection.Commit;
+end;
+
+function TBoldFireDACConnection.GetImplementor: TObject;
+begin
+  result := FDConnection;
 end;
 
 function TBoldFireDACConnection.GetInTransaction: Boolean;
@@ -953,6 +962,13 @@ begin
   fFDConnection := aFDConnection;
 end;
 
+function TBoldFireDACConnection.CreateAnotherDatabaseConnection: IBoldDatabase;
+begin
+  var Connection := TFDConnection.Create(nil); // owner ?
+  Connection.Assign(self.fFDConnection);
+  result := TBoldFireDACConnection.Create(Connection, SQLDatabaseConfig);
+end;
+
 procedure TBoldFireDACConnection.BeginExecuteQuery;
 begin
   inc(fExecuteQueryCount);
@@ -997,15 +1013,15 @@ function TBoldFireDACConnection.GetDatabaseError(const E: Exception;
 const
   SQLERRORCODE = 'SQL Error Code: ';
 var
-  iErrorCode: Integer;
-  sMsg: string;
+{  iErrorCode: Integer;
   iPos: Integer;
-  aErrorType: TBoldDatabaseErrorType;
   sServer,
   sDatabase,
   sUsername: string;
-  bUseWindowsAuth: Boolean;
+  bUseWindowsAuth: Boolean;}
   vConnectionString: string;
+  sMsg: string;
+  aErrorType: TBoldDatabaseErrorType;
 const
   // Provider names copied here to avoid dependancy
   cMSSQLProvider = 'SQL Server'; // TSQLServerFDProvider.GetProviderName
@@ -1135,6 +1151,8 @@ begin
   end;
 end;
 
+type TCollectionAccess = class(TCollection);
+
 procedure TBoldFireDACConnection.ReleaseQuery(var Query: IBoldQuery);
 var
   lBoldFireDACQuery: TBoldFireDACQuery;
@@ -1143,6 +1161,10 @@ begin
   begin
     lBoldFireDACQuery := Query.Implementor as TBoldFireDACQuery;
     lBoldFireDACQuery.clear;
+    while lBoldFireDACQuery.SQLStrings.Updating do
+      lBoldFireDACQuery.SQLStrings.EndUpdate;
+    while TCollectionAccess(lBoldFireDACQuery.Params).UpdateCount > 0 do
+      lBoldFireDACQuery.Params.EndUpdate;
     Query := nil;
     if not Assigned(fCachedQuery1) then
       fCachedQuery1 := lBoldFireDACQuery
@@ -1157,18 +1179,20 @@ end;
 procedure TBoldFireDACConnection.ReleaseExecQuery(var Query: IBoldExecQuery);
 var
   lBoldFireDACQuery: TBoldFireDACQuery;
-  lBoldFireDACExecQuery: TBoldFireDACExecQuery;
+//  lBoldFireDACExecQuery: TBoldFireDACExecQuery;
 begin
   if (Query.Implementor is TBoldFireDACQuery) then
   begin
     lBoldFireDACQuery := Query.Implementor as TBoldFireDACQuery;
-    if lBoldFireDACQuery.GetSQLStrings.Count <> 0 then
+    if lBoldFireDACQuery.SQLStrings.Count <> 0 then
     begin
-      lBoldFireDACQuery.GetSQLStrings.BeginUpdate;
+      lBoldFireDACQuery.SQLStrings.BeginUpdate;
       lBoldFireDACQuery.clear;
     end;
-    while TStringsAccess(lBoldFireDACQuery.GetSQLStrings).UpdateCount > 0 do
-      lBoldFireDACQuery.GetSQLStrings.EndUpdate;
+    while lBoldFireDACQuery.SQLStrings.Updating do
+      lBoldFireDACQuery.SQLStrings.EndUpdate;
+    while TCollectionAccess(lBoldFireDACQuery.Params).UpdateCount > 0 do
+      lBoldFireDACQuery.Params.EndUpdate;
     Query := nil;
     if not Assigned(fCachedExecQuery1) then
       fCachedExecQuery1 := lBoldFireDACQuery
@@ -1269,7 +1293,7 @@ end;
 
 function TBoldFireDACParameter.GetAsMemo: string;
 begin
-  Result := FDParam.AsMemo;
+  Result := String(FDParam.AsMemo);
 end;
 
 function TBoldFireDACParameter.GetAsString: string;
@@ -1378,7 +1402,7 @@ end;
 
 procedure TBoldFireDACParameter.SetAsMemo(const Value: string);
 begin
-  FDParam.AsMemo := Value;
+  FDParam.AsMemo := AnsiString(Value);
 end;
 
 procedure TBoldFireDACParameter.SetAsSmallInt(Value: Integer);
@@ -1635,7 +1659,7 @@ end;
 
 function TBoldFireDACExecQuery.GetParamCheck: Boolean;
 begin
-  result := true;
+  result := ExecQuery.ResourceOptions.ParamCreate;
 end;
 
 function TBoldFireDACExecQuery.GetParamCount: Integer;
@@ -1687,14 +1711,14 @@ begin
   end;
 end;
 
-{procedure TBoldFireDACExecQuery.Prepare;
+procedure TBoldFireDACExecQuery.Prepare;
 begin
   ExecQuery.Prepare;
-end;}
+end;
 
 procedure TBoldFireDACExecQuery.SetParamCheck(value: Boolean);
 begin
-//  ExecQuery.ParamCheck := Value;
+  ExecQuery.ResourceOptions.ParamCreate := Value;
 end;
 
 procedure TBoldFireDACExecQuery.SetUseReadTransactions(value: boolean);

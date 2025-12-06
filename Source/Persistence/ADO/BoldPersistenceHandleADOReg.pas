@@ -20,8 +20,8 @@ uses
 
 procedure Register;
 begin
-   RegisterComponents(BOLDPAGENAME_DEPRECATED, [TBoldPersistenceHandleADO]);
-  RegisterComponents(BOLDPAGENAME_PERSISTENCE, [TBoldDatabaseAdapterADO]);
+    RegisterComponents(BOLDPAGENAME_DEPRECATED, [TBoldPersistenceHandleADO]);
+    RegisterComponents(BOLDPAGENAME_PERSISTENCE, [TBoldDatabaseAdapterADO]);
 end;
 
 end.

@@ -24,6 +24,8 @@ uses
   BoldAbstractModel,
   BoldUMLMMLink;
 
+{$R *.res}
+
 type
   { forward declarations }
   TBoldUMLMMFileNameProperty = class;
@@ -69,8 +71,8 @@ end;
 
 procedure Register;
 begin
-  RegisterComponentsOnPalette;
-  RegisterEditors;
+    RegisterComponentsOnPalette;
+    RegisterEditors;
 end;
 
 end.

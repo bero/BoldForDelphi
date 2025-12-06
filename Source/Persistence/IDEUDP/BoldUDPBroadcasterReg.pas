@@ -14,6 +14,8 @@ uses
   BoldIDEConsts,
   BoldUDPModificationBroadCaster;
 
+{$R BoldUDPBroadCaster.res}
+
 procedure Register;
 begin
   RegisterComponents(BOLDPAGENAME_OSS_CMS, [TBoldUDPModificationBroadcaster]);

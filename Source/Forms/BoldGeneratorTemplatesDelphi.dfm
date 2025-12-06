@@ -1,7 +1,4 @@
 object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
-  OldCreateOrder = False
-  Left = 285
-  Top = 161
   Height = 479
   Width = 741
   object UnitTemplate: TBoldTemplateHolder
@@ -22,6 +19,7 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       ''
       'unit $(UNITNAME);'
       ''
+      '{$INCLUDE Bold.inc}'
       '{$DEFINE $(UNITNAME)_unitheader}'
       '{$INCLUDE $(UNITNAME)_Interface.inc}'
       ''
@@ -93,13 +91,15 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
         'PE);'
       'SingleRole|1|begin'
       
-        'SingleRole|1|  assert(not assigned(M_$(MEMBERNAME).BoldObject) o' +
-        'r (M_$(MEMBERNAME).BoldObject is $(MEMBERTYPE)), SysUtils.format' +
-        '(BoldMemberAssertInvalidObjectType, [ClassName, '#39'$(MEMBERNAME)'#39',' +
-        ' M_$(MEMBERNAME).BoldObject.ClassName, '#39'$(MEMBERTYPE)'#39']));'
-      
         'SingleRole|1|  Result := $(MEMBERTYPE)(M_$(MEMBERNAME).BoldObjec' +
         't);'
+      
+        'SingleRole|1|  if (assigned(Result) and not (Result is $(MEMBERT' +
+        'YPE))) then'
+      
+        'SingleRole|1|    Assert(false, SysUtils.format(BoldMemberAssertI' +
+        'nvalidObjectType, [ClassName, '#39'$(MEMBERNAME)'#39', Result.ClassName,' +
+        ' '#39'$(MEMBERTYPE)'#39']));'
       'SingleRole|1|end;'
       'SingleRole|1|'
       'SingleRole|1|$(CASEISTRUEROLE)\'
@@ -127,8 +127,8 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       'MultiRole |1|'
       'MultiRole |1|$(CASEROLEQUALIFIED)\'
       
-        'MultiRole |1|1|function $(CLASSNAME)._Get_Q_$(MEMBERNAME)($(QUAL' +
-        'IFIERFUNCTIONPARAMS)): $(MEMBERTYPE);'
+        'MultiRole |1|1|function $(CLASSNAME)._Get_Q_$(MEMBERNAME)(const ' +
+        '$(QUALIFIERFUNCTIONPARAMS)): $(MEMBERTYPE);'
       'MultiRole |1|1|var'
       'MultiRole |1|1|  TempResult: TBoldObject;'
       'MultiRole |1|1|  TempList: TBoldMemberList;'
@@ -228,42 +228,67 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       '1|  SetElement(index, NewObject);'
       '1|end;'
       '1|'
+      '1|{$IFDEF UseBoldListEnumerator}'
+      
+        '1|function $(CLASSNAME)List.GetEnumerator: $(CLASSNAME)ListEnume' +
+        'rator;'
+      '1|begin'
+      '1| Result := $(CLASSNAME)ListEnumerator.Create(Self);'
+      '1|end;'
+      '1|'
+      '1|function $(CLASSNAME)ListEnumerator.GetCurrent: $(CLASSNAME);'
+      '1|begin'
+      '1| Result := List[Index] as $(CLASSNAME);'
+      '1|end;'
+      '1|'
+      '1|{$ENDIF UseBoldListEnumerator}'
+      '1|'
       '$(ENDCASEUSETYPEDLISTS)\'
       '\'
       '$(CASECLASSINTRODUCESMANUALLYDERIVEDMEMBERS)\'
       
-        'true|function $(CLASSNAME).GetDeriveMethodForMember(Member: TBol' +
-        'dMember): TBoldDeriveAndResubscribe;'
+        'true|function $(CLASSNAME).GetDeriveMethodForMember(MemberIndex:' +
+        ' Integer): TBoldDeriveAndResubscribe;'
       'true|begin'
+      'true|  case MemberIndex of'
       'true|$(LOOPDERIVEDMEMBERCOUNT)\'
       'true|$(CASEDERIVEDMEMBERINTRODUCEDHERE)\'
+      'true|1|$(CASEDERIVEDMEMBERFORWARDCODEDERVIED)\'
       
-        'true|1|  if (Member = M_$(DERIVEDMEMBERNAME)) then result := _$(' +
-        'DERIVEDMEMBERNAME)_DeriveAndSubscribe else'
+        'true|1|1|    $(DERIVEDMEMBERINDEX): result := _$(DERIVEDMEMBERNA' +
+        'ME)_DeriveAndSubscribe;'
+      'true|1|$(ENDCASEDERIVEDMEMBERFORWARDCODEDERVIED)\'
       'true|$(ENDCASEDERIVEDMEMBERINTRODUCEDHERE)\'
       'true|$(ENDLOOPDERIVEDMEMBERCOUNT)\'
-      'true|  result := inherited GetDeriveMethodForMember(Member);'
+      
+        'true|  else result := inherited GetDeriveMethodForMember(MemberI' +
+        'ndex);'
+      'true|  end;'
       'true|end;'
       'true|'
+      '$(ENDCASECLASSINTRODUCESMANUALLYDERIVEDMEMBERS)\'
+      '$(CASECLASSINTRODUCESMANUALLYREVERSEDERIVEDMEMBERS)\'
       
         'true|function $(CLASSNAME).GetReverseDeriveMethodForMember(Membe' +
-        'r: TBoldMember): TBoldReverseDerive;'
+        'rIndex: Integer): TBoldReverseDerive;'
       'true|begin'
-      
-        'true|  result := inherited GetReverseDeriveMethodForMember(Membe' +
-        'r);'
+      'true|  case MemberIndex of'
       'true|$(LOOPDERIVEDMEMBERCOUNT)\'
       'true|$(CASEDERIVEDMEMBERINTRODUCEDHERE)\'
       'true|1|$(CASEDERIVEDMEMBERREVERSEDERIVED)\'
       
-        'true|1|1|  if not assigned(result) and (Member = M_$(DERIVEDMEMB' +
-        'ERNAME)) then result := _$(DERIVEDMEMBERNAME)_ReverseDerive;'
+        'true|1|1|    $(DERIVEDMEMBERINDEX): result := _$(DERIVEDMEMBERNA' +
+        'ME)_ReverseDerive;'
       'true|1|$(ENDCASEDERIVEDMEMBERREVERSEDERIVED)\'
       'true|$(ENDCASEDERIVEDMEMBERINTRODUCEDHERE)\'
       'true|$(ENDLOOPDERIVEDMEMBERCOUNT)\'
+      
+        'true|  else result := inherited GetReverseDeriveMethodForMember(' +
+        'MemberIndex);'
+      'true|  end;'
       'true|end;'
       'true|'
-      '$(ENDCASECLASSINTRODUCESMANUALLYDERIVEDMEMBERS)\'
+      '$(ENDCASECLASSINTRODUCESMANUALLYREVERSEDERIVEDMEMBERS)\'
       '\'
       '$(ENDLOOPCLASSCOUNT)\'
       '\'
@@ -355,8 +380,8 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       'MultiRole |$(CASEROLENAVIGABLE)\'
       'MultiRole |1|$(CASEROLEQUALIFIED)\'
       
-        'MultiRole |1|1|    property $(MEMBERNAME)[$(QUALIFIERPROPERTYPAR' +
-        'AMS)]: $(MEMBERTYPE) read _Get_Q_$(MEMBERNAME);'
+        'MultiRole |1|1|    property $(MEMBERNAME)[const $(QUALIFIERPROPE' +
+        'RTYPARAMS)]: $(MEMBERTYPE) read _Get_Q_$(MEMBERNAME);'
       
         'MultiRole |1|0|    property $(MEMBERNAME): $(MEMBERTYPE)List rea' +
         'd _Get$(MEMBERNAME);'
@@ -498,8 +523,8 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
         'st;'
       '    MultiRole |1|$(CASEROLEQUALIFIED)\'
       
-        '    MultiRole |1|1|    function _Get_Q_$(MEMBERNAME)($(QUALIFIER' +
-        'FUNCTIONPARAMS)): $(MEMBERTYPE);'
+        '    MultiRole |1|1|    function _Get_Q_$(MEMBERNAME)(const $(QUA' +
+        'LIFIERFUNCTIONPARAMS)): $(MEMBERTYPE);'
       '    MultiRole |1|$(ENDCASEROLEQUALIFIED)\'
       '    MultiRole |$(ENDCASEROLENAVIGABLE)\'
       '$(ENDCASEMEMBERKIND)$(ENDLOOPMEMBERCOUNT)\'
@@ -524,10 +549,12 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       '  protected'
       '\'
       '$(LOOPDERIVEDMEMBERCOUNT)\'
+      '$(CASEDERIVEDMEMBERFORWARDCODEDERVIED)\'
       
-        '    procedure _$(DERIVEDMEMBERNAME)_DeriveAndSubscribe(DerivedOb' +
-        'ject: TObject; Subscriber: TBoldSubscriber); $(?DERIVEDMEMBERINT' +
-        'RODUCEDHERE:virtual,override);'
+        '1|    procedure _$(DERIVEDMEMBERNAME)_DeriveAndSubscribe(Derived' +
+        'Object: TObject; Subscriber: TBoldSubscriber); $(?DERIVEDMEMBERI' +
+        'NTRODUCEDHERE:virtual,override);'
+      '$(ENDCASEDERIVEDMEMBERFORWARDCODEDERVIED)\'
       '$(CASEDERIVEDMEMBERREVERSEDERIVED)\'
       
         '1|    procedure _$(DERIVEDMEMBERNAME)_ReverseDerive(DerivedObjec' +
@@ -537,12 +564,14 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       '\'
       '$(CASECLASSINTRODUCESMANUALLYDERIVEDMEMBERS)\'
       
-        '    true|    function GetDeriveMethodForMember(Member: TBoldMemb' +
-        'er): TBoldDeriveAndResubscribe; override;'
-      
-        '    true|    function GetReverseDeriveMethodForMember(Member: TB' +
-        'oldMember): TBoldReverseDerive; override;'
+        '    true|    function GetDeriveMethodForMember(MemberIndex: Inte' +
+        'ger): TBoldDeriveAndResubscribe; override;'
       '$(ENDCASECLASSINTRODUCESMANUALLYDERIVEDMEMBERS)\'
+      '$(CASECLASSINTRODUCESMANUALLYREVERSEDERIVEDMEMBERS)\'
+      
+        '    true|    function GetReverseDeriveMethodForMember(MemberInde' +
+        'x: Integer): TBoldReverseDerive; override;'
+      '$(ENDCASECLASSINTRODUCESMANUALLYREVERSEDERIVEDMEMBERS)\'
       '\'
       '$(LOOPDelphiAttributeCount)\'
       '$(CASEDelphiAttributePropertyRead)\'
@@ -582,6 +611,16 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       '\'
       '$(LOOPCLASSCOUNT)\'
       '$(CASEUSETYPEDLISTS)\'
+      '1|{$IFDEF UseBoldListEnumerator}'
+      
+        '1|  $(CLASSNAME)ListEnumerator = class(TBoldObjectListEnumerator' +
+        ')'
+      '1|  public'
+      '1|    function GetCurrent: $(CLASSNAME);'
+      '1|    property Current: $(CLASSNAME) read GetCurrent;'
+      '1|  end;'
+      '1|{$ENDIF UseBoldListEnumerator}'
+      '1|'
       '1|  $(CLASSNAME)List = class($(SUPERCLASSNAME)List)'
       '1|  protected'
       '1|    function GetBoldObject(index: Integer): $(CLASSNAME);'
@@ -589,6 +628,9 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
         '1|    procedure SetBoldObject(index: Integer; NewObject: $(CLASS' +
         'NAME));'
       '1|  public'
+      '1|{$IFDEF UseBoldListEnumerator}'
+      '1|    function GetEnumerator: $(CLASSNAME)ListEnumerator;'
+      '1|{$ENDIF UseBoldListEnumerator}'
       '1|    function Includes(anObject: $(CLASSNAME)): Boolean;'
       '1|    function IndexOf(anObject: $(CLASSNAME)): Integer;'
       '1|    procedure Add(NewObject: $(CLASSNAME));'
@@ -663,7 +705,7 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       '0|begin'
       '0|  inherited;'
       '0|end;'
-      '$(ENDCASEINTRODUCEDHERE)')
+      '$(ENDCASEINTRODUCEDHERE)  { $(CLASSNAME)._$(MEMBERNAME) }')
     Left = 208
     Top = 80
   end
@@ -804,8 +846,8 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       '// $(COPYRIGHTNOTICE)\'
       ''
       '{$INCLUDE $(UNITNAME)_Interface.inc}')
-    Left = 40
-    Top = 144
+    Left = 48
+    Top = 152
   end
   object ReverseDeriveTemplate: TBoldTemplateHolder
     Template.Strings = (
@@ -840,10 +882,6 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       ''
       '// Instructions for Borland compatible IDL'
       '// ---------------------------------------'
-      '// >> NOTE! This applies only to Delphi 5! <<'
-      '// >> The TLB-editor in Delphi 6 and 7 does not <<'
-      '// >> support editing the text of the IDL-file <<'
-      '//'
       
         '// To generate this from Borland compatible file, follow the fol' +
         'lowing steps:'
@@ -869,24 +907,16 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
         '// Microsoft IDL compiler (midl.exe). It ships with C++ builder ' +
         'and with Ms Visual Studio.'
       
+        '// It is also included in the Microsoft Win32 SDK that can be do' +
+        'wnloaded from www.microsoft.com'
+      
         '// If you have C++ Builder installed, you will have a copy of mi' +
         'dl.exe in the'
       '// bin-directory, the following command line should work:'
       '//'
       
         '// midl /cpp_cmd "cpp32" /cpp_opt "-P- -oCON" /I "<CPP dir>\incl' +
-        'ude\idl" /I "<CPP dir>\include" /I "<BfD dir>\Bin" /I "<BfD dir>' +
-        '\Res" $(UNITNAME).idl'
-      '//'
-      
-        '// With MS Visual Studio 2003, the following commandline should ' +
-        'work:'
-      '//'
-      
-        '// midl /I "C:\Progra~1\MICROS~3.NET\Vc7\include" /I "C:\Progra~' +
-        '1\MICROS~3.NET\Vc7\PlatformSDK\Include" /I"<BfD dir>\Bin" /I "<B' +
-        'fD dir>\Res" $(UNITNAME).idl'
-      '//'
+        'ude\idl" /I "<CPP dir>\include" $(UNITNAME).idl'
       '//'
       '// * Open the resulting tlb-file in delphi'
       
@@ -1206,8 +1236,8 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       '$(ENDLOOPCLASSCOUNT)\'
       'end.')
     FileName = '$(COMPONENTNAME)_Adapters.pas'
-    Left = 40
-    Top = 248
+    Left = 56
+    Top = 240
   end
   object IDLTemplate: TBoldTemplateHolder
     Template.Strings = (

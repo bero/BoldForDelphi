@@ -7,7 +7,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, ComCtrls, Menus, MMToolsApi, Grids, ValEdit, MSXML_TLB;
+  Dialogs, ExtCtrls, ComCtrls, Menus, MMToolsApi, Grids, ValEdit,
+  {$IFDEF OXML}OXmlPDOM{$ELSE}Bold_MSXML_TLB{$ENDIF};
 
 type
   TBoldTaggedValueDisplay = class;
@@ -53,7 +54,7 @@ type
     function FindCurrentTagDefs: IXMLDOMElement;
   public
     { Public declarations }
-    constructor Create(AOwner: TComponent; MMToolService: IMMToolServices);
+    constructor Create(AOwner: TComponent; MMToolService: IMMToolServices); reintroduce;
   end;
 
   TBoldTaggedValueDisplay = class

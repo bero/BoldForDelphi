@@ -1,13 +1,4 @@
-
-/////////////////////////////////////////////////////////
-//                                                     //
-//              Bold for Delphi                        //
-//    Copyright (c) 1996-2002 Boldsoft AB              //
-//              (c) 2002-2005 Borland Software Corp    //
-//                                                     //
-/////////////////////////////////////////////////////////
-
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldUniDACInterfaces;
 
@@ -95,19 +86,19 @@ type
     function GetParamCheck: Boolean;
     procedure SetParamCheck(value: Boolean);
     function GetRequestLiveQuery: Boolean;
-    function ParamByName(const Value: string): IBoldParameter; override;
-    function FindParam(const Value: string): IBoldParameter; override;
-    function Createparam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; override;
     procedure SetRequestLiveQuery(NewValue: Boolean);
     procedure AssignSQL(SQL: TStrings); virtual;
-    function GetSQLStrings: TStrings; override;
     function GetRecordCount: Integer;
     function GetUseReadTransactions: boolean;
     procedure SetUseReadTransactions(value: boolean);
     procedure BeginExecuteQuery;
     procedure EndExecuteQuery;
   protected
+    function ParamByName(const Value: string): IBoldParameter; override;
+    function FindParam(const Value: string): IBoldParameter; override;
+    function CreateParam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; override;
     function GetParams: TParams; override;
+    function GetSQLStrings: TStrings; override;
     function GetSqlText: string; override;
     procedure AssignSQLText(const SQL: string); override;
     function GetRowsAffected: Integer;
@@ -117,6 +108,7 @@ type
     procedure Close; override;
     procedure ExecSQL; override;
     function GetRecNo: integer; override;
+    procedure Prepare;
     property Query: TUniQuery read GetQuery;
   public
     constructor Create(BoldUniDACConnection: TBoldUniDACConnection); reintroduce;
@@ -125,40 +117,38 @@ type
   end;
 
   { TBoldUniDACQuery }
-  TBoldUniDACExecQuery = class(TBoldAbstractQueryWrapper, IBoldExecQuery, IBoldParameterized)
+  TBoldUniDACExecQuery = class(TBoldBatchDataSetWrapper{TBoldAbstractQueryWrapper}, IBoldExecQuery, IBoldParameterized)
   private
     fExecQuery: TUniSQL;
     fReadTransactionStarted: Boolean;
     fUseReadTransactions: boolean;
+  protected
     function GetExecQuery: TUniSQL;
-    function GetParams: TParams;
+    function GetParams: TParams;  override;
     procedure AssignParams(Sourceparams: TParams);
     function GetParamCount: Integer;
     function GetParam(i: Integer): IBoldParameter;
     function GetParamCheck: Boolean;
     procedure SetParamCheck(value: Boolean);
-    function ParamByName(const Value: string): IBoldParameter;
-    function FindParam(const Value: string): IBoldParameter;    
-    function Createparam(FldType: TFieldType; const ParamName: string): IBoldParameter; overload;
-    function CreateParam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; overload;
-    function EnsureParamByName(const Value: string): IBoldParameter;
-    function GetSQLText: string;
-    function GetSQLStrings: TStrings;
+    function ParamByName(const Value: string): IBoldParameter; override;
+    function FindParam(const Value: string): IBoldParameter; override;
+    function CreateParam(FldType: TFieldType; const ParamName: string): IBoldParameter; overload; override;
+    function CreateParam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; overload; override;
+    function EnsureParamByName(const Value: string): IBoldParameter; override;
+    function GetSqlText: string; override;
+    function GetSQLStrings: TStrings; override;
     procedure AssignSQL(SQL: TStrings); virtual;
-    procedure AssignSQLText(const SQL: string);
+    procedure AssignSQLText(const SQL: string);  override;
     function GetRowsAffected: Integer;
     function GetUseReadTransactions: boolean;
     procedure SetUseReadTransactions(value: boolean);
     procedure BeginExecuteQuery;
     procedure EndExecuteQuery;
-    function GetBatchQueryParamCount: integer;    
-//    procedure Prepare;
-  protected
-    procedure StartSQLBatch; virtual;
-    procedure EndSQLBatch; virtual;
-    procedure FailSQLBatch; virtual;
+    function GetBatchQueryParamCount: integer;
+    procedure Prepare;
+    function GetDataSet: TDataSet; override;
     procedure ClearParams;
-    procedure ExecSQL; virtual;
+    procedure ExecSQL; override;
     property ExecQuery: TUniSQL read GetExecQuery;
   public
     constructor Create(BoldUniDACConnection: TBoldUniDACConnection); reintroduce;
@@ -194,11 +184,12 @@ type
 
   { TBoldUniDACConnection }
   TBoldUniDACConnection = class(TBoldDatabaseWrapper, IBoldDataBase)
+  private
     fUniConnection: TUniConnection;
-    fCachedTable: TBoldUniDACTable;
-    fCachedQuery1: TBoldUniDACQuery;
-    fCachedQuery2: TBoldUniDACQuery;
-    fCachedExecQuery1: TBoldUniDACQuery;
+    fCachedTable: IBoldTable;
+    fCachedQuery1: IBoldQuery;
+    fCachedQuery2: IBoldQuery;
+    fCachedExecQuery1: IBoldExecQuery;
     fExecuteQueryCount: integer;
     function GetUniConnection: TUniConnection;
     property UniConnection: TUniConnection read GetUniConnection;
@@ -221,6 +212,8 @@ type
     function GetIsExecutingQuery: Boolean;
     procedure BeginExecuteQuery;
     procedure EndExecuteQuery;
+    function CreateAnotherDatabaseConnection: IBoldDatabase;
+    function GetImplementor: TObject;
   protected
     procedure AllTableNames(Pattern: string; ShowSystemTables: Boolean; TableNameList: TStrings); override;
     function GetTable: IBoldTable; override;
@@ -252,8 +245,20 @@ uses
 
   BoldUtils,
   BoldGuard,
+{$IFDEF LAZYFETCHDEBUG}
+  BoldSystem,
+  AttracsSpanFetchManager,
+  BoldControlpack,
+{$ENDIF}
+  {$IFDEF ATTRACS}
+  AttracsDefs,
+  AttracsPerformance,
+  AttracsTraceLog,
+  {$IFDEF BOLD_PERFORMANCE_COUNTERS}
+  BoldSystemPerf,
+  {$ENDIF}
+  {$ENDIF}
   BoldCoreConsts,
-
   CRAccess,
   UniScript;
 
@@ -385,6 +390,7 @@ begin
   fReadTransactionStarted := false;
 end;
 
+
 constructor TBoldUniDACQuery.Create(BoldUniDACConnection: TBoldUniDACConnection);
 begin
   inherited Create(BoldUniDACConnection);
@@ -422,7 +428,14 @@ procedure TBoldUniDACQuery.ExecSQL;
 var
   Retries: Integer;
   Done: Boolean;
+{$IFDEF ATTRACS}
+  PerformanceMeasurement : TPerformanceMeasurement;
 begin
+  //PATCH for logging long running SQL
+  PerformanceMeasurement := TPerformanceMeasurement.ReStart;
+{$ELSE}
+begin
+{$ENDIF}
   if InBatch then
   begin
     BatchExecSQL;
@@ -445,7 +458,7 @@ begin
           fReadTransactionStarted := fUseReadTransactions;
         end;
         Query.Execute;
-        if fReadTransactionStarted and  (DatabaseWrapper as TBoldUniDACConnection).GetInTransaction then
+        if fReadTransactionStarted and (DatabaseWrapper as TBoldUniDACConnection).GetInTransaction then
         begin
          (DatabaseWrapper as TBoldUniDACConnection).Commit;
          fReadTransactionStarted := false;
@@ -464,6 +477,19 @@ begin
         end;
       end;
     end;
+  {$IFDEF ATTRACS}
+    {$IFDEF BOLD_PERFORMANCE_COUNTERS}
+    PerformanceMeasurement.EndMeasurement;
+    BoldSystemPerfObject.BoldDBXQuery_ExecSQL(PerformanceMeasurement.TimeTaken);
+    {$ENDIF}
+    if not PerformanceMeasurement.AcceptableTimeForUserResponseTime then
+    begin
+      PerformanceMeasurement.WhatMeasured := 'TBoldUniDACQuery.ExecSQL';
+      PerformanceMeasurement.WhatMeasuredParameter := Query.SQL.Text;
+      if TraceLogAssigned then
+        PerformanceMeasurement.Trace;
+    end;
+  {$ENDIF}
   finally
     EndExecuteQuery;
   end;
@@ -484,7 +510,14 @@ var
   Retries: Integer;
   Done: Boolean;
   EDatabase: EBoldDatabaseError;
+{$IFDEF ATTRACS}
+  PerformanceMeasurement : TPerformanceMeasurement;
 begin
+  //PATCH for logging long running SQL
+  PerformanceMeasurement := TPerformanceMeasurement.ReStart;
+{$ELSE}
+begin
+{$ENDIF}
   BeginExecuteQuery;
   try
   BoldLogSQLWithParams(Query.SQL, self);
@@ -504,6 +537,10 @@ begin
       Query.ReadOnly := True;      
       inherited;
       Done := true;
+{$IFDEF LAZYFETCHDEBUG}
+      if (Query.RecordCount = 1) and (TBoldSystem.DefaultSystem <> nil) and not AttracsSpanFetchManager.InSpanFetch and not TBoldSystem.DefaultSystem.IsUpdatingDatabase {and not FollowerGettingValue} then
+        Assert(Assigned(query)); // Fake assert for placing breakpoint when debugging inefficient loading
+{$ENDIF}
     except
       on e: Exception do
       begin
@@ -530,6 +567,20 @@ begin
       end;
     end;
   end;
+{$IFDEF ATTRACS}
+  {$IFDEF BOLD_PERFORMANCE_COUNTERS}
+  PerformanceMeasurement.EndMeasurement;
+  BoldSystemPerfObject.BoldDBXQuery_Open(PerformanceMeasurement.TimeTaken);
+  {$ENDIF}
+
+  if not PerformanceMeasurement.AcceptableTimeForUserResponseTime then
+  begin
+    PerformanceMeasurement.WhatMeasured := 'TBoldUniDACQuery.Open';
+    PerformanceMeasurement.WhatMeasuredParameter := Query.SQL.Text;
+    if TraceLogAssigned then
+      PerformanceMeasurement.Trace;
+  end;
+{$ENDIF}
   finally
     EndExecuteQuery;
   end;
@@ -541,6 +592,11 @@ var
 begin
   lUniParam := Query.Params.ParamByName(Value);
   Result := TBoldUniDACParameter.Create(lUniParam, Self)
+end;
+
+procedure TBoldUniDACQuery.Prepare;
+begin
+  Query.Prepare;
 end;
 
 procedure TBoldUniDACQuery.SetParamCheck(value: Boolean);
@@ -590,7 +646,7 @@ end;
 procedure TBoldUniDACTable.AddIndex(const Name, Fields: string;
   Options: TIndexOptions; const DescFields: string);
 begin
-  raise EBold.CreateFmt('MethodNotImplemented', [ClassName, 'AddIndex']); // do not localize
+  raise EBold.CreateFmt(sMethodNotImplemented, [ClassName, 'AddIndex']); // do not localize
 end;
 (*
 function TBoldUniDACTable.GetCommaListOfIndexesForColumn(
@@ -736,7 +792,7 @@ end;
 
 function TBoldUniDACTable.GetIndexDefs: TIndexDefs;
 begin
-  raise EBold.CreateFmt('%s MethodNotImplemented %s', [ClassName, 'GetIndexDefs']); // do not localize
+  raise EBold.CreateFmt(sMethodNotImplemented, [ClassName, 'GetIndexDefs']); // do not localize
 //  Result := UniTable.IndexFieldNames
 end;
 
@@ -788,8 +844,15 @@ begin
 
   // convert from fully qualified names in format: database.catalogue.table to just table name
   for i := 0 to lTempList.Count - 1 do
+  begin
     while pos('.', lTempList[i]) > 0 do
+    begin
       lTempList[i] := Copy(lTempList[i], pos('.', lTempList[i])+1, maxInt);
+    end;
+    // In case of Google BigQuery tablenames were surrounded with quotation marks.
+    // To return only tablenames, these quotation marks must be removed    
+    lTempList[i] := StringReplace(lTempList[i], '"', '', [rfReplaceAll]);
+  end;
 
   if Pattern = '' then
     TableNameList.Assign(lTempList)
@@ -809,6 +872,11 @@ end;
 procedure TBoldUniDACConnection.Commit;
 begin
   UniConnection.Commit;
+end;
+
+function TBoldUniDACConnection.GetImplementor: TObject;
+begin
+  result := UniConnection;
 end;
 
 function TBoldUniDACConnection.GetInTransaction: Boolean;
@@ -870,14 +938,18 @@ var
   vDatabaseName: string;
 begin
   vDatabaseName := LowerCase(UniConnection.Database);
+  UniConnection.Connected := false;
   UniConnection.Database := ''; // need to clear this to connect succesfully
   vQuery := GetQuery;
   try
-    (vQuery.Implementor as TUniQuery).Connection := UniConnection;
+    (vQuery.Implementor as TBoldUniDACQuery).Query.Connection := UniConnection;
     vQuery.SQLText := SQLDataBaseConfig.GetDatabaseExistsQuery(vDatabaseName);
+    vQuery.UseReadTransactions := false;
     vQuery.Open;
-    result := vQuery.Fields[0].AsBoolean;
+    result := vQuery.RecordCount > 0;
+    UniConnection.Disconnect;
   finally
+    vQuery.UseReadTransactions := true;
     ReleaseQuery(vQuery);
     UniConnection.Database := vDatabaseName;
   end;
@@ -891,45 +963,41 @@ end;
 
 procedure TBoldUniDACConnection.DropDatabase;
 var
-  vQuery: IBoldExecQuery;
+//  vQuery: IBoldExecQuery;
   vDatabaseName: string;
   vUniScript: TUniScript;
-  vIsInterbase: boolean;
+//  vIsInterbase: boolean;
   vIsMSSQL: boolean;
+  vIsPostgres: boolean;
 const
   cInterbase = 'InterBase';
   cMSSQL = 'SQL Server';
+  cPostgres = 'PostgreSQL';
   cDropDatabaseSQL = 'Drop Database %s';
   cGenerateDatabaseSQL = 'Create Database %s';
   cGenerateDatabaseInterbaseSQL = 'Create Database ''%s'' user ''%s'' password ''%s''';
   cGenerateDatabaseSQLServer = 'USE master;' + BOLDCRLF + 'GO' + BOLDCRLF + ' Create Database %s';
 begin
   vDatabaseName := LowerCase(UniConnection.Database);
+  vIsMSSQL := false;
 //  UniConnection.Database := ''; // need to clear this to connect succesfully
   vUniScript := TUniScript.Create(nil);
   try
     vUniScript.Connection := UniConnection;
-    vIsInterbase := UniConnection.ProviderName = cInterBase;
+//    vIsInterbase := UniConnection.ProviderName = cInterBase;
     vIsMSSQL := UniConnection.ProviderName = cMSSQL;
+    vIsPostgres := UniConnection.ProviderName = cPostgres;
     vUniScript.SQL.Text := Format(cDropDatabaseSQL, [vDatabaseName]);
     if vIsMSSQL then
-      UniConnection.Database := 'master';
+      UniConnection.Database := 'master'
+    else
+    if vIsPostgres then
+      UniConnection.Database := '';
     try
       vUniScript.Execute;
     except
       // ignore
     end;
-    vUniScript.NoPreconnect := vIsInterbase;
-    if vIsInterbase then
-      vUniScript.SQL.Text := Format(cGenerateDatabaseInterbaseSQL, [vDatabaseName, UniConnection.Username, UniConnection.Password])
-    else
-    if vIsMSSQL then
-    begin
-      vUniScript.SQL.Text := Format(cGenerateDatabaseSQLServer, [vDatabaseName]);
-    end
-    else
-      vUniScript.SQL.Text := Format(cGenerateDatabaseSQL, [vDatabaseName]);
-    vUniScript.Execute;
     UniConnection.Close;
   finally
     vUniScript.free;
@@ -947,6 +1015,13 @@ constructor TBoldUniDACConnection.Create(aUniConnection: TUniConnection; SQLData
 begin
   inherited Create(SQLDataBaseConfig);
   fUniConnection := aUniConnection;
+end;
+
+function TBoldUniDACConnection.CreateAnotherDatabaseConnection: IBoldDatabase;
+begin
+  var Connection := TUniConnection.Create(nil); // owner ?
+  Connection.Assign(self.fUniConnection);
+  result := TBoldUniDACConnection.Create(Connection, SQLDatabaseConfig);
 end;
 
 procedure TBoldUniDACConnection.BeginExecuteQuery;
@@ -967,7 +1042,7 @@ begin
   vDatabaseName := LowerCase(UniConnection.Database);
   if DropExisting and DatabaseExists then
     DropDatabase;
-//  UniConnection.Database := ''; // need to clear this to connect succesfully
+  UniConnection.Database := ''; // need to clear this to connect succesfully
   vUniScript := TUniScript.Create(nil);
   try
     vUniScript.Connection := UniConnection;
@@ -991,9 +1066,9 @@ function TBoldUniDACConnection.GetDatabaseError(const E: Exception;
 const
   SQLERRORCODE = 'SQL Error Code: ';
 var
-  iErrorCode: Integer;
-  sMsg: string;
-  iPos: Integer;
+//  iErrorCode: Integer;
+//  sMsg: string;
+//  iPos: Integer;
   aErrorType: TBoldDatabaseErrorType;
   sServer,
   sDatabase,
@@ -1048,7 +1123,7 @@ begin
     fCachedExecQuery1 := nil;
   end else
   begin
-    Result := BoldUniDACQueryClass.Create(Self);
+    Result := TBoldUniDACExecQueryClass.Create(Self);
   end;
 end;
 
@@ -1110,58 +1185,49 @@ begin
   end;
 end;
 
+type TCollectionAccess = class(TCollection);
+
 procedure TBoldUniDACConnection.ReleaseQuery(var Query: IBoldQuery);
 var
   lBoldUniDACQuery: TBoldUniDACQuery;
 begin
-  if (Query.Implementor is TBoldUniDACQuery) then
-  begin
-    lBoldUniDACQuery := Query.Implementor as TBoldUniDACQuery;
-    lBoldUniDACQuery.clear;
-    Query := nil;
-    if not Assigned(fCachedQuery1) then
-      fCachedQuery1 := lBoldUniDACQuery
-    else
-    if not Assigned(fCachedQuery2) then
-      fCachedQuery2 := lBoldUniDACQuery
-    else
-      lBoldUniDACQuery.free;
-  end
+  Assert(Query.Implementor is TBoldUniDACQuery);
+  lBoldUniDACQuery := Query.Implementor as TBoldUniDACQuery;
+  lBoldUniDACQuery.clear;
+  while lBoldUniDACQuery.SQLStrings.Updating do
+    lBoldUniDACQuery.SQLStrings.EndUpdate;
+  while TCollectionAccess(lBoldUniDACQuery.Params).UpdateCount > 0 do
+    lBoldUniDACQuery.Params.EndUpdate;
+  Query := nil;
+  if not Assigned(fCachedQuery1) and not (csDestroying in UniConnection.ComponentState) then
+    fCachedQuery1 := lBoldUniDACQuery
+  else
+  if not Assigned(fCachedQuery2) and not (csDestroying in UniConnection.ComponentState) then
+    fCachedQuery2 := lBoldUniDACQuery
+  else
+    lBoldUniDACQuery.free;
 end;
 
 procedure TBoldUniDACConnection.ReleaseExecQuery(var Query: IBoldExecQuery);
 var
-  lBoldUniDACQuery: TBoldUniDACQuery;
   lBoldUniDACExecQuery: TBoldUniDACExecQuery;
 begin
-  if (Query.Implementor is TBoldUniDACQuery) then
+  Assert(Query.Implementor is TBoldUniDACExecQuery);
+  lBoldUniDACExecQuery := Query.Implementor as TBoldUniDACExecQuery;
+  if lBoldUniDACExecQuery.SQLStrings.Count <> 0 then
   begin
-    lBoldUniDACQuery := Query.Implementor as TBoldUniDACQuery;
-    if lBoldUniDACQuery.GetSQLStrings.Count <> 0 then
-    begin
-      lBoldUniDACQuery.GetSQLStrings.BeginUpdate;
-      lBoldUniDACQuery.clear;
-    end;
-    while TStringsAccess(lBoldUniDACQuery.GetSQLStrings).UpdateCount > 0 do
-      lBoldUniDACQuery.GetSQLStrings.EndUpdate;
-    Query := nil;
-    if not Assigned(fCachedExecQuery1) then
-      fCachedExecQuery1 := lBoldUniDACQuery
-    else
-      lBoldUniDACQuery.free;
-  end
-{  else
-  if (Query.Implementor is TBoldUniDACExecQuery) then
-  begin
-    lBoldUniDACExecQuery := Query.Implementor as TBoldUniDACExecQuery;
+    lBoldUniDACExecQuery.SQLStrings.BeginUpdate;
     lBoldUniDACExecQuery.clear;
-    Query := nil;
-    if not Assigned(fCachedExecQuery1) then
-      fCachedExecQuery1 := lBoldUniDACExecQuery
-    else
-      lBoldUniDACExecQuery.free;
-  end
-}
+  end;
+  while lBoldUniDACExecQuery.SQLStrings.Updating do
+    lBoldUniDACExecQuery.SQLStrings.EndUpdate;
+  while TCollectionAccess(lBoldUniDACExecQuery.Params).UpdateCount > 0 do
+    lBoldUniDACExecQuery.Params.EndUpdate;
+  Query := nil;
+  if not Assigned(fCachedExecQuery1) and not (csDestroying in UniConnection.ComponentState) then
+    fCachedExecQuery1 := lBoldUniDACExecQuery
+  else
+    lBoldUniDACExecQuery.free;
 end;
 
 procedure TBoldUniDACConnection.ReleaseTable(var Table: IBoldTable);
@@ -1172,7 +1238,7 @@ begin
   begin
     lBoldUniDACTable := Table.Implementor as TBoldUniDACTable;
     Table := nil;
-    if not Assigned(fCachedTable) then
+    if not Assigned(fCachedTable) and not (csDestroying in UniConnection.ComponentState) then
       fCachedTable := lBoldUniDACTable
     else
       lBoldUniDACTable.free;
@@ -1420,10 +1486,17 @@ end;
 
 procedure TBoldUniDACConnection.ReleaseCachedObjects;
 begin
-  FreeAndNil(fCachedTable);
-  FreeAndNil(fCachedQuery1);
-  FreeAndNil(fCachedQuery2);
-  FreeAndNil(fCachedExecQuery1);
+  if Assigned(fCachedTable) then
+    ReleaseTable(fCachedTable);
+
+  if Assigned(fCachedQuery1) then
+    ReleaseQuery(fCachedQuery1);
+
+  if Assigned(fCachedQuery2) then
+    ReleaseQuery(fCachedQuery2);
+
+  if Assigned(fCachedExecQuery1) then
+    ReleaseExecQuery(fCachedExecQuery1);
 end;
 
 { TBoldUniDACExecQuery }
@@ -1480,10 +1553,14 @@ begin
   ExecQuery.Params.Clear;
 end;
 
+var
+  _x: integer;
+
 constructor TBoldUniDACExecQuery.Create(BoldUniDACConnection: TBoldUniDACConnection);
 begin
   inherited Create(BoldUniDACConnection);
   fUseReadTransactions := true;
+  inc(_x);
 end;
 
 function TBoldUniDACExecQuery.Createparam(FldType: TFieldType;
@@ -1505,6 +1582,7 @@ end;
 destructor TBoldUniDACExecQuery.Destroy;
 begin
   FreeAndNil(fExecQuery);
+  dec(_x);
   inherited;
 end;
 
@@ -1528,7 +1606,14 @@ procedure TBoldUniDACExecQuery.ExecSQL;
 var
   Retries: Integer;
   Done: Boolean;
+{$IFDEF ATTRACS}
+  PerformanceMeasurement : TPerformanceMeasurement;
 begin
+  //PATCH for logging long running SQL
+  PerformanceMeasurement := TPerformanceMeasurement.ReStart;
+{$ELSE}
+begin
+{$ENDIF}
   BeginExecuteQuery;
   try
   BoldLogSQLWithParams(ExecQuery.SQL, self);
@@ -1565,24 +1650,22 @@ begin
       end;
     end;
   end;
+{$IFDEF ATTRACS}
+  {$IFDEF BOLD_PERFORMANCE_COUNTERS}
+  PerformanceMeasurement.EndMeasurement;
+  BoldSystemPerfObject.BoldDBXQuery_ExecSQL(PerformanceMeasurement.TimeTaken);
+  {$ENDIF}
+  if not PerformanceMeasurement.AcceptableTimeForUserResponseTime then
+  begin
+    PerformanceMeasurement.WhatMeasured := 'TBoldUniDACExecQuery.ExecSQL';
+    PerformanceMeasurement.WhatMeasuredParameter := ExecQuery.SQL.Text;
+    if TraceLogAssigned then
+      PerformanceMeasurement.Trace;
+  end;
+{$ENDIF}
   finally
     EndExecuteQuery;
   end;
-end;
-
-procedure TBoldUniDACExecQuery.StartSQLBatch;
-begin
-  raise EBold.CreateFmt('MethodNotImplemented', [ClassName, 'StartSQLBatch']); // do not localize
-end;
-
-procedure TBoldUniDACExecQuery.EndSQLBatch;
-begin
-  raise EBold.CreateFmt('MethodNotImplemented', [ClassName, 'EndSQLBatch']); // do not localize
-end;
-
-procedure TBoldUniDACExecQuery.FailSQLBatch;
-begin
-  raise EBold.CreateFmt('MethodNotImplemented', [ClassName, 'FailSQLBatch']); // do not localize
 end;
 
 function TBoldUniDACExecQuery.FindParam(const Value: string): IBoldParameter;
@@ -1597,6 +1680,11 @@ end;
 function TBoldUniDACExecQuery.GetBatchQueryParamCount: integer;
 begin
   result := 0; // update when batch support is implemented
+end;
+
+function TBoldUniDACExecQuery.GetDataSet: TDataSet;
+begin
+  raise EBold.CreateFmt('MethodNotImplemented', [ClassName, 'GetDataSet']); // do not localize
 end;
 
 function TBoldUniDACExecQuery.GetExecQuery: TUniSQL;
@@ -1639,7 +1727,7 @@ begin
   result := ExecQuery.SQL;
 end;
 
-function TBoldUniDACExecQuery.GetSQLText: string;
+function TBoldUniDACExecQuery.GetSqlText: string;
 begin
   Result := ExecQuery.SQL.Text;
 end;
@@ -1663,14 +1751,15 @@ begin
   end;
 end;
 
-{procedure TBoldUniDACExecQuery.Prepare;
+procedure TBoldUniDACExecQuery.Prepare;
 begin
   ExecQuery.Prepare;
-end;}
+end;
 
 procedure TBoldUniDACExecQuery.SetParamCheck(value: Boolean);
 begin
-  ExecQuery.ParamCheck := Value;
+  if ExecQuery.ParamCheck <> Value then
+    ExecQuery.ParamCheck := Value;
 end;
 
 procedure TBoldUniDACExecQuery.SetUseReadTransactions(value: boolean);

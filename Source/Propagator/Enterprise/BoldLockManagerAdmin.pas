@@ -8,11 +8,9 @@ interface
 uses
   BoldLockManager,
   BoldDefs,
-  Classes
-  ;
+  Classes;
 
 type
-
   TBoldLockManagerAdmin = class
   private
     fLockManager: TBoldLockManager;
@@ -33,9 +31,11 @@ implementation
 
 uses
   Sysutils,
+  Windows,
+
+  BoldCoreConsts,
   BoldUtils,
-  BoldLockList,
-  windows;
+  BoldLockList;
 
 { TBoldLockManagerAdmin }
 
@@ -117,7 +117,7 @@ var
   
 begin
   if not Assigned(ClientIds) then
-    raise EBold.CreateFmt('%s.LocksForClients: ClientIds is not assigned', [ClassName]);
+    raise EBold.CreateFmt(sClientIDsNotAssigned, [ClassName, 'LocksForClients']); // do not localize
   if not Assigned(Locks) then
     raise EBold.CreateFmt('%s.LocksForClients: Locks is not assigned', [ClassName]);
   if not Assigned(LockDurations) then
@@ -166,7 +166,5 @@ procedure TBoldLockManagerAdmin.SetLockManagerSuspended(Value: Boolean);
 begin
   LockManager.Suspended := Value;
 end;
-
-initialization
 
 end.

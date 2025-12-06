@@ -1,4 +1,11 @@
 
+/////////////////////////////////////////////////////////
+//                                                     //
+//              Bold for Delphi                        //
+//    Copyright (c) 2002 BoldSoft AB, Sweden           //
+//                                                     //
+/////////////////////////////////////////////////////////
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldUDPModificationBroadcaster;
@@ -15,9 +22,9 @@ uses
   BoldAbstractModificationPropagator,
 
   { Indy }
-  IdGlobal,
   IdUDPClient,
   IdUDPServer,
+  IdGlobal,
   IdSocketHandle;
 
 type
@@ -28,7 +35,6 @@ type
   TActivationErrorEvent = procedure(Sender: TObject; E: Exception) of object;
 
   { TBoldUDPModificationBroadcaster }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TBoldUDPModificationBroadcaster = class(TBoldAbstractNotificationPropagator)
   private
     fUDPClient: TIdUDPClient;
@@ -73,7 +79,6 @@ begin
   fUDPServer := TIdUDPServer.Create(Self);
   fUDPClient.BroadcastEnabled := True;
   fUDPServer.OnUDPRead := InternalUDPRead;
-// procedure(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle)
 
   fUDPClient.Host := '255.255.255.255';
   fUDPClient.Port := 4098;
@@ -126,13 +131,18 @@ begin
   fUDPServer.Bindings.Add.Port := Value;
 end;
 
-procedure TBoldUDPModificationBroadcaster.InternalUDPRead(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle);
+procedure TBoldUDPModificationBroadcaster.InternalUDPRead(AThread: TIdUDPListenerThread;
+  const AData: TIdBytes; ABinding: TIdSocketHandle);
 var
   S: String;
 begin
-  s := BytesToString(AData);
-  if SameText(Copy(S, 1, Length(SIdentification)), SIdentification) then
-    ReceiveEvent(Copy(S, Length(SIdentification) + 1, Length(S)));
+  if Length(AData) > 0 then
+  begin
+    S := BytesToString(AData);
+    if Length(S) > 0 then
+      if SameText(Copy(S, 1, Length(SIdentification)), SIdentification) then
+        ReceiveEvent(Copy(S, Length(SIdentification) + 1, Length(S)));
+  end;
 end;
 
 procedure TBoldUDPModificationBroadcaster.OnSendQueueNotEmpty(Sender: TBoldThreadSafeQueue);

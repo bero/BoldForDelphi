@@ -1,4 +1,3 @@
-
 { Global compiler directives }
 {$include bold.inc}
 unit BoldBatchUpgrader;
@@ -48,6 +47,8 @@ implementation
 uses
   SysUtils,
   Classes,
+
+  BoldCoreConsts,
   BoldDefs,
   BoldCondition,
   BoldDbInterfaces,
@@ -80,7 +81,7 @@ constructor TBoldBatchUpgrader.Create(SystemMapper: TBoldSystemDefaultMapper; Up
 begin
   inherited create;
   if not SystemMapper.SupportsObjectUpgrading then
-    raise EBold.CreateFmt('%s.Create: The SystemPersistenceMapper does not support object upgrading!', [ClassName]);
+    raise EBold.CreateFmt(sNoSupportForObjectUpgrade, [ClassName]);
   fSystemMapper := SystemMapper;
   fUpgrader := Upgrader;
   fBatchSize := 100;
@@ -148,9 +149,9 @@ begin
     for i := 0 to ObjectIdList.Count - 1 do
     begin
       if not ObjectIdList[i].TopSortedIndexExact then
-        raise EBold.createFmt('%s.UpgradeObjectIdList: ObjectIdlist not Exact', [Classname]);
+        raise EBold.createFmt(sObjectListNotExact, [Classname]);
       if ObjectIdList[i].topSortedIndex <> ObjectMapper.TopSortedIndex then
-        raise EBold.createFmt('%s.UpgradeObjectIdList: ObjectIdlist not homogenous', [Classname]);
+        raise EBold.createFmt(sObjectListNotHomogenous, [Classname]);
       TempLIst.Append(ObjectIdList[i].asString);
     end;
 
@@ -203,7 +204,7 @@ begin
   if IsUpgrading then
     exit;
   if not assigned(SystemMapper.DataBase) then
-    raise EBold.CreateFmt('%s.UpgradeObjects: The database must be opened first', [classname]);
+    raise EBold.CreateFmt(sDBMustBeOpened, [classname]);
   fIsUpgrading := true;
   try
     fStartTime := now;
@@ -215,7 +216,5 @@ begin
     fIsUpgrading := false;
   end;
 end;
-
-initialization
 
 end.

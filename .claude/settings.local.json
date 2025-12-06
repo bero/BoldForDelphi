@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(cmd.exe /c \"\"\"C:\\Program Files (x86)\\Embarcadero\\Studio\\23.0\\bin\\rsvars.bat\"\" && msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32 /v:minimal\")",
+      "Bash(cat:*)",
+      "Bash(comm:*)",
+      "Bash(for unit in BoldAbstractModificationPropagator BoldCheckListBoxReg BoldComElementHandleReg BoldExpertMenus BoldIDESupport BoldOLLEController BoldOLLEDistributableObjectHandlers BoldOLLEdmmain BoldOLLEHandles BoldOLLEHandlesComponentEditor BoldOLLEHandlesReg BoldOTAFileHandler BoldSelectionListBoxReg BoldTextStream BoldUDPBroadcasterReg BoldUDPModificationBroadcaster BoldWebConnectionReg BoldXMLDispatcherVBReg DistributableInfo OlleConsts)",
+      "Bash(do grep \"^  $unit in\" \"C:/Attracs/BoldForDelphi/packages/Delphi29/dclBold.dpk\")",
+      "Bash(done)",
+      "Bash(cmd.exe /c \"call \"\"C:\\Program Files (x86)\\Embarcadero\\Studio\\23.0\\bin\\rsvars.bat\"\" && cd /d C:\\Attracs\\BoldForDelphi\\packages\\Delphi29.3 && msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32 2>&1\")",
+      "Bash(cmd /c \"C:\\Program Files (x86)\\Embarcadero\\Studio\\23.0\\bin\\rsvars.bat && msbuild C:\\Attracs\\BoldForDelphi\\packages\\Delphi29.3\\dclBold.dproj /p:Config=Debug /p:Platform=Win32\")",
+      "Bash(ls:*)",
+      "Bash(powershell:*)",
+      "Bash(\"C:/Program Files (x86)/Embarcadero/Studio/23.0/bin/msbuild.exe\":*)",
+      "Bash(cmd //c \"\"\"C:\\Program Files (x86)\\Embarcadero\\Studio\\23.0\\bin\\rsvars.bat\"\" && msbuild \"\"C:\\Attracs\\BoldForDelphi\\packages\\Delphi29.3\\dclBold.dproj\"\" /p:Config=Debug /p:Platform=Win32 /v:minimal\")",
+      "Bash(cmd //c build.bat)",
+      "Bash(cmd //c \"C:\\Attracs\\BoldForDelphi\\packages\\Delphi29.3\\build.bat\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

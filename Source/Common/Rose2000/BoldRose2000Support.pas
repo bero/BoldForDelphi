@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldRose2000Support;
@@ -68,8 +68,10 @@ type
 implementation
 
 uses
-  SysUtils,
   ActiveX,
+  SysUtils,
+
+  BoldCoreConsts,
   BoldLogHandler,
   BoldDefs,
   BoldUtils,
@@ -85,17 +87,14 @@ end;
 function BooleanToString(inValue: Boolean): String;
 begin
   if inValue then
-    Result := 'True'
+    Result := 'True' // do not localize
   else
-    Result := 'False';
+    Result := 'False'; // do not localize
 end;
 
 class function TBoldRose2000Support.BooleanToString(Value: Boolean): string;
 begin
-  if Value then
-    Result := 'True'
-  else
-    Result := 'False';
+  Result := BooleanToString(Value);
 end;
 
 class function TBoldRose2000Support.FindClassByName(RoseModel: IRoseModel; const Name: string): IRoseClass;
@@ -109,7 +108,7 @@ begin
   begin
     Result := ClsCol.GetAt(1);
     if ClsCol.Count > 1 then
-      raise EBoldImport.CreateFmt('Found multiple classes with name %s, don''t know which one to use', [Name]);
+      raise EBoldImport.CreateFmt(sClassNameNotUnique, [Name]);
   end;
 end;
 
@@ -378,7 +377,7 @@ procedure TBoldRose2000Properties.SetBooleanString(RoseItem: IRoseItem; const Na
 begin
   if GetBooleanString(RoseItem, Name, DefaultValue) <> Value then
   begin
-    BoldLog.LogFmt('Setting %s.%s to %s', [LoggString, Name, Value]);
+    BoldLog.LogFmt(sSettingValue, [LoggString, Name, Value]);
     RoseItem.OverrideProperty(ToolName, Name, Value);
   end;
 end;
@@ -391,7 +390,7 @@ procedure TBoldRose2000Properties.SetBoolean(RoseItem: IRoseItem;
 begin
   if GetBoolean(RoseItem, Name, DefaultValue) <> Value then
   begin
-    BoldLog.LogFmt('Setting %s.%s to %s', [LoggString, Name, TBoldRose2000Support.BooleanToString(Value)]);
+    BoldLog.LogFmt(sSettingValue, [LoggString, Name, TBoldRose2000Support.BooleanToString(Value)]);
     RoseItem.OverrideProperty(ToolName, Name, TBoldRose2000Support.BooleanToString(Value));
   end;
 end;
@@ -404,7 +403,7 @@ procedure TBoldRose2000Properties.SetInteger(RoseItem: IRoseItem;
 begin
   if GetInteger(RoseItem, Name, DefaultValue) <> Value then
   begin
-    BoldLog.LogFmt('Setting %s.%s to %s', [LoggString, Name, IntToStr(Value)]);
+    BoldLog.LogFmt(sSettingValue, [LoggString, Name, IntToStr(Value)]);
     RoseItem.OverrideProperty(ToolName, Name, IntToStr(Value));
   end
 end;
@@ -414,7 +413,7 @@ procedure TBoldRose2000Properties.SetString(RoseItem: IRoseItem; const Name, Def
 begin
   if AnsiCompareText(GetString(RoseItem, Name, DefaultValue),Value) <> 0 then
   begin
-    BoldLog.LogFmt('Setting %s.%s to %s', [LoggString, Name, Value]);
+    BoldLog.LogFmt(sSettingValue, [LoggString, Name, Value]);
     RoseItem.OverrideProperty(ToolName, Name, Value);
   end;
 end;
@@ -424,7 +423,7 @@ procedure TBoldRose2000Properties.SetText(RoseItem: IRoseItem; const Name, Defau
 begin
   if AnsiCompareText(GetString(RoseItem, Name, DefaultValue),Value) <> 0 then
   begin
-    BoldLog.LogFmt('Setting %s.%s to %s', [LoggString, Name, Value]);
+    BoldLog.LogFmt(sSettingValue, [LoggString, Name, Value]);
     RoseItem.OverrideProperty(ToolName, Name, Value);
   end;
 end;
@@ -471,7 +470,7 @@ begin
     1: Result := vkProtected;
     2: Result := vkPrivate;
     else
-      BoldLog.Log('Unknown visibility, public is set.');
+      BoldLog.Log(sUnknownVisibility);
   end;
 end;
 
@@ -484,7 +483,5 @@ begin
     vkPrivate: ExportControl.Value := 2;
   end;
 end;
-
-initialization
 
 end.

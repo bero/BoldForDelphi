@@ -56,7 +56,7 @@
         <GenDll>true</GenDll>
         <DCC_E>false</DCC_E>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=24.6.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
-        <DCC_Description>Bold Components for Delphi 12.1 Athens</DCC_Description>
+        <DCC_Description>Bold Components for Delphi 12.3 Athens</DCC_Description>
         <SanitizedProjectName>Bold</SanitizedProjectName>
         <DCC_K>false</DCC_K>
         <DesignOnlyPackage>true</DesignOnlyPackage>

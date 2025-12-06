@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////
+//                                                     //
+//              Bold for Delphi                        //
+//    Copyright (c) 2002 BoldSoft AB, Sweden           //
+//                                                     //
+/////////////////////////////////////////////////////////
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldDBXInterfaces;
@@ -140,6 +147,14 @@ uses
   SqlTimSt,
   BoldDefs,
   SysUtils,
+  {$IFDEF ATTRACS}
+  AttracsDefs,
+  AttracsPerformance,
+  AttracsTraceLog,
+  {$IFDEF BOLD_PERFORMANCE_COUNTERS}
+  BoldSystemPerf,
+  {$ENDIF}
+  {$ENDIF}
   BoldUtils;
 
 { TBoldDBXQuery }
@@ -224,7 +239,15 @@ procedure TBoldDBXQuery.ExecSQL;
 var
   Retries: Integer;
   Done: Boolean;
+{$IFDEF ATTRACS}
+
+  PerformanceMeasurement : TPerformanceMeasurement;
 begin
+  //PATCH for logging long running SQL
+  PerformanceMeasurement := TPerformanceMeasurement.ReStart;
+{$ELSE}
+begin
+{$ENDIF}
   BeginExecuteQuery;
   try
 
@@ -273,6 +296,19 @@ begin
 
     end;
   end;
+
+{$IFDEF ATTRACS}
+  {$IFDEF BOLD_PERFORMANCE_COUNTERS}
+  PerformanceMeasurement.EndMeasurement;
+  BoldSystemPerfObject.BoldDBXQuery_ExecSQL(PerformanceMeasurement.TimeTaken);
+  {$ENDIF}
+  if not PerformanceMeasurement.AcceptableTimeForUserResponseTime then
+  begin
+    PerformanceMeasurement.WhatMeasured := 'TBoldDBXQuery.ExecSQL';
+    PerformanceMeasurement.WhatMeasuredParameter := Query.SQL.Text;
+    PerformanceMeasurement.Trace;
+  end;
+{$ENDIF}
   finally
     EndExecuteQuery;
   end;
@@ -313,7 +349,14 @@ procedure TBoldDBXQuery.Open;
 var
   Retries: Integer;
   Done: Boolean;
+{$IFDEF ATTRACS}
+  PerformanceMeasurement : TPerformanceMeasurement;
 begin
+  //PATCH for logging long running SQL
+  PerformanceMeasurement := TPerformanceMeasurement.ReStart;
+{$ELSE}
+begin
+{$ENDIF}
 {$IFDEF BOLD_DELPHI10_OR_LATER}
   {$IFDEF BOLD_UNICODE}
   BoldLogSQL(Query.SQL);
@@ -351,6 +394,19 @@ begin
       end;
     end;
   end;
+{$IFDEF ATTRACS}
+  {$IFDEF BOLD_PERFORMANCE_COUNTERS}
+  PerformanceMeasurement.EndMeasurement;
+  BoldSystemPerfObject.BoldDBXQuery_Open(PerformanceMeasurement.TimeTaken);
+  {$ENDIF}
+
+  if not PerformanceMeasurement.AcceptableTimeForUserResponseTime then
+  begin
+    PerformanceMeasurement.WhatMeasured := 'TBoldDBXQuery.Open';
+    PerformanceMeasurement.WhatMeasuredParameter := Query.SQL.Text;
+    PerformanceMeasurement.Trace;
+  end;
+{$ENDIF}
 end;
 
 procedure TBoldDBXQuery.AssignSQL(SQL: TStrings);

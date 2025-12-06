@@ -1,4 +1,11 @@
 
+/////////////////////////////////////////////////////////
+//                                                     //
+//              Bold for Delphi                        //
+//    Copyright (c) 2002 BoldSoft AB, Sweden           //
+//                                                     //
+/////////////////////////////////////////////////////////
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldMemoCom;
@@ -431,7 +438,5 @@ function TBoldCustomMemoCom.GetVariableList: IBoldExternalVariableList;
 begin
   result := BoldProperties.VariableList;
 end;
-
-initialization
 
 end.

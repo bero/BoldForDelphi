@@ -45,6 +45,7 @@ type
     fMappingInfoScript: TStringList;
     fWarnings: TStringList;
     fSessionName: String;
+    fEnabled: Boolean;
     procedure SqlScriptChange(Sender: TObject);
     procedure MappingInfoScriptChange(Sender: TObject);
     procedure SetProgress(const Value: integer);
@@ -59,6 +60,8 @@ type
     procedure StartLog(const SessionName: string);
     procedure EndLog;
     procedure ProcessInterruption;
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetMappingInfoScript: TStrings;
     function GetSQLScript: TStrings;
     function GetWarnings: TStrings;
@@ -237,6 +240,16 @@ end;
 
 procedure TfrmBoldDbEvolutor.ProcessInterruption;
 begin
+end;
+
+function TfrmBoldDbEvolutor.GetEnabled: Boolean;
+begin
+  Result := fEnabled;
+end;
+
+procedure TfrmBoldDbEvolutor.SetEnabled(const Value: Boolean);
+begin
+  fEnabled := Value;
 end;
 
 procedure TfrmBoldDbEvolutor.Sync;

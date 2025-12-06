@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldOLLEController;
@@ -47,6 +47,8 @@ implementation
 
 uses
   SysUtils,
+
+  BoldCoreConsts,
   BoldUtils;
 
 
@@ -59,7 +61,7 @@ begin
   fMimicPHandle.fPHandle := PersistenceHandle;
   fMimicPHandle.BoldModel := fOlleDM.BoldModel1;
   fMimicPHandle.SQLDatabaseConfig.AssignConfig(PersistenceHandle.SQLDatabaseConfig);
-  fMimicPHandle.SQLDataBaseConfig.SystemTablePrefix := 'OLLE';
+  fMimicPHandle.SQLDataBaseConfig.SystemTablePrefix := 'OLLE'; // do not localize
   fOlleDM.BoldObjectInfoSystem.PersistenceHandle := fMimicPHandle;
 end;
 
@@ -84,7 +86,7 @@ begin
   if value <> Persistent then
   begin
     if fOlleDm.BoldObjectInfoSystem.Active then
-      raise Exception.Create( 'TBoldOLLEController: Can not change Persistent-property when the OLLE system is active' );
+      raise Exception.CreateFmt(sCannotChangePersistenceWhenActive, [ClassName]);
     if Value then
       fOlleDM.BoldObjectInfoSystem.PersistenceHandle := fMimicPHandle
     else
@@ -119,7 +121,5 @@ begin
     fSQLDatabaseConfig := TBoldSQLDataBaseConfig.Create;
   result := fSQLDatabaseConfig;
 end;
-
-initialization
 
 end.

@@ -16,6 +16,7 @@ type
   TBoldDatabaseAdapterUniDAC = class;
 
   { TBoldDatabaseAdapterUniDAC }
+  [ComponentPlatforms(pidWin32 or pidWin64)]
   TBoldDatabaseAdapterUniDAC = class(TBoldAbstractDatabaseAdapter)
   private
     fBoldUniDACConnection: TBoldUniDACConnection;
@@ -27,7 +28,6 @@ type
   public
     destructor Destroy; override;
     procedure CreateDatabase(DropExisting: boolean = true); override;
-    procedure DropDatabase; override;
   published
     property Connection: TUniConnection read GetConnection write SetConnection;
     {$IFNDEF T2H}
@@ -38,10 +38,11 @@ type
 implementation
 
 uses
-  BoldSQLDatabaseConfig,
   SysUtils,
+
+  BoldCoreConsts,
   BoldDefs,
-  UniDACConsts;
+  BoldSQLDatabaseConfig;
 
 { TBoldDatabaseAdapterUniDAC }
 
@@ -53,14 +54,9 @@ begin
   inherited;
 end;
 
-procedure TBoldDatabaseAdapterUniDAC.DropDatabase;
+procedure TBoldDatabaseAdapterUniDAC.CreateDatabase;
 begin
-  DatabaseInterface.DropDatabase;
-end;
-
-procedure TBoldDatabaseAdapterUniDAC.CreateDatabase(DropExisting: boolean);
-begin
-  DatabaseInterface.CreateDatabase(DropExisting);
+  DatabaseInterface.CreateDatabase;
 end;
 
 function TBoldDatabaseAdapterUniDAC.GetConnection: TUniConnection;
@@ -72,7 +68,7 @@ function TBoldDatabaseAdapterUniDAC.GetDataBaseInterface: IBoldDatabase;
 begin
   if not Assigned(Connection) then
   begin
-    raise EBold.CreateFmt(sAdapterNotConnected, [ClassName]);
+    raise EBold.CreateFmt(sAdapterNotConnected, [ClassName, sUniDAC]);
   end;
   if not Assigned(fBoldUniDACConnection) then
   begin

@@ -1,4 +1,11 @@
 
+/////////////////////////////////////////////////////////
+//                                                     //
+//              Bold for Delphi                        //
+//    Copyright (c) 2002 BoldSoft AB, Sweden           //
+//                                                     //
+/////////////////////////////////////////////////////////
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldIBInterfaces;
@@ -54,6 +61,7 @@ type
     procedure SetUseReadTransactions(value: boolean);
     procedure BeginExecuteQuery;
     procedure EndExecuteQuery;
+    procedure Prepare;
   protected
     function GetDataSet: TDataSet; override;
     procedure ClearParams;
@@ -82,6 +90,7 @@ type
     procedure SetExclusive(NewValue: Boolean);
     function GetExclusive: Boolean;
     function GetExists: Boolean;
+
   protected
     function GetDataSet: TDataSet; override;
     procedure Open; override;
@@ -123,15 +132,21 @@ type
     function GetTable: IBoldTable; override;
     procedure ReleaseTable(var Table: IBoldTable); override;
   public
-    constructor create(DataBase: TIBDataBase; SQLDataBaseConfig: TBoldSQLDatabaseConfig);
-    destructor destroy; override;
-    procedure CreateDatabase(DropExisting: boolean = true); override;
+    constructor Create(DataBase: TIBDataBase; SQLDataBaseConfig: TBoldSQLDatabaseConfig);
+    destructor Destroy; override;
+    procedure CreateDatabase(DropExisting: boolean = true);
+    function CreateAnotherDatabaseConnection: IBoldDatabase;
   end;
 
 implementation
 
 uses
   SysUtils,
+  {$IFDEF ATTRACS}
+  AttracsDefs,
+  AttracsPerformance,
+  AttracsErrorMgr,
+  {$ENDIF}
   BoldUtils;
 
 
@@ -198,7 +213,15 @@ begin
 end;
 
 procedure TBoldIBQuery.ExecSQL;
+{$IFDEF ATTRACS}
+var
+  PerformanceMeasurement : TPerformanceMeasurement;
 begin
+  //PATCH for logging long running SQL
+  PerformanceMeasurement := TPerformanceMeasurement.ReStart;
+{$ELSE}
+begin
+{$ENDIF}
   BeginExecuteQuery;
   try
   BoldLogSQL(Query.SQL);
@@ -215,6 +238,14 @@ begin
       raise;
     end;
   end;
+{$IFDEF ATTRACS}
+  if not PerformanceMeasurement.AcceptableTimeForUserResponseTime then
+  begin
+    PerformanceMeasurement.WhatMeasured := 'TBoldIBQuery.ExecSQL';
+    PerformanceMeasurement.WhatMeasuredParameter := Query.SQL.Text;
+    PerformanceMeasurement.Trace;
+  end;
+{$ENDIF}
   finally
     EndExecuteQuery;
   end;
@@ -330,9 +361,17 @@ var
   Param: TParam;
 begin
   Param := Query.ParamByName(Value);
+  if assigned(Param) then
     result := TBoldDbParameter.Create(Param, self)
+  else
+    result := nil;
 end;
 
+
+procedure TBoldIBQuery.Prepare;
+begin
+  Query.prepare;
+end;
 
 {function TBoldIBQuery.Params: TParams;
 begin
@@ -512,6 +551,11 @@ constructor TBoldIBDataBase.create(DataBase: TIBDataBase; SQLDataBaseConfig: TBo
 begin
   inherited create(SQLDataBaseConfig);
   fDataBase := DataBase;
+end;
+
+function TBoldIBDataBase.CreateAnotherDatabaseConnection: IBoldDatabase;
+begin
+  raise Exception.CreateFmt('%s.CreateAnotherDatabaseConnection: Not implemented', [ClassName]);
 end;
 
 destructor TBoldIBDataBase.destroy;

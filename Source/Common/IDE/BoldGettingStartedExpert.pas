@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldGettingStartedExpert;
@@ -27,7 +27,7 @@ type
     function getURLGettingStarted: string;
     function DoShowGettingStarted: Boolean;
     procedure OnTimer(Sender: TObject);
-    property URLGettingStarted: string read getURLGettingStarted;    
+    property URLGettingStarted: string read getURLGettingStarted;
   protected
     procedure Initialize; override;
   public
@@ -49,15 +49,16 @@ implementation
 
 uses
   SysUtils,
+  Toolsapi,
+  ShellAPI,
+  Windows,
+  Dialogs,
+  BoldCoreConsts,
   BoldUtils,
   BoldDefsDT,
   BoldRegistry,
   BoldIDEMenus,
-  BoldGuard,
-  Toolsapi,
-  ShellAPI,
-  windows,
-  dialogs;
+  BoldGuard;
 
 procedure Register;
 begin
@@ -69,7 +70,7 @@ begin
   try
     dmMenus := TDMExpertMenus.Create(nil);
     BoldMenuExpert;
-    GettingStartedExpert := TBoldGettingStartedExpert.Create('BoldGettingStartedExpert', 'Getting Started', [], 5, 'Bold');
+    GettingStartedExpert := TBoldGettingStartedExpert.Create('BoldGettingStartedExpert', 'GettingStarted', [], 5, 'Bold');
     GettingStartedExpert.AddMenuItem(dmMenus.GettingStartedMenu);
   except on E: Exception do
     showmessage(Format('InitExpert: ', [E.Message]));

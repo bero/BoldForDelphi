@@ -1,4 +1,3 @@
-
 { Global compiler directives }
 {$include bold.inc}
 unit BoldCustomBlobMapper;
@@ -42,6 +41,8 @@ implementation
 
 uses
   SysUtils,
+
+  BoldCoreConsts,
   BoldPMappersSQL,
   BoldPSDescriptionsSQL,
   BoldDefs,
@@ -52,7 +53,7 @@ uses
 {const
   MemberNameColumn = 'MEMBERNAME';
   }
-  
+
 const
   BLOBDATA_TABLENAME = 'BLOBDATATABLE';
   BLOBDATA_DATACOLUMNNAME = 'BLOBDATA';
@@ -80,8 +81,8 @@ begin
     0: result := SystemPersistenceMapper.SQLDataBaseConfig.ColumnTypeForInteger;
     1: result := format(SystemPersistenceMapper.SQLDataBaseConfig.ColumnTypeForString, [ColumnSize[ColumnIndex]] );
     2: result := SystemPersistenceMapper.SQLDataBaseConfig.ColumnTypeForBlob;
-    else 
-      raise EBold.CreateFmt( '%s.GetColumnTypeAsSQL: unknown column (%d)', [classname, columnIndex] );
+    else
+      raise EBold.CreateFmt(sIllegalColumnIndex, [classname, 'GetColumnTypeAsSQL', columnIndex] ); // do not localize
   end;
 end;
 
@@ -115,12 +116,12 @@ constructor TBoldPMBlobWithSeparateTable.CreateFromMold(moldMember: TMoldMember;
 begin
   inherited;
   if length(ExpressionName) > ColumnSize[1] then
-    raise EBold.CreateFmt( '%s.CreateFromMold: Too long MemberName (%s) - %d characters allowed', [ClassName, ExpressionName, ColumnSize[1]] );
+    raise EBold.CreateFmt(sMemberNameTooLong, [ClassName, ExpressionName, ColumnSize[1]] );
   fCustomCreateUpDate := true;
   fCustomFetch := true;
 
   if MoldClass.Versioned then
-    raise EBold.CreateFmt( '%s.CreateFromMold: Versioned classes (%s) currently not supported by this blobmapper', [ClassName, MoldClass.ExpressionName]);
+    raise EBold.CreateFmt( sVersionedClassesNotSupported, [ClassName, MoldClass.ExpressionName]);
 end;
 
 procedure TBoldPMBlobWithSeparateTable.PMFetch(ObjectIdList: TBoldObjectIdList; const ValueSpace: IBoldValueSpace; FetchMode: Integer; TranslationList: TBoldIdTranslationList; FailureList: TBoldObjectIdList);
@@ -265,16 +266,16 @@ var
 begin
   Objectcontents := ValueSpace.ObjectContentsByObjectId[ID];
   if not assigned(ObjectContents) then
-    raise Exception.CreateFmt('%s.GetBlobValue: Trying to get blob value for %s.%s, but the object (ID: %s) is not in the ValueSpace', [ClassName, ObjectpersistenceMapper.ExpressionName, ExpressionName, Id.AsString]);
+    raise Exception.CreateFmt(sObjectNotInValueSpace, [ClassName, ObjectpersistenceMapper.ExpressionName, ExpressionName, Id.AsString]);
 
   MemberID := TBoldMemberId.Create(MemberIndex);
   ObjectContents.EnsureMember(MemberID, ContentName);
   MemberID.Free;
   value := ObjectContents.ValueByIndex[MemberIndex];
   if not assigned(value) then
-    raise Exception.CreateFmt('%s.GetBlobValue: Trying to get blob value for %s.%s, but the value (ID: %s) is not in the ValueSpace', [ClassName, ObjectpersistenceMapper.ExpressionName, ExpressionName, Id.AsString]);
+    raise Exception.CreateFmt(sValueNotInValueSpace, [ClassName, ObjectpersistenceMapper.ExpressionName, ExpressionName, Id.AsString]);
   if not value.QueryInterface(IBoldBlobContent, result) = S_OK then
-    raise Exception.CreateFmt('%s.GetBlobValue: Trying to get blob value for %s.%s, but the value was not a blob...', [ClassName, ObjectpersistenceMapper.ExpressionName, ExpressionName]);
+    raise Exception.CreateFmt(sValueNotBlob, [ClassName, ObjectpersistenceMapper.ExpressionName, ExpressionName]);
 end;
 
 function TBoldPMBlobWithSeparateTable.IdListToString(IdList: TBoldObjectIdList): String;
@@ -295,7 +296,7 @@ function TBoldPMBlobWithSeparateTable.CompareField(
   ColumnIndex: integer; const ValueSpace: IBoldValueSpace;
   TranslationList: TBoldIdTranslationList): Boolean;
 begin
-  raise Exception.CreateFmt('%s.CompareField: needs a custom Compare to do this', [ClassName]);
+  raise Exception.CreateFmt(sCustomCompareRequired, [ClassName]);
 end;
 
 procedure TBoldPMBlobWithSeparateTable.InitializePSDescriptions;

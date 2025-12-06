@@ -171,8 +171,8 @@ end;
 
 procedure Register;
 begin
-  RegisterComponentsOnPalette;
-  RegisterEditors;
+    RegisterComponentsOnPalette;
+    RegisterEditors;
 end;
 
 end.

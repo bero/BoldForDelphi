@@ -1,4 +1,3 @@
-
 { Global compiler directives }
 {$include bold.inc}
 unit BoldSQLDirectInterfaces;
@@ -9,7 +8,9 @@ uses
   Classes,
   Db,
   SDEngine,
+  SysUtils,
   BoldSQLDatabaseConfig,
+  BoldDefs,
   BoldDBInterfaces;
 
 type
@@ -31,33 +32,33 @@ type
     FQuery: TSDQuery;
     fUseReadTransactions: boolean;
     function GetParamCount: integer;
-    function GetParams: TParams; override;
     function GetParam(i: integer): IBoldParameter;
     function GetQuery: TSDQuery;
     function GetRecordCount: integer;
     function GetRequestLiveQuery: Boolean;
     procedure ClearParams;
     function GetRowsAffected: integer;
-    function GetSQLText: String;
     function GetParamCheck: Boolean;
     procedure SetParamCheck(value: Boolean);
-    function ParamByName(const Value: string): IBoldParameter; override;
-    function FindParam(const Value: string): IBoldParameter; override;
     procedure AssignParams(Sourceparams: TParams);
     procedure AssignSQL(SQL: TStrings);
-    procedure AssignSQLText(const SQL: String);
-    function GetSQLStrings: TStrings; override;
     procedure SetRequestLiveQuery(NewValue: Boolean);
     function GetUseReadTransactions: boolean;
     procedure SetUseReadTransactions(value: boolean);
-    function Createparam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; override;
-    procedure ExecSQL;
   protected
+    function Createparam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; override;
+    function GetSqlText: String; override;
+    procedure ExecSQL; override;
+    procedure AssignSQLText(const SQL: String); override;
+    function GetSQLStrings: TStrings; override;
+    function ParamByName(const Value: string): IBoldParameter; override;
+    function FindParam(const Value: string): IBoldParameter; override;
+    function GetParams: TParams; override;
     function GetDataSet: TDataSet; override;
     procedure Open; override;
     property Query: TSDQuery read GetQuery;
   public
-    constructor Create(Query: TSDQuery; DatabaseWrapper: TBoldDatabaseWrapper); virtual;
+    constructor Create(Query: TSDQuery; DatabaseWrapper: TBoldDatabaseWrapper); reintroduce;
   end;
 
   { TBoldSQLDirectTable }
@@ -77,8 +78,10 @@ type
     property Table: TSDTable read GetTable;
   protected
     function GetDataSet: TDataSet; override;
+    function ParamByName(const Value: string): IBoldParameter; override;
+    function FindParam(const Value: string): IBoldParameter; override;
   public
-    constructor Create(Table: TSDTable; DatabaseWrapper: TBoldDatabaseWrapper);
+    constructor Create(Table: TSDTable; DatabaseWrapper: TBoldDatabaseWrapper); reintroduce;
   end;
 
   { TBoldSDDataBase }
@@ -87,7 +90,7 @@ type
     FDatabase: TSDDataBase;
     fCachedTable: TSDTable;
     FCachedQuery: TSDQuery;
-    fExecuteQueryCount: integer;    
+    fExecuteQueryCount: integer;
     function GetConnected: Boolean;
     function GetDataBase: TSDDataBase;
     function GetInTransaction: Boolean;
@@ -115,6 +118,8 @@ type
     constructor Create(Database: TSDDataBase; SQLDataBaseConfig: TBoldSQLDatabaseConfig);
     destructor Destroy; override;
     procedure Reconnect;
+    function GetDatabaseError(const E: Exception; const sSQL: string = ''):
+        EBoldDatabaseError;
   end;
 
 var
@@ -123,13 +128,28 @@ var
 implementation
 
 uses
-  SysUtils,
   BoldUtils,
-  BoldDefs,
   Controls,
   Masks,
   DateUtils,
-  StrUtils;
+  StrUtils,
+  SDCommon;
+
+function BuildLogStr(Query: TSDQuery): String;
+var
+  i: Integer;
+begin
+  Result:=DateTimeToStr(Now)+#13#10;
+  Result:=Result+Query.SQL.Text+#13#10;
+  for i:=0 to Query.Params.Count-1 do begin
+    if Query.Params[i].DataType in [ftString, ftSmallint, ftInteger,
+        ftWord, ftDate, ftTime, ftDateTime, ftMemo, ftFixedChar, ftWideString,
+        ftLargeint, ftTimeStamp, ftFloat, ftCurrency, ftBoolean, ftFmtMemo] then begin
+      Result:=Result+Query.Params[i].Name+'='+Query.Params[i].AsString+#13#10;
+    end;
+  end;
+  Result:=Result+#13#10;
+end;
 
 { TBoldSDQuery }
 
@@ -174,20 +194,26 @@ begin
 end;
 
 procedure TBoldSQLDirectQuery.ExecSQL;
+var
+  tstart, tend: TTime;
 begin
   try
-    BoldLogSQL(Query.SQL);
-    if InBatch then
-    begin
+    if InBatch then begin
       BatchExecSQL;
-      exit;
-    end;
+    end
+    else begin
+      BoldLogSQL(Query.SQL);
+      kiCLogSQL(BuildLogStr(Query));
+      tstart:=Now;
       Query.ExecSQL;
+      tend:=Now;
+      kiCLogSQL('Dauer: '+IntToStr(SecondsBetween(tstart, tend))+' Sekunden'+#13#10+#13#10);
+    end;
   except
-    on e: exception do
-    begin
-      e.Message := (e.Message + #13#10 +Query.SQL.Text);
-      raise;
+    on E: Exception do begin
+      var mes:=e.Message + BOLDCRLF + 'SQL: '+ Query.SQL.Text;
+      kiCLogSQLException(mes);
+      raise TBoldSQLDirectDatabase(DatabaseWrapper).GetDatabaseError(E, Query.SQL.Text);
     end;
   end;
 end;
@@ -265,9 +291,25 @@ begin
 end;
 
 procedure TBoldSQLDirectQuery.Open;
+var
+  tstart, tend: TTime;
+  mes: String;
 begin
   BoldLogSQL(Query.SQL);
+  kiCLogSQL(BuildLogStr(Query));
+  try
+    tstart:=Now;
     inherited;
+    tend:=Now;
+    kiCLogSQL('Dauer: '+IntToStr(SecondsBetween(tstart, tend))+' Sekunden'+#13#10+#13#10);
+  except
+    on e: Exception do
+    begin
+      mes:=e.Message + BOLDCRLF + 'SQL: '+ Query.SQL.Text;
+      kiCLogSQLException(mes);
+      raise TBoldSQLDirectDatabase(DatabaseWrapper).GetDatabaseError(E, Query.SQL.Text);
+    end;
+  end
 end;
 
 function TBoldSQLDirectQuery.ParamByName(const Value: string): IBoldParameter;
@@ -319,6 +361,11 @@ begin
   Table.DeleteTable;
 end;
 
+function TBoldSQLDirectTable.FindParam(const Value: string): IBoldParameter;
+begin
+  Assert(False, 'Param not available on table. 6FEF4465-001D-4628-BDE5-FF37F5D6C493');
+end;
+
 function TBoldSQLDirectTable.GetDataSet: TDataSet;
 begin
   result := Table;
@@ -351,6 +398,11 @@ end;
 function TBoldSQLDirectTable.GetTableName: String;
 begin
   result := Table.TableName;
+end;
+
+function TBoldSQLDirectTable.ParamByName(const Value: string): IBoldParameter;
+begin
+  Assert(False, 'Param not available on table. 42BA6296-0B9C-4EFD-8FB4-77EA0F96BE77');
 end;
 
 procedure TBoldSQLDirectTable.SetExclusive(NewValue: Boolean);
@@ -435,6 +487,75 @@ begin
   result := FDataBase;
 end;
 
+function TBoldSQLDirectDatabase.GetDatabaseError(const E: Exception;
+  const sSQL: string): EBoldDatabaseError;
+var
+  aErrorType: TBoldDatabaseErrorType;
+  sServer,
+  sDatabase,
+  sUsername: string;
+const
+  cMSSQLProvider = 'SQL Server';
+  cOracleProvider = 'Oracle';
+  cFirebirdProvider = 'Firebird';
+begin
+  sServer:='';
+  if FDatabase.ServerType=stOracle then
+    sServer:=cOracleProvider
+  else
+  if FDatabase.ServerType=stFirebird then
+    sServer:=cFirebirdProvider
+  else
+  if FDatabase.ServerType=stOLEDB then
+    sServer:=cMSSQLProvider
+  else
+  if FDatabase.ServerType=stODBC then begin
+    if ContainsStr(FDatabase.RemoteDatabase, cMSSQLProvider) then
+      sServer:=cMSSQLProvider
+    else
+    if ContainsStr(FDatabase.RemoteDatabase, cOracleProvider) then
+      sServer:=cOracleProvider
+  end;
+  if sServer='' then begin
+    raise Exception.Create(
+        'TBoldSQLDirectDatabase.GetDatabaseError: Error codes not implemented for '
+        + FDatabase.RemoteDatabase+' ('+IntToStr(Integer(FDatabase.ServerType))+')');
+  end;
+  sDatabase := FDatabase.RemoteDatabase;
+  sUsername := FDatabase.Params.Values['USER NAME'];
+  aErrorType := bdetError;
+
+  if not FDatabase.Connected then begin
+    aErrorType := bdetConnection;
+  end
+  else begin
+    if (E is ESDEngineError) then begin
+      if sServer=cMSSQLProvider then begin
+        case ESDEngineError(E).ErrorCode of
+          -2147217900, -2139062144, -2147467259, -1, 2, 53, 233, 6005: aErrorType := bdetConnection;
+          4060, 18456: aErrorType := bdetLogin;
+
+        end;
+      end
+      else
+      if sServer=cOracleProvider then begin
+        case ESDEngineError(E).ErrorCode of
+          1089, 1033, 1034, 3113, 12154, 12203, 12500, 12518, 12545, 12560: aErrorType:=bdetConnection;
+          1017: aErrorType := bdetLogin;
+        end;
+      end
+      else
+      if sServer=cFirebirdProvider then begin
+        case ESDEngineError(E).ErrorCode of
+          335544721, 335544722, 335544741, 335544856, 335544421, 335544648: aErrorType:=bdetConnection;
+        end;
+      end;
+    end;
+  end;
+  Result := InternalGetDatabaseError(aErrorType, E, sSQL, sServer, sDatabase,
+      sUsername, False);
+end;
+
 function TBoldSQLDirectDatabase.GetInTransaction: Boolean;
 begin
   result := Database.InTransaction;
@@ -498,7 +619,13 @@ end;
 
 procedure TBoldSQLDirectDatabase.Open;
 begin
-  Database.Open;
+  try
+    Database.Open;
+  except
+    on E: Exception do begin
+      raise GetDatabaseError(E);
+    end;
+  end;
 end;
 
 procedure TBoldSQLDirectDatabase.Reconnect;
@@ -510,7 +637,9 @@ procedure TBoldSQLDirectDatabase.ReleaseCachedObjects;
 begin
   FreeAndNil(fCachedTable);
   FreeAndNil(fCachedQuery);
-  end;
+end;
+
+type TCollectionAccess = class(TCollection);
 
 procedure TBoldSQLDirectDatabase.ReleaseQuery(var Query: IBoldQuery);
 var
@@ -524,6 +653,11 @@ begin
       if FCachedQuery.Active then
         FCachedQuery.Close;
       FCachedQuery.SQL.Clear;
+      while FCachedQuery.SQL.Updating do
+        FCachedQuery.SQL.EndUpdate;
+      FCachedQuery.Params.Clear;
+      while TCollectionAccess(FCachedQuery.Params).UpdateCount > 0 do
+        FCachedQuery.Params.EndUpdate;
     end
     else
       SDQuery.FQuery.free;

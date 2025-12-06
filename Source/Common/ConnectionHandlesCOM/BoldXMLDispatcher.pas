@@ -1,4 +1,11 @@
 
+/////////////////////////////////////////////////////////
+//                                                     //
+//              Bold for Delphi                        //
+//    Copyright (c) 2002 BoldSoft AB, Sweden           //
+//                                                     //
+/////////////////////////////////////////////////////////
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldXMLDispatcher;
@@ -10,7 +17,7 @@ uses
   BoldUtils,
   BoldSOAP_TLB,
   BoldStringList,
-  Bold_MSXML_TLB,
+  {$IFDEF OXML}OXmlPDOM{$ELSE}Bold_MSXML_TLB{$ENDIF},
   BoldComServerHandles,
   BoldDefs,
   BoldXMLRequests,
@@ -18,8 +25,7 @@ uses
   BoldXMLProducers,
   BoldSubscription,
   Classes,
-  comobj
-  ;
+  comobj;
 
 type
   {forward declarations}
@@ -41,7 +47,6 @@ type
   TBoldXMLDispatchErrorEvent = procedure (const E: Exception; out response: string) of object;
   
   TBoldGetXMLRequestEvent = procedure (const XML: string; out Request: TBoldXMLRequest) of object;
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TBoldXMLDispatcher = class(TBoldComExportHandle)
   private
     FActions: TBoldXMLActions;
@@ -101,10 +106,13 @@ type
 
 implementation
 
+{$R *.res}
+
 uses
   ActiveX,
-  windows
-  ;
+  Windows,
+
+  BoldCoreConsts;
 
 const
   breProducerDestroying = 100;
@@ -121,9 +129,9 @@ begin
   begin
     inherited Create(typelib, IBoldSOAPService);
     FOwner := Owner;
-  end                  
+  end
   else
-    raise EBold.CreateFmt('%s.Create: Unable to load type library LIBID_BoldSOAP. (LoadRegTypeLib Result: %d)', [ClassName, Res]);
+    raise EBold.CreateFmt(sUnableToLoadTypeLibBoldSoap, [ClassName]);
 end;
 
 procedure TBoldXMLSOAPService.Get(const request: WideString;
@@ -137,7 +145,7 @@ begin
   else
     XMLRequest := TBoldXMLRequest.CreateFromXML(request);
   if not Assigned(XMLRequest) then
-    raise EBold.CreateFmt('%s.Get: XMLRequest not assigned', [ClassName]);   
+    raise EBold.CreateFmt(sXMLRequestNotAssigned, [ClassName]);
   (Owner as TBoldXMLDispatcher).DispatchAction(XMLRequest, ResponseXML);
   reply := ResponseXML;
 end;

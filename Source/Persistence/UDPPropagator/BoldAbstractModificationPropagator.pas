@@ -14,6 +14,7 @@ uses
   BoldSystem,
   BoldSystemHandle,
   BoldAbstractSnooper,
+  BoldSnooper,
   BoldPersistenceControllerPassthrough,
   BoldPersistenceController,
   BoldPersistenceHandlePassthrough,
@@ -32,12 +33,12 @@ type
   TBoldNotificationPropagatorPersistenceControllerPassthrough = class;
 
   { TBoldNotificationPropagatorPersistenceControllerPassthrough }
-  TBoldNotificationPropagatorPersistenceControllerPassthrough = class(TBoldAbstractSnooper)
+  TBoldNotificationPropagatorPersistenceControllerPassthrough = class(TBoldSnooper)
   private
     FBoldNotificationPropagator: TBoldAbstractNotificationPropagator;
     fClientId: TBoldClientid;
   public
-    constructor Create(MoldModel: TMoldModel; ClientId: TBoldClientId);
+    constructor Create(MoldModel: TMoldModel; ClientId: TBoldClientId); reintroduce;
     procedure PMUpdate(ObjectIdList: TBoldObjectIdList; ValueSpace: IBoldValueSpace; Old_Values: IBoldValueSpace; Precondition: TBoldUpdatePrecondition; TranslationList: TBoldIdTranslationList; var TimeStamp: TBoldTimeStampType; var TimeOfLatestUpdate: TDateTime; BoldClientID: TBoldClientID); override;
     procedure TransmitEvents(const ClientID: TBoldClientID); override;
     property BoldNotificationPropagator: TBoldAbstractNotificationPropagator read FBoldNotificationPropagator write FBoldNotificationPropagator;
@@ -182,7 +183,7 @@ end;
 
 constructor TBoldNotificationPropagatorPersistenceControllerPassthrough.Create(MoldModel: TMoldModel; ClientId: TBoldClientId);
 begin
-  inherited Create(MoldModel);
+  inherited Create(MoldModel, nil);
   fClientId := ClientId;
 end;
 
@@ -200,7 +201,7 @@ begin
   try
     BoldNotificationPropagator.EnqueEventList(Events);
   finally
-    ClearEvents;
+    Events.Clear;
   end;
 end;
 

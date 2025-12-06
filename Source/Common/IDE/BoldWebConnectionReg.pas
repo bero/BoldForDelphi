@@ -23,7 +23,7 @@ end;
 
 procedure Register;
 begin
-  RegisterComponentsOnPalette;
+    RegisterComponentsOnPalette;
 end;
 
 end.

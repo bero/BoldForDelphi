@@ -34,8 +34,8 @@ end;
 
 procedure Register;
 begin
-  RegisterComponentsOnPalette;
-  RegisterComponentEditors;
+    RegisterComponentsOnPalette;
+    RegisterComponentEditors;
 end;
 
 end.

@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldEnvironmentCLX;
@@ -16,8 +16,7 @@ uses
   QForms,
   QExtCtrls,
   BoldEnvironment,
-  BoldQueue,
-  BoldRev;
+  BoldQueue;
 
 type
   TBoldCLXEnvironmentConfiguration = class(TBoldEnvironmentConfiguration)
@@ -46,6 +45,7 @@ type
     property IdleTimer: TTimer read GetIdleTimer write fIdleTimer;
   protected
     procedure EnsureDequeing; override;
+    function GetIsActive: boolean; override;
   public
     destructor Destroy; override;
     procedure DeActivateDisplayQueue; override;
@@ -106,7 +106,8 @@ var
   Owner: TComponent;
 begin
   if not RunningInIDE then
-    raise EBold.CreateFmt('%s: Not running in IDE', ['UpdateDesigner']);
+    raise EBold.CreateFmt(sNotRunningInIDE, ['UpdateDesigner']); // do not localize
+  // Don't call inherited
   ParentForm := nil;
   Owner := nil;
   if (Sender is TControl) then
@@ -154,6 +155,11 @@ begin
   Result := fIdleTimer;
 end;
 
+function TBoldTimerQueue.GetIsActive: boolean;
+begin
+  result := fBoldQueueActive;
+end;
+
 procedure TBoldTimerQueue.IdleTimerEvent(Sender: TObject);
 var
   Done: Boolean;
@@ -166,7 +172,7 @@ begin
         dmDisplayOne: Done := not DisplayOne;
         dmDisplayAll: Done := not DisplayAll;
         else
-          raise EBoldInternal.CreateFmt('%s.ApplicationEventsOnIdle: Unknown displaymode', [classname]);
+          raise EBoldInternal.CreateFmt(sUnknownDisplayMode, [classname]);
       end;
     end;
   except

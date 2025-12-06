@@ -1,4 +1,4 @@
-unit BoldDirectoryTraverser;
+﻿unit BoldDirectoryTraverser;
 
 interface
 
@@ -37,8 +37,8 @@ type
 implementation
 
 uses
+  BoldCoreConsts,
   BoldDefs,
-  BoldCommonConst,
   BoldUtils;
 
 { TBoldDirectoryTraverser }

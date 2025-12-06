@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldOLLEDistributableObjectHandlers;
@@ -119,6 +119,8 @@ implementation
 
 uses
   SysUtils,
+
+  BoldCoreConsts,
   BoldUtils,
   BoldDomainElement;
 
@@ -157,10 +159,10 @@ begin
     begin
       anObject := InfoObjects[i];
       if not (anObject is TForeignObjectInfo) then
-        raise EBold.CreateFmt('%s.EnsureForeignInfo: Object is not a foreign object', [Classname]);
+        raise EBold.CreateFmt(sObjectNotForeign, [Classname]);
       aForeignObjectInfo := anObject as TForeignObjectInfo;
       if not (aForeignObjectInfo.Owner = Owner) then
-        raise EBold.CreateFmt('%s.EnsureForeignInfo: Wrong owner', [Classname]);
+        raise EBold.CreateFmt(sWrongOwner, [Classname]);
       anObjectId.AsInteger := aForeignObjectInfo.LocalId;
       aForeignObjectInfo.Put(ValueSpace, HoldList.IdInList[anObjectId], NewLocalTimeStamp);
     end;
@@ -238,7 +240,7 @@ begin
     try
       OwnerForeignPSInfo := GetForeignPSInfo(Owner);
       if OwnerForeignPSInfo.IsCheckingIn then
-        raise EBold.CreateFmt('%s.StartCheckIn: Already checking in objects for this persistent storage', [Classname]);
+        raise EBold.CreateFmt(sObjectsAlreadyBeingCheckedIn, [Classname]);
       Fetch(Idlist, ValueSpace);
       StartCheckInObjects(ValueSpace, IdList, ReleaseList, OwnerForeignPSInfo);
       ReleaseObjects(ValueSpace, ReleaseList);
@@ -463,7 +465,7 @@ begin
     begin
       anObject := InfoObjects[i];
       if not (anObject is TOwnObjectInfo) then
-        raise EBold.CreateFmt('%s.CheckInObjects: Object is not an owned object', [Classname]);
+        raise EBold.CreateFmt(sObjectNotOwned, [Classname, 'CheckInObjects']); // do not localize
       anOwnObjectInfo := anObject as TOwnObjectInfo;
       anObjectId.AsInteger := anOwnObjectInfo.LocalId;
       anOwnObjectInfo.CheckIn(ValueSpace, ReleaseList.IdInList[anObjectId], Holder);
@@ -550,7 +552,7 @@ begin
   try
     aForeignPS := GetForeignPSInfo(ForeignPS);
     if aForeignPS.IsSynching then
-      raise EBold.CreateFmt('%s.GetSynch: There is already an ongoing synch that must either be acknowledged or failed.', [classname]);
+      raise EBold.CreateFmt(sSynchInProgress, [classname]);
 
     ChangedObjects := TBoldObjectIdList.Create;
     HoldList := TBoldObjectIdList.Create;
@@ -662,7 +664,7 @@ begin
     for i := 0 to InfoObjects.Count - 1 do
     begin
       if not (InfoObjects[i] is TOwnObjectInfo) then
-        raise EBold.CreateFmt('%s.UnCheckOutObjects: Object is not an owned object', [Classname]);
+        raise EBold.CreateFmt(sObjectNotOwned, [Classname, 'UnCheckOutObjects']); // do not localize
       anOwnObjectInfo := InfoObjects[i] as TOwnObjectInfo;
       anOwnObjectInfo.UnCheckOut(Holder);
     end;
@@ -986,11 +988,10 @@ var
           begin
             if not BrokenLinkResolver.ResolveBrokenLink(ObjectContents, j, HoldList.IdInList[IdList[i]]) then
             begin
-              raise EBoldFeatureNotImplementedYet.CreateFmt('%s.VerifyAssociations: Failing inidividual objects not implemented', [classname]);
-
+              raise EBoldFeatureNotImplementedYet.CreateFmt(sCannotFailIndividualObjects, [classname]);
             end;
           end else
-            raise EBold.Create('Operation failed: Unresolved link');
+            raise EBold.Create(sUnresolvedLink);
       end;
     end;
   end;
@@ -1071,7 +1072,7 @@ var
     else if (aMember.QueryInterface(IBoldObjectIdRefPair, anIdRefPair) = S_OK) then
       anIdRefPair.SetFromIds(nil, nil)
     else
-      raise EBoldInternal.CreateFmt('%.ResolveBrokenLink: Member is not a singlelink', [Classname]);
+      raise EBoldInternal.CreateFmt(sMemberNotSingleLink, [Classname]);
   end;
 
 begin
@@ -1083,10 +1084,10 @@ begin
 
   case ResolveAction of
     blraCut: Cut;
-    blraAbort: raise EBold.Create('Operation failed: Unresolved link');
+    blraAbort: raise EBold.Create(sUnresolvedLink);
     blraFailObject: result := False;
     blraIgnore:;
-    blraMissing: raise EBoldFeatureNotImplementedYet.Create('Missing Objects not implemented');
+    blraMissing: raise EBoldFeatureNotImplementedYet.Create(sMissingObjectsNotImplemented);
   end;
 end;
 

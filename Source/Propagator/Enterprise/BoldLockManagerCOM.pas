@@ -123,6 +123,4 @@ begin
   inherited Create(ComServer, TBoldLockManagerCOM, ClassID, ClassName, Description, ciMultiInstance, batSTA);
 end;
 
-initialization
-
 end.

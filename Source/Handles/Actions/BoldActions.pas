@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldActions;
@@ -112,13 +112,16 @@ type
 implementation
 
 uses
-  SysUtils,
-  BoldDefs,
-  Forms,
+  ComCtrls,
   Controls,
   Dialogs,
-  ComCtrls,
+  Forms,
   Menus, // for TextToShortCut
+  SysUtils,
+  System.UITypes,
+
+  BoldCoreConsts,
+  BoldDefs,
   BoldSystem;
 
 const
@@ -130,14 +133,15 @@ procedure TBoldUpdateDBAction.CheckAllowEnable(var EnableAction: boolean);
 begin
   inherited;
   if EnableAction then
-    EnableAction := BoldSystemHandle.Active and
-                    (BoldSystemHandle.System.DirtyObjects.Count > 0);
+    EnableAction := BoldSystemHandle.Active
+                    and not BoldSystemHandle.System.IsProcessingTransactionOrUpdatingDatabase
+                    and (BoldSystemHandle.System.DirtyObjects.Count > 0);
 end;
 
 constructor TBoldUpdateDBAction.Create(AOwner: TComponent);
 begin
   inherited;
-  Caption := 'Update DB';
+  Caption := sUpdateDB;
   ShortCut := TextToShortCut('Ctrl+S');
 end;
 
@@ -154,9 +158,9 @@ constructor TBoldActivateSystemAction.Create(AOwner: TComponent);
 begin
   inherited;
   fHandleIdentitySubscriber := TBoldPassthroughSubscriber.Create(_Receive);
-  fOpenCaption := 'Open system';
-  fCloseCaption := 'Close system';
-  fSaveQuestion := 'There are dirty objects. Save them before closing system?';
+  fOpenCaption := sOpenSystem;
+  fCloseCaption := sCloseSystem;
+  fSaveQuestion := sThereAreDirtyObjects;
   UpdateCaption;
 end;
 
@@ -185,7 +189,7 @@ begin
         saYes: BoldSystemHandle.UpdateDatabase;
         saNo: BoldSystemHandle.System.Discard;
         saFail: if BoldSystemHandle.System.DirtyObjects.Count > 0 then
-                raise EBold.Create('Closing system with dirty objects!!');
+                raise EBold.Create(sClosingWithDirtyObjects);
       end;
     if Update then
       BoldSystemHandle.Active := not BoldSystemHandle.Active;
@@ -195,7 +199,7 @@ end;
 procedure TBoldActivateSystemAction.SetBoldSystemHandle(
   const Value: TBoldSystemHandle);
 begin
-  inherited;
+  inherited SetBoldSystemHandle(Value);
   fHandleIdentitySubscriber.CancelAllSubscriptions;
   if Assigned(BoldSystemHandle) then
     BoldSystemHandle.AddSmallSubscription(fHandleIdentitySubscriber,
@@ -321,7 +325,7 @@ end;
 constructor TBoldCreateDatabaseAction.Create(AOwner: TComponent);
 begin
   inherited;
-  Caption := 'Create DB';
+  Caption := sCreateDB;
 end;
 
 procedure TBoldCreateDatabaseAction.ExecuteTarget(Target: TObject);
@@ -356,8 +360,9 @@ procedure TBoldDiscardChangesAction.CheckAllowEnable(var EnableAction: boolean);
 begin
   inherited;
   if EnableAction then
-    EnableAction := BoldSystemHandle.Active and
-                    (BoldSystemHandle.System.DirtyObjects.Count > 0);
+    EnableAction := BoldSystemHandle.Active
+                    and not BoldSystemHandle.System.IsProcessingTransactionOrUpdatingDatabase
+                    and (BoldSystemHandle.System.DirtyObjects.Count > 0);
 end;
 
 constructor TBoldDiscardChangesAction.Create(AOwner: TComponent);

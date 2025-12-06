@@ -1,4 +1,11 @@
 
+/////////////////////////////////////////////////////////
+//                                                     //
+//              Bold for Delphi                        //
+//    Copyright (c) 2002 BoldSoft AB, Sweden           //
+//                                                     //
+/////////////////////////////////////////////////////////
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldRichEditCom;
@@ -141,8 +148,7 @@ uses
   StdCtrls,
   BoldDefs,
   BoldControlPackDefs,
-  SysUtils,
-  BoldRev;
+  SysUtils;
 
 {---TBoldCustomRichEditCom---}
 constructor TBoldCustomRichEditCom.Create(AOwner: TComponent);
@@ -312,7 +318,7 @@ procedure TBoldCustomRichEditCom.KeyPress(var Key: Char);
 begin
   inherited KeyPress(Key);
   if (Key in [#32..#255]) and
-    not BoldProperties.ValidateCharacter(AnsiChar(Key), Follower) then
+    not BoldProperties.ValidateCharacter(Key, Follower) then
   begin
     MessageBeep(0);
     Key := BOLDNULL;
@@ -382,8 +388,5 @@ function TBoldCustomRichEditCom.GetFollower: TBoldFollowerCom;
 begin
   Result := fHandleFollower.Follower;
 end;
-
-initialization
-
 
 end.
