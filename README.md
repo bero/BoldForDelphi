@@ -1,21 +1,90 @@
 # BoldForDelphi
-This is develop branch.
 
-Purpose of this is either to direct commit changes here.
-For more complicated changes it is an advantage to make a separate feature branch that is later merged here.
-External developers should fork repository and pull request changes to this branch.
+Bold is a Model Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool for Delphi. It allows you to start with a UML model of your application and execute it with a sophisticated object-relational mapping layer, OCL query language, change synchronization, and IDE-integrated tools.
 
-The original source code of the Bold library for Delphi
-Version 4.0.1.0 Bold for Delphi, Release 4.0 - 2004-04-23
+## Supported Delphi Versions
 
-Bold is a tool in the MDA (Model Driven Architecture) space, which allows you to start with an UML model of your application and a set of business rules written in a high level language and “execute” the model after creating a graphical user interface for it.
-Bold includes a sophisticated object-relational mapping layer, ability to map data to multiple formats, changes synchronization, and much more. It includes a large amount of IDE integrated tools and options to work with external UML modeling software.
+- Delphi 12.3 Athens (packages/Delphi29.3/)
+- Delphi 12.1 Athens (packages/Delphi29.1/)
+- Delphi 11.x Alexandria (packages/Delphi28/)
 
-For more information see:
-- https://delphi.fandom.com/wiki/Bold_for_Delphi
-- http://boldfordelphi.blogspot.com/
+## Building
 
-There is a new Slackspace dedicated only for this project.
-If you are interested to join the chat about the repository login to Discord here https://discord.gg/C6frzsn
-  
-The project source code has been made available by https://www.embarcadero.com/ and published under an MIT license.
+### Prerequisites
+- Delphi 12.3 (or target version) installed
+- MSBuild available via rsvars.bat
+
+### Build the Package
+```batch
+cd packages\Delphi29.3
+build.bat
+```
+
+Or manually:
+```batch
+call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
+msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32
+```
+
+## Source Organization
+
+```
+Source/
+├── BoldAwareGUI/          # GUI components and control packs
+│   ├── BoldControls/      # Visual controls (Grid, Edit, ComboBox, etc.)
+│   ├── ControlPacks/      # Renderer/follower pattern for UI binding
+│   ├── Core/              # GUI base functionality
+│   ├── FormGen/           # Automatic form generation
+│   └── IDE/               # Design-time property editors
+├── Common/                # Shared infrastructure
+│   ├── Core/              # Base classes (BoldBase, BoldContainers, BoldDefs)
+│   ├── Subscription/      # Observer pattern (BoldSubscription, BoldDeriver)
+│   ├── Support/           # Utilities (BoldUtils, BoldGuard, BoldIndex)
+│   ├── COM/               # COM infrastructure
+│   ├── Logging/           # Log handling
+│   └── IDE/               # Common IDE support
+├── ObjectSpace/           # Object model runtime
+│   ├── BORepresentation/  # Business object representation
+│   ├── Core/              # BoldElements, BoldSystem
+│   ├── Ocl/               # OCL parser and evaluator
+│   ├── RTModel/           # Runtime type information
+│   └── Undo/              # Undo/redo mechanism
+├── Persistence/           # Database persistence
+│   ├── Core/              # Persistence controllers and handles
+│   ├── DB/                # Database persistence base
+│   ├── FireDAC/           # FireDAC adapter (recommended)
+│   ├── SOAP/              # SOAP persistence
+│   └── Propagation/       # Change propagation
+├── PMapper/               # Object-relational mapping
+│   ├── SQL/               # SQL generation
+│   ├── Default/           # Default mappers
+│   └── DBEvolutor/        # Database schema evolution
+├── Handles/               # Handle system for UI binding
+├── MoldModel/             # Model representation and code generation
+├── UMLModel/              # UML metamodel and editor
+├── ValueSpace/            # Value interfaces and streaming
+└── Extensions/            # Optional extensions (OLLE, etc.)
+```
+
+## Key Packages
+
+| Package | Type | Description |
+|---------|------|-------------|
+| dclBold.dpk | Design-time | Main Bold components package |
+
+## Contributing
+
+This is the develop branch for direct commits and feature branch merges.
+External developers should fork the repository and submit pull requests.
+
+## Resources
+
+- Wiki: https://delphi.fandom.com/wiki/Bold_for_Delphi
+- Blog: http://boldfordelphi.blogspot.com/
+- Discord: https://discord.gg/C6frzsn
+
+## License
+
+MIT License - Source code made available by Embarcadero.
+
+Original Version: 4.0.1.0 Bold for Delphi, Release 4.0 (2004-04-23)
