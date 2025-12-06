@@ -26,7 +26,7 @@ package dclBold;
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'Bold Components for Delphi 12.3 Athens'}
-{$LIBVERSION '29'}
+{$LIBVERSION '29.3'}
 {$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
