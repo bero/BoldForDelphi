@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldAdvancedPropagator;
@@ -19,8 +19,7 @@ uses
   BoldThreadSafeLog,
   IniFiles,
   BoldPropagatorMainForm,
-  Classes
-  ;
+  Classes;
 
 type
   {forward declarations}
@@ -66,6 +65,8 @@ implementation
 
 uses
   SysUtils,
+
+  BoldCoreConsts,
   BoldUtils,
   BoldPropagatorConstants,
   BoldDefs,
@@ -76,7 +77,7 @@ procedure TBoldAdvancedPropagator.Initialize;
 begin
   if fEnableLogging then
     BoldInitLog(fLogFileName, fErrorLogFileName, fThreadLogFileName, fMaxLogFileSize);
-  BoldLogError('%s.Initialize: Starting..........................................', [ClassName]);
+  BoldLogError(sInitializing, [ClassName]);
   fClientHandler := TBoldClientHandler.Create;
   fEnqueuer := TBoldEnqueuer.Create(fClientHandler);
   fUIManager := TUIManager.Create;
@@ -120,7 +121,7 @@ begin
     FreeAndNil(fPriorityListEnlister);
     FreeAndNil(fClientHandler);
   end;
-  BoldLogError('%s.Destroy: Closing down peacefully..........................................', [ClassName]);
+  BoldLogError(sDestroying, [ClassName]);
 
   BoldDoneLog;
   inherited;
@@ -154,8 +155,9 @@ begin
   try
     if Assigned(fUIManager) then
       fUIManager.SetDequeueIndicator(false);
-  except on E: Exception do
-    BoldLogError('%s.DoneDequeue: error = %s', [ClassName, E.message])
+  except on
+    E: Exception do
+      BoldLogError(sQueueError, [ClassName, E.message])
   end;
 end;
 
@@ -169,7 +171,5 @@ function TBoldAdvancedPropagator.getClientHandler: TBoldClientHandler;
 begin
   Result := fClientHandler;
 end;
-
-initialization
 
 end.

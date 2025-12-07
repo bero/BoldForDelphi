@@ -63,12 +63,14 @@ type
 implementation
 
 uses
+  Classes,
+  Messages,
+
+  BoldCoreConsts,
   BoldUtils,
   BoldEnqueuer,
   BoldPropagatorMainForm,
-  BoldPropagatorServer,
-  Messages,
-  Classes;
+  BoldPropagatorServer;
 
 function BoldPropagatorCleanupWndProc(Window: HWND;
   Message, wParam, lParam: Longint): Longint; stdcall;
@@ -128,7 +130,8 @@ begin
   try
     PostMessage(fCleanUpThread.QueueWindow, BM_PROPAGATOR_CLIENT_LEASE_CHANGED, 0, Integer(fCleanUpThread));
   except
-    BoldLogError('%s.DoLeaseChanged', [ClassName]);
+    on E: Exception do
+      BoldLogError(sLogError, [ClassName, 'DoLeaseChanged', E.Message]); // do not localize
   end;
 end;
 
@@ -147,7 +150,8 @@ begin
       end;
       DoLeaseChanged;
     except
-      BoldLogError('%s.OnGetExtendedEvent: Bold_propagator_client_lease_changed', [ClassName]);
+      on E: Exception do
+        BoldLogError('%s.OnGetExtendedEvent: Bold_propagator_client_lease_changed: %s', [ClassName. E.Message]);
     end;
   end;
 end;
@@ -267,8 +271,9 @@ begin
     end
     else
       RemoveTimedOutClient;
-  except on E: Exception do
-    BoldlogError('%s.SetTimer: %s', [ClassName, E.Message]);
+  except
+    on E: Exception do
+      BoldlogError('%s.SetTimer: %s', [ClassName, E.Message]);
   end;
 end;
 
