@@ -1,0 +1,45 @@
+# Delphi/Windows project - use CRLF line endings
+* text=auto eol=crlf
+
+# Delphi source files
+*.pas text eol=crlf
+*.dfm text eol=crlf
+*.dpr text eol=crlf
+*.dpk text eol=crlf
+*.dproj text eol=crlf
+*.groupproj text eol=crlf
+*.inc text eol=crlf
+*.res binary
+*.dcu binary
+*.bpl binary
+*.dcp binary
+
+# Documentation
+*.txt text eol=crlf
+*.md text eol=crlf
+*.UnitDoc text eol=crlf
+
+# Other text files
+*.rc text eol=crlf
+*.ini text eol=crlf
+*.html text eol=crlf
+*.htm text eol=crlf
+*.xml text eol=crlf
+*.xslt text eol=crlf
+*.css text eol=crlf
+*.js text eol=crlf
+
+# Model files
+*.mdl text eol=crlf
+*.bld text eol=crlf
+
+# Binary files
+*.exe binary
+*.dll binary
+*.tlb binary
+*.ocx binary
+*.bmp binary
+*.ico binary
+*.png binary
+*.jpg binary
+*.gif binary
