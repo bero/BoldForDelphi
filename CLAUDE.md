@@ -9,60 +9,77 @@ Bold for Delphi is a Model-Driven Architecture (MDA) framework and Object-Relati
 **Current Version**: 4.0.1.0 (community-maintained develop branch)
 **Target Platform**: Delphi 12.x Athens (Win32/Win64)
 
-## Claude Code instructions
-By default never guess to generate the answer. If information is missing ask for clarification.
-Only guess if the prompt actually tell this.
+## Claude Code Instructions
 
-## Build Commands
+By default never guess to generate the answer. If information is missing ask for clarification. Only guess if the prompt actually tells you to.
 
-```batch
-# Build for Delphi 12.3 (from packages\Delphi29 folder)
-cd packages\Delphi29
-msbuild Bold.dproj /p:Config=Debug /p:Platform=Win32
-msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32
-
-# Build unit tests
-msbuild UnitTest\UnitTest.dproj /p:Config=Debug /p:Platform=Win32
-```
-
-## Package Organization
-
-Packages are organized by Delphi version, with shared source code:
+## Project Structure
 
 ```
 BoldForDelphi/
 ├── packages/
-│   ├── Delphi29/           ← Delphi 12.x Athens
-│   │   ├── Bold.dpk
-│   │   ├── Bold.dproj
-│   │   ├── dclBold.dpk
+│   ├── Delphi28/                ← Delphi 11.3 Alexandria
+│   ├── Delphi29.1/              ← Delphi 12.1 Athens
+│   ├── Delphi29.3/              ← Delphi 12.3 Athens
+│   │   ├── dclBold.dpk          (design-time package)
 │   │   └── dclBold.dproj
-│   └── Bin/                ← Compiled BPL output
-│       ├── Win32/
-│       └── Win64/
-├── Source/                 ← Shared source code
-└── ...
+│   └── Bin/                     ← Compiled BPL output
+├── Source/
+│   ├── Common/
+│   │   ├── Core/                ← Base classes: BoldBase, BoldContainers, BoldDefs
+│   │   ├── Subscription/        ← Observer pattern: BoldSubscription, BoldDeriver
+│   │   ├── Support/             ← Utilities: BoldUtils, BoldGuard, BoldIndex
+│   │   └── Include/             ← Compiler directives: Bold.inc
+│   ├── ObjectSpace/
+│   │   ├── Core/                ← TBoldSystem, BoldElements
+│   │   ├── BORepresentation/    ← BoldAttributes, BoldSystem
+│   │   ├── Ocl/                 ← OCL parser and evaluator
+│   │   ├── RTModel/             ← Runtime type information (BoldSystemRT)
+│   │   └── Undo/                ← Undo/redo mechanism
+│   ├── Persistence/
+│   │   ├── Core/                ← Persistence controllers and handles
+│   │   ├── DB/                  ← Database persistence base
+│   │   └── FireDAC/             ← FireDAC adapter (recommended)
+│   ├── PMapper/
+│   │   ├── SQL/                 ← SQL generation: BoldSqlNodes, BoldSqlQueryGenerator
+│   │   └── DbEvolutor/          ← Database schema evolution
+│   ├── BoldAwareGUI/
+│   │   ├── BoldControls/        ← Data-aware VCL: BoldGrid, BoldEdit, BoldComboBox
+│   │   ├── ControlPacks/        ← Renderer/follower pattern for UI binding
+│   │   └── Core/                ← BoldGUI base functionality
+│   ├── Handles/                 ← TBoldSystemHandle, TBoldListHandle, TBoldExpressionHandle
+│   ├── MoldModel/
+│   │   ├── Core/                ← Model representation (Mold = Model of Objects)
+│   │   └── CodeGenerator/       ← Delphi code generation
+│   └── UMLModel/
+│       ├── Core/                ← UML metamodel (BoldUMLModel.pas)
+│       ├── Editor/              ← Model editor UI
+│       └── ModelLinks/          ← XMI, Rose98 integration
+└── UnitTest/                    ← DUnitX tests
 ```
 
-Output files:
-- `dclBold29.bpl` - Design-time package (D29 suffix for Delphi 12.x)
-- `Bold29.bpl` - Runtime package
+## Build Commands
+
+```batch
+# Build for Delphi 12.3 (uses build.bat which calls rsvars.bat and msbuild)
+cd packages\Delphi29.3
+build.bat
+
+# Or manually with msbuild
+call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
+msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32
+
+# Run unit tests (DUnitX)
+UnitTest\Win32\Debug\UnitTest.exe
+```
+
+Output files (e.g. `dclBold.29.1.bpl`) go to `packages\Bin\`.
 
 ## Environment Setup
 
-The core Bold packages use **relative paths** and require no environment variable setup. Simply clone/copy the repository to any location and build.
+Core Bold packages use **relative paths** and require no environment variable setup. Clone/copy the repository to any location and build.
 
-Output directories:
-- BPL files: `Bin\` (relative to repository root)
-- DCU files: Default Delphi output locations
-
-### Optional: UniDAC Support
-
-To build `dclBoldUniDAC.dpk`, set the `UniDAC` environment variable:
-- In Delphi: Tools > Options > Environment Variables
-- Example: `UniDAC=C:\Path\To\UniDAC` (points to UniDAC installation root)
-
-**Note**: Projects that consume Bold from external repositories may still need to configure search paths to reference the Bold source location.
+**Optional**: For UniDAC support, set the `UniDAC` environment variable in Delphi (Tools > Options > Environment Variables) pointing to the UniDAC installation root.
 
 ## Architecture
 
@@ -94,102 +111,37 @@ To build `dclBoldUniDAC.dpk`, set the `UniDAC` environment variable:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Source Code Organization
-
-### Core Framework (`Source/`)
-
-| Directory | Purpose |
-|-----------|---------|
-| `Common/Core/` | Base classes: BoldBase, BoldContainers, BoldStreams, BoldDefs |
-| `Common/Subscription/` | Observer pattern: BoldSubscription, BoldDeriver |
-| `Common/Support/` | Utilities: BoldUtils, BoldGuard, BoldMath, BoldIndex |
-| `Common/Include/` | Compiler directives: Bold.inc, BoldDelphiVer.inc |
-
-### Object Model (`Source/ObjectSpace/`)
-
-| Directory | Purpose |
-|-----------|---------|
-| `Core/` | TBoldSystem - central object space manager |
-| `BORepresentation/` | BoldAttributes, BoldElements, BoldSystem |
-| `Ocl/` | OCL parser and evaluator |
-| `RTModel/` | Runtime type information (BoldSystemRT) |
-| `Undo/` | Undo/redo mechanism |
-
-### Persistence (`Source/Persistence/`, `Source/PMapper/`)
-
-| Directory | Purpose |
-|-----------|---------|
-| `Persistence/Core/` | Persistence controllers and handles |
-| `Persistence/DB/` | Database persistence base |
-| `Persistence/FireDAC/` | FireDAC adapter (recommended) |
-| `Persistence/UniDAC/` | UniDAC adapter |
-| `PMapper/SQL/` | SQL generation: BoldSqlNodes, BoldSqlQueryGenerator |
-| `PMapper/DbEvolutor/` | Database schema evolution |
-
-### GUI Components (`Source/BoldAwareGUI/`)
-
-| Directory | Purpose |
-|-----------|---------|
-| `BoldControls/` | Data-aware VCL: BoldGrid, BoldEdit, BoldComboBox, BoldTreeView |
-| `ControlPacks/` | Renderer/follower pattern for UI binding |
-| `Core/` | BoldGUI base functionality |
-
-### Handles System (`Source/Handles/`)
-
-The Handles system provides the observer pattern connecting UI to object space:
-- `BoldSystemHandle` - Connection to TBoldSystem
-- `BoldListHandle` - Observable list binding
-- `BoldExpressionHandle` - OCL expression evaluation
-
-### Model & Code Generation (`Source/MoldModel/`, `Source/UMLModel/`)
-
-| Directory | Purpose |
-|-----------|---------|
-| `MoldModel/Core/` | Model representation (Mold = Model of Objects) |
-| `MoldModel/CodeGenerator/` | Delphi code generation |
-| `UMLModel/Core/` | UML metamodel (BoldUMLModel.pas) |
-| `UMLModel/Editor/` | Model editor UI |
-| `UMLModel/ModelLinks/` | XMI, Rose98, ModelMaker integration |
-
 ## Key Packages
 
 | Package | Type | Purpose |
 |---------|------|---------|
-| `Bold.dpk` | Runtime | Main framework (~490 units) |
-| `dclBold.dpk` | Design-time | IDE integration (~150 units) |
-| `BoldFireDAC.dpk` | Runtime | FireDAC database adapter |
-| `BoldUniDAC.dpk` | Runtime | UniDAC database adapter |
-| `BoldOLLE.dpk` | Runtime | Object Lending Library Extension |
-| `BoldUml.dpk` | Runtime | UML model editor |
+| `dclBold.dpk` | Design-time | Main Bold components for IDE integration |
+| `dclBoldUniDAC.dpk` | Design-time | UniDAC database adapter components |
+| `dclBoldDevEx.dpk` | Design-time | DevExpress integration components |
 
 ## Compiler Directives (Bold.inc)
 
-Key defines that affect framework behavior:
+The `{$DEFINE Attracs}` block at end of Bold.inc enables optimizations used by Attracs. When `Attracs` is NOT defined, several features are disabled for broader compatibility.
 
+Key defines (enabled when `Attracs` is defined):
 ```pascal
-{$DEFINE Attracs}              // Enable Attracs-specific optimizations
-{$DEFINE SpanFetch}            // Efficient batch fetching
-{$DEFINE IDServer}             // External ID server (improves write perf)
-{$DEFINE CompareToOldValues}   // Skip unchanged values in updates
-{$DEFINE NoNegativeDates}      // Restrict date range validation
-{$DEFINE BoldJson}             // JSON serialization support
+{$DEFINE SpanFetch}                          // Efficient batch fetching
+{$DEFINE IDServer}                           // External ID server (improves write perf)
+{$DEFINE CompareToOldValues}                 // Skip unchanged values in updates
+{$DEFINE NoNegativeDates}                    // Restrict date range validation
+{$DEFINE NoTransientInstancesOfPersistentClass}  // Performance optimization
 ```
 
-## Testing
-
-Tests use DUnitX framework:
-```batch
-# Run console tests
-UnitTest\Win32\Debug\UnitTest.exe
-
-# Run GUI tests (TestInsight)
-UnitTest\Win32\Debug\UnitTestGUI.exe
+Other notable defines:
+```pascal
+{$DEFINE BoldJson}           // JSON serialization support (always on)
+{$DEFINE BOLD_NO_QUERIES}    // Turns off query mechanism (always on)
 ```
 
 ## Key Concepts
 
 ### Object Constraint Language (OCL)
-OCL is used for queries and constraints. Examples:
+OCL is used for queries and constraints:
 ```
 self.allInstances                    // All instances of a class
 self.customers->select(age > 30)     // Filter collection
@@ -198,11 +150,6 @@ self.orders->collect(total)->sum     // Aggregate
 
 ### Subscription Pattern
 Bold uses a sophisticated subscription system for automatic UI updates when objects change. Components subscribe to objects/attributes and receive notifications on changes.
-
-### Persistence Handles
-- `TBoldPersistenceHandleDB` - Database connection
-- `TBoldSystemHandle` - Object space management
-- `TBoldListHandle` - Observable list for UI binding
 
 ## Resources
 
