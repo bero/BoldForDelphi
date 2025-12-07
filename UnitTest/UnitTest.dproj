@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{27643374-FBFE-4B67-AAB1-C449618D7C1D}</ProjectGuid>
         <ProjectVersion>20.3</ProjectVersion>
-        <FrameworkType>FMX</FrameworkType>
+        <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
@@ -48,10 +48,10 @@
         <DCC_S>false</DCC_S>
         <DCC_F>false</DCC_F>
         <DCC_K>false</DCC_K>
-        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>$(DUnitX);..\Source\Common\Include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>$(DUnitX);..\Source;..\Source\Common\Include;..\Source\Common\Core;..\Source\Common\Support;..\Source\Common\UML;..\Source\Common\MSXML;..\Source\Common\Subscription;..\Source\Common\Queue;..\Source\Common\Environment;..\Source\Common\Logging;..\Source\Common\TaggedValues;..\Source\Common\UtilsGUI;..\Source\Common\IDE;..\Source\Common\COM;..\Source\Common\Connection;..\Source\Common\ConnectionHandles;..\Source\Common\HTTP;..\Source\Common\SupportWin;..\Source\Common\Template;..\Source\ObjectSpace\Core;..\Source\ObjectSpace\BORepresentation;..\Source\ObjectSpace\RTModel;..\Source\ObjectSpace\Undo;..\Source\ObjectSpace\Ocl;..\Source\ObjectSpace\Interfaces;..\Source\ObjectSpace\PessimisticLocking;..\Source\ObjectSpace\COM;..\Source\ObjectSpace\IDE;..\Source\ObjectSpace\Unloader;..\Source\ObjectSpace\UtilsGUI;..\Source\Handles\Core;..\Source\Handles\IDE;..\Source\Handles\COM;..\Source\Handles\Actions;..\Source\Handles\Manipulators;..\Source\Handles\PessimisticLocking;..\Source\Handles\UnLoader;..\Source\Handles\XML;..\Source\Persistence\Core;..\Source\Persistence\DB;..\Source\Persistence\FireDAC;..\Source\Persistence\IDE;..\Source\Persistence\COM;..\Source\Persistence\System;..\Source\Persistence\File;..\Source\Persistence\ExternalPersistence;..\Source\Persistence\ObjectUpgrading;..\Source\Persistence\Propagation;..\Source\PMapper\Core;..\Source\PMapper\Default;..\Source\PMapper\SQL;..\Source\PMapper\DBEvolutor;..\Source\PMapper\Validator;..\Source\MoldModel\Core;..\Source\MoldModel\Handles;..\Source\MoldModel\TypeNameDictionary;..\Source\MoldModel\CodeGenerator;..\Source\MoldModel\Bld;..\Source\MoldModel\IDE;..\Source\MoldModel\UtilsGUI;..\Source\UMLModel\Core;..\Source\UMLModel\Handles;..\Source\UMLModel\IDE;..\Source\UMLModel\Editor;..\Source\UMLModel\ModelLinks\Core;..\Source\UMLModel\Plugins;..\Source\ValueSpace\Id;..\Source\ValueSpace\Interfaces;..\Source\ValueSpace\Condition;..\Source\ValueSpace\XMLStreaming;..\Source\ValueSpace\ExternalEvents;..\Source\FreestandingValueSpace\Core;..\Source\BoldAwareGUI\Core;..\Source\BoldAwareGUI\ControlPacks;..\Source\BoldAwareGUI\IDE;..\Source\BoldAwareGUI\BoldControls;..\Source\BoldAwareGUI\FormGen;..\Source\Forms;..\Source\ConcurrencyControl\Common;..\Source\Extensions\OLLE\Core;Code\ObjectSpace;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <SanitizedProjectName>UnitTest</SanitizedProjectName>
         <VerInfo_Locale>1035</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
@@ -93,12 +93,9 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="..\Source\Extensions\FastMM4\FastMM4.pas"/>
-        <DCCReference Include="..\Source\Extensions\FastMM4\FastMM4Messages.pas"/>
-        <DCCReference Include="..\..\DUnitX\Source\DUnitX.MemoryLeakMonitor.FastMM4.pas"/>
-        <DCCReference Include="jano_multiplicity.pas">
-            <Form>keep comment here to protect the following conditional from being removed by the IDE when adding a unit</Form>
-        </DCCReference>
+        <DCCReference Include="BoldTestCase.pas"/>
+        <DCCReference Include="BoldTestCaseDB.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldUMLTypes.pas"/>
         <DCCReference Include="..\Source\Common\UML\BoldUMLTypes.pas"/>
         <DCCReference Include="..\Source\Common\Core\BoldBase.pas"/>
         <DCCReference Include="..\Source\Common\Core\BoldDefs.pas"/>
@@ -108,9 +105,7 @@
         <DCCReference Include="..\Source\Common\Support\BoldHashIndexes.pas"/>
         <DCCReference Include="..\Source\Common\Support\BoldUtils.pas"/>
         <DCCReference Include="..\Source\Common\Support\BoldRev.pas"/>
-        <DCCReference Include="..\Source\Common\Core\BoldContainers.pas">
-            <Form>keep comment here to protect the following conditional from being removed by the IDE when adding a unit</Form>
-        </DCCReference>
+        <DCCReference Include="..\Source\Common\Core\BoldContainers.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
