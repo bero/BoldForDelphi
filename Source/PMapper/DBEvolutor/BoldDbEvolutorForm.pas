@@ -47,7 +47,7 @@ type
     fMappingInfoScript: TStringList;
     fWarnings: TStringList;
     fSessionName: String;
-    FEnabled: Boolean;
+    fLogEnabled: Boolean;
     procedure SqlScriptChange(Sender: TObject);
     procedure MappingInfoScriptChange(Sender: TObject);
     procedure SetProgress(const Value: integer);
@@ -66,8 +66,8 @@ type
     function GetSQLScript: TStrings;
     function GetWarnings: TStrings;
     procedure UpdateWarningCount(Sender: TObject);
-    procedure SetEnabled(const Value: Boolean);
-    function GetEnabled: Boolean;
+    procedure SetLogEnabled(const Value: Boolean);
+    function GetLogEnabled: Boolean;
   public
     constructor Create(Owner: TComponent); override;
     destructor Destroy; override;
@@ -75,7 +75,7 @@ type
     property SQLScript: TStrings read GetSQLScript;
     property MappingInfoScript: TStrings read GetMappingInfoScript;
     property Warnings: TStrings read GetWarnings;
-    property Enabled: Boolean read GetEnabled write SetEnabled;
+    property LogEnabled: Boolean read GetLogEnabled write SetLogEnabled;
     { Public declarations }
   end;
 
@@ -146,9 +146,9 @@ begin
   ProgressBar1.Refresh;
 end;
 
-procedure TfrmBoldDbEvolutor.SetEnabled(const Value: Boolean);
+procedure TfrmBoldDbEvolutor.SetLogEnabled(const Value: Boolean);
 begin
-  FEnabled := Value;
+  fLogEnabled := Value;
 end;
 
 procedure TfrmBoldDbEvolutor.SetLogHeader(const Value: string);
@@ -211,9 +211,9 @@ begin
   Action := caFree;
 end;
 
-function TfrmBoldDbEvolutor.GetEnabled: Boolean;
+function TfrmBoldDbEvolutor.GetLogEnabled: Boolean;
 begin
-  Result := FEnabled;
+  Result := fLogEnabled;
 end;
 
 function TfrmBoldDbEvolutor.GetMappingInfoScript: TStrings;

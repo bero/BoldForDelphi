@@ -15,7 +15,8 @@
       "Bash(\"C:/Program Files (x86)/Embarcadero/Studio/23.0/bin/msbuild.exe\":*)",
       "Bash(cmd //c \"\"\"C:\\Program Files (x86)\\Embarcadero\\Studio\\23.0\\bin\\rsvars.bat\"\" && msbuild \"\"C:\\Attracs\\BoldForDelphi\\packages\\Delphi29.3\\dclBold.dproj\"\" /p:Config=Debug /p:Platform=Win32 /v:minimal\")",
       "Bash(cmd //c build.bat)",
-      "Bash(cmd //c \"C:\\Attracs\\BoldForDelphi\\packages\\Delphi29.3\\build.bat\")"
+      "Bash(cmd //c \"C:\\Attracs\\BoldForDelphi\\packages\\Delphi29.3\\build.bat\")",
+      "Bash(powershell.exe -Command \"& {cmd /c ''\"\"C:\\Program Files (x86)\\Embarcadero\\Studio\\37.0\\bin\\rsvars.bat\"\" && msbuild \"\"C:\\Attracs\\BoldForDelphi\\packages\\Delphi30\\dclBold.dproj\"\" /p:Config=Debug /p:Platform=Win32 /v:minimal''}\")"
     ],
     "deny": [],
     "ask": []

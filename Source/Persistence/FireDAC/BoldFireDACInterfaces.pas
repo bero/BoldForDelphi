@@ -100,7 +100,7 @@ type
   protected
     function ParamByName(const Value: string): IBoldParameter; override;
     function FindParam(const Value: string): IBoldParameter; override;
-    function Createparam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; override;
+    function CreateParam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; override;
     function GetParams: TParams; override;
     function GetSqlText: string; override;
     function GetSQLStrings: TStrings; override;
@@ -135,7 +135,7 @@ type
     procedure SetParamCheck(value: Boolean);
     function ParamByName(const Value: string): IBoldParameter;
     function FindParam(const Value: string): IBoldParameter;
-    function Createparam(FldType: TFieldType; const ParamName: string): IBoldParameter; overload;
+    function CreateParam(FldType: TFieldType; const ParamName: string): IBoldParameter; overload;
     function CreateParam(FldType: TFieldType; const ParamName: string; ParamType: TParamType; Size: integer): IBoldParameter; overload;
     function EnsureParamByName(const Value: string): IBoldParameter;
     function GetSQLText: string;
@@ -1534,7 +1534,7 @@ begin
   fUseReadTransactions := true;
 end;
 
-function TBoldFireDACExecQuery.Createparam(FldType: TFieldType;
+function TBoldFireDACExecQuery.CreateParam(FldType: TFieldType;
   const ParamName: string): IBoldParameter;
 begin
   result := CreateParam(FldType, ParamName, ptUnknown, 0);

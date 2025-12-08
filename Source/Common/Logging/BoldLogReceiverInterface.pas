@@ -27,19 +27,19 @@ type
     procedure EndLog;
     procedure Sync;
     procedure ProcessInterruption;
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetLogEnabled: boolean;
+    procedure SetLogEnabled(const Value: boolean);
     property ProgressMax: integer write SetProgressMax;
     property Progress: integer write SetProgress;
     property LogHeader: string write SetLogHeader;
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property LogEnabled: boolean read GetLogEnabled write SetLogEnabled;  // Avoid enabled as already exists
   end;
 
   TBoldLogReceiver = class(TInterfacedObject, IBoldLogReceiver)
   private
-    fEnabled: boolean;
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    fLogEnabled: boolean;
+    function GetLogEnabled: boolean;
+    procedure SetLogEnabled(const Value: boolean);
   protected
     procedure SetProgress(const Value: integer); virtual;
     procedure SetLogHeader(const Value: string); virtual;
@@ -55,7 +55,7 @@ type
     procedure EndLog; virtual;
   public
     function LogTypeToString(ALogType: TBoldLogType): string;
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property LogEnabled: boolean read GetLogEnabled write SetLogEnabled;
   end;
 
 implementation
@@ -70,9 +70,9 @@ procedure TBoldLogReceiver.EndLog;
 begin
 end;
 
-function TBoldLogReceiver.GetEnabled: boolean;
+function TBoldLogReceiver.GetLogEnabled: boolean;
 begin
-  result := fEnabled;
+  result := fLogEnabled;
 end;
 
 procedure TBoldLogReceiver.Hide;
@@ -102,9 +102,9 @@ procedure TBoldLogReceiver.ProgressStep;
 begin
 end;
 
-procedure TBoldLogReceiver.SetEnabled(const Value: boolean);
+procedure TBoldLogReceiver.SetLogEnabled(const Value: boolean);
 begin
-  fEnabled := Value;
+  fLogEnabled := Value;
 end;
 
 procedure TBoldLogReceiver.SetLogHeader(const Value: string);

@@ -105,7 +105,7 @@ type
     destructor Destroy; override;
     function LockElement(Element: TBoldDomainElement): Boolean; override;
     function EnsureLocks: Boolean; override;
-    procedure ReleaseUnNeededRegions; override;
+    procedure ReleaseUnneededRegions; override;
     property RequiredShared: TBoldRegionList read GetRequiredShared;
     property RequiredExclusive: TBoldRegionList read GetRequiredExclusive;
     property OnActivityStart: TNotifyEvent read fOnActivityStart write fOnActivityStart;
@@ -421,7 +421,7 @@ begin
   end;
 end;
 
-procedure TBoldPessimisticLockHandler.ReleaseUnNeededRegions;
+procedure TBoldPessimisticLockHandler.ReleaseUnneededRegions;
 var
   CurrentRegion: TBoldRegion;
   Elements: TList;

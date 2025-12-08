@@ -350,7 +350,6 @@ var
   PMapper: TBoldSystemDefaultMapper;
   ObjectMapper: TBoldObjectPersistenceMapper;
   MappingsAdded: Boolean;
-  CurrentTable: IBoldTable;
 begin
   BoldLog.LogHeader := 'Opening database';
   PMapper := PersistenceHandle.PersistenceControllerDefault.PersistenceMapper;

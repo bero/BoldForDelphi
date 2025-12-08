@@ -8303,14 +8303,12 @@ end;
 
 function TBoldObjectList.GetEvaluator: TBoldEvaluator;
 begin
-  result := nil;
   if IsPartOfSystem then
-    result := BoldSystem.Evaluator
+    Result := BoldSystem.Evaluator
+  else if not Empty then
+    Result := Locators[0].BoldSystem.Evaluator
   else
-  if not Empty then
-    result := Locators[0].BoldSystem.Evaluator
-  else
-    result := inherited GetEvaluator;
+    Result := inherited GetEvaluator;
 end;
 
 function TBoldObjectList.ObserverMayModify(Observer: TObject): Boolean;
