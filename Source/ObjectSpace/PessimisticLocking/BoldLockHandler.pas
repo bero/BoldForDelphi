@@ -62,7 +62,7 @@ type
     function EnsureLocks: Boolean; override;
     procedure GetPropagationEvents(EventList: TStringList); override;
   end;
- {$IFNDEF BOLD_NO_QUERIES}
+
   TBoldPessimisticLockHandler = class(TBoldAbstractPessimisticLockHandler)
   private
     fRequiredShared: TBoldRegionList;
@@ -113,7 +113,6 @@ type
     property OnProgress: TBoldLockManagerProgressEvent read fOnActivityPropgress write fOnActivityPropgress;
   end;
 
- {$ENDIF}
 implementation
 
 uses
@@ -145,7 +144,6 @@ end;
 
 { TBoldPessimisticLockHandler }
 
-{$IFNDEF BOLD_NO_QUERIES}
 constructor TBoldPessimisticLockHandler.CreateWithLockHolder(System: TBoldSystem; LockHolder: TBoldAbstractLockHolder);
 begin
   inherited Create(System);
@@ -597,7 +595,6 @@ begin
   if AddSharedRegions then
     Add(fLockHolder.HeldShared);
 end;
-  {$ENDIF}
 
 { TBoldFailureGetLocksFailed }
 
