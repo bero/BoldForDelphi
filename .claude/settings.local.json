@@ -19,7 +19,8 @@
       "Bash(powershell.exe -Command \"& {cmd /c ''\"\"C:\\Program Files (x86)\\Embarcadero\\Studio\\37.0\\bin\\rsvars.bat\"\" && msbuild \"\"C:\\Attracs\\BoldForDelphi\\packages\\Delphi30\\dclBold.dproj\"\" /p:Config=Debug /p:Platform=Win32 /v:minimal''}\")",
       "Bash(cmd.exe /c build.bat)",
       "Bash(cmd.exe /c \"reg query \"\"HKLM\\Software\\WOW6432Node\\Embarcadero\"\" /s\")",
-      "Bash(cmd.exe /c \"set BDS\")"
+      "Bash(cmd.exe /c \"set BDS\")",
+      "Bash(cmd.exe /c \"UnitTest.exe\")"
     ],
     "deny": [],
     "ask": []

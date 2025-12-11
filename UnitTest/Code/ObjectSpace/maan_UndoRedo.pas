@@ -11,6 +11,7 @@ uses
   Controls,
   Forms,
   Dialogs,
+  IniFiles,
   DUnitX.TestFramework,
   TestModel1,
   BoldTestCase,
@@ -37,6 +38,8 @@ uses
   BoldValueInterfaces,
   BoldValueSpaceInterfaces,
   BoldElements,
+  BoldSQLDatabaseConfig,
+  BoldPSDescriptionsSQL,
   maan_UndoRedoTestCaseUtils,
   BoldAbstractPersistenceHandleDB,
   DB,
@@ -45,8 +48,8 @@ uses
   FireDAC.Comp.Client,
   FireDAC.Stan.Def,
   FireDAC.Stan.Async,
-  FireDAC.Phys.SQLite,
-  FireDAC.Phys.SQLiteDef
+  FireDAC.Phys.MSSQL,
+  FireDAC.Phys.MSSQLDef
   ;
 
 type
@@ -113,25 +116,20 @@ type
   Tmaan_FetchRefetchTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
     procedure TestFetchInvalidAttribute;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
     procedure TestFetchCurrentAttribute;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
     procedure TestFetchModifiedAttribute;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestFetchEmbeddedRoleInvalid;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
     procedure TestFetchEmbeddedRoleInvalidAdjust;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
     procedure TestFetchEmbeddedRoleCurrent;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestFetchNonEmbeddedRoleInvalid;
   end;
 
@@ -140,28 +138,28 @@ type
   Tmaan_ModifyTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestModifyAttribute;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestModifyNonEmbeddedRoleInsertTransient;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestModifyNonEmbeddedRoleInsertCurrent;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestModifyNonEmbeddedRoleDeleteTransient;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestModifyNonEmbeddedRoleDeleteCurrent;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestModifyEmbeddedRoleCurrent;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestModifyEmbeddedRoleTransient;
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure TestModifyEmbeddedRoleModified;
   end;
 
@@ -173,16 +171,16 @@ type
   Tmaan_UndoTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure UndoAttribute;                  {2.7b & 2.2a Undo block}
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure UndoEmbeddedRoleModified;       {2.7b & 2.2a Undo block}
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure UndoEmbeddedRoleTransient;      {2.7b & 2.2a Undo block}
     [Test]
-    [Ignore('Requires database setup - FireDAC SQLite initialization issue')]
+    [Ignore('Undo/Redo functionality issue - needs investigation')]
     procedure UndoObjectCreation;             {2.7b & 2.2a Undo block}
 //    procedure UndoObjectDeletion;             {2.7b & 2.2a Undo block}
   end;
@@ -206,9 +204,203 @@ begin
   end;
 end;
 
+procedure ConfigureConnection(Connection: TFDConnection; Adapter: TBoldDatabaseAdapterFireDAC);
+var
+  Ini: TIniFile;
+  IniPath: string;
+  Engine: string;
+  Server, Database, User, Password: string;
+  OSAuth: Boolean;
+begin
+  IniPath := ExtractFilePath(ParamStr(0)) + 'UnitTest.ini';
+  if not FileExists(IniPath) then
+    IniPath := ExtractFilePath(ParamStr(0)) + '..\UnitTest.ini';
+  if not FileExists(IniPath) then
+    raise Exception.Create('UnitTest.ini not found. Expected at: ' + IniPath);
+
+  Ini := TIniFile.Create(IniPath);
+  try
+    Engine := Ini.ReadString('Database', 'Engine', 'SQLServer');
+
+    Connection.Params.Clear;
+
+    if SameText(Engine, 'SQLServer') then
+    begin
+      Server := Ini.ReadString('SQLServer', 'Server', '.\SQLEXPRESS');
+      Database := Ini.ReadString('SQLServer', 'Database', 'BoldUnitTest');
+      User := Ini.ReadString('SQLServer', 'User', '');
+      Password := Ini.ReadString('SQLServer', 'Password', '');
+      OSAuth := Ini.ReadBool('SQLServer', 'OSAuthentication', True);
+
+      Connection.DriverName := 'MSSQL';
+      Connection.Params.Values['Server'] := Server;
+      Connection.Params.Values['Database'] := Database;
+      if OSAuth then
+        Connection.Params.Values['OSAuthent'] := 'Yes'
+      else
+      begin
+        Connection.Params.Values['User_Name'] := User;
+        Connection.Params.Values['Password'] := Password;
+      end;
+
+      Adapter.DatabaseEngine := dbeSQLServer;
+    end
+    else if SameText(Engine, 'SQLite') then
+    begin
+      Database := Ini.ReadString('SQLite', 'Database', 'unittest.db');
+      Connection.DriverName := 'SQLite';
+      Connection.Params.Values['Database'] := Database;
+      Adapter.DatabaseEngine := dbeGenericANSISQL92;
+    end
+    else if SameText(Engine, 'Interbase') then
+    begin
+      Server := Ini.ReadString('Interbase', 'Server', 'localhost');
+      Database := Ini.ReadString('Interbase', 'Database', '');
+      User := Ini.ReadString('Interbase', 'User', 'SYSDBA');
+      Password := Ini.ReadString('Interbase', 'Password', 'masterkey');
+
+      Connection.DriverName := 'IB';
+      Connection.Params.Values['Server'] := Server;
+      Connection.Params.Values['Database'] := Database;
+      Connection.Params.Values['User_Name'] := User;
+      Connection.Params.Values['Password'] := Password;
+
+      Adapter.DatabaseEngine := dbeInterbaseSQLDialect3;
+    end
+    else if SameText(Engine, 'Firebird') then
+    begin
+      Server := Ini.ReadString('Firebird', 'Server', 'localhost');
+      Database := Ini.ReadString('Firebird', 'Database', '');
+      User := Ini.ReadString('Firebird', 'User', 'SYSDBA');
+      Password := Ini.ReadString('Firebird', 'Password', 'masterkey');
+
+      Connection.DriverName := 'FB';
+      Connection.Params.Values['Server'] := Server;
+      Connection.Params.Values['Database'] := Database;
+      Connection.Params.Values['User_Name'] := User;
+      Connection.Params.Values['Password'] := Password;
+
+      Adapter.DatabaseEngine := dbeInterbaseSQLDialect3;
+    end
+    else if SameText(Engine, 'PostgreSQL') then
+    begin
+      Server := Ini.ReadString('PostgreSQL', 'Server', 'localhost');
+      Database := Ini.ReadString('PostgreSQL', 'Database', 'boldunittest');
+      User := Ini.ReadString('PostgreSQL', 'User', 'postgres');
+      Password := Ini.ReadString('PostgreSQL', 'Password', '');
+
+      Connection.DriverName := 'PG';
+      Connection.Params.Values['Server'] := Server;
+      Connection.Params.Values['Database'] := Database;
+      Connection.Params.Values['User_Name'] := User;
+      Connection.Params.Values['Password'] := Password;
+
+      Adapter.DatabaseEngine := dbePostgres;
+    end
+    else
+      raise Exception.CreateFmt('Unknown database engine: %s', [Engine]);
+
+    Connection.LoginPrompt := False;
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure CreateTestDatabase;
+var
+  Ini: TIniFile;
+  IniPath: string;
+  Engine, Server, Database: string;
+  OSAuth: Boolean;
+  TempConn: TFDConnection;
+begin
+  IniPath := ExtractFilePath(ParamStr(0)) + 'UnitTest.ini';
+  if not FileExists(IniPath) then
+    IniPath := ExtractFilePath(ParamStr(0)) + '..\UnitTest.ini';
+
+  Ini := TIniFile.Create(IniPath);
+  TempConn := TFDConnection.Create(nil);
+  try
+    Engine := Ini.ReadString('Database', 'Engine', 'SQLServer');
+
+    if SameText(Engine, 'SQLServer') then
+    begin
+      Server := Ini.ReadString('SQLServer', 'Server', '.\SQLEXPRESS');
+      Database := Ini.ReadString('SQLServer', 'Database', 'BoldUnitTest');
+      OSAuth := Ini.ReadBool('SQLServer', 'OSAuthentication', True);
+
+      // Connect to master database to create test database
+      TempConn.DriverName := 'MSSQL';
+      TempConn.Params.Values['Server'] := Server;
+      TempConn.Params.Values['Database'] := 'master';
+      if OSAuth then
+        TempConn.Params.Values['OSAuthent'] := 'Yes';
+      TempConn.LoginPrompt := False;
+      TempConn.Open;
+
+      // Create database if it doesn't exist
+      TempConn.ExecSQL('IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = ''' + Database + ''') CREATE DATABASE [' + Database + ']');
+      TempConn.Close;
+    end;
+    // For other engines (SQLite, Firebird, etc.), database is created automatically or handled differently
+  finally
+    TempConn.Free;
+    Ini.Free;
+  end;
+end;
+
+procedure DropTestDatabase;
+var
+  Ini: TIniFile;
+  IniPath: string;
+  Engine, Server, Database: string;
+  OSAuth: Boolean;
+  TempConn: TFDConnection;
+begin
+  IniPath := ExtractFilePath(ParamStr(0)) + 'UnitTest.ini';
+  if not FileExists(IniPath) then
+    IniPath := ExtractFilePath(ParamStr(0)) + '..\UnitTest.ini';
+
+  Ini := TIniFile.Create(IniPath);
+  TempConn := TFDConnection.Create(nil);
+  try
+    Engine := Ini.ReadString('Database', 'Engine', 'SQLServer');
+
+    if SameText(Engine, 'SQLServer') then
+    begin
+      Server := Ini.ReadString('SQLServer', 'Server', '.\SQLEXPRESS');
+      Database := Ini.ReadString('SQLServer', 'Database', 'BoldUnitTest');
+      OSAuth := Ini.ReadBool('SQLServer', 'OSAuthentication', True);
+
+      // Connect to master database to drop test database
+      TempConn.DriverName := 'MSSQL';
+      TempConn.Params.Values['Server'] := Server;
+      TempConn.Params.Values['Database'] := 'master';
+      if OSAuth then
+        TempConn.Params.Values['OSAuthent'] := 'Yes';
+      TempConn.LoginPrompt := False;
+      TempConn.Open;
+
+      // Drop database if it exists
+      TempConn.ExecSQL('IF EXISTS (SELECT * FROM sys.databases WHERE name = ''' + Database + ''') BEGIN ALTER DATABASE [' + Database + '] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [' + Database + ']; END');
+      TempConn.Close;
+    end
+    else if SameText(Engine, 'SQLite') then
+    begin
+      Database := Ini.ReadString('SQLite', 'Database', 'unittest.db');
+      if (Database <> ':memory:') and FileExists(Database) then
+        DeleteFile(Database);
+    end;
+    // For Firebird/Interbase, manual cleanup may be needed
+  finally
+    TempConn.Free;
+    Ini.Free;
+  end;
+end;
+
 procedure EnsureDM;
 var
-  DbFile: string;
+  PersHandle: TBoldPersistenceHandleDb;
 begin
   try
     if not assigned(dmUndoRedo) then
@@ -216,20 +408,35 @@ begin
       if not Assigned(Application) then
         raise Exception.Create('Application is nil');
       Application.Initialize;
+
+      // Create the test database first
+      CreateTestDatabase;
+
       dmUndoRedo := TdmUndoRedo.Create(Application);
       if not Assigned(dmUndoRedo) then
         raise Exception.Create('Failed to create dmUndoRedo');
-      if not Assigned(dmUndoRedo.FDConnection1) then
-        raise Exception.Create('FDConnection1 is nil');
-      // Delete any existing test database file
-      DbFile := dmUndoRedo.FDConnection1.Params.Values['Database'];
-      if (DbFile <> ':memory:') and FileExists(DbFile) then
-        DeleteFile(DbFile);
+
+      // Configure database connections from INI file
+      ConfigureConnection(dmUndoRedo.FDConnection1, dmUndoRedo.BoldDatabaseAdapterFireDAC1);
+      ConfigureConnection(dmUndoRedo.FDConnection2, dmUndoRedo.BoldDatabaseAdapterFireDAC2);
+
+      if not Assigned(dmUndoRedo.BoldSystemHandle1) then
+        raise Exception.Create('BoldSystemHandle1 is nil');
       if not Assigned(dmUndoRedo.BoldSystemHandle1.PersistenceHandle) then
         raise Exception.Create('PersistenceHandle is nil');
-      (dmUndoRedo.BoldSystemHandle1.PersistenceHandle as TBoldPersistenceHandleDb).CreateDataBase;
-      (dmUndoRedo.BoldSystemHandle1.PersistenceHandle as TBoldPersistenceHandleDb).CreateDataBaseSchema();
+
+      PersHandle := dmUndoRedo.BoldSystemHandle1.PersistenceHandle as TBoldPersistenceHandleDb;
+
+      // Open connection and create database schema
+      dmUndoRedo.FDConnection1.Open;
+      if not dmUndoRedo.FDConnection1.Connected then
+        raise Exception.Create('FDConnection1 failed to open');
+
+      PersHandle.CreateDataBaseSchema();
       dmUndoRedo.BoldSystemHandle1.Active := True;
+
+      if not Assigned(dmUndoRedo.BoldSystemHandle1.System) then
+        raise Exception.Create('System is nil after activation');
     end else
     begin
       if Assigned(dmUndoRedo.BoldSystemHandle1.System) then
@@ -250,6 +457,7 @@ var
   SomeObject: TSomeClass;
   OId: TBoldObjectId;
 begin
+  Assert.IsNotNull(System, 'System should not be nil');
   GenerateObjects(System, 'SomeClass', 1);
   RefreshSystem;
   FSomeClassList.EnsureObjects;
@@ -815,7 +1023,7 @@ end;
 
 procedure Tmaan_UndoRedoAbstractTestCase.SaveAndCloseSystem2;
 begin
-  if (dmUndoRedo.BoldSystemhandle2.Active) then
+  if Assigned(dmUndoRedo) and (dmUndoRedo.BoldSystemhandle2.Active) then
   begin
     dmUndoRedo.BoldSystemHandle2.UpdateDatabase;
     dmUndoRedo.BoldSystemHandle2.Active := false;
@@ -915,12 +1123,15 @@ end;
 procedure Tmaan_UndoRedoAbstractTestCase.TearDown;
 begin
   SaveAndCloseSystem2;
-  if dmUndoRedo.BoldSystemHandle1.Active then
+  if Assigned(dmUndoRedo) then
   begin
-    dmUndoRedo.BoldSystemhandle1.UpdateDAtabase;
-    dmUndoRedo.BoldSystemHandle1.Active := false;
+    if dmUndoRedo.BoldSystemHandle1.Active then
+    begin
+      dmUndoRedo.BoldSystemhandle1.UpdateDAtabase;
+      dmUndoRedo.BoldSystemHandle1.Active := false;
+    end;
+    FreeAndNil(dmUndoRedo);
   end;
-  FreeAndNil(dmUndoRedo);
   FreeAndNil(FSubscriber);
   FreeAndNil(FFSValueSpace);
   FreeAndNil(FSomeClassList);
@@ -1771,9 +1982,26 @@ end;
 
 initialization
   Randomize;
+  BoldCleanDatabaseForced := True;  // Suppress confirmation dialog during automated tests
   TDUnitX.RegisterTestFixture(Tmaan_FetchRefetchTestCase);
   TDUnitX.RegisterTestFixture(Tmaan_ModifyTestCase);
   TDUnitX.RegisterTestFixture(Tmaan_UndoTestCase);
+
+finalization
+  // Clean up test database when tests are done
+  try
+    if Assigned(dmUndoRedo) then
+    begin
+      if dmUndoRedo.BoldSystemHandle1.Active then
+        dmUndoRedo.BoldSystemHandle1.Active := False;
+      if dmUndoRedo.FDConnection1.Connected then
+        dmUndoRedo.FDConnection1.Close;
+      FreeAndNil(dmUndoRedo);
+    end;
+    DropTestDatabase;
+  except
+    // Ignore errors during cleanup
+  end;
 
 end.
 

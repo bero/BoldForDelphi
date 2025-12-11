@@ -631,24 +631,16 @@ object dmUndoRedo: TdmUndoRedo
   object BoldDatabaseAdapterFireDAC1: TBoldDatabaseAdapterFireDAC
     CustomIndexes = <>
     Connection = FDConnection1
-    DatabaseEngine = dbeSQLite
+    DatabaseEngine = dbeSQLServer
     Left = 464
     Top = 88
   end
   object FDConnection1: TFDConnection
-    Params.Strings = (
-      'DriverID=SQLite'
-      'Database=undoredo_test.db'
-      'LockingMode=Normal')
     LoginPrompt = False
     Left = 464
     Top = 152
   end
   object FDConnection2: TFDConnection
-    Params.Strings = (
-      'DriverID=SQLite'
-      'Database=undoredo_test.db'
-      'LockingMode=Normal')
     LoginPrompt = False
     Left = 488
     Top = 352
@@ -656,7 +648,7 @@ object dmUndoRedo: TdmUndoRedo
   object BoldDatabaseAdapterFireDAC2: TBoldDatabaseAdapterFireDAC
     CustomIndexes = <>
     Connection = FDConnection2
-    DatabaseEngine = dbeSQLite
+    DatabaseEngine = dbeSQLServer
     Left = 496
     Top = 296
   end
