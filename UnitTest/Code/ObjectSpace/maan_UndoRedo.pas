@@ -496,14 +496,12 @@ end;
 procedure Tmaan_FetchRefetchTestCase.TestFetchModifiedAttribute;
 var
   SomeObject: TSomeClass;
-  OId: TBoldObjectId;
   value: string;
 begin
   GenerateObjects(System, 'SomeClass', 1);
   RefreshSystem;
   FSomeclassList.EnsureObjects;
   SomeObject := FSomeClassList[0];
-  oid := SomeObject.BoldObjectLocator.BoldObjectID.Clone;
   SomeObject.aString := SomeObject.aString + '123';
   value := SomeObject.aString;
   VerifyState(SomeObject.M_aString, bvpsModified);
@@ -1191,7 +1189,6 @@ begin
     res := (Member.OwningObject as TClassWithLink).ValuesAreEqual(Value, ValueInBlock, Member.BoldMemberRTInfo.ExpressionName)
   ;
   Assert.IsTrue(res, Format('%s VerifyIsInRedoArea failed', [member.DisplayName]));
-  Value := nil;
 end;
 
 { Tmaan_ModifyTestCase }
