@@ -26,7 +26,8 @@ uses
   maan_UndoRedoTestCaseUtils in 'Code\ObjectSpace\maan_UndoRedoTestCaseUtils.pas',
   maan_UndoRedo in 'Code\ObjectSpace\maan_UndoRedo.pas',
   Test.BoldSystem in 'Code\ObjectSpace\Test.BoldSystem.pas',
-  Test.BoldFreeStandingValueFactories in 'Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas';
+  Test.BoldFreeStandingValueFactories in 'Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas',
+  Test.BoldDefaultTaggedValues in 'Code\Common\Test.BoldDefaultTaggedValues.pas';
 
 {$R *.res}
 
