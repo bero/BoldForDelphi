@@ -13,6 +13,26 @@ Bold for Delphi is a Model-Driven Architecture (MDA) framework and Object-Relati
 
 By default never guess to generate the answer. If information is missing ask for clarification. Only guess if the prompt actually tells you to.
 
+### Git Commit Messages
+
+Do not include Claude references in git commit messages. No "Generated with Claude", no "Co-Authored-By: Claude", and no similar attributions.
+
+### Writing Unit Tests
+
+When adding unit tests to improve code coverage:
+
+1. **Focus on uncovered lines** - Check the coverage report first. If a unit has 85/100 lines covered, write tests targeting the remaining 15 uncovered lines, not the already-covered code.
+
+2. **Minimal tests for coverage** - Write the minimum test code needed to exercise uncovered paths. Don't add redundant tests for code already covered by existing tests.
+
+3. **Check what's already tested** - Before writing tests, understand why existing coverage exists. Often, internal functions are exercised indirectly through other code paths.
+
+4. **Target exception paths** - Uncovered lines are often error handling or edge cases. These typically require specific test scenarios (invalid input, null values, etc.).
+
+5. **One test per gap** - If only one function/path is uncovered, one focused test is sufficient.
+
+Example: If `BoldFoo.pas` has 97% coverage with only an exception handler uncovered, write a single test that triggers that exception - don't write additional tests for the already-covered happy paths.
+
 ## Project Structure
 
 ```
@@ -70,7 +90,7 @@ call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
 msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32
 
 # Run unit tests (DUnitX)
-UnitTest\Win32\Debug\UnitTest.exe
+UnitTest\UnitTest.exe
 ```
 
 Output files (e.g. `dclBold.29.1.bpl`) go to `packages\Bin\`.
