@@ -60,7 +60,6 @@ type
   public
     procedure SetUp; override;
     procedure TearDown; override;
-  published
     [Test]
     procedure AttributeValueTest;
     [Test]

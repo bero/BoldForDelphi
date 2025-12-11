@@ -28,7 +28,6 @@ type
   private
     fCurrentTable: IBoldTable;
     function GetCurrentTable: IBoldTable;
-    procedure DeActivate;
   protected
     procedure ValidateColumn(BoldSQLColumnDescription: TBoldSQLColumnDescription);
     procedure ValidateColumnsForTable(BoldSQLTableDescription: TBoldSQLTableDescription);
@@ -319,14 +318,6 @@ constructor TBoldDbStructureValidatorThread.Create(AValidator: TBoldDbValidator)
 begin
   inherited;
 
-end;
-
-procedure TBoldDbStructureValidatorThread.DeActivate;
-begin
-  if assigned(fCurrentTable) then
-    DataBase.ReleaseTable(fCurrentTable);
-
-  inherited;
 end;
 
 { TBoldDbStructureValidator }

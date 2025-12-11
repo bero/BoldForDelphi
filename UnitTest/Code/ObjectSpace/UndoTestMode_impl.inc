@@ -101,8 +101,8 @@ begin
   end
   else if MemberExpressionName = 'oneLinkClass' then
   begin
-    Result := ((Value1 as IBoldObjectIdRefPair).Id1.AsString = (Value2 as IBoldObjectIdRefPair).Id1.AsString);
-    Result := ((Value1 as IBoldObjectIdRefPair).Id2.AsString = (Value2 as IBoldObjectIdRefPair).Id2.AsString);
+    Result := ((Value1 as IBoldObjectIdRefPair).Id1.AsString = (Value2 as IBoldObjectIdRefPair).Id1.AsString)
+          and ((Value1 as IBoldObjectIdRefPair).Id2.AsString = (Value2 as IBoldObjectIdRefPair).Id2.AsString);
   end;
 end;
 

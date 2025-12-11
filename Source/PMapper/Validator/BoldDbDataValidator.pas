@@ -6,7 +6,6 @@ interface
 
 uses
   Classes,
-  System.Generics.Collections,
   BoldDbValidator,
   BoldPSDescriptionsSQL,
   BoldDbInterfaces,
@@ -36,9 +35,6 @@ type
 
   TBoldDbDataValidatorCorruptObjectsAction = (caInsert, caDelete);
 
-  TValidateProc =  procedure (ObjectSQLMapper: TBoldObjectSQLMapper) of object;
-  TValidateProcList = TDictionary<TValidateProc, TBoldObjectSQLMapper>;
-
   { TBoldDbDataValidator }
   TBoldDbDataValidator = class(TBoldDbValidator)
   private
@@ -63,7 +59,6 @@ type
     fValidatorTestTypes: TBoldDBDataValidatorTestTypes;
     fClassesToValidate: string;
     fCorruptObjectsAction: TBoldDbDataValidatorCorruptObjectsAction;
-    fValidateProcList: TValidateProcList;
     function GetQuery: IBoldQuery;
     procedure SuggestTableInsert(table: TBoldSQLTableDescription; IdList, TypeList: TStrings);
     procedure SuggestTableDelete(Tables: TBoldSQLTableDescriptionList; IdList: TStrings; ObjectSQLMapper: TBoldObjectSQLMapper);
