@@ -158,13 +158,15 @@ The report shows:
 
 Current coverage baseline (as of December 2025):
 - **Total lines:** ~60,000
-- **Covered lines:** ~15,500
+- **Covered lines:** ~15,650
 - **Overall coverage:** ~26%
 
 Key units:
 | Unit | Coverage |
 |------|----------|
-| BoldSystem.pas | 44.6% |
+| BoldSystem.pas | 47.4% |
+| BoldSystemRT.pas | 55.5% |
+| BoldSystemHandle.pas | 59.4% |
 | BoldAttributes.pas | ~50% |
 | BoldElements.pas | ~40% |
 
