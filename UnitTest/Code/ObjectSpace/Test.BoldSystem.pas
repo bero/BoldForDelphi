@@ -10,10 +10,14 @@ uses
   BoldTestCase,
   BoldSystem,
   BoldSystemHandle,
+  BoldSystemRT,
   BoldHandles,
   BoldModel,
   BoldDefs,
+  BoldId,
+  BoldDefaultId,
   BoldAttributes,
+  BoldElements,
   BoldValueSpaceInterfaces,
   BoldTypeNameHandle,
   jehoBCBoldTest,
@@ -105,6 +109,88 @@ type
     procedure TestLocatorBoldObjectReference;
     [Test]
     procedure TestLocatorsListCount;
+
+    // DefaultSystem Tests
+    [Test]
+    procedure TestMakeDefaultSystem;
+    [Test]
+    procedure TestDefaultSystemAccess;
+
+    // Object Creation Variants
+    [Test]
+    procedure TestCreateNewObjectByExpressionName;
+    [Test]
+    procedure TestCreateNewObjectByExpressionNameClassB;
+
+    // Class Extent Access
+    [Test]
+    procedure TestClassByExpressionName;
+    [Test]
+    procedure TestClassByObjectClass;
+    [Test]
+    procedure TestClassesIndexAccess;
+
+    // TBoldObject Properties
+    [Test]
+    procedure TestBoldMemberCount;
+    [Test]
+    procedure TestBoldMembersAccess;
+    [Test]
+    procedure TestBoldMemberByExpressionName;
+    [Test]
+    procedure TestFindBoldMemberByExpressionName;
+    [Test]
+    procedure TestBoldMemberIndexByExpressionName;
+
+    // Object GetAsList
+    [Test]
+    procedure TestSystemGetAsList;
+    [Test]
+    procedure TestObjectGetAsList;
+
+    // Object Comparison
+    [Test]
+    procedure TestObjectCompareToAs;
+    [Test]
+    procedure TestObjectIsEqualAs;
+
+    // System State Flags
+    [Test]
+    procedure TestSystemStateFlags;
+    [Test]
+    procedure TestBoldSystemTypeInfo;
+
+    // Traverser Tests
+    [Test]
+    procedure TestLocatorListTraverser;
+    [Test]
+    procedure TestLocatorListTraverserCurrent;
+    [Test]
+    procedure TestLocatorListGetEnumerator;
+
+    // LocatorList Lookup Tests
+    [Test]
+    procedure TestLocatorByID;
+    [Test]
+    procedure TestObjectByID;
+    [Test]
+    procedure TestLocatorByIdString;
+    [Test]
+    procedure TestObjectByIdString;
+    [Test]
+    procedure TestLocatorByIdNotFound;
+
+    // TBoldObjectLocator Properties
+    [Test]
+    procedure TestLocatorAsString;
+    [Test]
+    procedure TestLocatorBoldSystem;
+    [Test]
+    procedure TestLocatorBoldObjectID;
+    [Test]
+    procedure TestLocatorClassTypeInfo;
+    [Test]
+    procedure TestLocatorEnsuredBoldObject;
   end;
 
 implementation
@@ -600,6 +686,531 @@ begin
 
   Assert.AreEqual(InitialCount + 5, GetSystem.Locators.Count,
     'Locators count should increase by 5 after creating 5 objects');
+end;
+
+{ DefaultSystem Tests }
+
+procedure TTestBoldSystem.TestMakeDefaultSystem;
+begin
+  // Make this system the default
+  GetSystem.MakeDefault;
+  Assert.IsTrue(GetSystem.IsDefault, 'System should be marked as default after MakeDefault');
+  Assert.AreSame(TObject(GetSystem), TObject(TBoldSystem.DefaultSystem),
+    'DefaultSystem should return the system after MakeDefault');
+end;
+
+procedure TTestBoldSystem.TestDefaultSystemAccess;
+var
+  DefaultSys: TBoldSystem;
+begin
+  GetSystem.MakeDefault;
+  DefaultSys := TBoldSystem.DefaultSystem;
+  Assert.IsNotNull(DefaultSys, 'DefaultSystem should not be nil after MakeDefault');
+  Assert.AreSame(TObject(GetSystem), TObject(DefaultSys),
+    'DefaultSystem should return our test system');
+end;
+
+{ Object Creation Variants }
+
+procedure TTestBoldSystem.TestCreateNewObjectByExpressionName;
+var
+  Obj: TBoldObject;
+begin
+  Obj := GetSystem.CreateNewObjectByExpressionName('ClassA');
+  Assert.IsNotNull(Obj, 'Object should be created by expression name');
+  Assert.IsTrue(Obj is TClassA, 'Object should be of type TClassA');
+  Assert.IsTrue(Obj.BoldObjectIsNew, 'Object should be marked as new');
+end;
+
+procedure TTestBoldSystem.TestCreateNewObjectByExpressionNameClassB;
+var
+  Obj: TBoldObject;
+begin
+  Obj := GetSystem.CreateNewObjectByExpressionName('ClassB');
+  Assert.IsNotNull(Obj, 'Object should be created by expression name');
+  Assert.IsTrue(Obj is TClassB, 'Object should be of type TClassB');
+  // ClassB inherits from ClassA
+  Assert.IsTrue(Obj is TClassA, 'ClassB object should also be TClassA (inheritance)');
+end;
+
+{ Class Extent Access }
+
+procedure TTestBoldSystem.TestClassByExpressionName;
+var
+  ClassAList: TBoldObjectList;
+  InitialCount: Integer;
+begin
+  ClassAList := GetSystem.ClassByExpressionName['ClassA'];
+  Assert.IsNotNull(ClassAList, 'ClassByExpressionName should return a list');
+
+  InitialCount := ClassAList.Count;
+  TClassA.Create(GetSystem);
+  Assert.AreEqual(InitialCount + 1, ClassAList.Count,
+    'Class extent should include new objects');
+end;
+
+procedure TTestBoldSystem.TestClassByObjectClass;
+var
+  ClassAList: TBoldObjectList;
+  InitialCount: Integer;
+begin
+  ClassAList := GetSystem.ClassByObjectClass[TClassA];
+  Assert.IsNotNull(ClassAList, 'ClassByObjectClass should return a list');
+
+  InitialCount := ClassAList.Count;
+  TClassA.Create(GetSystem);
+  Assert.AreEqual(InitialCount + 1, ClassAList.Count,
+    'Class extent should include new objects');
+end;
+
+procedure TTestBoldSystem.TestClassesIndexAccess;
+var
+  ClassTypeInfo: TBoldClassTypeInfo;
+  ClassList: TBoldObjectList;
+begin
+  // Get ClassA type info
+  ClassTypeInfo := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  Assert.IsNotNull(ClassTypeInfo, 'ClassTypeInfo should not be nil');
+
+  // Access by index
+  ClassList := GetSystem.Classes[ClassTypeInfo.TopSortedIndex];
+  Assert.IsNotNull(ClassList, 'Classes[index] should return a list');
+end;
+
+{ TBoldObject Properties }
+
+procedure TTestBoldSystem.TestBoldMemberCount;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // ClassA has multiple attributes: aString, aInteger, aBoolean, etc.
+  Assert.IsTrue(Obj.BoldMemberCount > 0, 'BoldMemberCount should be greater than 0');
+end;
+
+procedure TTestBoldSystem.TestBoldMembersAccess;
+var
+  Obj: TClassA;
+  Member: TBoldMember;
+  i: Integer;
+begin
+  Obj := TClassA.Create(GetSystem);
+
+  // Access each member by index
+  for i := 0 to Obj.BoldMemberCount - 1 do
+  begin
+    Member := Obj.BoldMembers[i];
+    Assert.IsNotNull(Member, Format('BoldMembers[%d] should not be nil', [i]));
+  end;
+end;
+
+procedure TTestBoldSystem.TestBoldMemberByExpressionName;
+var
+  Obj: TClassA;
+  Member: TBoldMember;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Test Value';
+
+  Member := Obj.BoldMemberByExpressionName['aString'];
+  Assert.IsNotNull(Member, 'BoldMemberByExpressionName should find aString');
+  Assert.IsTrue(Member is TBAString, 'Member should be TBAString');
+end;
+
+procedure TTestBoldSystem.TestFindBoldMemberByExpressionName;
+var
+  Obj: TClassA;
+  Member: TBoldMember;
+begin
+  Obj := TClassA.Create(GetSystem);
+
+  // Find existing member
+  Member := Obj.FindBoldMemberByExpressionName('aInteger');
+  Assert.IsNotNull(Member, 'FindBoldMemberByExpressionName should find aInteger');
+
+  // Find non-existing member should return nil
+  Member := Obj.FindBoldMemberByExpressionName('nonExistentMember');
+  Assert.IsNull(Member, 'FindBoldMemberByExpressionName should return nil for non-existent member');
+end;
+
+procedure TTestBoldSystem.TestBoldMemberIndexByExpressionName;
+var
+  Obj: TClassA;
+  Index: Integer;
+begin
+  Obj := TClassA.Create(GetSystem);
+
+  Index := Obj.BoldMemberIndexByExpressionName['aString'];
+  Assert.IsTrue(Index >= 0, 'BoldMemberIndexByExpressionName should return valid index for aString');
+
+  // Verify the index gives the right member
+  Assert.IsTrue(Obj.BoldMembers[Index] is TBAString,
+    'Index should point to TBAString member');
+end;
+
+{ Object GetAsList }
+
+procedure TTestBoldSystem.TestSystemGetAsList;
+var
+  IndirectElement: TBoldIndirectElement;
+begin
+  IndirectElement := TBoldIndirectElement.Create;
+  try
+    GetSystem.GetAsList(IndirectElement);
+    Assert.IsNotNull(IndirectElement.Value, 'GetAsList should return a value');
+    Assert.IsTrue(IndirectElement.Value is TBoldList, 'GetAsList should return a TBoldList');
+  finally
+    IndirectElement.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestObjectGetAsList;
+var
+  Obj: TClassA;
+  IndirectElement: TBoldIndirectElement;
+begin
+  Obj := TClassA.Create(GetSystem);
+  IndirectElement := TBoldIndirectElement.Create;
+  try
+    Obj.GetAsList(IndirectElement);
+    Assert.IsNotNull(IndirectElement.Value, 'Object.GetAsList should return a value');
+    Assert.IsTrue(IndirectElement.Value is TBoldObjectList, 'GetAsList should return TBoldObjectList');
+
+    // The list should contain the object itself
+    Assert.AreEqual(1, TBoldObjectList(IndirectElement.Value).Count,
+      'GetAsList should return list with one element');
+  finally
+    IndirectElement.Free;
+  end;
+end;
+
+{ Object Comparison }
+
+procedure TTestBoldSystem.TestObjectCompareToAs;
+var
+  Obj1, Obj2: TClassA;
+  CompareResult: Integer;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+
+  // Objects should be comparable
+  CompareResult := Obj1.CompareToAs(ctDefault, Obj2);
+  // Different objects should not be equal
+  Assert.AreNotEqual(0, CompareResult, 'Different objects should not compare as equal');
+
+  // Object compared to itself should be equal
+  CompareResult := Obj1.CompareToAs(ctDefault, Obj1);
+  Assert.AreEqual(0, CompareResult, 'Object compared to itself should be equal');
+end;
+
+procedure TTestBoldSystem.TestObjectIsEqualAs;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+
+  // Same object should be equal to itself
+  Assert.IsTrue(Obj1.IsEqualAs(ctDefault, Obj1), 'Object should be equal to itself');
+
+  // Different objects should not be equal
+  Assert.IsFalse(Obj1.IsEqualAs(ctDefault, Obj2), 'Different objects should not be equal');
+end;
+
+{ System State Flags }
+
+procedure TTestBoldSystem.TestSystemStateFlags;
+begin
+  // Test initial state flags
+  Assert.IsFalse(GetSystem.IsDestroying, 'IsDestroying should be False initially');
+  Assert.IsFalse(GetSystem.IsCommitting, 'IsCommitting should be False initially');
+  Assert.IsFalse(GetSystem.IsRollingBack, 'IsRollingBack should be False initially');
+  Assert.IsFalse(GetSystem.IsUpdatingDatabase, 'IsUpdatingDatabase should be False initially');
+  Assert.IsFalse(GetSystem.IsProcessingTransactionOrUpdatingDatabase,
+    'IsProcessingTransactionOrUpdatingDatabase should be False initially');
+  Assert.IsFalse(GetSystem.IsFetching, 'IsFetching should be False initially');
+  Assert.IsFalse(GetSystem.IsDiscarding, 'IsDiscarding should be False initially');
+end;
+
+procedure TTestBoldSystem.TestBoldSystemTypeInfo;
+var
+  TypeInfo: TBoldSystemTypeInfo;
+begin
+  TypeInfo := GetSystem.BoldSystemTypeInfo;
+  Assert.IsNotNull(TypeInfo, 'BoldSystemTypeInfo should not be nil');
+
+  // Verify we can access class type info
+  Assert.IsNotNull(TypeInfo.ClassTypeInfoByExpressionName['ClassA'],
+    'Should be able to get ClassA type info');
+  Assert.IsNotNull(TypeInfo.ClassTypeInfoByExpressionName['ClassB'],
+    'Should be able to get ClassB type info');
+end;
+
+{ Traverser Tests }
+
+procedure TTestBoldSystem.TestLocatorListTraverser;
+var
+  Obj1, Obj2: TClassA;
+  Traverser: TBoldLocatorListTraverser;
+  FoundCount: Integer;
+begin
+  GetSystem.Discard;
+
+  Obj1 := TClassA.Create(GetSystem);
+  Obj1.aString := 'Traverser Test 1';
+
+  Obj2 := TClassA.Create(GetSystem);
+  Obj2.aString := 'Traverser Test 2';
+
+  // Use traverser to iterate locators
+  Traverser := GetSystem.Locators.CreateTraverser;
+  try
+    FoundCount := 0;
+    while Traverser.MoveNext do
+    begin
+      Assert.IsNotNull(Traverser.Locator, 'Traverser.Locator should not be nil');
+      Inc(FoundCount);
+    end;
+
+    Assert.IsTrue(FoundCount >= 2, 'Traverser should find at least 2 locators');
+  finally
+    Traverser.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestLocatorListTraverserCurrent;
+var
+  Obj: TClassA;
+  Traverser: TBoldLocatorListTraverser;
+begin
+  GetSystem.Discard;
+
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Current Test';
+
+  Traverser := GetSystem.Locators.CreateTraverser;
+  try
+    Assert.IsTrue(Traverser.MoveNext, 'Should have at least one locator');
+    // Current is an alias for Locator
+    Assert.AreSame(TObject(Traverser.Current), TObject(Traverser.Locator),
+      'Current and Locator should return the same object');
+  finally
+    Traverser.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestLocatorListGetEnumerator;
+var
+  Obj1, Obj2: TClassA;
+  Locator: TBoldObjectLocator;
+  FoundCount: Integer;
+begin
+  GetSystem.Discard;
+
+  Obj1 := TClassA.Create(GetSystem);
+  Obj1.aString := 'Enumerator Test 1';
+
+  Obj2 := TClassA.Create(GetSystem);
+  Obj2.aString := 'Enumerator Test 2';
+
+  // Test for..in enumeration
+  FoundCount := 0;
+  for Locator in GetSystem.Locators do
+  begin
+    Assert.IsNotNull(Locator, 'Locator from enumerator should not be nil');
+    Inc(FoundCount);
+  end;
+
+  Assert.IsTrue(FoundCount >= 2, 'Enumerator should find at least 2 locators');
+end;
+
+{ LocatorList Lookup Tests }
+
+procedure TTestBoldSystem.TestLocatorByID;
+var
+  Obj: TClassA;
+  Locator, FoundLocator: TBoldObjectLocator;
+  ObjectID: TBoldObjectId;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'LocatorByID Test';
+
+  Locator := Obj.BoldObjectLocator;
+  ObjectID := Locator.BoldObjectID;
+
+  // Look up by ID
+  FoundLocator := GetSystem.Locators.LocatorByID[ObjectID];
+  Assert.IsNotNull(FoundLocator, 'LocatorByID should find the locator');
+  Assert.AreSame(TObject(Locator), TObject(FoundLocator),
+    'LocatorByID should return the same locator');
+end;
+
+procedure TTestBoldSystem.TestObjectByID;
+var
+  Obj: TClassA;
+  ObjectID: TBoldObjectId;
+  FoundObject: TBoldObject;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'ObjectByID Test';
+
+  ObjectID := Obj.BoldObjectLocator.BoldObjectID;
+
+  // Look up object by ID
+  FoundObject := GetSystem.Locators.ObjectByID[ObjectID];
+  Assert.IsNotNull(FoundObject, 'ObjectByID should find the object');
+  Assert.AreSame(TObject(Obj), TObject(FoundObject),
+    'ObjectByID should return the same object');
+end;
+
+procedure TTestBoldSystem.TestLocatorByIdString;
+var
+  Obj: TClassA;
+  Locator, FoundLocator: TBoldObjectLocator;
+  IdString: string;
+  DefaultId: TBoldDefaultId;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'LocatorByIdString Test';
+
+  Locator := Obj.BoldObjectLocator;
+
+  // LocatorByIdString expects an integer ID string
+  // In transient mode, the ID might not be a TBoldDefaultId
+  if Locator.BoldObjectID is TBoldDefaultId then
+  begin
+    DefaultId := Locator.BoldObjectID as TBoldDefaultId;
+    IdString := IntToStr(DefaultId.AsInteger);
+
+    // Look up by ID string
+    FoundLocator := GetSystem.Locators.LocatorByIdString[IdString];
+    Assert.IsNotNull(FoundLocator, 'LocatorByIdString should find the locator');
+    Assert.AreSame(TObject(Locator), TObject(FoundLocator),
+      'LocatorByIdString should return the same locator');
+  end
+  else
+    Assert.Pass('LocatorByIdString test skipped - ID is not TBoldDefaultId in transient mode');
+end;
+
+procedure TTestBoldSystem.TestObjectByIdString;
+var
+  Obj: TClassA;
+  IdString: string;
+  FoundObject: TBoldObject;
+  DefaultId: TBoldDefaultId;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'ObjectByIdString Test';
+
+  // ObjectByIdString expects an integer ID string
+  // In transient mode, the ID might not be a TBoldDefaultId
+  if Obj.BoldObjectLocator.BoldObjectID is TBoldDefaultId then
+  begin
+    DefaultId := Obj.BoldObjectLocator.BoldObjectID as TBoldDefaultId;
+    IdString := IntToStr(DefaultId.AsInteger);
+
+    // Look up object by ID string
+    FoundObject := GetSystem.Locators.ObjectByIdString[IdString];
+    Assert.IsNotNull(FoundObject, 'ObjectByIdString should find the object');
+    Assert.AreSame(TObject(Obj), TObject(FoundObject),
+      'ObjectByIdString should return the same object');
+  end
+  else
+    Assert.Pass('ObjectByIdString test skipped - ID is not TBoldDefaultId in transient mode');
+end;
+
+procedure TTestBoldSystem.TestLocatorByIdNotFound;
+var
+  FoundLocator: TBoldObjectLocator;
+  FoundObject: TBoldObject;
+begin
+  GetSystem.Discard;
+
+  // Look up non-existent ID string - should return nil
+  FoundLocator := GetSystem.Locators.LocatorByIdString['999999'];
+  Assert.IsNull(FoundLocator, 'LocatorByIdString should return nil for non-existent ID');
+
+  FoundObject := GetSystem.Locators.ObjectByIdString['999999'];
+  Assert.IsNull(FoundObject, 'ObjectByIdString should return nil for non-existent ID');
+end;
+
+{ TBoldObjectLocator Properties }
+
+procedure TTestBoldSystem.TestLocatorAsString;
+var
+  Obj: TClassA;
+  Locator: TBoldObjectLocator;
+  AsStr: string;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'AsString Test';
+
+  Locator := Obj.BoldObjectLocator;
+  AsStr := Locator.AsString;
+
+  Assert.IsNotEmpty(AsStr, 'Locator.AsString should not be empty');
+end;
+
+procedure TTestBoldSystem.TestLocatorBoldSystem;
+var
+  Obj: TClassA;
+  Locator: TBoldObjectLocator;
+begin
+  Obj := TClassA.Create(GetSystem);
+
+  Locator := Obj.BoldObjectLocator;
+  Assert.AreSame(TObject(GetSystem), TObject(Locator.BoldSystem),
+    'Locator.BoldSystem should reference the system');
+end;
+
+procedure TTestBoldSystem.TestLocatorBoldObjectID;
+var
+  Obj: TClassA;
+  Locator: TBoldObjectLocator;
+  ObjectID: TBoldObjectId;
+begin
+  Obj := TClassA.Create(GetSystem);
+
+  Locator := Obj.BoldObjectLocator;
+  ObjectID := Locator.BoldObjectID;
+
+  Assert.IsNotNull(ObjectID, 'Locator.BoldObjectID should not be nil');
+  Assert.IsTrue(ObjectID is TBoldObjectId, 'BoldObjectID should be a TBoldObjectId');
+end;
+
+procedure TTestBoldSystem.TestLocatorClassTypeInfo;
+var
+  Obj: TClassA;
+  Locator: TBoldObjectLocator;
+  LocatorClassTypeInfo: TBoldClassTypeInfo;
+begin
+  Obj := TClassA.Create(GetSystem);
+
+  Locator := Obj.BoldObjectLocator;
+  LocatorClassTypeInfo := Locator.BoldClassTypeInfo;
+
+  Assert.IsNotNull(LocatorClassTypeInfo, 'Locator.BoldClassTypeInfo should not be nil');
+  Assert.AreEqual('ClassA', LocatorClassTypeInfo.ExpressionName,
+    'BoldClassTypeInfo should have correct expression name');
+end;
+
+procedure TTestBoldSystem.TestLocatorEnsuredBoldObject;
+var
+  Obj: TClassA;
+  Locator: TBoldObjectLocator;
+  EnsuredObj: TBoldObject;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'EnsuredBoldObject Test';
+
+  Locator := Obj.BoldObjectLocator;
+
+  // EnsuredBoldObject returns the object, fetching if needed
+  EnsuredObj := Locator.EnsuredBoldObject;
+  Assert.IsNotNull(EnsuredObj, 'EnsuredBoldObject should not be nil');
+  Assert.AreSame(TObject(Obj), TObject(EnsuredObj),
+    'EnsuredBoldObject should return the same object');
 end;
 
 initialization
