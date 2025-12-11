@@ -24,7 +24,8 @@ uses
   TestModel1 in 'Code\Main\TestModel1.pas',
   UndoTestModelClasses in 'Code\ObjectSpace\UndoTestModelClasses.pas',
   maan_UndoRedoTestCaseUtils in 'Code\ObjectSpace\maan_UndoRedoTestCaseUtils.pas',
-  maan_UndoRedo in 'Code\ObjectSpace\maan_UndoRedo.pas';
+  maan_UndoRedo in 'Code\ObjectSpace\maan_UndoRedo.pas',
+  Test.BoldSystem in 'Code\ObjectSpace\Test.BoldSystem.pas';
 
 {$R *.res}
 
