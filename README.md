@@ -1,7 +1,8 @@
 # BoldForDelphi
 
 This is master branch. If you want latest development please check develop branch instead
-https://github.com/Embarcadero/BoldForDelphi/tree/develop
+https://github.com/Embarcadero/BoldForDelphi/tree/develop at Embarcadero or
+https://github.com/bero/BoldForDelphi/tree/develop at my fork.
 
 Purpose of this is always be stable and ready for deploy to a production environment.
 Do not commit directly to master branch. Instead merge changes from develop branch.
