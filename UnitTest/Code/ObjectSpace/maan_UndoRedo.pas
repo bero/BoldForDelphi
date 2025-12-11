@@ -463,12 +463,16 @@ begin
   FSomeClassList.EnsureObjects;
   SomeObject := FSomeClassList[0] as TSomeClass;
   oid := SomeObject.BoldObjectLocator.BoldObjectId.Clone;
-  Someobject.M_aString.Invalidate;
-  VerifyState(SomeObject.M_aString, bvpsInvalid );
-  StoreObject(SomeObject);
-  SomeObject := RefetchObject(System, Oid) as TSomeClass;
-  VerifySetContents(SomeObject.AsIBoldObjectContents[bdepContents], GetStoredObjectContents(SomeObject));
-  VerifyState(SomeObject.M_aString, bvpsCurrent);
+  try
+    Someobject.M_aString.Invalidate;
+    VerifyState(SomeObject.M_aString, bvpsInvalid );
+    StoreObject(SomeObject);
+    SomeObject := RefetchObject(System, Oid) as TSomeClass;
+    VerifySetContents(SomeObject.AsIBoldObjectContents[bdepContents], GetStoredObjectContents(SomeObject));
+    VerifyState(SomeObject.M_aString, bvpsCurrent);
+  finally
+    OId.Free;
+  end;
 end;
 
 procedure Tmaan_FetchRefetchTestCase.TestFetchCurrentAttribute;
