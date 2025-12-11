@@ -81,6 +81,30 @@ type
     procedure TestSystemCleanAfterCreation;
     [Test]
     procedure TestSystemDirtyAfterObjectCreation;
+
+    // Integrity Tests
+    [Test]
+    procedure TestCheckIntegrityEmptySystem;
+    [Test]
+    procedure TestCheckIntegrityWithObjects;
+    [Test]
+    procedure TestCheckIntegrityWithModifiedObjects;
+    [Test]
+    procedure TestAssertLinkIntegrityEmptySystem;
+    [Test]
+    procedure TestAssertLinkIntegrityWithObjects;
+    [Test]
+    procedure TestAssertLinkIntegrityAfterModifications;
+    [Test]
+    procedure TestLocatorListAssertIntegrity;
+
+    // Locator Tests
+    [Test]
+    procedure TestLocatorCreatedWithObject;
+    [Test]
+    procedure TestLocatorBoldObjectReference;
+    [Test]
+    procedure TestLocatorsListCount;
   end;
 
 implementation
@@ -406,6 +430,176 @@ begin
   Obj := TClassA.Create(GetSystem);
   Assert.IsNotNull(Obj, 'Object should be created');
   Assert.AreEqual(InitialCount + 1, ClassList.Count, 'Object should be tracked in system');
+end;
+
+{ Integrity Tests }
+
+procedure TTestBoldSystem.TestCheckIntegrityEmptySystem;
+begin
+  // CheckIntegrity should not raise exception on empty system
+  GetSystem.Discard;
+  GetSystem.CheckIntegrity;
+  Assert.Pass('CheckIntegrity completed without exception on empty system');
+end;
+
+procedure TTestBoldSystem.TestCheckIntegrityWithObjects;
+var
+  Obj1, Obj2, Obj3: TClassA;
+begin
+  // Create several objects
+  Obj1 := TClassA.Create(GetSystem);
+  Obj1.aString := 'Object1';
+  Obj1.aInteger := 100;
+
+  Obj2 := TClassA.Create(GetSystem);
+  Obj2.aString := 'Object2';
+  Obj2.aBoolean := True;
+
+  Obj3 := TClassB.Create(GetSystem);
+  TClassB(Obj3).bString := 'Object3';
+
+  // CheckIntegrity should traverse all objects and their members without exception
+  GetSystem.CheckIntegrity;
+  Assert.Pass('CheckIntegrity completed without exception with multiple objects');
+end;
+
+procedure TTestBoldSystem.TestCheckIntegrityWithModifiedObjects;
+var
+  Obj: TClassA;
+begin
+  // Create and modify object
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Initial';
+  Obj.aInteger := 1;
+
+  // Modify values
+  Obj.aString := 'Modified';
+  Obj.aInteger := 2;
+  Obj.aBoolean := True;
+  Obj.aFloat := 3.14;
+
+  // CheckIntegrity should still work after modifications
+  GetSystem.CheckIntegrity;
+  Assert.Pass('CheckIntegrity completed without exception after modifications');
+end;
+
+procedure TTestBoldSystem.TestAssertLinkIntegrityEmptySystem;
+var
+  Result: Boolean;
+begin
+  // AssertLinkIntegrity should return True on empty system
+  GetSystem.Discard;
+  Result := GetSystem.AssertLinkIntegrity;
+  Assert.IsTrue(Result, 'AssertLinkIntegrity should return True on empty system');
+end;
+
+procedure TTestBoldSystem.TestAssertLinkIntegrityWithObjects;
+var
+  Obj1, Obj2: TClassA;
+  Result: Boolean;
+begin
+  // Create objects with various attribute values
+  Obj1 := TClassA.Create(GetSystem);
+  Obj1.aString := 'Test1';
+  Obj1.aInteger := 42;
+
+  Obj2 := TClassA.Create(GetSystem);
+  Obj2.aString := 'Test2';
+  Obj2.aBoolean := True;
+
+  Result := GetSystem.AssertLinkIntegrity;
+  Assert.IsTrue(Result, 'AssertLinkIntegrity should return True with valid objects');
+end;
+
+procedure TTestBoldSystem.TestAssertLinkIntegrityAfterModifications;
+var
+  Obj: TClassA;
+  Result: Boolean;
+begin
+  // Create object
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Initial';
+
+  // Verify integrity
+  Result := GetSystem.AssertLinkIntegrity;
+  Assert.IsTrue(Result, 'AssertLinkIntegrity should return True initially');
+
+  // Modify object
+  Obj.aString := 'Modified';
+  Obj.aInteger := 999;
+  Obj.aFloat := 2.718;
+
+  // Verify integrity after modification
+  Result := GetSystem.AssertLinkIntegrity;
+  Assert.IsTrue(Result, 'AssertLinkIntegrity should return True after modifications');
+end;
+
+procedure TTestBoldSystem.TestLocatorListAssertIntegrity;
+var
+  Obj1, Obj2: TClassA;
+  Result: Boolean;
+begin
+  // Create objects - each will have a locator in the system's locator list
+  Obj1 := TClassA.Create(GetSystem);
+  Obj1.aString := 'Locator Test 1';
+
+  Obj2 := TClassA.Create(GetSystem);
+  Obj2.aString := 'Locator Test 2';
+
+  // The locator list should maintain integrity
+  Result := GetSystem.Locators.AssertIntegrity;
+  Assert.IsTrue(Result, 'Locators.AssertIntegrity should return True');
+end;
+
+{ Locator Tests }
+
+procedure TTestBoldSystem.TestLocatorCreatedWithObject;
+var
+  Obj: TClassA;
+  InitialLocatorCount: Integer;
+begin
+  InitialLocatorCount := GetSystem.Locators.Count;
+
+  Obj := TClassA.Create(GetSystem);
+
+  // Each new object should have a locator added to the system
+  Assert.IsTrue(GetSystem.Locators.Count > InitialLocatorCount,
+    'Locator count should increase after creating object');
+  Assert.IsNotNull(Obj.BoldObjectLocator, 'Object should have a locator');
+end;
+
+procedure TTestBoldSystem.TestLocatorBoldObjectReference;
+var
+  Obj: TClassA;
+  Locator: TBoldObjectLocator;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Locator Reference Test';
+
+  Locator := Obj.BoldObjectLocator;
+  Assert.IsNotNull(Locator, 'Locator should not be nil');
+  Assert.AreSame(TObject(Obj), TObject(Locator.BoldObject),
+    'Locator.BoldObject should reference the same object');
+end;
+
+procedure TTestBoldSystem.TestLocatorsListCount;
+var
+  InitialCount: Integer;
+  i: Integer;
+  Obj: TClassA;
+begin
+  GetSystem.Discard;
+  InitialCount := GetSystem.Locators.Count;
+
+  // Create 5 objects
+  for i := 1 to 5 do
+  begin
+    Obj := TClassA.Create(GetSystem);
+    Obj.aString := 'Object ' + IntToStr(i);
+  end;
+
+  Assert.AreEqual(InitialCount + 5, GetSystem.Locators.Count,
+    'Locators count should increase by 5 after creating 5 objects');
 end;
 
 initialization
