@@ -26,6 +26,28 @@ call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
 msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32
 ```
 
+## Unit Tests and Code Coverage
+
+Unit tests are located in `UnitTest/` and use the DUnitX framework.
+
+### Running Tests
+```batch
+cd UnitTest
+build.bat
+UnitTest.exe --exit:Continue
+```
+
+### Code Coverage
+
+Code coverage reports can be generated using DelphiCodeCoverage. See `UnitTest/CodeCoverage.md` for setup instructions.
+
+```batch
+cd UnitTest
+run_coverage.bat
+```
+
+Results are generated in `UnitTest/coverage_report/`. Open `CodeCoverage_summary.html` to view the report.
+
 ## Source Organization
 
 ```
