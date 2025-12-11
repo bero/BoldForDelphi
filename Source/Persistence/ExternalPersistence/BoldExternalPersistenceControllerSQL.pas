@@ -478,10 +478,8 @@ end;
 function QuoteStringIfNeeded(const S: String): String;
 var
   V: Double;
-  C: Integer;
 begin
-  Val(S, V, C);
-  if C <> 0 then
+  if not TryStrToFloat(S, V) then
     Result := '''' + S + ''''
   else
     Result := S;
@@ -711,7 +709,7 @@ var
   ExternalKey: String;
   S: String;
   T: String;
-  v, c: Integer;
+  c: Integer;
 begin
   ExternalColumns := FindExternalKeyColumns(MoldClass);
   KeyCount := GetCharCount(';', ExternalColumns) + 1;
@@ -731,8 +729,7 @@ begin
     for j := 0 to GetCharCount(';', ExternalKey) do
     begin
       T := GetNextWord(ExternalKey, ';');
-      Val(T, v, c);
-      if c <> 0 then
+      if not TryStrToInt(T, c) then
         T := '''' + T + '''';
       SQL := SQL + '(' + GetNextWord(S, ';') + ' = ' + T + ') AND ';
     end;

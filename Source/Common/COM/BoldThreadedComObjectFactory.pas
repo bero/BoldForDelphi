@@ -72,7 +72,7 @@ begin
     if not Assigned(FApartmentThread) then
     begin
       FApartmentThread := TBoldApartmentThread.Create(ApartmentType, DoCreateInstance, UnkOuter, IID);
-      FApartmentThread.Resume;
+      FApartmentThread.Start;
       if not FApartmentThread.WaitUntilReady(TIMEOUT*10) then
         raise EBold.Create('Appartment thread timed out');
     end

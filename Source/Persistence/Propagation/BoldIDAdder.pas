@@ -52,7 +52,7 @@ procedure TBoldIDAdder.PMFetch(ObjectIdList: TBoldObjectIdList;
   BoldClientID: TBoldClientID);
 begin
   if Listener.Suspended then
-    Listener.Resume;
+    Listener.Start;
   BoldClientID := Self.BoldClientID;
   inherited PMFetch(ObjectIdList, ValueSpace, MemberIdList, FetchMode, BoldClientID);
 end;
@@ -63,7 +63,7 @@ procedure TBoldIDAdder.PMFetchIDListWithCondition(
   BoldClientID: TBoldClientID);
 begin
   if Listener.Suspended then
-    Listener.Resume;
+    Listener.Start;
   BoldClientID := Self.BoldClientID;
   inherited;
 end;
@@ -75,7 +75,7 @@ procedure TBoldIDAdder.PMUpdate(ObjectIdList: TBoldObjectIdList;
   BoldClientID: TBoldClientID);
 begin
   if Listener.Suspended then
-    Listener.Resume;
+    Listener.Start;
   BoldClientID := Self.BoldClientID;
   inherited;
 end;

@@ -139,7 +139,7 @@ begin
   ThreadObject := TBoldComCreateObjectThread.Create(Self,True);
   try
     ThreadHandle := ThreadObject.Handle;
-    ThreadObject.Resume;
+    ThreadObject.Start;
     while True do
     begin
       Status := MsgWaitForMultipleObjects(1,ThreadHandle,False,INFINITE,QS_ALLINPUT);

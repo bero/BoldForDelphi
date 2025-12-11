@@ -116,7 +116,7 @@ begin
   TimeOut := 0;
   if Suspended then
   begin
-    Resume;
+    Start;
     WaitUntilReady(TIMEOUT);
     SwitchToThread;
   end;

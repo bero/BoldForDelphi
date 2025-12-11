@@ -270,7 +270,7 @@ begin
   begin
     if Suspended then
     begin
-      Resume;
+      Start;
       WaitUntilInitialized;
     end;
     UnRegister;

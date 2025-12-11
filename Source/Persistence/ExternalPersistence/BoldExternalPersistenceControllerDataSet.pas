@@ -714,7 +714,7 @@ var
   ExternalKey: String;
   S: String;
   T: String;
-  v, c: Integer;
+  c: Integer;
 begin
   ExternalColumns := FindExternalKeyColumns(MoldClass);
   KeyCount := GetCharCount(';', ExternalColumns) + 1;
@@ -734,8 +734,7 @@ begin
     for j := 1 to GetCharCount(';', ExternalKey) + 1 do
     begin
       T := GetNextWord(ExternalKey, ';');
-      Val(T, v, c);
-      if c <> 0 then
+      if not TryStrToInt(T, c) then
         T := '''' + T + '''';
       SQL := SQL + '(' + GetNextWord(S, ';') + ' = ' + T + ') AND '; // do not localize
     end;

@@ -189,7 +189,7 @@ begin
     raise EBold.CreateFmt(sPropagatorHandleNotAssigned, [ClassName]);
   if not ListenerThread.Registered then
   begin
-    ListenerThread.Resume;
+    ListenerThread.Start;
     ListenerThread.WaitUntilInitialized;
     if not (fPropagatorHandle.Connected) then
       raise EBold.CreateFmt('%s.StartListenerThread: PropagatorHandle not connected', [ClassName]);
@@ -201,7 +201,7 @@ begin
       ListenerThread.SetQueueNotEmptyNotifyEvent(NotifyDequeuer)
     else
     begin
-      ListenerThread.Suspend;
+      ListenerThread.Suspended := True;
       if Assigned(FOnRegistrationFailed) then
         FOnRegistrationFailed(self);
     end;
@@ -259,7 +259,7 @@ begin
   begin
     ListenerThread.UnRegister;
     ListenerThread.Propagator := nil;
-    ListenerThread.Suspend;
+    ListenerThread.Suspended := True;
   end;
 end;
 

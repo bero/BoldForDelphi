@@ -100,9 +100,10 @@ type
 implementation
 
 uses
-  Dialogs,
-  Controls,
-  SysUtils,
+  Vcl.Dialogs,
+  Vcl.Controls,
+  System.SysUtils,
+  System.Types,
 
   BoldPMappers,
   BoldLogHandler,

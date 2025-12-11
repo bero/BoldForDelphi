@@ -440,7 +440,7 @@ begin
   begin
     FSenderThread.Terminate;
     FSenderThread.FOwner := nil;
-    FSenderThread.Resume;
+    FSenderThread.Start;
   end;
   if Assigned(FClientInterface) and BoldAsynchronousClientCallbackOnServerEvent then
   begin
@@ -547,7 +547,7 @@ begin
   begin
     if BoldAsynchronousClientCallbackOnServerEvent then
     begin
-      SenderThread.Resume;
+      SenderThread.Start;
     end
     else
     begin
@@ -966,7 +966,7 @@ begin
         Synchronize(SendEventFailure);
     end;
     if not Terminated then
-      Suspend;
+      Suspended := True;
   until Terminated;
   CoUninitialize;
 end;
