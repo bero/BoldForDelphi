@@ -1,4 +1,4 @@
-unit BoldPersistenceHandleAstaReg;
+﻿unit BoldPersistenceHandleAstaReg;
 
 interface
 

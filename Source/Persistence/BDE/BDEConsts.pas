@@ -1,4 +1,4 @@
-unit BDEConsts;
+﻿unit BDEConsts;
 
 interface
 

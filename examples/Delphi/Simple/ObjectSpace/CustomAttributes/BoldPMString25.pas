@@ -1,4 +1,4 @@
-unit BoldPMString25;
+﻿unit BoldPMString25;
 
 { This examples shows how to implement a persistence mapper that
   creates a column of 25 characters worth in the DB }

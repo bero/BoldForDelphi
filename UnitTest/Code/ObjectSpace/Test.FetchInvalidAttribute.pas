@@ -1,4 +1,4 @@
-unit Test.FetchInvalidAttribute;
+﻿unit Test.FetchInvalidAttribute;
 
 { DUnitX-compatible Test for Fetch Invalid Attribute behavior
 

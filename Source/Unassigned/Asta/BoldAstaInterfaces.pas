@@ -1,4 +1,4 @@
-unit BoldAstaInterfaces;
+﻿unit BoldAstaInterfaces;
 
 interface
 uses

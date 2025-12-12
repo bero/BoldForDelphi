@@ -1,4 +1,4 @@
-unit BoldVariantControlPack;
+﻿unit BoldVariantControlPack;
 
 { Global compiler directives }
 {$include bold.inc}

@@ -1,4 +1,4 @@
-unit BoldPMAutoInc;
+﻿unit BoldPMAutoInc;
 
 interface
 

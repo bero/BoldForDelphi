@@ -1,4 +1,4 @@
-unit BoldAppMain;
+﻿unit BoldAppMain;
 
 {$INCLUDE Bold.inc}
 

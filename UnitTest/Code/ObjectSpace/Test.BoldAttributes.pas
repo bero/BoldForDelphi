@@ -1,4 +1,4 @@
-unit Test.BoldAttributes;
+﻿unit Test.BoldAttributes;
 
 { DUnitX version of dmjehoBoldTest - Bold Attribute Tests }
 
@@ -116,23 +116,20 @@ end;
 
 procedure TTestBoldAttributes.SetAttributeValues(ObjectClassA: TClassA);
 begin
-  with ObjectClassA do
-  begin
-    aInteger := INTEGERCONST;
-    aFloat := FLOATCONST;
-    aSmallInt := INTEGERCONST;
-    aCurrency := CURRENCYCONST;
-    aTime := FLOATCONST;
-    aWord := INTEGERCONST;
-    aString := STRINGCONST;
-    aDateTime := FLOATCONST;
-    aByte := INTEGERCONST;
-    aDate := INTEGERCONST;
-    aBoolean := BOOLEANCONST;
-    aShortInt := INTEGERCONST;
-    aBlob := STRINGCONST;
-    aBlobContent := STRINGCONST;
-  end;
+  ObjectClassA.aInteger := INTEGERCONST;
+  ObjectClassA.aFloat := FLOATCONST;
+  ObjectClassA.aSmallInt := INTEGERCONST;
+  ObjectClassA.aCurrency := CURRENCYCONST;
+  ObjectClassA.aTime := FLOATCONST;
+  ObjectClassA.aWord := INTEGERCONST;
+  ObjectClassA.aString := STRINGCONST;
+  ObjectClassA.aDateTime := FLOATCONST;
+  ObjectClassA.aByte := INTEGERCONST;
+  ObjectClassA.aDate := INTEGERCONST;
+  ObjectClassA.aBoolean := BOOLEANCONST;
+  ObjectClassA.aShortInt := INTEGERCONST;
+  ObjectClassA.aBlob := STRINGCONST;
+  ObjectClassA.aBlobContent := STRINGCONST;
 end;
 
 procedure TTestBoldAttributes.CheckAttributes(ObjectClassA: TClassA);
@@ -155,44 +152,38 @@ end;
 
 procedure TTestBoldAttributes.NullAttributeValues(ObjectClassA: TClassA);
 begin
-  with ObjectClassA do
-  begin
-    m_aInteger.SetToNull;
-    m_aString.SetToNull;
-    m_aBoolean.SetToNull;
-    m_aByte.SetToNull;
-    m_aCurrency.SetToNull;
-    m_aTime.SetToNull;
-    m_aDate.SetToNull;
-    m_aFloat.SetToNull;
-    m_aDateTime.SetToNull;
-    m_aWord.SetToNull;
-    m_aShortInt.SetToNull;
-    m_aSmallInt.SetToNull;
-    m_aBlob.SetToNull;
-    m_aBlobContent.SetToNull;
-  end;
+  ObjectClassA.m_aInteger.SetToNull;
+  ObjectClassA.m_aString.SetToNull;
+  ObjectClassA.m_aBoolean.SetToNull;
+  ObjectClassA.m_aByte.SetToNull;
+  ObjectClassA.m_aCurrency.SetToNull;
+  ObjectClassA.m_aTime.SetToNull;
+  ObjectClassA.m_aDate.SetToNull;
+  ObjectClassA.m_aFloat.SetToNull;
+  ObjectClassA.m_aDateTime.SetToNull;
+  ObjectClassA.m_aWord.SetToNull;
+  ObjectClassA.m_aShortInt.SetToNull;
+  ObjectClassA.m_aSmallInt.SetToNull;
+  ObjectClassA.m_aBlob.SetToNull;
+  ObjectClassA.m_aBlobContent.SetToNull;
 end;
 
 procedure TTestBoldAttributes.CheckNullAttributes(ObjectClassA: TClassA);
 begin
-  with ObjectClassA do
-  begin
-    Assert.IsTrue(m_aInteger.IsNull, 'm_aInteger');
-    Assert.IsTrue(m_aFloat.IsNull, 'm_aFloat');
-    Assert.IsTrue(m_aSmallInt.IsNull, 'm_aSmallInt');
-    Assert.IsTrue(m_aCurrency.IsNull, 'm_aCurrency');
-    Assert.IsTrue(m_aTime.IsNull, 'm_aTime');
-    Assert.IsTrue(m_aWord.IsNull, 'm_aWord');
-    Assert.IsTrue(m_aString.IsNull, 'm_aString');
-    Assert.IsTrue(m_aDateTime.IsNull, 'm_aDateTime');
-    Assert.IsTrue(m_aByte.IsNull, 'm_aByte');
-    Assert.IsTrue(m_aDate.IsNull, 'm_aDate');
-    Assert.IsTrue(m_aBoolean.IsNull, 'm_aBoolean');
-    Assert.IsTrue(m_aShortInt.IsNull, 'm_aShortInt');
-    Assert.IsTrue(m_aBlob.IsNull, 'm_aBlob');
-    Assert.IsTrue(m_aBlobContent.IsNull, 'm_aBlobContent');
-  end;
+  Assert.IsTrue(ObjectClassA.m_aInteger.IsNull, 'm_aInteger');
+  Assert.IsTrue(ObjectClassA.m_aFloat.IsNull, 'm_aFloat');
+  Assert.IsTrue(ObjectClassA.m_aSmallInt.IsNull, 'm_aSmallInt');
+  Assert.IsTrue(ObjectClassA.m_aCurrency.IsNull, 'm_aCurrency');
+  Assert.IsTrue(ObjectClassA.m_aTime.IsNull, 'm_aTime');
+  Assert.IsTrue(ObjectClassA.m_aWord.IsNull, 'm_aWord');
+  Assert.IsTrue(ObjectClassA.m_aString.IsNull, 'm_aString');
+  Assert.IsTrue(ObjectClassA.m_aDateTime.IsNull, 'm_aDateTime');
+  Assert.IsTrue(ObjectClassA.m_aByte.IsNull, 'm_aByte');
+  Assert.IsTrue(ObjectClassA.m_aDate.IsNull, 'm_aDate');
+  Assert.IsTrue(ObjectClassA.m_aBoolean.IsNull, 'm_aBoolean');
+  Assert.IsTrue(ObjectClassA.m_aShortInt.IsNull, 'm_aShortInt');
+  Assert.IsTrue(ObjectClassA.m_aBlob.IsNull, 'm_aBlob');
+  Assert.IsTrue(ObjectClassA.m_aBlobContent.IsNull, 'm_aBlobContent');
 end;
 
 procedure TTestBoldAttributes.AttributeValueTest;
@@ -237,23 +228,20 @@ procedure TTestBoldAttributes.CheckAttributeIndexes(ObjectClassA: TClassA);
 begin
   Assert.AreEqual(NROFATTRIBUTES, ObjectClassA.BoldMemberCount, 'Wrong number of attributes');
 
-  with ObjectClassA do
-  begin
-    AccessMember(m_aString);
-    AccessMember(m_aBoolean);
-    AccessMember(m_aByte);
-    AccessMember(m_aCurrency);
-    AccessMember(m_aDate);
-    AccessMember(m_aDateTime);
-    AccessMember(m_aFloat);
-    AccessMember(m_aInteger);
-    AccessMember(m_aShortInt);
-    AccessMember(m_aSmallInt);
-    AccessMember(m_aTime);
-    AccessMember(m_aWord);
-    AccessMember(m_aBlob);
-    AccessMember(m_aBlobContent);
-  end;
+  AccessMember(ObjectClassA.m_aString);
+  AccessMember(ObjectClassA.m_aBoolean);
+  AccessMember(ObjectClassA.m_aByte);
+  AccessMember(ObjectClassA.m_aCurrency);
+  AccessMember(ObjectClassA.m_aDate);
+  AccessMember(ObjectClassA.m_aDateTime);
+  AccessMember(ObjectClassA.m_aFloat);
+  AccessMember(ObjectClassA.m_aInteger);
+  AccessMember(ObjectClassA.m_aShortInt);
+  AccessMember(ObjectClassA.m_aSmallInt);
+  AccessMember(ObjectClassA.m_aTime);
+  AccessMember(ObjectClassA.m_aWord);
+  AccessMember(ObjectClassA.m_aBlob);
+  AccessMember(ObjectClassA.m_aBlobContent);
 end;
 
 procedure TTestBoldAttributes.AccessMember(BoldMember: TBoldMember);
@@ -276,22 +264,19 @@ end;
 
 procedure TTestBoldAttributes.CheckDerivedAttributes(ObjectSubA: TClassDerivedA);
 begin
-  with ObjectSubA do
-  begin
-    CompareMembers(m_aDerivedInteger, m_aInteger);
-    CompareMembers(m_aDerivedFloat, m_aFloat);
-    CompareMembers(m_aDerivedSmallInt, m_aSmallInt);
-    CompareMembers(m_aDerivedCurrency, m_aCurrency);
-    CompareMembers(m_aDerivedTime, m_aTime);
-    CompareMembers(m_aDerivedWord, m_aWord);
-    CompareMembers(m_aDerivedString, m_aString);
-    CompareMembers(m_aDerivedDateTime, m_aDateTime);
-    CompareMembers(m_aDerivedByte, m_aByte);
-    CompareMembers(m_aDerivedDate, m_aDate);
-    CompareMembers(m_aDerivedBoolean, m_aBoolean);
-    CompareMembers(m_aDerivedBlob, m_aBlob);
-    CompareMembers(m_aDerivedBlobContent, m_aBlobContent);
-  end;
+  CompareMembers(ObjectSubA.m_aDerivedInteger, ObjectSubA.m_aInteger);
+  CompareMembers(ObjectSubA.m_aDerivedFloat, ObjectSubA.m_aFloat);
+  CompareMembers(ObjectSubA.m_aDerivedSmallInt, ObjectSubA.m_aSmallInt);
+  CompareMembers(ObjectSubA.m_aDerivedCurrency, ObjectSubA.m_aCurrency);
+  CompareMembers(ObjectSubA.m_aDerivedTime, ObjectSubA.m_aTime);
+  CompareMembers(ObjectSubA.m_aDerivedWord, ObjectSubA.m_aWord);
+  CompareMembers(ObjectSubA.m_aDerivedString, ObjectSubA.m_aString);
+  CompareMembers(ObjectSubA.m_aDerivedDateTime, ObjectSubA.m_aDateTime);
+  CompareMembers(ObjectSubA.m_aDerivedByte, ObjectSubA.m_aByte);
+  CompareMembers(ObjectSubA.m_aDerivedDate, ObjectSubA.m_aDate);
+  CompareMembers(ObjectSubA.m_aDerivedBoolean, ObjectSubA.m_aBoolean);
+  CompareMembers(ObjectSubA.m_aDerivedBlob, ObjectSubA.m_aBlob);
+  CompareMembers(ObjectSubA.m_aDerivedBlobContent, ObjectSubA.m_aBlobContent);
 end;
 
 procedure TTestBoldAttributes.CompareMembers(CompareMember, CompareWith: TBoldMember);
@@ -315,48 +300,42 @@ end;
 
 procedure TTestBoldAttributes.CheckOclDerivedAttributes(ObjectOclSubA: TClassOclDerivedA);
 begin
-  with ObjectOclSubA do
-  begin
-    CompareMembers(m_aOclDerivedInteger, m_aInteger);
-    CompareMembers(m_aOclDerivedFloat, m_aFloat);
-    CompareMembers(m_aOclDerivedSmallInt, m_aSmallInt);
-    CompareMembers(m_aOclDerivedCurrency, m_aCurrency);
-    CompareMembers(m_aOclDerivedTime, m_aTime);
-    CompareMembers(m_aOclDerivedWord, m_aWord);
-    CompareMembers(m_aOclDerivedString, m_aString);
-    CompareMembers(m_aOclDerivedDateTime, m_aDateTime);
-    CompareMembers(m_aOclDerivedByte, m_aByte);
-    CompareMembers(m_aOclDerivedDate, m_aDate);
-    CompareMembers(m_aOclDerivedBoolean, m_aBoolean);
-    CompareMembers(m_aOclDerivedBlob, m_aBlob);
-    CompareMembers(m_aOclDerivedBlobContent, m_aBlobContent);
-  end;
+  CompareMembers(ObjectOclSubA.m_aOclDerivedInteger, ObjectOclSubA.m_aInteger);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedFloat, ObjectOclSubA.m_aFloat);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedSmallInt, ObjectOclSubA.m_aSmallInt);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedCurrency, ObjectOclSubA.m_aCurrency);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedTime, ObjectOclSubA.m_aTime);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedWord, ObjectOclSubA.m_aWord);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedString, ObjectOclSubA.m_aString);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedDateTime, ObjectOclSubA.m_aDateTime);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedByte, ObjectOclSubA.m_aByte);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedDate, ObjectOclSubA.m_aDate);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedBoolean, ObjectOclSubA.m_aBoolean);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedBlob, ObjectOclSubA.m_aBlob);
+  CompareMembers(ObjectOclSubA.m_aOclDerivedBlobContent, ObjectOclSubA.m_aBlobContent);
 end;
 
 procedure TTestBoldAttributes.CheckMultiDerivedAttributes;
 var
-  ObjectMultiOclSubA: TClassMultiDerivedA;
+  Obj: TClassMultiDerivedA;
 begin
-  ObjectMultiOclSubA := TClassMultiDerivedA.Create(nil);
+  Obj := TClassMultiDerivedA.Create(nil);
   try
-    SetAttributeValues(ObjectMultiOclSubA);
-    with ObjectMultiOclSubA do
-    begin
-      Assert.AreEqual(0, m_aMultiDerivedBoolean.CompareToAs(ctDefault, m_aOclDerivedBoolean), 'MultiDerivedBoolean');
-      Assert.AreEqual(0, m_aMultiDerivedByte.CompareToAs(ctDefault, m_aOclDerivedByte), 'MultiDerivedByte');
-      Assert.AreEqual(0, m_aMultiDerivedCurrency.CompareToAs(ctDefault, m_aOclDerivedCurrency), 'MultiDerivedCurrency');
-      Assert.AreEqual(0, m_aMultiDerivedDate.CompareToAs(ctDefault, m_aOclDerivedDate), 'MultiDerivedDate');
-      Assert.AreEqual(0, m_aMultiDerivedDateTime.CompareToAs(ctDefault, m_aOclDerivedDateTime), 'MultiDerivedDateTime');
-      Assert.AreEqual(0, m_aMultiDerivedFloat.CompareToAs(ctDefault, m_aOclDerivedFloat), 'MultiDerivedFloat');
-      Assert.AreEqual(0, m_aMultiDerivedInteger.CompareToAs(ctDefault, m_aOclDerivedInteger), 'MultiDerivedInteger');
-      Assert.AreEqual(0, m_aMultiDerivedShortInt.CompareToAs(ctDefault, m_aOclDerivedShortInt), 'MultiDerivedShortInt');
-      Assert.AreEqual(0, m_aMultiDerivedSmallInt.CompareToAs(ctDefault, m_aOclDerivedSmallInt), 'MultiDerivedSmallInt');
-      Assert.AreEqual(0, m_aMultiDerivedString.CompareToAs(ctDefault, m_aOclDerivedString), 'MultiDerivedString');
-      Assert.AreEqual(0, m_aMultiDerivedTime.CompareToAs(ctDefault, m_aOclDerivedTime), 'MultiDerivedTime');
-      Assert.AreEqual(0, m_aMultiDerivedWord.CompareToAs(ctDefault, m_aOclDerivedWord), 'MultiDerivedWord');
-    end;
+    SetAttributeValues(Obj);
+    Assert.AreEqual(0, Obj.m_aMultiDerivedBoolean.CompareToAs(ctDefault, Obj.m_aOclDerivedBoolean), 'MultiDerivedBoolean');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedByte.CompareToAs(ctDefault, Obj.m_aOclDerivedByte), 'MultiDerivedByte');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedCurrency.CompareToAs(ctDefault, Obj.m_aOclDerivedCurrency), 'MultiDerivedCurrency');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedDate.CompareToAs(ctDefault, Obj.m_aOclDerivedDate), 'MultiDerivedDate');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedDateTime.CompareToAs(ctDefault, Obj.m_aOclDerivedDateTime), 'MultiDerivedDateTime');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedFloat.CompareToAs(ctDefault, Obj.m_aOclDerivedFloat), 'MultiDerivedFloat');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedInteger.CompareToAs(ctDefault, Obj.m_aOclDerivedInteger), 'MultiDerivedInteger');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedShortInt.CompareToAs(ctDefault, Obj.m_aOclDerivedShortInt), 'MultiDerivedShortInt');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedSmallInt.CompareToAs(ctDefault, Obj.m_aOclDerivedSmallInt), 'MultiDerivedSmallInt');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedString.CompareToAs(ctDefault, Obj.m_aOclDerivedString), 'MultiDerivedString');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedTime.CompareToAs(ctDefault, Obj.m_aOclDerivedTime), 'MultiDerivedTime');
+    Assert.AreEqual(0, Obj.m_aMultiDerivedWord.CompareToAs(ctDefault, Obj.m_aOclDerivedWord), 'MultiDerivedWord');
   finally
-    ObjectMultiOclSubA.Delete;
+    Obj.Delete;
   end;
 end;
 
@@ -460,61 +439,52 @@ begin
   ObjectA := TClassA.Create(nil);
   try
     // Set B attributes to null
-    with ObjectB do
-    begin
-      m_bInteger.SetToNull;
-      m_bString.SetToNull;
-      m_bBoolean.SetToNull;
-      m_bByte.SetToNull;
-      m_bCurrency.SetToNull;
-      m_bTime.SetToNull;
-      m_bDate.SetToNull;
-      m_bFloat.SetToNull;
-      m_bDateTime.SetToNull;
-      m_bWord.SetToNull;
-      m_bShortInt.SetToNull;
-      m_bSmallInt.SetToNull;
-      m_bBlob.SetToNull;
-      m_bBlobContent.SetToNull;
-    end;
+    ObjectB.m_bInteger.SetToNull;
+    ObjectB.m_bString.SetToNull;
+    ObjectB.m_bBoolean.SetToNull;
+    ObjectB.m_bByte.SetToNull;
+    ObjectB.m_bCurrency.SetToNull;
+    ObjectB.m_bTime.SetToNull;
+    ObjectB.m_bDate.SetToNull;
+    ObjectB.m_bFloat.SetToNull;
+    ObjectB.m_bDateTime.SetToNull;
+    ObjectB.m_bWord.SetToNull;
+    ObjectB.m_bShortInt.SetToNull;
+    ObjectB.m_bSmallInt.SetToNull;
+    ObjectB.m_bBlob.SetToNull;
+    ObjectB.m_bBlobContent.SetToNull;
 
     // Set A attributes to values
-    with ObjectA do
-    begin
-      m_aInteger.AsInteger := 2;
-      m_aString.AsString := 'AAA';
-      m_aBoolean.AsBoolean := True;
-      m_aByte.AsByte := 5;
-      m_aCurrency.AsCurrency := 23.421;
-      m_aTime.AsTime := 1.2;
-      m_aDate.AsDate := 2;
-      m_aFloat.AsFloat := 3.43;
-      m_aDateTime.AsDateTime := 4.2;
-      m_aWord.AsWord := 4;
-      m_aShortInt.AsShortInt := 24;
-      m_aSmallInt.AsSmallInt := 122;
-      m_aBlob.AsString := 'yfiew';
-      m_aBlobContent.AsString := 'graij';
-    end;
+    ObjectA.m_aInteger.AsInteger := 2;
+    ObjectA.m_aString.AsString := 'AAA';
+    ObjectA.m_aBoolean.AsBoolean := True;
+    ObjectA.m_aByte.AsByte := 5;
+    ObjectA.m_aCurrency.AsCurrency := 23.421;
+    ObjectA.m_aTime.AsTime := 1.2;
+    ObjectA.m_aDate.AsDate := 2;
+    ObjectA.m_aFloat.AsFloat := 3.43;
+    ObjectA.m_aDateTime.AsDateTime := 4.2;
+    ObjectA.m_aWord.AsWord := 4;
+    ObjectA.m_aShortInt.AsShortInt := 24;
+    ObjectA.m_aSmallInt.AsSmallInt := 122;
+    ObjectA.m_aBlob.AsString := 'yfiew';
+    ObjectA.m_aBlobContent.AsString := 'graij';
 
     // Compare null vs non-null (null should be less)
-    with ObjectB do
-    begin
-      DoTestCompareToAs(m_bInteger, ObjectA.m_aInteger, -1);
-      DoTestCompareToAs(m_bString, ObjectA.m_aString, -1);
-      DoTestCompareToAs(m_bBoolean, ObjectA.m_aBoolean, -1);
-      DoTestCompareToAs(m_bByte, ObjectA.m_aByte, -1);
-      DoTestCompareToAs(m_bCurrency, ObjectA.m_aCurrency, -1);
-      DoTestCompareToAs(m_bTime, ObjectA.m_aTime, -1);
-      DoTestCompareToAs(m_bDate, ObjectA.m_aDate, -1);
-      DoTestCompareToAs(m_bFloat, ObjectA.m_aFloat, -1);
-      DoTestCompareToAs(m_bDateTime, ObjectA.m_aDateTime, -1);
-      DoTestCompareToAs(m_bWord, ObjectA.m_aWord, -1);
-      DoTestCompareToAs(m_bShortInt, ObjectA.m_aShortInt, -1);
-      DoTestCompareToAs(m_bSmallInt, ObjectA.m_aSmallInt, -1);
-      DoTestCompareToAs(m_bBlob, ObjectA.m_aBlob, -1);
-      DoTestCompareToAs(m_bBlobContent, ObjectA.m_aBlobContent, -1);
-    end;
+    DoTestCompareToAs(ObjectB.m_bInteger, ObjectA.m_aInteger, -1);
+    DoTestCompareToAs(ObjectB.m_bString, ObjectA.m_aString, -1);
+    DoTestCompareToAs(ObjectB.m_bBoolean, ObjectA.m_aBoolean, -1);
+    DoTestCompareToAs(ObjectB.m_bByte, ObjectA.m_aByte, -1);
+    DoTestCompareToAs(ObjectB.m_bCurrency, ObjectA.m_aCurrency, -1);
+    DoTestCompareToAs(ObjectB.m_bTime, ObjectA.m_aTime, -1);
+    DoTestCompareToAs(ObjectB.m_bDate, ObjectA.m_aDate, -1);
+    DoTestCompareToAs(ObjectB.m_bFloat, ObjectA.m_aFloat, -1);
+    DoTestCompareToAs(ObjectB.m_bDateTime, ObjectA.m_aDateTime, -1);
+    DoTestCompareToAs(ObjectB.m_bWord, ObjectA.m_aWord, -1);
+    DoTestCompareToAs(ObjectB.m_bShortInt, ObjectA.m_aShortInt, -1);
+    DoTestCompareToAs(ObjectB.m_bSmallInt, ObjectA.m_aSmallInt, -1);
+    DoTestCompareToAs(ObjectB.m_bBlob, ObjectA.m_aBlob, -1);
+    DoTestCompareToAs(ObjectB.m_bBlobContent, ObjectA.m_aBlobContent, -1);
   finally
     ObjectB.Delete;
     ObjectA.Delete;
@@ -536,41 +506,37 @@ var
 begin
   TestClass := TClassA.Create(nil);
   try
-    with TestClass do
-    begin
-      m_aInteger.AsInteger := 2;
-      m_aString.AsString := 'AAA';
-      m_aBoolean.AsBoolean := True;
-      m_aByte.AsByte := 5;
-      m_aCurrency.AsCurrency := 23.421;
-      m_aTime.AsTime := 1.2;
-      m_aDate.AsDate := 2;
-      m_aFloat.AsFloat := 3.43;
-      m_aDateTime.AsDateTime := 4.2;
-      m_aWord.AsWord := 4;
-      m_aShortInt.AsShortInt := 24;
-      m_aSmallInt.AsSmallInt := 122;
-      m_aBlob.AsString := 'yfiew';
-      m_aBlobContent.AsString := 'graij';
-    end;
+    // Set attribute values
+    TestClass.m_aInteger.AsInteger := 2;
+    TestClass.m_aString.AsString := 'AAA';
+    TestClass.m_aBoolean.AsBoolean := True;
+    TestClass.m_aByte.AsByte := 5;
+    TestClass.m_aCurrency.AsCurrency := 23.421;
+    TestClass.m_aTime.AsTime := 1.2;
+    TestClass.m_aDate.AsDate := 2;
+    TestClass.m_aFloat.AsFloat := 3.43;
+    TestClass.m_aDateTime.AsDateTime := 4.2;
+    TestClass.m_aWord.AsWord := 4;
+    TestClass.m_aShortInt.AsShortInt := 24;
+    TestClass.m_aSmallInt.AsSmallInt := 122;
+    TestClass.m_aBlob.AsString := 'yfiew';
+    TestClass.m_aBlobContent.AsString := 'graij';
 
-    with TestClass do
-    begin
-      DoCheckCompareTypes(m_aInteger, m_aInteger, [ctDefault]);
-      DoCheckCompareTypes(m_aString, m_aString, [ctDefault, ctCaseSensitive, ctCaseInsensitive]);
-      DoCheckCompareTypes(m_aBoolean, m_aBoolean, [ctDefault]);
-      DoCheckCompareTypes(m_aByte, m_aByte, [ctDefault]);
-      DoCheckCompareTypes(m_aCurrency, m_aCurrency, [ctDefault]);
-      DoCheckCompareTypes(m_aTime, m_aTime, [ctDefault, ctAsTime]);
-      DoCheckCompareTypes(m_aDate, m_aDate, [ctDefault, ctAsDate]);
-      DoCheckCompareTypes(m_aFloat, m_aFloat, [ctDefault]);
-      DoCheckCompareTypes(m_aDateTime, m_aDateTime, [ctDefault, ctAsDate, ctAsTime]);
-      DoCheckCompareTypes(m_aWord, m_aWord, [ctDefault]);
-      DoCheckCompareTypes(m_aShortInt, m_aShortInt, [ctDefault]);
-      DoCheckCompareTypes(m_aSmallInt, m_aSmallInt, [ctDefault]);
-      DoCheckCompareTypes(m_aBlob, m_aBlob, [ctDefault, ctCaseSensitive, ctCaseInsensitive]);
-      DoCheckCompareTypes(m_aBlobContent, m_aBlobContent, [ctDefault, ctCaseSensitive, ctCaseInsensitive]);
-    end;
+    // Check compare types for each attribute
+    DoCheckCompareTypes(TestClass.m_aInteger, TestClass.m_aInteger, [ctDefault]);
+    DoCheckCompareTypes(TestClass.m_aString, TestClass.m_aString, [ctDefault, ctCaseSensitive, ctCaseInsensitive]);
+    DoCheckCompareTypes(TestClass.m_aBoolean, TestClass.m_aBoolean, [ctDefault]);
+    DoCheckCompareTypes(TestClass.m_aByte, TestClass.m_aByte, [ctDefault]);
+    DoCheckCompareTypes(TestClass.m_aCurrency, TestClass.m_aCurrency, [ctDefault]);
+    DoCheckCompareTypes(TestClass.m_aTime, TestClass.m_aTime, [ctDefault, ctAsDate, ctAsTime]);
+    DoCheckCompareTypes(TestClass.m_aDate, TestClass.m_aDate, [ctDefault, ctAsDate, ctAsTime]);
+    DoCheckCompareTypes(TestClass.m_aFloat, TestClass.m_aFloat, [ctDefault]);
+    DoCheckCompareTypes(TestClass.m_aDateTime, TestClass.m_aDateTime, [ctDefault, ctAsDate, ctAsTime]);
+    DoCheckCompareTypes(TestClass.m_aWord, TestClass.m_aWord, [ctDefault]);
+    DoCheckCompareTypes(TestClass.m_aShortInt, TestClass.m_aShortInt, [ctDefault]);
+    DoCheckCompareTypes(TestClass.m_aSmallInt, TestClass.m_aSmallInt, [ctDefault]);
+    DoCheckCompareTypes(TestClass.m_aBlob, TestClass.m_aBlob, [ctDefault, ctCaseSensitive, ctCaseInsensitive]);
+    DoCheckCompareTypes(TestClass.m_aBlobContent, TestClass.m_aBlobContent, [ctDefault, ctCaseSensitive, ctCaseInsensitive]);
   finally
     TestClass.Delete;
   end;
@@ -578,13 +544,19 @@ end;
 
 procedure TTestBoldAttributes.InternalCheckCompareTypes(OperandA, OperandB: TBoldAttribute;
   CompareType: TBoldCompareType; WillWork: Boolean);
+var
+  ExceptionRaised: Boolean;
 begin
+  ExceptionRaised := False;
   try
-    if WillWork then
-      OperandA.CompareToAs(CompareType, OperandB);
+    OperandA.CompareToAs(CompareType, OperandB);
   except
-    Assert.IsFalse(WillWork, Format('CompareType %d should not work', [Ord(CompareType)]));
+    ExceptionRaised := True;
   end;
+  if WillWork then
+    Assert.IsFalse(ExceptionRaised, Format('CompareType %d should work but raised exception', [Ord(CompareType)]))
+  else
+    Assert.IsTrue(ExceptionRaised, Format('CompareType %d should not work but no exception', [Ord(CompareType)]));
 end;
 
 initialization

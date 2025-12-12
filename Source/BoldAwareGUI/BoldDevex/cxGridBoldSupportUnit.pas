@@ -1,4 +1,4 @@
-unit cxGridBoldSupportUnit;
+﻿unit cxGridBoldSupportUnit;
 
 
 {$ASSERTIONS ON}
@@ -2583,7 +2583,7 @@ var
 begin
   lItem := TcxCustomGridTableItemAccess(GetItemByExpression(cOCLConstraint));
   if not Assigned(lItem) then
-    lItem := TcxCustomGridTableItemAccess(CreateItem(GridView, cOCLConstraint, '�', 'Boolean', 'Constraints'));
+    lItem := TcxCustomGridTableItemAccess(CreateItem(GridView, cOCLConstraint, '§', 'Boolean', 'Constraints'));
   lItem.OnCustomDrawCell := ConstraintColumnCustomDrawCell;
   lItem.Index := 0;
   lItem.BestFitMaxWidth := 16;

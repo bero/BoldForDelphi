@@ -1,4 +1,4 @@
-unit DBISAMConsts;
+﻿unit DBISAMConsts;
 
 interface
 

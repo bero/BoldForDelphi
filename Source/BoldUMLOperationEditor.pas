@@ -1,4 +1,4 @@
-unit BoldUMLOperationEditor;
+﻿unit BoldUMLOperationEditor;
 
 interface
 

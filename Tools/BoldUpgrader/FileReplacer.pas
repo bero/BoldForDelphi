@@ -1,4 +1,4 @@
-unit FileReplacer;
+﻿unit FileReplacer;
 
 interface
 uses

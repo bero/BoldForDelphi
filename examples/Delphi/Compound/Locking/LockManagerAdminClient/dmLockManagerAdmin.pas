@@ -1,4 +1,4 @@
-unit dmLockManagerAdmin;
+﻿unit dmLockManagerAdmin;
 
 interface
 

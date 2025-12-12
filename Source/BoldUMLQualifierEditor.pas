@@ -1,4 +1,4 @@
-unit BoldUMLQualifierEditor;
+﻿unit BoldUMLQualifierEditor;
 
 interface
 

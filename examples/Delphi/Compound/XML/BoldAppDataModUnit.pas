@@ -1,4 +1,4 @@
-unit BoldAppDataModUnit;
+﻿unit BoldAppDataModUnit;
 
 interface
 

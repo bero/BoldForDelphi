@@ -1,4 +1,4 @@
-unit BoldAggeregates;
+﻿unit BoldAggeregates;
 
 interface
 

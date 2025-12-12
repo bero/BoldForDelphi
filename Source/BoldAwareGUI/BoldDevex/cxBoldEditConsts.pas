@@ -1,4 +1,4 @@
-unit cxBoldEditConsts;
+﻿unit cxBoldEditConsts;
 
 interface
 

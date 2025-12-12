@@ -1,4 +1,4 @@
-{$I BoldDelphiVer.inc}
+﻿{$I BoldDelphiVer.inc}
 
 {$WARN SYMBOL_PLATFORM OFF}
 {$WARN UNIT_PLATFORM OFF}

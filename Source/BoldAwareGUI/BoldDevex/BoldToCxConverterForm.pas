@@ -1,4 +1,4 @@
-unit BoldToCxConverterForm;
+﻿unit BoldToCxConverterForm;
 
 interface
 

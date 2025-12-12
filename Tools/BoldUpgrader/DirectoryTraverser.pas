@@ -1,4 +1,4 @@
-unit DirectoryTraverser;
+﻿unit DirectoryTraverser;
 
 interface
 

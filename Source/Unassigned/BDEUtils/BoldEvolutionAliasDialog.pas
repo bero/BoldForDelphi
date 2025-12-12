@@ -1,4 +1,4 @@
-unit BoldEvolutionAliasDialog;
+﻿unit BoldEvolutionAliasDialog;
 
 interface
 

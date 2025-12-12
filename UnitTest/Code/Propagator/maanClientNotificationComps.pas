@@ -1,4 +1,4 @@
-unit maanClientNotificationComps;
+﻿unit maanClientNotificationComps;
 
 {$INCLUDE Bold.inc}
 

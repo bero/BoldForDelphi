@@ -1,4 +1,4 @@
-unit maanThreadSafeQueue;
+﻿unit maanThreadSafeQueue;
 
 interface
 

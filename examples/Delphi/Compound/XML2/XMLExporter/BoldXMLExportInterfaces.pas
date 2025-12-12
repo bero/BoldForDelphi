@@ -1,4 +1,4 @@
-unit BoldXMLExportInterfaces;
+﻿unit BoldXMLExportInterfaces;
 
 interface
 

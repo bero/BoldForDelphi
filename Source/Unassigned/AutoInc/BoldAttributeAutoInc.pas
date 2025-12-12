@@ -1,4 +1,4 @@
-unit BoldAttributeAutoInc;
+﻿unit BoldAttributeAutoInc;
 
 interface
 

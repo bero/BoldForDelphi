@@ -21,4 +21,5 @@ if "!LATEST_VERSION!"=="" (
 
 echo Using Delphi installation: %STUDIO_BASE%\!LATEST_VERSION!
 call "%STUDIO_BASE%\!LATEST_VERSION!\bin\rsvars.bat"
-msbuild "%~dp0UnitTest.dproj" /p:Config=Debug /p:Platform=Win32 /v:minimal
+REM Override DCC_Define to exclude TESTINSIGHT (allows running tests from command line)
+msbuild "%~dp0UnitTest.dproj" /p:Config=Debug /p:Platform=Win32 /p:DCC_Define="DEBUG" /v:minimal

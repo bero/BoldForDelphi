@@ -1,4 +1,4 @@
-
+﻿
 unit joho_dbevol;
 
 interface
@@ -432,7 +432,7 @@ begin
   assert(_BSub.BoldMemberByExpressionName['NewB1'].AsString = 'b1', 'BSub.NewB1');
   assert(_BSub.BoldMemberByExpressionName['B2'].AsString = '300', 'BSub.B2');
   assert(_BSub.BoldMemberByExpressionName['SubB1'].AsString = 'bSub', 'BSub.SubB1');
-  assert(_BSub.BoldMemberByExpressionName['NewSubB1'].AsString = 'h�', 'BSub.B2');
+  assert(_BSub.BoldMemberByExpressionName['NewSubB1'].AsString = 'hå', 'BSub.B2');
 
   assert(_CSub.BoldExistenceState = besExisting, '');
   assert(_CSub.BoldMemberByExpressionName['C1'].AsString = 'ccc', 'CSub.C1');

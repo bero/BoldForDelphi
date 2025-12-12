@@ -1,4 +1,4 @@
-unit BoldUMLModelEditorDebuggerPlugin;
+﻿unit BoldUMLModelEditorDebuggerPlugin;
 
 interface
 

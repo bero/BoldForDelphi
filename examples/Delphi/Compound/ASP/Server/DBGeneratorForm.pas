@@ -1,4 +1,4 @@
-unit DBGeneratorForm;
+﻿unit DBGeneratorForm;
 
 interface
 

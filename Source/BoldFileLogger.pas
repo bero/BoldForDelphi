@@ -1,4 +1,4 @@
-unit BoldFileLogger;
+﻿unit BoldFileLogger;
 
 interface
 

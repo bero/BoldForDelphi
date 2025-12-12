@@ -1,4 +1,4 @@
-unit dMain;
+﻿unit dMain;
 
 {$Include Bold.inc}
 

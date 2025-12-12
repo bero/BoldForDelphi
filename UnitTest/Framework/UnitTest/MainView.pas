@@ -1,4 +1,4 @@
-unit MainView;
+﻿unit MainView;
 
 interface
 

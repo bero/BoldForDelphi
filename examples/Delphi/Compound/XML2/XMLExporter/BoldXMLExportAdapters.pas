@@ -1,4 +1,4 @@
-// /usr/local/cvsroot/tp/boldfordelphi/examples/Delphi/Compound/XML2/XMLExporter/BoldXMLExportAdapters.pas,v 1.1 2003/01/21 07:23:54 jhogstrom Exp
+﻿// /usr/local/cvsroot/tp/boldfordelphi/examples/Delphi/Compound/XML2/XMLExporter/BoldXMLExportAdapters.pas,v 1.1 2003/01/21 07:23:54 jhogstrom Exp
 
 {$Include Bold.inc}
 

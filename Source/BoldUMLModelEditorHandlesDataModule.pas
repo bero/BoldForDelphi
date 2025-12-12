@@ -1,4 +1,4 @@
-unit BoldUMLModelEditorHandlesDataModule;
+﻿unit BoldUMLModelEditorHandlesDataModule;
 
 interface
 

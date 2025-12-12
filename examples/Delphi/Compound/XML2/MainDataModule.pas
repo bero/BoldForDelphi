@@ -1,4 +1,4 @@
-unit MainDataModule;
+﻿unit MainDataModule;
 
 interface
 
@@ -91,7 +91,7 @@ begin
   anOffice.fax := '+46-(0)8-545 182 41';
   anOffice.Email := 'info@borland.com';
   anOffice.address := TAddress.Create(OrgChartSystem.System);
-  anOffice.address.street := 'Drakens Gr�nd 8';
+  anOffice.address.street := 'Drakens Gränd 8';
   anOffice.address.city := 'Stockholm';
   anOffice.address.country := 'Sweden';
   anOffice.address.postcode := '111 30';

@@ -1,4 +1,4 @@
-{$UNDEF BOLDCOMCLIENT}
+﻿{$UNDEF BOLDCOMCLIENT}
 
 unit mainform;
 

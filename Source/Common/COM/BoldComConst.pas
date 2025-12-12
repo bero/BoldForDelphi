@@ -1,4 +1,4 @@
-unit BoldComConst;
+﻿unit BoldComConst;
 
 interface
 

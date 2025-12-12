@@ -1,4 +1,4 @@
-unit TestManager;
+﻿unit TestManager;
 
 interface
 

@@ -1,4 +1,4 @@
-unit dbGenForm;
+﻿unit dbGenForm;
 
 interface
 

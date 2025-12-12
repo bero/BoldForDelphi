@@ -1,4 +1,4 @@
-unit cxBoldEditors;
+﻿unit cxBoldEditors;
 
 {$ASSERTIONS ON}
 {$INCLUDE Bold.inc}

@@ -1,4 +1,4 @@
-unit maan_LockManagerTestCase;
+﻿unit maan_LockManagerTestCase;
 
 {$INCLUDE Bold.inc}
 

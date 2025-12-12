@@ -1,4 +1,4 @@
-unit BoldUnitTestReg;
+﻿unit BoldUnitTestReg;
 
 {$INCLUDE Bold.inc}
 

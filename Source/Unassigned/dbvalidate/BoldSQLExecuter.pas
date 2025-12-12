@@ -1,4 +1,4 @@
-unit BoldSQLExecuter;
+﻿unit BoldSQLExecuter;
 
 interface
 

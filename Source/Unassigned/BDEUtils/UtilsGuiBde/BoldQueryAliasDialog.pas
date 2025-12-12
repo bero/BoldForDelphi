@@ -1,4 +1,4 @@
-unit BoldQueryAliasDialog;
+﻿unit BoldQueryAliasDialog;
 
 interface
 

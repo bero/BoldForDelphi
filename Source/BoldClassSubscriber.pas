@@ -1,4 +1,4 @@
-unit BoldClassSubscriber;
+﻿unit BoldClassSubscriber;
 
 interface
 

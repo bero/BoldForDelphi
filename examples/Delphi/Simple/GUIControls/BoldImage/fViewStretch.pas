@@ -1,4 +1,4 @@
-unit fViewStretch;
+﻿unit fViewStretch;
 
 interface
 

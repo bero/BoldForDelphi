@@ -1,4 +1,4 @@
-unit BoldIDCompressor;
+﻿unit BoldIDCompressor;
 
 interface
 

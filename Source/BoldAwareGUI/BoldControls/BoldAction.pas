@@ -1,4 +1,4 @@
-unit BoldAction;
+﻿unit BoldAction;
 
 {$include bold.inc}
 

@@ -1,4 +1,4 @@
-unit BoldAFPCxGridProviderUnit;
+﻿unit BoldAFPCxGridProviderUnit;
 
 interface
 

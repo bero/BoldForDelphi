@@ -1,4 +1,4 @@
-unit BoldTestFrameworkUtilities;
+﻿unit BoldTestFrameworkUtilities;
 
 interface
 

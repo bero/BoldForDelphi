@@ -1,4 +1,4 @@
-unit BoldDataSetIP;
+﻿unit BoldDataSetIP;
 
 interface
 

@@ -1,4 +1,4 @@
-unit maan_BoldAdvancedPropagatorTestCase;
+﻿unit maan_BoldAdvancedPropagatorTestCase;
 
 interface
 

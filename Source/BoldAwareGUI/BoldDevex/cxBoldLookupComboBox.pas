@@ -1,4 +1,4 @@
-unit cxBoldLookupComboBox;
+﻿unit cxBoldLookupComboBox;
 
 {$I cxVer.inc}
 

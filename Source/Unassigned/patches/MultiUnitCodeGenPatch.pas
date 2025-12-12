@@ -1,4 +1,4 @@
-unit MultiUnitCodeGenPatch;
+﻿unit MultiUnitCodeGenPatch;
 
 // This unit fixes a problem with generating code for implicit link classes.
 // If the two association ends belong to a different unit than the

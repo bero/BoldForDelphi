@@ -1,4 +1,4 @@
-// Determine delphi version from compiler version
+﻿// Determine delphi version from compiler version
 
 {$IFDEF VER140}              // Delphi 6
   {$DEFINE BOLD_DELPHI6}

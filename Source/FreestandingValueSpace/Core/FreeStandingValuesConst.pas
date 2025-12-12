@@ -1,4 +1,4 @@
-unit FreeStandingValuesConst;
+﻿unit FreeStandingValuesConst;
 
 interface
 

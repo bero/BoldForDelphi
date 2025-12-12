@@ -1,4 +1,4 @@
-unit BoldPlaceableListSubscriber;
+﻿unit BoldPlaceableListSubscriber;
 
 interface
 

@@ -1,4 +1,4 @@
-unit maan_PropagatorConnection;
+﻿unit maan_PropagatorConnection;
 
 interface
 

@@ -1,4 +1,4 @@
-unit DOAConsts;
+﻿unit DOAConsts;
 
 interface
 

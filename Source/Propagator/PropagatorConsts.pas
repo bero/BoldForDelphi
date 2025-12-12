@@ -1,4 +1,4 @@
-unit PropagatorConsts;
+﻿unit PropagatorConsts;
 
 interface
 

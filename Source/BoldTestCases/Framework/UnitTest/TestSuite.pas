@@ -1,4 +1,4 @@
-unit TestSuite;
+﻿unit TestSuite;
 
 { Usage notes:                                                                                                     
 * All test cases must be subclasses to TBoldTestCase

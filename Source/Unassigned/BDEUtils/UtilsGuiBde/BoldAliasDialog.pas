@@ -1,4 +1,4 @@
-unit BoldAliasDialog;
+﻿unit BoldAliasDialog;
 
 interface
 

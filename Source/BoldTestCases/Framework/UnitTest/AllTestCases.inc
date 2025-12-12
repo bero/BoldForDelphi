@@ -1,4 +1,4 @@
-  joho_ClientGuiAndHandles in '..\..\Code\ClientGUICom\joho_ClientGuiAndHandles.pas',
+﻿  joho_ClientGuiAndHandles in '..\..\Code\ClientGUICom\joho_ClientGuiAndHandles.pas',
   joho_ClientGuiAndHandles_ServerCode in '..\..\Code\ClientGUICom\joho_ClientGuiAndHandles_ServerCode.pas',
   joho_ComGui in '..\..\Code\ClientGUICom\joho_ComGui.pas',
   jano_multiplicity in '..\..\Code\Common\jano_multiplicity.pas',

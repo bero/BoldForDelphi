@@ -1,4 +1,4 @@
-unit BoldNumericControlPack;
+﻿unit BoldNumericControlPack;
 
 {$UNDEF BOLDCOMCLIENT}
 

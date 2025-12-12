@@ -1,4 +1,4 @@
-
+ï»¿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldHandleReg;
@@ -134,8 +134,8 @@ begin
   RegisterPropertyEditor(TypeInfo(string), TBoldDerivedHandle, 'ValueTypeName', TBoldTypeNameSelectorPropertyForVariableHandle);      // do not localize
   RegisterPropertyEditor(TypeInfo(string), TBoldSQLHandle, 'ClassExpressionName', TBoldTypeNameSelectorForSQLHandle);                 // do not localize
   RegisterPropertyEditor(TypeInfo(string), TBoldRawSQLHandle, 'ClassExpressionName', TBoldTypeNameSelectorForSQLHandle);              // do not localize
-  // Propeditor för listhandle.expression
-  // Propeditor för Exprhandle.expression
+  // Propeditor fÃ¶r listhandle.expression
+  // Propeditor fÃ¶r Exprhandle.expression
 
   RegisterComponents(BOLDPAGENAME_MISC, [TBoldOclRepository]);
   RegisterPropertyEditor(TypeInfo(string), TBoldOclDefinition, 'Context', TBoldTypeNameSelectorForOclDefinition);  // do not localize

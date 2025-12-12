@@ -1,4 +1,4 @@
-unit BoldAFPUser;
+﻿unit BoldAFPUser;
 
 interface
 

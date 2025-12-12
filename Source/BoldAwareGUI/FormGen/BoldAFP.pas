@@ -1,4 +1,4 @@
-unit BoldAFP;
+﻿unit BoldAFP;
 
 interface
 

@@ -1,4 +1,4 @@
-
+﻿
 /////////////////////////////////////////////////////////
 //                                                     //
 //              Bold for Delphi                        //
@@ -2734,7 +2734,7 @@ begin
       SetIndex(1);
       BoldProperties.Expression := 'constraints->exists(c|not c)';
       Width := bmpBoldGridSelected.Width + 3;
-      Title.Caption := '�';
+      Title.Caption := '§';
       BoldProperties.Renderer := TBoldConstraintRendererCom.Create(Self);
       ColReadOnly := True;
     end;

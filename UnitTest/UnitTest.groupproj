@@ -6,6 +6,9 @@
         <Projects Include="UnitTest.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="UnitTestGUI.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -23,14 +26,23 @@
     <Target Name="UnitTest:Make">
         <MSBuild Projects="UnitTest.dproj" Targets="Make"/>
     </Target>
+    <Target Name="UnitTestGUI">
+        <MSBuild Projects="UnitTestGUI.dproj"/>
+    </Target>
+    <Target Name="UnitTestGUI:Clean">
+        <MSBuild Projects="UnitTestGUI.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="UnitTestGUI:Make">
+        <MSBuild Projects="UnitTestGUI.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="UnitTest"/>
+        <CallTarget Targets="UnitTest;UnitTestGUI"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="UnitTest:Clean"/>
+        <CallTarget Targets="UnitTest:Clean;UnitTestGUI:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="UnitTest:Make"/>
+        <CallTarget Targets="UnitTest:Make;UnitTestGUI:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

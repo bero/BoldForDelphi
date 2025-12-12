@@ -1,4 +1,4 @@
-unit maanBoldSnooperHandle;
+﻿unit maanBoldSnooperHandle;
 
 interface
 

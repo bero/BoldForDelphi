@@ -1,4 +1,4 @@
-unit BoldToCxConverterUnit;
+ï»¿unit BoldToCxConverterUnit;
 
 interface
 
@@ -139,8 +139,8 @@ begin
     if (vComponent is TGroupBox) then FoundTGroupBox(vComponent as TGroupBox);
     if (vComponent is TSpeedButton) then FoundTSpeedButton(vComponent as TSpeedButton);
 
-    if (vComponent is TBoldCaptionController) then fLog.Add('Achtung: Form enthält einen TBoldCaptionController');
-    if (vComponent is TBoldPropertiesController) then fLog.Add('Achtung: Form enthält einen TBoldPropertiesController');
+    if (vComponent is TBoldCaptionController) then fLog.Add('Achtung: Form enthÃ¤lt einen TBoldCaptionController');
+    if (vComponent is TBoldPropertiesController) then fLog.Add('Achtung: Form enthÃ¤lt einen TBoldPropertiesController');
   end;
 
   if fLog.Count > 0 then
@@ -173,7 +173,7 @@ begin
         end;
         if vComponent is TBoldComboBox then res := ConvertTBoldComboBox(vComponent as TBoldComboBox);
 
-        // Altes Component löschen
+        // Altes Component lÃ¶schen
         if res and fBoldToCxConverterForm.cxRemoveAfterConvertionCheckbox.Checked then
           vComponent.Free;
     end;

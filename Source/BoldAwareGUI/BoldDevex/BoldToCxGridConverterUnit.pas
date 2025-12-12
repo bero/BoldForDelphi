@@ -1,4 +1,4 @@
-unit BoldToCxGridConverterUnit;
+﻿unit BoldToCxGridConverterUnit;
 
 interface
 

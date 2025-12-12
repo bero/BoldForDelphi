@@ -1,4 +1,4 @@
-unit BoldAbout;
+﻿unit BoldAbout;
 
 interface
 

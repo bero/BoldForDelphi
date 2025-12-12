@@ -1,4 +1,4 @@
-unit fBatchUpgraderGui;
+﻿unit fBatchUpgraderGui;
 
 interface
 

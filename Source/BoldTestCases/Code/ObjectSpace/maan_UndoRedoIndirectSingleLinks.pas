@@ -1,4 +1,4 @@
-unit maan_UndoRedoIndirectSingleLinks;
+﻿unit maan_UndoRedoIndirectSingleLinks;
 
 interface
 

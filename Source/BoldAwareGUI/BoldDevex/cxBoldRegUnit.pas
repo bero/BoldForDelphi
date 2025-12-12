@@ -1,4 +1,4 @@
-unit cxBoldRegUnit;
+﻿unit cxBoldRegUnit;
 
 {$I cxVer.inc}
 

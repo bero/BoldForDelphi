@@ -1,4 +1,4 @@
-unit fViewClipboardFmt;
+﻿unit fViewClipboardFmt;
 
 interface
 

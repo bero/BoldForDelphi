@@ -1,4 +1,4 @@
-unit BoldQEdit;
+﻿unit BoldQEdit;
 
 {$UNDEF BOLDCOMCLIENT}
 

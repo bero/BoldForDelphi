@@ -1,4 +1,4 @@
-unit LockManagerHandlesDataMod;
+﻿unit LockManagerHandlesDataMod;
 
 interface
 

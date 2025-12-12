@@ -1,4 +1,4 @@
-unit BoldComHandlesConst;
+﻿unit BoldComHandlesConst;
 
 interface
 

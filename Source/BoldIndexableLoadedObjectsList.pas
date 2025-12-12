@@ -1,4 +1,4 @@
-unit BoldIndexableLoadedObjectsList;
+﻿unit BoldIndexableLoadedObjectsList;
 
 { Global compiler directives }
 {$include bold.inc}

@@ -1,4 +1,4 @@
-unit BoldAFPPluggableReg;
+﻿unit BoldAFPPluggableReg;
 
 interface
 

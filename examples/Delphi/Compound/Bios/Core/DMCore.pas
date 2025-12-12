@@ -1,4 +1,4 @@
-unit DMCore;
+﻿unit DMCore;
 
 interface
 

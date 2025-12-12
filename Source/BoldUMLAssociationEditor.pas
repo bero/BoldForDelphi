@@ -1,4 +1,4 @@
-unit BoldUMLAssociationEditor;
+﻿unit BoldUMLAssociationEditor;
 
 interface
 

@@ -1,4 +1,4 @@
-{$INCLUDE MultilangClasses_Interface.inc}
+﻿{$INCLUDE MultilangClasses_Interface.inc}
 
 const
   FirstNames: array[0..4] of string = ('Harry', 'Peter', 'David', 'John', 'James');

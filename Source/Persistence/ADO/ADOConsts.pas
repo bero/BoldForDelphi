@@ -1,4 +1,4 @@
-unit ADOConsts;
+﻿unit ADOConsts;
 
 interface
 

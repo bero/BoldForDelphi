@@ -1,4 +1,4 @@
-{$INCLUDE BoldUMLModel_Interface.inc}
+﻿{$INCLUDE BoldUMLModel_Interface.inc}
 
 procedure TValidator._HighestSeverity_DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
 var

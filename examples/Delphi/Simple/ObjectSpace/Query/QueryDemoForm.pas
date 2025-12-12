@@ -1,4 +1,4 @@
-unit QueryDemoForm;
+﻿unit QueryDemoForm;
 
 interface
 

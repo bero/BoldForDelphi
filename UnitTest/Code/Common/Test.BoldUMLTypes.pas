@@ -1,4 +1,4 @@
-unit Test.BoldUMLTypes;
+﻿unit Test.BoldUMLTypes;
 
 interface
 

@@ -1,4 +1,4 @@
-
+﻿
 unit frha_MD5;
 
 interface

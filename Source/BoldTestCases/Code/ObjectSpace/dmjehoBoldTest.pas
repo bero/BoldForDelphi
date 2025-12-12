@@ -1,4 +1,4 @@
-unit dmjehoBoldTest;
+ï»¿unit dmjehoBoldTest;
 
 interface
 
@@ -387,13 +387,13 @@ end;
 procedure TjehoBoldTest.TestString(OperandA,OperandB: TBoldAttribute);
 begin
   //StringTest
-  //Sätt variablerna
+  //SÃ¤tt variablerna
   OperandA.AsString := 'AB';
   OperandB.AsString := 'AC';
-  //Testa större/mindre
+  //Testa stÃ¶rre/mindre
   TestCompareToAs(OperandA, OperandB, -1); //Testa mindre
-  OperandB.AsString := 'AA'; //Sätt om en variabel
-  TestCompareToAs(OperandA, OperandB, 1);  //Testa större
+  OperandB.AsString := 'AA'; //SÃ¤tt om en variabel
+  TestCompareToAs(OperandA, OperandB, 1);  //Testa stÃ¶rre
   //Stringtest klart
 end;
 
@@ -405,78 +405,78 @@ end;
 procedure TjehoBoldTest.TestInteger(Operanda, OperandB: TBAInteger);
 begin
   //IntegerTest
-  //Sätt variablerna
+  //SÃ¤tt variablerna
   OperandA.AsInteger := 2;
   OperandB.AsInteger := 3;
-  //Testa större/mindre
+  //Testa stÃ¶rre/mindre
   TestCompareToAs(OperandA, OperandB, -1); //Testa mindre
-  OperandB.AsInteger := 1; //Sätt om en variabel
-  TestCompareToAs(OperandA, OperandB, 1);  //Testa större
+  OperandB.AsInteger := 1; //SÃ¤tt om en variabel
+  TestCompareToAs(OperandA, OperandB, 1);  //Testa stÃ¶rre
   //Integertest klart
 end;
 
 procedure TjehoBoldTest.TestCurrency(OperandA, OperandB: TBACurrency);
 begin
   //CurrencyTest
-  //Sätt variablerna
+  //SÃ¤tt variablerna
   OperandA.AsFloat := 2.2;
   OperandB.AsFloat := 3.3;
-  //Testa större/mindre
+  //Testa stÃ¶rre/mindre
   TestCompareToAs(OperandA, OperandB, -1); //Testa mindre
-  OperandB.AsFloat := 1.1; //Sätt om en variabel
-  TestCompareToAs(OperandA, OperandB, 1);  //Testa större
+  OperandB.AsFloat := 1.1; //SÃ¤tt om en variabel
+  TestCompareToAs(OperandA, OperandB, 1);  //Testa stÃ¶rre
   //Currencytest klart
 end;
 
 procedure TjehoBoldTest.TestDate(OperandA, OperandB: TBADate);
 begin
   //DateTest
-  //Sätt variablerna
+  //SÃ¤tt variablerna
   OperandA.AsDate := 2;
   OperandB.AsDate := 3;
-  //Testa större/mindre
+  //Testa stÃ¶rre/mindre
   TestCompareToAs(OperandA, OperandB, -1); //Testa mindre
-  OperandB.AsDate := 1; //Sätt om en variabel
-  TestCompareToAs(OperandA, OperandB, 1);  //Testa större
+  OperandB.AsDate := 1; //SÃ¤tt om en variabel
+  TestCompareToAs(OperandA, OperandB, 1);  //Testa stÃ¶rre
   //Datetest klart
 end;
 
 procedure TjehoBoldTest.TestFloat(OperandA, OperandB: TBAFloat);
 begin
   //FlyttalTest
-  //Sätt variablerna
+  //SÃ¤tt variablerna
   OperandA.AsFloat := 2;
   OperandB.AsFloat := 3;
-  //Testa större/mindre
+  //Testa stÃ¶rre/mindre
   TestCompareToAs(OperandA, OperandB, -1); //Testa mindre
-  OperandB.AsFloat := 1; //Sätt om en variabel
-  TestCompareToAs(OperandA, OperandB, 1);  //Testa större
+  OperandB.AsFloat := 1; //SÃ¤tt om en variabel
+  TestCompareToAs(OperandA, OperandB, 1);  //Testa stÃ¶rre
   //FlyttalTest klart
 end;
 
 procedure TjehoBoldTest.TestDateTime(OperandA, OperandB: TBADateTime);
 begin
   //DateTimeTest
-  //Sätt variablerna
+  //SÃ¤tt variablerna
   OperandA.AsDate := 2;
   OperandB.AsDate := 3;
-  //Testa större/mindre
+  //Testa stÃ¶rre/mindre
   TestCompareToAs(OperandA, OperandB, -1); //Testa mindre
-  OperandB.AsDate := 1; //Sätt om en variabel
-  TestCompareToAs(OperandA, OperandB, 1);  //Testa större
+  OperandB.AsDate := 1; //SÃ¤tt om en variabel
+  TestCompareToAs(OperandA, OperandB, 1);  //Testa stÃ¶rre
   //DateTimeTest klart
 end;
 
 procedure TjehoBoldTest.TestTime(OperandA, OperandB: TBATime);
 begin
   //TimeTest
-  //Sätt variablerna
+  //SÃ¤tt variablerna
   OperandA.AsTime := 2.4;
   OperandB.AsTime := 3.5;
-  //Testa större/mindre
+  //Testa stÃ¶rre/mindre
   TestCompareToAs(OperandA, OperandB, -1); //Testa mindre
-  OperandB.AsTime := 1.3; //Sätt om en variabel
-  TestCompareToAs(OperandA, OperandB, 1);  //Testa större
+  OperandB.AsTime := 1.3; //SÃ¤tt om en variabel
+  TestCompareToAs(OperandA, OperandB, 1);  //Testa stÃ¶rre
   //TimeTest klart
 end;
 

@@ -1,4 +1,4 @@
-unit BoldTestCase;
+﻿unit BoldTestCase;
 
 { DUnitX-compatible Bold Test Case Framework
 

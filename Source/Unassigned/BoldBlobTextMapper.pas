@@ -1,4 +1,4 @@
-unit BoldBlobTextMapper;
+﻿unit BoldBlobTextMapper;
 
 interface
 

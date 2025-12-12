@@ -1,4 +1,4 @@
-unit cxLookupBoldGrid;
+﻿unit cxLookupBoldGrid;
 
 {$I cxVer.inc}
 

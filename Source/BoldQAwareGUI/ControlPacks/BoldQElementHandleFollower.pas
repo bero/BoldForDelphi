@@ -1,4 +1,4 @@
-unit BoldQElementHandleFollower;
+﻿unit BoldQElementHandleFollower;
 
 {$UNDEF BOLDCOMCLIENT}
 

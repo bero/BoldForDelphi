@@ -1,4 +1,4 @@
-unit Mainform;
+﻿unit Mainform;
 
 interface
 
@@ -175,7 +175,7 @@ begin
   end;
 end;
 
-// Set s�ze of form on create.
+// Set síze of form on create.
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   Height := 555;

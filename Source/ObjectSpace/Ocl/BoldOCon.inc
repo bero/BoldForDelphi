@@ -1,4 +1,4 @@
-const
+﻿const
   ALexExpressionListMain                            = 0;
   ALexExpressionListStringLiteral                   = 1;
 

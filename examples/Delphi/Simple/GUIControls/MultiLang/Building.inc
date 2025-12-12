@@ -1,4 +1,4 @@
-{$INCLUDE MultilangClasses_Interface.inc}
+﻿{$INCLUDE MultilangClasses_Interface.inc}
 const
   Streets: array[0..4] of string = ('Bold Drive', '5th Avenue', 'Rose Path', 'Select Avenue', 'Pebble Road');
 

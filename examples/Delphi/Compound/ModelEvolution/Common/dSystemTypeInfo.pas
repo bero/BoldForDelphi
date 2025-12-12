@@ -1,4 +1,4 @@
-unit dSystemTypeInfo;
+﻿unit dSystemTypeInfo;
 
 interface
 

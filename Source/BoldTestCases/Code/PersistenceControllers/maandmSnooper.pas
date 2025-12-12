@@ -1,4 +1,4 @@
-unit maandmSnooper;
+﻿unit maandmSnooper;
 
 {$INCLUDE Bold.inc}
 

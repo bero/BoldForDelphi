@@ -1,4 +1,4 @@
-unit maan_PropagatorLockingSupport;
+﻿unit maan_PropagatorLockingSupport;
 
 {$INCLUDE Bold.inc}
 

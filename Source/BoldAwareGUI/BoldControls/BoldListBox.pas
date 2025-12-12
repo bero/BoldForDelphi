@@ -1,4 +1,4 @@
-unit BoldListBox;
+﻿unit BoldListBox;
 
 {$UNDEF BOLDCOMCLIENT}
 {$INCLUDE bold.inc}

@@ -1,4 +1,4 @@
-unit UMLConsts;
+﻿unit UMLConsts;
 
 interface
 

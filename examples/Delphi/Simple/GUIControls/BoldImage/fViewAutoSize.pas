@@ -1,4 +1,4 @@
-unit fViewAutoSize;
+﻿unit fViewAutoSize;
 
 interface
 

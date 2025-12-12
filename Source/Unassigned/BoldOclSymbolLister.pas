@@ -1,4 +1,4 @@
-unit BoldOclSymbolLister;
+﻿unit BoldOclSymbolLister;
 
 interface
 

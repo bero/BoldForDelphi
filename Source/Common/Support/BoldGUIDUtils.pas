@@ -1,4 +1,4 @@
-unit BoldGUIDUtils;
+﻿unit BoldGUIDUtils;
 
 interface
 function BoldCreateGUIDAsString(StripBrackets: Boolean = false): string;

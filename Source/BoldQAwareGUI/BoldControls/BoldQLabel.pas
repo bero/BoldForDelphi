@@ -1,4 +1,4 @@
-unit BoldQLabel;
+﻿unit BoldQLabel;
 
 {$UNDEF BOLDCOMCLIENT}
 

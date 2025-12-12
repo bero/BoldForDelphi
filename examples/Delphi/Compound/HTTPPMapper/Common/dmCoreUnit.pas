@@ -1,4 +1,4 @@
-unit dmCoreUnit;
+﻿unit dmCoreUnit;
 
 interface
 

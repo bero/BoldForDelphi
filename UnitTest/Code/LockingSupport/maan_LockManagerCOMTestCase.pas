@@ -1,4 +1,4 @@
-unit maan_LockManagerCOMTestCase;
+﻿unit maan_LockManagerCOMTestCase;
 
 interface
 

@@ -1,4 +1,4 @@
-unit TestManagerMainForm;
+﻿unit TestManagerMainForm;
 
 interface
 

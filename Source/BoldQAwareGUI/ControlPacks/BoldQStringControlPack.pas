@@ -1,4 +1,4 @@
-unit BoldQStringControlPack;
+﻿unit BoldQStringControlPack;
 
 {$UNDEF BOLDCOMCLIENT}
 

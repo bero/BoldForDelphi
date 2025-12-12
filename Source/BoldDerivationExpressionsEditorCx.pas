@@ -1,4 +1,4 @@
-unit BoldDerivationExpressionsEditorCx;
+﻿unit BoldDerivationExpressionsEditorCx;
 
 interface
 

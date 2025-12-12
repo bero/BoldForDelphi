@@ -1,4 +1,4 @@
-
+﻿
 unit joho_ClientGuiAndHandles;
 
 interface
@@ -287,7 +287,7 @@ begin
   AreYouStillHavingFun := TSong.Create(BoldSystemHandle1.System);
   AreYouStillHavingFun.Title := 'Are You Still Having Fun';
   MeraMal := TSong.Create(BoldSystemHandle1.System);
-  MeraMal.Title := 'Mera M�l';
+  MeraMal.Title := 'Mera Mål';
   Bound4DaReload := TSong.Create(BoldSystemHandle1.System);
   Bound4DaReload.Title := 'Bound 4 da reload';
   HeatOfAsia := TSong.Create(BoldSystemHandle1.System);

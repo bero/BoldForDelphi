@@ -1,4 +1,4 @@
-unit aniv_XML;
+ï»¿unit aniv_XML;
 
 {$INCLUDE Bold.inc}
 
@@ -501,7 +501,7 @@ begin
   aClassA.aShortInt := 127;
   aClassA.aSmallInt := 13;
   aClassA.aWord := 40000;
-  aClassA.aBlob := '8wwwrwvå95ye5vtq90' + #1 + #0 + '43tvuu5vy!"#¤%&/()=``</adsf>';
+  aClassA.aBlob := '8wwwrwvÃ¥95ye5vtq90' + #1 + #0 + '43tvuu5vy!"#Â¤%&/()=``</adsf>';
   aClassA.aBlobContent := 'whatever';
   aClassA.M_aBlobContent.ContentType := 'A';
   aClassA.part.AddNew;
@@ -560,7 +560,7 @@ begin
   assert(aClassA2.aShortInt = 127, 'Streaming of shortint attribute');
   assert(aClassA2.aSmallInt = 13, 'Streaming of smallint attribute');
   assert(aClassA2.aWord = 40000, 'Streaming of word attribute');
-  assert(aClassA2.aBlob = '8wwwrwvå95ye5vtq90' + #1 + #0 + '43tvuu5vy!"#¤%&/()=``</adsf>', 'Streaming of blob attribute');
+  assert(aClassA2.aBlob = '8wwwrwvÃ¥95ye5vtq90' + #1 + #0 + '43tvuu5vy!"#Â¤%&/()=``</adsf>', 'Streaming of blob attribute');
   assert(aClassA2.aBlobContent = 'whatever', 'Streaming of typedblob attribute');
   assert(aClassA2.M_aBlobContent.ContentType = 'A', 'Streaming of blob type');
   assert(aClassA.M_part.Locators[0].BoldObjectID.IsEqual[aClassA2.M_part.Locators[0].BoldObjectID], 'streaming of many-many association');

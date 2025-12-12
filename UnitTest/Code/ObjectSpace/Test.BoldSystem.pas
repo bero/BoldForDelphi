@@ -1,4 +1,4 @@
-unit Test.BoldSystem;
+﻿unit Test.BoldSystem;
 
 { DUnitX tests for BoldSystem - Core system functionality }
 

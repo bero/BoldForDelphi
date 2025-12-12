@@ -1,4 +1,4 @@
-// /usr/local/cvsroot/tp/boldfordelphi/examples/Delphi/Compound/Bios/ClientGui/Mainform.pas,v 1.1 2003/01/21 07:12:14 jhogstrom Exp
+﻿// /usr/local/cvsroot/tp/boldfordelphi/examples/Delphi/Compound/Bios/ClientGui/Mainform.pas,v 1.1 2003/01/21 07:12:14 jhogstrom Exp
 unit mainform;
 {$DEFINE BOLDCOMCLIENT}
 

@@ -1,4 +1,4 @@
-unit OlleConsts;
+﻿unit OlleConsts;
 
 interface
 

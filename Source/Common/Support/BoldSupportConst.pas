@@ -1,4 +1,4 @@
-unit BoldSupportConst;
+﻿unit BoldSupportConst;
 
 interface
 

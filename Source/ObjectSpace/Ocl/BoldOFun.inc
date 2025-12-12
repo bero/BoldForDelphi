@@ -1,4 +1,4 @@
-function ALexClass.TokenToString( TheToken : Longint) : string;
+﻿function ALexClass.TokenToString( TheToken : Longint) : string;
 begin
   case TheToken of
     ALexINTEGER: Result := 'INTEGER';

@@ -1,4 +1,4 @@
-unit maan_LockManagerAdminTestCase;
+﻿unit maan_LockManagerAdminTestCase;
 
 interface
 

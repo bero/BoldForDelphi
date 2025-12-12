@@ -1,4 +1,4 @@
-unit BoldSystemCopy;
+﻿unit BoldSystemCopy;
 
 interface
 

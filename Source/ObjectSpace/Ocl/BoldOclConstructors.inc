@@ -1,4 +1,4 @@
-// BoldORed.pas
+﻿// BoldORed.pas
 
 function MakeList( First : AYaccStackElement; Offs : integer ) : AYaccStackElement;
 begin

@@ -1,4 +1,4 @@
-unit BoldJSONWriter;
+﻿unit BoldJSONWriter;
 
 interface
 

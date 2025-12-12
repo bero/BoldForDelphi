@@ -1,4 +1,4 @@
-
+﻿
 unit aniv_temporal;
 
 interface

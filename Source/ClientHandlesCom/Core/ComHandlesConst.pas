@@ -1,4 +1,4 @@
-unit ComHandlesConst;
+﻿unit ComHandlesConst;
 
 interface
 

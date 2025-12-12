@@ -1,4 +1,4 @@
-unit BoldQGUI;
+﻿unit BoldQGUI;
 
 interface
 

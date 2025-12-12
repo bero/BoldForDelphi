@@ -1,4 +1,4 @@
-
+ï»¿
 {$INCLUDE BOLD.INC}
 
 unit joho_ocl2Sql;
@@ -169,26 +169,26 @@ begin
 
   p1 := TPerson.Create(dm_ocl2sql.BoldSystemHandle1.System);
   p1.FirstName := 'Jonas';
-  p1.LastName := 'Högström';
+  p1.LastName := 'HÃ¶gstrÃ¶m';
   p1.Assets := 10000;
 
   p2 := TPerson.Create(dm_ocl2sql.BoldSystemHandle1.System);
-  p2.FirstName := 'Åsa';
-  p2.LastName := 'Högström';
+  p2.FirstName := 'Ã…sa';
+  p2.LastName := 'HÃ¶gstrÃ¶m';
   p2.Assets := 20000;
   p2.isMarried := true;
   p1.Mother := p2;
 
   p3 := TPerson.Create(dm_ocl2sql.BoldSystemHandle1.System);
   p3.FirstName := 'Jesper';
-  p3.LastName := 'Högström';
+  p3.LastName := 'HÃ¶gstrÃ¶m';
   p3.Assets := 5000;
   p3.Mother := p2;
   p3.isMarried := true;
 
   p4 := TPerson.Create(dm_ocl2sql.BoldSystemHandle1.System);
   p4.FirstName := 'Joanna';
-  p4.LastName := 'Högström';
+  p4.LastName := 'HÃ¶gstrÃ¶m';
   p4.Assets := 20;
 
   p5 := TPerson.Create(dm_ocl2sql.BoldSystemHandle1.System);
@@ -199,7 +199,7 @@ begin
   p4.Mother := p5;
 
   b1 := TBuilding.Create(dm_ocl2sql.BoldSystemHandle1.System);
-  b1.Address := 'Drakens Gränd';
+  b1.Address := 'Drakens GrÃ¤nd';
   b1.Owners.Add(p1);
   b1.Owners.Add(p3);
 
@@ -212,13 +212,13 @@ begin
   b3.Owners.Add( p4 );
 
   rb1 := TResidentialBuilding.Create(dm_ocl2sql.BoldSystemHandle1.System);
-  rb1.Address := 'Lintrådsvägen';
+  rb1.Address := 'LintrÃ¥dsvÃ¤gen';
   rb1.TotalRent := 10000;
   rb1.Residents.Add( p2 );
   rb1.Owners.Add( p2 );
 
   rb2 := TResidentialBuilding.Create(dm_ocl2sql.BoldSystemHandle1.System);
-  rb2.Address := 'Skorpvägen';
+  rb2.Address := 'SkorpvÃ¤gen';
   rb2.TotalRent := 5000;
   rb2.Residents.Add( p3);
   rb2.Residents.Add( p4);
@@ -232,7 +232,7 @@ begin
   rb3.Residents.Add( p1 );
 
   rb4 := TResidentialBuilding.Create(dm_ocl2sql.BoldSystemHandle1.System);
-  rb4.Address := 'Birger Sjöbergs väg';
+  rb4.Address := 'Birger SjÃ¶bergs vÃ¤g';
   rb4.TotalRent := 4000;
   rb4.Owners.Add( p1 );
 end;
@@ -396,7 +396,7 @@ begin
 
   testExpression('Person.allInstances->select(mother->isEmpty)' );
 
-  // Jonas Owns Drakens gränd and Birger Sjönbergs väg;
+  // Jonas Owns Drakens grÃ¤nd and Birger SjÃ¶nbergs vÃ¤g;
   p1 := dm_ocl2sql.BoldSystemHandle1.System.EvaluateExpressionAsDirectElement('Person.AllInstances->select(firstname = ''Jonas'')->first') as TPerson;
   ie := TBoldIndirectElement.Create;
   p1.OwnedBuildings.EvaluateExpression('Building.allInstances->difference(self)', ie, true);
@@ -582,7 +582,7 @@ begin
   testExpression('ResidentialBuilding.allInstances->reject(address.isNull)');
   testExpression('ResidentialBuilding.allInstances->reject(residents->isEmpty)');
   testExpression('ResidentialBuilding.allInstances->reject(residents->notEmpty)');
-  testExpression('Person.allInstances->select((firstName = ''Jonas'') and (lastName = ''Högström''))');
+  testExpression('Person.allInstances->select((firstName = ''Jonas'') and (lastName = ''HÃ¶gstrÃ¶m''))');
   testExpression('Person.allInstances->select(firstName <> ''Jonas'')');
   testExpression('Person.allInstances->select((home.totalRent > 1000) and (home.totalRent < 3000))');
 end;

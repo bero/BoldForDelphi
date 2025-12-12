@@ -1,4 +1,4 @@
-unit BoldComServer;
+﻿unit BoldComServer;
 
 interface
 

@@ -1,4 +1,4 @@
-unit BoldComboBox;
+﻿unit BoldComboBox;
 
 {$UNDEF BOLDCOMCLIENT}
 {$INCLUDE bold.inc}

@@ -1,4 +1,4 @@
-unit BoldOracleBDEInterfaces;
+﻿unit BoldOracleBDEInterfaces;
 
 interface
 

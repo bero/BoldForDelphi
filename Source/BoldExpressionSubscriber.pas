@@ -1,4 +1,4 @@
-unit BoldExpressionSubscriber;
+﻿unit BoldExpressionSubscriber;
 
 {$include bold.inc}
 

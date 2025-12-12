@@ -1,4 +1,4 @@
-unit cxBoldLookupEdit;
+﻿unit cxBoldLookupEdit;
 
 interface
 

@@ -1,4 +1,4 @@
-unit BoldUMLAttributeEditor;
+﻿unit BoldUMLAttributeEditor;
 
 interface
 

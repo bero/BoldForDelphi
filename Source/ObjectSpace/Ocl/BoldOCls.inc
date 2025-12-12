@@ -1,4 +1,4 @@
-type
+﻿type
   ALexClass = class(SSLex)
   public
   function TokenToString( TheToken : Longint) : string; override;
@@ -10,7 +10,7 @@ type
       start, stop,                         // Used for enumerations;
       Node : TBoldOclNode;
       Name : String;
-      SimpleTypeSpecifierIsEnum : Boolean; // Otherwise it is a pathname. Data �s stored in the DeclaratorTypelist
+      SimpleTypeSpecifierIsEnum : Boolean; // Otherwise it is a pathname. Data ís stored in the DeclaratorTypelist
       DeclaratorTypeList,
       List : TList;                        // Of AYaccStackElement
       Offset : integer;

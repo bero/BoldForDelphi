@@ -1,4 +1,4 @@
-unit MainForm;
+ï»¿unit MainForm;
 
 interface
 
@@ -192,7 +192,7 @@ begin
       with TPersonCategoryClass.create(nil) do
       begin
         Description := 'Ruler of the Kingdom';
-        M_Description.AsStringByLanguage['Swedish'].AsString := 'Härskare av kungadömet';
+        M_Description.AsStringByLanguage['Swedish'].AsString := 'HÃ¤rskare av kungadÃ¶met';
         ShortDescription := 'King';
         M_ShortDescription.AsStringByLanguage['Swedish'].AsString := 'Kung';
         IntValue := 0;
@@ -201,7 +201,7 @@ begin
       with TPersonCategoryClass.create(nil) do
       begin
         Description := 'Chief Executive Officer';
-        M_Description.AsStringByLanguage['Swedish'].AsString := 'Verkställande direktör';
+        M_Description.AsStringByLanguage['Swedish'].AsString := 'VerkstÃ¤llande direktÃ¶r';
         ShortDescription := 'CEO';
         M_ShortDescription.AsStringByLanguage['Swedish'].AsString := 'VD';
         IntValue := 1;

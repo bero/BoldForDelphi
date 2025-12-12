@@ -1,4 +1,4 @@
-unit BoldUndoForm;
+﻿unit BoldUndoForm;
 
 interface
 

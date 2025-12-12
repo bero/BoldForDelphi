@@ -1,4 +1,4 @@
-unit maanLockManagerDummyClasses;
+﻿unit maanLockManagerDummyClasses;
 
 interface
 

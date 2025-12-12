@@ -1,4 +1,4 @@
-unit dxBarBoldNav;
+﻿unit dxBarBoldNav;
 
 interface
 

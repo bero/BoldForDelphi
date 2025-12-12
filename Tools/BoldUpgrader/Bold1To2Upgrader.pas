@@ -1,4 +1,4 @@
-unit Bold1To2Upgrader;
+﻿unit Bold1To2Upgrader;
 
 interface
 uses

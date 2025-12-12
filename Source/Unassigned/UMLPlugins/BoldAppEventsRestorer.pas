@@ -1,4 +1,4 @@
-unit BoldAppEventsRestorer;
+﻿unit BoldAppEventsRestorer;
 
 interface
 

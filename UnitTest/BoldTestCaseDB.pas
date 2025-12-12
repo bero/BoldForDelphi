@@ -1,4 +1,4 @@
-unit BoldTestCaseDB;
+﻿unit BoldTestCaseDB;
 
 interface
 

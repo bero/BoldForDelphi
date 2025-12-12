@@ -1,4 +1,4 @@
-unit aniv_1;
+﻿unit aniv_1;
 
 {$include bold.inc}
 
@@ -1196,7 +1196,7 @@ begin
   MasterDocument := BoldRetrieveObjectByIdString(dm_aniv_test1.BoldSystemHandle1.System, MD_id) as TDocument;
 
 
-  // first we load the Multil�ink, then the singlelink and roll it back
+  // first we load the Multilöink, then the singlelink and roll it back
 
   assert(MasterDocument.Parts.Count = 1);
 

@@ -1,4 +1,4 @@
-
+﻿
 // (c) Boldsoft 2002 - all rights reserved
 unit OCLEditorPatch;
 

@@ -1,4 +1,4 @@
-unit BoldExpressionSubscriberReg;
+﻿unit BoldExpressionSubscriberReg;
 
 interface
 

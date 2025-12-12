@@ -1,4 +1,4 @@
-unit cxBoldEditRepositoryItems;
+﻿unit cxBoldEditRepositoryItems;
 
 interface
 
