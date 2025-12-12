@@ -1,4 +1,4 @@
-program UnitTest;
+﻿program UnitTest;
 
 {$IFNDEF TESTINSIGHT}
 {$APPTYPE CONSOLE}

@@ -39,7 +39,7 @@ UnitTest.exe --exit:Continue
 
 ### Code Coverage
 
-Code coverage reports can be generated using DelphiCodeCoverage. See `UnitTest/CodeCoverage.md` for setup instructions.
+Code coverage reports can be generated using DelphiCodeCoverage. See `UnitTest/UnitTesting.md` for setup instructions.
 
 ```batch
 cd UnitTest

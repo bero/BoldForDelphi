@@ -1,6 +1,174 @@
-# Code Coverage Setup for Bold for Delphi Unit Tests
+﻿# Unit Testing for Bold for Delphi
 
-This document describes how to set up and run code coverage analysis for the Bold for Delphi unit tests using DelphiCodeCoverage.
+This document describes how to set up, run, and develop unit tests for Bold for Delphi.
+
+## Prerequisites
+
+### DUnitX Environment Variable
+
+The `$(DUNITX)` system environment variable must be set to the DUnitX installation folder. Set this in:
+- **Windows**: System Properties > Environment Variables
+- **Delphi IDE**: Tools > Options > IDE > Environment Variables
+
+Example: `DUNITX=C:\DUnitX`
+
+## Overview
+
+Bold for Delphi uses the **DUnitX** testing framework. Tests are located in the `UnitTest/` folder and organized by source area:
+
+```
+UnitTest/
+├── UnitTest.dpr           # Main test project
+├── UnitTest.dproj
+├── build.bat              # Command-line build script
+├── Code/
+│   ├── Common/            # Tests for Common units
+│   ├── ObjectSpace/       # Tests for ObjectSpace units
+│   ├── FreestandingValueSpace/
+│   └── Main/              # Test model classes
+└── coverage_report/       # Generated coverage reports
+```
+
+## Running Tests
+
+### Command Line
+
+```batch
+cd UnitTest
+build.bat
+UnitTest.exe --exit:Continue
+```
+
+Note use pause if you want to pause before exit
+```batch
+UnitTest.exe --exit:Pause
+```
+
+
+### From Delphi IDE
+
+1. Open `UnitTest.dproj` in Delphi
+2. Build (Shift+F9)
+3. Run (F9)
+
+## TestInsight
+
+**TestInsight** is a Delphi IDE plugin that enables running and debugging individual tests directly from the IDE. This is highly recommended for test development.
+
+### Installing TestInsight
+
+1. Download from: https://bitbucket.org/sglienke/testinsight/downloads/
+2. Run the installer
+3. Restart Delphi IDE
+4. TestInsight panel appears in View > TestInsight Explorer
+
+### Using TestInsight
+
+1. Open `UnitTest.dproj` in Delphi
+2. Open **View > TestInsight Explorer**
+3. Build the project (Shift+F9)
+4. Tests appear in the TestInsight panel
+5. **Run single test**: Click the green arrow next to a test
+6. **Debug test**: Right-click > Debug Selected Tests
+7. **Run all**: Click Run All in the toolbar
+
+### TestInsight Features
+
+- Run/debug individual tests without running the entire suite
+- See test results inline in the IDE
+- Double-click failures to jump to the failing line
+- Filter tests by name or status
+- Re-run failed tests only
+
+### TESTINSIGHT Conditional Define
+
+The `TESTINSIGHT` conditional define controls how the test project runs:
+
+| TESTINSIGHT | Behavior |
+|-------------|----------|
+| **Defined** | Tests can only run via TestInsight plugin. The exe communicates with TestInsight. |
+| **Undefined** | Tests run as a normal console application. Can run/debug from IDE or command line. |
+
+**To toggle TestInsight mode:**
+
+1. **Via menu**: Right-click the project > **Enable TestInsight** (or Disable)
+2. **Via project options**: Project > Options > Delphi Compiler > Conditional defines > Add/remove `TESTINSIGHT`
+
+When developing new tests, enable TestInsight for quick iteration. For CI/CD or command-line execution, disable it.
+
+## Writing Tests
+
+### Test Structure
+
+```pascal
+unit Test.MyUnit;
+
+interface
+
+uses
+  DUnitX.TestFramework;
+
+type
+  [TestFixture]
+  TTestMyUnit = class
+  public
+    [Setup]
+    procedure Setup;
+
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestSomething;
+  end;
+
+implementation
+
+procedure TTestMyUnit.Setup;
+begin
+  // Initialize before each test
+end;
+
+procedure TTestMyUnit.TearDown;
+begin
+  // Cleanup after each test
+end;
+
+procedure TTestMyUnit.TestSomething;
+begin
+  Assert.AreEqual(Expected, Actual, 'Description');
+end;
+
+initialization
+  TDUnitX.RegisterTestFixture(TTestMyUnit);
+
+end.
+```
+
+### Adding Tests to the Project
+
+1. Create test file in appropriate `Code/` subfolder
+2. Add to `UnitTest.dpr` uses clause:
+   ```pascal
+   Test.MyUnit in 'Code\SubFolder\Test.MyUnit.pas';
+   ```
+
+### Common Assertions
+
+```pascal
+Assert.AreEqual(Expected, Actual);
+Assert.IsTrue(Condition);
+Assert.IsFalse(Condition);
+Assert.IsNull(Value);
+Assert.IsNotNull(Value);
+Assert.WillRaise(procedure begin ... end, EExpectedException);
+```
+
+---
+
+# Code Coverage
+
+Code coverage analysis helps identify untested code paths. Bold for Delphi uses **DelphiCodeCoverage** for coverage reports.
 
 ## Prerequisites
 
@@ -172,8 +340,8 @@ Key units:
 
 ## Tips for Improving Coverage
 
-1. **Add more unit tests** - Each test exercises code paths
-2. **Test edge cases** - Error handling, boundary conditions
+1. **Focus on uncovered lines** - Check the coverage report and target specific uncovered code paths
+2. **Test edge cases** - Error handling, boundary conditions, exception paths
 3. **Use persistence tests** - Many code paths require database operations
 4. **Test with different configurations** - Transient vs persistent mode
 

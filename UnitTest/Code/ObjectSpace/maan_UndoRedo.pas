@@ -49,7 +49,9 @@ uses
   FireDAC.Stan.Def,
   FireDAC.Stan.Async,
   FireDAC.Phys.MSSQL,
-  FireDAC.Phys.MSSQLDef
+  FireDAC.Phys.MSSQLDef, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Pool,
+  FireDAC.Phys, FireDAC.VCLUI.Wait
   ;
 
 type
