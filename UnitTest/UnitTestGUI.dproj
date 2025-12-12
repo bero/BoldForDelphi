@@ -42,7 +42,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
         <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
-        <DCC_ExeOutput>.\$(Platform)\$(Config)</DCC_ExeOutput>
+        <DCC_ExeOutput>.\</DCC_ExeOutput>
         <DCC_E>false</DCC_E>
         <DCC_N>false</DCC_N>
         <DCC_S>false</DCC_S>
@@ -97,23 +97,22 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="..\Source\Extensions\FastMM4\FastMM4.pas"/>
-        <DCCReference Include="..\Source\Extensions\FastMM4\FastMM4Messages.pas"/>
-        <DCCReference Include="..\..\DUnitX\Source\DUnitX.MemoryLeakMonitor.FastMM4.pas"/>
-        <DCCReference Include="jano_multiplicity.pas">
-            <Form>keep comment here to protect the following conditional from being removed by the IDE when adding a unit</Form>
-        </DCCReference>
-        <DCCReference Include="..\Source\Common\UML\BoldUMLTypes.pas"/>
-        <DCCReference Include="..\Source\Common\Core\BoldBase.pas"/>
-        <DCCReference Include="..\Source\Common\Core\BoldDefs.pas"/>
-        <DCCReference Include="..\Source\Common\Core\BoldCommonConst.pas"/>
-        <DCCReference Include="..\Source\Common\Support\BoldIndexableList.pas"/>
-        <DCCReference Include="..\Source\Common\Support\BoldIndex.pas"/>
-        <DCCReference Include="..\Source\Common\Support\BoldHashIndexes.pas"/>
-        <DCCReference Include="..\Source\Common\Support\BoldUtils.pas"/>
-        <DCCReference Include="..\Source\Common\Support\BoldRev.pas"/>
-        <DCCReference Include="..\Source\Common\Core\BoldContainers.pas"/>
-        <DCCReference Include="TestStartup.pas"/>
+        <DCCReference Include="BoldTestCase.pas"/>
+        <DCCReference Include="BoldTestCaseDB.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldUMLTypes.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldAttributes.pas"/>
+        <DCCReference Include="Code\ObjectSpace\jehoBCBoldTest.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.FetchInvalidAttribute.pas"/>
+        <DCCReference Include="Code\Main\TestModel1.pas"/>
+        <DCCReference Include="Code\ObjectSpace\UndoTestModelClasses.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_UndoRedoTestCaseUtils.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_UndoRedoBase.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_FetchRefetch.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_Modify.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_Undo.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldSystem.pas"/>
+        <DCCReference Include="Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldDefaultTaggedValues.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -135,9 +134,8 @@
                     <Source Name="MainSource">UnitTestGUI.dpr</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclemsedge290.bpl">Embarcadero RAD Server Edge Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k370.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp370.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="5">

@@ -24,7 +24,7 @@ type
   Tmaan_ModifyTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('UndoHandler.FSValueSpace not tracking object creation - needs investigation')]
     procedure TestModifyAttribute;
     [Test]
     [Ignore('Undo/Redo functionality issue - needs investigation')]
@@ -68,16 +68,16 @@ begin
   Prepare;
   NewObject := CreateSomeClass(system, FSubscriber, true);
   oc := UndoHandler.Undoblocks.CurrentBlock.FSValueSpace.GetFSObjectContentsByObjectId(NewObject.BoldObjectLocator.BoldObjectID);
-  Assert.IsTrue(Assigned(oc));
-  Assert.IsTrue(oc.BoldExistenceState in [besNotCreated]);
+  Assert.IsTrue(Assigned(oc), 'Line 71: oc should be assigned after CreateSomeClass');
+  Assert.IsTrue(oc.BoldExistenceState in [besNotCreated], 'Line 72: oc.BoldExistenceState should be besNotCreated');
 
   {Delete Object}
   Prepare;
   NewObject := FSomeClassList[0];
   NewObject.Delete;
   oc := UndoHandler.Undoblocks.CurrentBlock.FSValueSpace.GetFSObjectContentsByObjectId(NewObject.BoldobjectLocator.BoldObjectId);
-  Assert.IsTrue(Assigned(oc));
-  Assert.IsTrue(oc.BoldExistenceState in [besExisting]);
+  Assert.IsTrue(Assigned(oc), 'Line 79: oc should be assigned after Delete');
+  Assert.IsTrue(oc.BoldExistenceState in [besExisting], 'Line 80: oc.BoldExistenceState should be besExisting after Delete');
 
   {Current attribute}
   GenerateObjects(System, 'SomeClass', 1);
@@ -107,19 +107,19 @@ begin
   {Create Object}
   Prepare;
   NewObject := CreateSomeClass(system, FSubscriber, false);
-  Assert.IsTrue(NewObject.BoldExistenceState in [besExisting]);
+  Assert.IsTrue(NewObject.BoldExistenceState in [besExisting], 'Line 110: NewObject.BoldExistenceState should be besExisting');
   oc := UndoHandler.Undoblocks.CurrentBlock.FSValueSpace.GetFSObjectContentsByObjectId(NewObject.BoldObjectLocator.BoldObjectID);
-  Assert.IsTrue(Assigned(oc));
-  Assert.IsTrue(oc.BoldExistenceState in [besNotCreated]);
+  Assert.IsTrue(Assigned(oc), 'Line 112: oc should be assigned for transient object');
+  Assert.IsTrue(oc.BoldExistenceState in [besNotCreated], 'Line 113: oc.BoldExistenceState should be besNotCreated for transient');
 
   {Delete Object}
-  Assert.IsTrue(NewObject.BoldExistenceState in [besExisting]);
+  Assert.IsTrue(NewObject.BoldExistenceState in [besExisting], 'Line 116: NewObject.BoldExistenceState should be besExisting before Delete');
   oid := NewObject.BoldObjectLocator.BoldObjectID.Clone;
   UndoHandler.SetCheckPoint('Delete NewObject');
   NewObject.Delete;
   oc := UndoHandler.Undoblocks.CurrentBlock.FSValueSpace.GetFSObjectContentsByObjectId(oid);
-  Assert.IsTrue(Assigned(oc));
-  Assert.IsTrue(oc.BoldExistenceState in [besExisting]);
+  Assert.IsTrue(Assigned(oc), 'Line 121: oc should be assigned after Delete transient');
+  Assert.IsTrue(oc.BoldExistenceState in [besExisting], 'Line 122: oc.BoldExistenceState should be besExisting after Delete transient');
 
   {transient attribute}
   Prepare;
