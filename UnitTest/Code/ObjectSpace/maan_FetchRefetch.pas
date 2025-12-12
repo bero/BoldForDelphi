@@ -28,7 +28,7 @@ type
     [Test]
     procedure TestFetchModifiedAttribute;
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('Fix: Change bdepContents to bdepPMIn at BoldLinks.pas:742 TBoldDirectMultiLinkController.MakeDbCurrent')]
     procedure TestFetchEmbeddedRoleInvalid;
     [Test]
     procedure TestFetchEmbeddedRoleInvalidAdjust;
@@ -131,7 +131,7 @@ begin
   VerifyState(ObjA.M_child, bvpsInvalid);
   ObjB := ObjBLocator.EnsuredBoldObject as TSomeClass; //fetch embedded role
   VerifyState(ObjB.M_parent, bvpsCurrent);
-  Assert.IsTrue(ObjB.parent = ObjA);
+  Assert.IsTrue(ObjB.parent = ObjA, 'Line 134: ObjB.parent should = ObjA');
 
   {ObjA.child Current, and NewObjB not in ObjA.child}
   Prepare;
@@ -139,23 +139,23 @@ begin
   ObjA.Child.EnsureContentsCurrent;
   VerifyState(ObjA.M_child, bvpsCurrent);
   Locator := ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex];
-  Assert.IsTrue(Assigned(Locator));
-  Assert.IsTrue(Locator.BoldObjectID.AsString = ObjA.BoldObjectLocator.BoldObjectID.AsString);
+  Assert.IsTrue(Assigned(Locator), 'Line 142: Locator should be assigned');
+  Assert.IsTrue(Locator.BoldObjectID.AsString = ObjA.BoldObjectLocator.BoldObjectID.AsString, 'Line 143: Locator ID should match ObjA ID');
 
   OpenSystem2;
-  Assert.IsTrue(FSomeClassList.Locators[0].BoldObjectID.AsString = FSomeClassList2.Locators[0].BoldObjectID.AsString);
-  Assert.IsTrue(FSomeClassList.Locators[1].BoldObjectID.AsString = FSomeClassList2.Locators[1].BoldObjectID.AsString);
-  Assert.IsTrue(FSomeClassList.Locators[2].BoldObjectID.AsString = FSomeClassList2.Locators[2].BoldObjectID.AsString);
+  Assert.IsTrue(FSomeClassList.Locators[0].BoldObjectID.AsString = FSomeClassList2.Locators[0].BoldObjectID.AsString, 'Line 146: Locator[0] IDs should match');
+  Assert.IsTrue(FSomeClassList.Locators[1].BoldObjectID.AsString = FSomeClassList2.Locators[1].BoldObjectID.AsString, 'Line 147: Locator[1] IDs should match');
+  Assert.IsTrue(FSomeClassList.Locators[2].BoldObjectID.AsString = FSomeClassList2.Locators[2].BoldObjectID.AsString, 'Line 148: Locator[2] IDs should match');
   FSomeClassList2[0].child.Add(FSomeClassList2[2]);
-  Assert.IsTrue(FSomeClassList2[2].Parent = FSomeClassList2[0]);
+  Assert.IsTrue(FSomeClassList2[2].Parent = FSomeClassList2[0], 'Line 150: FSomeClassList2[2].Parent should = FSomeClassList2[0]');
   SaveAndCloseSystem2;
 
   StoreObject(ObjA);
   FSubscriber.SubscribeToElement(ObjA.M_child);
   NewObjB := NewObjBLocator.EnsuredBoldObject as TSomeClass; //fetch embedded role
   VerifyState(NewObjB.M_parent, bvpsCurrent);
-  Assert.IsTrue(NewObjB.parent = ObjA);
-  Assert.IsTrue(not Assigned(NewObjBLocator.EmbeddedSingleLinks[EmbeddedIndex]));
+  Assert.IsTrue(NewObjB.parent = ObjA, 'Line 157: NewObjB.parent should = ObjA');
+  Assert.IsTrue(not Assigned(NewObjBLocator.EmbeddedSingleLinks[EmbeddedIndex]), 'Line 158: NewObjBLocator.EmbeddedSingleLinks should not be assigned');
   VerifyListAdjustedIn(ObjA.child, NewObjB, true);
   FSubscriber.VerifySendEvent(beItemAdded, ObjA.child);
 
@@ -163,11 +163,11 @@ begin
   Prepare;
   ObjA.Child.EnsureContentsCurrent;
   VerifyState(ObjA.M_child, bvpsCurrent);
-  Assert.IsTrue(not Assigned(ObjBLocator.BoldObject));
-  Assert.IsTrue(ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex].BoldObjectID.AsString = ObjA.BoldObjectLocator.BoldObjectID.AsString);
+  Assert.IsTrue(not Assigned(ObjBLocator.BoldObject), 'Line 166: ObjBLocator.BoldObject should not be assigned');
+  Assert.IsTrue(ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex].BoldObjectID.AsString = ObjA.BoldObjectLocator.BoldObjectID.AsString, 'Line 167: EmbeddedSingleLinks ID should match ObjA ID');
 
   OpenSystem2;
-  Assert.IsTrue(FSomeClassList.Locators[2].BoldObjectID.AsString = FSomeClassList2.Locators[2].BoldObjectID.AsString);
+  Assert.IsTrue(FSomeClassList.Locators[2].BoldObjectID.AsString = FSomeClassList2.Locators[2].BoldObjectID.AsString, 'Line 170: Locator[2] IDs should match in System2');
   FsomeClassList2[1].parent := nil;  // remove NonEmbeddedRole from ObjA.child
   SaveAndCloseSystem2;
 
@@ -176,7 +176,7 @@ begin
   ObjB := ObjBLocator.EnsuredBoldObject as TSomeClass; //fetch embedded role
   objB.M_Parent.Refetch;
   VerifyState(ObjB.M_parent, bvpsCurrent);
-  Assert.IsTrue(ObjB.parent = nil);
+  Assert.IsTrue(ObjB.parent = nil, 'Line 179: ObjB.parent should be nil');
   VerifyListAdjustedEx(ObjA.child, ObjB , true);
   FSubscriber.VerifySendEvent(beItemDeleted, ObjA.child);
 end;

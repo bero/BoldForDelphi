@@ -739,6 +739,10 @@ procedure TBoldDirectMultiLinkController.MakeDbCurrent;
       end;
     end;
 
+    // TODO: Change bdepContents to bdepPMIn to fix EmbeddedSingleLinks not being set.
+    // Test: TestFetchEmbeddedRoleInvalid in maan_FetchRefetch.pas
+    // The root cause is that FetchFromClassList uses bdepContents mode which skips SingleLinkLinkTo calls, so
+    // EmbeddedSingleLinks aren't populated when fetching a multi-link from an already-loaded class list.
     SetFromIdList(lBoldObjectIdList, bdepContents);
     OwningObjectList.BoldPersistenceState := bvpsCurrent;
   end;
