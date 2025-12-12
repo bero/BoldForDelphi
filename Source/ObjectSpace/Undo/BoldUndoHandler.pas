@@ -302,6 +302,10 @@ begin
   FSObjectContents := FSValueSpace.GetFSObjectContentsByObjectId(ObjectId);
   if not Assigned(FSObjectContents) then
   begin
+    // TODO: Passing true for RegardAsExisting forces BoldExistenceState to besExisting,
+    // even for newly created objects where it should be besNotCreated.
+    // Fix: HandleObject(ObjectContents, ObjectContents.BoldExistenceState = besExisting);
+    // Tests: maan_Modify.pas, maan_Undo.pas, maan_FetchRefetch.pas
     HandleObject(ObjectContents, true);
     FSObjectContents := FSValueSpace.GetFSObjectContentsByObjectId(ObjectId);
   end;

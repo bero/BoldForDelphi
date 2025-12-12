@@ -27,25 +27,25 @@ type
     [Ignore('HandleMember calls HandleObject with RegardAsExisting=true, forcing besExisting state - BoldUndoHandler.pas:305')]
     procedure TestModifyAttribute;
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyNonEmbeddedRoleInsertTransient;
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyNonEmbeddedRoleInsertCurrent;
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyNonEmbeddedRoleDeleteTransient;
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyNonEmbeddedRoleDeleteCurrent;
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyEmbeddedRoleCurrent;
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyEmbeddedRoleTransient;
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyEmbeddedRoleModified;
   end;
 

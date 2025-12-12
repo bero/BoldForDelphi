@@ -35,7 +35,7 @@ type
     [Test]
     procedure TestFetchEmbeddedRoleCurrent;
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestFetchNonEmbeddedRoleInvalid;
   end;
 

@@ -11,16 +11,16 @@ type
   Tmaan_UndoTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure UndoAttribute;                  {2.7b & 2.2a Undo block}
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure UndoEmbeddedRoleModified;       {2.7b & 2.2a Undo block}
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure UndoEmbeddedRoleTransient;      {2.7b & 2.2a Undo block}
     [Test]
-    [Ignore('Undo/Redo functionality issue - needs investigation')]
+    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure UndoObjectCreation;             {2.7b & 2.2a Undo block}
 //    procedure UndoObjectDeletion;             {2.7b & 2.2a Undo block}
   end;
