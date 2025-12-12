@@ -24,7 +24,7 @@ type
   Tmaan_ModifyTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
-    [Ignore('UndoHandler.FSValueSpace not tracking object creation - needs investigation')]
+    [Ignore('HandleMember calls HandleObject with RegardAsExisting=true, forcing besExisting state - BoldUndoHandler.pas:305')]
     procedure TestModifyAttribute;
     [Test]
     [Ignore('Undo/Redo functionality issue - needs investigation')]

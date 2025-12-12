@@ -468,6 +468,9 @@ begin
   FATransientClassList.Clear;
   FClassWithLinkList.Clear;
   dmUndoRedo.BoldSystemHandle1.Active := true;
+  // Re-enable undo tracking after system refresh (UndoHandler is recreated with Enabled=false)
+  FUndoHandler := (dmUndoRedo.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler);
+  FUndoHandler.Enabled := True;
   FetchClass(System, FSomeClassList, TSomeClass);
   FetchClass(System, FBookList, TBook);
   FetchClass(System, FTopicList, TTopic);
@@ -531,6 +534,7 @@ begin
   if not Assigned(dmUndoRedo.BoldSystemHandle1.System.UndoHandler) then
     raise Exception.Create('UndoHandler is nil');
   FUndoHandler := (dmUndoRedo.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler);
+  FUndoHandler.Enabled := True;  // Enable undo tracking for tests
   FSubscriber := TLoggingSubscriber.Create;
   FFSValueSpace := TBoldFreeStandingValueSpace.Create;
   FSomeClassList := TSomeClassList.Create;
