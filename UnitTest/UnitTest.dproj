@@ -104,7 +104,10 @@
         <DCCReference Include="Code\Main\TestModel1.pas"/>
         <DCCReference Include="Code\ObjectSpace\UndoTestModelClasses.pas"/>
         <DCCReference Include="Code\ObjectSpace\maan_UndoRedoTestCaseUtils.pas"/>
-        <DCCReference Include="Code\ObjectSpace\maan_UndoRedo.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_UndoRedoBase.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_FetchRefetch.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_Modify.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_Undo.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldSystem.pas"/>
         <DCCReference Include="Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas"/>
         <DCCReference Include="Code\Common\Test.BoldDefaultTaggedValues.pas"/>

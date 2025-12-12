@@ -68,7 +68,7 @@ type
 implementation
 
 uses
-  maan_UndoRedo;
+  maan_UndoRedoBase;
 
 
 function CreateTopic(const System: TBoldSystem; const Subscriber: TLoggingSubscriber; const Persistent: Boolean = True): TTopic;
