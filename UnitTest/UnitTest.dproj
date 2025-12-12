@@ -111,6 +111,8 @@
         <DCCReference Include="Code\ObjectSpace\Test.BoldSystem.pas"/>
         <DCCReference Include="Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas"/>
         <DCCReference Include="Code\Common\Test.BoldDefaultTaggedValues.pas"/>
+        <DCCReference Include="Code\RTModel\Test.BoldMemberTypeDictionary.pas"/>
+        <DCCReference Include="Code\RTModel\Test.BoldGeneratedCodeDictionary.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
