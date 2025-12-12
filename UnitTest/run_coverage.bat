@@ -2,6 +2,9 @@
 REM ==============================================================================
 REM Bold for Delphi - Code Coverage Script
 REM ==============================================================================
+REM Usage: run_coverage.bat [OnlyCoverage]
+REM   OnlyCoverage - Skip build, only run coverage analysis on existing executable
+REM ==============================================================================
 
 set COVERAGE_EXE=C:\Attracs\DelphiCodeCoverage\Win32\CodeCoverage.exe
 set PROJECT_NAME=UnitTest
@@ -9,6 +12,12 @@ set EXECUTABLE=%PROJECT_NAME%.exe
 set MAP_FILE=%PROJECT_NAME%.map
 set SOURCE_DIR=..\Source
 set OUTPUT_DIR=coverage_report
+
+REM --- Check for OnlyCoverage parameter ---
+if /i "%~1"=="OnlyCoverage" (
+    echo [INFO] OnlyCoverage mode - skipping build
+    goto :CoverageStart
+)
 
 REM --- 1. Check for CodeCoverage Tool ---
 
@@ -88,6 +97,28 @@ if not exist "%MAP_FILE%" (
 )
 
 REM --- 4. Run Coverage Analysis ---
+
+:CoverageStart
+
+REM Check for CodeCoverage tool (also needed in OnlyCoverage mode)
+if not exist "%COVERAGE_EXE%" (
+    echo [ERROR] CodeCoverage.exe not found at: %COVERAGE_EXE%
+    echo Please download it from: https://github.com/DelphiCodeCoverage/DelphiCodeCoverage/releases
+    pause
+    exit /b 1
+)
+
+REM Verify executable and MAP file exist
+if not exist "%EXECUTABLE%" (
+    echo [ERROR] %EXECUTABLE% not found. Build the project first.
+    pause
+    exit /b 1
+)
+if not exist "%MAP_FILE%" (
+    echo [ERROR] %MAP_FILE% not found. Build with MAP file generation enabled.
+    pause
+    exit /b 1
+)
 
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 
