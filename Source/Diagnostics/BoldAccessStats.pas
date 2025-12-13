@@ -2,6 +2,43 @@
 {$include bold.inc}
 unit BoldAccessStats;
 
+{******************************************************************************}
+{                                                                              }
+{  BoldAccessStats - Runtime performance profiling for Bold applications       }
+{                                                                              }
+{******************************************************************************}
+{                                                                              }
+{  PURPOSE:                                                                    }
+{  This unit provides tools to export runtime statistics about member and      }
+{  association access patterns. Useful for performance analysis and            }
+{  optimization.                                                               }
+{                                                                              }
+{  TRACKED METRICS:                                                            }
+{  - AccessCount: How often each member/association is read                    }
+{  - DeriveCount: How often derived values are calculated                      }
+{  - InvalidateCount: How often values are invalidated                         }
+{  - ModifyCount: How often values are modified                                }
+{                                                                              }
+{  PROCEDURES:                                                                 }
+{  - GetMemberAccessStats: Export per-member statistics to CSV format          }
+{  - GetAssociationAccessStats: Export per-association statistics with         }
+{    subclass accumulation to CSV format                                       }
+{  - SaveToFile: Save both stats as SQL INSERT statements for database         }
+{                                                                              }
+{  OUTPUT FORMATS:                                                             }
+{  - CSV headers for spreadsheet analysis                                      }
+{  - SQL INSERT statements for database storage (see table schemas at end)     }
+{                                                                              }
+{  USAGE:                                                                      }
+{  1. Run your Bold application with normal workload                           }
+{  2. Call GetMemberAccessStats/GetAssociationAccessStats to export stats      }
+{  3. Analyze to identify hot spots for optimization                           }
+{                                                                              }
+{  Original Author: Fredrik Haglund                                            }
+{  Written around 2009                                                         }
+{                                                                              }
+{******************************************************************************}
+
 interface
 
 uses
