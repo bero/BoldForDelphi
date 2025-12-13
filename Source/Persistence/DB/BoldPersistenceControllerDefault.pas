@@ -68,7 +68,6 @@ implementation
 
 uses
   SysUtils,
-  BoldUtils,
   BoldPMappers,
   BoldGuard,
   BoldPMapperLists, //PATCH
@@ -299,7 +298,7 @@ begin
   if not assigned(fPersistenceMapper) then
   begin
     SystemPMapperName := fMoldModel.PMapperName;
-    if BoldNamesEqual(SystemPMapperName, DEFAULTNAME) and  (SQLDataBaseConfig.DefaultSystemMapper <> '') then
+    if SameText(SystemPMapperName, DEFAULTNAME) and  (SQLDataBaseConfig.DefaultSystemMapper <> '') then
        SystemPMapperName := SQLDataBaseConfig.DefaultSystemMapper;
     
     SystemMapperDescriptor := BoldSystemPersistenceMappers.DescriptorByName[SystemPMapperName];   //PATCH

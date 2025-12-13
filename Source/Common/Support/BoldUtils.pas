@@ -34,10 +34,8 @@ type
   end;
 
 function CharCount(c: char; const s: string): integer;
-function BoldNamesEqual(const name1, name2: string): Boolean;
 procedure BoldAppendToStrings(strings: TStrings; const aString: string; const ForceNewLine: Boolean);
 function BoldSeparateStringList(strings: TStringList; const Separator, PreString, PostString: String; AIndex: integer = -1): String;
-function BoldIsPrefix(const S, Prefix: string): Boolean;
 function BoldCaseIndependentPos(const Substr, S: string): Integer;
 function StringToBoolean(StrValue: String): Boolean;
 function GetUpperLimitForMultiplicity(const Multiplicity: String): Integer;
@@ -93,15 +91,6 @@ begin
   Result := Ticks/Nr100nsPerDay;
 end;
 
-function BoldIsPrefix(const S, Prefix: string): Boolean;
-{ril - resusing length by variable }
-var
-  PrefixLen: Integer;
-begin
-  PrefixLen := Length(Prefix);
-  Result := (Length(s) >= PrefixLen) and CompareMem(@s[1], @Prefix[1], PrefixLen * SizeOf(Char));
-end;
-
 function BoldCaseIndependentPos(const Substr, S: string): Integer;
 var
   SubstrLen: integer;
@@ -141,11 +130,6 @@ begin
     Result := ModuleName
   else
     Result := ExtractFileName(ModuleName);  
-end;
-
-function BoldNamesEqual(const name1, name2: string): Boolean;
-begin
-  Result := (AnsiCompareText(name1, name2) = 0);
 end;
 
 function BoldSeparateStringList(strings: TStringList; const Separator, PreString, PostString: String; AIndex: integer): String;

@@ -101,7 +101,6 @@ uses
   BoldnameExpander,
   BoldLogHandler,
   BoldDbInterfaces,
-  BoldUtils,
   BoldCoreConsts,
   BoldGuard;
 
@@ -134,7 +133,7 @@ var
   i: Integer;
 begin
   for I := 0 to Length(IndexDefs) - 1 do
-    if BoldNamesEqual(IndexDefs[i].IndexedColumns, Columns)  then
+    if SameText(IndexDefs[i].IndexedColumns, Columns)  then
     begin
       Result := true;
       Exit;

@@ -304,7 +304,6 @@ implementation
 
 uses
   SysUtils,
-  BoldUtils,
   BoldCoreConsts,
   BoldGuard,
   BoldDefaultStreamNames,
@@ -357,7 +356,7 @@ begin
     begin
       MoldClass := MoldModel.Classes[i];
       ObjectMapperName := MoldClass.PMapperName;
-      if BoldNamesEqual(ObjectMapperName, DEFAULTNAMELITERAL) and (DefaultObjectMapperName <> '') then
+      if SameText(ObjectMapperName, DEFAULTNAMELITERAL) and (DefaultObjectMapperName <> '') then
         ObjectMapperName := DefaultObjectMapperName;      
       ObjectMapperDescriptor := BoldObjectPersistenceMappers.DescriptorByName[ObjectMapperName];
       if not assigned(ObjectMapperDEscriptor) then

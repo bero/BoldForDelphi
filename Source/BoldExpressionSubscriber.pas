@@ -65,8 +65,7 @@ type
 implementation
 
 uses
-  Contnrs,
-  BoldUtils;
+  Contnrs;
 
 type
   TBoldSpanNode = class;
@@ -1096,7 +1095,7 @@ begin
   fContextualVariableStack.PushDefinition(OclIteration.LoopVar.VariableName, fCurrentContextSpans);
   Arg1result := TranslateEntry(OclIteration.Args[1]);
   fContextualVariableStack.PopDefinition;
-  if BoldNamesEqual(OclIteration.OperationName, 'collect') then
+  if SameText(OclIteration.OperationName, 'collect') then
     Result :=  Arg1result
   else
     Result := fCurrentContextSpans;
@@ -1169,84 +1168,84 @@ var
   i: integer;
 begin
   OperationName := OclOperation.OperationName;
-  if BoldNamesEqual(OperationName, 'if') then
+  if SameText(OperationName, 'if') then
   begin
     TranslateEntry(OclOperation.Args[0]);
     Result := Union(TranslateEntry(OclOperation.Args[1]), TranslateEntry(OclOperation.Args[2]));
    end
-  else if BoldNamesEqual(OperationName, 'first') or
-    BoldNamesEqual(OperationName, 'last')
+  else if SameText(OperationName, 'first') or
+    SameText(OperationName, 'last')
   then
   begin
     Result := TranslateEntry(OclOperation.Args[0]);
   end
-  else if BoldNamesEqual(OperationName, 'at')
+  else if SameText(OperationName, 'at')
   then
   begin
     Result := TranslateEntry(OclOperation.Args[0]);
     TranslateEntry(OclOperation.Args[1]);
   end // no parameters, non result
   else if
-    BoldNamesEqual(OperationName, 'emptyList') or
-    BoldNamesEqual(OperationName, 'nullValue')
+    SameText(OperationName, 'emptyList') or
+    SameText(OperationName, 'nullValue')
     then
     begin
       Result := nil;
     end
   else if // one parameter, no result
-    BoldNamesEqual(OperationName, 'not') or
-    BoldNamesEqual(OperationName, 'oclIsTypeOf') or
-    BoldNamesEqual(OperationName, 'oclType') or
-    BoldNamesEqual(OperationName, 'asDateTime') or
-    BoldNamesEqual(OperationName, 'count') or
-    BoldNamesEqual(OperationName, 'size') or
-    BoldNamesEqual(OperationName, 'sum') or
-    BoldNamesEqual(OperationName, 'isEmpty') or
-    BoldNamesEqual(OperationName, 'notEmpty') or
-    BoldNamesEqual(OperationName, 'isNull') or
-    BoldNamesEqual(OperationName, 'formatDateTime') or
-    BoldNamesEqual(OperationName, 'length') or
-    BoldNamesEqual(OperationName, 'unary-') or
-    BoldNamesEqual(OperationName, 'abs') or
-    BoldNamesEqual(OperationName, 'floor') or
-    BoldNamesEqual(OperationName, 'round') or
-    BoldNamesEqual(OperationName, 'strToInt') or
-    BoldNamesEqual(OperationName, 'strToFloat') or
-    BoldNamesEqual(OperationName, 'toUpper') or
-    BoldNamesEqual(OperationName, 'toLower') or
-    BoldNamesEqual(OperationName, 'strToDate') or
-    BoldNamesEqual(OperationName, 'strToTime') or
-    BoldNamesEqual(OperationName, 'strToDateTime') or
-    BoldNamesEqual(OperationName, 'asFloat') or
-    BoldNamesEqual(OperationName, 'datePart') or
-    BoldNamesEqual(OperationName, 'oclIsKindOf') or
-    BoldNamesEqual(OperationName, 'formatDateTime') or
-    BoldNamesEqual(OperationName, 'asCommaText') or
-    BoldNamesEqual(OperationName, 'separate') or
-    BoldNamesEqual(OperationName, 'day') or
-    BoldNamesEqual(OperationName, 'month') or
-    BoldNamesEqual(OperationName, 'year') or
-    BoldNamesEqual(OperationName, 'dayOfWeek') or
-    BoldNamesEqual(OperationName, 'asISODateTime') or
-    BoldNamesEqual(OperationName, 'asISODate') or
-    BoldNamesEqual(OperationName, 'week') or
-    BoldNamesEqual(OperationName, 'formatNumeric') or
-    BoldNamesEqual(OperationName, 'maxValue') or
-    BoldNamesEqual(OperationName, 'minValue') or
-    BoldNamesEqual(OperationName, 'constraints') or
-    BoldNamesEqual(OperationName, 'floatAsDateTime') or
-    BoldNamesEqual(OperationName, 'trim') or
-    BoldNamesEqual(OperationName, 'hasDuplicates') or
-    BoldNamesEqual(OperationName, 'allSubClasses') or
-    BoldNamesEqual(OperationName, 'toStringCollection') or
-    BoldNamesEqual(OperationName, 'toIntegerCollection') or
-    BoldNamesEqual(OperationName, 'boldId')
+    SameText(OperationName, 'not') or
+    SameText(OperationName, 'oclIsTypeOf') or
+    SameText(OperationName, 'oclType') or
+    SameText(OperationName, 'asDateTime') or
+    SameText(OperationName, 'count') or
+    SameText(OperationName, 'size') or
+    SameText(OperationName, 'sum') or
+    SameText(OperationName, 'isEmpty') or
+    SameText(OperationName, 'notEmpty') or
+    SameText(OperationName, 'isNull') or
+    SameText(OperationName, 'formatDateTime') or
+    SameText(OperationName, 'length') or
+    SameText(OperationName, 'unary-') or
+    SameText(OperationName, 'abs') or
+    SameText(OperationName, 'floor') or
+    SameText(OperationName, 'round') or
+    SameText(OperationName, 'strToInt') or
+    SameText(OperationName, 'strToFloat') or
+    SameText(OperationName, 'toUpper') or
+    SameText(OperationName, 'toLower') or
+    SameText(OperationName, 'strToDate') or
+    SameText(OperationName, 'strToTime') or
+    SameText(OperationName, 'strToDateTime') or
+    SameText(OperationName, 'asFloat') or
+    SameText(OperationName, 'datePart') or
+    SameText(OperationName, 'oclIsKindOf') or
+    SameText(OperationName, 'formatDateTime') or
+    SameText(OperationName, 'asCommaText') or
+    SameText(OperationName, 'separate') or
+    SameText(OperationName, 'day') or
+    SameText(OperationName, 'month') or
+    SameText(OperationName, 'year') or
+    SameText(OperationName, 'dayOfWeek') or
+    SameText(OperationName, 'asISODateTime') or
+    SameText(OperationName, 'asISODate') or
+    SameText(OperationName, 'week') or
+    SameText(OperationName, 'formatNumeric') or
+    SameText(OperationName, 'maxValue') or
+    SameText(OperationName, 'minValue') or
+    SameText(OperationName, 'constraints') or
+    SameText(OperationName, 'floatAsDateTime') or
+    SameText(OperationName, 'trim') or
+    SameText(OperationName, 'hasDuplicates') or
+    SameText(OperationName, 'allSubClasses') or
+    SameText(OperationName, 'toStringCollection') or
+    SameText(OperationName, 'toIntegerCollection') or
+    SameText(OperationName, 'boldId')
     then
   begin
     TranslateEntry(OclOperation.Args[0]);
     Result := nil;
   end
-  else if BoldNamesEqual(OperationName, 'asString')  then
+  else if SameText(OperationName, 'asString')  then
   begin
     Arg0Value := TranslateEntry(OclOperation.Args[0]);
     for I := 0 to Length(Arg0Value) - 1 do
@@ -1267,32 +1266,32 @@ begin
     (OperationName = '-') or
     (OperationName = '*') or
     (OperationName = '/') or
-    BoldNamesEqual(OperationName, 'concat') or
-    BoldNamesEqual(OperationName, 'and') or
-    BoldNamesEqual(OperationName, 'or') or
-    BoldNamesEqual(OperationName, 'min') or
-    BoldNamesEqual(OperationName, 'max') or
-    BoldNamesEqual(OperationName, 'mod') or
-    BoldNamesEqual(OperationName, 'like') or
-    BoldNamesEqual(OperationName, 'sqlLike') or
-    BoldNamesEqual(OperationName, 'sqlLikeCaseInsensitive') or
-    BoldNamesEqual(OperationName, 'regExpMatch') or
-    BoldNamesEqual(OperationName, 'includes') or
-    BoldNamesEqual(OperationName, 'contains') or
-    BoldNamesEqual(OperationName, 'indexOf') or
-    BoldNamesEqual(OperationName, 'safeDiv') or
-    BoldNamesEqual(OperationName, 'hoursBetween') or
-    BoldNamesEqual(OperationName, 'minutesBetween') or
-    BoldNamesEqual(OperationName, 'secondsBetween') then
+    SameText(OperationName, 'concat') or
+    SameText(OperationName, 'and') or
+    SameText(OperationName, 'or') or
+    SameText(OperationName, 'min') or
+    SameText(OperationName, 'max') or
+    SameText(OperationName, 'mod') or
+    SameText(OperationName, 'like') or
+    SameText(OperationName, 'sqlLike') or
+    SameText(OperationName, 'sqlLikeCaseInsensitive') or
+    SameText(OperationName, 'regExpMatch') or
+    SameText(OperationName, 'includes') or
+    SameText(OperationName, 'contains') or
+    SameText(OperationName, 'indexOf') or
+    SameText(OperationName, 'safeDiv') or
+    SameText(OperationName, 'hoursBetween') or
+    SameText(OperationName, 'minutesBetween') or
+    SameText(OperationName, 'secondsBetween') then
   begin
     TranslateEntry(OclOperation.Args[0]);
     TranslateEntry(OclOperation.Args[1]);
     Result := nil;
   end
   else if // three parameters, no result
-    BoldNamesEqual(OperationName, 'subString') or
-    BoldNamesEqual(OperationName,'inDateRange') or
-    BoldNamesEqual(OperationName, 'inTimeRange')
+    SameText(OperationName, 'subString') or
+    SameText(OperationName,'inDateRange') or
+    SameText(OperationName, 'inTimeRange')
   then
   begin
     TranslateEntry(OclOperation.Args[0]);
@@ -1301,19 +1300,19 @@ begin
     Result := nil;
   end
   else if // one parameter, which is result
-    BoldNamesEqual(OperationName, 'reverseCollection') or
-    BoldNamesEqual(OperationName, 'asSet') or
-    BoldNamesEqual(OperationName, 'orderby') or
-    BoldNamesEqual(OperationName, 'subSequence') or
-    BoldNamesEqual(OperationName, 'orderdescending')
+    SameText(OperationName, 'reverseCollection') or
+    SameText(OperationName, 'asSet') or
+    SameText(OperationName, 'orderby') or
+    SameText(OperationName, 'subSequence') or
+    SameText(OperationName, 'orderdescending')
   then
   begin
     Result := TranslateEntry(OclOperation.Args[0]);
   end
   else if
-    BoldNamesEqual(OperationName, 'safecast') or
-    BoldNamesEqual(OperationName, 'oclAsType') or
-    BoldNamesEqual(OperationName, 'filterOnType')
+    SameText(OperationName, 'safecast') or
+    SameText(OperationName, 'oclAsType') or
+    SameText(OperationName, 'filterOnType')
   then
   begin
     typeName := (OclOperation.Args[1] as TBoldOclTypeNode).typeName;
@@ -1329,8 +1328,8 @@ begin
     end;
   end
   else if
-    BoldNamesEqual(OperationName, 'allinstances') or
-    BoldNamesEqual(OperationName, 'allLoadedObjects')
+    SameText(OperationName, 'allinstances') or
+    SameText(OperationName, 'allLoadedObjects')
   then
   begin
     typeName := (OclOperation.Args[0] as TBoldOclTypeNode).typeName;
@@ -1340,7 +1339,7 @@ begin
       SetLength(Result, Length(fCurrentContextSpans));
       for I := 0 to Length(fCurrentContextSpans) - 1 do
       begin
-        AllInstacesNode := TBoldAllInstancesNode.Create(ClassTypeInfo, BoldNamesEqual(OperationName, 'allLoadedObjects'));
+        AllInstacesNode := TBoldAllInstancesNode.Create(ClassTypeInfo, SameText(OperationName, 'allLoadedObjects'));
         fCurrentContextSpans[i].AddSubNode(AllInstacesNode);
         Result[i] := AllInstacesNode;
       end;
@@ -1348,13 +1347,13 @@ begin
     else
       Result := nil;
   end
-  else if BoldNamesEqual(OperationName, 'union') or
-    BoldNamesEqual(OperationName, 'symmetricDifference') or
-    BoldNamesEqual(OperationName, 'includesAll') or
-    BoldNamesEqual(OperationName, 'intersection') or
-    BoldNamesEqual(OperationName, 'including') or
-    BoldNamesEqual(OperationName, 'excluding') or
-    BoldNamesEqual(OperationName, 'difference')
+  else if SameText(OperationName, 'union') or
+    SameText(OperationName, 'symmetricDifference') or
+    SameText(OperationName, 'includesAll') or
+    SameText(OperationName, 'intersection') or
+    SameText(OperationName, 'including') or
+    SameText(OperationName, 'excluding') or
+    SameText(OperationName, 'difference')
   then
   begin
     Result := Union(TranslateEntry(OclOperation.Args[0]), TranslateEntry(OclOperation.Args[1]));
@@ -1369,9 +1368,9 @@ var
   VariableName: string;
 begin
   VariableName := OclVariableReference.VariableName;
-  if BoldNamesEqual(VariableName, 'true')
-    or BoldNamesEqual(VariableName, 'false')
-    or BoldNamesEqual(VariableName, 'nil')
+  if SameText(VariableName, 'true')
+    or SameText(VariableName, 'false')
+    or SameText(VariableName, 'nil')
     or not (OclVariableReference.BoldType is TBoldClassTypeInfo)
   then
     Result := nil
@@ -1413,7 +1412,7 @@ begin
   for I := fStack.Count - 1 downto 0 do
   begin
     Entry := fStack[i] as TSpanArrayNamedCollectionEntry;
-    if BoldNamesEqual(Entry.Name, Name)  then
+    if SameText(Entry.Name, Name)  then
     begin
       Result := Entry.SpanArray;
       Exit;
