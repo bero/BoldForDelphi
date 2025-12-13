@@ -35,7 +35,8 @@ uses
   Test.BoldGeneratedCodeDictionary in 'Code\RTModel\Test.BoldGeneratedCodeDictionary.pas',
   Test.BoldPersistenceHandleDB in 'Code\Persistence\Test.BoldPersistenceHandleDB.pas',
   Test.BoldPMapperLists in 'Code\PMapper\Test.BoldPMapperLists.pas',
-  Test.BoldSQLMappingInfo in 'Code\PMapper\Test.BoldSQLMappingInfo.pas';
+  Test.BoldSQLMappingInfo in 'Code\PMapper\Test.BoldSQLMappingInfo.pas',
+  Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas';
 
 {$R *.res}
 
