@@ -119,7 +119,7 @@ uses
   BoldTaggedValueSupport,
   BoldUMLModelSupport,
   BoldDefaultID,
-  BoldMath,
+  System.Math,
   BoldGuard,
   BoldBase,
   BoldIndexableList,

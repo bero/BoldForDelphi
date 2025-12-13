@@ -26,7 +26,6 @@ uses
   BoldAttributes,
   BoldOclError,
   BoldDefs,
-  BoldMath,
   BoldTypeList,
   BoldSystemRT,
   BoldSystem,

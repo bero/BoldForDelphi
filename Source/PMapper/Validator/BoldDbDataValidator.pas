@@ -102,7 +102,7 @@ uses
   BoldLogHandler,
   BoldDefs,
   BoldUtils,
-  BoldMath,
+  System.Math,
   BoldGuard;
 
 const

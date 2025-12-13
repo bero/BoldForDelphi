@@ -1465,7 +1465,7 @@ uses
    BoldDefaultStreamNames,
    BoldAttributes,
    BoldFreeStandingValueFactories,
-   BoldMath,
+   System.Math,
    System.Types;
 //  BoldJSONWriter;
 

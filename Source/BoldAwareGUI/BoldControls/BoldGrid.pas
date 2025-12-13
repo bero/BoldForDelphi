@@ -548,7 +548,7 @@ uses
   BoldListControlPack,
   BoldUtils,
   TypInfo,
-  BoldMath,
+  System.Math,
   BoldQueue;
 
 const

@@ -83,7 +83,7 @@ uses
   BoldTaggedValueSupport,
   BoldUpdatePrecondition,
   BoldGuard,
-  BoldMath;
+  System.Math;
 
 { TBoldSystemPersistenceHandler }
 

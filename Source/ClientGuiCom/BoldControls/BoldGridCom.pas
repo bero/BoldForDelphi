@@ -549,7 +549,7 @@ uses
   BoldDefs,
   BoldEnvironment,
   BoldListControlPackCom,
-  BoldMath,
+  System.Math,
   TypInfo;
 
 const

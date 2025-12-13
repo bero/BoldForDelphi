@@ -97,7 +97,7 @@ uses
   SysUtils,
 
   BoldDefs,
-  BoldMath,
+  System.Math,
   BoldnameExpander,
   BoldLogHandler,
   BoldDbInterfaces,

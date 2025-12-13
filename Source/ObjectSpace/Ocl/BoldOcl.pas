@@ -191,7 +191,6 @@ uses
   BoldOclSemantics,
   BoldOclSymbolImplementations,
   BoldORed,
-  BoldMath,
   BoldTraceLog,
   BoldSSExcept,
   BoldSSLexU,

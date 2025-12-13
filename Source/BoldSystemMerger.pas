@@ -111,7 +111,7 @@ implementation
 uses
   SysUtils,
   BoldUMLModelSupport,
-  BoldMath,
+  System.Math,
   BoldGuard,
   BoldTaggedValueSupport,
   BoldElements,
@@ -458,7 +458,7 @@ begin
                     DestinationMultilink.Add(DestinationOtherEnd)
                   else
                   begin
-                    indexInDestinationList := BoldMath.MinIntValue([m, DestinationMultilink.Count-1]);
+                    indexInDestinationList := MinIntValue([m, DestinationMultilink.Count-1]);
                     (DestinationMultilink).Insert(indexInDestinationList,DestinationOtherEnd);
                   end;
                 end

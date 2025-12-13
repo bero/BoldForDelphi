@@ -80,7 +80,7 @@ uses
   BoldCondition,
   BoldFreestandingValues,
   BoldDefaultXMLStreaming,
-  BoldMath,
+  System.Math,
   BoldGlobalId,
   MSXML_TLB;
 

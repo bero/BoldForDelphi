@@ -18,7 +18,7 @@ uses
   ComCtrls,
   Menus,
   BoldLogHandler,
-  BoldMath,
+  System.Math,
   ImgList,
   System.ImageList;
 

@@ -8,7 +8,7 @@ interface
 uses
   Classes,
   Grids,
-  BoldMath,
+  System.Math,
   BoldObjectRetriever,
   BoldSystem,
   BoldIndex,

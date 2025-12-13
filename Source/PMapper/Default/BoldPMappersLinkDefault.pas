@@ -197,7 +197,7 @@ uses
   BoldPSDescriptionsSQL,
   BoldSQLMappingInfo,
   BoldPMappersSQL,
-  BoldMath,
+  System.Math,
   BoldSubscription,
   BoldTaggedValueSupport,
   BoldPMapperLists,
