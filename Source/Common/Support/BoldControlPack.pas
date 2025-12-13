@@ -418,7 +418,7 @@ uses
   BoldGUI,
 {$ENDIF}
 {$IFDEF SpanFetch}
-  AttracsSpanFetchManager,
+  BoldSpanFetchManager,
 {$ENDIF}
   BoldGuard,
   BoldListControlPack,

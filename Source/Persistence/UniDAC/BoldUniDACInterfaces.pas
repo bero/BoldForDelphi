@@ -247,13 +247,13 @@ uses
   BoldGuard,
 {$IFDEF LAZYFETCHDEBUG}
   BoldSystem,
-  AttracsSpanFetchManager,
+  BoldSpanFetchManager,
   BoldControlpack,
 {$ENDIF}
+  BoldTraceLog,
   {$IFDEF ATTRACS}
-  AttracsDefs,
-  AttracsPerformance,
-  AttracsTraceLog,
+  BoldStubDefs,
+  BoldPerformanceStub,
   {$IFDEF BOLD_PERFORMANCE_COUNTERS}
   BoldSystemPerf,
   {$ENDIF}
@@ -538,7 +538,7 @@ begin
       inherited;
       Done := true;
 {$IFDEF LAZYFETCHDEBUG}
-      if (Query.RecordCount = 1) and (TBoldSystem.DefaultSystem <> nil) and not AttracsSpanFetchManager.InSpanFetch and not TBoldSystem.DefaultSystem.IsUpdatingDatabase {and not FollowerGettingValue} then
+      if (Query.RecordCount = 1) and (TBoldSystem.DefaultSystem <> nil) and not BoldSpanFetchManager.InSpanFetch and not TBoldSystem.DefaultSystem.IsUpdatingDatabase {and not FollowerGettingValue} then
         Assert(Assigned(query)); // Fake assert for placing breakpoint when debugging inefficient loading
 {$ENDIF}
     except

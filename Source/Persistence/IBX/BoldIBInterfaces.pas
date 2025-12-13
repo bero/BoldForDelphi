@@ -143,9 +143,9 @@ implementation
 uses
   SysUtils,
   {$IFDEF ATTRACS}
-  AttracsDefs,
-  AttracsPerformance,
-  AttracsErrorMgr,
+  BoldStubDefs,
+  BoldPerformanceStub,
+  BoldErrorMgr,
   {$ENDIF}
   BoldUtils;
 

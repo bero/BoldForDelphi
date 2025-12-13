@@ -55,10 +55,10 @@ implementation
 uses
   SysUtils,
   BoldDefs,
+  BoldTraceLog,
   {$IFDEF ATTRACS}
-  AttracsPerformance,
-  AttracsDefs,
-  AttracsTraceLog,
+  BoldPerformanceStub,
+  BoldStubDefs,
   {$ENDIF}
   BoldSystemRT,
   BoldElementList;

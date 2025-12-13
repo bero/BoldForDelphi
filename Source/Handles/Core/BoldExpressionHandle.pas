@@ -71,13 +71,13 @@ implementation
 
 uses
   SysUtils,
+  BoldTraceLog,
   {$IFDEF ATTRACS}
-  AttracsPerformance,
-  AttracsDefs,
-  AttracsTraceLog,
+  BoldPerformanceStub,
+  BoldStubDefs,
   {$ENDIF}
   {$IFDEF SpanFetch}
-  AttracsSpanFetchManager,
+  BoldSpanFetchManager,
   {$ENDIF}
   BoldCoreConsts;
 

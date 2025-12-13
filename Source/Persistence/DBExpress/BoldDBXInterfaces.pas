@@ -147,10 +147,10 @@ uses
   SqlTimSt,
   BoldDefs,
   SysUtils,
+  BoldTraceLog,
   {$IFDEF ATTRACS}
-  AttracsDefs,
-  AttracsPerformance,
-  AttracsTraceLog,
+  BoldStubDefs,
+  BoldPerformanceStub,
   {$IFDEF BOLD_PERFORMANCE_COUNTERS}
   BoldSystemPerf,
   {$ENDIF}

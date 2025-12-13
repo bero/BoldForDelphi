@@ -1015,7 +1015,7 @@ uses
   cxTimeEdit,
 
 {$IFDEF SpanFetch}
-  AttracsSpanFetchManager,
+  BoldSpanFetchManager,
 {$ENDIF}
   BoldGuard, TypInfo;
 

@@ -192,9 +192,7 @@ uses
   BoldOclSymbolImplementations,
   BoldORed,
   BoldMath,
-{$IFDEF ATTRACS}
-  AttracsTraceLog,
-{$ENDIF}
+  BoldTraceLog,
   BoldSSExcept,
   BoldSSLexU,
   BoldSSYaccU,

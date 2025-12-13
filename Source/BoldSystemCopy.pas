@@ -133,7 +133,7 @@ uses
   BoldDefaultTaggedValues,
   BoldObjectListControllers,
 {$IFDEF SpanFetch}
-  AttracsSpanFetch, AttracsSpanFetchManager,
+  BoldSpanFetch, BoldSpanFetchManager,
 {$ENDIF}
   BoldModel;
 

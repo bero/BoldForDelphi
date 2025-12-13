@@ -47,10 +47,10 @@ uses
 
   BoldCoreConsts,
   BoldDefs,
+  BoldTraceLog,
   {$IFDEF ATTRACS}
-  AttracsPerformance,
-  AttracsDefs,
-  AttracsTraceLog,
+  BoldPerformanceStub,
+  BoldStubDefs,
   {$ENDIF}
   BoldSystemRT;
 

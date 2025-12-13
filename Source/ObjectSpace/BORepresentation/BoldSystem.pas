@@ -1455,7 +1455,7 @@ uses
   AttracsExpressionOverrides,
   {$ENDIF}
 {$IFDEF SpanFetch}
-  AttracsSpanFetchManager,
+  BoldSpanFetchManager,
 {$ENDIF}
 {$IFDEF Attracs}
 {$IFDEF BOLD_PERFORMANCE_COUNTERS}
@@ -5644,7 +5644,7 @@ begin
     {$IFDEF SpanFetch}
       if IsPartOfSystem and not IsPrefetched then
       begin
-        AttracsSpanFetchManager.PrefetchDerivedMember(self);
+        BoldSpanFetchManager.PrefetchDerivedMember(self);
         IsPrefetched := true;
       end;
     {$ENDIF}

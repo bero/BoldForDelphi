@@ -103,13 +103,13 @@ implementation
 uses
   SysUtils,
   Classes,
+  BoldTraceLog,
   {$IFDEF ATTRACS}
-  AttracsTraceLog,
-  AttracsDefs,
-  AttracsPerformance,
-   {$IFDEF BOLD_PERFORMANCE_COUNTERS}
-     BoldSystemPerf,
-   {$ENDIF}
+  BoldStubDefs,
+  BoldPerformanceStub,
+  {$IFDEF BOLD_PERFORMANCE_COUNTERS}
+  BoldSystemPerf,
+  {$ENDIF}
   {$ENDIF}
   BoldCoreConsts,
   BoldSystem;

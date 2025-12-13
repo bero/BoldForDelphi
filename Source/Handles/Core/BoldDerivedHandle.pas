@@ -49,10 +49,10 @@ uses
 
   BoldCoreConsts,
   BoldSystemRT,
+  BoldTraceLog,
   {$IFDEF ATTRACS}
-  AttracsPerformance,
-  AttracsDefs,
-  AttracsTraceLog,
+  BoldPerformanceStub,
+  BoldStubDefs,
   {$ENDIF}
   BoldDefs;
 

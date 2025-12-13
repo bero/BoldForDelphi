@@ -15,8 +15,7 @@ procedure SaveToFile(const BoldSystemHandle: TBoldSystemHandle);
 implementation
 
 uses
-  AttracsTraceLog,
-
+  BoldTraceLog,
   BoldCoreConsts,
   BoldGuard;
 
@@ -262,7 +261,9 @@ var
   vQuerySnippet1, vQuerySnippet2: string;
   I: Integer;
 begin
+  {$IFDEF ATTRACS}
   TraceLog.SystemMessage('Storing Access Statistics on Members and Associations to file...', ekInfo);
+  {$ENDIF}
   vGuard := BoldGuard.TBoldGuard.Create(vMemberData,vAssociationData);
   vMemberData := TStringList.Create;
   vAssociationData := TStringList.Create;
@@ -272,10 +273,14 @@ begin
   vQuerySnippet1 := 'INSERT INTO StatisticOnMember VALUES ('''+vTimeStampStrDb+''','''+ExtractFileName(ParamStr(0))+''',';
   vQuerySnippet2 := 'INSERT INTO StatisticOnAssociation VALUES ('''+vTimeStampStrDb+''','''+ExtractFileName(ParamStr(0))+''',';
   GetMemberAccessStats(BoldSystemHandle, vMemberData, False, vQuerySnippet1, ');');
+  {$IFDEF ATTRACS}
   vMemberData.SaveToFile(TraceLog.LogFileDir+ChangeFileExt(ExtractFileName(ParamStr(0)),'')+'_AccessStatMember_'+vTimeStampStrFile+'.sql' );
+  {$ENDIF}
   GetAssociationAccessStats(BoldSystemHandle, vAssociationData, False, vQuerySnippet2, ');');
+  {$IFDEF ATTRACS}
   vAssociationData.SaveToFile(TraceLog.LogFileDir+ChangeFileExt(ExtractFileName(ParamStr(0)),'')+'_AccessStatAssociation_'+vTimeStampStrFile+'.sql' );
   TraceLog.SystemMessage('Done!', ekInfo);
+  {$ENDIF}
 end;
 
 (*
