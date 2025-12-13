@@ -84,6 +84,10 @@ BoldForDelphi/
 └── UnitTest/                    ← DUnitX tests
 ```
 
+### Folders to Ignore
+
+- **Source/Deprecated/** - Contains deprecated database adapters (ADO, BDE, Advantage, DBExpress). Not used, not maintained. Ignore when searching for cleanup opportunities.
+
 ## Build Commands
 
 ```batch
