@@ -23,10 +23,6 @@ type
     [Test]
     procedure TestBoldSeparateStringListWithAIndex;
     [Test]
-    procedure TestBoldTrimTrailingSpaces;
-    [Test]
-    procedure TestBoldTrimLeadingAndTrailing;
-    [Test]
     procedure TestGetUpperLimitForMultiplicitySimple;
     [Test]
     procedure TestGetUpperLimitForMultiplicityNegative;
@@ -92,20 +88,6 @@ begin
   finally
     SL.Free;
   end;
-end;
-
-procedure TTestBoldUtils.TestBoldTrimTrailingSpaces;
-begin
-  // Covers line 483 - trimming trailing spaces
-  Assert.AreEqual('Hello', BoldTrim('Hello   '));
-  Assert.AreEqual('Test', BoldTrim('Test '#9)); // trailing tab
-end;
-
-procedure TTestBoldUtils.TestBoldTrimLeadingAndTrailing;
-begin
-  // Covers lines 476-488
-  Assert.AreEqual('Hello World', BoldTrim('  Hello World  '));
-  Assert.AreEqual('', BoldTrim('   ')); // all whitespace
 end;
 
 procedure TTestBoldUtils.TestGetUpperLimitForMultiplicitySimple;

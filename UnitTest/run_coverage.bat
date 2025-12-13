@@ -134,7 +134,7 @@ echo.
   -uf coverage_units.lst ^
   -html ^
   -xml ^
-  -od %OUTPUT_DIR%
+  -od %OUTPUT_DIR% >nul
 
 echo.
 echo ========================================================

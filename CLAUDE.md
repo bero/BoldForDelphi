@@ -13,6 +13,12 @@ Bold for Delphi is a Model-Driven Architecture (MDA) framework and Object-Relati
 
 By default never guess to generate the answer. If information is missing ask for clarification. Only guess if the prompt actually tells you to.
 
+### Important Paths (REMEMBER THESE!)
+
+- **UnitTest.exe**: `/mnt/c/Attracs/BoldForDelphi/UnitTest/UnitTest.exe`
+- **rsvars.bat**: `/mnt/c/Program Files (x86)/Embarcadero/Studio/37.0/bin/rsvars.bat`
+- **UnitTest project folder**: `/mnt/c/Attracs/BoldForDelphi/UnitTest`
+
 ### Git Commit Messages
 
 Do not include Claude references in git commit messages. No "Generated with Claude", no "Co-Authored-By: Claude", and no similar attributions.

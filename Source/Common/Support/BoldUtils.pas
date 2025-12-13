@@ -38,12 +38,7 @@ function BoldNamesEqual(const name1, name2: string): Boolean;
 procedure BoldAppendToStrings(strings: TStrings; const aString: string; const ForceNewLine: Boolean);
 function BoldSeparateStringList(strings: TStringList; const Separator, PreString, PostString: String; AIndex: integer = -1): String;
 function BoldSeparatedAppend(const S1, S2: string;const Separator: string = ','): string;
-function BoldTrim(const S: string): string;
 function BoldIsPrefix(const S, Prefix: string): Boolean;
-function BoldStrEqual(P1, P2: PChar; Len: integer): Boolean;
-function BoldStrAnsiEqual(P1, P2: PChar; Len: integer): Boolean;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
-function BoldAnsiEqual(const S1, S2: string): Boolean;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
-function BoldStrStringEqual(const S1: string; P2: PChar; Len: integer): Boolean;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
 function BoldCaseIndependentPos(const Substr, S: string): Integer;
 procedure EnumToStrings(aTypeInfo: pTypeInfo; Strings: TStrings);
 function CapitalisedToSpaced(Capitalised: String): String;
@@ -62,26 +57,16 @@ function StrToDateFmt(const ADateString: string; const ADateFormat: string;
 function DateToStrFmt(const aDate: TDateTime; DateFormat: string; const DateSeparatorChar: char = '/'): String;
 function BoldParseFormattedDateList(const value: String; const formats: TStrings; var Date: TDateTime): Boolean;
 function BoldParseFormattedDate(const value: String; const formats: array of string; var Date: TDateTime): Boolean;
-{$IFDEF MSWINDOWS}
 function FileTimeToDateTime(const FileTime: TFileTime): TDateTime; {$IFDEF BOLD_INLINE} inline; {$ENDIF}
-{$ENDIF}
 function UserTimeInTicks: Int64;
 function TicksToDateTime(Ticks: Int64): TDateTime;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
 procedure EnsureTrailing(var Str: String; ch: char);
-{ Taken from FileCtrl to remove unit dependency }
-function DirectoryExists(const Name: string): Boolean;
-function ForceDirectories(Dir: string): Boolean;
 
 function BoldRootRegistryKey: string;
 function GetModuleFileNameAsString(IncludePath: Boolean): string;
 
 {variant support}
 function BoldVariantToStrings(V: OleVariant; Strings: TStrings): Integer;
-
-{$IFNDEF BOLD_DELPHI13_OR_LATER}
-function CharInSet(C: AnsiChar; const CharSet: TSysCharSet): Boolean; overload;
-function CharInSet(C: WideChar; const CharSet: TSysCharSet): Boolean; overload;
-{$ENDIF}
 
 var BoldRunningAsDesignTimePackage: boolean = false;
 
@@ -90,13 +75,6 @@ implementation
 uses
   BoldCoreConsts,
   BoldRev;
-
-{$IFDEF LINUX}
-const
-  MAX_COMPUTERNAME_LENGTH = 128;
-{$ENDIF}
-
-{$IFDEF MSWINDOWS}
 
 type
   TFileTimeAligner = record
@@ -117,65 +95,25 @@ begin
   Result := FileTimeAsInt64/Nr100nsPerDay;
 
 end;
-{$ENDIF}
 
 function UserTimeInTicks: Int64;
 var
   UserTime, CreationTime, ExitTime, KernelTime: TFileTimeAligner;
 begin
-{$IFDEF MSWINDOWS}
   if CurrentProcess <> 0 then
     CloseHandle(CurrentProcess);
   CurrentProcess := OpenProcess(PROCESS_QUERY_INFORMATION, False, GetCurrentProcessId);
   if GetProcessTimes(CurrentProcess, CreationTime.asFileTime, ExitTime.asFileTime, KernelTime.asFileTime, UserTime.asFileTime) then
     Result := UserTime.asInt64
   else
-    Result := 0;  
-{$ELSE}
-  FIXME
-{$ENDIF}
+    Result := 0;
 end;
+
 function TicksToDateTime(Ticks: Int64): TDateTime;
 const
   Nr100nsPerDay = 3600.0*24.0*10000000.0;
 begin
-{$IFDEF MSWINDOWS}
   Result := Ticks/Nr100nsPerDay;
-{$ELSE}
-  FIXME
-{$ENDIF}
-end;
-
-{$IFNDEF BOLD_DELPHI13_OR_LATER}
-function CharInSet(C: AnsiChar; const CharSet: TSysCharSet): Boolean;
-begin
-  Result := C in CharSet;
-end;
-
-function CharInSet(C: WideChar; const CharSet: TSysCharSet): Boolean;
-begin
-  Result := C in CharSet;
-end;
-{$ENDIF}
-
-{ Taken from FileCtrl to remove unit dependency }
-function DirectoryExists(const Name: string): Boolean;
-var
-  Code: Integer;
-begin
-  Code := GetFileAttributes(PChar(Name));
-  Result := (Code <> -1) and (FILE_ATTRIBUTE_DIRECTORY and Code <> 0);
-end;
-
-function ForceDirectories(Dir: string): Boolean;
-begin
-  Result := True;
-  if Length(Dir) = 0 then
-    raise Exception.Create(sCannotCreateDirectory);
-  Dir := ExcludeTrailingPathDelimiter(Dir);
-  if (Length(Dir) < 3) or DirectoryExists(Dir)
-    or (ExtractFilePath(Dir) = Dir) then Exit;
-  Result := ForceDirectories(ExtractFilePath(Dir)) and CreateDir(Dir);
 end;
 
 function BoldIsPrefix(const S, Prefix: string): Boolean;
@@ -185,64 +123,6 @@ var
 begin
   PrefixLen := Length(Prefix);
   Result := (Length(s) >= PrefixLen) and CompareMem(@s[1], @Prefix[1], PrefixLen * SizeOf(Char));
-end;
-
-function BoldStrEqual(P1, P2: PChar; Len: integer): Boolean;
-begin
- Result := CompareMem(P1, P2, Len * SizeOf(Char));
-end;
-
-function BoldStrAnsiEqual(P1, P2: PChar; Len: integer): Boolean;
-begin
-  Result := CompareMem(P1, P2, Len * SizeOf(Char)) or (AnsiStrLIComp(P1, P2, Len) = 0);
-end;
-
-function BoldStrCaseIndpendentEqual(P1, P2: PChar; Len: integer): Boolean;
-var
-  ch1, ch2: Char;
-begin
-  if not CompareMem(P1, P2, Len * SizeOf(Char)) then
-    while Len <> 0 do
-    begin
-      ch1 := P1^;
-      ch2 := P2^;
-      if Ch1 = ch2 then
-        // match
-      else
-      begin
-        Ch1 := char(ord(ch1) or 32);
-        if (Ch1 >= 'a') and (Ch1 <= 'z') and (ch1 = char(ord(ch2) or 32)) then
-          // match
-        else
-        begin
-          Result := False;
-          Exit;
-        end;
-      end;
-      Inc(P1);
-      Inc(P2);
-      Dec(Len);
-    end;
-  Result := True;
-end;
-
-function BoldAnsiEqual(const S1, S2: string): Boolean;
-var
-  Len: integer;
-begin
-  Len := Length(S1);
-  if Len <> Length(S2) then
-    Result := False
-  else
-    Result := BoldStrAnsiEqual(PChar(S1), PChar(S2), Len);
-end;
-
-function BoldStrStringEqual(const S1: string; P2: PChar; Len: integer): Boolean;
-begin
-  if Len <> Length(S1) then
-    Result := False
-  else
-    Result := CompareMem(PChar(S1), P2, Len * SizeOf(Char));
 end;
 
 function BoldCaseIndependentPos(const Substr, S: string): Integer;
@@ -466,28 +346,6 @@ begin
     Result := S1 + Separator + S2;
 end;
 
-function BoldTrim(const S: string): string;
-var
-  I, L, OldL: Integer;
-begin
-  L := Length(S);
-  OldL := L;
-  I := 1;
-  while (I <= L) and (S[I] <= ' ') do
-    Inc(I);
-  if I > L then
-    Result := ''
-  else
-  begin
-    while S[L] <= ' ' do
-      Dec(L);
-    if (I > 1) or (L < OldL) then
-      Result := Copy(S, I, L - I + 1)
-    else
-      Result := S;
-  end;
-end;
-
 { TBoldPassThroughNotification }
 
 constructor TBoldPassthroughNotifier.CreateWithEvent(NotificationEvent: TBoldNotificationEvent; Owner: TComponent = nil);
@@ -543,7 +401,7 @@ var
   p: Integer;
 begin
 
-  if (Multiplicity = '') or (BoldTrim(Multiplicity) = '') then
+  if (Multiplicity = '') or (Trim(Multiplicity) = '') then
     result := 1
   else
   begin
@@ -578,7 +436,7 @@ function IsLocalMachine(const Machinename: WideString): Boolean;
 var
   MachName: string;
 begin
-  MachName:= BoldTrim(MachineName);
+  MachName:= Trim(MachineName);
   Result := (MachName = '') or (AnsiCompareText(GetComputerNameStr, MachName) = 0);
 end;
 {$IFDEF MSWINDOWS}
@@ -695,11 +553,6 @@ begin
 end;
 
 function BoldParseFormattedDateList(const Value: String; const formats: TStrings; var date: TDateTime): Boolean;
-
-  function IsLeapYear(Year: Word): Boolean;
-  begin
-    result := ((Year mod 4 = 0) and not (year mod 100 = 0)) or (year mod 400 = 0);
-  end;
 
   function InternalTryToParse(Value: String; format: string; var date: TDateTime): Boolean;
   var

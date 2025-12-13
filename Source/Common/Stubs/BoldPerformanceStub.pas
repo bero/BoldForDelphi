@@ -12,6 +12,19 @@ unit BoldPerformanceStub;
 
 interface
 
+type
+  TPerformanceMeasurement = class
+  public
+    class function ReStart : TPerformanceMeasurement;
+  end;
+
 implementation
+
+{ TPerformanceMeasurement }
+
+class function TPerformanceMeasurement.ReStart: TPerformanceMeasurement;
+begin
+
+end;
 
 end.

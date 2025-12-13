@@ -138,7 +138,7 @@ end;
 
 function TBoldStringHashIndex.Match(const Key; Item:TObject):Boolean;
 begin
-  Result := BoldAnsiEqual(ItemAsKeyString(Item), string(Key));
+  Result := SameText(ItemAsKeyString(Item), string(Key));
 end;
 
 function TBoldStringHashIndex.FindByString(const KeyString: string): TObject;

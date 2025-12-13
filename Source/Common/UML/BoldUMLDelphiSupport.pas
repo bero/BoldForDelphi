@@ -34,7 +34,7 @@ begin
   ColonPos := Pos(':', ParameterName);
   if ColonPos > 0 then
   begin
-    Result := BoldTrim(Copy(ParameterName, ColonPos+1, MaxInt));
+    Result := Trim(Copy(ParameterName, ColonPos+1, MaxInt));
     Delete(ParameterName, ColonPos, Maxint); 
   end;  
 end;

@@ -842,7 +842,7 @@ begin
       for i := 0 to aClass.feature.Count - 1 do begin
         aFeature := aClass.feature[i];
         if (aFeature is TUMLOperation) and
-           BoldAnsiEqual(aFeature.name, operation.name) then
+           SameText(aFeature.name, operation.name) then
         begin
           bInheritedOperationFound := True;
           Break;
@@ -858,7 +858,7 @@ begin
     end else begin
       // Search for framework method
       for i := 0 to Length(FrameworkMethods) - 1 do begin
-        if BoldAnsiEqual(GetMethodName(FrameworkMethods[i]),
+        if SameText(GetMethodName(FrameworkMethods[i]),
             operation.name) then
         begin
           if Ord(GetMethodVisibility(FrameworkMethods[i])) > Ord(operation.visibility) then
@@ -1143,9 +1143,9 @@ begin
   end;
 
   sVisibility := Copy(Method, 1, EndPos - 2);
-  if BoldAnsiEqual(sVisibility, 'private') then begin
+  if SameText(sVisibility, 'private') then begin
     Result := vkPrivate;
-  end else if BoldAnsiEqual(sVisibility, 'protected') then begin
+  end else if SameText(sVisibility, 'protected') then begin
     Result := vkProtected;
   end else begin
     Result := vkPublic;

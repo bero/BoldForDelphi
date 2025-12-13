@@ -1602,14 +1602,14 @@ begin
 
       if pos(':', next) <> 0 then
       begin
-        paramtype := BoldTrim(copy(next, pos(':', next) + 1, maxint));
+        paramtype := Trim(copy(next, pos(':', next) + 1, maxint));
         next := copy(next, 1, pos(':', next) - 1);
       end;
       next := next + ',';
       while pos(',', next) <> 0 do
       begin
         param := TMoldParameter.create(self);
-        param.ParameterName := BoldTrim(copy(next, 1, pos(',', next)-1));
+        param.ParameterName := Trim(copy(next, 1, pos(',', next)-1));
         param.ParameterType := ParamType;
         param.FIsConst := IsConst;
         if IsVar then
@@ -2409,7 +2409,7 @@ var
  Definition: TBoldTaggedValueDefinition;
  TrimmedValue: string;
 begin
-  TrimmedValue := BoldTrim(Value);
+  TrimmedValue := Trim(Value);
   Definition := DefaultBoldTVList.DefinitionForTag[Tag];
   // only set tag if it differs from default
   if Assigned(Definition) and (Definition.DefaultValue = TrimmedValue) then
@@ -3089,7 +3089,7 @@ end;
 
 function TMoldMethod.GetHasReturnValue: Boolean;
 begin
-  Result := BoldTrim(ReturnType) <> '';
+  Result := Trim(ReturnType) <> '';
 end;
 
 function TMoldRole.GetQualifiedMulti: Boolean;
@@ -3222,7 +3222,7 @@ procedure TMoldElement.SetTVByName(const Tag, Value: string);
 var
   TrimmedValue: string;
 begin
-  TrimmedValue := BoldTrim(Value);
+  TrimmedValue := Trim(Value);
   if BoldIsPrefix(Tag, BOLDTVPREFIX) then
     BoldTVByName[Copy(Tag, Length(BOLDTVPREFIX) +1, MaxInt)] := TrimmedValue
   else

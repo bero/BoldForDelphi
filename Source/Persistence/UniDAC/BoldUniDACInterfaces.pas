@@ -428,14 +428,10 @@ procedure TBoldUniDACQuery.ExecSQL;
 var
   Retries: Integer;
   Done: Boolean;
-{$IFDEF ATTRACS}
-  PerformanceMeasurement : TPerformanceMeasurement;
+  PerformanceMeasurement: TPerformanceMeasurement;
 begin
-  //PATCH for logging long running SQL
   PerformanceMeasurement := TPerformanceMeasurement.ReStart;
-{$ELSE}
-begin
-{$ENDIF}
+
   if InBatch then
   begin
     BatchExecSQL;
@@ -478,10 +474,8 @@ begin
       end;
     end;
   {$IFDEF ATTRACS}
-    {$IFDEF BOLD_PERFORMANCE_COUNTERS}
     PerformanceMeasurement.EndMeasurement;
     BoldSystemPerfObject.BoldDBXQuery_ExecSQL(PerformanceMeasurement.TimeTaken);
-    {$ENDIF}
     if not PerformanceMeasurement.AcceptableTimeForUserResponseTime then
     begin
       PerformanceMeasurement.WhatMeasured := 'TBoldUniDACQuery.ExecSQL';
