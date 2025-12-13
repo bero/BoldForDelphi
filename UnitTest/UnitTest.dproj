@@ -95,8 +95,8 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="BoldTestCase.pas"/>
-        <DCCReference Include="BoldTestCaseDB.pas"/>
+        <DCCReference Include="BoldTestCasePersistence.pas"/>
+        <DCCReference Include="BoldTestCaseFireDAC.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUMLTypes.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldAttributes.pas"/>
         <DCCReference Include="Code\ObjectSpace\jehoBCBoldTest.pas"/>

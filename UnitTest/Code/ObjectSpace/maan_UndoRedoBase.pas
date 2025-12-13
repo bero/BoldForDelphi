@@ -14,7 +14,6 @@ uses
   IniFiles,
   DUnitX.TestFramework,
   TestModel1,
-  BoldTestCase,
   BoldDefs,
   BoldSystem,
   BoldDomainElement,
@@ -75,7 +74,7 @@ type
     { Public declarations }
   end;
 
-  Tmaan_UndoRedoAbstractTestCase = class(TBoldTestCase)
+  Tmaan_UndoRedoAbstractTestCase = class
   private
     FUndoHandler: TBoldUndoHandler;
     FFSValueSpace: TBoldFreeStandingValueSpace;
@@ -97,8 +96,10 @@ type
     FSomeClassList, FSomeClassList2: TSomeClassList;
     FClassWithLinkList, FClassWithLinkList2: TClassWithLinkList;
     FSubscriber: TLoggingSubscriber;
-    procedure SetUp; override;
-    procedure TearDown; override;
+    [Setup]
+    procedure SetUp; virtual;
+    [TearDown]
+    procedure TearDown; virtual;
     procedure RefreshSystem;
     procedure UpdateDatabase;
     procedure OpenSystem2;

@@ -14,7 +14,6 @@ uses
   DUnitX.TestFramework,
   System.SysUtils,
   System.Classes,
-  BoldTestCase,
   BoldDefs,
   BoldSystem,
   BoldDomainElement,
@@ -34,14 +33,17 @@ uses
 type
   [TestFixture]
   [Category('FetchRefetch')]
-  TTestFetchInvalidAttribute = class(TBoldTestCase)
+  TTestFetchInvalidAttribute = class
   private
     FDataModule: TjehodmBoldTest;
     function GetSystem: TBoldSystem;
   protected
-    procedure SetUp; override;
-    procedure TearDown; override;
     property System: TBoldSystem read GetSystem;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
   public
     [Test]
     procedure TestFetchInvalidAttribute;

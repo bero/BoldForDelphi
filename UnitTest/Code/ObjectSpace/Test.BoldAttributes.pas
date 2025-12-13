@@ -8,7 +8,6 @@ uses
   Classes,
   Forms,
   DUnitX.TestFramework,
-  BoldTestCase,
   jehoBCBoldTest,
   BoldSystem,
   BoldHandle,
@@ -33,7 +32,7 @@ type
 
   [TestFixture]
   [Category('ObjectSpace')]
-  TTestBoldAttributes = class(TBoldTestCase)
+  TTestBoldAttributes = class
   private
     FDataModule: TjehodmBoldTest;
   protected
@@ -58,8 +57,10 @@ type
     procedure DoCheckCompareTypes(OperandA, OperandB: TBoldAttribute; ValidCompareTypes: TCompareTypeSet);
     procedure InternalCheckCompareTypes(OperandA, OperandB: TBoldAttribute; CompareType: TBoldCompareType; WillWork: Boolean);
   public
-    procedure SetUp; override;
-    procedure TearDown; override;
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
     [Test]
     procedure AttributeValueTest;
     [Test]

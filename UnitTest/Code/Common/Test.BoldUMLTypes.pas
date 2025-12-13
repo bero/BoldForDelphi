@@ -4,13 +4,12 @@ interface
 
 uses
   DUnitX.TestFramework,
-  BoldTestCase,
   BoldUMLTypes;
 
 type
   [TestFixture]
   [Category('Common')]
-  TTestBoldUMLTypes = class(TBoldTestCase)
+  TTestBoldUMLTypes = class
   private
     procedure AssertRange(Range: TBoldUMLRange; Lower, Upper: Integer; UpperUnlimited: Boolean);
     procedure AssertSetAsString(const SetString: string; Lower, Upper: Integer;

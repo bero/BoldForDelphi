@@ -15,8 +15,8 @@ uses
   DUnitX.Loggers.Xml.NUnit,
   {$ENDIF }
   DUnitX.TestFramework,
-  BoldTestCase in 'BoldTestCase.pas',
-  BoldTestCaseDB in 'BoldTestCaseDB.pas',
+  BoldTestCasePersistence in 'BoldTestCasePersistence.pas',
+  BoldTestCaseFireDAC in 'BoldTestCaseFireDAC.pas',
   Test.BoldUMLTypes in 'Code\Common\Test.BoldUMLTypes.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   jehoBCBoldTest in 'Code\ObjectSpace\jehoBCBoldTest.pas',

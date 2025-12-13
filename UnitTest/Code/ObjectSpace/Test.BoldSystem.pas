@@ -7,7 +7,6 @@ interface
 uses
   Classes,
   DUnitX.TestFramework,
-  BoldTestCase,
   BoldSystem,
   BoldSystemHandle,
   BoldSystemRT,
@@ -26,13 +25,15 @@ uses
 type
   [TestFixture]
   [Category('ObjectSpace')]
-  TTestBoldSystem = class(TBoldTestCase)
+  TTestBoldSystem = class
   private
     FDataModule: TjehodmBoldTest;
     function GetSystem: TBoldSystem;
   public
-    procedure SetUp; override;
-    procedure TearDown; override;
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
 
     // Object Creation and Deletion
     [Test]
