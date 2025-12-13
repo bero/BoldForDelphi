@@ -145,7 +145,6 @@ uses
   {$IFDEF ATTRACS}
   BoldStubDefs,
   BoldPerformanceStub,
-  BoldErrorMgr,
   {$ENDIF}
   BoldUtils;
 

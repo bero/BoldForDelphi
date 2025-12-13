@@ -103,14 +103,6 @@ implementation
 uses
   SysUtils,
   Classes,
-  BoldTraceLog,
-  {$IFDEF ATTRACS}
-  BoldStubDefs,
-  BoldPerformanceStub,
-  {$IFDEF BOLD_PERFORMANCE_COUNTERS}
-  BoldSystemPerf,
-  {$ENDIF}
-  {$ENDIF}
   BoldCoreConsts,
   BoldSystem;
 
@@ -142,59 +134,9 @@ begin
 end;
 
 procedure TBoldAbstractDeriver.DeriveAndSubscribe(subscribe: Boolean);
-{$IFDEF ATTRACS_NOTNOW}
-var
-  PerformanceMeasurement,
-  SaveSubscriptionsPerformanceMeasurement : TPerformanceMeasurement; //PATCH Performance log
-  Member : TBoldMember;
-  MemberAsString : String;
-  OwningObject : TBoldObject;
-  ObjectID : String;
-
-  procedure InitialiseLocalVariablesWithDerivedObjectData;
-  begin
-    if DerivedObject is TBoldMember then
-    begin
-      Member := DerivedObject as TBoldMember;
-      OwningObject := Member.OwningObject;
-      if Assigned(OwningObject) then
-        ObjectID := OwningObject.BoldObjectLocator.AsString;
-      MemberAsString := Member.BoldMemberRtInfo.AsString;
-    end else
-      MemberAsString := DerivedObject.ClassName;
-  end;
-
-begin
-  PerformanceMeasurement := TPerformanceMeasurement.ReStart;
-  // Perform the derivation
-  DoDeriveAndSubscribe(Subscribe);
-  // if it took too long, Log the derivation (including prefetching if it happened)
-  // and if too long and the SubscriptionSaver is enabled, add this member as slow and save the subscriptions
-  PerformanceMeasurement.EndMeasurement;
-
-  {$IFDEF BOLD_PERFORMANCE_COUNTERS}
-  BoldSystemPerfObject.BoldEventPluggedDeriver_DoDeriveAndSubscribe(PerformanceMeasurement.TimeTaken);
-  {$ENDIF}
-  if not PerformanceMeasurement.AcceptableTimeForSmallComputation then
-  begin
-    InitialiseLocalVariablesWithDerivedObjectData;
-    PerformanceMeasurement.WhatMeasured := 'Deriving ' + MemberAsString ;
-    PerformanceMeasurement.WhatMeasuredParameter := 'object ' + ObjectID;
-
-    PerformanceMeasurement.EndMeasurement;
-    if DerivedObject is TBoldMember then
-    begin
-      PerformanceMeasurement.EndMeasurement;
-      PerformanceMeasurement.Trace;
-    end;
-  end;
-
-end;
-{$ELSE}
 begin;
   DoDeriveAndSubscribe(Subscribe);
 end;
-{$ENDIF}
 
 procedure TBoldAbstractDeriver.DoNotifyOutOfDate;
 begin

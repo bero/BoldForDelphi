@@ -32,7 +32,6 @@ unit BoldStubs;
   AttracsSpanFetch        -> BoldSpanFetch       : Empty stub
   AttracsDefs             -> BoldStubDefs        : Empty stub (type definitions)
   AttracsPerformance      -> BoldPerformanceStub : Empty stub
-  AttracsErrorMgr         -> BoldErrorMgr        : Empty stub
 
   TO ENABLE FULL ATTRACS FUNCTIONALITY:
   Place actual Attracs units earlier in the search path than the Stubs folder.
