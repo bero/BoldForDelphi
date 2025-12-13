@@ -71,12 +71,9 @@ type
   end;
 
 var
-  BoldInternalAllowBothUseVCL: Boolean = false;
-  BoldInternalAllowBothUseCLX: Boolean = false;
   BoldInternalRunningInIDE: Boolean = false;
 
   BoldInternalVCLConfiguration: TBoldEnvironmentConfiguration = nil;
-  BoldInternalCLXConfiguration: TBoldEnvironmentConfiguration = nil;
   BoldInternalCustomConfiguration: TBoldEnvironmentConfiguration = nil;
   BoldInternalFreestandingConfiguration: TBoldEnvironmentConfiguration = nil;
 
@@ -99,15 +96,10 @@ var
 
 function GetBoldEffectiveEnvironment: TBoldEnvironmentConfiguration;
 begin
-   if Assigned(BoldInternalCustomConfiguration) then
+  if Assigned(BoldInternalCustomConfiguration) then
     Result := BoldInternalCustomConfiguration
-  else if Assigned(BoldInternalVCLConfiguration) and ((not Assigned(BoldInternalCLXConfiguration)) or BoldInternalAllowBothUseVCL) then
+  else if Assigned(BoldInternalVCLConfiguration) then
     Result := BoldInternalVCLConfiguration
-  else if Assigned(BoldInternalCLXConfiguration) and ((not Assigned(BoldInternalVCLConfiguration)) or BoldInternalAllowBothUseCLX) then
-    Result := BoldInternalCLXConfiguration
-  else if Assigned(BoldInternalVCLConfiguration) and Assigned(BoldInternalCLXConfiguration) and not
-    (BoldInternalAllowBothUseVCL and BoldInternalAllowBothUseCLX) then
-    raise EBoldInternal.Create('BoldEffectiveEnvironment, conflict, both CLX and VCL installed and no preference given')
   else if Assigned(BoldInternalFreestandingConfiguration) then
     Result := BoldInternalFreestandingConfiguration
   else
@@ -283,7 +275,6 @@ initialization
 
 finalization
   FreeAndNil(BoldInternalVCLConfiguration);
-  FreeAndNil(BoldInternalCLXConfiguration);
   FreeAndNil(BoldInternalCustomConfiguration);
   FreeAndNil(BoldInternalFreestandingConfiguration);
   G_BoldEffectiveEnvironment := nil;
