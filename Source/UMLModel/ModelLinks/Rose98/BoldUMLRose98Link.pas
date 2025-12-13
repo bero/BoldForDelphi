@@ -749,7 +749,7 @@ begin
     RoseProp.SetTaggedValues(RoseItem, UMLAttribute, Tools);
     if Derived <> RoseAttribute.Derived then
     begin
-      BoldLog.Log(Format('Setting %s.Derived to %s', [UMLAttribute.qualifiedName,BooleanToString(Derived)]));
+      BoldLog.Log(Format('Setting %s.Derived to %s', [UMLAttribute.qualifiedName,BoolToStr(Derived, True)]));
       RoseAttribute.Derived := Derived;
     end;
     if CompareText(typeName, RoseAttribute.Type_) <> 0 then
@@ -802,12 +802,12 @@ begin
     end;
     if IsAbstract <> RoseClass.Abstract then
     begin
-      BoldLog.LogFmt('Setting %s.Abstract to %s', [LogName, BooleanToString(IsAbstract)]);
+      BoldLog.LogFmt('Setting %s.Abstract to %s', [LogName, BoolToStr(IsAbstract, True)]);
       RoseClass.Abstract := IsAbstract;
     end;
     if Persistent <> (MakeClassesPersistent or RoseClass.Persistence) then
     begin
-      BoldLog.LogFmt('Setting %s.Persistence to %s', [LogName, BooleanToString(Persistent)]);
+      BoldLog.LogFmt('Setting %s.Persistence to %s', [LogName, BoolToStr(Persistent, True)]);
       RoseClass.Persistence := Persistent;
     end;
     RoseAttributes := RoseClass.Attributes;
@@ -1135,7 +1135,7 @@ begin
 
   if UMLAssociationEnd.isNavigable <> RoseRole.Navigable then
   begin
-    BoldLog.LogFmt('Setting %s.Navigable to %s', [LogName, BooleanToString(UMLAssociationEnd.isNavigable)]);
+    BoldLog.LogFmt('Setting %s.Navigable to %s', [LogName, BoolToStr(UMLAssociationEnd.isNavigable, True)]);
     RoseRole.Navigable := UMLAssociationEnd.isNavigable;
   end;
   RoseAttributes := RoseRole.Keys;

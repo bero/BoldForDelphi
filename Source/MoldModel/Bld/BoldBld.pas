@@ -623,10 +623,10 @@ begin
 
   if r.FormatVersion >= 15 then
   begin
-    if r.formatVersion < 19 then Model.BoldTVByName[TAG_USEXFILES] := BooleanToString(r.GetBoolean);
-    if r.formatVersion < 19 then Model.BoldTVByName[TAG_USETIMESTAMP] := BooleanToString(r.GetBoolean);
-    if r.formatVersion < 19 then Model.BoldTVByName[TAG_USEGLOBALID] := BooleanToString(r.GetBoolean);
-    if r.formatVersion < 19 then Model.BoldTVByName[TAG_USEREADONLY] := BooleanToString(r.GetBoolean);
+    if r.formatVersion < 19 then Model.BoldTVByName[TAG_USEXFILES] := BoolToStr(r.GetBoolean, True);
+    if r.formatVersion < 19 then Model.BoldTVByName[TAG_USETIMESTAMP] := BoolToStr(r.GetBoolean, True);
+    if r.formatVersion < 19 then Model.BoldTVByName[TAG_USEGLOBALID] := BoolToStr(r.GetBoolean, True);
+    if r.formatVersion < 19 then Model.BoldTVByName[TAG_USEREADONLY] := BoolToStr(r.GetBoolean, True);
   end;
 
   if r.FormatVersion >= 16 then
@@ -740,7 +740,7 @@ begin
     begin
       persistent := r.GetBoolean;
       IsAbstract := r.GetBoolean;
-      if r.formatVersion < 19 then BoldTVByName[TAG_IMPORTED] := BooleanToString(r.GetBoolean);
+      if r.formatVersion < 19 then BoldTVByName[TAG_IMPORTED] := BoolToStr(r.GetBoolean, True);
       if r.formatVersion < 19 then BoldTVByName[TAG_DELPHINAME] := r.GetQuotedString;
        if r.FormatVersion >= 7 then
          if r.formatVersion < 19 then BoldTVByName[TAG_EXPRESSIONNAME] := r.GetQuotedString;
@@ -814,7 +814,7 @@ begin
 
     if r.FormatVersion >= 3 then
     begin
-      if r.formatVersion < 19 then BoldTVByName[TAG_ALLOWNULL] := BooleanToString(r.GetBoolean);
+      if r.formatVersion < 19 then BoldTVByName[TAG_ALLOWNULL] := BoolToStr(r.GetBoolean, True);
       if r.formatVersion < 19 then
       begin
         if r.GetBoolean then
@@ -824,7 +824,7 @@ begin
       end;
       Derived := r.GetBoolean;
       if r.FormatVersion >= 8 then
-      	if r.formatVersion < 19 then BoldTVByName[TAG_DELAYEDFETCH] := BooleanToString(r.GetBoolean);
+      	if r.formatVersion < 19 then BoldTVByName[TAG_DELAYEDFETCH] := BoolToStr(r.GetBoolean, True);
       if r.formatVersion < 19 then BoldTVByName[TAG_Length] := IntToStr(r.GetInteger);
       if r.formatVersion < 19 then BoldTVByName[TAG_DELPHINAME] := r.GetQuotedString;
       if r.FormatVersion >= 10 then
@@ -862,7 +862,7 @@ begin
       end;
 
       if r.FormatVersion >= 18 then
-        if r.formatVersion < 19 then BoldTVByName[TAG_DELPHIFIELD] := BooleanToString(r.GetBoolean);
+        if r.formatVersion < 19 then BoldTVByName[TAG_DELPHIFIELD] := BoolToStr(r.GetBoolean, True);
     end
     else
     begin
@@ -930,7 +930,7 @@ begin
     end;
 
     if r.FormatVersion >= 18 then
-      if r.formatVersion < 19 then BoldTVByName[TAG_OVERRIDEINALLSUBCLASSES] := BooleanToString(r.GetBoolean);
+      if r.formatVersion < 19 then BoldTVByName[TAG_OVERRIDEINALLSUBCLASSES] := BoolToStr(r.GetBoolean, True);
     r.Eat(RPAR);
   end;
 end;
@@ -992,8 +992,8 @@ begin
     if r.FormatVersion >= 4 then
       if r.formatVersion < 19 then r.GetBoolean;
 
-    if r.formatVersion < 19 then BoldTVByName[TAG_EMBED] := BooleanToString((r.FormatVersion < 9) or   { Embed introduced in v9, default True }
-             r.GetBoolean);
+    if r.formatVersion < 19 then BoldTVByName[TAG_EMBED] := BoolToStr((r.FormatVersion < 9) or   { Embed introduced in v9, default True }
+             r.GetBoolean, True);
 
     if r.FormatVersion >= 12 then
       if r.formatVersion < 19 then BoldTVByName[TAG_PMAPPERNAME] := r.GetQuotedString;

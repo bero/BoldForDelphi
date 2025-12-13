@@ -537,7 +537,7 @@ begin
       UMLParameter.Name := (MoldParameters[Index] as TMoldParameter).ParameterName;
       UMLParameter.typeName := (MoldParameters[Index] as TMoldParameter).ParameterType;
       UMLParameter.kind := (MoldParameters[Index] as TMoldParameter).ParameterKind;
-      UMLParameter.SetBoldTV(TAG_ISCONST, BooleanToString((MoldParameters[Index] as TMoldParameter).IsConst));
+      UMLParameter.SetBoldTV(TAG_ISCONST, BoolToStr((MoldParameters[Index] as TMoldParameter).IsConst, True));
       UMLParameter.SetBoldTV(TAG_DELPHINAME, TV_NAME);
       UMLParameter.SetBoldTV(TAG_EXPRESSIONNAME, TV_NAME);
     end;

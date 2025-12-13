@@ -2236,7 +2236,7 @@ end;
 
 procedure TBoldModelEditFrm.bcrBooleanToCheckBoxSetAsCheckBoxState(aFollower: TBoldFollower; newValue: TCheckBoxState);
 begin
-  aFollower.Value.AsString := BooleanToString(NewValue = cbChecked);
+  aFollower.Value.AsString := BoolToStr(NewValue = cbChecked, True);
 end;
 
 procedure TBoldModelEditFrm.bcrGetSetSetAsCheckBoxState(aFollower: TBoldFollower; newValue: TCheckBoxState);

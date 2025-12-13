@@ -43,7 +43,6 @@ function BoldCaseIndependentPos(const Substr, S: string): Integer;
 procedure EnumToStrings(aTypeInfo: pTypeInfo; Strings: TStrings);
 function CapitalisedToSpaced(Capitalised: String): String;
 function SpacedToCapitalised(Spaced: String): String;
-function BooleanToString(BoolValue: Boolean): String;
 function StringToBoolean(StrValue: String): Boolean;
 function GetUpperLimitForMultiplicity(const Multiplicity: String): Integer;
 function GetLowerLimitForMultiplicity(const Multiplicity: String): Integer;
@@ -145,11 +144,6 @@ procedure EnsureTrailing(var Str: String; ch: char);
 begin
   if (length(str) > 0) and (str[length(str)] <> ch) then
     str := str + ch;
-end;
-
-function BooleanToString(BoolValue: Boolean): String;
-begin
-  if BoolValue then Result := 'True' else Result := 'False';
 end;
 
 function StringToBoolean(StrValue: String): Boolean;

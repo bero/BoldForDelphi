@@ -198,7 +198,7 @@ begin
   else
     Exit;
 
-  Prop.Value := BooleanToString(PropValue);
+  Prop.Value := BoolToStr(PropValue, True);
 end;
 
 procedure TBoldRose98Properties.SetDefaultPropertyString(RoseModel: IRoseModel; PropName, PropValue: String);
@@ -266,8 +266,8 @@ procedure TBoldRose98Properties.SetBoolean(RoseItem: IRoseItem; const Name: stri
 begin
   if GetBoolean(RoseItem, Name, DefaultValue) <> Value then
   begin
-    BoldLog.LogFmt(sSettingValue, [LoggString, Name, BooleanToString(Value)]);
-    RoseItem.OverrideProperty(ToolName, Name, BooleanToString(Value));
+    BoldLog.LogFmt(sSettingValue, [LoggString, Name, BoolToStr(Value, True)]);
+    RoseItem.OverrideProperty(ToolName, Name, BoolToStr(Value, True));
   end;
 end;
 
@@ -354,7 +354,7 @@ begin
       end;
     end;
     BoldLog.LogFmt(sSettingValue, [LoggString, 'containment', ContainmentName]); // do not localize
-    BoldLog.LogFmt(sSettingValue, [LoggString, 'Aggregate', BooleanToString(aggregation <> aknone)]); // do not localize
+    BoldLog.LogFmt(sSettingValue, [LoggString, 'Aggregate', BoolToStr(aggregation <> aknone, True)]); // do not localize
   end;
 end;
 

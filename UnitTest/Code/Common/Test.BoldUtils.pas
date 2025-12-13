@@ -13,10 +13,6 @@ type
   TTestBoldUtils = class
   public
     [Test]
-    procedure TestBooleanToStringTrue;
-    [Test]
-    procedure TestBooleanToStringFalse;
-    [Test]
     procedure TestBoldCaseIndependentPosSubstrLongerThanS;
     [Test]
     procedure TestBoldSeparateStringListEmpty;
@@ -41,18 +37,6 @@ uses
   BoldDefs;
 
 { TTestBoldUtils }
-
-procedure TTestBoldUtils.TestBooleanToStringTrue;
-begin
-  // Covers line 272 (True branch)
-  Assert.AreEqual('True', BooleanToString(True));
-end;
-
-procedure TTestBoldUtils.TestBooleanToStringFalse;
-begin
-  // Covers line 272 (False branch)
-  Assert.AreEqual('False', BooleanToString(False));
-end;
 
 procedure TTestBoldUtils.TestBoldCaseIndependentPosSubstrLongerThanS;
 begin

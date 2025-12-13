@@ -227,7 +227,7 @@ end;
 procedure TdmBoldUMLModelEditorHandles.bcrBooleanToCheckBoxSetAsCheckBoxState(
   aFollower: TBoldFollower; newValue: TCheckBoxState);
 begin
-  aFollower.Value.AsString := BooleanToString(NewValue = cbChecked);
+  aFollower.Value.AsString := BoolToStr(NewValue = cbChecked, True);
 end;
 
 procedure TdmBoldUMLModelEditorHandles.bcrBooleanToCheckBoxSubscribe(
