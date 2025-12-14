@@ -15,8 +15,8 @@ uses
   DUnitX.Loggers.Xml.NUnit,
   {$ENDIF }
   DUnitX.TestFramework,
-  BoldTestCasePersistence in 'BoldTestCasePersistence.pas',
-  BoldTestCaseFireDAC in 'BoldTestCaseFireDAC.pas',
+  BoldTestCasePersistence in 'Code\Persistence\BoldTestCasePersistence.pas',
+  BoldTestCaseFireDAC in 'Code\Persistence\BoldTestCaseFireDAC.pas',
   Test.BoldUMLTypes in 'Code\Common\Test.BoldUMLTypes.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   jehoBCBoldTest in 'Code\ObjectSpace\jehoBCBoldTest.pas',
@@ -36,7 +36,10 @@ uses
   Test.BoldPersistenceHandleDB in 'Code\Persistence\Test.BoldPersistenceHandleDB.pas',
   Test.BoldPMapperLists in 'Code\PMapper\Test.BoldPMapperLists.pas',
   Test.BoldSQLMappingInfo in 'Code\PMapper\Test.BoldSQLMappingInfo.pas',
-  Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas';
+  Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas',
+  Test.PersistenceFireDAC in 'Code\Persistence\Test.PersistenceFireDAC.pas',
+  BoldTestCaseUniDAC in 'Code\Persistence\BoldTestCaseUniDAC.pas',
+  Test.PersistenceUniDAC in 'Code\Persistence\Test.PersistenceUniDAC.pas';
 
 {$R *.res}
 

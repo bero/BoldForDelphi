@@ -1,3 +1,4 @@
+{$include bold.inc}
 unit BoldTestCaseUniDAC;
 
 {******************************************************************************}
@@ -12,6 +13,8 @@ unit BoldTestCaseUniDAC;
 {    - UniDAC environment variable must point to UniDAC installation           }
 {                                                                              }
 {******************************************************************************}
+
+{$IFDEF UniDAC}
 
 interface
 
@@ -92,5 +95,13 @@ function TBoldTestCaseUniDAC.GetUniDACAdapter: TBoldDatabaseAdapterUniDAC;
 begin
   Result := DatabaseAdapter as TBoldDatabaseAdapterUniDAC;
 end;
+
+{$ELSE}
+
+interface
+
+implementation
+
+{$ENDIF}
 
 end.

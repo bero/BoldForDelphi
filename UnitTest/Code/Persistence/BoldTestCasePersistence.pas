@@ -10,7 +10,7 @@ unit BoldTestCasePersistence;
 {                                                                              }
 {  Usage:                                                                      }
 {    1. Inherit from TBoldTestCaseFireDAC or TBoldTestCaseUniDAC               }
-{    2. Override ConfigureModel to set up your test model                      }
+{    2. Override ConfigureModel to set up a custom model (optional)            }
 {    3. Override RegisterBusinessClasses if using generated classes            }
 {    4. Use System property to access the active BoldSystem                    }
 {                                                                              }
@@ -24,6 +24,8 @@ uses
   System.Classes,
   Data.DB,
   BoldSystem,
+  BoldElements,
+  BoldSystemRT,
   BoldSystemHandle,
   BoldHandles,
   BoldModel,
@@ -32,7 +34,61 @@ uses
   BoldPersistenceHandleDB,
   BoldAbstractPersistenceHandleDB,
   BoldAbstractDatabaseAdapter,
-  BoldUndoHandler;
+  BoldUndoHandler,
+  BoldId;
+
+const
+  // Default test model: root class + TestClass with Name attribute
+  DefaultTestModel: array[0..47] of string = (
+    'VERSION 19',
+    '(Model',
+    #9'"DefaultTestModel"',
+    #9'"BusinessClassesRoot"',
+    #9'""',
+    #9'""',
+    #9'"_Boldify.boldified=True,Bold.DelphiName=<Name>,Bold.UnitName=DefaultTestModel,Bold.RootClass=BusinessClassesRoot"',
+    #9'(Classes',
+    #9#9'(Class',
+    #9#9#9'"BusinessClassesRoot"',
+    #9#9#9'"<NONE>"',
+    #9#9#9'TRUE',
+    #9#9#9'FALSE',
+    #9#9#9'""',
+    #9#9#9'""',
+    #9#9#9'"_Boldify.autoCreated=True,persistence=persistent,Bold.TableName=<Prefix>_OBJECT"',
+    #9#9#9'(Attributes',
+    #9#9#9')',
+    #9#9#9'(Methods',
+    #9#9#9')',
+    #9#9')',
+    #9#9'(Class',
+    #9#9#9'"TestClass"',
+    #9#9#9'"BusinessClassesRoot"',
+    #9#9#9'TRUE',
+    #9#9#9'FALSE',
+    #9#9#9'""',
+    #9#9#9'""',
+    #9#9#9'"persistence=persistent"',
+    #9#9#9'(Attributes',
+    #9#9#9#9'(Attribute',
+    #9#9#9#9#9'"Name"',
+    #9#9#9#9#9'"String"',
+    #9#9#9#9#9'FALSE',
+    #9#9#9#9#9'""',
+    #9#9#9#9#9'""',
+    #9#9#9#9#9'2',
+    #9#9#9#9#9'""',
+    #9#9#9#9#9'"persistence=Persistent"',
+    #9#9#9#9')',
+    #9#9#9')',
+    #9#9#9'(Methods',
+    #9#9#9')',
+    #9#9')',
+    #9')',
+    #9'(Associations',
+    #9')',
+    ')'
+  );
 
 type
   /// <summary>
@@ -56,7 +112,6 @@ type
     /// <summary>
     /// Create and configure the database connection.
     /// Must return a connected (or ready to connect) TCustomConnection descendant.
-    /// Default implementation creates SQLite in-memory database.
     /// </summary>
     function CreateConnection: TCustomConnection; virtual; abstract;
 
@@ -77,8 +132,8 @@ type
     procedure CloseConnection; virtual;
 
     /// <summary>
-    /// Override this to configure the model programmatically.
-    /// This is called before system activation.
+    /// Configure the model. Default loads DefaultTestModel.
+    /// Override to use a custom model.
     /// </summary>
     procedure ConfigureModel; virtual;
 
@@ -87,9 +142,34 @@ type
     /// </summary>
     procedure RegisterBusinessClasses; virtual;
 
+    /// <summary>
+    /// Load model from string array.
+    /// </summary>
+    procedure LoadModelFromStrings(const AModelStrings: array of string);
+
+    // Database operations
     procedure UpdateDatabase;
     procedure DiscardChanges;
     procedure RefreshSystem;
+
+    // Helper methods for creating and finding objects
+    function GetClassTypeInfo(const AClassName: string): TBoldClassTypeInfo;
+    function CreateObject(const AClassName: string): TBoldObject;
+    function FindObjectById(AObjectId: TBoldObjectId): TBoldObject;
+
+    // Helper methods for attributes
+    function GetAttributeAsString(AObject: TBoldObject; const AAttributeName: string): string;
+    procedure SetAttributeAsString(AObject: TBoldObject; const AAttributeName: string; const AValue: string);
+    function GetAttributeAsInteger(AObject: TBoldObject; const AAttributeName: string): Integer;
+    procedure SetAttributeAsInteger(AObject: TBoldObject; const AAttributeName: string; AValue: Integer);
+
+    // Assertion helpers
+    procedure AssertAttributeEquals(AObject: TBoldObject; const AAttributeName: string;
+      const AExpectedValue: string; const AMessage: string = '');
+    procedure AssertAttributeEqualsInt(AObject: TBoldObject; const AAttributeName: string;
+      AExpectedValue: Integer; const AMessage: string = '');
+    procedure AssertObjectIsPersistent(AObject: TBoldObject; const AMessage: string = '');
+    procedure AssertObjectIsNew(AObject: TBoldObject; const AMessage: string = '');
 
     property Connection: TCustomConnection read FConnection;
     property DatabaseAdapter: TBoldAbstractDatabaseAdapter read FDatabaseAdapter;
@@ -199,7 +279,23 @@ end;
 
 procedure TBoldTestCasePersistence.ConfigureModel;
 begin
-  // Override in subclasses to configure the model programmatically
+  // Load default test model
+  LoadModelFromStrings(DefaultTestModel);
+end;
+
+procedure TBoldTestCasePersistence.LoadModelFromStrings(const AModelStrings: array of string);
+var
+  ModelStrings: TStringList;
+  i: Integer;
+begin
+  ModelStrings := TStringList.Create;
+  try
+    for i := Low(AModelStrings) to High(AModelStrings) do
+      ModelStrings.Add(AModelStrings[i]);
+    Model.SetFromModelAsString(ModelStrings);
+  finally
+    ModelStrings.Free;
+  end;
 end;
 
 procedure TBoldTestCasePersistence.RegisterBusinessClasses;
@@ -227,6 +323,106 @@ begin
     FSystemHandle.Active := False;
     FSystemHandle.Active := True;
   end;
+end;
+
+function TBoldTestCasePersistence.GetClassTypeInfo(const AClassName: string): TBoldClassTypeInfo;
+begin
+  Result := System.BoldSystemTypeInfo.ClassTypeInfoByExpressionName[AClassName];
+end;
+
+function TBoldTestCasePersistence.CreateObject(const AClassName: string): TBoldObject;
+var
+  ClassTypeInfo: TBoldClassTypeInfo;
+begin
+  ClassTypeInfo := GetClassTypeInfo(AClassName);
+  Assert.IsNotNull(ClassTypeInfo, Format('Class "%s" not found in model', [AClassName]));
+  Result := TBoldObject.InternalCreateNewWithClassAndSystem(ClassTypeInfo, System, True);
+end;
+
+function TBoldTestCasePersistence.FindObjectById(AObjectId: TBoldObjectId): TBoldObject;
+var
+  Locator: TBoldObjectLocator;
+begin
+  Result := nil;
+  Locator := System.EnsuredLocatorByID[AObjectId];
+  if Assigned(Locator) then
+    Result := Locator.BoldObject;
+end;
+
+function TBoldTestCasePersistence.GetAttributeAsString(AObject: TBoldObject;
+  const AAttributeName: string): string;
+begin
+  Result := AObject.BoldMemberByExpressionName[AAttributeName].AsString;
+end;
+
+procedure TBoldTestCasePersistence.SetAttributeAsString(AObject: TBoldObject;
+  const AAttributeName: string; const AValue: string);
+begin
+  AObject.BoldMemberByExpressionName[AAttributeName].AsString := AValue;
+end;
+
+function TBoldTestCasePersistence.GetAttributeAsInteger(AObject: TBoldObject;
+  const AAttributeName: string): Integer;
+begin
+  Result := StrToInt(AObject.BoldMemberByExpressionName[AAttributeName].AsString);
+end;
+
+procedure TBoldTestCasePersistence.SetAttributeAsInteger(AObject: TBoldObject;
+  const AAttributeName: string; AValue: Integer);
+begin
+  AObject.BoldMemberByExpressionName[AAttributeName].AsString := IntToStr(AValue);
+end;
+
+procedure TBoldTestCasePersistence.AssertAttributeEquals(AObject: TBoldObject;
+  const AAttributeName: string; const AExpectedValue: string; const AMessage: string);
+var
+  ActualValue: string;
+  Msg: string;
+begin
+  ActualValue := GetAttributeAsString(AObject, AAttributeName);
+  if AMessage <> '' then
+    Msg := AMessage
+  else
+    Msg := Format('Attribute "%s" expected "%s" but was "%s"', [AAttributeName, AExpectedValue, ActualValue]);
+  Assert.AreEqual(AExpectedValue, ActualValue, Msg);
+end;
+
+procedure TBoldTestCasePersistence.AssertAttributeEqualsInt(AObject: TBoldObject;
+  const AAttributeName: string; AExpectedValue: Integer; const AMessage: string);
+var
+  ActualValue: Integer;
+  Msg: string;
+begin
+  ActualValue := GetAttributeAsInteger(AObject, AAttributeName);
+  if AMessage <> '' then
+    Msg := AMessage
+  else
+    Msg := Format('Attribute "%s" expected %d but was %d', [AAttributeName, AExpectedValue, ActualValue]);
+  Assert.AreEqual(AExpectedValue, ActualValue, Msg);
+end;
+
+procedure TBoldTestCasePersistence.AssertObjectIsPersistent(AObject: TBoldObject;
+  const AMessage: string);
+var
+  Msg: string;
+begin
+  if AMessage <> '' then
+    Msg := AMessage
+  else
+    Msg := 'Object should be persistent';
+  Assert.IsTrue(AObject.BoldPersistenceState = bvpsCurrent, Msg);
+end;
+
+procedure TBoldTestCasePersistence.AssertObjectIsNew(AObject: TBoldObject;
+  const AMessage: string);
+var
+  Msg: string;
+begin
+  if AMessage <> '' then
+    Msg := AMessage
+  else
+    Msg := 'Object should be new (not yet persisted)';
+  Assert.IsTrue(AObject.BoldPersistenceState = bvpsModified, Msg);
 end;
 
 end.
