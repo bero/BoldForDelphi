@@ -130,6 +130,7 @@ echo.
   -e %EXECUTABLE% ^
   -m %MAP_FILE% ^
   -sd %SOURCE_DIR% ^
+  -lcl 3 ^
   -spf coverage_source_paths.lst ^
   -uf coverage_units.lst ^
   -html ^

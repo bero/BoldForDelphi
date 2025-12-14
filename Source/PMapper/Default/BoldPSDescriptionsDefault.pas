@@ -71,8 +71,7 @@ uses
   BoldCoreConsts,
   BoldDefs,
   BoldLogHandler,
-  BoldNameExpander,
-  BoldMath;
+  BoldNameExpander;
 
 {---TBoldDefaultSystemDescription---}
 
