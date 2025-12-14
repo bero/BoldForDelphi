@@ -12,7 +12,6 @@ uses
   TestInsight.DUnitX,
   {$ELSE}
   DUnitX.Loggers.Console,
-  DUnitX.Loggers.Xml.NUnit,
   {$ENDIF }
   DUnitX.TestFramework,
   BoldTestCasePersistence in 'Code\Persistence\BoldTestCasePersistence.pas',
@@ -39,7 +38,8 @@ uses
   Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas',
   Test.PersistenceFireDAC in 'Code\Persistence\Test.PersistenceFireDAC.pas',
   BoldTestCaseUniDAC in 'Code\Persistence\BoldTestCaseUniDAC.pas',
-  Test.PersistenceUniDAC in 'Code\Persistence\Test.PersistenceUniDAC.pas';
+  Test.PersistenceUniDAC in 'Code\Persistence\Test.PersistenceUniDAC.pas',
+  Test.BoldGUIDUtils in 'Code\Common\Test.BoldGUIDUtils.pas';
 
 {$R *.res}
 

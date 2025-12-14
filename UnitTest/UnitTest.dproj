@@ -95,8 +95,8 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="BoldTestCasePersistence.pas"/>
-        <DCCReference Include="BoldTestCaseFireDAC.pas"/>
+        <DCCReference Include="Code\Persistence\BoldTestCasePersistence.pas"/>
+        <DCCReference Include="Code\Persistence\BoldTestCaseFireDAC.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUMLTypes.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldAttributes.pas"/>
         <DCCReference Include="Code\ObjectSpace\jehoBCBoldTest.pas"/>
@@ -113,6 +113,14 @@
         <DCCReference Include="Code\Common\Test.BoldDefaultTaggedValues.pas"/>
         <DCCReference Include="Code\RTModel\Test.BoldMemberTypeDictionary.pas"/>
         <DCCReference Include="Code\RTModel\Test.BoldGeneratedCodeDictionary.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldPersistenceHandleDB.pas"/>
+        <DCCReference Include="Code\PMapper\Test.BoldPMapperLists.pas"/>
+        <DCCReference Include="Code\PMapper\Test.BoldSQLMappingInfo.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldUtils.pas"/>
+        <DCCReference Include="Code\Persistence\Test.PersistenceFireDAC.pas"/>
+        <DCCReference Include="Code\Persistence\BoldTestCaseUniDAC.pas"/>
+        <DCCReference Include="Code\Persistence\Test.PersistenceUniDAC.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldGUIDUtils.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -151,6 +159,12 @@
                 </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="UnitTest.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>UnitTest.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
