@@ -32,6 +32,8 @@ type
     procedure TestDatabaseExistsReturnsFalseForNonExistent;
     [Test]
     procedure TestDropDatabase;
+    [Test]
+    procedure TestCreateDatabase;
   end;
 
 implementation
@@ -196,6 +198,48 @@ begin
         Adapter.DropDatabase;
     except
       // Ignore cleanup errors
+    end;
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestCreateDatabase;
+const
+  TempDbName = 'BoldUnitTest_TempCreate';
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+
+    // Use a temporary database name for this test
+    Connection.Params.Database := TempDbName;
+
+    // Ensure database doesn't exist before test
+    if Adapter.DatabaseExists then
+      Adapter.DropDatabase;
+    Assert.IsFalse(Adapter.DatabaseExists, 'Database should not exist before CreateDatabase');
+
+    // Create the database
+    Adapter.CreateDatabase(False);
+
+    // Verify it exists
+    Assert.IsTrue(Adapter.DatabaseExists, 'Database should exist after CreateDatabase');
+
+    // Test CreateDatabase with DropExisting=True (should recreate without error)
+    Adapter.CreateDatabase(True);
+    Assert.IsTrue(Adapter.DatabaseExists, 'Database should exist after CreateDatabase with DropExisting');
+  finally
+    // Cleanup
+    try
+      if Adapter.DatabaseExists then
+        Adapter.DropDatabase;
+    except
     end;
     Adapter.Free;
     Connection.Free;
