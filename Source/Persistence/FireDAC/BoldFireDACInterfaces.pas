@@ -358,10 +358,6 @@ end;
 procedure TBoldFireDACQuery.AssignSQLText(const SQL: string);
 begin
   Query.SQL.Text := Sql;
-{  if SQL = '' then
-    Query.Params.clear
-  else
-    Query.Params.ParseSQL(SQL, False);}
 end;
 
 procedure TBoldFireDACQuery.BeginExecuteQuery;
@@ -846,60 +842,11 @@ end;
 
 function TBoldFireDACConnection.GetDatabaseError(const E: Exception;
   const sSQL: string): EBoldDatabaseError;
-const
-  SQLERRORCODE = 'SQL Error Code: ';
 var
-{  iErrorCode: Integer;
-  iPos: Integer;
-  sServer,
-  sDatabase,
-  sUsername: string;
-  bUseWindowsAuth: Boolean;}
   vConnectionString: string;
-  sMsg: string;
-  aErrorType: TBoldDatabaseErrorType;
-const
-  // Provider names copied here to avoid dependancy
-  cMSSQLProvider = 'SQL Server'; // TSQLServerFDProvider.GetProviderName
-  cPostgreSQLProvider = 'PostgreSQL'; // TPostgreSQLFDProvider.GetProviderName
-  cOracleSQLProvider = 'Oracle'; // TOracleFDProvider.GetProviderName
-  cInterBaseProvider = 'InterBase';
-  cMSSQLDeadLock = 1205;
 begin
-  sMsg := E.Message;
-  aErrorType := bdetError;
   vConnectionString := FDConnection.ConnectionString;
-  Result := InternalGetDatabaseError(aErrorType, E, vConnectionString, '', '', '', false);
-
-{
-  bUseWindowsAuth := Pos('Authentication=Windows', FDConnection.ConnectString) > 0;
-  if (E is EFDError) then
-  begin
-    if FDConnection.ProviderName = cMSSQLProvider then
-      case EFDError(E).ErrorCode of
-        -2147467259, 2, 233: aErrorType := bdetConnection; // only set bdetConnection for cases where retry might work.
-        208, 4145: aErrorType := bdetSQL;
-        4060: aErrorType := bdetLogin; // SQLServer Error: 4060, Cannot open database "SessionStateService" requested by the login. The login failed. [SQLSTATE 42000]
-        18456: aErrorType := bdetLogin; // SQLServer Error: 18456, Login failed for user 'domain\user'. [SQLSTATE 28000]
-        cMSSQLDeadLock: aErrorType := bdetDeadlock;
-        //Deadlock und weitere ErrorCodes?
-      end
-    else
-    if FDConnection.ProviderName = cInterBaseProvider then
-      case EFDError(E).ErrorCode of
-        -803: aErrorType := bdetUpdate; // attempt to store duplicate value (visible to active transactions) in FDque index
-      end
-    else
-    if FDConnection.ProviderName = cPostgreSQLProvider then
-      case EFDError(E).ErrorCode of
-        0: aErrorType := bdetLogin;
-      end
-    else
-      raise Exception.Create('Error codes not implemented for ' + FDConnection.ProviderName);
-  end;
-  Result := InternalGetDatabaseError(aErrorType, E, sSQL, sServer, sDatabase,
-      sUsername, bUseWindowsAuth);
-}
+  Result := InternalGetDatabaseError(bdetError, E, vConnectionString, '', '', '', false);
 end;
 
 function TBoldFireDACConnection.GetExecQuery: IBoldExecQuery;
@@ -1034,19 +981,7 @@ begin
       fCachedExecQuery1 := lBoldFireDACQuery
     else
       lBoldFireDACQuery.free;
-  end
-{  else
-  if (Query.Implementor is TBoldFireDACExecQuery) then
-  begin
-    lBoldFireDACExecQuery := Query.Implementor as TBoldFireDACExecQuery;
-    lBoldFireDACExecQuery.clear;
-    Query := nil;
-    if not Assigned(fCachedExecQuery1) then
-      fCachedExecQuery1 := lBoldFireDACExecQuery
-    else
-      lBoldFireDACExecQuery.free;
-  end
-}
+  end;
 end;
 
 procedure TBoldFireDACConnection.ReleaseTable(var Table: IBoldTable);

@@ -140,6 +140,27 @@ type
     [Test]
     [Category('Slow')]
     procedure TestExecQueryAssignParams;
+    [Test]
+    [Category('Slow')]
+    procedure TestParameterDateTimeTypes;
+    [Test]
+    [Category('Slow')]
+    procedure TestParameterNumericTypes;
+    [Test]
+    [Category('Slow')]
+    procedure TestParameterMemo;
+    [Test]
+    [Category('Slow')]
+    procedure TestParameterWideString;
+    [Test]
+    [Category('Slow')]
+    procedure TestParameterAssign;
+    [Test]
+    [Category('Slow')]
+    procedure TestQueryAssignSQL;
+    [Test]
+    [Category('Slow')]
+    procedure TestQueryRowsAffected;
   end;
 
 implementation
@@ -1739,6 +1760,335 @@ begin
     DbInterface.Close;
   finally
     SourceParams.Free;
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestParameterDateTimeTypes;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+  Param: IBoldParameter;
+  TestDate: TDateTime;
+  TestTime: TDateTime;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    Query := DbInterface.GetQuery;
+    try
+      Query.SQLText := 'SELECT :DateParam AS DateCol, :TimeParam AS TimeCol';
+
+      // Test AsDate
+      TestDate := EncodeDate(2025, 12, 15);
+      Param := Query.ParamByName('DateParam');
+      Param.AsDate := TestDate;
+      Assert.AreEqual(TestDate, Param.AsDate, 'AsDate should match');
+
+      // Test AsTime
+      TestTime := EncodeTime(14, 30, 45, 0);
+      Param := Query.ParamByName('TimeParam');
+      Param.AsTime := TestTime;
+      Assert.AreEqual(TestTime, Param.AsTime, 'AsTime should match');
+
+      Query.Open;
+      Query.Close;
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestParameterNumericTypes;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+  Param: IBoldParameter;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    Query := DbInterface.GetQuery;
+    try
+      Query.SQLText := 'SELECT :SmallIntParam AS SmallIntCol, :WordParam AS WordCol';
+
+      // Test AsSmallInt
+      Param := Query.ParamByName('SmallIntParam');
+      Param.AsSmallInt := 32767;
+      Assert.AreEqual(SmallInt(32767), Param.AsSmallInt, 'AsSmallInt should match');
+
+      // Test AsWord
+      Param := Query.ParamByName('WordParam');
+      Param.AsWord := 65535;
+      Assert.AreEqual(Word(65535), Param.AsWord, 'AsWord should match');
+
+      Query.Open;
+      Query.Close;
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestParameterMemo;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+  Param: IBoldParameter;
+  LongText: string;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    Query := DbInterface.GetQuery;
+    try
+      Query.SQLText := 'SELECT :MemoParam AS MemoCol';
+
+      // Create a long text for memo testing
+      LongText := StringOfChar('A', 5000);
+      Param := Query.ParamByName('MemoParam');
+      Param.AsMemo := LongText;
+      Assert.AreEqual(LongText, Param.AsMemo, 'AsMemo should match');
+
+      Query.Open;
+      Assert.AreEqual(LongText, Query.Fields[0].AsString, 'Memo result should match');
+      Query.Close;
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestParameterWideString;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+  Param: IBoldParameter;
+  WideText: WideString;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    Query := DbInterface.GetQuery;
+    try
+      Query.SQLText := 'SELECT :WideParam AS WideCol';
+
+      // Test WideString with unicode characters
+      WideText := 'Hello Мир 世界';
+      Param := Query.ParamByName('WideParam');
+      Param.AsWideString := WideText;
+      Assert.AreEqual(WideText, Param.AsWideString, 'AsWideString should match');
+
+      Query.Open;
+      Query.Close;
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestParameterAssign;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+  SourceParam: IBoldParameter;
+  DestParam: IBoldParameter;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    Query := DbInterface.GetQuery;
+    try
+      Query.SQLText := 'SELECT :SourceParam AS Col1, :DestParam AS Col2';
+
+      // Set up source param with value
+      SourceParam := Query.ParamByName('SourceParam');
+      SourceParam.AsInteger := 12345;
+
+      // Get destination param
+      DestParam := Query.ParamByName('DestParam');
+
+      // Test Assign from IBoldParameter
+      DestParam.Assign(SourceParam);
+      Assert.AreEqual(12345, DestParam.AsInteger, 'Assign should copy value');
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestQueryAssignSQL;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+  SQLLines: TStringList;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  SQLLines := TStringList.Create;
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    Query := DbInterface.GetQuery;
+    try
+      // Test AssignSQL with multi-line SQL
+      SQLLines.Add('SELECT');
+      SQLLines.Add('  :Param1 AS Col1,');
+      SQLLines.Add('  :Param2 AS Col2');
+      Query.AssignSQL(SQLLines);
+
+      // Verify params were parsed from multi-line SQL
+      Assert.IsNotNull(Query.FindParam('Param1'), 'Param1 should exist');
+      Assert.IsNotNull(Query.FindParam('Param2'), 'Param2 should exist');
+
+      // Verify we can set values and execute
+      Query.ParamByName('Param1').AsInteger := 1;
+      Query.ParamByName('Param2').AsString := 'Test';
+      Query.Open;
+      Query.Close;
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    DbInterface.Close;
+  finally
+    SQLLines.Free;
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestQueryRowsAffected;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  ExecQuery: IBoldExecQuery;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    // Create temp table
+    ExecQuery := DbInterface.GetExecQuery;
+    try
+      ExecQuery.AssignSQLText('CREATE TABLE #RowsTest (ID INT)');
+      ExecQuery.ExecSQL;
+    finally
+      DbInterface.ReleaseExecQuery(ExecQuery);
+    end;
+
+    // Insert multiple rows
+    ExecQuery := DbInterface.GetExecQuery;
+    try
+      ExecQuery.AssignSQLText('INSERT INTO #RowsTest (ID) VALUES (1), (2), (3)');
+      ExecQuery.ExecSQL;
+      Assert.AreEqual(3, ExecQuery.RowsAffected, 'RowsAffected should be 3 for INSERT');
+    finally
+      DbInterface.ReleaseExecQuery(ExecQuery);
+    end;
+
+    // Update rows
+    ExecQuery := DbInterface.GetExecQuery;
+    try
+      ExecQuery.AssignSQLText('UPDATE #RowsTest SET ID = ID + 10 WHERE ID <= 2');
+      ExecQuery.ExecSQL;
+      Assert.AreEqual(2, ExecQuery.RowsAffected, 'RowsAffected should be 2 for UPDATE');
+    finally
+      DbInterface.ReleaseExecQuery(ExecQuery);
+    end;
+
+    // Delete rows
+    ExecQuery := DbInterface.GetExecQuery;
+    try
+      ExecQuery.AssignSQLText('DELETE FROM #RowsTest WHERE ID > 10');
+      ExecQuery.ExecSQL;
+      Assert.AreEqual(2, ExecQuery.RowsAffected, 'RowsAffected should be 2 for DELETE');
+    finally
+      DbInterface.ReleaseExecQuery(ExecQuery);
+    end;
+
+    // Cleanup
+    ExecQuery := DbInterface.GetExecQuery;
+    try
+      ExecQuery.AssignSQLText('DROP TABLE #RowsTest');
+      ExecQuery.ExecSQL;
+    finally
+      DbInterface.ReleaseExecQuery(ExecQuery);
+    end;
+
+    DbInterface.Close;
+  finally
     Adapter.Free;
     Connection.Free;
   end;
