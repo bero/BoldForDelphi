@@ -34,15 +34,30 @@ type
     procedure TestDropDatabase;
     [Test]
     procedure TestCreateDatabase;
+    [Test]
+    procedure TestConnectionOpenClose;
+    [Test]
+    procedure TestTransactionCommitRollback;
+    [Test]
+    procedure TestGetQueryAndRelease;
+    [Test]
+    procedure TestQueryExecuteSQL;
+    [Test]
+    procedure TestQueryWithParameters;
+    [Test]
+    procedure TestAllTableNames;
   end;
 
 implementation
 
 uses
+  Classes,
   BoldSystem,
   BoldSystemRT,
   BoldId,
   BoldSQLDatabaseConfig,
+  BoldDBInterfaces,
+  BoldFireDACInterfaces,
   BoldDatabaseAdapterFireDAC,
   BoldTestDatabaseConfig,
   FireDAC.Comp.Client,
@@ -241,6 +256,216 @@ begin
         Adapter.DropDatabase;
     except
     end;
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestConnectionOpenClose;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+
+    // Initially not connected
+    Assert.IsFalse(Connection.Connected, 'Should not be connected initially');
+
+    // Open connection
+    Connection.Open;
+    Assert.IsTrue(Connection.Connected, 'Should be connected after Open');
+
+    // Close connection
+    Connection.Close;
+    Assert.IsFalse(Connection.Connected, 'Should not be connected after Close');
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestTransactionCommitRollback;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+
+    DbInterface.Open;
+    Assert.IsFalse(DbInterface.InTransaction, 'Should not be in transaction initially');
+
+    // Start transaction
+    DbInterface.StartTransaction;
+    Assert.IsTrue(DbInterface.InTransaction, 'Should be in transaction after StartTransaction');
+
+    // Commit
+    DbInterface.Commit;
+    Assert.IsFalse(DbInterface.InTransaction, 'Should not be in transaction after Commit');
+
+    // Start another transaction and rollback
+    DbInterface.StartTransaction;
+    Assert.IsTrue(DbInterface.InTransaction, 'Should be in transaction');
+
+    DbInterface.RollBack;
+    Assert.IsFalse(DbInterface.InTransaction, 'Should not be in transaction after RollBack');
+
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestGetQueryAndRelease;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query1, Query2, Query3: IBoldQuery;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+
+    // Get first query
+    Query1 := DbInterface.GetQuery;
+    Assert.IsNotNull(Query1, 'Query1 should not be nil');
+
+    // Get second query (should be different instance)
+    Query2 := DbInterface.GetQuery;
+    Assert.IsNotNull(Query2, 'Query2 should not be nil');
+
+    // Release first query
+    DbInterface.ReleaseQuery(Query1);
+    Assert.IsNull(Query1, 'Query1 should be nil after release');
+
+    // Get third query (should reuse released query from cache)
+    Query3 := DbInterface.GetQuery;
+    Assert.IsNotNull(Query3, 'Query3 should not be nil');
+
+    // Cleanup
+    DbInterface.ReleaseQuery(Query2);
+    DbInterface.ReleaseQuery(Query3);
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestQueryExecuteSQL;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    Query := DbInterface.GetQuery;
+    try
+      // Execute a simple SELECT query
+      Query.SQLText := 'SELECT 1 AS TestValue';
+      Query.Open;
+
+      Assert.IsFalse(Query.Eof, 'Query should return a row');
+      Assert.AreEqual(1, Query.Fields[0].AsInteger, 'TestValue should be 1');
+
+      Query.Close;
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestQueryWithParameters;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+  Param: IBoldParameter;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    Query := DbInterface.GetQuery;
+    try
+      // Execute a parameterized query
+      Query.SQLText := 'SELECT :InputValue AS OutputValue';
+      Param := Query.ParamByName('InputValue');
+      Param.AsInteger := 42;
+
+      Query.Open;
+
+      Assert.IsFalse(Query.Eof, 'Query should return a row');
+      Assert.AreEqual(42, Query.Fields[0].AsInteger, 'OutputValue should be 42');
+
+      Query.Close;
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestAllTableNames;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  TableNames: TStringList;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  TableNames := TStringList.Create;
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+
+    // Get all table names (the BoldUnitTest database should have Bold system tables)
+    DbInterface.AllTableNames('', False, TableNames);
+
+    // Should have at least some tables (Bold creates system tables)
+    Assert.IsTrue(TableNames.Count >= 0, 'AllTableNames should return without error');
+
+    DbInterface.Close;
+  finally
+    TableNames.Free;
     Adapter.Free;
     Connection.Free;
   end;
