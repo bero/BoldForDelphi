@@ -171,8 +171,6 @@ type
     procedure SetExclusive(NewValue: Boolean);
     function GetExclusive: Boolean;
     function GetExists: Boolean;
-//    function GetCommaListOfIndexesForColumn(const aColumnName: string): string;
-//    function GetPrimaryIndex: string;
   protected
     function GetDefaultConstraintNameForColumn(const aColumnName: string): string; {override;}
     function GetDataSet: TDataSet; override;
@@ -266,11 +264,6 @@ uses
 
 function TBoldUniDACQuery.GetQuery: TUniQuery;
 begin
-  if not Assigned(fQuery) then
-  begin
-    fQuery := TUniQuery.Create(nil);
-    fQuery.Connection := (DatabaseWrapper as TBoldUniDACConnection).UniConnection;
-  end;
   Result := fQuery;
 end;
 
@@ -642,90 +635,7 @@ procedure TBoldUniDACTable.AddIndex(const Name, Fields: string;
 begin
   raise EBold.CreateFmt(sMethodNotImplemented, [ClassName, 'AddIndex']); // do not localize
 end;
-(*
-function TBoldUniDACTable.GetCommaListOfIndexesForColumn(
-  const aColumnName: string): string;
-var
-  lUniMetaData: TUniMetaData;
-  lIndexList: TStringList;
-  lIndexedColumn: string;
-  lIndexName: string;
-  lBoldGuard: IBoldGuard;
-const
-  cTableName = 'Table_Name';
-  cIndexName = 'Index_Name';
-  cColumnName = 'Column_Name';
-begin
-// TODO possibly slow comment
-// to improve performance move metadata to the Connection and store it there
 
-  lBoldGuard := TBoldGuard.Create(lUniMetaData, lIndexList);
-  lUniMetaData := TUniMetaData.Create(nil);
-  lIndexList := TStringList.Create;
-
-  Assert(Assigned(UniTable));
-  Assert(Assigned(UniTable.Connection));
-  lUniMetaData.Connection := UniTable.Connection;
-//  lUniMetaData.DatabaseName := UniTable.Connection.Database;
-  lUniMetaData.MetaDataKind := 'Indexes';
-{  lUniMetaData.TableName := GetTableName;
-  lUniMetaData.Open;
-  lUniMetaData.First;
-  while not lUniMetaData.Eof do
-  begin
-    lIndexedColumn := lUniMetaData.FieldByName(cColumnName).AsString;
-    if aColumnName = lIndexedColumn then
-    begin
-      lIndexName := lUniMetaData.FieldByName(cIndexName).AsString;
-      lIndexList.Add(lIndexName);
-    end;
-    lUniMetaData.Next;
-  end;
-  Result := lIndexList.CommaText;
-  lUniMetaData.Close;
-}
-end;
-
-function TBoldUniDACTable.GetPrimaryIndex: string;
-var
-  lUniMetaData: TUniMetaData;
-  lIndexName: string;
-const
-  cTableName = 'Table_Name';
-  cIndexName = 'Index_Name';
-  cColumnName = 'Column_Name';
-  cPrimaryKey = 'Primary_Key';
-//  COLUMN_NAME
-begin
-// TODO possibly slow comment
-// to improve performance move metadata to the Connection and store it there
-
-  lUniMetaData := TUniMetaData.Create(nil);
-  try
-    Assert(Assigned(UniTable));
-    Assert(Assigned(UniTable.Connection));
-    lUniMetaData.Connection := UniTable.Connection;
-//    lUniMetaData.DatabaseName := UniTable.Connection.Database;
-{    lUniMetaData.MetaDataKind := otPrimaryKeys;
-    lUniMetaData.Open;
-    lUniMetaData.Filter := Format('(%s = ''%s'')', [cTableName, GetTableName]);
-    lUniMetaData.Filtered := True;
-    if lUniMetaData.RecordCount = 1 then
-    begin
-      lIndexName := lUniMetaData.FieldByName(cColumnName).AsString;
-      Result := lIndexName;
-    end
-    else
-    begin
-      Result := '';
-    end;
-    lUniMetaData.Close;
-}
-  finally
-    lUniMetaData.free;
-  end;
-end;
-*)
 function TBoldUniDACTable.GetDataSet: TDataSet;
 begin
   Result := fUniTable;

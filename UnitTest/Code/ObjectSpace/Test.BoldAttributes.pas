@@ -62,22 +62,31 @@ type
     [TearDown]
     procedure TearDown;
     [Test]
+    [Category('Quick')]
     procedure AttributeValueTest;
     [Test]
+    [Category('Quick')]
     procedure AttributeNullTest;
     [Test]
+    [Category('Quick')]
     procedure AttributeIndexTest;
     [Test]
+    [Category('Quick')]
     procedure AttributeDerivationTest;
     [Test]
+    [Category('Quick')]
     procedure AttributeOclDerivationTest;
     [Test]
+    [Category('Quick')]
     procedure CheckMultiDerivedAttributes;
     [Test]
+    [Category('Quick')]
     procedure CompareToAsTest;
     [Test]
+    [Category('Quick')]
     procedure CompareToAsNullTest;
     [Test]
+    [Category('Quick')]
     procedure TestCompareTypes;
   end;
 

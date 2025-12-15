@@ -8,9 +8,11 @@ uses
 
 type
   [TestFixture]
+  [Category('Common')]
   TTestBoldDefaultTaggedValues = class
   public
     [Test]
+    [Category('Quick')]
     procedure TestTVIsFalse;
   end;
 

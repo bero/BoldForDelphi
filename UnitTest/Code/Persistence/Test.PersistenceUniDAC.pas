@@ -11,11 +11,14 @@ uses
 
 type
   [TestFixture]
+  [Category('Persistence')]
   TTestPersistenceUniDAC = class(TBoldTestCaseUniDAC)
   public
     [Test]
+    [Category('Slow')]
     procedure TestCreateObject;
     [Test]
+    [Category('Slow')]
     procedure TestPersistAndReload;
   end;
 

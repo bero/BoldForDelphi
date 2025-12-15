@@ -22,19 +22,26 @@ type
   Tmaan_FetchRefetchTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
+    [Category('Slow')]
     procedure TestFetchInvalidAttribute;
     [Test]
+    [Category('Slow')]
     procedure TestFetchCurrentAttribute;
     [Test]
+    [Category('Slow')]
     procedure TestFetchModifiedAttribute;
     [Test]
+    [Category('Slow')]
     [Ignore('Fix: Change bdepContents to bdepPMIn at BoldLinks.pas:742 TBoldDirectMultiLinkController.MakeDbCurrent')]
     procedure TestFetchEmbeddedRoleInvalid;
     [Test]
+    [Category('Slow')]
     procedure TestFetchEmbeddedRoleInvalidAdjust;
     [Test]
+    [Category('Slow')]
     procedure TestFetchEmbeddedRoleCurrent;
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestFetchNonEmbeddedRoleInvalid;
   end;

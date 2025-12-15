@@ -18,10 +18,13 @@ type
   TTestBoldPersistenceHandleDB = class
   public
     [Test]
+    [Category('Quick')]
     procedure TestGettersWithoutDatabaseAdapter;
     [Test]
+    [Category('Quick')]
     procedure TestSetActiveWithoutDatabaseAdapterRaisesException;
     [Test]
+    [Category('Quick')]
     procedure TestAssertSQLDatabaseconfigWithoutAdapterRaisesException;
   end;
 

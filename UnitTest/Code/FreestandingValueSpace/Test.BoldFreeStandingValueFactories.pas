@@ -9,9 +9,11 @@ uses
 
 type
   [TestFixture]
+  [Category('FreeStandingValues')]
   TTestBoldFreeStandingValueFactories = class
   public
     [Test]
+    [Category('Quick')]
     procedure TestCreateInstanceWithInvalidContentNameRaisesException;
   end;
 

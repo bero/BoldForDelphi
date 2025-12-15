@@ -12,16 +12,22 @@ type
   TTestBoldPMapperLists = class
   public
     [Test]
+    [Category('Quick')]
     procedure TestMemberDescriptorsByIndex;
     [Test]
+    [Category('Quick')]
     procedure TestSystemDescriptorsByIndex;
     [Test]
+    [Category('Quick')]
     procedure TestObjectDescriptorsByIndex;
     [Test]
+    [Category('Quick')]
     procedure TestMemberDescriptorCanStore;
     [Test]
+    [Category('Quick')]
     procedure TestDescriptorForModelNameWithNonDefaultMapper;
     [Test]
+    [Category('Quick')]
     procedure TestDescriptorForModelNameWithUnknownModelName;
   end;
 

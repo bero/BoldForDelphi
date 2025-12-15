@@ -8,18 +8,23 @@ uses
 
 type
   [TestFixture]
+  [Category('UndoRedo')]
   Tmaan_UndoTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure UndoAttribute;                  {2.7b & 2.2a Undo block}
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure UndoEmbeddedRoleModified;       {2.7b & 2.2a Undo block}
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure UndoEmbeddedRoleTransient;      {2.7b & 2.2a Undo block}
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure UndoObjectCreation;             {2.7b & 2.2a Undo block}
 //    procedure UndoObjectDeletion;             {2.7b & 2.2a Undo block}

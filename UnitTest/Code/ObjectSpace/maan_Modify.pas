@@ -24,27 +24,35 @@ type
   Tmaan_ModifyTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
+    [Category('Slow')]
     [Ignore('HandleMember calls HandleObject with RegardAsExisting=true, forcing besExisting state - BoldUndoHandler.pas:305')]
     procedure TestModifyAttribute;
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyNonEmbeddedRoleInsertTransient;
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyNonEmbeddedRoleInsertCurrent;
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyNonEmbeddedRoleDeleteTransient;
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyNonEmbeddedRoleDeleteCurrent;
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyEmbeddedRoleCurrent;
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyEmbeddedRoleTransient;
     [Test]
+    [Category('Slow')]
     [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
     procedure TestModifyEmbeddedRoleModified;
   end;

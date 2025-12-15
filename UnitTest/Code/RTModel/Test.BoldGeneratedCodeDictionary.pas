@@ -12,8 +12,10 @@ type
   TTestBoldGeneratedCodeDictionary = class
   public
     [Test]
+    [Category('Quick')]
     procedure TestBoldGeneratedCodesAssigned;
     [Test]
+    [Category('Quick')]
     procedure TestDescriptorByExpressionName;
   end;
 

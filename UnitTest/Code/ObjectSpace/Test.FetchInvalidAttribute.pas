@@ -46,14 +46,19 @@ type
     procedure TearDown;
   public
     [Test]
+    [Category('Quick')]
     procedure TestFetchInvalidAttribute;
     [Test]
+    [Category('Quick')]
     procedure TestFetchCurrentAttribute;
     [Test]
+    [Category('Quick')]
     procedure TestFetchModifiedAttribute;
     [Test]
+    [Category('Quick')]
     procedure TestFetchEmbeddedRoleInvalid;
     [Test]
+    [Category('Quick')]
     procedure TestInvalidateAndAccess;
   end;
 

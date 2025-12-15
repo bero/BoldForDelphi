@@ -12,6 +12,7 @@ type
   TTestBoldGUIDUtils = class
   public
     [Test]
+    [Category('Quick')]
     procedure TestBoldCreateGUIDAsString;
   end;
 
