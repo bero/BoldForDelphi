@@ -34,7 +34,6 @@ type
   /// Base class for Bold test cases using UniDAC with SQLite in-memory database.
   /// Inherit from this class for tests that need database persistence via UniDAC.
   /// </summary>
-  [TestFixture]
   TBoldTestCaseUniDAC = class(TBoldTestCasePersistence)
   private
     function GetUniConnection: TUniConnection;

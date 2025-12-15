@@ -4,8 +4,8 @@ unit BoldTestCaseFireDAC;
 {                                                                              }
 {  BoldTestCaseFireDAC - FireDAC persistence testing base class                }
 {                                                                              }
-{  Concrete implementation of TBoldTestCasePersistence using FireDAC with      }
-{  SQLite in-memory database for fast, isolated unit tests.                    }
+{  Concrete implementation of TBoldTestCasePersistence using FireDAC.          }
+{  Database configuration is read from UnitTest.ini via BoldTestDatabaseConfig.}
 {                                                                              }
 {******************************************************************************}
 
@@ -19,18 +19,14 @@ uses
   BoldTestCasePersistence,
   BoldAbstractDatabaseAdapter,
   BoldDatabaseAdapterFireDAC,
-  FireDAC.Comp.Client,
-  FireDAC.Stan.Def,
-  FireDAC.Stan.Async,
-  FireDAC.Phys.SQLite,
-  FireDAC.Phys.SQLiteDef;
+  FireDAC.Comp.Client;
 
 type
   /// <summary>
-  /// Base class for Bold test cases using FireDAC with SQLite in-memory database.
-  /// Inherit from this class for tests that need database persistence.
+  /// Base class for Bold test cases using FireDAC.
+  /// Database configuration is read from UnitTest.ini.
+  /// Supports SQL Server, SQLite, Interbase, Firebird, PostgreSQL.
   /// </summary>
-  [TestFixture]
   TBoldTestCaseFireDAC = class(TBoldTestCasePersistence)
   private
     function GetFDConnection: TFDConnection;
@@ -39,31 +35,46 @@ type
     function CreateConnection: TCustomConnection; override;
     function CreateDatabaseAdapter(AConnection: TCustomConnection): TBoldAbstractDatabaseAdapter; override;
 
-    /// <summary>
-    /// Override to customize connection parameters (e.g., use file-based SQLite)
-    /// </summary>
-    procedure ConfigureConnection(AConnection: TFDConnection); virtual;
-
     property FDConnection: TFDConnection read GetFDConnection;
     property FireDACAdapter: TBoldDatabaseAdapterFireDAC read GetFireDACAdapter;
+  public
+    [Setup]
+    procedure SetUp; override;
   end;
 
 implementation
 
+uses
+  BoldTestDatabaseConfig,
+  BoldSQLDatabaseConfig,
+  FireDAC.Stan.Def,
+  FireDAC.Stan.Async,
+  FireDAC.Phys.MSSQL,
+  FireDAC.Phys.MSSQLDef,
+  FireDAC.Phys.IB,
+  FireDAC.Phys.IBDef,
+  FireDAC.Phys.FB,
+  FireDAC.Phys.FBDef,
+  FireDAC.Phys.PG,
+  FireDAC.Phys.PGDef,
+  FireDAC.Phys.SQLite,
+  FireDAC.Phys.SQLiteDef;
+
 { TBoldTestCaseFireDAC }
+
+procedure TBoldTestCaseFireDAC.SetUp;
+begin
+  // Ensure test database exists before opening connection
+  CreateTestDatabase;
+  inherited;
+end;
 
 function TBoldTestCaseFireDAC.CreateConnection: TCustomConnection;
 var
   LConnection: TFDConnection;
 begin
   LConnection := TFDConnection.Create(nil);
-  LConnection.DriverName := 'SQLite';
-  LConnection.Params.Database := ':memory:';
-  LConnection.LoginPrompt := False;
-
-  // Allow subclasses to customize
-  ConfigureConnection(LConnection);
-
+  // Connection will be configured in CreateDatabaseAdapter via ConfigureConnection
   Result := LConnection;
 end;
 
@@ -73,13 +84,9 @@ var
 begin
   LAdapter := TBoldDatabaseAdapterFireDAC.Create(nil);
   LAdapter.Connection := AConnection as TFDConnection;
+  // Configure connection and adapter from UnitTest.ini
+  ConfigureConnection(AConnection as TFDConnection, LAdapter);
   Result := LAdapter;
-end;
-
-procedure TBoldTestCaseFireDAC.ConfigureConnection(AConnection: TFDConnection);
-begin
-  // Override in subclasses to customize connection
-  // Default: SQLite in-memory database (already configured)
 end;
 
 function TBoldTestCaseFireDAC.GetFDConnection: TFDConnection;

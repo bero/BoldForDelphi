@@ -910,15 +910,17 @@ var
   vQuery: IBoldQuery;
   vDatabaseName: string;
 begin
-  vDatabaseName := LowerCase(FDConnection.Params.Database);
-  FDConnection.Params.Database := ''; // need to clear this to connect succesfully
+  vDatabaseName := FDConnection.Params.Database;
+  FDConnection.Connected := False;
+  FDConnection.Params.Database := ''; // need to clear this to connect successfully
   vQuery := GetQuery;
   try
     vQuery.SQLText := SQLDataBaseConfig.GetDatabaseExistsQuery(vDatabaseName);
     vQuery.Open;
-    result := vQuery.Fields[0].AsBoolean;
+    result := not vQuery.Eof;
   finally
     ReleaseQuery(vQuery);
+    FDConnection.Connected := False;
     FDConnection.Params.Database := vDatabaseName;
   end;
 end;

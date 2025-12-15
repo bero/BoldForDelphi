@@ -90,20 +90,36 @@ BoldForDelphi/
 
 ## Build Commands
 
-```batch
-# Build for Delphi 12.3 (uses build.bat which calls rsvars.bat and msbuild)
-cd packages\Delphi29.3
-build.bat
+### Building UnitTest from WSL (ALWAYS use this approach)
 
-# Or manually with msbuild
-call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
-msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32
+Create and run a batch file - this is the ONLY reliable method from WSL:
 
-# Run unit tests (DUnitX)
-UnitTest\UnitTest.exe
+```bash
+# Create batch file and run it
+cat > /mnt/c/Attracs/BoldForDelphi/UnitTest/build_unittest.bat << 'EOF'
+@echo off
+call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
+cd /d C:\Attracs\BoldForDelphi\UnitTest
+msbuild UnitTest.dproj /p:Config=Debug /p:Platform=Win32 /t:Build /v:minimal
+EOF
+
+cmd.exe /c "C:\Attracs\BoldForDelphi\UnitTest\build_unittest.bat"
 ```
 
-Output files (e.g. `dclBold.29.1.bpl`) go to `packages\Bin\`.
+### Running Unit Tests from WSL
+
+```bash
+./UnitTest.exe --exit:Continue 2>&1 | tail -30
+```
+
+### Building Bold packages (from Windows cmd)
+
+```batch
+cd packages\Delphi30
+build.bat
+```
+
+Output files (e.g. `dclBold.30.bpl`) go to `packages\Bin\`.
 
 ## Environment Setup
 

@@ -96,7 +96,6 @@ type
   /// Subclasses must implement CreateConnection and CreateDatabaseAdapter to
   /// provide the specific database access library (FireDAC, UniDAC, etc.).
   /// </summary>
-  [TestFixture]
   TBoldTestCasePersistence = class
   private
     FConnection: TCustomConnection;
