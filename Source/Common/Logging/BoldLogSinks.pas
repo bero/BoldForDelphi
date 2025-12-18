@@ -47,7 +47,7 @@ unit BoldLogSinks;
 interface
 
 uses
-  Classes,
+  System.Classes,
   BoldLogInterfaces;
 
 type
@@ -127,10 +127,9 @@ type
 implementation
 
 uses
-  SysUtils,
-  SyncObjs,
-  Windows,
-  BoldIsoDateTime;
+  System.SysUtils,
+  System.SyncObjs,
+  WinApi.Windows;
 
 { TBoldBaseLogSink }
 
@@ -151,7 +150,7 @@ begin
   Result := '';
 
   if FIncludeTimestamp then
-    Result := AsISODateTimeMS(TimeStamp) + ' ';
+    Result := FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', TimeStamp) + ' ';
 
   if FIncludeLevel then
     Result := Result + '[' + BoldLogLevelToString(Level) + '] ';

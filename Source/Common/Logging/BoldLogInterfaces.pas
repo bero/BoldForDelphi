@@ -103,10 +103,10 @@ function BoldLogLevelToString(Level: TBoldLogLevel): string;
 implementation
 
 uses
-  SysUtils,
-  SyncObjs,
-  Windows,
-  Generics.Collections;
+  System.SysUtils,
+  System.SyncObjs,
+  WinApi.Windows,
+  System.Generics.Collections;
 
 type
   TBoldLogManager = class(TInterfacedObject, IBoldLogManager)
