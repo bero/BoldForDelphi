@@ -7,7 +7,7 @@
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
-        <ProjectVersion>20.1</ProjectVersion>
+        <ProjectVersion>20.3</ProjectVersion>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <ProjectName Condition="'$(ProjectName)'==''">QueryDemoProject</ProjectName>
     </PropertyGroup>
@@ -57,7 +57,7 @@
         <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;IBX;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1035</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
-        <DCC_UnitSearchPath>..\..\..\..\..\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\..\..\Source;..\..\..\..\..\Source\Common\Include;..\..\..\..\..\Source\Common\Core;..\..\..\..\..\Source\Common\Support;..\..\..\..\..\Source\Common\SupportWin;..\..\..\..\..\Source\Common\Subscription;..\..\..\..\..\Source\Common\Logging;..\..\..\..\..\Source\Common\Queue;..\..\..\..\..\Source\Common\Environment;..\..\..\..\..\Source\Common\TaggedValues;..\..\..\..\..\Source\Common\UML;..\..\..\..\..\Source\Common\Stubs;..\..\..\..\..\Source\Common\Template;..\..\..\..\..\Source\Common\MSXML;..\..\..\..\..\Source\Common\UtilsGUI;..\..\..\..\..\Source\ObjectSpace\Core;..\..\..\..\..\Source\ObjectSpace\BORepresentation;..\..\..\..\..\Source\ObjectSpace\RTModel;..\..\..\..\..\Source\ObjectSpace\Ocl;..\..\..\..\..\Source\ObjectSpace\Interfaces;..\..\..\..\..\Source\ObjectSpace\PessimisticLocking;..\..\..\..\..\Source\ObjectSpace\Undo;..\..\..\..\..\Source\ObjectSpace\COM;..\..\..\..\..\Source\Handles\Core;..\..\..\..\..\Source\Handles\Actions;..\..\..\..\..\Source\Persistence\Core;..\..\..\..\..\Source\Persistence\DB;..\..\..\..\..\Source\Persistence\System;..\..\..\..\..\Source\Persistence\ObjectUpgrading;..\..\..\..\..\Source\Persistence\Propagation;..\..\..\..\..\Source\BoldAwareGUI\BoldControls;..\..\..\..\..\Source\BoldAwareGUI\ControlPacks;..\..\..\..\..\Source\BoldAwareGUI\Core;..\..\..\..\..\Source\BoldAwareGUI\FormGen;..\..\..\..\..\Source\UMLModel\Handles;..\..\..\..\..\Source\UMLModel\Core;..\..\..\..\..\Source\MoldModel\Core;..\..\..\..\..\Source\MoldModel\Handles;..\..\..\..\..\Source\MoldModel\CodeGenerator;..\..\..\..\..\Source\MoldModel\TypeNameDictionary;..\..\..\..\..\Source\MoldModel\IDE;..\..\..\..\..\Source\MoldModel\Bld;..\..\..\..\..\Source\PMapper\Core;..\..\..\..\..\Source\PMapper\SQL;..\..\..\..\..\Source\PMapper\Default;..\..\..\..\..\Source\PMapper\Validator;..\..\..\..\..\Source\PMapper\DBEvolutor;..\..\..\..\..\Source\ValueSpace\Id;..\..\..\..\..\Source\ValueSpace\Interfaces;..\..\..\..\..\Source\ValueSpace\XMLStreaming;..\..\..\..\..\Source\ValueSpace\Condition;..\..\..\..\..\Source\FreestandingValueSpace\Core;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_ExeOutput>.\</DCC_ExeOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">

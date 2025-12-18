@@ -6,10 +6,11 @@
     {                                                          }
     {**********************************************************}
 
+{$INCLUDE bold.inc}
 {$INCLUDE QueryDemoClasses_Interface.inc}
 
 function TThing.ReceiveQueryFromOwned(Originator: TObject; OriginalEvent: TBoldEvent; const Args: array of const; Subscriber: TBoldSubscriber) : Boolean;
-
+{$IFNDEF BOLD_NO_QUERIES}
   function ValidateMaxParts(aThing: TThing): Boolean;
   // Don't allow more than four parts
   begin
@@ -49,6 +50,7 @@ function TThing.ReceiveQueryFromOwned(Originator: TObject; OriginalEvent: TBoldE
     result := ValidatePartOfSelf((Args[0].VObject as TBoldObjectLocator).EnsuredBoldObject as TThing, self) and
               ValidateMaxParts((Args[0].VObject as TBoldObjectLocator).EnsuredBoldObject as TThing);
   end;
+{$ENDIF}
 
 begin
   // This function is called when someone wants to know if it can access one of this object's members.
@@ -56,6 +58,7 @@ begin
 
   result := True; // Default. Allow all operations.
 
+{$IFNDEF BOLD_NO_QUERIES}
   if (Originator = parts) then
     result := GrantQueryParts(self, OriginalEvent, Args)
 
@@ -82,6 +85,7 @@ begin
     result := False;
     SetBoldLastFailureReason(TBoldFailureReason.Create('Can not save a thing with empty name', nil));
   end
+{$ENDIF}
 
 end;
 

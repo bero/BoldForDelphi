@@ -82,7 +82,7 @@ uses
   BoldSystem,
   BoldGUI,
   {$ENDIF}
-  BoldMath;
+  Math;
 
 var
   DefaultListAsFollowerListRenderer: TBoldListAsFollowerListRenderer;

@@ -45,7 +45,7 @@
         <DCC_S>false</DCC_S>
         <DCC_F>false</DCC_F>
         <DCC_K>false</DCC_K>
-        <DCC_UnitSearchPath>..\..\..\Source\Common\Logging;..\..\..\Source\Common\Core;..\..\..\Source\Common\Support;..\..\..\Source\Common\Include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\..\Source\Common\Logging;..\..\..\..\Source\Common\Core;..\..\..\..\Source\Common\Support;..\..\..\..\Source\Common\Include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>rtl;$(DCC_UsePackage)</DCC_UsePackage>

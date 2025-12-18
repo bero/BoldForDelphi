@@ -1,4 +1,5 @@
-﻿unit QueryDemoForm;
+﻿{$INCLUDE bold.inc}
+unit QueryDemoForm;
 
 interface
 
@@ -103,9 +104,13 @@ end;
 
 procedure TfrmQueryDemo.btnLockClick(Sender: TObject);
 begin
+{$IFNDEF BOLD_NO_QUERIES}
   // Place a subscription on the MaySetValue query of 'Name' of the current object, with a subscriber that always answers false
   // This will prevent changing (or actually, setting) the name of the object
   (BoldListHandle1.CurrentBoldObject as TThing).M_Name.AddSubscription(LockSubscriber, bqMaySetValue, bqMaySetValue);
+{$ELSE}
+  ShowMessage('Query mechanism is disabled (BOLD_NO_QUERIES defined)');
+{$ENDIF}
 end;
 
 procedure TfrmQueryDemo.FormCreate(Sender: TObject);
