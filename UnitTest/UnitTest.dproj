@@ -95,8 +95,11 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <DCCReference Include="Code\Main\TestRunner.pas"/>
         <DCCReference Include="Code\Persistence\BoldTestCasePersistence.pas"/>
+        <DCCReference Include="Code\Persistence\BoldTestDatabaseConfig.pas"/>
         <DCCReference Include="Code\Persistence\BoldTestCaseFireDAC.pas"/>
+        <DCCReference Include="Code\Persistence\BoldTestCaseUniDAC.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUMLTypes.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldAttributes.pas"/>
         <DCCReference Include="Code\ObjectSpace\jehoBCBoldTest.pas"/>
@@ -117,8 +120,12 @@
         <DCCReference Include="Code\PMapper\Test.BoldPMapperLists.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSQLMappingInfo.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUtils.pas"/>
-        <DCCReference Include="Code\Persistence\BoldTestCaseUniDAC.pas"/>
+        <DCCReference Include="Code\Persistence\Test.PersistenceFireDAC.pas"/>
         <DCCReference Include="Code\Common\Test.BoldGUIDUtils.pas"/>
+        <DCCReference Include="Code\ProductControl\Test.BoldMD5.pas"/>
+        <DCCReference Include="Code\Propagator\Test.BoldThreadSafeQueue.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldThreadSafeLog.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldLogInterfaces.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

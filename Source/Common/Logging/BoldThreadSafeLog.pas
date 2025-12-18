@@ -1,7 +1,75 @@
-﻿
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldThreadSafeLog;
+
+{$REGION 'Documentation'}
+(*
+  🗒️ Unit: BoldThreadSafeLog
+
+  📜 Description:
+    BoldThreadSafeLog is a lightweight, thread-safe file logging framework for Bold for Delphi
+    applications. It provides simple, reliable logging to multiple log files with automatic
+    timestamp formatting, optional thread ID inclusion, and automatic file size management.
+    The framework is designed for production use where basic file-based logging is required
+    without the complexity of more sophisticated logging systems.
+
+  🔖 Core Components:
+    1. 📝 TFileLogging: Low-level thread-safe file writer that handles a single log file.
+       - Uses TCriticalSection for thread safety
+       - Supports automatic file truncation when MaxSize is exceeded
+       - Configurable timestamp format (date+time or time only)
+       - Optional thread ID in log entries (full or short format)
+       - UTF-8 encoded output with ISO 8601 timestamps
+
+    2. 🎯 TBoldLogger: High-level logger managing three separate log files:
+       - Main log (fLog): For general application messages via Log/LogFmt
+       - Error log (fErrorLog): For error messages via LogError/LogErrorFmt, includes thread ID
+       - Thread log (fThreadLog): For thread activity messages via LogThread, short thread ID format
+
+    3. 🌐 Global Procedures: Convenient access to a singleton TBoldLogger instance:
+       - BoldInitLog: Initialize the global logger with file paths and max size
+       - BoldDoneLog: Shutdown and free the global logger
+       - BoldLog: Log to main log file
+       - BoldLogError: Log to error log file
+       - BoldLogThread: Log to thread activity file
+
+  ✨ Features:
+    - 🛡️ Thread Safety: All file operations protected by TCriticalSection
+    - 📏 Size Management: Automatic file truncation when MaxSize exceeded (FlushStream clears file)
+    - ⏰ ISO Timestamps: Uses AsISODateTimeMS/AsISOTimeMS for consistent timestamp format
+    - 🧵 Thread ID Support: Optional thread ID inclusion in two formats:
+      - Full: " (ThreadID=1234)"
+      - Short: ":TID=1234"
+    - 📁 Multiple Log Files: Separate files for general logs, errors, and thread activity
+    - 🔄 Open/Close Control: Logs can be opened and closed dynamically
+
+  🛠️ Usage:
+    // Initialize logging at application startup
+    BoldInitLog('app.log', 'error.log', 'thread.log', 10 * 1024 * 1024);  // 10MB max
+
+    // Log messages
+    BoldLog('Application started');
+    BoldLog('Processing %d items', [Count]);
+    BoldLogError('Failed to connect: %s', [ErrorMsg]);
+    BoldLogThread('Worker thread started');
+
+    // Shutdown at application exit
+    BoldDoneLog;
+
+  📋 Log Entry Format:
+    With IncludeDate=True:  "2025-01-15T10:30:45.123 Message text"
+    With IncludeDate=False: "10:30:45.123 Message text"
+    With IncludeThreadId:   "2025-01-15T10:30:45.123 Message text (ThreadID=1234)"
+    With ShortThreadId:     "10:30:45.123 Message text:TID=1234"
+
+  ⚠️ Notes:
+    - If BoldInitLog is not called, all BoldLog/BoldLogError calls are no-ops (safe to call)
+    - FlushStream truncates the file to zero bytes when MaxSize is exceeded (not a rolling log)
+    - Error log always includes thread ID for debugging multi-threaded issues
+    - Thread log uses time-only timestamps and short thread ID format for compact output
+*)
+{$ENDREGION}
 
 interface
 

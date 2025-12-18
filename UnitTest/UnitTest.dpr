@@ -36,7 +36,8 @@ uses
   Test.BoldGUIDUtils in 'Code\Common\Test.BoldGUIDUtils.pas',
   Test.BoldMD5 in 'Code\ProductControl\Test.BoldMD5.pas',
   Test.BoldThreadSafeQueue in 'Code\Propagator\Test.BoldThreadSafeQueue.pas',
-  Test.BoldThreadSafeLog in 'Code\Common\Test.BoldThreadSafeLog.pas';
+  Test.BoldThreadSafeLog in 'Code\Common\Test.BoldThreadSafeLog.pas',
+  Test.BoldLogInterfaces in 'Code\Common\Test.BoldLogInterfaces.pas';
 
 {$R *.res}
 
