@@ -157,8 +157,10 @@ type
 implementation
 
 uses
-  SysUtils,
-  Dialogs,
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  Vcl.Dialogs,
 
   BoldCoreConsts,
   BoldSystemRT,

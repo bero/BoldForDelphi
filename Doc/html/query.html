@@ -77,9 +77,128 @@
           <h2>Overview</h2>
           <p>
             This example demonstrates how to implement different kinds of queries to control
-            update behavior in Bold. It shows both subscription-based locking and constraint
-            validation using the <code>ReceiveQueryFromOwned</code> framework method.
+            update behavior in Bold. It shows subscription-based locking using
+            <code>TBoldPassthroughSubscriber</code> to prevent attribute modifications at runtime.
           </p>
+          <p>
+            The example uses the shared Demo model with Person, Project, and Task classes,
+            demonstrating how to lock Task titles from being edited.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Class Model</h2>
+          <p>The Query demo uses the shared Demo model. Here are the key classes and their relationships:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 650 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="650" height="380" fill="#1e293b"/>
+
+              <!-- TPerson class -->
+              <rect x="20" y="20" width="180" height="160" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="20" y="20" width="180" height="28" rx="6" fill="#3b82f6"/>
+              <text x="110" y="40" fill="white" font-size="12" font-weight="bold" text-anchor="middle">TPerson</text>
+              <line x1="20" y1="48" x2="200" y2="48" stroke="#475569"/>
+              <text x="30" y="65" fill="#94a3b8" font-size="9">FirstName: String</text>
+              <text x="30" y="80" fill="#94a3b8" font-size="9">LastName: String</text>
+              <text x="30" y="95" fill="#94a3b8" font-size="9">Assets: Currency</text>
+              <text x="30" y="110" fill="#94a3b8" font-size="9">BirthDate: Date</text>
+              <text x="30" y="125" fill="#94a3b8" font-size="9">IsActive: Boolean</text>
+              <line x1="20" y1="132" x2="200" y2="132" stroke="#475569" stroke-dasharray="2,2"/>
+              <text x="30" y="148" fill="#22c55e" font-size="9" font-style="italic">/FullName: String</text>
+              <text x="30" y="163" fill="#64748b" font-size="8">(derived)</text>
+
+              <!-- TProject class -->
+              <rect x="240" y="20" width="180" height="145" rx="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="240" y="20" width="180" height="28" rx="6" fill="#f59e0b"/>
+              <text x="330" y="40" fill="white" font-size="12" font-weight="bold" text-anchor="middle">TProject</text>
+              <line x1="240" y1="48" x2="420" y2="48" stroke="#475569"/>
+              <text x="250" y="65" fill="#94a3b8" font-size="9">Name: String</text>
+              <text x="250" y="80" fill="#94a3b8" font-size="9">Description: String</text>
+              <text x="250" y="95" fill="#94a3b8" font-size="9">StartDate: Date</text>
+              <text x="250" y="110" fill="#94a3b8" font-size="9">EndDate: Date</text>
+              <text x="250" y="125" fill="#94a3b8" font-size="9">Budget: Currency</text>
+              <line x1="240" y1="132" x2="420" y2="132" stroke="#475569" stroke-dasharray="2,2"/>
+              <text x="250" y="148" fill="#64748b" font-size="8">Manager → TPerson</text>
+              <text x="250" y="160" fill="#64748b" font-size="8">Tasks → TTask[*]</text>
+
+              <!-- TTask class (highlighted - main focus) -->
+              <rect x="460" y="20" width="170" height="145" rx="6" fill="#334155" stroke="#22c55e" stroke-width="3"/>
+              <rect x="460" y="20" width="170" height="28" rx="6" fill="#22c55e"/>
+              <text x="545" y="40" fill="white" font-size="12" font-weight="bold" text-anchor="middle">TTask</text>
+              <line x1="460" y1="48" x2="630" y2="48" stroke="#475569"/>
+              <text x="470" y="65" fill="#e2e8f0" font-size="9" font-weight="bold">Title: String</text>
+              <text x="470" y="80" fill="#94a3b8" font-size="9">Priority: Integer</text>
+              <text x="470" y="95" fill="#94a3b8" font-size="9">IsCompleted: Boolean</text>
+              <text x="470" y="110" fill="#94a3b8" font-size="9">DueDate: Date</text>
+              <line x1="460" y1="118" x2="630" y2="118" stroke="#475569" stroke-dasharray="2,2"/>
+              <text x="470" y="133" fill="#64748b" font-size="8">Project → TProject</text>
+              <text x="470" y="148" fill="#64748b" font-size="8">AssignedTo → TPerson</text>
+
+              <!-- Lock icon on TTask.Title -->
+              <rect x="560" y="56" width="16" height="12" rx="2" fill="#ef4444"/>
+              <path d="M563 56 L563 52 A5 5 0 0 1 573 52 L573 56" stroke="#ef4444" stroke-width="2" fill="none"/>
+
+              <!-- Relationship: Person manages Project -->
+              <path d="M200 80 L240 80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowGray)"/>
+              <text x="220" y="75" fill="#64748b" font-size="7" text-anchor="middle">manages</text>
+              <text x="205" y="88" fill="#64748b" font-size="7">0..*</text>
+              <text x="232" y="88" fill="#64748b" font-size="7">0..1</text>
+
+              <!-- Relationship: Project has Tasks -->
+              <path d="M420 80 L460 80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowGray)"/>
+              <text x="440" y="75" fill="#64748b" font-size="7" text-anchor="middle">tasks</text>
+              <text x="425" y="88" fill="#64748b" font-size="7">1</text>
+              <text x="452" y="88" fill="#64748b" font-size="7">*</text>
+
+              <!-- Relationship: Person assigned to Task -->
+              <path d="M200 140 L300 200 L460 140" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arrowGray)"/>
+              <text x="300" y="190" fill="#64748b" font-size="7" text-anchor="middle">assignedTo</text>
+
+              <!-- Demo Focus Box -->
+              <rect x="20" y="200" width="610" height="160" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="2"/>
+              <text x="40" y="225" fill="#22c55e" font-size="11" font-weight="bold">Query Demo Focus: Task Title Locking</text>
+
+              <!-- Locking flow diagram -->
+              <rect x="40" y="240" width="100" height="40" rx="4" fill="#334155" stroke="#3b82f6"/>
+              <text x="90" y="255" fill="#3b82f6" font-size="9" text-anchor="middle">Select Task</text>
+              <text x="90" y="270" fill="#94a3b8" font-size="8" text-anchor="middle">in list</text>
+
+              <path d="M140 260 L170 260" stroke="#475569" stroke-width="2" marker-end="url(#arrowGray2)"/>
+
+              <rect x="170" y="240" width="100" height="40" rx="4" fill="#334155" stroke="#f59e0b"/>
+              <text x="220" y="255" fill="#f59e0b" font-size="9" text-anchor="middle">Click</text>
+              <text x="220" y="270" fill="#f59e0b" font-size="8" text-anchor="middle">"Lock Title"</text>
+
+              <path d="M270 260 L300 260" stroke="#475569" stroke-width="2" marker-end="url(#arrowGray2)"/>
+
+              <rect x="300" y="240" width="130" height="40" rx="4" fill="#334155" stroke="#ef4444"/>
+              <text x="365" y="255" fill="#ef4444" font-size="9" text-anchor="middle">Subscriber Added</text>
+              <text x="365" y="270" fill="#fca5a5" font-size="8" text-anchor="middle">bqMaySetValue</text>
+
+              <path d="M430 260 L460 260" stroke="#475569" stroke-width="2" marker-end="url(#arrowGray2)"/>
+
+              <rect x="460" y="240" width="150" height="40" rx="4" fill="#7f1d1d" stroke="#ef4444" stroke-width="2"/>
+              <text x="535" y="255" fill="#ef4444" font-size="9" text-anchor="middle">Title is LOCKED</text>
+              <text x="535" y="270" fill="#fca5a5" font-size="8" text-anchor="middle">Edits rejected</text>
+
+              <!-- Code snippet -->
+              <rect x="40" y="295" width="570" height="50" rx="4" fill="#1e293b" stroke="#475569"/>
+              <text x="50" y="312" fill="#64748b" font-size="8" font-family="monospace">// Lock the Title attribute of the selected Task</text>
+              <text x="50" y="328" fill="#fcd34d" font-size="9" font-family="monospace">(BoldListHandle1.CurrentBoldObject as TTask).M_Title.AddSubscription(</text>
+              <text x="70" y="340" fill="#fcd34d" font-size="9" font-family="monospace">LockSubscriber, bqMaySetValue, bqMaySetValue);</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowGray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+                </marker>
+                <marker id="arrowGray2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
         </div>
 
         <div class="card">
@@ -177,46 +296,47 @@
 
         <div class="card">
           <h2>How to Run</h2>
-          <p>Enter <em>Things</em> in the grid using the navigator. Try these scenarios:</p>
+          <p>Create and manage <em>Tasks</em> using the navigator. Try these scenarios:</p>
           <ol>
-            <li><strong>Empty name validation</strong> - Try to save a Thing without a name</li>
-            <li><strong>Reserved name</strong> - Try naming a Thing "It"</li>
-            <li><strong>Parts limit</strong> - Drag more than 4 Things into the Parts listbox</li>
-            <li><strong>Self-reference</strong> - Try to drag a Thing as a Part of itself</li>
-            <li><strong>Attribute locking</strong> - Select a Thing, click "Lock Name", then try to edit the name</li>
-            <li><strong>Release locks</strong> - Click "Release All" to unlock</li>
+            <li><strong>Open the system</strong> - Click "Open system" to connect to the database</li>
+            <li><strong>Create tasks</strong> - Use the navigator to add new Task objects</li>
+            <li><strong>Edit task title</strong> - Double-click a task in the grid to edit its title</li>
+            <li><strong>Lock a title</strong> - Select a task, click "Lock Title", then try to edit the title</li>
+            <li><strong>See the error</strong> - Bold will show "Value is locked" when you try to change a locked title</li>
+            <li><strong>Release locks</strong> - Click "Release All" to unlock all locked attributes</li>
+            <li><strong>Save changes</strong> - Click "Save" to persist changes to the database</li>
           </ol>
         </div>
 
         <div class="card">
-          <h2>Constraints Implemented</h2>
+          <h2>Features Demonstrated</h2>
           <table>
             <thead>
               <tr>
-                <th>Constraint</th>
+                <th>Feature</th>
                 <th>Implementation</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>A Thing may not have more than 4 Parts</td>
-                <td><code>ReceiveQueryFromOwned</code></td>
-              </tr>
-              <tr>
-                <td>A Thing may not be a Part of itself</td>
-                <td><code>ReceiveQueryFromOwned</code></td>
-              </tr>
-              <tr>
-                <td>A Thing may not be named "It"</td>
-                <td><code>ReceiveQueryFromOwned</code></td>
-              </tr>
-              <tr>
-                <td>A Thing may not be saved with empty name</td>
-                <td><code>ReceiveQueryFromOwned</code></td>
-              </tr>
-              <tr>
-                <td>Lock individual attribute edits</td>
+                <td>Lock individual attribute edits at runtime</td>
                 <td><code>TBoldPassthroughSubscriber</code></td>
+              </tr>
+              <tr>
+                <td>Subscribe to <code>bqMaySetValue</code> query</td>
+                <td><code>M_Title.AddSubscription(...)</code></td>
+              </tr>
+              <tr>
+                <td>Reject changes with error message</td>
+                <td><code>SetBoldLastFailureReason</code></td>
+              </tr>
+              <tr>
+                <td>Release all locks at once</td>
+                <td><code>LockSubscriber.CancelAllSubscriptions</code></td>
+              </tr>
+              <tr>
+                <td>Shared model and database</td>
+                <td><code>DemoDataModule</code> / <code>DemoClasses</code></td>
               </tr>
             </tbody>
           </table>
@@ -228,15 +348,29 @@
           <h3>TBoldPassthroughSubscriber</h3>
           <p>
             A private <code>LockSubscriber</code> variable prevents updates to specific attributes.
-            When you click "Lock Name", the subscriber attaches to the name attribute, blocking
-            changes until released.
+            When you click "Lock Title", the subscriber attaches to the Task's Title attribute,
+            blocking changes until released.
           </p>
+          <pre><code>LockSubscriber := TBoldExtendedPassthroughSubscriber.CreateWithReceiveAndAnswer(
+  nil, AnswerFalse);</code></pre>
 
-          <h3>ReceiveQueryFromOwned</h3>
+          <h3>AnswerFalse Callback</h3>
           <p>
-            The <code>TThing</code> class overrides <code>ReceiveQueryFromOwned</code> to implement
-            business rules. This method intercepts proposed changes and can reject them with
-            appropriate error messages.
+            The callback always returns <code>False</code> and sets an error message, which
+            prevents any modification to the subscribed attribute:
+          </p>
+          <pre><code>function TfrmQueryDemo.AnswerFalse(...): Boolean;
+begin
+  Result := False;
+  SetBoldLastFailureReason(
+    TBoldFailureReason.Create('Value is locked', nil));
+end;</code></pre>
+
+          <h3>Shared Data Module</h3>
+          <p>
+            This example uses the shared <code>DemoDataModule</code> which provides database
+            connectivity and the Bold system handle. The model includes Person, Project, Task,
+            Building, and Ownership classes.
           </p>
         </div>
 

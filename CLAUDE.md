@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Bold for Delphi is a Model-Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool. It enables UML-based model development with OCL (Object Constraint Language) queries, automatic code generation, and sophisticated database persistence. Originally released by Boldsoft in 2004, it was open-sourced by Embarcadero in 2020 under MIT license.
 
 **Current Version**: 4.0.1.0 (community-maintained develop branch)
-**Target Platform**: Delphi 12.x Athens (Win32/Win64)
+**Target Platforms**: Delphi 11.3, 12.1, 12.3 and 13 (Win32/Win64)
 
 ## Claude Code Instructions
 
@@ -90,27 +90,10 @@ BoldForDelphi/
 
 ## Build Commands
 
-### Building UnitTest from WSL (ALWAYS use this approach)
+### Building any Delphi project from WSL (ALWAYS use this approach)
 
-Create and run a batch file - this is the ONLY reliable method from WSL:
-
-```bash
-# Create batch file and run it
-cat > /mnt/c/Attracs/BoldForDelphi/UnitTest/build_unittest.bat << 'EOF'
-@echo off
-call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat"
-cd /d C:\Attracs\BoldForDelphi\UnitTest
-msbuild UnitTest.dproj /p:Config=Debug /p:Platform=Win32 /t:Build /v:minimal
-EOF
-
-cmd.exe /c "C:\Attracs\BoldForDelphi\UnitTest\build_unittest.bat"
-```
-
-### Running Unit Tests from WSL
-
-```bash
-./UnitTest.exe --exit:Continue 2>&1 | tail -30
-```
+RAD Studio 13 is installed at: C:\Program Files (x86)\Embarcadero\Studio\37.0
+Use rsvars.bat before msbuild. Don't guess version numbers.
 
 ### Building Bold packages (from Windows cmd)
 

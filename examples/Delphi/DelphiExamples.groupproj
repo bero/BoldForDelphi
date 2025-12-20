@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{7C8CCE9A-597D-427A-8870-6B0BBCDEE30D}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Simple\CreateDatabase\CreateDatabase.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Simple\ObjectSpace\Query\BoldDemoProject.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="CreateDatabase">
+        <MSBuild Projects="Simple\CreateDatabase\CreateDatabase.dproj"/>
+    </Target>
+    <Target Name="CreateDatabase:Clean">
+        <MSBuild Projects="Simple\CreateDatabase\CreateDatabase.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CreateDatabase:Make">
+        <MSBuild Projects="Simple\CreateDatabase\CreateDatabase.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="BoldDemoProject">
+        <MSBuild Projects="Simple\ObjectSpace\Query\BoldDemoProject.dproj"/>
+    </Target>
+    <Target Name="BoldDemoProject:Clean">
+        <MSBuild Projects="Simple\ObjectSpace\Query\BoldDemoProject.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BoldDemoProject:Make">
+        <MSBuild Projects="Simple\ObjectSpace\Query\BoldDemoProject.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="CreateDatabase;BoldDemoProject"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="CreateDatabase:Clean;BoldDemoProject:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="CreateDatabase:Make;BoldDemoProject:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

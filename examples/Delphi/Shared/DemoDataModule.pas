@@ -1,4 +1,4 @@
-{$INCLUDE bold.inc}
+﻿{$INCLUDE bold.inc}
 unit DemoDataModule;
 
 interface
