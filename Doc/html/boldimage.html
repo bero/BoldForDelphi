@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BoldImage - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link"><div class="logo"><span class="logo-bold">Bold</span><span class="logo-sub">for Delphi</span></div></a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group" open><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html" class="active">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / GUI Controls</p>
+        <h1>BoldImage</h1>
+        <p class="subtitle">Display and edit images stored in Bold objects</p>
+      </header>
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>The TBoldImage component displays and edits images stored as BLOB attributes in Bold objects. It supports common image formats and provides load/save functionality.</p>
+        </div>
+        <div class="card">
+          <h2>Features</h2>
+          <ul>
+            <li>Display images from Bold BLOB attributes</li>
+            <li>Load images from file</li>
+            <li>Auto-stretch or center images</li>
+            <li>Automatic updates when data changes</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <p>TBoldImage binds directly to a BLOB attribute in your Bold object, displaying the image and allowing edits:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="280" fill="#1e293b"/>
+
+              <!-- Bold Object -->
+              <rect x="30" y="40" width="150" height="120" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="30" y="40" width="150" height="28" rx="6" fill="#3b82f6"/>
+              <text x="105" y="60" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Product</text>
+              <line x1="30" y1="68" x2="180" y2="68" stroke="#475569"/>
+              <text x="40" y="88" fill="#94a3b8" font-size="10">name: String</text>
+              <text x="40" y="106" fill="#94a3b8" font-size="10">price: Currency</text>
+              <text x="40" y="124" fill="#f59e0b" font-size="10" font-weight="bold">image: Blob</text>
+              <!-- BLOB indicator -->
+              <rect x="40" y="132" width="130" height="20" rx="3" fill="#0f172a" stroke="#f59e0b"/>
+              <text x="105" y="146" fill="#fcd34d" font-size="8" text-anchor="middle">Binary Image Data</text>
+
+              <!-- Database -->
+              <ellipse cx="105" cy="220" rx="60" ry="15" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <rect x="45" y="205" width="120" height="30" fill="#334155"/>
+              <ellipse cx="105" cy="205" rx="60" ry="15" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <text x="105" y="225" fill="#94a3b8" font-size="9" text-anchor="middle">Database</text>
+              <text x="105" y="240" fill="#64748b" font-size="8" text-anchor="middle">BLOB Column</text>
+
+              <!-- Arrow from object to database -->
+              <path d="M105 160 L105 190" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+              <!-- BoldHandle -->
+              <rect x="220" y="80" width="120" height="50" rx="6" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+              <text x="280" y="102" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">BoldHandle</text>
+              <text x="280" y="118" fill="#64748b" font-size="9" text-anchor="middle">image</text>
+
+              <!-- Arrow from object to handle -->
+              <path d="M180 100 L215 100" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+              <!-- TBoldImage Component -->
+              <rect x="380" y="40" width="190" height="150" rx="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="380" y="40" width="190" height="28" rx="6" fill="#f59e0b"/>
+              <text x="475" y="60" fill="white" font-size="11" font-weight="bold" text-anchor="middle">TBoldImage</text>
+
+              <!-- Image preview area -->
+              <rect x="395" y="78" width="160" height="100" rx="4" fill="#0f172a" stroke="#475569"/>
+
+              <!-- Sample image content (mountains/landscape icon) -->
+              <rect x="405" y="88" width="140" height="80" fill="#1e3a5f"/>
+              <!-- Sun -->
+              <circle cx="505" cy="108" r="12" fill="#fcd34d"/>
+              <!-- Mountains -->
+              <polygon points="405,168 445,118 485,168" fill="#334155"/>
+              <polygon points="455,168 505,128 545,168" fill="#475569"/>
+              <!-- Ground -->
+              <rect x="405" y="158" width="140" height="10" fill="#14532d"/>
+
+              <!-- Arrow from handle to image -->
+              <path d="M340 105 L375 105" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowOrange)"/>
+
+              <!-- Load from file -->
+              <rect x="400" y="210" width="80" height="30" rx="4" fill="#334155" stroke="#3b82f6"/>
+              <text x="440" y="230" fill="#3b82f6" font-size="9" text-anchor="middle">Load File</text>
+
+              <!-- Save to file -->
+              <rect x="490" y="210" width="80" height="30" rx="4" fill="#334155" stroke="#22c55e"/>
+              <text x="530" y="230" fill="#22c55e" font-size="9" text-anchor="middle">Save File</text>
+
+              <!-- Arrows for load/save -->
+              <path d="M440 210 L440 195" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrowBlueSmall)"/>
+              <path d="M530 195 L530 210" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrowGreenSmall)"/>
+
+              <!-- Legend -->
+              <rect x="220" y="160" width="130" height="70" rx="4" fill="#0f172a" stroke="#475569"/>
+              <text x="230" y="178" fill="#94a3b8" font-size="9" font-weight="bold">Properties</text>
+              <text x="230" y="194" fill="#64748b" font-size="8">• BoldHandle</text>
+              <text x="230" y="208" fill="#64748b" font-size="8">• Stretch / Center</text>
+              <text x="230" y="222" fill="#64748b" font-size="8">• ReadOnly</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+                <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+                </marker>
+                <marker id="arrowBlueSmall" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+                  <polygon points="0 0, 6 2.5, 0 5" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowGreenSmall" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+                  <polygon points="0 0, 6 2.5, 0 5" fill="#22c55e"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/GUIControls/BoldImage/BE_BoldImage.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>BE_BoldImage.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\GUIControls\BoldImage\</code></p>
+        </div>
+      </section>
+      <footer class="footer"></footer>
+    </main>
+  </div>
+</body>
+</html>

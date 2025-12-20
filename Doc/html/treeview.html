@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TreeView - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link">
+          <div class="logo">
+            <span class="logo-bold">Bold</span>
+            <span class="logo-sub">for Delphi</span>
+          </div>
+        </a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group" open><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html" class="active">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / GUI Controls</p>
+        <h1>TreeView</h1>
+        <p class="subtitle">Hierarchical data display with Bold TreeView</p>
+      </header>
+
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>
+            The <code>TBoldTreeView</code> component displays Bold objects in a hierarchical
+            tree structure. It automatically updates when the underlying data changes and
+            supports drag-and-drop, custom icons, and node renderers.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Features</h2>
+          <div class="feature-grid">
+            <div class="feature">
+              <h4>Automatic Updates</h4>
+              <p>Tree refreshes when objects are added, modified, or deleted</p>
+            </div>
+            <div class="feature">
+              <h4>Hierarchical Navigation</h4>
+              <p>Navigate object relationships as tree branches</p>
+            </div>
+            <div class="feature">
+              <h4>Drag &amp; Drop</h4>
+              <p>Rearrange objects by dragging nodes between branches</p>
+            </div>
+            <div class="feature">
+              <h4>Custom Icons</h4>
+              <p>Different icons for different object types or states</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Object Model to Tree</h2>
+          <p>Bold TreeView maps object relationships to a hierarchical tree structure:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="320" fill="#1e293b"/>
+
+              <!-- Object Model side -->
+              <text x="100" y="25" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">Object Model</text>
+
+              <!-- Company object -->
+              <rect x="50" y="40" width="100" height="50" rx="4" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <text x="100" y="60" fill="#3b82f6" font-size="10" font-weight="bold" text-anchor="middle">Company</text>
+              <text x="100" y="75" fill="#94a3b8" font-size="8" text-anchor="middle">"Acme Corp"</text>
+
+              <!-- Department objects -->
+              <rect x="20" y="120" width="80" height="45" rx="4" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <text x="60" y="140" fill="#22c55e" font-size="9" font-weight="bold" text-anchor="middle">Department</text>
+              <text x="60" y="152" fill="#94a3b8" font-size="8" text-anchor="middle">"Sales"</text>
+
+              <rect x="120" y="120" width="80" height="45" rx="4" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <text x="160" y="140" fill="#22c55e" font-size="9" font-weight="bold" text-anchor="middle">Department</text>
+              <text x="160" y="152" fill="#94a3b8" font-size="8" text-anchor="middle">"Engineering"</text>
+
+              <!-- Employee objects -->
+              <rect x="10" y="195" width="60" height="40" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <text x="40" y="212" fill="#f59e0b" font-size="8" font-weight="bold" text-anchor="middle">Employee</text>
+              <text x="40" y="224" fill="#94a3b8" font-size="7" text-anchor="middle">"Alice"</text>
+
+              <rect x="80" y="195" width="60" height="40" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <text x="110" y="212" fill="#f59e0b" font-size="8" font-weight="bold" text-anchor="middle">Employee</text>
+              <text x="110" y="224" fill="#94a3b8" font-size="7" text-anchor="middle">"Bob"</text>
+
+              <rect x="150" y="195" width="60" height="40" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <text x="180" y="212" fill="#f59e0b" font-size="8" font-weight="bold" text-anchor="middle">Employee</text>
+              <text x="180" y="224" fill="#94a3b8" font-size="7" text-anchor="middle">"Carol"</text>
+
+              <!-- Relationship lines -->
+              <line x1="80" y1="90" x2="60" y2="120" stroke="#475569" stroke-width="1.5"/>
+              <line x1="120" y1="90" x2="160" y2="120" stroke="#475569" stroke-width="1.5"/>
+              <line x1="40" y1="165" x2="40" y2="195" stroke="#475569" stroke-width="1.5"/>
+              <line x1="80" y1="165" x2="110" y2="195" stroke="#475569" stroke-width="1.5"/>
+              <line x1="160" y1="165" x2="180" y2="195" stroke="#475569" stroke-width="1.5"/>
+
+              <!-- Arrow to tree -->
+              <path d="M220 150 L280 150" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowGray)"/>
+              <text x="250" y="140" fill="#94a3b8" font-size="9" text-anchor="middle">maps to</text>
+
+              <!-- TreeView side -->
+              <text x="440" y="25" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">TBoldTreeView</text>
+
+              <!-- Tree container -->
+              <rect x="300" y="40" width="280" height="260" rx="6" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+
+              <!-- Tree nodes -->
+              <!-- Root: Company -->
+              <rect x="315" y="55" width="14" height="14" rx="2" fill="#334155" stroke="#475569"/>
+              <path d="M319 59 L319 65 M316 62 L322 62" stroke="#94a3b8" stroke-width="1.5"/>
+              <rect x="333" y="55" width="16" height="16" rx="2" fill="#3b82f6"/>
+              <text x="341" y="66" fill="white" font-size="8" text-anchor="middle">C</text>
+              <text x="358" y="67" fill="#e2e8f0" font-size="10">Acme Corp</text>
+
+              <!-- Vertical line from root -->
+              <line x1="322" y1="69" x2="322" y2="200" stroke="#475569" stroke-width="1"/>
+
+              <!-- Department: Sales -->
+              <line x1="322" y1="90" x2="335" y2="90" stroke="#475569" stroke-width="1"/>
+              <rect x="335" y="82" width="14" height="14" rx="2" fill="#334155" stroke="#475569"/>
+              <path d="M339 86 L339 92 M336 89 L342 89" stroke="#94a3b8" stroke-width="1.5"/>
+              <rect x="353" y="82" width="16" height="16" rx="2" fill="#22c55e"/>
+              <text x="361" y="93" fill="white" font-size="8" text-anchor="middle">D</text>
+              <text x="378" y="94" fill="#e2e8f0" font-size="10">Sales</text>
+
+              <!-- Vertical line from Sales -->
+              <line x1="342" y1="96" x2="342" y2="155" stroke="#475569" stroke-width="1"/>
+
+              <!-- Employee: Alice -->
+              <line x1="342" y1="115" x2="355" y2="115" stroke="#475569" stroke-width="1"/>
+              <rect x="355" y="107" width="16" height="16" rx="2" fill="#f59e0b"/>
+              <text x="363" y="118" fill="white" font-size="8" text-anchor="middle">E</text>
+              <text x="380" y="119" fill="#e2e8f0" font-size="10">Alice</text>
+
+              <!-- Employee: Bob -->
+              <line x1="342" y1="140" x2="355" y2="140" stroke="#475569" stroke-width="1"/>
+              <rect x="355" y="132" width="16" height="16" rx="2" fill="#f59e0b"/>
+              <text x="363" y="143" fill="white" font-size="8" text-anchor="middle">E</text>
+              <text x="380" y="144" fill="#e2e8f0" font-size="10">Bob</text>
+
+              <!-- Department: Engineering -->
+              <line x1="322" y1="175" x2="335" y2="175" stroke="#475569" stroke-width="1"/>
+              <rect x="335" y="167" width="14" height="14" rx="2" fill="#334155" stroke="#475569"/>
+              <path d="M339 171 L339 177 M336 174 L342 174" stroke="#94a3b8" stroke-width="1.5"/>
+              <rect x="353" y="167" width="16" height="16" rx="2" fill="#22c55e"/>
+              <text x="361" y="178" fill="white" font-size="8" text-anchor="middle">D</text>
+              <text x="378" y="179" fill="#e2e8f0" font-size="10">Engineering</text>
+
+              <!-- Employee: Carol -->
+              <line x1="342" y1="181" x2="342" y2="205" stroke="#475569" stroke-width="1"/>
+              <line x1="342" y1="205" x2="355" y2="205" stroke="#475569" stroke-width="1"/>
+              <rect x="355" y="197" width="16" height="16" rx="2" fill="#f59e0b"/>
+              <text x="363" y="208" fill="white" font-size="8" text-anchor="middle">E</text>
+              <text x="380" y="209" fill="#e2e8f0" font-size="10">Carol</text>
+
+              <!-- Legend -->
+              <rect x="315" y="240" width="250" height="50" rx="4" fill="#1e293b"/>
+              <text x="325" y="255" fill="#94a3b8" font-size="8" font-weight="bold">Node Icons:</text>
+              <rect x="325" y="262" width="12" height="12" rx="2" fill="#3b82f6"/>
+              <text x="342" y="272" fill="#94a3b8" font-size="8">Company</text>
+              <rect x="395" y="262" width="12" height="12" rx="2" fill="#22c55e"/>
+              <text x="412" y="272" fill="#94a3b8" font-size="8">Department</text>
+              <rect x="480" y="262" width="12" height="12" rx="2" fill="#f59e0b"/>
+              <text x="497" y="272" fill="#94a3b8" font-size="8">Employee</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowGray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Configuration</h2>
+          <p>Key properties for TBoldTreeView:</p>
+          <ul>
+            <li><code>BoldHandle</code> - The root handle providing objects to display</li>
+            <li><code>NodeDescriptions</code> - Define how each class appears in the tree</li>
+            <li><code>AutoExpand</code> - Whether to expand nodes automatically</li>
+            <li><code>HideRootNodes</code> - Show children of root directly</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Node Descriptions</h2>
+          <p>
+            Each node type is configured with a <code>TBoldNodeDescription</code> that specifies:
+          </p>
+          <ul>
+            <li><strong>Name</strong> - OCL expression for the node text</li>
+            <li><strong>IconIndex</strong> - Image index for the node icon</li>
+            <li><strong>Children</strong> - OCL expression for child objects</li>
+            <li><strong>ContextTypeName</strong> - The Bold class this description applies to</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/GUIControls/TreeView/BE_TreeViewDemo.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span>BE_TreeViewDemo.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\GUIControls\TreeView\</code></p>
+        </div>
+      </section>
+
+      <footer class="footer">
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

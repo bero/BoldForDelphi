@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MultiLanguage - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link"><div class="logo"><span class="logo-bold">Bold</span><span class="logo-sub">for Delphi</span></div></a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group" open><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html" class="active">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / GUI Controls</p>
+        <h1>MultiLanguage</h1>
+        <p class="subtitle">Localize your Bold applications</p>
+      </header>
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>The MultiLanguage example shows how to implement internationalization in Bold applications. Display text, labels, and messages can be translated to different languages.</p>
+        </div>
+        <div class="card">
+          <h2>Features</h2>
+          <ul>
+            <li><strong>Language switching</strong> - Change display language at runtime</li>
+            <li><strong>Attribute translations</strong> - Localized attribute names</li>
+            <li><strong>UI localization</strong> - Translated form captions and labels</li>
+            <li><strong>Resource-based</strong> - External language resource files</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <p>Bold's language system loads translations from resource files and updates the UI dynamically:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="340" fill="#1e293b"/>
+
+              <!-- Language Files -->
+              <text x="85" y="22" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">Language Resources</text>
+
+              <!-- English file -->
+              <rect x="20" y="32" width="130" height="70" rx="4" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="20" y="32" width="130" height="20" rx="4" fill="#3b82f6"/>
+              <text x="85" y="46" fill="white" font-size="9" font-weight="bold" text-anchor="middle">English.lang</text>
+              <text x="30" y="68" fill="#fcd34d" font-size="7" font-family="monospace">Person=Person</text>
+              <text x="30" y="80" fill="#fcd34d" font-size="7" font-family="monospace">FirstName=First Name</text>
+              <text x="30" y="92" fill="#fcd34d" font-size="7" font-family="monospace">Save=Save</text>
+
+              <!-- Swedish file -->
+              <rect x="20" y="110" width="130" height="70" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="20" y="110" width="130" height="20" rx="4" fill="#f59e0b"/>
+              <text x="85" y="124" fill="white" font-size="9" font-weight="bold" text-anchor="middle">Swedish.lang</text>
+              <text x="30" y="146" fill="#fcd34d" font-size="7" font-family="monospace">Person=Person</text>
+              <text x="30" y="158" fill="#fcd34d" font-size="7" font-family="monospace">FirstName=Förnamn</text>
+              <text x="30" y="170" fill="#fcd34d" font-size="7" font-family="monospace">Save=Spara</text>
+
+              <!-- German file -->
+              <rect x="20" y="188" width="130" height="70" rx="4" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <rect x="20" y="188" width="130" height="20" rx="4" fill="#22c55e"/>
+              <text x="85" y="202" fill="white" font-size="9" font-weight="bold" text-anchor="middle">German.lang</text>
+              <text x="30" y="224" fill="#fcd34d" font-size="7" font-family="monospace">Person=Person</text>
+              <text x="30" y="236" fill="#fcd34d" font-size="7" font-family="monospace">FirstName=Vorname</text>
+              <text x="30" y="248" fill="#fcd34d" font-size="7" font-family="monospace">Save=Speichern</text>
+
+              <!-- Language Manager -->
+              <rect x="180" y="80" width="140" height="120" rx="6" fill="#0f172a" stroke="#a855f7" stroke-width="2"/>
+              <rect x="180" y="80" width="140" height="28" rx="6" fill="#a855f7"/>
+              <text x="250" y="100" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Language Manager</text>
+
+              <text x="190" y="125" fill="#94a3b8" font-size="8">CurrentLanguage:</text>
+              <rect x="190" y="132" width="120" height="22" rx="3" fill="#334155" stroke="#f59e0b"/>
+              <text x="250" y="147" fill="#f59e0b" font-size="9" font-weight="bold" text-anchor="middle">Swedish</text>
+
+              <text x="190" y="172" fill="#94a3b8" font-size="8">Translate(key) → value</text>
+              <text x="190" y="188" fill="#64748b" font-size="7">'FirstName' → 'Förnamn'</text>
+
+              <!-- Arrows from files to manager -->
+              <path d="M150 67 L175 110" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+              <path d="M150 145 L175 145" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowOrange)"/>
+              <path d="M150 223 L175 180" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+              <!-- UI Preview - Swedish -->
+              <rect x="350" y="30" width="230" height="170" rx="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="350" y="30" width="230" height="24" rx="6" fill="#f59e0b"/>
+              <text x="465" y="47" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Application UI (Swedish)</text>
+
+              <!-- Form mockup -->
+              <rect x="365" y="62" width="200" height="125" rx="4" fill="#0f172a" stroke="#475569"/>
+              <rect x="365" y="62" width="200" height="20" fill="#475569" rx="4"/>
+              <text x="465" y="76" fill="#e2e8f0" font-size="9" text-anchor="middle">Redigera Person</text>
+
+              <!-- Form fields -->
+              <text x="375" y="100" fill="#f59e0b" font-size="9">Förnamn:</text>
+              <rect x="435" y="88" width="120" height="20" rx="2" fill="#334155" stroke="#475569"/>
+              <text x="445" y="102" fill="#94a3b8" font-size="9">Erik</text>
+
+              <text x="375" y="128" fill="#f59e0b" font-size="9">Efternamn:</text>
+              <rect x="435" y="116" width="120" height="20" rx="2" fill="#334155" stroke="#475569"/>
+              <text x="445" y="130" fill="#94a3b8" font-size="9">Svensson</text>
+
+              <!-- Save button -->
+              <rect x="480" y="150" width="70" height="25" rx="4" fill="#f59e0b"/>
+              <text x="515" y="167" fill="white" font-size="9" font-weight="bold" text-anchor="middle">Spara</text>
+
+              <!-- Arrow from manager to UI -->
+              <path d="M320 140 L345 100" stroke="#a855f7" stroke-width="2" marker-end="url(#arrowPurple)"/>
+
+              <!-- Language Selector -->
+              <rect x="350" y="210" width="230" height="55" rx="4" fill="#0f172a" stroke="#475569"/>
+              <text x="365" y="232" fill="#94a3b8" font-size="9">Select Language:</text>
+              <rect x="365" y="240" width="60" height="20" rx="3" fill="#3b82f6"/>
+              <text x="395" y="254" fill="white" font-size="8" text-anchor="middle">English</text>
+              <rect x="430" y="240" width="60" height="20" rx="3" fill="#f59e0b"/>
+              <text x="460" y="254" fill="white" font-size="8" text-anchor="middle">Svenska</text>
+              <rect x="495" y="240" width="60" height="20" rx="3" fill="#22c55e"/>
+              <text x="525" y="254" fill="white" font-size="8" text-anchor="middle">Deutsch</text>
+
+              <!-- What gets translated -->
+              <rect x="180" y="275" width="400" height="55" rx="6" fill="#0f172a" stroke="#475569"/>
+              <text x="380" y="295" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">What Gets Translated</text>
+              <text x="200" y="315" fill="#64748b" font-size="8">• Class &amp; attribute names</text>
+              <text x="340" y="315" fill="#64748b" font-size="8">• Form captions</text>
+              <text x="450" y="315" fill="#64748b" font-size="8">• Button labels</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+                <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#a855f7"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/GUIControls/MultiLang/BE_MultiLang.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>BE_MultiLang.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\GUIControls\MultiLang\</code></p>
+        </div>
+      </section>
+      <footer class="footer"></footer>
+    </main>
+  </div>
+</body>
+</html>

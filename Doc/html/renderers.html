@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Renderers - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link">
+          <div class="logo">
+            <span class="logo-bold">Bold</span>
+            <span class="logo-sub">for Delphi</span>
+          </div>
+        </a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group" open><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html" class="active">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / GUI Controls</p>
+        <h1>Renderers</h1>
+        <p class="subtitle">Custom display and editing logic for Bold components</p>
+      </header>
+
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>
+            Renderers provide a powerful way to customize how Bold displays and handles data.
+            They can transform values for display, apply conditional formatting, and even
+            implement reverse derivation for writable calculated fields.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Renderer Types</h2>
+          <div class="feature-grid">
+            <div class="feature">
+              <h4>TBoldAsStringRenderer</h4>
+              <p>Convert any value to string with custom formatting, colors, and fonts</p>
+            </div>
+            <div class="feature">
+              <h4>TBoldAsCheckBoxStateRenderer</h4>
+              <p>Display boolean or calculated values as checkboxes</p>
+            </div>
+            <div class="feature">
+              <h4>TBoldAsIntegerRenderer</h4>
+              <p>Custom integer formatting and validation</p>
+            </div>
+            <div class="feature">
+              <h4>TBoldAsFloatRenderer</h4>
+              <p>Floating-point display with precision control</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>How Renderers Work</h2>
+          <p>Renderers transform data between the model and UI, controlling display and input:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="300" fill="#1e293b"/>
+
+              <!-- Model data box -->
+              <rect x="30" y="80" width="130" height="140" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="30" y="80" width="130" height="28" rx="6" fill="#3b82f6"/>
+              <text x="95" y="100" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Model Data</text>
+              <text x="45" y="125" fill="#94a3b8" font-size="9">balance = -500</text>
+              <text x="45" y="145" fill="#94a3b8" font-size="9">balance = 1200</text>
+              <text x="45" y="165" fill="#94a3b8" font-size="9">status = 2</text>
+              <text x="45" y="185" fill="#94a3b8" font-size="9">isActive = true</text>
+              <text x="45" y="205" fill="#94a3b8" font-size="9">ratio = 0.756</text>
+
+              <!-- Renderer box -->
+              <rect x="200" y="50" width="200" height="200" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="200" y="50" width="200" height="28" rx="6" fill="#f59e0b"/>
+              <text x="300" y="70" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Renderer</text>
+
+              <!-- OnGetAsString -->
+              <rect x="215" y="90" width="170" height="45" rx="4" fill="#334155"/>
+              <text x="225" y="107" fill="#fcd34d" font-size="9" font-weight="bold">OnGetAsString</text>
+              <text x="225" y="122" fill="#94a3b8" font-size="8">Format value for display</text>
+              <text x="225" y="132" fill="#64748b" font-size="7">-500 → "$-500.00"</text>
+
+              <!-- OnSetColor -->
+              <rect x="215" y="145" width="170" height="45" rx="4" fill="#334155"/>
+              <text x="225" y="162" fill="#fcd34d" font-size="9" font-weight="bold">OnSetColor</text>
+              <text x="225" y="177" fill="#94a3b8" font-size="8">Conditional formatting</text>
+              <text x="225" y="187" fill="#64748b" font-size="7">negative → red, positive → green</text>
+
+              <!-- OnSetAsString (reverse) -->
+              <rect x="215" y="200" width="170" height="35" rx="4" fill="#334155"/>
+              <text x="225" y="217" fill="#fcd34d" font-size="9" font-weight="bold">OnSetAsString</text>
+              <text x="225" y="229" fill="#94a3b8" font-size="8">Parse input (reverse derive)</text>
+
+              <!-- UI display box -->
+              <rect x="440" y="80" width="140" height="140" rx="6" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <rect x="440" y="80" width="140" height="28" rx="6" fill="#22c55e"/>
+              <text x="510" y="100" fill="white" font-size="11" font-weight="bold" text-anchor="middle">UI Display</text>
+              <text x="455" y="125" fill="#ef4444" font-size="9" font-weight="bold">$-500.00</text>
+              <text x="455" y="145" fill="#22c55e" font-size="9" font-weight="bold">$1,200.00</text>
+              <text x="455" y="165" fill="#3b82f6" font-size="9">● Active</text>
+              <rect x="455" y="175" width="14" height="14" rx="2" fill="#22c55e" stroke="#16a34a"/>
+              <path d="M458 182 L461 185 L466 179" stroke="white" stroke-width="1.5" fill="none"/>
+              <text x="475" y="186" fill="#94a3b8" font-size="9">Yes</text>
+              <text x="455" y="208" fill="#94a3b8" font-size="9">75.6%</text>
+
+              <!-- Arrows Model → Renderer -->
+              <path d="M160 130 L195 115" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+              <path d="M160 150 L195 165" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+              <!-- Arrows Renderer → UI -->
+              <path d="M405 115 L435 125" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+              <path d="M405 165 L435 155" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+              <!-- Reverse arrow (dashed) -->
+              <path d="M440 195 L405 210" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrowOrange)"/>
+              <text x="425" y="215" fill="#f59e0b" font-size="7">Edit</text>
+
+              <!-- Legend -->
+              <rect x="30" y="240" width="180" height="50" rx="4" fill="#0f172a" opacity="0.9"/>
+              <text x="45" y="258" fill="#94a3b8" font-size="9" font-weight="bold">Data Flow</text>
+              <line x1="45" y1="270" x2="75" y2="270" stroke="#3b82f6" stroke-width="2"/>
+              <text x="80" y="274" fill="#94a3b8" font-size="8">Read (display)</text>
+              <line x1="45" y1="282" x2="75" y2="282" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3"/>
+              <text x="80" y="286" fill="#94a3b8" font-size="8">Write (reverse)</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+                <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Common Use Cases</h2>
+          <ul>
+            <li><strong>Conditional formatting</strong> - Red for negative values, green for positive</li>
+            <li><strong>Calculated display</strong> - Show derived values without model changes</li>
+            <li><strong>Status indicators</strong> - Convert enums to meaningful icons or text</li>
+            <li><strong>Reverse derivation</strong> - Allow editing of calculated values</li>
+            <li><strong>Validation feedback</strong> - Visual cues for invalid data</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Key Events</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>OnGetAsString</code></td>
+                <td>Transform value for display</td>
+              </tr>
+              <tr>
+                <td><code>OnSetAsString</code></td>
+                <td>Parse user input back to value (reverse derivation)</td>
+              </tr>
+              <tr>
+                <td><code>OnSetFont</code></td>
+                <td>Customize font based on value</td>
+              </tr>
+              <tr>
+                <td><code>OnSetColor</code></td>
+                <td>Customize colors based on value</td>
+              </tr>
+              <tr>
+                <td><code>OnSubscribe</code></td>
+                <td>Set up dependencies for automatic refresh</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Related Examples</h2>
+          <div class="related-grid">
+            <a href="buildings_owners.html" class="related-item">
+              <strong>Buildings &amp; Owners</strong>
+              <span>Multiple renderers in action</span>
+            </a>
+            <a href="derived_attributes.html" class="related-item">
+              <strong>Derived Attributes</strong>
+              <span>Code-free alternative using OCL</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/GUIControls/Renderers/BE_Renderers.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span>BE_Renderers.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\GUIControls\Renderers\</code></p>
+        </div>
+      </section>
+
+      <footer class="footer">
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

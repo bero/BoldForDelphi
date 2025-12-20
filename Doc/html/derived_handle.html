@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Derived Handle - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link"><div class="logo"><span class="logo-bold">Bold</span><span class="logo-sub">for Delphi</span></div></a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group"><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group" open><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html" class="active">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / ObjectSpace</p>
+        <h1>Derived Handle</h1>
+        <p class="subtitle">Dynamic handles computed from OCL expressions</p>
+      </header>
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>Derived handles provide a way to create object lists dynamically using OCL expressions. The list updates automatically when the underlying data changes.</p>
+        </div>
+        <div class="card">
+          <h2>Use Cases</h2>
+          <ul>
+            <li><strong>Filtered views</strong> - Show subset of objects matching criteria</li>
+            <li><strong>Computed collections</strong> - Navigate relationships dynamically</li>
+            <li><strong>Aggregations</strong> - Combine data from multiple sources</li>
+            <li><strong>Live updates</strong> - Results refresh automatically</li>
+            <li><strong>Unlimited chaining</strong> - Chain any number of handles together for complex derivations</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <p>A derived handle computes its content from another handle using an OCL expression, updating automatically:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="340" fill="#1e293b"/>
+
+              <!-- Root Handle -->
+              <rect x="20" y="30" width="150" height="130" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="20" y="30" width="150" height="28" rx="6" fill="#3b82f6"/>
+              <text x="95" y="50" fill="white" font-size="10" font-weight="bold" text-anchor="middle">RootHandle</text>
+              <text x="95" y="70" fill="#94a3b8" font-size="8" text-anchor="middle">Person.allInstances</text>
+
+              <!-- Person items in root -->
+              <rect x="30" y="80" width="130" height="18" rx="2" fill="#0f172a"/>
+              <text x="40" y="93" fill="#94a3b8" font-size="8">Alice (Sales, $45k)</text>
+
+              <rect x="30" y="102" width="130" height="18" rx="2" fill="#0f172a"/>
+              <text x="40" y="115" fill="#94a3b8" font-size="8">Bob (Engineering, $75k)</text>
+
+              <rect x="30" y="124" width="130" height="18" rx="2" fill="#0f172a"/>
+              <text x="40" y="137" fill="#94a3b8" font-size="8">Carol (Sales, $52k)</text>
+
+              <rect x="30" y="146" width="130" height="10" rx="2" fill="#0f172a"/>
+              <text x="95" y="154" fill="#64748b" font-size="7" text-anchor="middle">...</text>
+
+              <!-- TBoldDerivedHandle -->
+              <rect x="200" y="20" width="200" height="100" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="200" y="20" width="200" height="28" rx="6" fill="#f59e0b"/>
+              <text x="300" y="40" fill="white" font-size="10" font-weight="bold" text-anchor="middle">TBoldDerivedHandle</text>
+
+              <!-- Properties -->
+              <text x="210" y="60" fill="#94a3b8" font-size="9">RootHandle: PersonListHandle</text>
+              <text x="210" y="78" fill="#94a3b8" font-size="9">Expression:</text>
+              <rect x="210" y="85" width="180" height="28" rx="3" fill="#334155"/>
+              <text x="220" y="100" fill="#fcd34d" font-size="8" font-family="monospace">self-&gt;select(</text>
+              <text x="230" y="112" fill="#fcd34d" font-size="8" font-family="monospace">salary &gt; 50000)</text>
+
+              <!-- Arrow from root to derived -->
+              <path d="M170 90 L195 70" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+              <!-- Computed Result -->
+              <rect x="430" y="30" width="150" height="130" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="2"/>
+              <rect x="430" y="30" width="150" height="28" rx="6" fill="#22c55e"/>
+              <text x="505" y="50" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Derived Result</text>
+              <text x="505" y="70" fill="#86efac" font-size="8" text-anchor="middle">Filtered list (auto-updated)</text>
+
+              <!-- Matching items -->
+              <rect x="440" y="80" width="130" height="22" rx="2" fill="#0f172a" stroke="#22c55e"/>
+              <text x="450" y="95" fill="#22c55e" font-size="9">Bob ($75k) ✓</text>
+
+              <rect x="440" y="106" width="130" height="22" rx="2" fill="#0f172a" stroke="#22c55e"/>
+              <text x="450" y="121" fill="#22c55e" font-size="9">Carol ($52k) ✓</text>
+
+              <text x="505" y="148" fill="#64748b" font-size="8" text-anchor="middle">2 of 3 match filter</text>
+
+              <!-- Arrow from derived to result -->
+              <path d="M400 70 L425 70" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowOrange)"/>
+
+              <!-- Auto-update section -->
+              <rect x="20" y="180" width="560" height="140" rx="6" fill="#0f172a" stroke="#475569"/>
+              <text x="300" y="202" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">Automatic Updates</text>
+
+              <!-- Before state -->
+              <rect x="35" y="215" width="160" height="90" rx="4" fill="#334155" stroke="#475569"/>
+              <text x="115" y="235" fill="#94a3b8" font-size="9" font-weight="bold" text-anchor="middle">Before Change</text>
+              <text x="45" y="255" fill="#64748b" font-size="8">Alice: $45,000</text>
+              <text x="45" y="272" fill="#64748b" font-size="8">Result: [Bob, Carol]</text>
+              <text x="45" y="292" fill="#64748b" font-size="8">(2 items)</text>
+
+              <!-- Change indicator -->
+              <rect x="215" y="230" width="170" height="60" rx="4" fill="#334155" stroke="#f59e0b"/>
+              <text x="300" y="250" fill="#f59e0b" font-size="9" font-weight="bold" text-anchor="middle">Data Change</text>
+              <text x="300" y="270" fill="#fcd34d" font-size="9" font-family="monospace" text-anchor="middle">Alice.salary := 55000</text>
+              <text x="300" y="285" fill="#64748b" font-size="8" text-anchor="middle">(Now matches filter!)</text>
+
+              <!-- Arrow -->
+              <path d="M385 260 L405 260" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+              <!-- After state -->
+              <rect x="405" y="215" width="160" height="90" rx="4" fill="#14532d" stroke="#22c55e"/>
+              <text x="485" y="235" fill="#22c55e" font-size="9" font-weight="bold" text-anchor="middle">After (Auto-refresh)</text>
+              <text x="415" y="255" fill="#86efac" font-size="8">Alice: $55,000 ✓</text>
+              <text x="415" y="272" fill="#86efac" font-size="8">Result: [Alice, Bob, Carol]</text>
+              <text x="415" y="292" fill="#86efac" font-size="8">(3 items - updated!)</text>
+
+              <!-- Chain indicator -->
+              <rect x="200" y="130" width="200" height="35" rx="4" fill="#334155" stroke="#a855f7"/>
+              <text x="300" y="145" fill="#a855f7" font-size="9" font-weight="bold" text-anchor="middle">Unlimited Chaining!</text>
+              <text x="300" y="158" fill="#94a3b8" font-size="8" text-anchor="middle">Handle → Handle → Handle → ∞</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/ObjectSpace/DerivedHandle/BE_DerivedHandleDemo.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>BE_DerivedHandleDemo.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\ObjectSpace\DerivedHandle\</code></p>
+        </div>
+      </section>
+      <footer class="footer"></footer>
+    </main>
+  </div>
+</body>
+</html>

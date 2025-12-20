@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComboBox - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link"><div class="logo"><span class="logo-bold">Bold</span><span class="logo-sub">for Delphi</span></div></a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group" open><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html" class="active">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / GUI Controls</p>
+        <h1>ComboBox</h1>
+        <p class="subtitle">Bold-aware dropdown selection control</p>
+      </header>
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>The TBoldComboBox component provides dropdown selection bound to Bold object lists. It automatically populates from a handle and updates when data changes.</p>
+        </div>
+        <div class="card">
+          <h2>Features</h2>
+          <ul>
+            <li>Populate from Bold object collections</li>
+            <li>OCL expression for display text</li>
+            <li>Automatic refresh on data changes</li>
+            <li>Support for null selection</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <p>TBoldComboBox populates its dropdown from a Bold object list and can set references on other objects:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="300" fill="#1e293b"/>
+
+              <!-- Object List (Categories) -->
+              <rect x="30" y="30" width="140" height="160" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="30" y="30" width="140" height="28" rx="6" fill="#3b82f6"/>
+              <text x="100" y="50" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Category.allInstances</text>
+
+              <!-- Category items -->
+              <rect x="40" y="68" width="120" height="24" rx="3" fill="#0f172a" stroke="#475569"/>
+              <text x="50" y="85" fill="#94a3b8" font-size="9">Electronics</text>
+
+              <rect x="40" y="98" width="120" height="24" rx="3" fill="#0f172a" stroke="#475569"/>
+              <text x="50" y="115" fill="#94a3b8" font-size="9">Furniture</text>
+
+              <rect x="40" y="128" width="120" height="24" rx="3" fill="#0f172a" stroke="#475569"/>
+              <text x="50" y="145" fill="#94a3b8" font-size="9">Clothing</text>
+
+              <rect x="40" y="158" width="120" height="24" rx="3" fill="#0f172a" stroke="#475569"/>
+              <text x="50" y="175" fill="#94a3b8" font-size="9">Books</text>
+
+              <!-- ListHandle -->
+              <rect x="200" y="70" width="100" height="50" rx="6" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+              <text x="250" y="92" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">ListHandle</text>
+              <text x="250" y="108" fill="#64748b" font-size="8" text-anchor="middle">All Categories</text>
+
+              <!-- Arrow from list to handle -->
+              <path d="M170 95 L195 95" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+              <!-- TBoldComboBox -->
+              <rect x="330" y="30" width="160" height="160" rx="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="330" y="30" width="160" height="28" rx="6" fill="#f59e0b"/>
+              <text x="410" y="50" fill="white" font-size="11" font-weight="bold" text-anchor="middle">TBoldComboBox</text>
+
+              <!-- Closed combo state -->
+              <rect x="345" y="68" width="130" height="28" rx="4" fill="#0f172a" stroke="#475569"/>
+              <text x="355" y="87" fill="#e2e8f0" font-size="10">Furniture</text>
+              <path d="M458 78 L465 85 L472 78" stroke="#94a3b8" stroke-width="2" fill="none"/>
+
+              <!-- Dropdown expanded -->
+              <rect x="345" y="96" width="130" height="88" rx="4" fill="#0f172a" stroke="#f59e0b"/>
+              <rect x="345" y="96" width="130" height="22" fill="#1e3a5f"/>
+              <text x="355" y="112" fill="#e2e8f0" font-size="9">Electronics</text>
+              <rect x="345" y="118" width="130" height="22" fill="#f59e0b" fill-opacity="0.3"/>
+              <text x="355" y="134" fill="#fcd34d" font-size="9" font-weight="bold">Furniture ✓</text>
+              <text x="355" y="156" fill="#94a3b8" font-size="9">Clothing</text>
+              <text x="355" y="178" fill="#94a3b8" font-size="9">Books</text>
+
+              <!-- Arrow from handle to combo -->
+              <path d="M300 95 L325 70" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowOrange)"/>
+
+              <!-- Product object being edited -->
+              <rect x="30" y="210" width="140" height="80" rx="6" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <rect x="30" y="210" width="140" height="28" rx="6" fill="#22c55e"/>
+              <text x="100" y="230" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Product</text>
+              <line x1="30" y1="238" x2="170" y2="238" stroke="#475569"/>
+              <text x="40" y="256" fill="#94a3b8" font-size="9">name: "Desk"</text>
+              <text x="40" y="274" fill="#f59e0b" font-size="9" font-weight="bold">category → Furniture</text>
+
+              <!-- Arrow showing selection updates product -->
+              <path d="M345 145 L200 250 L170 250" stroke="#22c55e" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrowGreen)"/>
+              <text x="240" y="180" fill="#22c55e" font-size="8">Selection sets</text>
+              <text x="240" y="192" fill="#22c55e" font-size="8">reference</text>
+
+              <!-- OCL Expression box -->
+              <rect x="380" y="210" width="200" height="70" rx="6" fill="#0f172a" stroke="#475569"/>
+              <text x="390" y="230" fill="#94a3b8" font-size="9" font-weight="bold">Display Expression (OCL)</text>
+              <text x="390" y="250" fill="#fcd34d" font-size="10" font-family="monospace">name</text>
+              <text x="390" y="268" fill="#64748b" font-size="8">Shows category.name in dropdown</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/GUIControls/ComboBox/BE_ComboBox.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>BE_ComboBox.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\GUIControls\ComboBox\</code></p>
+        </div>
+      </section>
+      <footer class="footer"></footer>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bold for Delphi - Examples</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-bold">Bold</span>
+          <span class="logo-sub">for Delphi</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group" open>
+            <summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group" open>
+            <summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group" open>
+            <summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <header class="header">
+        <h1>Bold for Delphi Examples</h1>
+        <p class="subtitle">Learn Bold through practical demonstrations</p>
+      </header>
+
+      <section class="content">
+        <div class="intro card">
+          <h2>Welcome</h2>
+          <p>
+            Explore the Bold for Delphi framework through these examples. Each example demonstrates
+            specific features and includes complete Delphi projects you can build and run.
+          </p>
+          <p>
+            Examples are organized into <strong>Simple</strong> examples that focus on individual
+            features, and <strong>Demo</strong> examples that demonstrate complete applications.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Key Features</h2>
+          <div class="feature-grid">
+            <div class="feature">
+              <h4>Model-Driven Development</h4>
+              <p>Design your domain in UML, Bold generates Delphi classes with full persistence support</p>
+            </div>
+            <div class="feature">
+              <h4>Automatic UI Synchronization</h4>
+              <p>Changes to objects instantly update all bound UI controls - no manual refresh needed</p>
+            </div>
+            <div class="feature">
+              <h4>OCL Expression Language</h4>
+              <p>Powerful Object Constraint Language for queries, derived values, and business rules</p>
+            </div>
+            <div class="feature">
+              <h4>Derived Attributes</h4>
+              <p>Define calculated properties that automatically update when dependencies change</p>
+            </div>
+            <div class="feature">
+              <h4>Built-in Undo/Redo</h4>
+              <p>Full transaction support with unlimited undo levels and checkpoint management</p>
+            </div>
+            <div class="feature">
+              <h4>Object Identity</h4>
+              <p>Each database row maps to exactly one object instance - guaranteed consistency</p>
+            </div>
+            <div class="feature">
+              <h4>Optimistic Locking</h4>
+              <p>Safe multi-user access with automatic conflict detection and resolution</p>
+            </div>
+            <div class="feature">
+              <h4>Multi-Database Support</h4>
+              <p>Works with InterBase, MS SQL, Oracle, PostgreSQL, SQLite and more</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Bold Architecture Overview</h2>
+          <p>Bold connects your UML model to the database and UI through the ObjectSpace:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 650 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="650" height="320" fill="#1e293b"/>
+
+              <!-- UML Model -->
+              <rect x="20" y="100" width="120" height="120" rx="6" fill="#334155" stroke="#a855f7" stroke-width="2"/>
+              <rect x="20" y="100" width="120" height="26" rx="6" fill="#a855f7"/>
+              <text x="80" y="118" fill="white" font-size="11" font-weight="bold" text-anchor="middle">UML Model</text>
+
+              <rect x="30" y="135" width="100" height="35" rx="3" fill="#0f172a" stroke="#a855f7"/>
+              <text x="80" y="150" fill="#c4b5fd" font-size="9" text-anchor="middle">Classes</text>
+              <text x="80" y="163" fill="#64748b" font-size="7" text-anchor="middle">Attributes, Relations</text>
+
+              <rect x="30" y="178" width="100" height="35" rx="3" fill="#0f172a" stroke="#a855f7"/>
+              <text x="80" y="193" fill="#c4b5fd" font-size="9" text-anchor="middle">OCL</text>
+              <text x="80" y="206" fill="#64748b" font-size="7" text-anchor="middle">Constraints, Derived</text>
+
+              <!-- ObjectSpace (Center) -->
+              <rect x="200" y="50" width="200" height="220" rx="8" fill="#0f172a" stroke="#3b82f6" stroke-width="3"/>
+              <rect x="200" y="50" width="200" height="30" rx="8" fill="#3b82f6"/>
+              <text x="300" y="70" fill="white" font-size="12" font-weight="bold" text-anchor="middle">ObjectSpace</text>
+
+              <!-- Objects in ObjectSpace -->
+              <rect x="215" y="90" width="170" height="45" rx="4" fill="#334155" stroke="#22c55e"/>
+              <text x="300" y="108" fill="#22c55e" font-size="10" font-weight="bold" text-anchor="middle">Business Objects</text>
+              <text x="300" y="125" fill="#64748b" font-size="8" text-anchor="middle">Live instances with identity</text>
+
+              <rect x="215" y="145" width="80" height="40" rx="4" fill="#334155" stroke="#f59e0b"/>
+              <text x="255" y="162" fill="#f59e0b" font-size="9" font-weight="bold" text-anchor="middle">Derived</text>
+              <text x="255" y="177" fill="#64748b" font-size="7" text-anchor="middle">Auto-calc</text>
+
+              <rect x="305" y="145" width="80" height="40" rx="4" fill="#334155" stroke="#ef4444"/>
+              <text x="345" y="162" fill="#ef4444" font-size="9" font-weight="bold" text-anchor="middle">Constraints</text>
+              <text x="345" y="177" fill="#64748b" font-size="7" text-anchor="middle">Validation</text>
+
+              <rect x="215" y="195" width="80" height="40" rx="4" fill="#334155" stroke="#06b6d4"/>
+              <text x="255" y="212" fill="#06b6d4" font-size="9" font-weight="bold" text-anchor="middle">Undo/Redo</text>
+              <text x="255" y="227" fill="#64748b" font-size="7" text-anchor="middle">Transactions</text>
+
+              <rect x="305" y="195" width="80" height="40" rx="4" fill="#334155" stroke="#22c55e"/>
+              <text x="345" y="212" fill="#22c55e" font-size="9" font-weight="bold" text-anchor="middle">Subscriptions</text>
+              <text x="345" y="227" fill="#64748b" font-size="7" text-anchor="middle">Auto-update</text>
+
+              <!-- Persistence Layer -->
+              <rect x="200" y="280" width="200" height="30" rx="4" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <text x="300" y="300" fill="#22c55e" font-size="10" font-weight="bold" text-anchor="middle">Persistence Layer</text>
+
+              <!-- Database -->
+              <ellipse cx="300" cy="355" rx="70" ry="18" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <rect x="230" y="320" width="140" height="35" fill="#334155"/>
+              <ellipse cx="300" cy="320" rx="70" ry="18" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <text x="300" y="345" fill="#94a3b8" font-size="10" text-anchor="middle">Database</text>
+
+              <!-- Arrow ObjectSpace to Persistence -->
+              <path d="M300 270 L300 275" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+              <!-- GUI Controls -->
+              <rect x="460" y="70" width="170" height="180" rx="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="460" y="70" width="170" height="26" rx="6" fill="#f59e0b"/>
+              <text x="545" y="88" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Bold GUI Controls</text>
+
+              <!-- GUI items -->
+              <rect x="475" y="105" width="140" height="28" rx="3" fill="#0f172a" stroke="#475569"/>
+              <text x="545" y="124" fill="#94a3b8" font-size="9" text-anchor="middle">TBoldGrid</text>
+
+              <rect x="475" y="140" width="140" height="28" rx="3" fill="#0f172a" stroke="#475569"/>
+              <text x="545" y="159" fill="#94a3b8" font-size="9" text-anchor="middle">TBoldEdit / TBoldComboBox</text>
+
+              <rect x="475" y="175" width="140" height="28" rx="3" fill="#0f172a" stroke="#475569"/>
+              <text x="545" y="194" fill="#94a3b8" font-size="9" text-anchor="middle">TBoldTreeView</text>
+
+              <rect x="475" y="210" width="140" height="28" rx="3" fill="#0f172a" stroke="#475569"/>
+              <text x="545" y="229" fill="#94a3b8" font-size="9" text-anchor="middle">TBoldListBox / TBoldImage</text>
+
+              <!-- Arrows -->
+              <!-- Model to ObjectSpace -->
+              <path d="M140 160 L195 160" stroke="#a855f7" stroke-width="2" marker-end="url(#arrowPurple)"/>
+              <text x="167" y="152" fill="#a855f7" font-size="8">generates</text>
+
+              <!-- ObjectSpace to GUI -->
+              <path d="M400 160 L455 160" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowOrange)"/>
+              <text x="427" y="152" fill="#f59e0b" font-size="8">binds</text>
+
+              <!-- Bidirectional sync indicator -->
+              <path d="M455 175 L400 175" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+              <text x="427" y="188" fill="#3b82f6" font-size="7">auto-sync</text>
+
+              <!-- Legend -->
+              <rect x="460" y="265" width="170" height="45" rx="4" fill="#0f172a" stroke="#475569"/>
+              <text x="475" y="282" fill="#94a3b8" font-size="9" font-weight="bold">Key Concept</text>
+              <text x="475" y="298" fill="#64748b" font-size="8">Change object → UI updates</text>
+              <text x="475" y="310" fill="#64748b" font-size="8">Edit UI → Object changes</text>
+
+              <!-- Title labels -->
+              <text x="80" y="85" fill="#94a3b8" font-size="9" font-weight="bold" text-anchor="middle">Design Time</text>
+              <text x="300" y="35" fill="#94a3b8" font-size="9" font-weight="bold" text-anchor="middle">Runtime Core</text>
+              <text x="545" y="55" fill="#94a3b8" font-size="9" font-weight="bold" text-anchor="middle">User Interface</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#a855f7"/>
+                </marker>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="categories">
+          <div class="category card">
+            <div class="category-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+            </div>
+            <h3>GUI Controls</h3>
+            <p>Visual components for building Bold-aware user interfaces.</p>
+            <span class="badge">5 examples</span>
+          </div>
+
+          <div class="category card">
+            <div class="category-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v6l4 2"></path>
+              </svg>
+            </div>
+            <h3>ObjectSpace</h3>
+            <p>Core Bold features: derived attributes, constraints, and OCL queries.</p>
+            <span class="badge">11 examples</span>
+          </div>
+
+          <div class="category card">
+            <div class="category-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+              </svg>
+            </div>
+            <h3>Persistence</h3>
+            <p>Database operations, synchronization, and schema management.</p>
+            <span class="badge">3 examples</span>
+          </div>
+
+          <div class="category card">
+            <div class="category-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <path d="M2 17l10 5 10-5"></path>
+                <path d="M2 12l10 5 10-5"></path>
+              </svg>
+            </div>
+            <h3>Demo</h3>
+            <p>Complete applications demonstrating multiple Bold features.</p>
+            <span class="badge">4 examples</span>
+          </div>
+        </div>
+
+        <div class="getting-started card">
+          <h2>Getting Started</h2>
+          <ol>
+            <li>
+              <strong>Set up a database</strong> - Use the <a href="createdatabase.html">Create Database</a>
+              example to initialize a database for the demos.
+            </li>
+            <li>
+              <strong>Browse examples</strong> - Use the navigation menu to find examples by category.
+            </li>
+            <li>
+              <strong>Open in Delphi</strong> - Each example page links to the corresponding .dpr file.
+            </li>
+            <li>
+              <strong>Build and run</strong> - Compile the project and experiment with the features.
+            </li>
+          </ol>
+        </div>
+
+        <div class="featured card">
+          <h2>Featured Examples</h2>
+          <div class="featured-grid">
+            <a href="createdatabase.html" class="featured-item">
+              <strong>Create Database</strong>
+              <span>Set up databases with multi-engine support</span>
+            </a>
+            <a href="buildings_owners.html" class="featured-item">
+              <strong>Buildings &amp; Owners</strong>
+              <span>Classic Bold demo with full CRUD operations</span>
+            </a>
+            <a href="derived_attributes.html" class="featured-item">
+              <strong>Derived Attributes</strong>
+              <span>Automatic calculation of dependent values</span>
+            </a>
+            <a href="query.html" class="featured-item">
+              <strong>Query</strong>
+              <span>OCL queries and database fetching</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

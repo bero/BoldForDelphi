@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Structure - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link"><div class="logo"><span class="logo-bold">Bold</span><span class="logo-sub">for Delphi</span></div></a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group"><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html" class="active">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / Demo</p>
+        <h1>Product Structure</h1>
+        <p class="subtitle">Hierarchical Bill of Materials modeling</p>
+      </header>
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>Product Structure demonstrates hierarchical data modeling in Bold. Create Bill of Materials (BOM) structures with products containing subassemblies and parts.</p>
+        </div>
+        <div class="card">
+          <h2>Features</h2>
+          <ul>
+            <li><strong>Recursive structures</strong> - Products containing products</li>
+            <li><strong>Quantity tracking</strong> - How many of each part needed</li>
+            <li><strong>Cost rollup</strong> - Calculate total cost from components</li>
+            <li><strong>Tree visualization</strong> - Display product hierarchy</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Bill of Materials Structure</h2>
+          <p>Products contain subassemblies and parts with quantities. Costs roll up automatically:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="360" fill="#1e293b"/>
+
+              <!-- Top Product -->
+              <rect x="220" y="15" width="160" height="55" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="220" y="15" width="160" height="24" rx="6" fill="#3b82f6"/>
+              <text x="300" y="32" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Bicycle</text>
+              <text x="230" y="52" fill="#94a3b8" font-size="9">Unit cost: $15</text>
+              <text x="230" y="65" fill="#22c55e" font-size="9" font-weight="bold">/Total: $385</text>
+
+              <!-- Level 2 - Subassemblies -->
+              <!-- Frame Assembly -->
+              <rect x="20" y="100" width="130" height="55" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="20" y="100" width="130" height="22" rx="4" fill="#f59e0b"/>
+              <text x="85" y="116" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Frame Assembly</text>
+              <text x="30" y="135" fill="#94a3b8" font-size="8">Cost: $80 × 1</text>
+              <text x="30" y="148" fill="#22c55e" font-size="8">/Total: $80</text>
+
+              <!-- Wheel Assembly -->
+              <rect x="170" y="100" width="130" height="55" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="170" y="100" width="130" height="22" rx="4" fill="#f59e0b"/>
+              <text x="235" y="116" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Wheel Assembly</text>
+              <text x="180" y="135" fill="#94a3b8" font-size="8">Cost: $45 × 2</text>
+              <text x="180" y="148" fill="#22c55e" font-size="8">/Total: $90</text>
+
+              <!-- Drivetrain -->
+              <rect x="320" y="100" width="130" height="55" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="320" y="100" width="130" height="22" rx="4" fill="#f59e0b"/>
+              <text x="385" y="116" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Drivetrain</text>
+              <text x="330" y="135" fill="#94a3b8" font-size="8">Cost: $120 × 1</text>
+              <text x="330" y="148" fill="#22c55e" font-size="8">/Total: $120</text>
+
+              <!-- Handlebars -->
+              <rect x="470" y="100" width="110" height="55" rx="4" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <rect x="470" y="100" width="110" height="22" rx="4" fill="#22c55e"/>
+              <text x="525" y="116" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Handlebars</text>
+              <text x="480" y="135" fill="#94a3b8" font-size="8">Cost: $40 × 1</text>
+              <text x="480" y="148" fill="#64748b" font-size="8">(leaf part)</text>
+
+              <!-- Level 3 - Parts -->
+              <!-- Frame parts -->
+              <rect x="10" y="185" width="70" height="40" rx="3" fill="#334155" stroke="#22c55e"/>
+              <text x="45" y="202" fill="#22c55e" font-size="8" text-anchor="middle">Main Tube</text>
+              <text x="45" y="218" fill="#64748b" font-size="7" text-anchor="middle">$50 × 1</text>
+
+              <rect x="90" y="185" width="70" height="40" rx="3" fill="#334155" stroke="#22c55e"/>
+              <text x="125" y="202" fill="#22c55e" font-size="8" text-anchor="middle">Fork</text>
+              <text x="125" y="218" fill="#64748b" font-size="7" text-anchor="middle">$30 × 1</text>
+
+              <!-- Wheel parts -->
+              <rect x="170" y="185" width="60" height="40" rx="3" fill="#334155" stroke="#22c55e"/>
+              <text x="200" y="202" fill="#22c55e" font-size="8" text-anchor="middle">Rim</text>
+              <text x="200" y="218" fill="#64748b" font-size="7" text-anchor="middle">$20 × 1</text>
+
+              <rect x="240" y="185" width="60" height="40" rx="3" fill="#334155" stroke="#22c55e"/>
+              <text x="270" y="202" fill="#22c55e" font-size="8" text-anchor="middle">Tire</text>
+              <text x="270" y="218" fill="#64748b" font-size="7" text-anchor="middle">$15 × 1</text>
+
+              <!-- Drivetrain parts -->
+              <rect x="320" y="185" width="60" height="40" rx="3" fill="#334155" stroke="#22c55e"/>
+              <text x="350" y="202" fill="#22c55e" font-size="8" text-anchor="middle">Chain</text>
+              <text x="350" y="218" fill="#64748b" font-size="7" text-anchor="middle">$25 × 1</text>
+
+              <rect x="390" y="185" width="60" height="40" rx="3" fill="#334155" stroke="#22c55e"/>
+              <text x="420" y="202" fill="#22c55e" font-size="8" text-anchor="middle">Gears</text>
+              <text x="420" y="218" fill="#64748b" font-size="7" text-anchor="middle">$60 × 1</text>
+
+              <!-- Connection lines -->
+              <!-- Top to Level 2 -->
+              <line x1="260" y1="70" x2="85" y2="100" stroke="#475569" stroke-width="1.5"/>
+              <line x1="280" y1="70" x2="235" y2="100" stroke="#475569" stroke-width="1.5"/>
+              <line x1="320" y1="70" x2="385" y2="100" stroke="#475569" stroke-width="1.5"/>
+              <line x1="340" y1="70" x2="525" y2="100" stroke="#475569" stroke-width="1.5"/>
+
+              <!-- Level 2 to Level 3 -->
+              <line x1="65" y1="155" x2="45" y2="185" stroke="#475569" stroke-width="1"/>
+              <line x1="105" y1="155" x2="125" y2="185" stroke="#475569" stroke-width="1"/>
+              <line x1="215" y1="155" x2="200" y2="185" stroke="#475569" stroke-width="1"/>
+              <line x1="255" y1="155" x2="270" y2="185" stroke="#475569" stroke-width="1"/>
+              <line x1="365" y1="155" x2="350" y2="185" stroke="#475569" stroke-width="1"/>
+              <line x1="405" y1="155" x2="420" y2="185" stroke="#475569" stroke-width="1"/>
+
+              <!-- Quantity badges -->
+              <circle cx="170" cy="85" r="12" fill="#ef4444"/>
+              <text x="170" y="89" fill="white" font-size="9" font-weight="bold" text-anchor="middle">×1</text>
+              <circle cx="290" cy="85" r="12" fill="#ef4444"/>
+              <text x="290" y="89" fill="white" font-size="9" font-weight="bold" text-anchor="middle">×2</text>
+              <circle cx="410" cy="85" r="12" fill="#ef4444"/>
+              <text x="410" y="89" fill="white" font-size="9" font-weight="bold" text-anchor="middle">×1</text>
+              <circle cx="510" cy="85" r="12" fill="#ef4444"/>
+              <text x="510" y="89" fill="white" font-size="9" font-weight="bold" text-anchor="middle">×1</text>
+
+              <!-- Cost Rollup Explanation -->
+              <rect x="20" y="245" width="270" height="100" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="2"/>
+              <rect x="20" y="245" width="270" height="24" rx="6" fill="#22c55e"/>
+              <text x="155" y="262" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Cost Rollup Calculation</text>
+              <text x="30" y="285" fill="#94a3b8" font-size="8">Frame: $80 × 1 = $80</text>
+              <text x="30" y="300" fill="#94a3b8" font-size="8">Wheels: $45 × 2 = $90</text>
+              <text x="30" y="315" fill="#94a3b8" font-size="8">Drivetrain: $120 × 1 = $120</text>
+              <text x="30" y="330" fill="#94a3b8" font-size="8">Handlebars: $40 × 1 = $40</text>
+              <text x="155" y="285" fill="#94a3b8" font-size="8">Assembly: $15</text>
+              <line x1="145" y1="320" x2="260" y2="320" stroke="#475569"/>
+              <text x="155" y="338" fill="#22c55e" font-size="10" font-weight="bold">Total: $385</text>
+
+              <!-- Model Info -->
+              <rect x="310" y="245" width="270" height="100" rx="6" fill="#0f172a" stroke="#475569"/>
+              <text x="445" y="268" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">Bold Model Pattern</text>
+              <text x="320" y="290" fill="#3b82f6" font-size="9">Product</text>
+              <text x="380" y="290" fill="#64748b" font-size="8">- name, unitCost</text>
+              <text x="320" y="308" fill="#f59e0b" font-size="9">ProductPart</text>
+              <text x="400" y="308" fill="#64748b" font-size="8">- quantity</text>
+              <text x="320" y="326" fill="#22c55e" font-size="9" font-style="italic">/totalCost</text>
+              <text x="390" y="326" fill="#64748b" font-size="8">- derived rollup</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowGray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Compound/ProdStruct/ProdStruct.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>ProdStruct.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Compound\ProdStruct\</code></p>
+        </div>
+      </section>
+      <footer class="footer"></footer>
+    </main>
+  </div>
+</body>
+</html>

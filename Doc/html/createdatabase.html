@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Database - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" style="text-decoration: none;">
+          <div class="logo">
+            <span class="logo-bold">Bold</span>
+            <span class="logo-sub">for Delphi</span>
+          </div>
+        </a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group">
+            <summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group">
+            <summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group" open>
+            <summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html" class="active">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> &rarr; Persistence</p>
+        <h1>Create Database</h1>
+        <p class="subtitle">Database setup utility for Bold demos</p>
+      </header>
+
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>
+            This utility application creates and initializes databases for Bold demos.
+            It supports multiple database engines and uses a shared model that can be
+            reused across different example projects.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Features</h2>
+          <ul class="feature-list">
+            <li><strong>Multi-engine support</strong> - Works with MSSQL, PostgreSQL, Firebird, and SQLite</li>
+            <li><strong>Database creation</strong> - Creates both the database and Bold schema</li>
+            <li><strong>INI configuration</strong> - Easy switching between database engines</li>
+            <li><strong>Shared model</strong> - Reusable data module for other demos</li>
+            <li><strong>Connection testing</strong> - Open/Close system to verify connectivity</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <p>Bold generates database tables from your UML model, supporting multiple database engines:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="320" fill="#1e293b"/>
+
+              <!-- UML Model box -->
+              <rect x="30" y="30" width="160" height="180" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="30" y="30" width="160" height="28" rx="6" fill="#3b82f6"/>
+              <text x="110" y="50" fill="white" font-size="11" font-weight="bold" text-anchor="middle">UML Model</text>
+
+              <!-- Mini class boxes -->
+              <rect x="45" y="68" width="60" height="35" rx="3" fill="#0f172a" stroke="#3b82f6"/>
+              <text x="75" y="82" fill="#3b82f6" font-size="8" font-weight="bold" text-anchor="middle">Person</text>
+              <text x="75" y="94" fill="#64748b" font-size="6" text-anchor="middle">firstName, lastName</text>
+
+              <rect x="115" y="68" width="60" height="35" rx="3" fill="#0f172a" stroke="#3b82f6"/>
+              <text x="145" y="82" fill="#3b82f6" font-size="8" font-weight="bold" text-anchor="middle">Building</text>
+              <text x="145" y="94" fill="#64748b" font-size="6" text-anchor="middle">address, city</text>
+
+              <rect x="45" y="112" width="60" height="35" rx="3" fill="#0f172a" stroke="#f59e0b"/>
+              <text x="75" y="126" fill="#f59e0b" font-size="7" font-weight="bold" text-anchor="middle">Residential</text>
+              <text x="75" y="138" fill="#64748b" font-size="6" text-anchor="middle">apartments</text>
+
+              <rect x="115" y="112" width="60" height="35" rx="3" fill="#0f172a" stroke="#f59e0b"/>
+              <text x="145" y="126" fill="#f59e0b" font-size="7" font-weight="bold" text-anchor="middle">Commercial</text>
+              <text x="145" y="138" fill="#64748b" font-size="6" text-anchor="middle">officeSpace</text>
+
+              <rect x="45" y="156" width="60" height="35" rx="3" fill="#0f172a" stroke="#22c55e"/>
+              <text x="75" y="170" fill="#22c55e" font-size="8" font-weight="bold" text-anchor="middle">Project</text>
+              <text x="75" y="182" fill="#64748b" font-size="6" text-anchor="middle">name, budget</text>
+
+              <rect x="115" y="156" width="60" height="35" rx="3" fill="#0f172a" stroke="#22c55e"/>
+              <text x="145" y="170" fill="#22c55e" font-size="8" font-weight="bold" text-anchor="middle">Task</text>
+              <text x="145" y="182" fill="#64748b" font-size="6" text-anchor="middle">title, priority</text>
+
+              <!-- Bold Schema Generator -->
+              <rect x="220" y="70" width="130" height="100" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+              <text x="285" y="95" fill="#f59e0b" font-size="10" font-weight="bold" text-anchor="middle">Bold Schema</text>
+              <text x="285" y="110" fill="#f59e0b" font-size="10" font-weight="bold" text-anchor="middle">Generator</text>
+              <line x1="235" y1="120" x2="335" y2="120" stroke="#475569"/>
+              <text x="285" y="138" fill="#94a3b8" font-size="8" text-anchor="middle">CREATE TABLE</text>
+              <text x="285" y="152" fill="#94a3b8" font-size="8" text-anchor="middle">PRIMARY KEYS</text>
+              <text x="285" y="166" fill="#94a3b8" font-size="8" text-anchor="middle">FOREIGN KEYS</text>
+
+              <!-- Arrow from model to generator -->
+              <path d="M190 120 L215 120" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+              <!-- Database engines -->
+              <!-- MSSQL -->
+              <rect x="390" y="25" width="90" height="55" rx="6" fill="#334155" stroke="#ef4444" stroke-width="2"/>
+              <text x="435" y="48" fill="#ef4444" font-size="10" font-weight="bold" text-anchor="middle">MSSQL</text>
+              <text x="435" y="65" fill="#94a3b8" font-size="8" text-anchor="middle">SQL Server</text>
+
+              <!-- PostgreSQL -->
+              <rect x="500" y="25" width="90" height="55" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <text x="545" y="48" fill="#3b82f6" font-size="10" font-weight="bold" text-anchor="middle">PostgreSQL</text>
+              <text x="545" y="65" fill="#94a3b8" font-size="8" text-anchor="middle">Open Source</text>
+
+              <!-- Firebird -->
+              <rect x="390" y="95" width="90" height="55" rx="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <text x="435" y="118" fill="#f59e0b" font-size="10" font-weight="bold" text-anchor="middle">Firebird</text>
+              <text x="435" y="135" fill="#94a3b8" font-size="8" text-anchor="middle">Embedded</text>
+
+              <!-- SQLite -->
+              <rect x="500" y="95" width="90" height="55" rx="6" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <text x="545" y="118" fill="#22c55e" font-size="10" font-weight="bold" text-anchor="middle">SQLite</text>
+              <text x="545" y="135" fill="#94a3b8" font-size="8" text-anchor="middle">File-based</text>
+
+              <!-- Arrows from generator to databases -->
+              <path d="M350 100 L385 55" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowRed)"/>
+              <path d="M350 110 L385 120" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowOrange)"/>
+              <path d="M350 100 L495 55" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+              <path d="M350 110 L495 120" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+              <!-- INI Config -->
+              <rect x="220" y="190" width="130" height="70" rx="6" fill="#334155" stroke="#475569"/>
+              <text x="285" y="212" fill="#94a3b8" font-size="9" font-weight="bold" text-anchor="middle">DemoDatabase.ini</text>
+              <text x="230" y="230" fill="#fcd34d" font-size="8" font-family="monospace">[Database]</text>
+              <text x="230" y="244" fill="#94a3b8" font-size="8" font-family="monospace">Type=MSSQL</text>
+
+              <!-- Generated Tables preview -->
+              <rect x="390" y="170" width="200" height="130" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="2"/>
+              <rect x="390" y="170" width="200" height="24" rx="6" fill="#22c55e"/>
+              <text x="490" y="186" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Generated Tables</text>
+
+              <!-- Table list -->
+              <text x="405" y="208" fill="#94a3b8" font-size="9">BOLD_TYPE</text>
+              <text x="505" y="208" fill="#64748b" font-size="8">(metadata)</text>
+              <text x="405" y="224" fill="#94a3b8" font-size="9">Person</text>
+              <text x="505" y="224" fill="#64748b" font-size="8">(id, firstName...)</text>
+              <text x="405" y="240" fill="#94a3b8" font-size="9">Building</text>
+              <text x="505" y="240" fill="#64748b" font-size="8">(id, address...)</text>
+              <text x="405" y="256" fill="#94a3b8" font-size="9">Project</text>
+              <text x="505" y="256" fill="#64748b" font-size="8">(id, name...)</text>
+              <text x="405" y="272" fill="#94a3b8" font-size="9">Task</text>
+              <text x="505" y="272" fill="#64748b" font-size="8">(id, title...)</text>
+              <text x="405" y="288" fill="#64748b" font-size="8">+ link tables...</text>
+
+              <!-- Legend -->
+              <rect x="30" y="230" width="160" height="70" rx="4" fill="#0f172a" stroke="#475569"/>
+              <text x="40" y="250" fill="#94a3b8" font-size="9" font-weight="bold">Inheritance</text>
+              <rect x="40" y="258" width="12" height="12" rx="2" fill="#3b82f6"/>
+              <text x="58" y="268" fill="#94a3b8" font-size="8">Base class</text>
+              <rect x="100" y="258" width="12" height="12" rx="2" fill="#f59e0b"/>
+              <text x="118" y="268" fill="#94a3b8" font-size="8">Subclass</text>
+              <rect x="40" y="278" width="12" height="12" rx="2" fill="#22c55e"/>
+              <text x="58" y="288" fill="#94a3b8" font-size="8">Other class</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+                <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+                </marker>
+                <marker id="arrowRed" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#ef4444"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Model Classes</h2>
+          <p>The shared demo model includes these classes:</p>
+          <div class="model-grid">
+            <div class="model-item">
+              <h4>Person</h4>
+              <p>FirstName, LastName, Assets, BirthDate, IsActive, FullName (derived)</p>
+            </div>
+            <div class="model-item">
+              <h4>Building</h4>
+              <p>Address, ZipCode, City, BuiltYear</p>
+            </div>
+            <div class="model-item">
+              <h4>ResidentialBuilding</h4>
+              <p>Extends Building: Apartments, MonthlyRent</p>
+            </div>
+            <div class="model-item">
+              <h4>CommercialBuilding</h4>
+              <p>Extends Building: OfficeSpace, ParkingSpaces</p>
+            </div>
+            <div class="model-item">
+              <h4>Project</h4>
+              <p>Name, Description, StartDate, EndDate, Budget</p>
+            </div>
+            <div class="model-item">
+              <h4>Task</h4>
+              <p>Title, Priority, IsCompleted, DueDate</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Configuration</h2>
+          <p>Edit <code>DemoDatabase.ini</code> to configure your database:</p>
+          <pre><code>[Database]
+Type=MSSQL    ; Options: MSSQL, PostgreSQL, Firebird, SQLite
+
+[MSSQL]
+Server=localhost
+Database=BoldDemo
+OSAuthent=True
+
+[PostgreSQL]
+Server=localhost
+Database=bolddemo
+User=postgres
+Password=
+
+[SQLite]
+Database=BoldDemo.db</code></pre>
+        </div>
+
+        <div class="card">
+          <h2>Usage</h2>
+          <ol>
+            <li>Configure <code>DemoDatabase.ini</code> for your database engine</li>
+            <li>Run the application</li>
+            <li>Click <strong>Create Database</strong> and enter a database name</li>
+            <li>Click <strong>Open System</strong> to verify the connection</li>
+            <li>Click <strong>Close System</strong> when done</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/CreateDatabase/CreateDatabase.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span>CreateDatabase.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\CreateDatabase\</code></p>
+        </div>
+      </section>
+
+      <footer class="footer">
+      </footer>
+    </main>
+  </div>
+
+  <style>
+    .breadcrumb {
+      margin: 0 0 0.5rem;
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+    .breadcrumb a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    .feature-list {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+    .feature-list li {
+      margin-bottom: 0.5rem;
+      color: var(--color-text-muted);
+    }
+    .feature-list strong {
+      color: var(--color-text);
+    }
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .model-item {
+      padding: 1rem;
+      background: var(--color-bg);
+      border-radius: 0.5rem;
+    }
+    .model-item h4 {
+      margin: 0 0 0.5rem;
+      color: var(--color-primary);
+      font-size: 1rem;
+    }
+    .model-item p {
+      margin: 0;
+      font-size: 0.8125rem;
+    }
+    pre {
+      margin: 1rem 0 0;
+      padding: 1rem;
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      font-size: 0.875rem;
+    }
+    code {
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+    .card code:not(pre code) {
+      padding: 0.125rem 0.375rem;
+      background: var(--color-bg);
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+    .file-link a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-weight: 500;
+    }
+    .file-link a:hover {
+      background: var(--color-primary-dark);
+    }
+    .hint {
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--color-text-muted);
+    }
+    .nav a.active {
+      color: white;
+      background: var(--color-bg-sidebar-hover);
+    }
+  </style>
+</body>
+</html>

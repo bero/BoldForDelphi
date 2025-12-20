@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Attributes - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link"><div class="logo"><span class="logo-bold">Bold</span><span class="logo-sub">for Delphi</span></div></a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group"><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group" open><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html" class="active">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / ObjectSpace</p>
+        <h1>Custom Attributes</h1>
+        <p class="subtitle">Create your own attribute types</p>
+      </header>
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>Custom attributes allow you to extend Bold with your own data types. Define how values are stored, displayed, and validated beyond the built-in types.</p>
+        </div>
+        <div class="card">
+          <h2>Custom Attribute Types</h2>
+          <ul>
+            <li><strong>Value mapping</strong> - Custom serialization to database</li>
+            <li><strong>Display formatting</strong> - Control how values appear in UI</li>
+            <li><strong>Validation</strong> - Type-specific validation rules</li>
+            <li><strong>Operators</strong> - Custom comparison and arithmetic</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <p>A custom attribute defines how values convert between code, UI, and database:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="340" fill="#1e293b"/>
+
+              <!-- Custom Attribute Class -->
+              <rect x="180" y="20" width="240" height="170" rx="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="180" y="20" width="240" height="28" rx="6" fill="#f59e0b"/>
+              <text x="300" y="40" fill="white" font-size="11" font-weight="bold" text-anchor="middle">TBAMoney (Custom Attribute)</text>
+
+              <!-- Properties section -->
+              <line x1="180" y1="48" x2="420" y2="48" stroke="#475569"/>
+              <text x="190" y="65" fill="#94a3b8" font-size="9">Properties:</text>
+              <text x="200" y="82" fill="#3b82f6" font-size="9" font-family="monospace">Value: Currency</text>
+              <text x="200" y="97" fill="#3b82f6" font-size="9" font-family="monospace">CurrencyCode: String</text>
+
+              <!-- Methods section -->
+              <line x1="180" y1="108" x2="420" y2="108" stroke="#475569"/>
+              <text x="190" y="125" fill="#94a3b8" font-size="9">Methods (override):</text>
+              <text x="200" y="142" fill="#22c55e" font-size="8" font-family="monospace">GetAsString → '$1,234.56'</text>
+              <text x="200" y="157" fill="#22c55e" font-size="8" font-family="monospace">SetAsString ← parse input</text>
+              <text x="200" y="172" fill="#22c55e" font-size="8" font-family="monospace">AssignContentValue → DB</text>
+              <text x="200" y="187" fill="#ef4444" font-size="8" font-family="monospace">ValidateCharacter → [0-9,.$]</text>
+
+              <!-- Delphi Code -->
+              <rect x="20" y="60" width="130" height="90" rx="6" fill="#0f172a" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="20" y="60" width="130" height="24" rx="6" fill="#3b82f6"/>
+              <text x="85" y="77" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Delphi Code</text>
+              <text x="30" y="100" fill="#fcd34d" font-size="8" font-family="monospace">product.Price</text>
+              <text x="30" y="115" fill="#fcd34d" font-size="8" font-family="monospace">  .Value := 1234.56;</text>
+              <text x="30" y="135" fill="#64748b" font-size="8">Native Currency type</text>
+
+              <!-- UI Display -->
+              <rect x="450" y="40" width="130" height="70" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="2"/>
+              <rect x="450" y="40" width="130" height="24" rx="6" fill="#22c55e"/>
+              <text x="515" y="57" fill="white" font-size="10" font-weight="bold" text-anchor="middle">UI Display</text>
+              <rect x="460" y="72" width="110" height="28" rx="4" fill="#334155" stroke="#475569"/>
+              <text x="515" y="91" fill="#22c55e" font-size="11" font-weight="bold" text-anchor="middle">$1,234.56</text>
+
+              <!-- Database -->
+              <rect x="450" y="125" width="130" height="70" rx="6" fill="#0f172a" stroke="#a855f7" stroke-width="2"/>
+              <rect x="450" y="125" width="130" height="24" rx="6" fill="#a855f7"/>
+              <text x="515" y="142" fill="white" font-size="10" font-weight="bold" text-anchor="middle">Database</text>
+              <text x="460" y="165" fill="#94a3b8" font-size="8">DECIMAL(18,4)</text>
+              <text x="460" y="182" fill="#c4b5fd" font-size="10" font-family="monospace">1234.5600</text>
+
+              <!-- Arrows -->
+              <path d="M150 105 L175 105" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+              <path d="M420 70 L445 60" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+              <path d="M420 160 L445 160" stroke="#a855f7" stroke-width="2" marker-end="url(#arrowPurple)"/>
+
+              <!-- Example Types Section -->
+              <rect x="20" y="210" width="270" height="115" rx="6" fill="#0f172a" stroke="#475569"/>
+              <text x="155" y="232" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">Example Custom Types</text>
+
+              <!-- Email type -->
+              <rect x="35" y="245" width="115" height="35" rx="4" fill="#334155" stroke="#3b82f6"/>
+              <text x="92" y="262" fill="#3b82f6" font-size="9" font-weight="bold" text-anchor="middle">TBAEmail</text>
+              <text x="92" y="275" fill="#64748b" font-size="7" text-anchor="middle">Validates @ and domain</text>
+
+              <!-- Percentage type -->
+              <rect x="160" y="245" width="115" height="35" rx="4" fill="#334155" stroke="#22c55e"/>
+              <text x="217" y="262" fill="#22c55e" font-size="9" font-weight="bold" text-anchor="middle">TBAPercentage</text>
+              <text x="217" y="275" fill="#64748b" font-size="7" text-anchor="middle">Displays as 75.5%</text>
+
+              <!-- Phone type -->
+              <rect x="35" y="285" width="115" height="35" rx="4" fill="#334155" stroke="#f59e0b"/>
+              <text x="92" y="302" fill="#f59e0b" font-size="9" font-weight="bold" text-anchor="middle">TBAPhone</text>
+              <text x="92" y="315" fill="#64748b" font-size="7" text-anchor="middle">Formats (555) 123-4567</text>
+
+              <!-- Color type -->
+              <rect x="160" y="285" width="115" height="35" rx="4" fill="#334155" stroke="#ef4444"/>
+              <text x="217" y="302" fill="#ef4444" font-size="9" font-weight="bold" text-anchor="middle">TBAColor</text>
+              <text x="217" y="315" fill="#64748b" font-size="7" text-anchor="middle">Stores as integer</text>
+
+              <!-- Benefits -->
+              <rect x="310" y="210" width="270" height="115" rx="6" fill="#0f172a" stroke="#475569"/>
+              <text x="445" y="232" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">Benefits</text>
+              <text x="320" y="255" fill="#22c55e" font-size="9">✓ Type-safe throughout application</text>
+              <text x="320" y="275" fill="#22c55e" font-size="9">✓ Consistent formatting everywhere</text>
+              <text x="320" y="295" fill="#22c55e" font-size="9">✓ Validation built into the type</text>
+              <text x="320" y="315" fill="#22c55e" font-size="9">✓ Custom operators (compare, math)</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+                <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#a855f7"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/ObjectSpace/CustomAttributes/BE_CustomAttributes.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>BE_CustomAttributes.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\ObjectSpace\CustomAttributes\</code></p>
+        </div>
+      </section>
+      <footer class="footer"></footer>
+    </main>
+  </div>
+</body>
+</html>

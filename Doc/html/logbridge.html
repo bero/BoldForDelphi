@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LogBridge - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link"><div class="logo"><span class="logo-bold">Bold</span><span class="logo-sub">for Delphi</span></div></a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group"><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group" open><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html" class="active">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / Persistence</p>
+        <h1>LogBridge</h1>
+        <p class="subtitle">Interface-based logging with pluggable sinks</p>
+      </header>
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>LogBridge demonstrates Bold's logging infrastructure with pluggable log sinks for debugging and monitoring application behavior.</p>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <p>Log messages from Bold components flow through the LogBridge to configurable output sinks:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="300" fill="#1e293b"/>
+
+              <!-- Log Sources -->
+              <text x="80" y="25" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">Log Sources</text>
+
+              <!-- ObjectSpace -->
+              <rect x="20" y="35" width="120" height="40" rx="4" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <text x="80" y="60" fill="#3b82f6" font-size="10" text-anchor="middle">ObjectSpace</text>
+
+              <!-- Persistence -->
+              <rect x="20" y="85" width="120" height="40" rx="4" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <text x="80" y="110" fill="#22c55e" font-size="10" text-anchor="middle">Persistence</text>
+
+              <!-- SQL Executor -->
+              <rect x="20" y="135" width="120" height="40" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <text x="80" y="160" fill="#f59e0b" font-size="10" text-anchor="middle">SQL Executor</text>
+
+              <!-- Subscription -->
+              <rect x="20" y="185" width="120" height="40" rx="4" fill="#334155" stroke="#a855f7" stroke-width="2"/>
+              <text x="80" y="210" fill="#a855f7" font-size="10" text-anchor="middle">Subscription</text>
+
+              <!-- LogBridge Central -->
+              <rect x="200" y="60" width="140" height="150" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="200" y="60" width="140" height="30" rx="6" fill="#f59e0b"/>
+              <text x="270" y="80" fill="white" font-size="11" font-weight="bold" text-anchor="middle">LogBridge</text>
+
+              <!-- Log levels -->
+              <text x="215" y="108" fill="#94a3b8" font-size="9" font-weight="bold">Log Levels:</text>
+              <rect x="215" y="115" width="50" height="18" rx="3" fill="#ef4444" fill-opacity="0.3" stroke="#ef4444"/>
+              <text x="240" y="128" fill="#ef4444" font-size="8" text-anchor="middle">Error</text>
+              <rect x="270" y="115" width="55" height="18" rx="3" fill="#f59e0b" fill-opacity="0.3" stroke="#f59e0b"/>
+              <text x="297" y="128" fill="#f59e0b" font-size="8" text-anchor="middle">Warning</text>
+              <rect x="215" y="138" width="50" height="18" rx="3" fill="#3b82f6" fill-opacity="0.3" stroke="#3b82f6"/>
+              <text x="240" y="151" fill="#3b82f6" font-size="8" text-anchor="middle">Info</text>
+              <rect x="270" y="138" width="55" height="18" rx="3" fill="#22c55e" fill-opacity="0.3" stroke="#22c55e"/>
+              <text x="297" y="151" fill="#22c55e" font-size="8" text-anchor="middle">Debug</text>
+
+              <!-- Filter indicator -->
+              <text x="215" y="175" fill="#94a3b8" font-size="9" font-weight="bold">Filtering:</text>
+              <text x="215" y="190" fill="#64748b" font-size="8">By level, component</text>
+              <text x="215" y="203" fill="#64748b" font-size="8">or message pattern</text>
+
+              <!-- Arrows from sources to bridge -->
+              <path d="M140 55 L195 100" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+              <path d="M140 105 L195 120" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+              <path d="M140 155 L195 140" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrowOrange)"/>
+              <path d="M140 205 L195 170" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+
+              <!-- Log Sinks -->
+              <text x="500" y="25" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">Log Sinks</text>
+
+              <!-- File sink -->
+              <rect x="420" y="35" width="100" height="45" rx="4" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <text x="470" y="55" fill="#22c55e" font-size="10" font-weight="bold" text-anchor="middle">File</text>
+              <text x="470" y="70" fill="#64748b" font-size="8" text-anchor="middle">app.log</text>
+
+              <!-- Memo sink -->
+              <rect x="530" y="35" width="60" height="45" rx="4" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <text x="560" y="55" fill="#3b82f6" font-size="10" font-weight="bold" text-anchor="middle">Memo</text>
+              <text x="560" y="70" fill="#64748b" font-size="8" text-anchor="middle">TMemo</text>
+
+              <!-- Console sink -->
+              <rect x="420" y="95" width="100" height="45" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <text x="470" y="115" fill="#f59e0b" font-size="10" font-weight="bold" text-anchor="middle">Console</text>
+              <text x="470" y="130" fill="#64748b" font-size="8" text-anchor="middle">stdout/stderr</text>
+
+              <!-- Database sink -->
+              <rect x="530" y="95" width="60" height="45" rx="4" fill="#334155" stroke="#a855f7" stroke-width="2"/>
+              <text x="560" y="115" fill="#a855f7" font-size="10" font-weight="bold" text-anchor="middle">DB</text>
+              <text x="560" y="130" fill="#64748b" font-size="8" text-anchor="middle">Table</text>
+
+              <!-- Custom sink -->
+              <rect x="420" y="155" width="170" height="45" rx="4" fill="#334155" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,2"/>
+              <text x="505" y="175" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">Custom Sink</text>
+              <text x="505" y="190" fill="#64748b" font-size="8" text-anchor="middle">Implement ILogSink interface</text>
+
+              <!-- Arrows from bridge to sinks -->
+              <path d="M340 90 L415 55" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+              <path d="M340 100 L415 115" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrowOrange)"/>
+              <path d="M340 130 L415 175" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowGray)"/>
+              <path d="M340 85 L525 55" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+              <path d="M340 110 L525 115" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+
+              <!-- Sample log output -->
+              <rect x="420" y="215" width="170" height="75" rx="4" fill="#0f172a" stroke="#475569"/>
+              <text x="430" y="232" fill="#94a3b8" font-size="8" font-weight="bold">Sample Output:</text>
+              <text x="430" y="248" fill="#3b82f6" font-size="7" font-family="monospace">[INFO] Object created: Person#1</text>
+              <text x="430" y="262" fill="#22c55e" font-size="7" font-family="monospace">[DEBUG] SQL: SELECT * FROM...</text>
+              <text x="430" y="276" fill="#f59e0b" font-size="7" font-family="monospace">[WARN] Slow query: 250ms</text>
+
+              <!-- Interface box -->
+              <rect x="20" y="240" width="160" height="50" rx="4" fill="#0f172a" stroke="#475569"/>
+              <text x="100" y="260" fill="#94a3b8" font-size="9" font-weight="bold" text-anchor="middle">ILogSink Interface</text>
+              <text x="100" y="278" fill="#fcd34d" font-size="8" font-family="monospace" text-anchor="middle">procedure Log(msg, level)</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+                <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+                </marker>
+                <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#a855f7"/>
+                </marker>
+                <marker id="arrowGray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Features</h2>
+          <ul>
+            <li><strong>Multiple log sources</strong> - ObjectSpace, Persistence, SQL Executor, Subscription system</li>
+            <li><strong>Configurable levels</strong> - Error, Warning, Info, Debug filtering</li>
+            <li><strong>Pluggable sinks</strong> - File, Memo, Console, Database, or custom implementations</li>
+            <li><strong>Interface-based</strong> - Implement ILogSink for custom logging targets</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/LogBridge/LogBridgeDemo.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>LogBridgeDemo.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\LogBridge\</code></p>
+        </div>
+      </section>
+      <footer class="footer"></footer>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reverse Derived Attributes - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link"><div class="logo"><span class="logo-bold">Bold</span><span class="logo-sub">for Delphi</span></div></a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group"><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group" open><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html" class="active">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / ObjectSpace</p>
+        <h1>Reverse Derived Attributes</h1>
+        <p class="subtitle">Make derived attributes writable</p>
+      </header>
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>
+            A derived attribute is a value calculated from other values. For many derived attributes,
+            reversing the derivation doesn't make sense - what would it mean to change an invoice total?
+            How would you apply it to the invoice items?
+          </p>
+          <p>
+            However, for some derived attributes the reverse is straightforward. Consider age and birth date:
+            it's obvious how to update age if birthday changes and vice versa. This example demonstrates
+            how to implement such <strong>reverse derived</strong> attributes.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <p>Reverse derivation allows editing a calculated value and propagating changes back to source attributes:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="340" fill="#1e293b"/>
+
+              <!-- Forward Derivation Section -->
+              <text x="170" y="25" fill="#22c55e" font-size="11" font-weight="bold" text-anchor="middle">Forward Derivation (Read)</text>
+
+              <!-- Person class -->
+              <rect x="30" y="40" width="140" height="100" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="30" y="40" width="140" height="28" rx="6" fill="#3b82f6"/>
+              <text x="100" y="60" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Person</text>
+              <line x1="30" y1="68" x2="170" y2="68" stroke="#475569"/>
+              <text x="40" y="88" fill="#3b82f6" font-size="10">firstName: "John"</text>
+              <line x1="30" y1="98" x2="170" y2="98" stroke="#475569" stroke-dasharray="2,2"/>
+              <text x="40" y="118" fill="#22c55e" font-size="10" font-style="italic">/fullName</text>
+              <text x="40" y="132" fill="#64748b" font-size="8">(derived attribute)</text>
+
+              <!-- Family class -->
+              <rect x="30" y="160" width="140" height="70" rx="6" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="30" y="160" width="140" height="28" rx="6" fill="#f59e0b"/>
+              <text x="100" y="180" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Family</text>
+              <line x1="30" y1="188" x2="170" y2="188" stroke="#475569"/>
+              <text x="40" y="208" fill="#f59e0b" font-size="10">familyName: "Smith"</text>
+
+              <!-- Relationship line -->
+              <line x1="100" y1="140" x2="100" y2="160" stroke="#94a3b8" stroke-width="1.5"/>
+              <text x="115" y="153" fill="#94a3b8" font-size="8">family</text>
+
+              <!-- Derivation formula -->
+              <rect x="200" y="70" width="140" height="60" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="2"/>
+              <text x="270" y="92" fill="#22c55e" font-size="9" font-weight="bold" text-anchor="middle">_fullName_DeriveAndSubscribe</text>
+              <text x="270" y="110" fill="#fcd34d" font-size="9" font-family="monospace" text-anchor="middle">firstName + ' ' +</text>
+              <text x="270" y="124" fill="#fcd34d" font-size="9" font-family="monospace" text-anchor="middle">family.familyName</text>
+
+              <!-- Result -->
+              <rect x="200" y="150" width="140" height="40" rx="6" fill="#14532d" stroke="#22c55e" stroke-width="2"/>
+              <text x="270" y="175" fill="#22c55e" font-size="12" font-weight="bold" text-anchor="middle">"John Smith"</text>
+
+              <!-- Forward arrows -->
+              <path d="M170 88 L195 90" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+              <path d="M170 200 L195 115" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowOrange)"/>
+              <path d="M270 130 L270 145" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+              <!-- Reverse Derivation Section -->
+              <text x="470" y="25" fill="#ef4444" font-size="11" font-weight="bold" text-anchor="middle">Reverse Derivation (Write)</text>
+
+              <!-- Edit input -->
+              <rect x="380" y="40" width="180" height="50" rx="6" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <text x="470" y="58" fill="#94a3b8" font-size="9">User edits fullName:</text>
+              <rect x="390" y="65" width="160" height="20" rx="3" fill="#0f172a" stroke="#475569"/>
+              <text x="400" y="80" fill="#e2e8f0" font-size="10">"Jane Doe"</text>
+
+              <!-- Reverse derive method -->
+              <rect x="380" y="105" width="180" height="70" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="2"/>
+              <text x="470" y="125" fill="#ef4444" font-size="9" font-weight="bold" text-anchor="middle">_fullName_ReverseDerive</text>
+              <line x1="390" y1="135" x2="550" y2="135" stroke="#475569"/>
+              <text x="390" y="152" fill="#64748b" font-size="8">1. Split "Jane Doe"</text>
+              <text x="390" y="166" fill="#64748b" font-size="8">2. Find/create Family "Doe"</text>
+
+              <!-- Updated objects -->
+              <rect x="380" y="190" width="85" height="55" rx="4" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <text x="422" y="208" fill="#3b82f6" font-size="9" font-weight="bold" text-anchor="middle">Person</text>
+              <text x="422" y="225" fill="#94a3b8" font-size="8" text-anchor="middle">firstName:</text>
+              <text x="422" y="238" fill="#22c55e" font-size="9" font-weight="bold" text-anchor="middle">"Jane"</text>
+
+              <rect x="475" y="190" width="85" height="55" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="2"/>
+              <text x="517" y="208" fill="#f59e0b" font-size="9" font-weight="bold" text-anchor="middle">Family</text>
+              <text x="517" y="225" fill="#94a3b8" font-size="8" text-anchor="middle">familyName:</text>
+              <text x="517" y="238" fill="#22c55e" font-size="9" font-weight="bold" text-anchor="middle">"Doe"</text>
+
+              <!-- Reverse arrows -->
+              <path d="M470 90 L470 100" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowRed)"/>
+              <path d="M422 175 L422 185" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowRed)"/>
+              <path d="M517 175 L517 185" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+              <!-- Family sharing scenario -->
+              <rect x="30" y="250" width="530" height="80" rx="6" fill="#0f172a" stroke="#475569"/>
+              <text x="45" y="272" fill="#94a3b8" font-size="10" font-weight="bold">Smart Family Handling:</text>
+
+              <!-- Multiple persons same family -->
+              <rect x="45" y="282" width="70" height="35" rx="3" fill="#334155" stroke="#3b82f6"/>
+              <text x="80" y="300" fill="#3b82f6" font-size="8" text-anchor="middle">John Smith</text>
+              <text x="80" y="312" fill="#64748b" font-size="7" text-anchor="middle">Person</text>
+
+              <rect x="125" y="282" width="70" height="35" rx="3" fill="#334155" stroke="#3b82f6"/>
+              <text x="160" y="300" fill="#3b82f6" font-size="8" text-anchor="middle">Jane Smith</text>
+              <text x="160" y="312" fill="#64748b" font-size="7" text-anchor="middle">Person</text>
+
+              <rect x="205" y="282" width="70" height="35" rx="3" fill="#334155" stroke="#f59e0b"/>
+              <text x="240" y="300" fill="#f59e0b" font-size="8" text-anchor="middle">Smith</text>
+              <text x="240" y="312" fill="#64748b" font-size="7" text-anchor="middle">Family</text>
+
+              <!-- Lines showing shared family -->
+              <line x1="80" y1="282" x2="205" y2="295" stroke="#94a3b8" stroke-width="1"/>
+              <line x1="160" y1="282" x2="205" y2="300" stroke="#94a3b8" stroke-width="1"/>
+
+              <text x="295" y="295" fill="#64748b" font-size="9">→ Two persons share one Family</text>
+              <text x="295" y="310" fill="#64748b" font-size="9">→ Change one lastname = new Family created</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+                <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+                </marker>
+                <marker id="arrowRed" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#ef4444"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>How to Run</h2>
+          <ol>
+            <li>Add a person using the navigator. Enter a full name in the format <code>firstname lastname</code></li>
+            <li>Leave the column - watch how the full name is separated into firstname and lastname.
+                The lastname is stored in a related <code>TFamily</code> object</li>
+            <li>Add another person with the <strong>same</strong> lastname - no new family object is created</li>
+            <li>Change the lastname in fullName for one person:
+              <ul>
+                <li>If multiple people share that family, a new family object is created</li>
+                <li>If only one person in the family, the familyname is updated</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+        <div class="card">
+          <h2>Implementation</h2>
+          <h3>_fullName_ReverseDerive</h3>
+          <p>
+            Whenever the full name changes, <code>TPerson._fullName_ReverseDerive</code> executes.
+            This method handles what it means to change the name - manipulating not only attribute values,
+            but also creation/deletion of objects and setting of links.
+          </p>
+          <h3>TFont.noValues</h3>
+          <p>
+            The example also includes <code>TFont</code> with a <code>noValues</code> reverse derived attribute.
+            The font has 3 style properties (bold, underline, blink). Setting any of these clears noValues,
+            and setting noValues clears all three style properties.
+          </p>
+        </div>
+        <div class="card">
+          <h2>Related Examples</h2>
+          <div class="related-grid">
+            <a href="derived_attributes.html" class="related-item">
+              <strong>Derived Attributes</strong>
+              <span>Code-free OCL derived values</span>
+            </a>
+            <a href="renderers.html" class="related-item">
+              <strong>Renderers</strong>
+              <span>Reverse derive using renderers</span>
+            </a>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/ObjectSpace/ReverseDerivedAttributes/BE_ReverseDerivedAttribDemo.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>BE_ReverseDerivedAttribDemo.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\ObjectSpace\ReverseDerivedAttributes\</code></p>
+        </div>
+      </section>
+      <footer class="footer"></footer>
+    </main>
+  </div>
+</body>
+</html>

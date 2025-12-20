@@ -1,0 +1,243 @@
+/* Shared styles for example pages */
+
+.logo-link {
+  text-decoration: none;
+}
+
+.breadcrumb {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.breadcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.nav a.active {
+  color: white;
+  background: var(--color-bg-sidebar-hover);
+}
+
+/* Feature grid */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.feature {
+  padding: 1rem;
+  background: var(--color-bg);
+  border-radius: 0.5rem;
+}
+
+.feature h4 {
+  margin: 0 0 0.5rem;
+  color: var(--color-primary);
+  font-size: 0.9375rem;
+}
+
+.feature p {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+/* Lists */
+.card ol, .card ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.card li {
+  margin-bottom: 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.card li:last-child {
+  margin-bottom: 0;
+}
+
+.card li strong {
+  color: var(--color-text);
+}
+
+/* Headings in cards */
+.card h3 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.card h3:first-child {
+  margin-top: 0;
+}
+
+.card h4 {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+/* Code */
+code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.875em;
+  padding: 0.125rem 0.375rem;
+  background: var(--color-bg);
+  border-radius: 0.25rem;
+  color: #c026d3;
+}
+
+pre {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* File links */
+.file-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-primary);
+  color: white;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.file-link a:hover {
+  background: var(--color-primary-dark);
+}
+
+.hint {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* Related examples */
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.related-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: var(--color-bg);
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.related-item:hover {
+  background: var(--color-border);
+}
+
+.related-item strong {
+  color: var(--color-text);
+}
+
+.related-item span {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* Model grid */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.model-item {
+  padding: 1rem;
+  background: var(--color-bg);
+  border-radius: 0.5rem;
+}
+
+.model-item h4 {
+  margin: 0 0 0.5rem;
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
+.model-item p {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+/* Note/warning boxes */
+.note {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.note strong {
+  color: #92400e;
+}
+
+.note p {
+  margin: 0;
+  color: #78350f;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+th {
+  font-weight: 600;
+  background: var(--color-bg);
+}
+
+/* Screenshots */
+.screenshot {
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.screenshot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Optimistic Locking - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link">
+          <div class="logo">
+            <span class="logo-bold">Bold</span>
+            <span class="logo-sub">for Delphi</span>
+          </div>
+        </a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group"><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group" open><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html" class="active">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / ObjectSpace</p>
+        <h1>Optimistic Locking</h1>
+        <p class="subtitle">Handle concurrent access conflicts gracefully</p>
+      </header>
+
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>
+            Optimistic locking allows multiple users to work with the same data concurrently.
+            Instead of locking records during editing, Bold detects conflicts when saving and
+            lets you handle them appropriately.
+          </p>
+          <p>
+            This approach maximizes concurrency while ensuring data integrity when conflicts
+            occur between users editing the same objects.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <div class="feature-grid">
+            <div class="feature">
+              <h4>Read Without Locks</h4>
+              <p>Users can read and edit data without blocking others</p>
+            </div>
+            <div class="feature">
+              <h4>Version Tracking</h4>
+              <p>Each object tracks its version/timestamp from when it was loaded</p>
+            </div>
+            <div class="feature">
+              <h4>Conflict Detection</h4>
+              <p>On save, Bold checks if the database version matches what was loaded</p>
+            </div>
+            <div class="feature">
+              <h4>Conflict Resolution</h4>
+              <p>When conflicts occur, you decide: overwrite, reload, or merge</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Conflict Scenario</h2>
+          <p>This diagram shows how a conflict occurs when two users edit the same object:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="340" fill="#1e293b"/>
+
+              <!-- Column headers -->
+              <text x="80" y="30" fill="#94a3b8" font-size="14" font-weight="bold" text-anchor="middle">User A</text>
+              <text x="300" y="30" fill="#94a3b8" font-size="14" font-weight="bold" text-anchor="middle">Database</text>
+              <text x="520" y="30" fill="#94a3b8" font-size="14" font-weight="bold" text-anchor="middle">User B</text>
+
+              <!-- Vertical lines -->
+              <line x1="80" y1="45" x2="80" y2="320" stroke="#475569" stroke-width="2"/>
+              <line x1="300" y1="45" x2="300" y2="320" stroke="#475569" stroke-width="2"/>
+              <line x1="520" y1="45" x2="520" y2="320" stroke="#475569" stroke-width="2"/>
+
+              <!-- Database icon -->
+              <ellipse cx="300" cy="55" rx="25" ry="8" fill="#3b82f6"/>
+              <path d="M275 55 L275 75 Q300 83 325 75 L325 55" fill="#3b82f6"/>
+              <text x="300" y="68" fill="white" font-size="9" text-anchor="middle">v1</text>
+
+              <!-- Step 1: Both users load -->
+              <line x1="80" y1="90" x2="280" y2="90" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+              <text x="180" y="85" fill="#22c55e" font-size="11" text-anchor="middle">Load (v1)</text>
+
+              <line x1="520" y1="100" x2="320" y2="100" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+              <text x="420" y="95" fill="#22c55e" font-size="11" text-anchor="middle">Load (v1)</text>
+
+              <!-- User boxes showing loaded version -->
+              <rect x="40" y="110" width="80" height="30" rx="4" fill="#334155" stroke="#22c55e"/>
+              <text x="80" y="130" fill="#e2e8f0" font-size="11" text-anchor="middle">Has v1</text>
+
+              <rect x="480" y="110" width="80" height="30" rx="4" fill="#334155" stroke="#22c55e"/>
+              <text x="520" y="130" fill="#e2e8f0" font-size="11" text-anchor="middle">Has v1</text>
+
+              <!-- Step 2: User A saves -->
+              <line x1="80" y1="170" x2="280" y2="170" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+              <text x="180" y="165" fill="#3b82f6" font-size="11" text-anchor="middle">Save (v1 = v1)</text>
+
+              <!-- Database updated -->
+              <ellipse cx="300" cy="185" rx="25" ry="8" fill="#22c55e"/>
+              <path d="M275 185 L275 205 Q300 213 325 205 L325 185" fill="#22c55e"/>
+              <text x="300" y="198" fill="white" font-size="9" text-anchor="middle">v2</text>
+
+              <!-- Success arrow back -->
+              <line x1="280" y1="195" x2="100" y2="195" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+              <text x="190" y="212" fill="#22c55e" font-size="10" text-anchor="middle">Success!</text>
+
+              <!-- Step 3: User B tries to save -->
+              <line x1="520" y1="250" x2="320" y2="250" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+              <text x="420" y="245" fill="#3b82f6" font-size="11" text-anchor="middle">Save (v1 != v2)</text>
+
+              <!-- Conflict! -->
+              <line x1="320" y1="270" x2="500" y2="270" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowRed)"/>
+              <text x="410" y="290" fill="#ef4444" font-size="11" font-weight="bold" text-anchor="middle">CONFLICT!</text>
+
+              <!-- Conflict box -->
+              <rect x="460" y="295" width="120" height="35" rx="4" fill="#7f1d1d" stroke="#ef4444"/>
+              <text x="520" y="310" fill="#fca5a5" font-size="9" text-anchor="middle">Version mismatch</text>
+              <text x="520" y="322" fill="#fca5a5" font-size="9" text-anchor="middle">Reload or Overwrite?</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e"/>
+                </marker>
+                <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Testing Conflicts</h2>
+          <ol>
+            <li>Run <strong>two instances</strong> of the application</li>
+            <li>In both instances, load the same object</li>
+            <li>Edit the object in <strong>Instance A</strong> and save</li>
+            <li>Edit the same object in <strong>Instance B</strong> and try to save</li>
+            <li>Instance B will detect the conflict - the data was modified since it was loaded</li>
+            <li>Choose how to resolve: reload fresh data, force overwrite, or cancel</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h2>Implementation Notes</h2>
+          <p>
+            Bold uses a timestamp or version column to track object versions. When saving:
+          </p>
+          <ul>
+            <li>Bold compares the loaded version with the current database version</li>
+            <li>If they match, the save proceeds and the version is incremented</li>
+            <li>If they differ, a conflict is raised for you to handle</li>
+          </ul>
+          <p>
+            This is more efficient than pessimistic locking for read-heavy applications
+            where conflicts are rare.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/ObjectSpace/OptimisticLocking/BE_OptimisticLocking.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span>BE_OptimisticLocking.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\ObjectSpace\OptimisticLocking\</code></p>
+        </div>
+      </section>
+
+      <footer class="footer">
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

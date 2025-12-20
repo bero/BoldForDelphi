@@ -1,0 +1,356 @@
+/* Bold for Delphi - Modern Documentation Styles */
+
+:root {
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-bg: #f8fafc;
+  --color-bg-card: #ffffff;
+  --color-bg-sidebar: #1e293b;
+  --color-bg-sidebar-hover: #334155;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-text-sidebar: #e2e8f0;
+  --color-text-sidebar-muted: #94a3b8;
+  --color-border: #e2e8f0;
+  --sidebar-width: 280px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--color-bg-sidebar);
+  color: var(--color-text-sidebar);
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-bold {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.logo-sub {
+  font-size: 0.875rem;
+  color: var(--color-text-sidebar-muted);
+}
+
+/* Navigation */
+.nav {
+  padding: 1rem 0;
+}
+
+.nav-section {
+  margin-bottom: 1.5rem;
+}
+
+.nav-title {
+  margin: 0;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-sidebar-muted);
+}
+
+.nav-group summary {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-sidebar);
+  cursor: pointer;
+  list-style: none;
+}
+
+.nav-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-group summary::before {
+  content: '';
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-right: 0.5rem;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform 0.2s;
+}
+
+.nav-group[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.nav-group summary:hover {
+  background: var(--color-bg-sidebar-hover);
+}
+
+.nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-group ul {
+  padding-left: 1rem;
+}
+
+.nav a {
+  display: block;
+  padding: 0.375rem 1.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-sidebar-muted);
+  text-decoration: none;
+}
+
+.nav a:hover {
+  color: #ffffff;
+  background: var(--color-bg-sidebar-hover);
+}
+
+/* Main Content */
+.main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 3rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: #ffffff;
+}
+
+.header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 1.125rem;
+  opacity: 0.9;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem 3rem;
+  max-width: 1200px;
+}
+
+/* Cards */
+.card {
+  background: var(--color-bg-card);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card h2 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.card p {
+  margin: 0 0 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* Categories */
+.categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.category {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.category:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.category-icon {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  color: var(--color-primary);
+}
+
+.category-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.category h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.category p {
+  font-size: 0.875rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: 9999px;
+}
+
+/* Getting Started */
+.getting-started ol {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.getting-started li {
+  margin-bottom: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.getting-started strong {
+  color: var(--color-text);
+}
+
+.getting-started a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.getting-started a:hover {
+  text-decoration: underline;
+}
+
+/* Featured */
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.featured-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: var(--color-bg);
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+
+.featured-item:hover {
+  background: var(--color-border);
+}
+
+.featured-item strong {
+  color: var(--color-text);
+}
+
+.featured-item span {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* Footer */
+.footer {
+  padding: 1.5rem 3rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+}
+
+.footer p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  .main {
+    margin-left: 0;
+  }
+  .header, .content, .footer {
+    padding: 1.5rem;
+  }
+  .categories {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Feature Grid */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.feature {
+  padding: 1rem;
+  background: var(--color-bg);
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--color-primary);
+}
+
+.feature h4 {
+  margin: 0 0 0.5rem;
+  color: var(--color-primary);
+  font-size: 0.9375rem;
+}
+
+.feature p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}

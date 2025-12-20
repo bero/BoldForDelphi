@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Association Class - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link"><div class="logo"><span class="logo-bold">Bold</span><span class="logo-sub">for Delphi</span></div></a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group"><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group" open><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html" class="active">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / ObjectSpace</p>
+        <h1>Association Class</h1>
+        <p class="subtitle">Add attributes to many-to-many relationships</p>
+      </header>
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>Association classes allow you to add attributes to relationships. For example, an Ownership association between Person and Building can have a "share percentage" attribute.</p>
+        </div>
+        <div class="card">
+          <h2>Use Cases</h2>
+          <ul>
+            <li><strong>Ownership</strong> - Person owns Building with share percentage</li>
+            <li><strong>Employment</strong> - Person works at Company with start date and role</li>
+            <li><strong>Enrollment</strong> - Student takes Course with grade</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>UML Diagram</h2>
+          <p>An association class adds attributes to a many-to-many relationship:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="280" fill="#1e293b"/>
+
+              <!-- Person class box -->
+              <rect x="40" y="60" width="140" height="90" rx="4" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="40" y="60" width="140" height="28" rx="4" fill="#3b82f6"/>
+              <text x="110" y="80" fill="white" font-size="12" font-weight="bold" text-anchor="middle">Person</text>
+              <line x1="40" y1="88" x2="180" y2="88" stroke="#475569"/>
+              <text x="50" y="108" fill="#94a3b8" font-size="10">firstName: String</text>
+              <text x="50" y="124" fill="#94a3b8" font-size="10">lastName: String</text>
+              <text x="50" y="140" fill="#94a3b8" font-size="10">assets: Currency</text>
+
+              <!-- Building class box -->
+              <rect x="420" y="60" width="140" height="90" rx="4" fill="#334155" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="420" y="60" width="140" height="28" rx="4" fill="#3b82f6"/>
+              <text x="490" y="80" fill="white" font-size="12" font-weight="bold" text-anchor="middle">Building</text>
+              <line x1="420" y1="88" x2="560" y2="88" stroke="#475569"/>
+              <text x="430" y="108" fill="#94a3b8" font-size="10">address: String</text>
+              <text x="430" y="124" fill="#94a3b8" font-size="10">city: String</text>
+              <text x="430" y="140" fill="#94a3b8" font-size="10">builtYear: Integer</text>
+
+              <!-- Association line -->
+              <line x1="180" y1="105" x2="420" y2="105" stroke="#94a3b8" stroke-width="2"/>
+
+              <!-- Multiplicity -->
+              <text x="195" y="98" fill="#e2e8f0" font-size="11">*</text>
+              <text x="400" y="98" fill="#e2e8f0" font-size="11">*</text>
+
+              <!-- Role names -->
+              <text x="195" y="120" fill="#64748b" font-size="9">owners</text>
+              <text x="378" y="120" fill="#64748b" font-size="9">buildings</text>
+
+              <!-- Dashed line to association class -->
+              <line x1="300" y1="105" x2="300" y2="175" stroke="#22c55e" stroke-width="2" stroke-dasharray="6,4"/>
+
+              <!-- Ownership association class -->
+              <rect x="215" y="175" width="170" height="90" rx="4" fill="#334155" stroke="#22c55e" stroke-width="2"/>
+              <rect x="215" y="175" width="170" height="28" rx="4" fill="#22c55e"/>
+              <text x="300" y="195" fill="white" font-size="12" font-weight="bold" text-anchor="middle">Ownership</text>
+              <line x1="215" y1="203" x2="385" y2="203" stroke="#475569"/>
+              <text x="225" y="223" fill="#86efac" font-size="10">sharePercentage: Float</text>
+              <text x="225" y="239" fill="#86efac" font-size="10">acquiredDate: Date</text>
+              <text x="225" y="255" fill="#86efac" font-size="10">isPrimaryOwner: Boolean</text>
+
+              <!-- Legend -->
+              <rect x="20" y="15" width="180" height="35" rx="4" fill="#0f172a" opacity="0.8"/>
+              <line x1="30" y1="28" x2="55" y2="28" stroke="#22c55e" stroke-width="2" stroke-dasharray="6,4"/>
+              <text x="60" y="32" fill="#94a3b8" font-size="10">Association class link</text>
+              <rect x="30" y="38" width="20" height="8" rx="2" fill="#22c55e"/>
+              <text x="60" y="46" fill="#94a3b8" font-size="10">Relationship attributes</text>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>How It Works</h2>
+          <p>
+            Without an association class, you can only link Person to Building. With the <strong>Ownership</strong>
+            association class, each link also stores:
+          </p>
+          <ul>
+            <li>What percentage of the building this person owns</li>
+            <li>When they acquired the ownership</li>
+            <li>Whether they are the primary owner</li>
+          </ul>
+          <p>
+            Bold automatically creates and manages these association objects when you link persons to buildings.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Simple/ObjectSpace/AssociationClass/BE_AssocClass.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>BE_AssocClass.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Simple\ObjectSpace\AssociationClass\</code></p>
+        </div>
+      </section>
+      <footer class="footer"></footer>
+    </main>
+  </div>
+</body>
+</html>

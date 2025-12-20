@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conway's Game of Life - Bold for Delphi Examples</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link">
+          <div class="logo">
+            <span class="logo-bold">Bold</span>
+            <span class="logo-sub">for Delphi</span>
+          </div>
+        </a>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">
+          <h3 class="nav-title">Simple Examples</h3>
+          <details class="nav-group"><summary>GUI Controls</summary>
+            <ul>
+              <li><a href="boldimage.html">BoldImage</a></li>
+              <li><a href="combobox.html">ComboBox</a></li>
+              <li><a href="multilanguage.html">MultiLanguage</a></li>
+              <li><a href="renderers.html">Renderers</a></li>
+              <li><a href="treeview.html">TreeView</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>ObjectSpace</summary>
+            <ul>
+              <li><a href="association_class.html">Association Class</a></li>
+              <li><a href="constraints.html">Constraints</a></li>
+              <li><a href="custom_attributes.html">Custom Attributes</a></li>
+              <li><a href="derived_attributes.html">Derived Attributes</a></li>
+              <li><a href="reverse_derived_attributes.html">Reverse Derived</a></li>
+              <li><a href="derived_handle.html">Derived Handle</a></li>
+              <li><a href="ocl_variables.html">OCL Variables</a></li>
+              <li><a href="optimistic_locking.html">Optimistic Locking</a></li>
+              <li><a href="query.html">Query</a></li>
+              <li><a href="sql_handle.html">SQL Handle</a></li>
+              <li><a href="transactions.html">Transactions</a></li>
+            </ul>
+          </details>
+          <details class="nav-group"><summary>Persistence</summary>
+            <ul>
+              <li><a href="createdatabase.html">Create Database</a></li>
+              <li><a href="logbridge.html">LogBridge</a></li>
+              <li><a href="synchronization.html">Synchronization</a></li>
+            </ul>
+          </details>
+        </div>
+        <div class="nav-section">
+          <h3 class="nav-title">Demo Examples</h3>
+          <ul>
+            <li><a href="buildings_owners.html">Buildings &amp; Owners</a></li>
+            <li><a href="conway.html" class="active">Conway's Game of Life</a></li>
+            <li><a href="model_evolution.html">Model Evolution</a></li>
+            <li><a href="product_structure.html">Product Structure</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="header">
+        <p class="breadcrumb"><a href="index.html">Examples</a> / Demo</p>
+        <h1>Conway's Game of Life</h1>
+        <p class="subtitle">Cellular automaton implemented with Bold</p>
+      </header>
+
+      <section class="content">
+        <div class="card">
+          <h2>Overview</h2>
+          <p>
+            This example implements Conway's Game of Life using Bold's object model.
+            It demonstrates how Bold can handle complex object interactions and
+            automatic UI updates based on model changes.
+          </p>
+          <p>
+            The Game of Life is a cellular automaton where cells live or die based
+            on the number of neighboring cells, creating fascinating patterns from
+            simple rules.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>The Rules</h2>
+          <p>Each cell's fate depends on its 8 neighbors:</p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background -->
+              <rect width="600" height="340" fill="#1e293b"/>
+
+              <!-- Rule 1: Birth (exactly 3 neighbors) -->
+              <text x="75" y="25" fill="#22c55e" font-size="11" font-weight="bold" text-anchor="middle">BIRTH</text>
+              <text x="75" y="40" fill="#94a3b8" font-size="9" text-anchor="middle">3 neighbors</text>
+              <!-- 3x3 grid -->
+              <rect x="30" y="50" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="60" y="50" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="90" y="50" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="30" y="80" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="60" y="80" width="30" height="30" fill="#334155" stroke="#64748b" stroke-width="2"/>
+              <rect x="90" y="80" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="30" y="110" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="60" y="110" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="90" y="110" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <!-- Arrow and result -->
+              <path d="M130 95 L150 95" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowGreen)"/>
+              <rect x="160" y="80" width="30" height="30" fill="#22c55e" stroke="#22c55e" stroke-width="2"/>
+
+              <!-- Rule 2: Survival (2-3 neighbors) -->
+              <text x="270" y="25" fill="#3b82f6" font-size="11" font-weight="bold" text-anchor="middle">SURVIVAL</text>
+              <text x="270" y="40" fill="#94a3b8" font-size="9" text-anchor="middle">2-3 neighbors</text>
+              <!-- 3x3 grid -->
+              <rect x="225" y="50" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="255" y="50" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="285" y="50" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="225" y="80" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="255" y="80" width="30" height="30" fill="#22c55e" stroke="#3b82f6" stroke-width="2"/>
+              <rect x="285" y="80" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="225" y="110" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="255" y="110" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="285" y="110" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <!-- Arrow and result -->
+              <path d="M325 95 L345 95" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+              <rect x="355" y="80" width="30" height="30" fill="#22c55e" stroke="#3b82f6" stroke-width="2"/>
+
+              <!-- Rule 3: Death by isolation (<2 neighbors) -->
+              <text x="75" y="175" fill="#ef4444" font-size="11" font-weight="bold" text-anchor="middle">ISOLATION</text>
+              <text x="75" y="190" fill="#94a3b8" font-size="9" text-anchor="middle">&lt; 2 neighbors</text>
+              <!-- 3x3 grid -->
+              <rect x="30" y="200" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="60" y="200" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="90" y="200" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="30" y="230" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="60" y="230" width="30" height="30" fill="#22c55e" stroke="#ef4444" stroke-width="2"/>
+              <rect x="90" y="230" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="30" y="260" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="60" y="260" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="90" y="260" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <!-- Arrow and result -->
+              <path d="M130 245 L150 245" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowRed)"/>
+              <rect x="160" y="230" width="30" height="30" fill="#334155" stroke="#ef4444" stroke-width="2"/>
+              <path d="M167 237 L183 253 M183 237 L167 253" stroke="#ef4444" stroke-width="2"/>
+
+              <!-- Rule 4: Death by overcrowding (>3 neighbors) -->
+              <text x="270" y="175" fill="#ef4444" font-size="11" font-weight="bold" text-anchor="middle">OVERCROWDING</text>
+              <text x="270" y="190" fill="#94a3b8" font-size="9" text-anchor="middle">&gt; 3 neighbors</text>
+              <!-- 3x3 grid -->
+              <rect x="225" y="200" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="255" y="200" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="285" y="200" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="225" y="230" width="30" height="30" fill="#22c55e" stroke="#475569"/>
+              <rect x="255" y="230" width="30" height="30" fill="#22c55e" stroke="#ef4444" stroke-width="2"/>
+              <rect x="285" y="230" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="225" y="260" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="255" y="260" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <rect x="285" y="260" width="30" height="30" fill="#334155" stroke="#475569"/>
+              <!-- Arrow and result -->
+              <path d="M325 245 L345 245" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowRed)"/>
+              <rect x="355" y="230" width="30" height="30" fill="#334155" stroke="#ef4444" stroke-width="2"/>
+              <path d="M362 237 L378 253 M378 237 L362 253" stroke="#ef4444" stroke-width="2"/>
+
+              <!-- Classic patterns -->
+              <rect x="420" y="20" width="165" height="130" rx="6" fill="#0f172a" stroke="#475569"/>
+              <text x="502" y="42" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">Classic Patterns</text>
+
+              <!-- Blinker -->
+              <text x="445" y="62" fill="#64748b" font-size="9">Blinker:</text>
+              <rect x="480" y="52" width="12" height="12" fill="#22c55e"/>
+              <rect x="492" y="52" width="12" height="12" fill="#22c55e"/>
+              <rect x="504" y="52" width="12" height="12" fill="#22c55e"/>
+
+              <!-- Glider -->
+              <text x="445" y="88" fill="#64748b" font-size="9">Glider:</text>
+              <rect x="492" y="72" width="12" height="12" fill="#22c55e"/>
+              <rect x="504" y="84" width="12" height="12" fill="#22c55e"/>
+              <rect x="480" y="96" width="12" height="12" fill="#22c55e"/>
+              <rect x="492" y="96" width="12" height="12" fill="#22c55e"/>
+              <rect x="504" y="96" width="12" height="12" fill="#22c55e"/>
+
+              <!-- Block -->
+              <text x="540" y="62" fill="#64748b" font-size="9">Block:</text>
+              <rect x="540" y="72" width="12" height="12" fill="#22c55e"/>
+              <rect x="552" y="72" width="12" height="12" fill="#22c55e"/>
+              <rect x="540" y="84" width="12" height="12" fill="#22c55e"/>
+              <rect x="552" y="84" width="12" height="12" fill="#22c55e"/>
+
+              <!-- Legend -->
+              <rect x="420" y="160" width="165" height="65" rx="6" fill="#0f172a" stroke="#475569"/>
+              <text x="502" y="180" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">Legend</text>
+              <rect x="435" y="190" width="16" height="16" fill="#22c55e"/>
+              <text x="458" y="202" fill="#94a3b8" font-size="9">Live cell</text>
+              <rect x="520" y="190" width="16" height="16" fill="#334155" stroke="#475569"/>
+              <text x="543" y="202" fill="#94a3b8" font-size="9">Dead cell</text>
+
+              <!-- Bold model note -->
+              <rect x="420" y="235" width="165" height="85" rx="6" fill="#14532d" stroke="#22c55e"/>
+              <text x="502" y="255" fill="#22c55e" font-size="10" font-weight="bold" text-anchor="middle">Bold Model</text>
+              <text x="430" y="275" fill="#86efac" font-size="9">Cell.neighbors: Cell[8]</text>
+              <text x="430" y="290" fill="#86efac" font-size="9">/liveNeighborCount</text>
+              <text x="430" y="305" fill="#86efac" font-size="9">/nextState: Boolean</text>
+
+              <!-- Arrow markers -->
+              <defs>
+                <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                </marker>
+                <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                </marker>
+                <marker id="arrowRed" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#ef4444"/>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+          <style>
+            .diagram { margin: 1.5rem 0; border-radius: 0.5rem; overflow: hidden; }
+            .diagram svg { width: 100%; height: auto; display: block; }
+          </style>
+        </div>
+
+        <div class="card">
+          <h2>Bold Features Demonstrated</h2>
+          <ul>
+            <li><strong>Object relationships</strong> - Each cell knows its neighbors</li>
+            <li><strong>Derived attributes</strong> - Neighbor count calculated automatically</li>
+            <li><strong>Batch updates</strong> - Efficient processing of generation steps</li>
+            <li><strong>UI binding</strong> - Grid display updates automatically</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>How to Run</h2>
+          <ol>
+            <li>Click cells to toggle them alive/dead (create initial pattern)</li>
+            <li>Click <strong>Step</strong> to advance one generation</li>
+            <li>Click <strong>Run</strong> for continuous animation</li>
+            <li>Try classic patterns: glider, blinker, beacon, glider gun</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h2>Project Files</h2>
+          <div class="file-link">
+            <a href="../../examples/Delphi/Compound/Conway/Conway.dpr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span>Conway.dpr</span>
+            </a>
+          </div>
+          <p class="hint">Location: <code>examples\Delphi\Compound\Conway\</code></p>
+        </div>
+      </section>
+
+      <footer class="footer">
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
