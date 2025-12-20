@@ -37,7 +37,7 @@ uses
   BoldSystemHandle, BoldEdit, BoldLabel;
 
 type
-  TfrmQueryDemo = class(TForm)
+  TMainForm = class(TForm)
     grdTasks: TBoldGrid;
     Label1: TLabel;
     bnProjectTasks: TBoldNavigator;
@@ -79,7 +79,7 @@ type
   end;
 
 var
-  frmQueryDemo: TfrmQueryDemo;
+  MainForm: TMainForm;
 
 implementation
 
@@ -90,7 +90,7 @@ uses
 
 {$R *.DFM}
 
-procedure TfrmQueryDemo.FormCreate(Sender: TObject);
+procedure TMainForm.FormCreate(Sender: TObject);
 begin
   // Connect the action to the system handle
   BoldActivateSystemAction1.BoldSystemHandle := dmDemo.BoldSystemHandle1;
@@ -99,7 +99,7 @@ begin
   dmDemo.BoldSystemHandle1.Active := True;
 end;
 
-procedure TfrmQueryDemo.UpdateStatusLabels;
+procedure TMainForm.UpdateStatusLabels;
 const
   clSuccess = $00008800;  // Dark green
   clError = $000000CC;    // Dark red
@@ -165,7 +165,7 @@ begin
   btnClear.Enabled := isBoldActive;
 end;
 
-procedure TfrmQueryDemo.BoldActivateSystemAction1SystemOpened(Sender: TObject);
+procedure TMainForm.BoldActivateSystemAction1SystemOpened(Sender: TObject);
 begin
   // Initialize counters from existing data
   TProject.InitializeCounter(dmDemo.BoldSystemHandle1.System);
@@ -173,17 +173,17 @@ begin
   UpdateStatusLabels;
 end;
 
-procedure TfrmQueryDemo.BoldActivateSystemAction1SystemClosed(Sender: TObject);
+procedure TMainForm.BoldActivateSystemAction1SystemClosed(Sender: TObject);
 begin
   UpdateStatusLabels;
 end;
 
-procedure TfrmQueryDemo.btnAddClick(Sender: TObject);
+procedure TMainForm.btnAddClick(Sender: TObject);
 begin
   TProject.Create(dmDemo.BoldSystemHandle1.System);
 end;
 
-procedure TfrmQueryDemo.btnDeleteClick(Sender: TObject);
+procedure TMainForm.btnDeleteClick(Sender: TObject);
 var
   Project: TProject;
 begin
@@ -196,7 +196,7 @@ begin
   end;
 end;
 
-procedure TfrmQueryDemo.btnClearClick(Sender: TObject);
+procedure TMainForm.btnClearClick(Sender: TObject);
 var
   List: TBoldList;
   i: Integer;
@@ -213,7 +213,7 @@ begin
   end;
 end;
 
-procedure TfrmQueryDemo.btnSaveClick(Sender: TObject);
+procedure TMainForm.btnSaveClick(Sender: TObject);
 begin
   try
     dmDemo.BoldSystemHandle1.UpdateDatabase;
@@ -222,7 +222,7 @@ begin
   end;
 end;
 
-procedure TfrmQueryDemo.FormCloseQuery(Sender: TObject;
+procedure TMainForm.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
   CanClose := True;

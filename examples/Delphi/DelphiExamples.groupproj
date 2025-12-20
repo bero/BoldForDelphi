@@ -6,7 +6,7 @@
         <Projects Include="Simple\CreateDatabase\CreateDatabase.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Simple\ObjectSpace\Query\BoldDemoProject.dproj">
+        <Projects Include="Simple\ObjectSpace\MasterDetail\MasterDetail.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -26,23 +26,23 @@
     <Target Name="CreateDatabase:Make">
         <MSBuild Projects="Simple\CreateDatabase\CreateDatabase.dproj" Targets="Make"/>
     </Target>
-    <Target Name="BoldDemoProject">
-        <MSBuild Projects="Simple\ObjectSpace\Query\BoldDemoProject.dproj"/>
+    <Target Name="MasterDetail">
+        <MSBuild Projects="Simple\ObjectSpace\MasterDetail\MasterDetail.dproj"/>
     </Target>
-    <Target Name="BoldDemoProject:Clean">
-        <MSBuild Projects="Simple\ObjectSpace\Query\BoldDemoProject.dproj" Targets="Clean"/>
+    <Target Name="MasterDetail:Clean">
+        <MSBuild Projects="Simple\ObjectSpace\MasterDetail\MasterDetail.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="BoldDemoProject:Make">
-        <MSBuild Projects="Simple\ObjectSpace\Query\BoldDemoProject.dproj" Targets="Make"/>
+    <Target Name="MasterDetail:Make">
+        <MSBuild Projects="Simple\ObjectSpace\MasterDetail\MasterDetail.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="CreateDatabase;BoldDemoProject"/>
+        <CallTarget Targets="CreateDatabase;MasterDetail"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="CreateDatabase:Clean;BoldDemoProject:Clean"/>
+        <CallTarget Targets="CreateDatabase:Clean;MasterDetail:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="CreateDatabase:Make;BoldDemoProject:Make"/>
+        <CallTarget Targets="CreateDatabase:Make;MasterDetail:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

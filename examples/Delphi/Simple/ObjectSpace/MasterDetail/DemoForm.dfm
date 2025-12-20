@@ -1,4 +1,4 @@
-object frmQueryDemo: TfrmQueryDemo
+object MainForm: TMainForm
   Left = 2
   Top = 1
   Caption = 'Bold Master-Detail Demo'

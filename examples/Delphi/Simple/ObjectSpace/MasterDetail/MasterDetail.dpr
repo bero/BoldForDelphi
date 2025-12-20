@@ -1,9 +1,9 @@
-﻿program BoldDemoProject;
+﻿program MasterDetail;
 
 uses
   Vcl.Forms,
-  DemoForm in 'DemoForm.pas' {frmQueryDemo},
-  DemoDataModule in '..\..\..\Shared\DemoDataModule.pas' {dmDemo: TDemoDataModule},
+  DemoForm in 'DemoForm.pas' {MainForm},
+  DemoDataModule in '..\..\..\Shared\DemoDataModule.pas' {dmDemo: TDataModule},
   DemoClasses in '..\..\..\Shared\DemoClasses.pas';
 
 {$R *.RES}
@@ -12,6 +12,6 @@ begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TDemoDataModule, dmDemo);
-  Application.CreateForm(TfrmQueryDemo, frmQueryDemo);
+  Application.CreateForm(TMainForm, MainForm);
   Application.Run;
 end.
