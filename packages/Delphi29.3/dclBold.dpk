@@ -250,7 +250,6 @@ contains
   BoldManipulatorReg in '..\..\Source\Handles\IDE\BoldManipulatorReg.pas',
   BoldManipulators in '..\..\Source\Handles\Manipulators\BoldManipulators.pas',
   BoldMappingInfo in '..\..\Source\PMapper\Default\BoldMappingInfo.pas',
-  BoldMath in '..\..\Source\Common\Support\BoldMath.pas',
   BoldMemberTypeDictionary in '..\..\Source\ObjectSpace\RTModel\BoldMemberTypeDictionary.pas',
   BoldMemo in '..\..\Source\BoldAwareGUI\BoldControls\BoldMemo.pas',
   BoldMemoryManager in '..\..\Source\Common\Support\BoldMemoryManager.pas',

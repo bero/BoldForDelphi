@@ -245,7 +245,6 @@ contains
   BoldManipulatorReg in '..\..\Source\BoldManipulatorReg.pas',
   BoldManipulators in '..\..\Source\BoldManipulators.pas',
   BoldMappingInfo in '..\..\Source\BoldMappingInfo.pas',
-  BoldMath in '..\..\Source\BoldMath.pas',
   BoldMemberTypeDictionary in '..\..\Source\BoldMemberTypeDictionary.pas',
   BoldMemo in '..\..\Source\BoldMemo.pas',
   BoldMemoryManager in '..\..\Source\BoldMemoryManager.pas',

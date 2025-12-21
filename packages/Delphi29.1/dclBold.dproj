@@ -339,7 +339,6 @@
         <DCCReference Include="..\..\Source\Handles\IDE\BoldManipulatorReg.pas"/>
         <DCCReference Include="..\..\Source\Handles\Manipulators\BoldManipulators.pas"/>
         <DCCReference Include="..\..\Source\PMapper\Default\BoldMappingInfo.pas"/>
-        <DCCReference Include="..\..\Source\Common\Support\BoldMath.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\RTModel\BoldMemberTypeDictionary.pas"/>
         <DCCReference Include="..\..\Source\BoldAwareGUI\BoldControls\BoldMemo.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldMemoryManager.pas"/>

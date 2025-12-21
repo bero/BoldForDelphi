@@ -321,7 +321,6 @@
         <DCCReference Include="..\..\Source\BoldManipulatorReg.pas"/>
         <DCCReference Include="..\..\Source\BoldManipulators.pas"/>
         <DCCReference Include="..\..\Source\BoldMappingInfo.pas"/>
-        <DCCReference Include="..\..\Source\BoldMath.pas"/>
         <DCCReference Include="..\..\Source\BoldMemberTypeDictionary.pas"/>
         <DCCReference Include="..\..\Source\BoldMemo.pas"/>
         <DCCReference Include="..\..\Source\BoldMemoryManager.pas"/>

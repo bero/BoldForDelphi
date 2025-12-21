@@ -63,7 +63,7 @@
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
         <VerInfo_Locale>2077</VerInfo_Locale>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
-        <DCC_UnitSearchPath>..\..\Source\Common\Include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\Source\Common\Include;..\..\Source\Common\Stubs;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_ResourcePath>..\..\Source;$(DCC_ResourcePath)</DCC_ResourcePath>
         <DllVersion>30</DllVersion>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
@@ -327,7 +327,6 @@
         <DCCReference Include="..\..\Source\Handles\IDE\BoldManipulatorReg.pas"/>
         <DCCReference Include="..\..\Source\Handles\Manipulators\BoldManipulators.pas"/>
         <DCCReference Include="..\..\Source\PMapper\Default\BoldMappingInfo.pas"/>
-        <DCCReference Include="..\..\Source\Common\Support\BoldMath.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\RTModel\BoldMemberTypeDictionary.pas"/>
         <DCCReference Include="..\..\Source\BoldAwareGUI\BoldControls\BoldMemo.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldMemoryManager.pas"/>

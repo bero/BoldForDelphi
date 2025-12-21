@@ -130,7 +130,8 @@ var
   path: string;
 begin
   result := nil;
-  Ensuretrailing(SearchPath, ';');
+  if not SearchPath.EndsWith(';') then
+    SearchPath := SearchPath + ';';
   if OTADEBUG then
     BoldLog.LogFmt('Looking with searchpath:  %s', [SearchPath]);
 
