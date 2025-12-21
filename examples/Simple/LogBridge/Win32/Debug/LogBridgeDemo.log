@@ -1,0 +1,80 @@
+2025-12-18 20:38:59.139 [INFO] === Demo Started ===
+2025-12-18 20:38:59.139 [INFO] 
+2025-12-18 20:38:59.139 [INFO] --- Simulating application flow ---
+2025-12-18 20:38:59.139 [INFO] APP: Starting business operation...
+2025-12-18 20:38:59.139 [INFO] APP: Processing user request...
+2025-12-18 20:38:59.139 [INFO] APP: Operation complete.
+2025-12-18 20:38:59.139 [INFO] 
+2025-12-18 20:38:59.139 [INFO] --- Bold framework logs ---
+2025-12-18 20:38:59.139 [INFO] ObjectSpace initialized
+2025-12-18 20:38:59.139 [DEBUG] Loading model from database...
+2025-12-18 20:38:59.139 [INFO] Loaded 42 classes
+2025-12-18 20:38:59.139 [WARN] Connection pool low on connections
+2025-12-18 20:38:59.139 [ERROR] Failed to acquire lock on object
+2025-12-18 20:38:59.139 [INFO] 
+2025-12-18 20:38:59.139 [INFO] --- Now filtering to errors only ---
+2025-12-18 20:38:59.139 [ERROR] This error WILL appear
+2025-12-18 20:38:59.139 [INFO] --- Restored all log levels ---
+2025-12-18 20:38:59.139 [INFO] This info message will appear again
+2025-12-18 20:38:59.139 [INFO] 
+2025-12-18 20:38:59.139 [INFO] === Demo Complete ===
+2025-12-18 20:39:48.625 [INFO] === Demo Started ===
+2025-12-18 20:39:48.625 [INFO] 
+2025-12-18 20:39:48.625 [INFO] --- Simulating application flow ---
+2025-12-18 20:39:48.625 [INFO] APP: Starting business operation...
+2025-12-18 20:39:48.625 [INFO] APP: Processing user request...
+2025-12-18 20:39:48.625 [INFO] APP: Operation complete.
+2025-12-18 20:39:48.625 [INFO] 
+2025-12-18 20:39:48.625 [INFO] --- Bold framework logs ---
+2025-12-18 20:39:48.625 [INFO] ObjectSpace initialized
+2025-12-18 20:39:48.625 [DEBUG] Loading model from database...
+2025-12-18 20:39:48.625 [INFO] Loaded 42 classes
+2025-12-18 20:39:48.625 [WARN] Connection pool low on connections
+2025-12-18 20:39:48.625 [ERROR] Failed to acquire lock on object
+2025-12-18 20:39:48.625 [INFO] 
+2025-12-18 20:39:48.625 [INFO] --- Now filtering to errors only ---
+2025-12-18 20:39:48.625 [ERROR] This error WILL appear
+2025-12-18 20:39:48.625 [INFO] --- Restored all log levels ---
+2025-12-18 20:39:48.625 [INFO] This info message will appear again
+2025-12-18 20:39:48.625 [INFO] 
+2025-12-18 20:39:48.625 [INFO] === Demo Complete ===
+2025-12-18 20:45:13.289 [INFO] === Demo Started ===
+2025-12-18 20:45:13.290 [INFO] 
+2025-12-18 20:45:13.290 [INFO] --- Simulating application flow ---
+2025-12-18 20:45:13.290 [INFO] APP: Starting business operation...
+2025-12-18 20:45:13.290 [INFO] APP: Processing user request...
+2025-12-18 20:45:13.290 [INFO] APP: Operation complete.
+2025-12-18 20:45:13.290 [INFO] 
+2025-12-18 20:45:13.290 [INFO] --- Bold framework logs ---
+2025-12-18 20:45:13.290 [INFO] ObjectSpace initialized
+2025-12-18 20:45:13.290 [DEBUG] Loading model from database...
+2025-12-18 20:45:13.290 [INFO] Loaded 42 classes
+2025-12-18 20:45:13.290 [WARN] Connection pool low on connections
+2025-12-18 20:45:13.290 [ERROR] Failed to acquire lock on object
+2025-12-18 20:45:13.290 [INFO] 
+2025-12-18 20:45:13.290 [INFO] --- Now filtering to errors only ---
+2025-12-18 20:47:04.100 [ERROR] This error WILL appear
+2025-12-18 20:47:13.422 [INFO] --- Restored all log levels ---
+2025-12-18 20:47:13.422 [INFO] This info message will appear again
+2025-12-18 20:47:13.422 [INFO] 
+2025-12-18 20:47:13.422 [INFO] === Demo Complete ===
+2025-12-21 01:53:43.169 [INFO] === Demo Started ===
+2025-12-21 01:53:43.170 [INFO] 
+2025-12-21 01:53:43.170 [INFO] --- Simulating application flow ---
+2025-12-21 01:53:43.170 [INFO] APP: Starting business operation...
+2025-12-21 01:53:43.170 [INFO] APP: Processing user request...
+2025-12-21 01:53:43.170 [INFO] APP: Operation complete.
+2025-12-21 01:53:43.170 [INFO] 
+2025-12-21 01:53:43.170 [INFO] --- Bold framework logs ---
+2025-12-21 01:53:43.170 [INFO] ObjectSpace initialized
+2025-12-21 01:53:43.170 [DEBUG] Loading model from database...
+2025-12-21 01:53:43.170 [INFO] Loaded 42 classes
+2025-12-21 01:53:43.170 [WARN] Connection pool low on connections
+2025-12-21 01:53:43.170 [ERROR] Failed to acquire lock on object
+2025-12-21 01:53:43.170 [INFO] 
+2025-12-21 01:53:43.170 [INFO] --- Now filtering to errors only ---
+2025-12-21 01:53:43.170 [ERROR] This error WILL appear
+2025-12-21 01:53:43.170 [INFO] --- Restored all log levels ---
+2025-12-21 01:53:43.170 [INFO] This info message will appear again
+2025-12-21 01:53:43.170 [INFO] 
+2025-12-21 01:53:43.170 [INFO] === Demo Complete ===
