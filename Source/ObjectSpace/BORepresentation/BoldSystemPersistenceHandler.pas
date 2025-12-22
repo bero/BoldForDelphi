@@ -152,7 +152,7 @@ var
   procedure AddIdToEnclosure(Id: TBoldObjectId);
   begin
     if assigned(Id) then
-      AddLocatorToEnclosure(System.EnsuredLocatorByID[Id]);
+    AddLocatorToEnclosure(System.Locators.LocatorByID[Id]);
   end;
 
   procedure AddOldValuesForRole(Role: TBoldMember; RoleRTInfo: TBoldRoleRTInfo);
