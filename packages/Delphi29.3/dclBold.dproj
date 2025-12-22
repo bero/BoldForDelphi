@@ -45,6 +45,12 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
         <DCC_BplOutput>..\Bin</DCC_BplOutput>
         <DCC_F>false</DCC_F>
@@ -104,6 +110,13 @@
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
         <DCC_Optimize>false</DCC_Optimize>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <VerInfo_MajorVer>1</VerInfo_MajorVer>
+        <VerInfo_MinorVer>0</VerInfo_MinorVer>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <DllVersion>29.3</DllVersion>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -587,6 +600,8 @@
         <DCCReference Include="..\..\Source\Common\IDE\BoldWebConnectionReg.pas"/>
         <DCCReference Include="..\..\Source\Common\ConnectionHandlesCOM\BoldXMLDispatcherVB.pas"/>
         <DCCReference Include="..\..\Source\Common\IDECOM\BoldXMLDispatcherVBReg.pas"/>
+        <DCCReference Include="..\..\Source\Common\Stubs\BoldTraceLog.pas"/>
+        <DCCReference Include="..\..\Source\Common\Stubs\BoldStubs.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -608,8 +623,9 @@
                     <Source Name="MainSource">dclBold.dpk</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Attracs\BPL\AttracsComponentsXE12Athens.bpl">Attracs Components for Delphi 12.2 Athens</Excluded_Packages>
+                    <Excluded_Packages Name="C:\Attracs\BoldForDelphi\packages\Bin\dclBold.29.bpl">Bold Components for Delphi 12.3 Athens</Excluded_Packages>
                     <Excluded_Packages Name="C:\Attracs\BoldForDelphi\packages\Bin\dclBold.29.3.bpl">Bold Components for Delphi 12.3 Athens</Excluded_Packages>
+                    <Excluded_Packages Name="C:\Attracs\BPL\AttracsComponentsXE12Athens.bpl">Attracs Components for Delphi 12.2 Athens</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclemsedge290.bpl">Embarcadero RAD Server Edge Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
@@ -622,6 +638,12 @@
             </Platforms>
             <Deployment Version="5">
                 <DeployFile LocalName="..\..\Bin\BPL\Bold.bpl" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="..\Bin\dclBold.29.bpl" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>dclBold.bpl</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="C:\Attracs\BPL\dclBold.29.bpl" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="OSX32">
