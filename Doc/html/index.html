@@ -74,10 +74,112 @@
 
       <section class="content">
         <div class="intro card">
-          <h2>Welcome</h2>
+          <h2>What is Bold for Delphi?</h2>
           <p>
-            Explore the Bold for Delphi framework through these examples. Each example demonstrates
-            specific features and includes complete Delphi projects you can build and run.
+            <strong>Bold for Delphi</strong> is a Model-Driven Architecture (MDA) framework and
+            Object-Relational Mapping (ORM) tool that lets you design your application's domain model
+            in UML and automatically generates both Delphi classes and database schemas from it.
+            Originally developed by Boldsoft and later owned by Borland, it was open-sourced
+            by Embarcadero in 2020 and is now community-maintained.
+          </p>
+          <p>
+            Unlike simpler ORMs that just map objects to tables, Bold provides a complete
+            <em>object space</em> &mdash; a runtime environment where your business objects live,
+            interact, and automatically stay synchronized with both the database and the user interface.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Why Use Bold?</h2>
+          <h3>The Problem Bold Solves</h3>
+          <p>
+            Every data-driven Delphi application faces the same challenges: How do you persist objects
+            to a database? How do you keep UI controls in sync when data changes? How do you implement
+            calculated fields that update automatically? How do you handle undo/redo? How do you
+            validate business rules consistently?
+          </p>
+          <p>
+            Traditional approaches require writing large amounts of boilerplate code: SQL statements,
+            dataset-to-object mapping, manual UI refresh logic, change tracking, and validation code
+            scattered throughout the application. This code is tedious, error-prone, and difficult
+            to maintain as requirements evolve.
+          </p>
+
+          <h3>Bold's Approach</h3>
+          <p>
+            Bold eliminates this boilerplate by providing a declarative, model-driven approach:
+          </p>
+          <ul>
+            <li><strong>Design your domain model visually</strong> using UML classes, attributes, and associations</li>
+            <li><strong>Define business rules with OCL</strong> (Object Constraint Language) &mdash; a powerful query language for objects</li>
+            <li><strong>Generate code automatically</strong> &mdash; Bold creates strongly-typed Delphi classes from your model</li>
+            <li><strong>Bind UI controls directly to objects</strong> &mdash; changes propagate automatically in both directions</li>
+            <li><strong>Let Bold handle persistence</strong> &mdash; objects are transparently loaded and saved to the database</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Use Cases</h2>
+          <div class="feature-grid">
+            <div class="feature">
+              <h4>Enterprise Business Applications</h4>
+              <p>ERP, CRM, and line-of-business applications with complex domain models benefit from Bold's
+              model-driven approach. Define entities like Customer, Order, Invoice with their relationships
+              once, and Bold handles the rest.</p>
+            </div>
+            <div class="feature">
+              <h4>Data-Centric Desktop Applications</h4>
+              <p>Applications that display, edit, and report on structured data. Bold's automatic UI
+              synchronization means editing an object in one form instantly updates all other views
+              showing the same data.</p>
+            </div>
+            <div class="feature">
+              <h4>Applications with Complex Business Rules</h4>
+              <p>When you have calculated fields, validation rules, and constraints that span multiple
+              objects, Bold's derived attributes and OCL constraints express these declaratively rather
+              than imperatively.</p>
+            </div>
+            <div class="feature">
+              <h4>Multi-User Database Applications</h4>
+              <p>Bold's optimistic locking, object identity management, and transaction support make it
+              straightforward to build applications where multiple users work with shared data.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Advantages Over Other Approaches</h2>
+
+          <h3>vs. Raw SQL / TDataSet</h3>
+          <ul>
+            <li><strong>Type safety</strong> &mdash; Work with strongly-typed objects (<code>Customer.Name</code>) instead of string-based field access (<code>DataSet.FieldByName('Name')</code>)</li>
+            <li><strong>Object identity</strong> &mdash; Each database row maps to exactly one object instance; the same customer loaded twice returns the same object</li>
+            <li><strong>Automatic change tracking</strong> &mdash; Bold knows what changed and generates minimal UPDATE statements</li>
+            <li><strong>Relationship navigation</strong> &mdash; Access related objects naturally (<code>Order.Customer.Address</code>) without manual joins</li>
+          </ul>
+
+          <h3>vs. Simple ORMs</h3>
+          <ul>
+            <li><strong>Derived attributes</strong> &mdash; Define calculated properties (like <code>Order.TotalPrice</code>) that automatically recalculate when dependencies change</li>
+            <li><strong>Automatic UI binding</strong> &mdash; Bold-aware controls subscribe to objects and update automatically; no manual refresh code</li>
+            <li><strong>OCL queries</strong> &mdash; Query objects using a powerful, standardized language: <code>Person.allInstances->select(age > 30)</code></li>
+            <li><strong>Built-in undo/redo</strong> &mdash; Full transaction support with rollback to any checkpoint</li>
+            <li><strong>Model evolution</strong> &mdash; Change your UML model and Bold updates the database schema automatically</li>
+          </ul>
+
+          <h3>vs. Hand-Coded Business Objects</h3>
+          <ul>
+            <li><strong>Code generation</strong> &mdash; Business classes are generated from your UML model, eliminating boilerplate</li>
+            <li><strong>Consistency</strong> &mdash; All objects follow the same patterns for persistence, validation, and change notification</li>
+            <li><strong>Maintainability</strong> &mdash; Changes to the model automatically propagate to generated code</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Explore the Examples</h2>
+          <p>
+            This documentation provides hands-on examples to learn Bold's features. Each example
+            demonstrates specific capabilities and includes complete Delphi projects you can build and run.
           </p>
           <p>
             Examples are organized into <strong>Simple</strong> examples that focus on individual
