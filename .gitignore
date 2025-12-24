@@ -9,6 +9,7 @@
 *.drc
 *.map
 *.dres
+dclBold.res
 *.rsm
 *.tds
 *.dcu

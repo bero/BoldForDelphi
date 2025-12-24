@@ -1,4 +1,4 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{99ACDBAE-8F3D-417F-A1B4-8ED6A464DCF6}</ProjectGuid>
         <MainSource>CreateDatabase.dpr</MainSource>
@@ -49,12 +49,14 @@
         <DCC_S>false</DCC_S>
         <DCC_ImageBase>00400000</DCC_ImageBase>
         <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
-        <DCC_UnitSearchPath>..\..\..\Shared;..\..\..\Source;..\..\..\Source\Common\Include;..\..\..\Source\Common\Core;..\..\..\Source\Common\Support;..\..\..\Source\Common\SupportWin;..\..\..\Source\Common\Subscription;..\..\..\Source\Common\Logging;..\..\..\Source\Common\Queue;..\..\..\Source\Common\Environment;..\..\..\Source\Common\TaggedValues;..\..\..\Source\Common\UML;..\..\..\Source\Common\Stubs;..\..\..\Source\Common\Template;..\..\..\Source\Common\MSXML;..\..\..\Source\Common\UtilsGUI;..\..\..\Source\ObjectSpace\Core;..\..\..\Source\ObjectSpace\BORepresentation;..\..\..\Source\ObjectSpace\RTModel;..\..\..\Source\ObjectSpace\Ocl;..\..\..\Source\ObjectSpace\Interfaces;..\..\..\Source\ObjectSpace\PessimisticLocking;..\..\..\Source\ObjectSpace\Undo;..\..\..\Source\ObjectSpace\COM;..\..\..\Source\Handles\Core;..\..\..\Source\Handles\Actions;..\..\..\Source\Persistence\Core;..\..\..\Source\Persistence\DB;..\..\..\Source\Persistence\FireDAC;..\..\..\Source\Persistence\System;..\..\..\Source\Persistence\ObjectUpgrading;..\..\..\Source\Persistence\Propagation;..\..\..\Source\BoldAwareGUI\BoldControls;..\..\..\Source\BoldAwareGUI\ControlPacks;..\..\..\Source\BoldAwareGUI\Core;..\..\..\Source\BoldAwareGUI\FormGen;..\..\..\Source\UMLModel\Handles;..\..\..\Source\UMLModel\Core;..\..\..\Source\MoldModel\Core;..\..\..\Source\MoldModel\Handles;..\..\..\Source\MoldModel\CodeGenerator;..\..\..\Source\MoldModel\TypeNameDictionary;..\..\..\Source\MoldModel\IDE;..\..\..\Source\MoldModel\Bld;..\..\..\Source\PMapper\Core;..\..\..\Source\PMapper\SQL;..\..\..\Source\PMapper\Default;..\..\..\Source\PMapper\Validator;..\..\..\Source\PMapper\DBEvolutor;..\..\..\Source\ValueSpace\Id;..\..\..\Source\ValueSpace\Interfaces;..\..\..\Source\ValueSpace\XMLStreaming;..\..\..\Source\ValueSpace\Condition;..\..\..\Source\FreestandingValueSpace\Core;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\Shared;..\..\..\..\Source;..\..\..\..\Source\Common\Include;..\..\..\..\Source\Common\Core;..\..\..\..\Source\Common\Support;..\..\..\..\Source\Common\SupportWin;..\..\..\..\Source\Common\Subscription;..\..\..\..\Source\Common\Logging;..\..\..\..\Source\Common\Queue;..\..\..\..\Source\Common\Environment;..\..\..\..\Source\Common\TaggedValues;..\..\..\..\Source\Common\UML;..\..\..\..\Source\Common\Stubs;..\..\..\..\Source\Common\Template;..\..\..\..\Source\Common\MSXML;..\..\..\..\Source\Common\UtilsGUI;..\..\..\..\Source\ObjectSpace\Core;..\..\..\..\Source\ObjectSpace\BORepresentation;..\..\..\..\Source\ObjectSpace\RTModel;..\..\..\..\Source\ObjectSpace\Ocl;..\..\..\..\Source\ObjectSpace\Interfaces;..\..\..\..\Source\ObjectSpace\PessimisticLocking;..\..\..\..\Source\ObjectSpace\Undo;..\..\..\..\Source\ObjectSpace\COM;..\..\..\..\Source\Handles\Core;..\..\..\..\Source\Handles\Actions;..\..\..\..\Source\Persistence\Core;..\..\..\..\Source\Persistence\DB;..\..\..\..\Source\Persistence\FireDAC;..\..\..\..\Source\Persistence\System;..\..\..\..\Source\Persistence\ObjectUpgrading;..\..\..\..\Source\Persistence\Propagation;..\..\..\..\Source\BoldAwareGUI\BoldControls;..\..\..\..\Source\BoldAwareGUI\ControlPacks;..\..\..\..\Source\BoldAwareGUI\Core;..\..\..\..\Source\BoldAwareGUI\FormGen;..\..\..\..\Source\UMLModel\Handles;..\..\..\..\Source\UMLModel\Core;..\..\..\..\Source\MoldModel\Core;..\..\..\..\Source\MoldModel\Handles;..\..\..\..\Source\MoldModel\CodeGenerator;..\..\..\..\Source\MoldModel\TypeNameDictionary;..\..\..\..\Source\MoldModel\IDE;..\..\..\..\Source\MoldModel\Bld;..\..\..\..\Source\PMapper\Core;..\..\..\..\Source\PMapper\SQL;..\..\..\..\Source\PMapper\Default;..\..\..\..\Source\PMapper\Validator;..\..\..\..\Source\PMapper\DBEvolutor;..\..\..\..\Source\ValueSpace\Id;..\..\..\..\Source\ValueSpace\Interfaces;..\..\..\..\Source\ValueSpace\XMLStreaming;..\..\..\..\Source\ValueSpace\Condition;..\..\..\..\Source\FreestandingValueSpace\Core;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_ExeOutput>.\</DCC_ExeOutput>
         <SanitizedProjectName>CreateDatabase</SanitizedProjectName>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
+        <VerInfo_Locale>1035</VerInfo_Locale>
+        <VerInfo_Keys>FileVersion=1.0.0.0</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
@@ -78,6 +80,8 @@
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <BT_BuildType>Debug</BT_BuildType>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_Keys>FileVersion=1.0.0.0</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
@@ -111,6 +115,12 @@
                 <Source>
                     <Source Name="MainSource">CreateDatabase.dpr</Source>
                 </Source>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="C:\Attracs\BPL\AttracsComponentsXE12Athens.bpl">Attracs Components for Delphi 12.2 Athens</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclemsedge290.bpl">Embarcadero RAD Server Edge Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
                 <Platform value="Win32">True</Platform>

@@ -112,10 +112,10 @@
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <VerInfo_MajorVer>1</VerInfo_MajorVer>
-        <VerInfo_MinorVer>0</VerInfo_MinorVer>
+        <VerInfo_MajorVer>2025</VerInfo_MajorVer>
+        <VerInfo_MinorVer>12</VerInfo_MinorVer>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=2025.12.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <DllVersion>29.3</DllVersion>
     </PropertyGroup>
     <ItemGroup>
@@ -623,7 +623,6 @@
                     <Source Name="MainSource">dclBold.dpk</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Attracs\BoldForDelphi\packages\Bin\dclBold.29.bpl">Bold Components for Delphi 12.3 Athens</Excluded_Packages>
                     <Excluded_Packages Name="C:\Attracs\BoldForDelphi\packages\Bin\dclBold.29.3.bpl">Bold Components for Delphi 12.3 Athens</Excluded_Packages>
                     <Excluded_Packages Name="C:\Attracs\BPL\AttracsComponentsXE12Athens.bpl">Attracs Components for Delphi 12.2 Athens</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclemsedge290.bpl">Embarcadero RAD Server Edge Components</Excluded_Packages>
