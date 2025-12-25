@@ -38,31 +38,36 @@ uses
 
 type
   TMainForm = class(TForm)
-    grdTasks: TBoldGrid;
+    pnlTop: TPanel;
     Label1: TLabel;
-    bnProjectTasks: TBoldNavigator;
-    lhaTasks: TBoldListHandle;
-    lhaProjects: TBoldListHandle;
-    btnSave: TButton;
-    Label3: TLabel;
-    ActionList1: TActionList;
-    Button1: TButton;
-    BoldActivateSystemAction1: TBoldActivateSystemAction;
-    pnlStatus: TPanel;
-    lblDatabaseStatus: TLabel;
-    lblBoldStatus: TLabel;
-    lblConfigFile: TLabel;
-    bnProjects: TBoldNavigator;
-    btnClear: TButton;
     BoldLabel1: TBoldLabel;
     grdProjects: TBoldGrid;
-    BoldGrid1: TBoldGrid;
-    lhaProjectTasks: TBoldListHandle;
-    bnTasks: TBoldNavigator;
-    Label2: TLabel;
-    lblInfo: TLabel;
+    bnProjects: TBoldNavigator;
+    btnClear: TButton;
     btnAdd: TButton;
     btnDelete: TButton;
+    Splitter1: TSplitter;
+    pnlBottom: TPanel;
+    pnlBottomLeft: TPanel;
+    Label3: TLabel;
+    grdTasks: TBoldGrid;
+    bnProjectTasks: TBoldNavigator;
+    Splitter2: TSplitter;
+    pnlBottomRight: TPanel;
+    Label2: TLabel;
+    BoldGrid1: TBoldGrid;
+    bnTasks: TBoldNavigator;
+    btnSave: TButton;
+    Button1: TButton;
+    pnlStatus: TPanel;
+    lblConfigFile: TLabel;
+    lblDatabaseStatus: TLabel;
+    lblBoldStatus: TLabel;
+    lhaTasks: TBoldListHandle;
+    lhaProjects: TBoldListHandle;
+    ActionList1: TActionList;
+    BoldActivateSystemAction1: TBoldActivateSystemAction;
+    lhaProjectTasks: TBoldListHandle;
     procedure FormCreate(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -71,9 +76,13 @@ type
     procedure btnClearClick(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
+    procedure pnlTopResize(Sender: TObject);
+    procedure pnlBottomLeftResize(Sender: TObject);
+    procedure pnlBottomRightResize(Sender: TObject);
   private
     { Private declarations }
     procedure UpdateStatusLabels;
+    procedure AutoSizeGridColumns(Grid: TBoldGrid);
   public
     { Public declarations }
   end;
@@ -97,6 +106,44 @@ begin
 
   // Activate Bold system automatically
   dmDemo.BoldSystemHandle1.Active := True;
+end;
+
+procedure TMainForm.AutoSizeGridColumns(Grid: TBoldGrid);
+var
+  i: Integer;
+  AvailableWidth: Integer;
+  FlexibleColumns: Integer;
+  FlexWidth: Integer;
+begin
+  if Grid.ColCount <= 1 then
+    Exit;
+
+  // Calculate available width (subtract scrollbar and indicator column)
+  AvailableWidth := Grid.ClientWidth - Grid.ColWidths[0] - 4;
+
+  // Distribute width evenly among data columns
+  FlexibleColumns := Grid.ColCount - 1;  // Exclude indicator column
+  if FlexibleColumns > 0 then
+  begin
+    FlexWidth := AvailableWidth div FlexibleColumns;
+    for i := 1 to Grid.ColCount - 1 do
+      Grid.ColWidths[i] := FlexWidth;
+  end;
+end;
+
+procedure TMainForm.pnlTopResize(Sender: TObject);
+begin
+  AutoSizeGridColumns(grdProjects);
+end;
+
+procedure TMainForm.pnlBottomLeftResize(Sender: TObject);
+begin
+  AutoSizeGridColumns(grdTasks);
+end;
+
+procedure TMainForm.pnlBottomRightResize(Sender: TObject);
+begin
+  AutoSizeGridColumns(BoldGrid1);
 end;
 
 procedure TMainForm.UpdateStatusLabels;
@@ -128,22 +175,22 @@ begin
     Exit;
   end;
 
-  // Check database connection
+  // Check database/persistence connection
   try
-    if dmDemo.FDConnection1.Connected then
+    if dmDemo.Connected then
     begin
-      lblDatabaseStatus.Caption := 'Database: Connected (' + dmDemo.FDConnection1.Params.Database + ')';
+      lblDatabaseStatus.Caption := 'Persistence: Connected (' + dmDemo.DatabaseName + ')';
       lblDatabaseStatus.Font.Color := clSuccess;
     end
     else
     begin
-      lblDatabaseStatus.Caption := 'Database: Not connected';
+      lblDatabaseStatus.Caption := 'Persistence: Not connected';
       lblDatabaseStatus.Font.Color := clError;
     end;
   except
     on E: Exception do
     begin
-      lblDatabaseStatus.Caption := 'Database: Error - ' + E.Message;
+      lblDatabaseStatus.Caption := 'Persistence: Error - ' + E.Message;
       lblDatabaseStatus.Font.Color := clError;
     end;
   end;
