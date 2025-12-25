@@ -89,8 +89,10 @@
           <h2>Features</h2>
           <ul class="feature-list">
             <li><strong>Multi-engine support</strong> - Works with MSSQL, PostgreSQL, Firebird, and SQLite</li>
+            <li><strong>Multiple persistence layers</strong> - FireDAC (default), UniDAC (optional), or XML file</li>
+            <li><strong>XML persistence</strong> - Run demos without database setup using file-based storage</li>
             <li><strong>Database creation</strong> - Creates both the database and Bold schema</li>
-            <li><strong>INI configuration</strong> - Easy switching between database engines</li>
+            <li><strong>INI configuration</strong> - Each app reads &lt;AppName&gt;.ini for easy configuration</li>
             <li><strong>Shared model</strong> - Reusable data module for other demos</li>
             <li><strong>Connection testing</strong> - Open/Close system to verify connectivity</li>
           </ul>
@@ -175,9 +177,9 @@
 
               <!-- INI Config -->
               <rect x="220" y="190" width="130" height="70" rx="6" fill="#334155" stroke="#475569"/>
-              <text x="285" y="212" fill="#94a3b8" font-size="9" font-weight="bold" text-anchor="middle">DemoDatabase.ini</text>
+              <text x="285" y="212" fill="#94a3b8" font-size="9" font-weight="bold" text-anchor="middle">&lt;AppName&gt;.ini</text>
               <text x="230" y="230" fill="#fcd34d" font-size="8" font-family="monospace">[Database]</text>
-              <text x="230" y="244" fill="#94a3b8" font-size="8" font-family="monospace">Type=MSSQL</text>
+              <text x="230" y="244" fill="#94a3b8" font-size="8" font-family="monospace">Persistence=FireDAC</text>
 
               <!-- Generated Tables preview -->
               <rect x="390" y="170" width="200" height="130" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="2"/>
@@ -263,9 +265,12 @@
 
         <div class="card">
           <h2>Configuration</h2>
-          <p>Edit <code>DemoDatabase.ini</code> to configure your database:</p>
+          <p>Each demo reads its configuration from an INI file matching the executable name (e.g., <code>CreateDatabase.ini</code>):</p>
           <pre><code>[Database]
-Type=MSSQL    ; Options: MSSQL, PostgreSQL, Firebird, SQLite
+; Persistence layer: FireDAC, UniDAC, or XML
+Persistence=FireDAC
+; Database type (ignored for XML): MSSQL, PostgreSQL, Firebird, SQLite
+Type=MSSQL
 
 [MSSQL]
 Server=localhost
@@ -278,19 +283,53 @@ Database=bolddemo
 User=postgres
 Password=
 
+[Firebird]
+Database=C:\Data\BoldDemo.fdb
+User=SYSDBA
+Password=masterkey
+
 [SQLite]
-Database=BoldDemo.db</code></pre>
+Database=BoldDemo.db
+
+[XML]
+; XML file persistence (no database required)
+FileName=BoldDemo.xml
+CacheData=True</code></pre>
+          <h3>Persistence Options</h3>
+          <table>
+            <thead>
+              <tr><th>Option</th><th>Description</th><th>Use Case</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>FireDAC</code></td>
+                <td>Embarcadero's database access layer</td>
+                <td>Production use with any supported database</td>
+              </tr>
+              <tr>
+                <td><code>UniDAC</code></td>
+                <td>DevArt's universal data access (optional, requires license)</td>
+                <td>Cross-database compatibility</td>
+              </tr>
+              <tr>
+                <td><code>XML</code></td>
+                <td>File-based XML persistence</td>
+                <td>Demos, testing, single-user apps without database setup</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div class="card">
           <h2>Usage</h2>
           <ol>
-            <li>Configure <code>DemoDatabase.ini</code> for your database engine</li>
+            <li>Configure <code>CreateDatabase.ini</code> for your persistence layer and database</li>
             <li>Run the application</li>
             <li>Click <strong>Create Database</strong> and enter a database name</li>
             <li>Click <strong>Open System</strong> to verify the connection</li>
             <li>Click <strong>Close System</strong> when done</li>
           </ol>
+          <p class="hint"><strong>Tip:</strong> Set <code>Persistence=XML</code> to run demos without any database setup.</p>
         </div>
 
         <div class="card">

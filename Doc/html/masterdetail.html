@@ -83,6 +83,11 @@
             The example uses the shared Demo model with Project and Task classes, demonstrating
             how to link <code>TBoldListHandle</code> components to create cascading views.
           </p>
+          <p>
+            The UI features resizable panels with splitters, allowing you to adjust the layout by
+            dragging the dividers between grids. Grid columns automatically resize to fit the
+            available width.
+          </p>
         </div>
 
         <div class="card">
@@ -199,11 +204,34 @@
                 <td><code>System.DirtyObjects.Count</code> check on close</td>
               </tr>
               <tr>
-                <td>Shared model and database</td>
-                <td><code>DemoDataModule</code> / <code>DemoClasses</code></td>
+                <td>Resizable panels with splitters</td>
+                <td><code>TSplitter</code> between <code>TPanel</code> containers</td>
+              </tr>
+              <tr>
+                <td>Auto-resizing grid columns</td>
+                <td>Panel <code>OnResize</code> redistributes column widths</td>
+              </tr>
+              <tr>
+                <td>Configurable persistence</td>
+                <td>FireDAC, UniDAC, or XML via <code>MasterDetail.ini</code></td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="card">
+          <h2>Configuration</h2>
+          <p>Edit <code>MasterDetail.ini</code> to configure persistence:</p>
+          <pre><code>[Database]
+; Persistence: FireDAC, UniDAC, or XML
+Persistence=XML
+; Database type (ignored for XML)
+Type=MSSQL
+
+[XML]
+FileName=BoldDemo.xml
+CacheData=True</code></pre>
+          <p class="hint"><strong>Tip:</strong> Use <code>Persistence=XML</code> to run without database setup.</p>
         </div>
 
         <div class="card">
@@ -224,9 +252,10 @@ lhaProjectTasks.Expression := 'tasks';</code></pre>
 
           <h3>Shared Data Module</h3>
           <p>
-            This example uses the shared <code>DemoDataModule</code> which provides database
-            connectivity and the Bold system handle. The model includes Person, Project, Task,
-            Building, and Ownership classes.
+            This example uses the shared <code>DemoDataModule</code> which provides configurable
+            persistence (FireDAC, UniDAC, or XML) and the Bold system handle. The persistence
+            layer is selected via the INI file at runtime, allowing you to switch between
+            database backends or use XML file storage without recompilation.
           </p>
         </div>
 
