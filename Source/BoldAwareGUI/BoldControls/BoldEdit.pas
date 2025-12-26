@@ -167,6 +167,7 @@ type
     property ShowHint;
     property TabOrder;
     property TabStop;
+    property TextHint;
     property Visible;
     property OnChange;
     property OnClick;
@@ -501,11 +502,42 @@ var
   DC    : HDC;
   PS    : TPaintStruct;
   S     : string;
+  TextHintStr: string;
 begin
   if ((FAlignment = taLeftJustify) or FFocused) and
     not (csPaintCopy in ControlState) then
   begin
     inherited;
+    // Draw TextHint manually for ES_MULTILINE controls (when button style is used)
+    // because EM_SETCUEBANNER doesn't work with multiline edit controls
+    // Only show TextHint for editable controls (not read-only)
+    if (fButtonStyle <> bbsNone) and (not FFocused) and (Text = '') and (not EffectiveReadOnly) then
+    begin
+      TextHintStr := inherited TextHint;
+      if TextHintStr <> '' then
+      begin
+        DC := GetDC(Handle);
+        try
+          if FCanvas = nil then
+          begin
+            FCanvas := TControlCanvas.Create;
+            FCanvas.Control := Self;
+          end;
+          FCanvas.Handle := DC;
+          FCanvas.Font := EffectiveFont;
+          FCanvas.Font.Color := clGrayText;
+          R := ClientRect;
+          if Assigned(fBtnControl) then
+            R.Right := fBtnControl.Left - 2;
+          R.Left := R.Left + GetTextMargins.X;
+          R.Top := R.Top + GetTextMargins.Y;
+          FCanvas.TextRect(R, R.Left, R.Top, TextHintStr);
+          FCanvas.Handle := 0;
+        finally
+          ReleaseDC(Handle, DC);
+        end;
+      end;
+    end;
     Exit;
   end;
   { Since edit controls do not handle justification unless multi-line (and
@@ -547,7 +579,13 @@ begin
       end
       else
         S := Text;
-      if PasswordChar <> BOLDNULL then
+      // Show TextHint when text is empty and control is editable
+      if (S = '') and (inherited TextHint <> '') and (not EffectiveReadOnly) then
+      begin
+        Font.Color := clGrayText;
+        S := inherited TextHint;
+      end
+      else if PasswordChar <> BOLDNULL then
         FillChar(S[1], Length(S), PasswordChar);
       TBoldAsStringRenderer.DrawStringOnCanvas(fCanvas, R, fAlignment, GetTextMargins, s);
     end;
