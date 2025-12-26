@@ -87,6 +87,7 @@ type
     procedure GenerateScript(DbScript, MappingScript: TStrings);
     procedure GenerateWarnings(Info: TStrings);
     procedure GenerateExecutedStatements(Info: TStrings);
+    function HasSchemaChanges: Boolean;
     property GenericScript: Boolean read fGenericScript write fGenericScript;
   end;
 
@@ -1012,6 +1013,11 @@ begin
   Info.Clear;
   Info.AddStrings(PreScript.InternalLog);
   Info.AddStrings(Script.InternalLog);
+end;
+
+function TBoldDataBaseEvolutor.HasSchemaChanges: Boolean;
+begin
+  Result := Script.HasChanges or PreScript.HasChanges;
 end;
 
 end.

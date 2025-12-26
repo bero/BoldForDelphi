@@ -601,6 +601,7 @@ type
     fLogframe: TBoldLogFrame;
     fIsExecutingPlugin: Boolean;
     fModelNeedsValidation: Boolean;
+    fModelModified: Boolean;
     fModelHandle: TBoldModel;
     fLoadedFrom: string;
     procedure LoadFormsettingsFromRegistry;
@@ -1523,7 +1524,10 @@ begin
     exit;
   fModelSubscriptionsValid := false;
   if not fIgnoreModelChanges then
+  begin
     ModelNeedsValidation := True;
+    fModelModified := True;
+  end;
 end;
 
 procedure TBoldModelEditFrm.FormShow(Sender: TObject);
@@ -1581,6 +1585,8 @@ begin
         finally
           Free;
         end;
+        fLoadedFrom := sdSaveModel.FileName;
+        fModelModified := False;
       end;
     finally
       fIsExecutingPlugin := false;
@@ -2767,8 +2773,50 @@ begin
 end;
 
 procedure TBoldModelEditFrm.FormClose(Sender: TObject; var Action: TCloseAction);
+var
+  MsgResult: Integer;
+  UMLLinkClass: TBoldUMLModelLinkClass;
 begin
   ApplyGUI;
+
+  // Check if model has unsaved changes
+  if fModelModified then
+  begin
+    MsgResult := MessageDlg('Model has unsaved changes. Save before closing?',
+      mtConfirmation, [mbYes, mbNo, mbCancel], 0);
+
+    case MsgResult of
+      mrYes:
+        begin
+          // If we have a known file path, save directly without dialog
+          if fLoadedFrom <> '' then
+          begin
+            UMLLinkClass := BoldUMLModelLinkList.LinkClasses[-1, ExtractFileExt(fLoadedFrom)];
+            if Assigned(UMLLinkClass) then
+            begin
+              with UMLLinkClass.Create(nil) do
+              try
+                FileName := fLoadedFrom;
+                ExportModel(CurrentModel);
+              finally
+                Free;
+              end;
+            end;
+            fModelModified := False;
+          end
+          else
+            // No known path, show save dialog
+            SaveFileAs1Click(Sender);
+        end;
+      mrCancel:
+        begin
+          Action := caNone;
+          Exit;
+        end;
+      // mrNo - just close without saving
+    end;
+  end;
+
   Action := caFree;
 end;
 

@@ -109,6 +109,7 @@ type
     class function GetModelFilePath: string;
     property ConfigFile: string read FConfigFile write FConfigFile;
     property PersistenceType: TPersistenceType read FPersistenceType;
+    property PersistenceHandleDB: TBoldPersistenceHandleDB read FPersistenceHandleDB;
     property Connected: Boolean read GetConnected;
     property DatabaseName: string read GetDatabaseName;
     property SharedPath: string read GetSharedPath;

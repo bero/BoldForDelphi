@@ -250,6 +250,7 @@ type
     procedure UpdateDatabase(DataBase: IBoldDataBase; SQLDataBaseConfig: TBoldSQLDatabaseConfig);
     procedure OptimizeScript;
     procedure AddSQLStatement(const sql: String);
+    function HasChanges: Boolean;
     property InternalLog: TStringList read fInternalLog;
   end;
 
@@ -648,6 +649,20 @@ end;
 procedure TBoldDataBaseEvolutorScript.AddSQLStatement(const sql: String);
 begin
   fSQLStatements.Add(sql);
+end;
+
+function TBoldDataBaseEvolutorScript.HasChanges: Boolean;
+begin
+  Result := (fAddedTables.Count > 0) or
+            (fAddedColumns.Count > 0) or
+            (fAddedIndices.Count > 0) or
+            (fDroppedTables.Count > 0) or
+            (fDroppedColumns.Count > 0) or
+            (fDroppedIndices.Count > 0) or
+            (fCopiedInstances.Count > 0) or
+            (fMovedData.Count > 0) or
+            (fDeletedInstances.Count > 0) or
+            (fSQLStatements.Count > 0);
 end;
 
 procedure TBoldDataBaseEvolutorScript.AdjustContents;
