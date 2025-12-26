@@ -40,6 +40,12 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
         <DCC_BplOutput>..\Bin</DCC_BplOutput>
         <DCC_F>false</DCC_F>
@@ -50,7 +56,7 @@
         <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
         <GenDll>true</GenDll>
         <DCC_E>false</DCC_E>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=24.6.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=25.12.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_Description>Bold Components for Delphi 11.3 Alexandria</DCC_Description>
         <SanitizedProjectName>dclBold</SanitizedProjectName>
         <DCC_K>false</DCC_K>
@@ -58,14 +64,14 @@
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
         <VerInfo_Locale>2077</VerInfo_Locale>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
-        <DCC_UnitSearchPath>..\..\Source;..\..\Source\Forms;..\..\Source\Common\IDE;..\..\Source\Common\IDECOM;..\..\Source\Extensions\OLLE\Core;..\..\Source\Extensions\OLLE\IDE;..\..\Source\Handles\IDECOM;..\..\Source\Persistence\IDEUDP;..\..\Source\Persistence\UDPPropagator;..\..\Source\Samples\BoldCheckListBox;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DllVersion>28</DllVersion>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_MajorVer>24</VerInfo_MajorVer>
-        <VerInfo_MinorVer>6</VerInfo_MinorVer>
+        <VerInfo_MajorVer>25</VerInfo_MajorVer>
+        <DCC_UnitSearchPath>..\..\Source\Common\Include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <VerInfo_MinorVer>12</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;vclactnband;vclx;vcl;vclimg;DbxCommonDriver;dbrtl;soaprtl;inet;vcldb;dsnap;dbexpress;adortl;dxCoreRS24;cxLibraryRS24;dxGDIPlusRS24;dxThemeRS24;cxDataRS24;cxPageControlRS24;cxEditorsRS24;dxLayoutControlRS24;dxComnRS24;dxBarRS24;cxGridRS24;fs24;FixInsight_10_1;frx24;frxe24;dxCoreRS26;cxLibraryRS26;dxGDIPlusRS26;dxComnRS26;dxBarRS26;cxGridRS26;frx26;fs26;frxe26;frx27;fs27;frxe27;dxCoreRS27;cxLibraryRS27;dxGDIPlusRS27;dxComnRS27;dxBarRS27;cxGridRS27;dxCoreRS28;cxLibraryRS28;dxGDIPlusRS28;dxComnRS28;dxBarRS28;cxGridRS28;FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;vclactnband;vclx;vcl;vclimg;DbxCommonDriver;dbrtl;soaprtl;inet;vcldb;dsnap;dbexpress;adortl;dxCoreRS24;cxLibraryRS24;dxGDIPlusRS24;dxThemeRS24;cxDataRS24;cxPageControlRS24;cxEditorsRS24;dxLayoutControlRS24;dxComnRS24;dxBarRS24;cxGridRS24;fs24;FixInsight_10_1;frx24;frxe24;dxCoreRS26;cxLibraryRS26;dxGDIPlusRS26;dxComnRS26;dxBarRS26;cxGridRS26;frx26;fs26;frxe26;frx27;fs27;frxe27;dxCoreRS27;cxLibraryRS27;dxGDIPlusRS27;dxComnRS27;dxBarRS27;cxGridRS27;dxCoreRS28;cxLibraryRS28;dxGDIPlusRS28;dxComnRS28;dxBarRS28;cxGridRS28;FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;IndySystem;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
@@ -74,7 +80,7 @@
         <VerInfo_MinorVer>0</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_UsePackage>FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;IndySystem;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -92,6 +98,12 @@
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
         <DCC_Optimize>false</DCC_Optimize>
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <VerInfo_MajorVer>1</VerInfo_MajorVer>
+        <VerInfo_MinorVer>0</VerInfo_MinorVer>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -598,8 +610,8 @@
                     <Source Name="MainSource">dclBold.dpk</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k280.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp280.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
