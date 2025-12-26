@@ -104,6 +104,7 @@
         <VerInfo_MinorVer>0</VerInfo_MinorVer>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_IncludeVerInfo>false</VerInfo_IncludeVerInfo>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -161,6 +162,7 @@
         <DCCReference Include="..\..\Source\Common\Connection\BoldClient.pas"/>
         <DCCReference Include="..\..\Source\Common\ConnectionHandles\BoldClientHandles.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\Plugins\BoldCodePlugins.pas"/>
+        <DCCReference Include="..\..\Source\UMLModel\Plugins\BoldSaveAndGeneratePlugin.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldCollections.pas"/>
         <DCCReference Include="..\..\Source\Common\COM\BoldComAdapter.pas"/>
         <DCCReference Include="..\..\Source\Common\ConnectionCOM\BoldComClient.pas"/>

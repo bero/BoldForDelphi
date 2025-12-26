@@ -6,9 +6,7 @@ interface
 uses
   // VCL
   System.Classes,
-  System.Actions,
   System.SysUtils,
-  Vcl.ActnList,
   Vcl.Controls,
   Vcl.Dialogs,
   Vcl.ExtCtrls,
@@ -19,7 +17,6 @@ uses
 
   // Bold
   BoldAbstractListHandle,
-  BoldActions,
   BoldCursorHandle,
   BoldDBActions,
   BoldElements,
@@ -63,26 +60,26 @@ type
     lblConfigFile: TLabel;
     lblDatabaseStatus: TLabel;
     lblBoldStatus: TLabel;
+    btnDropDatabase: TButton;
     lhaTasks: TBoldListHandle;
     lhaProjects: TBoldListHandle;
-    ActionList1: TActionList;
-    BoldActivateSystemAction1: TBoldActivateSystemAction;
     lhaProjectTasks: TBoldListHandle;
     procedure FormCreate(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure BoldActivateSystemAction1SystemClosed(Sender: TObject);
-    procedure BoldActivateSystemAction1SystemOpened(Sender: TObject);
     procedure btnClearClick(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
     procedure pnlTopResize(Sender: TObject);
     procedure pnlBottomLeftResize(Sender: TObject);
     procedure pnlBottomRightResize(Sender: TObject);
+    procedure btnDropDatabaseClick(Sender: TObject);
   private
     { Private declarations }
     procedure UpdateStatusLabels;
     procedure AutoSizeGridColumns(Grid: TBoldGrid);
+    procedure HandleSystemOpened(Sender: TObject);
+    procedure HandleSystemClosed(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -101,11 +98,12 @@ uses
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  // Connect the action to the system handle
-  BoldActivateSystemAction1.BoldSystemHandle := dmDemo.BoldSystemHandle1;
+  // Connect event handlers to the data module's action
+  dmDemo.BoldActivateSystemAction1.OnSystemOpened := HandleSystemOpened;
+  dmDemo.BoldActivateSystemAction1.OnSystemClosed := HandleSystemClosed;
 
-  // Activate Bold system automatically
-  dmDemo.BoldSystemHandle1.Active := True;
+  // Activate Bold system (will check if database exists and offer to create if not)
+  dmDemo.OpenSystem;
 end;
 
 procedure TMainForm.AutoSizeGridColumns(Grid: TBoldGrid);
@@ -212,7 +210,7 @@ begin
   btnClear.Enabled := isBoldActive;
 end;
 
-procedure TMainForm.BoldActivateSystemAction1SystemOpened(Sender: TObject);
+procedure TMainForm.HandleSystemOpened(Sender: TObject);
 begin
   // Initialize counters from existing data
   TProject.InitializeCounter(dmDemo.BoldSystemHandle1.System);
@@ -220,7 +218,7 @@ begin
   UpdateStatusLabels;
 end;
 
-procedure TMainForm.BoldActivateSystemAction1SystemClosed(Sender: TObject);
+procedure TMainForm.HandleSystemClosed(Sender: TObject);
 begin
   UpdateStatusLabels;
 end;
@@ -266,6 +264,40 @@ begin
     dmDemo.BoldSystemHandle1.UpdateDatabase;
   except
     BoldRaiseLastFailure(dmDemo.BoldSystemHandle1.System, 'SaveToDatabase', 'Update failed');
+  end;
+end;
+
+procedure TMainForm.btnDropDatabaseClick(Sender: TObject);
+var
+  DbName: string;
+begin
+  if dmDemo.PersistenceType = ptXML then
+  begin
+    MessageDlg('Drop is not applicable for XML persistence.', mtInformation, [mbOK], 0);
+    Exit;
+  end;
+
+  DbName := dmDemo.DatabaseName;
+
+  if not dmDemo.DatabaseExists then
+  begin
+    MessageDlg('Database "' + DbName + '" does not exist.', mtInformation, [mbOK], 0);
+    Exit;
+  end;
+
+  if MessageDlg('Are you sure you want to DROP the database "' + DbName + '"?' + sLineBreak +
+                'This will permanently delete all data!',
+                mtWarning, [mbYes, mbNo], 0) = mrYes then
+  begin
+    // Close the Bold system first
+    if dmDemo.BoldSystemHandle1.Active then
+      dmDemo.BoldSystemHandle1.Active := False;
+
+    dmDemo.DropDatabase;
+    UpdateStatusLabels;
+    MessageDlg('Database "' + DbName + '" dropped successfully.' + sLineBreak +
+               'Click "Open system" to create a new database.',
+               mtInformation, [mbOK], 0);
   end;
 end;
 

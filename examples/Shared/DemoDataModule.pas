@@ -8,7 +8,11 @@ uses
   System.Classes,
   System.IniFiles,
   System.IOUtils,
+  System.UITypes,
+  System.Actions,
   Data.DB,
+  Vcl.ActnList,
+  Vcl.Dialogs,
 
   // FireDAC
   FireDAC.Stan.Intf,
@@ -22,6 +26,7 @@ uses
   FireDAC.Phys,
   FireDAC.VCLUI.Wait,
   FireDAC.Comp.Client,
+  FireDAC.DApt,
   FireDAC.Phys.MSSQL,
   FireDAC.Phys.MSSQLDef,
   FireDAC.Phys.PG,
@@ -41,6 +46,7 @@ uses
   BoldAbstractModel,
   BoldAbstractDatabaseAdapter,
   BoldAbstractPersistenceHandleDB,
+  BoldActions,
   BoldDatabaseAdapterFireDAC,
   BoldHandle,
   BoldHandles,
@@ -51,7 +57,7 @@ uses
   BoldSubscription,
   BoldSystem,
   BoldSystemHandle,
-  BoldSQLDatabaseConfig;
+  BoldSQLDatabaseConfig, BoldHandleAction;
 
 type
   TPersistenceType = (ptFireDAC, {$IFDEF UNIDAC}ptUniDAC,{$ENDIF} ptXML);
@@ -60,8 +66,11 @@ type
     BoldModel1: TBoldModel;
     BoldSystemHandle1: TBoldSystemHandle;
     BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle;
+    ActionList1: TActionList;
+    BoldActivateSystemAction1: TBoldActivateSystemAction;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
+    procedure BoldActivateSystemAction1Execute(Sender: TObject);
   private
     FConfigFile: string;
     FPersistenceType: TPersistenceType;
@@ -89,15 +98,21 @@ type
     procedure ConfigureSQLDatabaseConfig(AConfig: TBoldSQLDatabaseConfig; const ADatabaseType: string);
   public
     procedure CreateDatabaseSchema;
-    procedure EnsureDatabaseExists(const ADatabaseName: string);
+    procedure CreateDatabaseIfNotExists;
+    procedure DropDatabase;
+    function DatabaseExists: Boolean;
     procedure OpenSystem;
     procedure CloseSystem;
     function GetConnected: Boolean;
     function GetDatabaseName: string;
+    class function GetSharedPath: string;
+    class function GetModelFilePath: string;
     property ConfigFile: string read FConfigFile write FConfigFile;
     property PersistenceType: TPersistenceType read FPersistenceType;
     property Connected: Boolean read GetConnected;
     property DatabaseName: string read GetDatabaseName;
+    property SharedPath: string read GetSharedPath;
+    property ModelFilePath: string read GetModelFilePath;
   end;
 
 var
@@ -466,10 +481,196 @@ begin
   end;
 end;
 
-procedure TDemoDataModule.EnsureDatabaseExists(const ADatabaseName: string);
+function TDemoDataModule.DatabaseExists: Boolean;
 var
   Ini: TIniFile;
-  DatabaseType: string;
+  DatabaseType, DatabaseName: string;
+  TempFDConn: TFDConnection;
+  Query: TFDQuery;
+  {$IFDEF UNIDAC}
+  TempUniConn: TUniConnection;
+  UniQuery: TUniQuery;
+  {$ENDIF}
+begin
+  Result := False;
+
+  // XML persistence always "exists"
+  if FPersistenceType = ptXML then
+    Exit(True);
+
+  if not FileExists(FConfigFile) then
+    Exit(False);
+
+  Ini := TIniFile.Create(FConfigFile);
+  try
+    DatabaseType := Ini.ReadString('Database', 'Type', 'MSSQL');
+
+    case FPersistenceType of
+      ptFireDAC:
+        begin
+          if SameText(DatabaseType, 'MSSQL') then
+          begin
+            DatabaseName := Ini.ReadString('MSSQL', 'Database', 'BoldDemo');
+            TempFDConn := TFDConnection.Create(nil);
+            Query := TFDQuery.Create(nil);
+            try
+              try
+                TempFDConn.LoginPrompt := False;
+                TempFDConn.Params.Clear;
+                TempFDConn.Params.Add('DriverID=MSSQL');
+                TempFDConn.Params.Add('Server=' + Ini.ReadString('MSSQL', 'Server', 'localhost'));
+                TempFDConn.Params.Add('Database=master');
+                if Ini.ReadBool('MSSQL', 'OSAuthent', True) then
+                  TempFDConn.Params.Add('OSAuthent=Yes')
+                else
+                begin
+                  TempFDConn.Params.Add('User_Name=' + Ini.ReadString('MSSQL', 'User', 'sa'));
+                  TempFDConn.Params.Add('Password=' + Ini.ReadString('MSSQL', 'Password', ''));
+                end;
+                TempFDConn.Connected := True;
+                Query.Connection := TempFDConn;
+                Query.SQL.Text := 'SELECT 1 FROM sys.databases WHERE name = ' + QuotedStr(DatabaseName);
+                Query.Open;
+                Result := not Query.IsEmpty;
+                Query.Close;
+                TempFDConn.Connected := False;
+              except
+                Result := False;
+              end;
+            finally
+              Query.Free;
+              TempFDConn.Free;
+            end;
+          end
+          else if SameText(DatabaseType, 'PostgreSQL') then
+          begin
+            DatabaseName := Ini.ReadString('PostgreSQL', 'Database', 'bolddemo');
+            TempFDConn := TFDConnection.Create(nil);
+            Query := TFDQuery.Create(nil);
+            try
+              try
+                TempFDConn.LoginPrompt := False;
+                TempFDConn.Params.Clear;
+                TempFDConn.Params.Add('DriverID=PG');
+                TempFDConn.Params.Add('Server=' + Ini.ReadString('PostgreSQL', 'Server', 'localhost'));
+                TempFDConn.Params.Add('Port=' + Ini.ReadString('PostgreSQL', 'Port', '5432'));
+                TempFDConn.Params.Add('Database=postgres');
+                TempFDConn.Params.Add('User_Name=' + Ini.ReadString('PostgreSQL', 'User', 'postgres'));
+                TempFDConn.Params.Add('Password=' + Ini.ReadString('PostgreSQL', 'Password', ''));
+                TempFDConn.Connected := True;
+                Query.Connection := TempFDConn;
+                Query.SQL.Text := 'SELECT 1 FROM pg_database WHERE datname = ' + QuotedStr(DatabaseName);
+                Query.Open;
+                Result := not Query.IsEmpty;
+                Query.Close;
+                TempFDConn.Connected := False;
+              except
+                Result := False;
+              end;
+            finally
+              Query.Free;
+              TempFDConn.Free;
+            end;
+          end
+          else if SameText(DatabaseType, 'Firebird') then
+          begin
+            DatabaseName := Ini.ReadString('Firebird', 'Database', 'BoldDemo.fdb');
+            Result := FileExists(DatabaseName);
+          end
+          else if SameText(DatabaseType, 'SQLite') then
+          begin
+            DatabaseName := Ini.ReadString('SQLite', 'Database', 'BoldDemo.db');
+            Result := FileExists(DatabaseName);
+          end;
+        end;
+
+      {$IFDEF UNIDAC}
+      ptUniDAC:
+        begin
+          if SameText(DatabaseType, 'MSSQL') then
+          begin
+            DatabaseName := Ini.ReadString('MSSQL', 'Database', 'BoldDemo');
+            TempUniConn := TUniConnection.Create(nil);
+            UniQuery := TUniQuery.Create(nil);
+            try
+              try
+                TempUniConn.LoginPrompt := False;
+                TempUniConn.ProviderName := 'SQL Server';
+                TempUniConn.Server := Ini.ReadString('MSSQL', 'Server', 'localhost');
+                TempUniConn.Database := 'master';
+                if Ini.ReadBool('MSSQL', 'OSAuthent', True) then
+                  TempUniConn.SpecificOptions.Values['SQL Server.Authentication'] := 'auWindows'
+                else
+                begin
+                  TempUniConn.Username := Ini.ReadString('MSSQL', 'User', 'sa');
+                  TempUniConn.Password := Ini.ReadString('MSSQL', 'Password', '');
+                end;
+                TempUniConn.Connected := True;
+                UniQuery.Connection := TempUniConn;
+                UniQuery.SQL.Text := 'SELECT 1 FROM sys.databases WHERE name = ' + QuotedStr(DatabaseName);
+                UniQuery.Open;
+                Result := not UniQuery.IsEmpty;
+                UniQuery.Close;
+                TempUniConn.Connected := False;
+              except
+                Result := False;
+              end;
+            finally
+              UniQuery.Free;
+              TempUniConn.Free;
+            end;
+          end
+          else if SameText(DatabaseType, 'PostgreSQL') then
+          begin
+            DatabaseName := Ini.ReadString('PostgreSQL', 'Database', 'bolddemo');
+            TempUniConn := TUniConnection.Create(nil);
+            UniQuery := TUniQuery.Create(nil);
+            try
+              try
+                TempUniConn.LoginPrompt := False;
+                TempUniConn.ProviderName := 'PostgreSQL';
+                TempUniConn.Server := Ini.ReadString('PostgreSQL', 'Server', 'localhost');
+                TempUniConn.Port := Ini.ReadInteger('PostgreSQL', 'Port', 5432);
+                TempUniConn.Database := 'postgres';
+                TempUniConn.Username := Ini.ReadString('PostgreSQL', 'User', 'postgres');
+                TempUniConn.Password := Ini.ReadString('PostgreSQL', 'Password', '');
+                TempUniConn.Connected := True;
+                UniQuery.Connection := TempUniConn;
+                UniQuery.SQL.Text := 'SELECT 1 FROM pg_database WHERE datname = ' + QuotedStr(DatabaseName);
+                UniQuery.Open;
+                Result := not UniQuery.IsEmpty;
+                UniQuery.Close;
+                TempUniConn.Connected := False;
+              except
+                Result := False;
+              end;
+            finally
+              UniQuery.Free;
+              TempUniConn.Free;
+            end;
+          end
+          else if SameText(DatabaseType, 'Firebird') then
+          begin
+            DatabaseName := Ini.ReadString('Firebird', 'Database', 'BoldDemo.fdb');
+            Result := FileExists(DatabaseName);
+          end
+          else if SameText(DatabaseType, 'SQLite') then
+          begin
+            DatabaseName := Ini.ReadString('SQLite', 'Database', 'BoldDemo.db');
+            Result := FileExists(DatabaseName);
+          end;
+        end;
+      {$ENDIF}
+    end;
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure TDemoDataModule.CreateDatabaseIfNotExists;
+var
+  Ini: TIniFile;
+  DatabaseType, DatabaseName: string;
   TempFDConn: TFDConnection;
   {$IFDEF UNIDAC}
   TempUniConn: TUniConnection;
@@ -495,6 +696,7 @@ begin
 
             if SameText(DatabaseType, 'MSSQL') then
             begin
+              DatabaseName := Ini.ReadString('MSSQL', 'Database', 'BoldDemo');
               TempFDConn.Params.Clear;
               TempFDConn.Params.Add('DriverID=MSSQL');
               TempFDConn.Params.Add('Server=' + Ini.ReadString('MSSQL', 'Server', 'localhost'));
@@ -507,43 +709,38 @@ begin
                 TempFDConn.Params.Add('Password=' + Ini.ReadString('MSSQL', 'Password', ''));
               end;
               TempFDConn.Connected := True;
-              TempFDConn.ExecSQL('IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = ' +
-                QuotedStr(ADatabaseName) + ') CREATE DATABASE [' + ADatabaseName + ']');
+              TempFDConn.ExecSQL('CREATE DATABASE [' + DatabaseName + ']');
               TempFDConn.Connected := False;
-              FFDConnection.Params.Values['Database'] := ADatabaseName;
             end
             else if SameText(DatabaseType, 'PostgreSQL') then
             begin
+              DatabaseName := Ini.ReadString('PostgreSQL', 'Database', 'bolddemo');
               TempFDConn.Params.Clear;
               TempFDConn.Params.Add('DriverID=PG');
               TempFDConn.Params.Add('Server=' + Ini.ReadString('PostgreSQL', 'Server', 'localhost'));
+              TempFDConn.Params.Add('Port=' + Ini.ReadString('PostgreSQL', 'Port', '5432'));
               TempFDConn.Params.Add('Database=postgres');
               TempFDConn.Params.Add('User_Name=' + Ini.ReadString('PostgreSQL', 'User', 'postgres'));
               TempFDConn.Params.Add('Password=' + Ini.ReadString('PostgreSQL', 'Password', ''));
               TempFDConn.Connected := True;
-              TempFDConn.ExecSQL('CREATE DATABASE ' + ADatabaseName, True);
+              TempFDConn.ExecSQL('CREATE DATABASE ' + DatabaseName);
               TempFDConn.Connected := False;
-              FFDConnection.Params.Values['Database'] := ADatabaseName;
             end
             else if SameText(DatabaseType, 'Firebird') then
             begin
-              if not FileExists(ADatabaseName) then
-              begin
-                TempFDConn.Params.Clear;
-                TempFDConn.Params.Add('DriverID=FB');
-                TempFDConn.Params.Add('Database=' + ADatabaseName);
-                TempFDConn.Params.Add('User_Name=' + Ini.ReadString('Firebird', 'User', 'SYSDBA'));
-                TempFDConn.Params.Add('Password=' + Ini.ReadString('Firebird', 'Password', 'masterkey'));
-                TempFDConn.Params.Add('CreateDatabase=Yes');
-                TempFDConn.Connected := True;
-                TempFDConn.Connected := False;
-              end;
-              FFDConnection.Params.Values['Database'] := ADatabaseName;
+              DatabaseName := Ini.ReadString('Firebird', 'Database', 'BoldDemo.fdb');
+              TempFDConn.Params.Clear;
+              TempFDConn.Params.Add('DriverID=FB');
+              TempFDConn.Params.Add('Database=' + DatabaseName);
+              TempFDConn.Params.Add('User_Name=' + Ini.ReadString('Firebird', 'User', 'SYSDBA'));
+              TempFDConn.Params.Add('Password=' + Ini.ReadString('Firebird', 'Password', 'masterkey'));
+              TempFDConn.Params.Add('CreateDatabase=Yes');
+              TempFDConn.Connected := True;
+              TempFDConn.Connected := False;
             end
             else if SameText(DatabaseType, 'SQLite') then
             begin
               // SQLite creates the database file automatically when connecting
-              FFDConnection.Params.Values['Database'] := ADatabaseName;
             end;
           finally
             TempFDConn.Free;
@@ -559,6 +756,7 @@ begin
 
             if SameText(DatabaseType, 'MSSQL') then
             begin
+              DatabaseName := Ini.ReadString('MSSQL', 'Database', 'BoldDemo');
               TempUniConn.ProviderName := 'SQL Server';
               TempUniConn.Server := Ini.ReadString('MSSQL', 'Server', 'localhost');
               TempUniConn.Database := 'master';
@@ -570,13 +768,12 @@ begin
                 TempUniConn.Password := Ini.ReadString('MSSQL', 'Password', '');
               end;
               TempUniConn.Connected := True;
-              TempUniConn.ExecSQL('IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = ' +
-                QuotedStr(ADatabaseName) + ') CREATE DATABASE [' + ADatabaseName + ']');
+              TempUniConn.ExecSQL('CREATE DATABASE [' + DatabaseName + ']');
               TempUniConn.Connected := False;
-              FUniConnection.Database := ADatabaseName;
             end
             else if SameText(DatabaseType, 'PostgreSQL') then
             begin
+              DatabaseName := Ini.ReadString('PostgreSQL', 'Database', 'bolddemo');
               TempUniConn.ProviderName := 'PostgreSQL';
               TempUniConn.Server := Ini.ReadString('PostgreSQL', 'Server', 'localhost');
               TempUniConn.Port := Ini.ReadInteger('PostgreSQL', 'Port', 5432);
@@ -584,23 +781,24 @@ begin
               TempUniConn.Username := Ini.ReadString('PostgreSQL', 'User', 'postgres');
               TempUniConn.Password := Ini.ReadString('PostgreSQL', 'Password', '');
               TempUniConn.Connected := True;
-              try
-                TempUniConn.ExecSQL('CREATE DATABASE ' + ADatabaseName);
-              except
-                // Database may already exist
-              end;
+              TempUniConn.ExecSQL('CREATE DATABASE ' + DatabaseName);
               TempUniConn.Connected := False;
-              FUniConnection.Database := ADatabaseName;
             end
             else if SameText(DatabaseType, 'Firebird') then
             begin
-              // For InterBase/Firebird, the database file is created automatically
-              FUniConnection.Database := ADatabaseName;
+              // For InterBase/Firebird with UniDAC, use CreateDatabase option
+              DatabaseName := Ini.ReadString('Firebird', 'Database', 'BoldDemo.fdb');
+              TempUniConn.ProviderName := 'InterBase';
+              TempUniConn.Database := DatabaseName;
+              TempUniConn.Username := Ini.ReadString('Firebird', 'User', 'SYSDBA');
+              TempUniConn.Password := Ini.ReadString('Firebird', 'Password', 'masterkey');
+              TempUniConn.SpecificOptions.Values['InterBase.Role'] := '';
+              TempUniConn.Connected := True;
+              TempUniConn.Connected := False;
             end
             else if SameText(DatabaseType, 'SQLite') then
             begin
               // SQLite creates the database file automatically when connecting
-              FUniConnection.Database := ADatabaseName;
             end;
           finally
             TempUniConn.Free;
@@ -618,6 +816,154 @@ begin
   if Assigned(FPersistenceHandleDB) then
     FPersistenceHandleDB.CreateDataBaseSchema;
   // XML persistence doesn't need schema creation
+end;
+
+procedure TDemoDataModule.DropDatabase;
+var
+  Ini: TIniFile;
+  DatabaseType, DatabaseName: string;
+  TempFDConn: TFDConnection;
+  {$IFDEF UNIDAC}
+  TempUniConn: TUniConnection;
+  {$ENDIF}
+begin
+  // Not applicable for XML persistence
+  if FPersistenceType = ptXML then
+    Exit;
+
+  // Check if database exists first
+  if not DatabaseExists then
+    Exit;
+
+  // Disconnect existing connection
+  if Assigned(FFDConnection) and FFDConnection.Connected then
+    FFDConnection.Connected := False;
+  {$IFDEF UNIDAC}
+  if Assigned(FUniConnection) and FUniConnection.Connected then
+    FUniConnection.Connected := False;
+  {$ENDIF}
+
+  if not FileExists(FConfigFile) then
+    raise Exception.Create('Configuration file not found: ' + FConfigFile);
+
+  Ini := TIniFile.Create(FConfigFile);
+  try
+    DatabaseType := Ini.ReadString('Database', 'Type', 'MSSQL');
+
+    case FPersistenceType of
+      ptFireDAC:
+        begin
+          TempFDConn := TFDConnection.Create(nil);
+          try
+            TempFDConn.LoginPrompt := False;
+
+            if SameText(DatabaseType, 'MSSQL') then
+            begin
+              DatabaseName := Ini.ReadString('MSSQL', 'Database', 'BoldDemo');
+              TempFDConn.Params.Clear;
+              TempFDConn.Params.Add('DriverID=MSSQL');
+              TempFDConn.Params.Add('Server=' + Ini.ReadString('MSSQL', 'Server', 'localhost'));
+              TempFDConn.Params.Add('Database=master');
+              if Ini.ReadBool('MSSQL', 'OSAuthent', True) then
+                TempFDConn.Params.Add('OSAuthent=Yes')
+              else
+              begin
+                TempFDConn.Params.Add('User_Name=' + Ini.ReadString('MSSQL', 'User', 'sa'));
+                TempFDConn.Params.Add('Password=' + Ini.ReadString('MSSQL', 'Password', ''));
+              end;
+              TempFDConn.Connected := True;
+              TempFDConn.ExecSQL('DROP DATABASE [' + DatabaseName + ']');
+              TempFDConn.Connected := False;
+            end
+            else if SameText(DatabaseType, 'PostgreSQL') then
+            begin
+              DatabaseName := Ini.ReadString('PostgreSQL', 'Database', 'bolddemo');
+              TempFDConn.Params.Clear;
+              TempFDConn.Params.Add('DriverID=PG');
+              TempFDConn.Params.Add('Server=' + Ini.ReadString('PostgreSQL', 'Server', 'localhost'));
+              TempFDConn.Params.Add('Port=' + Ini.ReadString('PostgreSQL', 'Port', '5432'));
+              TempFDConn.Params.Add('Database=postgres');
+              TempFDConn.Params.Add('User_Name=' + Ini.ReadString('PostgreSQL', 'User', 'postgres'));
+              TempFDConn.Params.Add('Password=' + Ini.ReadString('PostgreSQL', 'Password', ''));
+              TempFDConn.Connected := True;
+              TempFDConn.ExecSQL('DROP DATABASE ' + DatabaseName);
+              TempFDConn.Connected := False;
+            end
+            else if SameText(DatabaseType, 'Firebird') then
+            begin
+              DatabaseName := Ini.ReadString('Firebird', 'Database', 'BoldDemo.fdb');
+              if FileExists(DatabaseName) then
+                DeleteFile(DatabaseName);
+            end
+            else if SameText(DatabaseType, 'SQLite') then
+            begin
+              DatabaseName := Ini.ReadString('SQLite', 'Database', 'BoldDemo.db');
+              if FileExists(DatabaseName) then
+                DeleteFile(DatabaseName);
+            end;
+          finally
+            TempFDConn.Free;
+          end;
+        end;
+
+      {$IFDEF UNIDAC}
+      ptUniDAC:
+        begin
+          TempUniConn := TUniConnection.Create(nil);
+          try
+            TempUniConn.LoginPrompt := False;
+
+            if SameText(DatabaseType, 'MSSQL') then
+            begin
+              DatabaseName := Ini.ReadString('MSSQL', 'Database', 'BoldDemo');
+              TempUniConn.ProviderName := 'SQL Server';
+              TempUniConn.Server := Ini.ReadString('MSSQL', 'Server', 'localhost');
+              TempUniConn.Database := 'master';
+              if Ini.ReadBool('MSSQL', 'OSAuthent', True) then
+                TempUniConn.SpecificOptions.Values['SQL Server.Authentication'] := 'auWindows'
+              else
+              begin
+                TempUniConn.Username := Ini.ReadString('MSSQL', 'User', 'sa');
+                TempUniConn.Password := Ini.ReadString('MSSQL', 'Password', '');
+              end;
+              TempUniConn.Connected := True;
+              TempUniConn.ExecSQL('DROP DATABASE [' + DatabaseName + ']');
+              TempUniConn.Connected := False;
+            end
+            else if SameText(DatabaseType, 'PostgreSQL') then
+            begin
+              DatabaseName := Ini.ReadString('PostgreSQL', 'Database', 'bolddemo');
+              TempUniConn.ProviderName := 'PostgreSQL';
+              TempUniConn.Server := Ini.ReadString('PostgreSQL', 'Server', 'localhost');
+              TempUniConn.Port := Ini.ReadInteger('PostgreSQL', 'Port', 5432);
+              TempUniConn.Database := 'postgres';
+              TempUniConn.Username := Ini.ReadString('PostgreSQL', 'User', 'postgres');
+              TempUniConn.Password := Ini.ReadString('PostgreSQL', 'Password', '');
+              TempUniConn.Connected := True;
+              TempUniConn.ExecSQL('DROP DATABASE ' + DatabaseName);
+              TempUniConn.Connected := False;
+            end
+            else if SameText(DatabaseType, 'Firebird') then
+            begin
+              DatabaseName := Ini.ReadString('Firebird', 'Database', 'BoldDemo.fdb');
+              if FileExists(DatabaseName) then
+                DeleteFile(DatabaseName);
+            end
+            else if SameText(DatabaseType, 'SQLite') then
+            begin
+              DatabaseName := Ini.ReadString('SQLite', 'Database', 'BoldDemo.db');
+              if FileExists(DatabaseName) then
+                DeleteFile(DatabaseName);
+            end;
+          finally
+            TempUniConn.Free;
+          end;
+        end;
+      {$ENDIF}
+    end;
+  finally
+    Ini.Free;
+  end;
 end;
 
 function TDemoDataModule.GetConnected: Boolean;
@@ -660,6 +1006,24 @@ end;
 
 procedure TDemoDataModule.OpenSystem;
 begin
+  // Check if database exists (skip for XML persistence)
+  if FPersistenceType <> ptXML then
+  begin
+    if not DatabaseExists then
+    begin
+      if MessageDlg('Database "' + DatabaseName + '" does not exist.' + sLineBreak +
+                    'Do you want to create it now?',
+                    mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+      begin
+        CreateDatabaseIfNotExists;
+        // Create the Bold schema
+        CreateDatabaseSchema;
+      end
+      else
+        Exit;  // User declined, don't open system
+    end;
+  end;
+
   BoldSystemHandle1.Active := True;
 end;
 
@@ -671,6 +1035,48 @@ begin
       BoldSystemHandle1.System.UpdateDatabase;
     BoldSystemHandle1.Active := False;
   end;
+end;
+
+procedure TDemoDataModule.BoldActivateSystemAction1Execute(Sender: TObject);
+begin
+  if BoldSystemHandle1.Active then
+    CloseSystem
+  else
+    OpenSystem;
+end;
+
+class function TDemoDataModule.GetSharedPath: string;
+var
+  ExePath: string;
+  I: Integer;
+begin
+  // Navigate up from exe location until we find the 'examples' folder
+  // Then go to 'Shared' subfolder
+  // This works regardless of which example project is running
+  ExePath := ExtractFilePath(ParamStr(0));
+
+  // Go up directories until we find one containing 'Shared'
+  for I := 1 to 10 do  // Max 10 levels to prevent infinite loop
+  begin
+    // Remove trailing delimiter and go up one level
+    ExePath := IncludeTrailingPathDelimiter(
+      ExtractFilePath(ExcludeTrailingPathDelimiter(ExePath)));
+
+    // Check if Shared exists at this level
+    Result := ExePath + 'Shared' + PathDelim;
+    if DirectoryExists(Result) then
+      Exit;
+  end;
+
+  // Fallback: return empty if not found
+  Result := '';
+end;
+
+class function TDemoDataModule.GetModelFilePath: string;
+begin
+  Result := GetSharedPath;
+  if Result <> '' then
+    Result := Result + 'DemoModel.bld';
 end;
 
 end.

@@ -617,7 +617,7 @@ object MainForm: TMainForm
         Top = 196
         Width = 100
         Height = 28
-        Action = BoldActivateSystemAction1
+        Action = DemoDataModule.BoldActivateSystemAction1
         Anchors = [akRight, akBottom]
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 4210752
@@ -636,7 +636,7 @@ object MainForm: TMainForm
     Height = 80
     Align = alBottom
     BevelOuter = bvNone
-    Color = clWhitesmoke
+    Color = $00F5F5F5
     ParentBackground = False
     TabOrder = 1
     object lblConfigFile: TLabel
@@ -681,6 +681,23 @@ object MainForm: TMainForm
       Font.Style = []
       ParentFont = False
     end
+    object btnDropDatabase: TButton
+      Left = 688
+      Top = 25
+      Width = 100
+      Height = 30
+      Anchors = [akTop, akRight]
+      Caption = 'Drop Database'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clMaroon
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+      OnClick = btnDropDatabaseClick
+      ExplicitLeft = 684
+    end
   end
   object lhaTasks: TBoldListHandle
     StaticSystemHandle = DemoDataModule.BoldSystemHandle1
@@ -695,20 +712,6 @@ object MainForm: TMainForm
     Expression = 'Project.allInstances'
     Left = 220
     Top = 60
-  end
-  object ActionList1: TActionList
-    Left = 420
-    Top = 60
-    object BoldActivateSystemAction1: TBoldActivateSystemAction
-      Category = 'Bold Actions'
-      Caption = 'BoldActivateSystemAction1'
-      OnSystemOpened = BoldActivateSystemAction1SystemOpened
-      OnSystemClosed = BoldActivateSystemAction1SystemClosed
-      OpenCaption = 'Open system'
-      CloseCaption = 'Close system'
-      SaveQuestion = 'There are dirty objects. Save them before exit?'
-      SaveOnClose = saAsk
-    end
   end
   object lhaProjectTasks: TBoldListHandle
     StaticSystemHandle = DemoDataModule.BoldSystemHandle1

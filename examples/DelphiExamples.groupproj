@@ -3,13 +3,13 @@
         <ProjectGuid>{AE69EDDD-B3C7-4249-9A7A-BDF45BFE789F}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="Simple\Persistence\CreateDatabase\CreateDatabase.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="Simple\ObjectSpace\MasterDetail\MasterDetail.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="Simple\LogBridge\LogBridgeDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -20,15 +20,6 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="CreateDatabase">
-        <MSBuild Projects="Simple\Persistence\CreateDatabase\CreateDatabase.dproj"/>
-    </Target>
-    <Target Name="CreateDatabase:Clean">
-        <MSBuild Projects="Simple\Persistence\CreateDatabase\CreateDatabase.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="CreateDatabase:Make">
-        <MSBuild Projects="Simple\Persistence\CreateDatabase\CreateDatabase.dproj" Targets="Make"/>
-    </Target>
     <Target Name="MasterDetail">
         <MSBuild Projects="Simple\ObjectSpace\MasterDetail\MasterDetail.dproj"/>
     </Target>
@@ -47,14 +38,23 @@
     <Target Name="LogBridgeDemo:Make">
         <MSBuild Projects="Simple\LogBridge\LogBridgeDemo.dproj" Targets="Make"/>
     </Target>
+    <Target Name="TestSaveAndGenerate">
+        <MSBuild Projects="Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj"/>
+    </Target>
+    <Target Name="TestSaveAndGenerate:Clean">
+        <MSBuild Projects="Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestSaveAndGenerate:Make">
+        <MSBuild Projects="Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="CreateDatabase;MasterDetail;LogBridgeDemo"/>
+        <CallTarget Targets="MasterDetail;LogBridgeDemo;TestSaveAndGenerate"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="CreateDatabase:Clean;MasterDetail:Clean;LogBridgeDemo:Clean"/>
+        <CallTarget Targets="MasterDetail:Clean;LogBridgeDemo:Clean;TestSaveAndGenerate:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="CreateDatabase:Make;MasterDetail:Make;LogBridgeDemo:Make"/>
+        <CallTarget Targets="MasterDetail:Make;LogBridgeDemo:Make;TestSaveAndGenerate:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
