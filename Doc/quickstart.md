@@ -21,7 +21,7 @@ UML Model → Code Generator → Business Classes → Bold Runtime → Database
 
 ## Prerequisites ✅
 
-- **Delphi 11.3, 12.x, or 13**
+- **Delphi 11.3, 12.1 CE, 12.3, or 13**
 - **Database**: Any FireDAC-supported database should work. SQL Server is tested
 - **Bold packages installed** (see Installation below)
 
@@ -46,11 +46,12 @@ https://github.com/bero/BoldForDelphi/releases/
 
 Extract to `packages\Bin\`.
 Add the new package from menu Component/Install packages...
+
 Then press Add and select your bpl-file
 
 **Option B: Build from Source** 🔧
 
-Compiling from source gives you the latest version, or lets you support unsupported Delphi versions.
+Compiling from source gives you the latest version, or lets you use Bold with unsupported Delphi versions.
 
 Open the package file:
 ```
@@ -66,6 +67,19 @@ Replace `<Delphi version>` with your version:
 | Delphi 12.3 | Delphi29.3 |
 | Delphi 13 | Delphi30 |
 
+**Using an unsupported Delphi version:**
+
+If your Delphi version is not listed above, you can create packages for it:
+
+1. Copy the folder of the closest supported version (e.g., copy `Delphi30` for Delphi 14)
+2. Rename the folder to match the Delphi compiler version (e.g., `Delphi31`)
+3. Open Project options
+4. Update the Lib version in Description to 31.
+5. Project should now be dclBold.31.bpl
+6. When you verified all is working it would be nice if you make a pull request to the author to include the new package in repository
+
+The Bold source code uses standard Delphi/VCL features and typically compiles on newer versions with minimal changes.
+
 1. Build the package
 2. Right-click on the bpl-file in project panel and choose **Install**
 3. The bpl should now be active in `packages\Bin\`
@@ -77,7 +91,11 @@ You should now see Bold components in the Tool Palette. 🎉
 
 ## Your First Bold Application 🏗️
 
-First option is to look at ready app in `C:\BoldForDelphi\examples\Compound\Building`. Just compile it.
+First option is to look at ready small app in
+`C:\BoldForDelphi\examples\Simple\ObjectSpace\MasterDetail\masterDetail.dpr`.
+
+Just compile it.
+
 Edit the ini-file according your database. If you don't have installed a database try XML.
 
 Second option is to build app from scratch. More fun and more learning 😊
@@ -210,7 +228,7 @@ end;
 4. The grid automatically displays them
 5. Click "Update DB" to save
 
-**That's it!** You have a working Bold application. 🎊
+**That's it!** You have a working Bold application. ✅
 
 ---
 
@@ -323,7 +341,7 @@ self.firstName + ' ' + self.lastName     -- Concatenation
 ## Resources 🔗
 
 - **Git Embarcadero original repo**: https://github.com/Embarcadero/BoldForDelphi
-- **Git active development**: https://github.com/bero/BoldForDelphi
+- **Git active development**: https://github.com/bero/BoldForDelphi/tree/develop
 - **Wiki**: https://delphi.fandom.com/wiki/Bold_for_Delphi
 - **Discord**: https://discord.gg/C6frzsn
 - **Blog**: http://boldfordelphi.blogspot.com/
