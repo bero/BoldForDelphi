@@ -15,9 +15,9 @@ By default never guess to generate the answer. If information is missing ask for
 
 ### Important Paths (REMEMBER THESE!)
 
-- **UnitTest.exe**: `/mnt/c/Attracs/BoldForDelphi/UnitTest/UnitTest.exe`
-- **rsvars.bat**: `/mnt/c/Program Files (x86)/Embarcadero/Studio/37.0/bin/rsvars.bat`
-- **UnitTest project folder**: `/mnt/c/Attracs/BoldForDelphi/UnitTest`
+- **UnitTest.exe**: `C:\Attracs\BoldForDelphi\UnitTest\UnitTest.exe`
+- **rsvars.bat**: `C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat`
+- **UnitTest project folder**: `C:\Attracs\BoldForDelphi\UnitTest`
 
 ### Git Commit Messages
 
@@ -90,10 +90,15 @@ BoldForDelphi/
 
 ## Build Commands
 
-### Building any Delphi project from WSL (ALWAYS use this approach)
+### Building Delphi projects
 
-RAD Studio 13 is installed at: C:\Program Files (x86)\Embarcadero\Studio\37.0
+RAD Studio 13 is installed at: `C:\Program Files (x86)\Embarcadero\Studio\37.0`
 Use rsvars.bat before msbuild. Don't guess version numbers.
+
+```batch
+# Example: Build a project from Windows command prompt
+call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat" && msbuild Project.dproj /p:Config=Debug /p:Platform=Win64
+```
 
 ### Building Bold packages (from Windows cmd)
 
