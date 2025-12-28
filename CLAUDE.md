@@ -16,7 +16,6 @@ By default never guess to generate the answer. If information is missing ask for
 ### Important Paths (REMEMBER THESE!)
 
 - **UnitTest.exe**: `C:\Attracs\BoldForDelphi\UnitTest\UnitTest.exe`
-- **rsvars.bat**: `C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat`
 - **UnitTest project folder**: `C:\Attracs\BoldForDelphi\UnitTest`
 
 ### Git Commit Messages
@@ -88,26 +87,20 @@ BoldForDelphi/
 
 - **Source/Deprecated/** - Contains deprecated database adapters (ADO, BDE, Advantage, DBExpress). Not used, not maintained. Ignore when searching for cleanup opportunities.
 
-## Build Commands
+## Build Commands for Delphi projects and packages
 
-### Building Delphi projects
+- PowerShell script `C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1`
+This script in Powershell detect latest Delphi version and use that.
+-DelphiVersion override used Delphi.
+Read comments in the script for all details.
 
-RAD Studio 13 is installed at: `C:\Program Files (x86)\Embarcadero\Studio\37.0`
-Use rsvars.bat before msbuild. Don't guess version numbers.
+Example: Build MasterDetail project With latest Delphi (Delphi 13) and when Current folder is `C:\Attracs\boldfordelphi`
 
-```batch
-# Example: Build a project from Windows command prompt
-call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat" && msbuild Project.dproj /p:Config=Debug /p:Platform=Win64
-```
+`C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "examples\Simple\ObjectSpace\MasterDetail\MasterDetail.dproj" -DelphiVersion "37.0" -VerboseOutPut`
 
-### Building Bold packages (from Windows cmd)
+Example: Build Bold package for Delphi 12.3
 
-```batch
-cd packages\Delphi30
-build.bat
-```
-
-Output files (e.g. `dclBold.30.bpl`) go to `packages\Bin\`.
+`C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "packages\Delphi29.3\dclBold.dproj" -DelphiVersion "23.0" -VerboseOutPut`
 
 ## Environment Setup
 
