@@ -2,6 +2,11 @@
 
 Bold is a Model Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool for Delphi. It allows you to start with a UML model of your application and execute it with a sophisticated object-relational mapping layer, OCL query language, change synchronization, and IDE-integrated tools.
 
+## Getting Started
+
+- **[Quick Start Guide](Doc/quickstart.md)** - Step-by-step instructions to install Bold, build your first model, and run the MasterDetail example application.
+- **[Roadmap](ROADMAP.md)** - Development plans, supported features, and future directions for Bold for Delphi.
+
 ## Supported Delphi Versions
 
 - Delphi 12.3 Athens (packages/Delphi29.3/)
