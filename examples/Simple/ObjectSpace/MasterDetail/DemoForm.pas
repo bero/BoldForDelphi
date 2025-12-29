@@ -41,8 +41,6 @@ type
     grdProjects: TBoldGrid;
     bnProjects: TBoldNavigator;
     btnClear: TButton;
-    btnAdd: TButton;
-    btnDelete: TButton;
     Splitter1: TSplitter;
     pnlBottom: TPanel;
     pnlBottomLeft: TPanel;
@@ -68,8 +66,6 @@ type
     procedure btnSaveClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure btnClearClick(Sender: TObject);
-    procedure btnAddClick(Sender: TObject);
-    procedure btnDeleteClick(Sender: TObject);
     procedure pnlTopResize(Sender: TObject);
     procedure pnlBottomLeftResize(Sender: TObject);
     procedure pnlBottomRightResize(Sender: TObject);
@@ -221,24 +217,6 @@ end;
 procedure TMainForm.HandleSystemClosed(Sender: TObject);
 begin
   UpdateStatusLabels;
-end;
-
-procedure TMainForm.btnAddClick(Sender: TObject);
-begin
-  TProject.Create(dmDemo.BoldSystemHandle1.System);
-end;
-
-procedure TMainForm.btnDeleteClick(Sender: TObject);
-var
-  Project: TProject;
-begin
-  if Assigned(lhaProjects.CurrentBoldObject) then
-  begin
-    Project := lhaProjects.CurrentBoldObject as TProject;
-    if MessageDlg('Delete project "' + Project.Name + '" and all its tasks?',
-      mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-      Project.Delete;
-  end;
 end;
 
 procedure TMainForm.btnClearClick(Sender: TObject);

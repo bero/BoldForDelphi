@@ -427,9 +427,10 @@ end;
 
 procedure TDemoDataModule.ConfigureFirebird(AIni: TIniFile);
 var
-  Database, User, Password: string;
+  Database, Server, User, Password: string;
 begin
   Database := AIni.ReadString('Firebird', 'Database', 'BoldDemo.fdb');
+  Server := AIni.ReadString('Firebird', 'Server', 'localhost');
   User := AIni.ReadString('Firebird', 'User', 'SYSDBA');
   Password := AIni.ReadString('Firebird', 'Password', 'masterkey');
 
@@ -438,6 +439,7 @@ begin
       begin
         FFDConnection.Params.Clear;
         FFDConnection.Params.Add('DriverID=FB');
+        FFDConnection.Params.Add('Server=' + Server);
         FFDConnection.Params.Add('Database=' + Database);
         FFDConnection.Params.Add('User_Name=' + User);
         FFDConnection.Params.Add('Password=' + Password);
@@ -672,20 +674,64 @@ begin
 end;
 
 procedure TDemoDataModule.CreateDatabaseIfNotExists;
+var
+  Ini: TIniFile;
+  DatabaseType: string;
 begin
   // Not applicable for XML persistence
   if FPersistenceType = ptXML then
     Exit;
 
-  // Use Bold's built-in CreateDatabase method
-  // DropExisting=False means don't drop if it already exists
-  case FPersistenceType of
-    ptFireDAC:
-      FFireDACAdapter.CreateDatabase(False);
-    {$IFDEF UNIDAC}
-    ptUniDAC:
-      FUniDACAdapter.CreateDatabase(False);
-    {$ENDIF}
+  Ini := TIniFile.Create(FConfigFile);
+  try
+    DatabaseType := Ini.ReadString('Database', 'Type', 'MSSQL');
+
+    // Firebird and SQLite are file-based
+    if SameText(DatabaseType, 'Firebird') then
+    begin
+      // For Firebird, use a separate temp connection to create the database
+      // This avoids FireDAC caching the CreateDatabase flag on the main connection
+      case FPersistenceType of
+        ptFireDAC:
+          begin
+            var TempConn := TFDConnection.Create(nil);
+            try
+              TempConn.LoginPrompt := False;
+              TempConn.Params.Assign(FFDConnection.Params);
+              TempConn.Params.Values['Server'] := '';  // Use embedded mode for creation
+              TempConn.Params.Values['CreateDatabase'] := 'Yes';
+              TempConn.Connected := True;
+              TempConn.Connected := False;
+            finally
+              TempConn.Free;
+            end;
+          end;
+        {$IFDEF UNIDAC}
+        ptUniDAC:
+          begin
+            // UniDAC handles file creation automatically
+          end;
+        {$ENDIF}
+      end;
+    end
+    else if SameText(DatabaseType, 'SQLite') then
+    begin
+      // SQLite creates the file automatically on first connect
+    end
+    else
+    begin
+      // MSSQL/PostgreSQL - use Bold's built-in CreateDatabase method
+      case FPersistenceType of
+        ptFireDAC:
+          FFireDACAdapter.CreateDatabase(False);
+        {$IFDEF UNIDAC}
+        ptUniDAC:
+          FUniDACAdapter.CreateDatabase(False);
+        {$ENDIF}
+      end;
+    end;
+  finally
+    Ini.Free;
   end;
 end;
 
@@ -894,23 +940,10 @@ begin
                     mtConfirmation, [mbYes, mbNo], 0) = mrYes then
       begin
         CreateDatabaseIfNotExists;
-        // Connect to the newly created database before creating the schema
-        case FPersistenceType of
-          ptFireDAC:
-            begin
-              FFDConnection.Connected := True;
-              if not FFDConnection.Connected then
-                raise Exception.Create('Failed to connect to database after creation');
-            end;
-          {$IFDEF UNIDAC}
-          ptUniDAC:
-            begin
-              FUniConnection.Connected := True;
-              if not FUniConnection.Connected then
-                raise Exception.Create('Failed to connect to database after creation');
-            end;
-          {$ENDIF}
-        end;
+        // For file-based DBs (Firebird/SQLite), CreateDatabaseIfNotExists added CreateDatabase=Yes
+        // The connection will create the file on first connect
+        // For server DBs (MSSQL/PostgreSQL), the database was already created
+
         // Create the Bold schema (tables like bold_type, bold_id, etc.)
         CreateDatabaseSchema;
       end

@@ -44,10 +44,10 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 
 | Status | Notes |
 |--------|-------|
-|:white_check_mark: | Quick Start Guide (`Doc/quickstart.md`) |
-|:white_check_mark: | Example documentation in browser |
+| :white_check_mark: | Quick Start Guide (`Doc/quickstart.md`) |
+| :white_check_mark: | Example documentation in browser |
+| :white_check_mark: | Add about dialog to Bold menu item in IDE |
 | :white_large_square: | Changelog with date. Version stored in inc-file.|
-| :white_large_square: | Add about dialog to Bold menu item in IDE |
 | :calendar: | Complete API reference |
 | :calendar: |  OCL language reference |
 | :calendar: | Component reference guide |
@@ -64,8 +64,8 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 |--------|---------|----------|
 | :white_check_mark: | FireDAC | SQL Server |
 | :white_check_mark: | FireDAC | PostgreSQL |
+| :white_check_mark: | FireDAC | Firebird |
 | :white_check_mark: | XML | Not used |
-| :white_large_square: | FireDAC | FireBird |
 | :white_large_square: | FireDAC | InterBase |
 | :white_large_square: | FireDAC | SQLite |
 | :white_large_square: | FireDAC | Oracle |

@@ -23,7 +23,6 @@ object MainForm: TMainForm
     Align = alTop
     Color = clSilver
     ParentColor = False
-    ExplicitWidth = 757
   end
   object pnlTop: TPanel
     Left = 0
@@ -228,38 +227,6 @@ object MainForm: TMainForm
       TabOrder = 2
       OnClick = btnClearClick
     end
-    object btnAdd: TButton
-      Left = 282
-      Top = 150
-      Width = 47
-      Height = 25
-      Anchors = [akLeft, akBottom]
-      Caption = 'Add'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = 4210943
-      Font.Height = -11
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 3
-      OnClick = btnAddClick
-    end
-    object btnDelete: TButton
-      Left = 335
-      Top = 150
-      Width = 47
-      Height = 25
-      Anchors = [akLeft, akBottom]
-      Caption = 'Delete'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = 4210943
-      Font.Height = -11
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 4
-      OnClick = btnDeleteClick
-    end
   end
   object pnlBottom: TPanel
     Left = 0
@@ -278,8 +245,6 @@ object MainForm: TMainForm
       Height = 230
       Color = clSilver
       ParentColor = False
-      ExplicitLeft = 400
-      ExplicitHeight = 210
     end
     object pnlBottomLeft: TPanel
       Left = 0
@@ -636,9 +601,12 @@ object MainForm: TMainForm
     Height = 80
     Align = alBottom
     BevelOuter = bvNone
-    Color = $00F5F5F5
+    Color = clWhitesmoke
     ParentBackground = False
     TabOrder = 1
+    DesignSize = (
+      800
+      80)
     object lblConfigFile: TLabel
       Left = 12
       Top = 10
@@ -696,7 +664,6 @@ object MainForm: TMainForm
       ParentFont = False
       TabOrder = 0
       OnClick = btnDropDatabaseClick
-      ExplicitLeft = 684
     end
   end
   object lhaTasks: TBoldListHandle
