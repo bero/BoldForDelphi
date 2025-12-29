@@ -1,4 +1,4 @@
-# BoldForDelphi
+﻿# BoldForDelphi
 
 Bold is a Model Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool for Delphi. It allows you to start with a UML model of your application and execute it with a sophisticated object-relational mapping layer, OCL query language, change synchronization, and IDE-integrated tools.
 
@@ -19,6 +19,7 @@ Bold for Delphi is best suited for:
 
 ## Supported Delphi Versions
 
+- Delphi 13.0 Athens (packages/Delphi30/)
 - Delphi 12.3 Athens (packages/Delphi29.3/)
 - Delphi 12.1 Athens (packages/Delphi29.1/)
 - Delphi 11.x Alexandria (packages/Delphi28/)
@@ -26,19 +27,17 @@ Bold for Delphi is best suited for:
 ## Building
 
 ### Prerequisites
-- Delphi 12.3 (or target version) installed
-- MSBuild available via rsvars.bat
+- Delphi 13.0, 12.3, 12.1 CE or 11.3 installed
 
 ### Build the Package
-```batch
-cd packages\Delphi29.3
-build.bat
-```
 
-Or manually:
-```batch
-call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
-msbuild dclBold.dproj /p:Config=Debug /p:Platform=Win32
+Or manually from PowerShell:
+by using https://github.com/omonien/DelphiStandards/blob/master/DelphiBuildDPROJ.ps1
+
+Adjust -DelphiVersion from what you use.
+
+```powershell
+`DelphiBuildDPROJ.ps1 -Projectfile "C:\BoldForDelphi\packages\Delphi30\dclBold30.dproj" -DelphiVersion "37.0" -VerboseOutPut`
 ```
 
 ## Unit Tests and Code Coverage
@@ -71,8 +70,6 @@ Source/
 │   ├── BoldControls/      # Visual controls (Grid, Edit, ComboBox, etc.)
 │   ├── ControlPacks/      # Renderer/follower pattern for UI binding
 │   ├── Core/              # GUI base functionality
-│   ├── FormGen/           # Automatic form generation
-│   └── IDE/               # Design-time property editors
 ├── Common/                # Shared infrastructure
 │   ├── Core/              # Base classes (BoldBase, BoldContainers, BoldDefs)
 │   ├── Subscription/      # Observer pattern (BoldSubscription, BoldDeriver)
@@ -99,8 +96,7 @@ Source/
 ├── Handles/               # Handle system for UI binding
 ├── MoldModel/             # Model representation and code generation
 ├── UMLModel/              # UML metamodel and editor
-├── ValueSpace/            # Value interfaces and streaming
-└── Extensions/            # Optional extensions (OLLE, etc.)
+└── ValueSpace/            # Value interfaces and streaming
 ```
 
 ## Key Packages
@@ -111,14 +107,22 @@ Source/
 
 ## Contributing
 
-This is the develop branch for direct commits and feature branch merges.
-External developers should fork the repository and submit pull requests.
+1. **Report issues** - Use GitHub Issues for bugs and feature requests
+2. **Submit PRs** - Fork the repo and submit pull requests
+3. **Documentation** - Help improve docs and examples
+4. **Testing** - Report compatibility issues with different databases/Delphi versions
+5. **Spread the word** - Blog posts, conference talks, social media
+
+Have suggestions for the roadmap? Open an issue on GitHub or discuss on Discord.
 
 ## Resources
 
-- Wiki: https://delphi.fandom.com/wiki/Bold_for_Delphi
-- Blog: http://boldfordelphi.blogspot.com/
-- Discord: https://discord.gg/C6frzsn
+- **GitHub**: https://github.com/bero/BoldForDelphi
+- **Issues**: https://github.com/bero/BoldForDelphi/issues
+- **Discord**: https://discord.gg/C6frzsn
+- **Wiki**: https://delphi.fandom.com/wiki/Bold_for_Delphi
+- **GitHub Wiki**: https://github.com/bero/BoldForDelphi/wiki
+- **Blog**: http://boldfordelphi.blogspot.com/
 
 ## License
 
