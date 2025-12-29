@@ -18,7 +18,7 @@ uses
   ExtCtrls,
   Menus,
   ImgList,
-  Graphics;
+  Graphics, System.ImageList;
 
 type
   TfrmAboutBold = class(TForm)
@@ -26,57 +26,29 @@ type
     BtnOK: TButton;
     TabAbout: TTabSheet;
     ImageLogoDelphi: TImage;
-    LabelCopyright: TLabel;
-    LabelComments: TLabel;
     Label14: TLabel;
-    LabelURLBoldSoft: TLabel;
     LabelProductName: TLabel;
     LabelVersion: TLabel;
     Bevel1: TBevel;
     Label2: TLabel;
     Label12: TLabel;
-    LabelURLBoldForDelphi: TLabel;
-    SaveDialogRunLic: TSaveDialog;
-    tsTeam: TTabSheet;
-    BtnUnlock: TSpeedButton;
-    Label9: TLabel;
-    Label11: TLabel;
-    Label20: TLabel;
-    Label21: TLabel;
-    Label22: TLabel;
-    Label23: TLabel;
-    Image1: TImage;
+    LabelURLLatestGit: TLabel;
+    Label1: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
     Label8: TLabel;
-    Label10: TLabel;
-    Label28: TLabel;
-    Label29: TLabel;
-    Label30: TLabel;
-    Label31: TLabel;
-    Label32: TLabel;
-    Label33: TLabel;
-    ImageLogoBCB: TImage;
-    ImageList1: TImageList;
-    Label34: TLabel;
-    Label35: TLabel;
-    ImageList2: TImageList;
+    Label9: TLabel;
+    lblDiscordSupport: TLabel;
     procedure FormCreate(Sender: TObject);
-    procedure URLHomeClick(Sender: TObject);
-    procedure URLProdClick(Sender: TObject);
-    procedure URLSupportClick(Sender: TObject);
-    procedure ImageLogoMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure ImageLogoMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
-    procedure ImageLogoMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure BtnUnlockClick(Sender: TObject);
+    procedure URLOriginalGitClick(Sender: TObject);
+    procedure URLLatestGitClick(Sender: TObject);
+    procedure lblDiscordSupportClick(Sender: TObject);
   private
-    function GetEffectiveLogo: TImage;
-  private
-    DragIt: Boolean;
-    DragStart: Integer;
     procedure GetVersionInfo;
-    property EffectiveLogo: TImage read GetEffectiveLogo;
+    procedure OpenURL(const URL: string);
   public
     {public declarations}
   end;
@@ -177,15 +149,6 @@ procedure TfrmAboutBold.FormCreate(Sender: TObject);
 begin
   PageControl.ActivePage        := TabAbout;
   GetVersionInfo;
-  LabelURLBoldSoft.Caption      := sURLBoldForDelphi;
-  LabelURLBoldForDelphi.Caption := sURLBoldForDelphi;
-
-  // Hide both logos, and then redisplay the correct one.
-  ImageLogoDelphi.visible := false;
-  ImageLogoBCB.Visible := false;
-  EffectiveLogo.Visible := true;
-  EffectiveLogo.Top := btnUnlock.Top;
-  tsTeam.TabVisible := false;
 end;
 
 {*****************************************************************************
@@ -210,7 +173,6 @@ var
   LangCharSetInfo: PLangCharSetInfo;
   LangCharSetString: string;
 begin
-  LabelComments.Caption := sVersionInfoNotAvailable;
   {Get size and allocate buffer for VerInfo}
   if GetModuleFileName(hInstance, FileName, SizeOf(FileName)) > 0 then
   begin
@@ -233,10 +195,6 @@ begin
           end;
             if VerQueryValue(Buffer, StrPCopy(SubBlock, '\StringFileInfo\' + LangCharSetString + '\FileVersion'), Data, DataLen) then // do not localize
               LabelVersion.Caption := StrPas(PChar(Data));
-            if VerQueryValue(Buffer, StrPCopy(SubBlock, '\StringFileInfo\' + LangCharSetString + '\LegalCopyright'), Data, DataLen) then // do not localize
-              LabelCopyright.Caption := StrPas(PChar(Data));
-            if VerQueryValue(Buffer, StrPCopy(SubBlock, '\StringFileInfo\' + LangCharSetString + '\Comments'), Data, DataLen) then // do not localize
-              LabelComments.Caption := StrPas(PChar(Data));
           end;
         end;
       finally
@@ -248,79 +206,27 @@ end;
 
 
 {*****************************************************************************
- * Easter Egg
- *****************************************************************************}
-
-procedure TfrmAboutBold.ImageLogoMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  DragIt := not btnUnlock.Visible and (Shift = [ssShift, ssCtrl, ssRight]);
-  DragStart := ScreenToClient(EffectiveLogo.ClientToScreen(Point(X, Y))).Y;
-end;
-
-procedure TfrmAboutBold.ImageLogoMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-var
-  NewTop: Integer;
-begin
-  if DragIt and (Shift = [ssShift, ssCtrl, ssRight]) then
-  begin
-    NewTop := 4 + ScreenToClient(EffectiveLogo.ClientToScreen(Point(X, Y))).Y - DragStart;
-    if NewTop < 4 then
-      NewTop := 4;
-    if NewTop > 248 then
-      NewTop := 248;
-    EffectiveLogo.Top := NewTop;
-  end
-  else
-  begin
-    DragIt := False;
-    if not btnUnLock.Visible then
-      EffectiveLogo.Top := 4;
-  end;
-end;
-
-procedure TfrmAboutBold.ImageLogoMouseUp(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  if DragIt and (EffectiveLogo.Top > 100) then
-  begin
-    BtnUnlock.Visible := True;
-    EffectiveLogo.Top := btnUnlock.Top + btnUnlock.Height + 4;
-  end
-  else
-  begin
-    if not btnUnLock.Visible then
-      EffectiveLogo.Top := 4;
-  end;
-  DragIt := False;
-end;
-
-procedure TfrmAboutBold.BtnUnlockClick(Sender: TObject);
-begin
-  tsTeam.TabVisible := True;
-end;
-
-{*****************************************************************************
  * User events
  *****************************************************************************}
 
-{About}
-
-procedure TfrmAboutBold.URLHomeClick(Sender: TObject);
-{Open BoldSoft homepage}
+procedure TfrmAboutBold.OpenURL(const URL: string);
 begin
-  ShellExecute(0, 'open', PChar(sURLBoldForDelphi), '', '', SW_SHOWMAXIMIZED); // do not localize
+  ShellExecute(0, 'open', PChar(URL), '', '', SW_SHOWNORMAL); // do not localize
 end;
 
-procedure TfrmAboutBold.URLProdClick(Sender: TObject);
+procedure TfrmAboutBold.URLLatestGitClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', PChar(sURLBoldForDelphi), '', '', SW_SHOWMAXIMIZED); // do not localize
+  OpenURL(sURL_LatestGitForBold);
 end;
 
-procedure TfrmAboutBold.URLSupportClick(Sender: TObject);
+procedure TfrmAboutBold.URLOriginalGitClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', PChar(sURLSupport), '', '', SW_SHOWNORMAL); // do not localize
+  OpenURL(sURL_OriginalGitForBold);
+end;
+
+procedure TfrmAboutBold.lblDiscordSupportClick(Sender: TObject);
+begin
+  OpenURL(sURL_DiscordSupport);
 end;
 
 {Register}
@@ -352,13 +258,9 @@ begin
   finally
     BoldInternetCloseHandle(hInternetSession);
   end;
+
   if SameText(Copy(Result, 1, 7), 'http://') then // do not localize
     Result := ReadURL(Result);
-end;
-
-function TfrmAboutBold.GetEffectiveLogo: TImage;
-begin
-  result := imageLogoDelphi;
 end;
 
 end.

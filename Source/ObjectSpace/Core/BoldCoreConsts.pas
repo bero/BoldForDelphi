@@ -602,15 +602,16 @@ const
   sNoModel = '%s does not seem to be connected to a model';
 
 // BoldIDEMenus
-  sCompanyHomePage = '&BoldSoft Home Page';
+  sCompanyHomePage = 'Bold for Delphi &GitHub';
   sProductHomePage = 'Bold for &Delphi Home Page';
   sHelp = '&Help';
   sAbout = '&About';
 
 // BoldAbout
   sVersionInfoNotAvailable = 'No version information for this program is available!';
-  sURLBoldForDelphi = 'http://www.boldfordelphi.com';
-  sURLSupport = 'http://www.forum.boldfordelphi.com';
+  sURL_LatestGitForBold = 'https://github.com/bero/BoldForDelphi';
+  sURL_OriginalGitForBold = 'https://github.com/embarcadero/BoldForDelphi';
+  sURL_DiscordSupport = 'https://discord.gg/C6frzsn';
 
 // BoldDatabaseAdapter FireDAC/UniDac
   sFireDAC = 'FireDAC';

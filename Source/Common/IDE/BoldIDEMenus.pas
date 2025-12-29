@@ -148,9 +148,10 @@ begin
   while (I<MainMenu.Items.Count) and (MainMenu.Items[I].Name<>'ToolsMenu') do
     Inc(I);
 
-  AddMenuItem('BoldURLDelimiterMenu', '-', nil); // do not localize
-  AddMenuItem('BoldHelpDelimiterMenu', '-', nil); // do not localize
+  // About section
   AddMenuItem('BoldAboutDelimiterMenu', '-', nil); // do not localize
+  AddMenuItem('BoldAboutMenu', sAbout, ActionAbout);
+
   MainMenu.Items.Insert(I, fBoldMenu);
 end;
 

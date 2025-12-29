@@ -51,7 +51,7 @@ end;
 procedure InitExpert;
 begin
   dmAttributeWizard := TdmAttributeWizard.Create(nil);
-  AttributeWizard := TAttributeWizard.Create('Bold.AttributeWizard', sBoldAttributeWizard, [], 3, 'Bold'); // do not localize
+  AttributeWizard := TAttributeWizard.Create('Bold.AttributeWizard', sBoldAttributeWizard, [], 0, 'Bold'); // do not localize
   BoldMenuExpert;  // ensure "Bold" menu has been created
   AttributeWizard.AddMenuItem(dmAttributeWizard.AttributeWizardMenu);
   AttributeWizardInitialized := true;
