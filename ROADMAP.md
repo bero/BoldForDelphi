@@ -63,8 +63,8 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 | Status | Adapter | Database |
 |--------|---------|----------|
 | :white_check_mark: | FireDAC | SQL Server |
+| :white_check_mark: | FireDAC | PostgreSQL |
 | :white_check_mark: | XML | Not used |
-| :white_large_square: | FireDAC | PostgreSQL |
 | :white_large_square: | FireDAC | FireBird |
 | :white_large_square: | FireDAC | InterBase |
 | :white_large_square: | FireDAC | SQLite |

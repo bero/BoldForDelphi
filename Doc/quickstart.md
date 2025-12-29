@@ -22,7 +22,7 @@ UML Model → Code Generator → Business Classes → Bold Runtime → Database
 ## Prerequisites ✅
 
 - **Delphi 11.3, 12.1 CE, 12.3, or 13**
-- **Database**: Any FireDAC-supported database should work. SQL Server is tested
+- **Database**: Any FireDAC-supported database should work. SQL Server and PostgreSQL are tested
 - **Bold packages installed** (see Installation below)
 
 ---
@@ -130,7 +130,9 @@ Connect them:
 ### Step 4: Add Database Connection
 
 1. Drop a `TFDConnection` (FireDAC) on the DataModule
-2. Configure it for your database (e.g. MSSQL for testing):
+2. Configure it for your database:
+
+   **For SQL Server:**
    ```ini
    [Database]
    Persistence=FireDAC
@@ -143,6 +145,26 @@ Connect them:
    User=sa
    Password=
    ```
+
+   **For PostgreSQL:**
+   ```ini
+   [Database]
+   Persistence=FireDAC
+   Type=PostgreSQL
+
+   [PostgreSQL]
+   Server=localhost
+   Database=bolddemo
+   User=postgres
+   Password=masterkey
+   ```
+
+   > **Important for PostgreSQL:** FireDAC requires `libpq.dll` and its dependencies.
+   > Copy that file from your PostgreSQL installation (e.g., `C:\Program Files\PostgreSQL\18\bin\`)
+   > to the same folder as your application executable:
+   >
+   > Note: From my tests change PATH environment variable or VendorHome may not work reliably.
+
 3. Drop a `TBoldDatabaseAdapterFireDAC` component
 4. Set `BoldDatabaseAdapterFireDAC1.Connection` → `FDConnection1`
 5. Set `BoldPersistenceHandleDB1.DatabaseAdapter` → `BoldDatabaseAdapterFireDAC1`
@@ -335,6 +357,10 @@ self.firstName + ' ' + self.lastName     -- Concatenation
 **Database errors on first run**
 - Use `TBoldCreateDatabaseAction` to create the schema first
 - Or call `BoldPersistenceHandleDB1.CreateDataBaseSchema`
+
+**PostgreSQL: "libpq.dll not found" or connection fails**
+- Copy `libpq.dll` and its dependencies to your executable folder (see Step 4)
+- The DLLs are in your PostgreSQL installation's `bin` folder
 
 ---
 

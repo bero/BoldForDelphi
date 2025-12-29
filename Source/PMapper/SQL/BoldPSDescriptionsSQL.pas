@@ -354,60 +354,61 @@ var
 
   function DeleteTableBDE: boolean;
   var
-  Table: IBoldtable;
+    Table: IBoldtable;
   begin
-  try
-    Table := PSParams.DataBase.GetTable;
     try
-      Table.TableName := TableNameList[i];
-      Table.Exclusive := True;
-      Table.FieldDefs.Update;
-      Table.DeleteTable;
-      Result := True;
-    finally
-      PSParams.Database.ReleaseTable(table)
+      Table := PSParams.DataBase.GetTable;
+      try
+        Table.TableName := TableNameList[i];
+        Table.Exclusive := True;
+        Table.FieldDefs.Update;
+        Table.DeleteTable;
+        Result := True;
+      finally
+        PSParams.Database.ReleaseTable(table)
+      end;
+    except
+      Result := False;
     end;
-  except
-    Result := False;
-  end;
   end;
 
   function DeleteTableSQL: boolean;
   var
-  PsParamsSQL: TBoldPSSQLParams;
-  Query: IBoldExecQuery;
+    PsParamsSQL: TBoldPSSQLParams;
+    Query: IBoldExecQuery;
   begin
-  result := true;
-  PSParamsSQL := PSParams as TBoldPSSQLParams;
-  Query := PSParamsSQL.Database.GetExecQuery;
-  try
-    Query.AssignSQLText('DROP TABLE '+Tablenamelist[i]);
-    Query.ExecSQL;
-  finally
-    PSParamsSQL.Database.ReleaseExecQuery(Query);
-  end;
+    result := true;
+    PSParamsSQL := PSParams as TBoldPSSQLParams;
+    Query := PSParamsSQL.Database.GetExecQuery;
+    try
+      Query.AssignSQLText('DROP TABLE '+Tablenamelist[i]);
+      Query.ExecSQL;
+    finally
+      PSParamsSQL.Database.ReleaseExecQuery(Query);
+    end;
   end;
 
   function DeleteTable: Boolean;
   var
-  MayDelete,
-  IsBoldTable: boolean;
-
+    MayDelete,
+    IsBoldTable: boolean;
   begin
-  Result:=False;
-  IsBoldTable := Knowntables.IndexOf(TableNameList[i]) <> -1 ;
+    Result:=False;
+    IsBoldTable := Knowntables.IndexOf(TableNameList[i]) <> -1 ;
 
-  if not IsBoldTable and (not PSParams.IgnoreUnknownTables) and
-    not (Query in [qrYesAll, qrNoAll]) then
-      Query := QueryUser(sDeleteTable, Format(sDeleteNonBoldTable, [TableNameList[i]]));
+    if not IsBoldTable and (not PSParams.IgnoreUnknownTables) and
+      not (Query in [qrYesAll, qrNoAll]) then
+        Query := QueryUser(sDeleteTable, Format(sDeleteNonBoldTable, [TableNameList[i]]));
 
-  MayDelete := (Query in [qrYes, qrYesAll]) and (not PSParams.IgnoreUnknownTables);
+    MayDelete := (Query in [qrYes, qrYesAll]) and (not PSParams.IgnoreUnknownTables);
 
-  if IsBoldTable or MayDelete then
-    case EffectiveGenerationMode(PSParams) of
-      dbgTable: result := DeleteTableBDE;
-      dbgQuery: Result := DeleteTableSQL;
-      else result := false;
+    if IsBoldTable or MayDelete then
+    begin
+      case EffectiveGenerationMode(PSParams) of
+        dbgTable: result := DeleteTableBDE;
+        dbgQuery: Result := DeleteTableSQL;
+        else result := false;
+      end;
     end;
   end;
 
