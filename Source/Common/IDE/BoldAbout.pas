@@ -26,26 +26,27 @@ type
     BtnOK: TButton;
     TabAbout: TTabSheet;
     ImageLogoDelphi: TImage;
-    Label14: TLabel;
+    lblHistory: TLabel;
     LabelProductName: TLabel;
     LabelVersion: TLabel;
     Bevel1: TBevel;
-    Label2: TLabel;
-    Label12: TLabel;
-    LabelURLLatestGit: TLabel;
-    Label1: TLabel;
-    Label3: TLabel;
-    Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
-    Label7: TLabel;
-    Label8: TLabel;
-    Label9: TLabel;
+    lblHistoryheader: TLabel;
+    LabelLatestGit: TLabel;
+    LabelLatestGitURL: TLabel;
+    lblLatestGit: TLabel;
+    lblOriginalGitURL: TLabel;
+    lblOriginalGit: TLabel;
+    lblCommunity: TLabel;
     lblDiscordSupport: TLabel;
+    lblDiscordSupportURL: TLabel;
+    lblBoldSoftHeader: TLabel;
+    lblBoldSoftURL: TLabel;
+    lblBoldSoft: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure URLOriginalGitClick(Sender: TObject);
     procedure URLLatestGitClick(Sender: TObject);
-    procedure lblDiscordSupportClick(Sender: TObject);
+    procedure lblBoldSoftURLClick(Sender: TObject);
+    procedure lblDiscordSupportURLClick(Sender: TObject);
   private
     procedure GetVersionInfo;
     procedure OpenURL(const URL: string);
@@ -77,6 +78,25 @@ const
   SubItemInfo = 2;
   SubItemProduct = 3;
   SubItemParams = 4;
+
+function GetDelphiVersionString: string;
+begin
+  {$IF CompilerVersion >= 37.0}
+  Result := 'Delphi 13 Athens';
+  {$ELSEIF CompilerVersion >= 36.0}
+  Result := 'Delphi 12.2 Athens';
+  {$ELSEIF CompilerVersion >= 35.0}
+  Result := 'Delphi 12 Athens';
+  {$ELSEIF CompilerVersion >= 34.0}
+  Result := 'Delphi 11 Alexandria';
+  {$ELSEIF CompilerVersion >= 33.0}
+  Result := 'Delphi 10.4 Sydney';
+  {$ELSEIF CompilerVersion >= 32.0}
+  Result := 'Delphi 10.3 Rio';
+  {$ELSE}
+  Result := Format('Delphi (CompilerVersion %.1f)', [CompilerVersion]);
+  {$IFEND}
+end;
 
 function SelectDirectoryWithInitial(const Caption: string; const Root: WideString; var Directory: string): Boolean;
 var
@@ -147,8 +167,9 @@ end;
 
 procedure TfrmAboutBold.FormCreate(Sender: TObject);
 begin
-  PageControl.ActivePage        := TabAbout;
+  PageControl.ActivePage := TabAbout;
   GetVersionInfo;
+  Caption := Caption + ' - ' + GetDelphiVersionString;
 end;
 
 {*****************************************************************************
@@ -224,9 +245,14 @@ begin
   OpenURL(sURL_OriginalGitForBold);
 end;
 
-procedure TfrmAboutBold.lblDiscordSupportClick(Sender: TObject);
+procedure TfrmAboutBold.lblDiscordSupportURLClick(Sender: TObject);
 begin
   OpenURL(sURL_DiscordSupport);
+end;
+
+procedure TfrmAboutBold.lblBoldSoftURLClick(Sender: TObject);
+begin
+  OpenURL(sURL_BoldSoft);
 end;
 
 {Register}

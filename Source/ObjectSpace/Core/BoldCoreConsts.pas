@@ -612,6 +612,7 @@ const
   sURL_LatestGitForBold = 'https://github.com/bero/BoldForDelphi';
   sURL_OriginalGitForBold = 'https://github.com/embarcadero/BoldForDelphi';
   sURL_DiscordSupport = 'https://discord.gg/C6frzsn';
+  sURL_BoldSoft = 'https://web.archive.org/web/20020806075131/http://www.boldsoft.com/index.html';
 
 // BoldDatabaseAdapter FireDAC/UniDac
   sFireDAC = 'FireDAC';

@@ -16,44 +16,7 @@ object frmAboutBold: TfrmAboutBold
   ShowHint = True
   OnCreate = FormCreate
   TextHeight = 13
-  object Label1: TLabel
-    Left = 11
-    Top = 171
-    Width = 185
-    Height = 13
-    Cursor = crHandPoint
-    Caption = 'https://github.com/bero/BoldForDelphi'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsUnderline]
-    ParentFont = False
-  end
-  object Label3: TLabel
-    Left = 202
-    Top = 171
-    Width = 185
-    Height = 38
-    AutoSize = False
-    Caption = 'Visit GitHub for latest source code, issues, and documentation.'
-    WordWrap = True
-  end
-  object Label4: TLabel
-    Left = 19
-    Top = 179
-    Width = 185
-    Height = 13
-    Cursor = crHandPoint
-    Caption = 'https://github.com/bero/BoldForDelphi'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsUnderline]
-    ParentFont = False
-  end
-  object Label5: TLabel
+  object lblLatestGit: TLabel
     Left = 203
     Top = 179
     Width = 185
@@ -72,7 +35,7 @@ object frmAboutBold: TfrmAboutBold
     TabOrder = 0
     object TabAbout: TTabSheet
       Caption = 'About'
-      object Label14: TLabel
+      object lblHistory: TLabel
         Left = 112
         Top = 52
         Width = 261
@@ -108,7 +71,7 @@ object frmAboutBold: TfrmAboutBold
         Height = 16
         Shape = bsTopLine
       end
-      object Label2: TLabel
+      object lblHistoryheader: TLabel
         Left = 112
         Top = 36
         Width = 261
@@ -123,8 +86,8 @@ object frmAboutBold: TfrmAboutBold
         ParentFont = False
         WordWrap = True
       end
-      object Label12: TLabel
-        Left = 201
+      object LabelLatestGit: TLabel
+        Left = 199
         Top = 163
         Width = 185
         Height = 38
@@ -147,7 +110,7 @@ object frmAboutBold: TfrmAboutBold
         ParentFont = False
         WordWrap = True
       end
-      object LabelURLLatestGit: TLabel
+      object LabelLatestGitURL: TLabel
         Left = 3
         Top = 163
         Width = 149
@@ -487,7 +450,7 @@ object frmAboutBold: TfrmAboutBold
           0000000000000000000000000000000000000000000000000000000000000000
           000000000000000000000000000000000000000000000000000000000000}
       end
-      object Label6: TLabel
+      object lblOriginalGitURL: TLabel
         Left = 3
         Top = 203
         Width = 190
@@ -502,7 +465,7 @@ object frmAboutBold: TfrmAboutBold
         ParentFont = False
         OnClick = URLOriginalGitClick
       end
-      object Label7: TLabel
+      object lblOriginalGit: TLabel
         Left = 201
         Top = 203
         Width = 185
@@ -513,7 +476,7 @@ object frmAboutBold: TfrmAboutBold
           '.'
         WordWrap = True
       end
-      object Label8: TLabel
+      object lblCommunity: TLabel
         Left = 3
         Top = 247
         Width = 261
@@ -528,7 +491,7 @@ object frmAboutBold: TfrmAboutBold
         ParentFont = False
         WordWrap = True
       end
-      object Label9: TLabel
+      object lblDiscordSupport: TLabel
         Left = 201
         Top = 266
         Width = 185
@@ -537,9 +500,9 @@ object frmAboutBold: TfrmAboutBold
         Caption = 'Visit Discord to chat about news and ideas'
         WordWrap = True
       end
-      object lblDiscordSupport: TLabel
+      object lblDiscordSupportURL: TLabel
         Left = 3
-        Top = 267
+        Top = 266
         Width = 89
         Height = 13
         Cursor = crHandPoint
@@ -550,13 +513,52 @@ object frmAboutBold: TfrmAboutBold
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsUnderline]
         ParentFont = False
-        OnClick = lblDiscordSupportClick
+        OnClick = lblDiscordSupportURLClick
+      end
+      object lblBoldSoftHeader: TLabel
+        Left = 3
+        Top = 303
+        Width = 261
+        Height = 13
+        AutoSize = False
+        Caption = 'BoldSoft'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+        WordWrap = True
+      end
+      object lblBoldSoftURL: TLabel
+        Left = 3
+        Top = 319
+        Width = 87
+        Height = 13
+        Cursor = crHandPoint
+        Caption = 'www.boldsoft.com'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsUnderline]
+        ParentFont = False
+        OnClick = lblBoldSoftURLClick
+      end
+      object lblBoldSoft: TLabel
+        Left = 201
+        Top = 310
+        Width = 185
+        Height = 38
+        AutoSize = False
+        Caption = 'Visit original BoldSoft page on Wayback machine'
+        WordWrap = True
       end
     end
   end
   object BtnOK: TButton
-    Left = 308
-    Top = 392
+    Left = 284
+    Top = 390
     Width = 81
     Height = 25
     Caption = 'OK'

@@ -511,6 +511,9 @@ contains
   BoldUDPModificationBroadcaster in '..\..\Source\Persistence\UDPPropagator\BoldUDPModificationBroadcaster.pas',
   BoldWebConnectionReg in '..\..\Source\Common\IDE\BoldWebConnectionReg.pas',
   BoldXMLDispatcherVB in '..\..\Source\Common\ConnectionHandlesCOM\BoldXMLDispatcherVB.pas',
-  BoldXMLDispatcherVBReg in '..\..\Source\Common\IDECOM\BoldXMLDispatcherVBReg.pas';
+  BoldXMLDispatcherVBReg in '..\..\Source\Common\IDECOM\BoldXMLDispatcherVBReg.pas',
+  BoldStubs in '..\..\Source\Common\Stubs\BoldStubs.pas',
+  BoldTraceLog in '..\..\Source\Common\Stubs\BoldTraceLog.pas';
 
 end.
+

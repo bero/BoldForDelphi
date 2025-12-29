@@ -55,7 +55,7 @@
         <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
         <GenDll>true</GenDll>
         <DCC_E>false</DCC_E>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=25.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=25.12.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=25.12.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_Description>Bold Components for Delphi 13</DCC_Description>
         <SanitizedProjectName>dclBold</SanitizedProjectName>
         <DCC_K>false</DCC_K>
@@ -68,16 +68,16 @@
         <DllVersion>30</DllVersion>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>25</VerInfo_MajorVer>
-        <VerInfo_MinorVer>0</VerInfo_MinorVer>
+        <VerInfo_MinorVer>12</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>xmlrtl;rtl;vclactnband;vclx;vcl;vclimg;DbxCommonDriver;dbrtl;soaprtl;inet;vcldb;dsnap;dbexpress;adortl;FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;IndySystem;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
-        <VerInfo_MajorVer>1</VerInfo_MajorVer>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=25.12.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=25.12.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_MajorVer>25</VerInfo_MajorVer>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_MinorVer>0</VerInfo_MinorVer>
+        <VerInfo_MinorVer>12</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <DCC_UsePackage>FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;IndySystem;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
@@ -85,7 +85,7 @@
     <PropertyGroup Condition="'$(Base_Win64x)'!=''">
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=25.12.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=Bold for Delphi;ProductVersion=25.12.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_UsePackage>FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;IndySystem;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
@@ -97,9 +97,9 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
-        <VerInfo_MajorVer>1</VerInfo_MajorVer>
-        <VerInfo_MinorVer>0</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=25.12.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=25.12.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_MajorVer>25</VerInfo_MajorVer>
+        <VerInfo_MinorVer>12</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -589,6 +589,8 @@
         <DCCReference Include="..\..\Source\Common\IDE\BoldWebConnectionReg.pas"/>
         <DCCReference Include="..\..\Source\Common\ConnectionHandlesCOM\BoldXMLDispatcherVB.pas"/>
         <DCCReference Include="..\..\Source\Common\IDECOM\BoldXMLDispatcherVBReg.pas"/>
+        <DCCReference Include="..\..\Source\Common\Stubs\BoldStubs.pas"/>
+        <DCCReference Include="..\..\Source\Common\Stubs\BoldTraceLog.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -620,6 +622,12 @@
                 <Platform value="Win64x">False</Platform>
             </Platforms>
             <Deployment Version="5">
+                <DeployFile LocalName="..\Bin\dclBold.30.bpl" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>dclBold.bpl</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="OSX32">
                         <Operation>1</Operation>
