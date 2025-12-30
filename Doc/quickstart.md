@@ -155,15 +155,10 @@ Connect them:
    [PostgreSQL]
    Server=localhost
    Database=bolddemo
+   VendorLib=C:\Program Files\PostgreSQL\18\bin\libpq.dll
    User=postgres
    Password=<your_password>
    ```
-
-   > **Important for PostgreSQL:** FireDAC requires `libpq.dll` and its dependencies.
-   > Copy that file from your PostgreSQL installation (e.g., `C:\Program Files\PostgreSQL\18\bin\`)
-   > to the same folder as your application executable.
-   >
-   > Note: Setting PATH environment variable or VendorHome may not work reliably.
 
    **For Firebird:**
    ```ini
@@ -174,13 +169,10 @@ Connect them:
    [Firebird]
    Server=localhost
    Database=C:\Data\BoldDemo.fdb
+   VendorLib=C:\Program Files\Firebird\Firebird_5_0\fbclient.dll
    User=SYSDBA
    Password=<your_password>
    ```
-
-   > **Important for Firebird:** FireDAC requires `fbclient.dll`.
-   > Copy it from your Firebird installation (e.g., `C:\Program Files\Firebird\Firebird_5_0\`)
-   > to the same folder as your application executable.
 
 3. Drop a `TBoldDatabaseAdapterFireDAC` component
 4. Set `BoldDatabaseAdapterFireDAC1.Connection` → `FDConnection1`

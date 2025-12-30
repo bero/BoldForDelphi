@@ -384,7 +384,7 @@ end;
 
 procedure TDemoDataModule.ConfigurePostgreSQL(AIni: TIniFile);
 var
-  Server, Database, User, Password, VendorHome: string;
+  Server, Database, User, Password, VendorLib: string;
   Port: Integer;
 begin
   Server := AIni.ReadString('PostgreSQL', 'Server', 'localhost');
@@ -392,7 +392,7 @@ begin
   Database := AIni.ReadString('PostgreSQL', 'Database', 'bolddemo');
   User := AIni.ReadString('PostgreSQL', 'User', 'postgres');
   Password := AIni.ReadString('PostgreSQL', 'Password', '');
-  VendorHome := AIni.ReadString('PostgreSQL', 'VendorHome', '');
+  VendorLib := AIni.ReadString('PostgreSQL', 'VendorLib', '');
 
   case FPersistenceType of
     ptFireDAC:
@@ -404,8 +404,8 @@ begin
         FFDConnection.Params.Add('Database=' + Database);
         FFDConnection.Params.Add('User_Name=' + User);
         FFDConnection.Params.Add('Password=' + Password);
-        if VendorHome <> '' then
-          FFDConnection.Params.Add('VendorHome=' + VendorHome);
+        if VendorLib <> '' then
+          FFDConnection.Params.Add('VendorLib=' + VendorLib);
         FFireDACAdapter.DatabaseEngine := dbePostgres;
         ConfigureSQLDatabaseConfig(FFireDACAdapter.SQLDatabaseConfig, 'PostgreSQL');
       end;
@@ -427,12 +427,13 @@ end;
 
 procedure TDemoDataModule.ConfigureFirebird(AIni: TIniFile);
 var
-  Database, Server, User, Password: string;
+  Database, Server, User, Password, VendorLib: string;
 begin
   Database := AIni.ReadString('Firebird', 'Database', 'BoldDemo.fdb');
   Server := AIni.ReadString('Firebird', 'Server', 'localhost');
   User := AIni.ReadString('Firebird', 'User', 'SYSDBA');
   Password := AIni.ReadString('Firebird', 'Password', 'masterkey');
+  VendorLib := AIni.ReadString('Firebird', 'VendorLib', '');
 
   case FPersistenceType of
     ptFireDAC:
@@ -443,6 +444,8 @@ begin
         FFDConnection.Params.Add('Database=' + Database);
         FFDConnection.Params.Add('User_Name=' + User);
         FFDConnection.Params.Add('Password=' + Password);
+        if VendorLib <> '' then
+          FFDConnection.Params.Add('VendorLib=' + VendorLib);
         FFireDACAdapter.DatabaseEngine := dbeInterbaseSQLDialect3;
         ConfigureSQLDatabaseConfig(FFireDACAdapter.SQLDatabaseConfig, 'Firebird');
       end;
