@@ -13,19 +13,12 @@ implementation
 
 uses
   Classes,
-  SysUtils,
   BoldPersistenceHandleDOA,
-  BoldIDESupport,
-  BoldVersionInfo,
   BoldDatabaseAdapterDOA,
   BoldIDEConsts;
 
 procedure Register;
 begin
-  RemovePackageFromDisabledPackagesRegistry(format('Bold%d%d%sDOA', [
-    BoldBuildVersionNumberMajor,
-    BoldBuildVersionNumberMinor,
-    BoldBuildTarget]));
   RegisterComponents(BOLDPAGENAME_DEPRECATED, [TBoldPersistenceHandleDOA]);
   RegisterComponents(BOLDPAGENAME_PERSISTENCE, [TBoldDatabaseAdapterDOA]);
 end;

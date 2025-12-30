@@ -12,20 +12,13 @@ implementation
 {$R BoldPersistenceHandleDBISAM.res}
 
 uses
-  SysUtils,
   Classes,
-  BoldIDESupport,
-  BoldVersionInfo,
   BoldDatabaseAdapterDBIsam,
   BoldPersistenceHandleDBISAM,
-  BoldIDEConsts;  
+  BoldIDEConsts;
 
 procedure Register;
 begin
-  RemovePackageFromDisabledPackagesRegistry(format('Bold%d%d%sDOA', [
-    BoldBuildVersionNumberMajor,
-    BoldBuildVersionNumberMinor,
-    BoldBuildTarget]));
   RegisterComponents(BOLDPAGENAME_DEPRECATED, [TBoldPersistenceHandleDBISAM]);
   RegisterComponents(BOLDPAGENAME_PERSISTENCE, [TBoldDatabaseAdapterDBISAM]);
 end;

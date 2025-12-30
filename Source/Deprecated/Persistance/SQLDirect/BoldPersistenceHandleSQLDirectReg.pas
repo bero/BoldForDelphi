@@ -12,19 +12,12 @@ implementation
 {$R BoldPersistenceHandleSQLDirect.res}
 
 uses
-  SysUtils,
   Classes,
-  BoldIDESupport,
-  BoldVersionInfo,
   BoldDatabaseAdapterSQLDirect,
-  BoldIDEConsts;    
+  BoldIDEConsts;
 
 procedure Register;
 begin
-  RemovePackageFromDisabledPackagesRegistry(format('Bold%d%d%sSQLDirect', [
-    BoldBuildVersionNumberMajor,
-    BoldBuildVersionNumberMinor,
-    BoldBuildTarget]));
   RegisterComponents(BOLDPAGENAME_PERSISTENCE, [TBoldDatabaseAdapterSQLDirect]);
 end;
 

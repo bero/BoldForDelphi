@@ -16,6 +16,7 @@ Bold for Delphi is best suited for:
 
 - **[Quick Start Guide](Doc/quickstart.md)** - Step-by-step instructions to install Bold, build your first model, and run the MasterDetail example application.
 - **[Roadmap](ROADMAP.md)** - Development plans, supported features, and future directions for Bold for Delphi.
+- **[Changelog](CHANGELOG.md)** - Version history and release notes.
 
 ## Supported Delphi Versions
 
@@ -114,6 +115,21 @@ Source/
 5. **Spread the word** - Blog posts, conference talks, social media
 
 Have suggestions for the roadmap? Open an issue on GitHub or discuss on Discord.
+
+## Versioning
+
+Version format: `YY.MM.patch` (e.g., 25.12.0)
+
+| Source | Purpose |
+|--------|---------|
+| dproj | Current version (shown in About dialog) |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| Git tags | Backup/release markers |
+
+**Release workflow:**
+1. Move `[Unreleased]` items in CHANGELOG.md to new version section
+2. Update version in dproj (Project > Options > Version Info)
+3. Create git tag: `git tag v25.12.1`
 
 ## Resources
 

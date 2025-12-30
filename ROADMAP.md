@@ -47,7 +47,7 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 | :white_check_mark: | Quick Start Guide (`Doc/quickstart.md`) |
 | :white_check_mark: | Example documentation in browser |
 | :white_check_mark: | Add about dialog to Bold menu item in IDE |
-| :white_large_square: | Changelog with date. Version stored in inc-file.|
+| :white_check_mark: | Changelog (`CHANGELOG.md`) |
 | :calendar: | Complete API reference |
 | :calendar: |  OCL language reference |
 | :calendar: | Component reference guide |
@@ -193,8 +193,8 @@ These features are being evaluated based on community interest:
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| Community 2025.12.0 | 2025-12-22 | Delphi 13 support, improved examples, documentation |
-| Community 2025.10.0 | 2025-11-01 | DUnitX migration, code coverage |
+| Community 25.12.0 | 2025-12-22 | Delphi 13 support, improved examples, documentation |
+| Community 25.10.0 | 2025-11-01 | DUnitX migration, code coverage |
 | Original 4.0.1.0 | 2004-04-01 | Initial Boldsoft release |
 
 ---
