@@ -55,13 +55,13 @@ type
 
   TBoldSqlNodeList = class(TList)
   private
-    function GetItem(index: Integer): TBoldSqlNode;
-    procedure PutItem(index: Integer; Value: TBoldSqlNode);
+    function GetItem(index: NativeInt): TBoldSqlNode;
+    procedure PutItem(index: NativeInt; Value: TBoldSqlNode);
   public
     destructor Destroy; override;
     function Add(Item: TBoldSqlNode): Integer;
     procedure TraverseList(V: TBoldSqlNodeVisitor); virtual;
-    property Items[index: Integer]: TBoldSqlNode read GetItem write PutItem; default;
+    property Items[index: NativeInt]: TBoldSqlNode read GetItem write PutItem; default;
   end;
 
 
@@ -625,12 +625,12 @@ begin
   inherited;
 end;
 
-function TBoldSqlNodeList.GetItem(index: Integer): TBoldSqlNode;
+function TBoldSqlNodeList.GetItem(index: NativeInt): TBoldSqlNode;
 begin
   result := TObject(Get(index)) as TBoldSqlNode;
 end;
 
-procedure TBoldSqlNodeList.PutItem(index: Integer; Value: TBoldSqlNode);
+procedure TBoldSqlNodeList.PutItem(index: NativeInt; Value: TBoldSqlNode);
 begin
   Put(index, value);
 end;

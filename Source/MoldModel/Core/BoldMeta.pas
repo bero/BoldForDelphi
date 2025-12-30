@@ -781,10 +781,10 @@ type
   { TMoldComponentList }
   TMoldComponentList = Class(TList)
   private
-    function GetItem(index: Integer): TMoldComponent;
+    function GetItem(index: NativeInt): TMoldComponent;
     function GetItemByName(const name: string): TMoldComponent;
   public
-    property Items[index: Integer]: TMoldComponent read GetItem; default;
+    property Items[index: NativeInt]: TMoldComponent read GetItem; default;
     property ItemsByName[const name: string]: TMoldComponent read GetItemByName;
   end;
 
@@ -2244,7 +2244,7 @@ end;
 
 { TMoldComponentList }
 
-function TMoldComponentList.GetItem(index: Integer): TMoldComponent;
+function TMoldComponentList.GetItem(index: NativeInt): TMoldComponent;
 begin
   Result := TMoldComponent(inherited Items[index]);
 end;
