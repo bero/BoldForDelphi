@@ -111,13 +111,13 @@ type
 
   TBoldRegionList = class(TList)
   private
-    function GetItems(i: NativeInt): TBoldRegion;
+    function GetItems(i: TListIndex): TBoldRegion;
     function GetAsString: string;
   public
     procedure AddList(List: TBoldRegionList);
     procedure AddRegionLookup(Regions: TBoldRegionLookup);
     procedure Assign(List: TBoldRegionList);
-    property Items[i: NativeInt]: TBoldRegion read GetItems; default;
+    property Items[i: TListIndex]: TBoldRegion read GetItems; default;
     property AsString: string read GetAsString;
   end;
 
@@ -775,7 +775,7 @@ begin
   end;
 end;
 
-function TBoldRegionList.GetItems(i: NativeInt): TBoldRegion;
+function TBoldRegionList.GetItems(i: TListIndex): TBoldRegion;
 begin
   result := TObject(inherited Items[i]) as TBoldRegion;
 end;

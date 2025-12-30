@@ -7,6 +7,7 @@ interface
 uses
   classes,
   BoldBase,
+  BoldDefs,
   BoldSystemRT,
   BoldSubscription;
 
@@ -113,30 +114,30 @@ type
 
   TBoldConcreteRegionDefinitionList = class(TList)
   private
-    function GetItem(i: NativeInt): TBoldConcreteRegionDefinition;
+    function GetItem(i: TListIndex): TBoldConcreteRegionDefinition;
     function GetAsCommaText: string;
   public
     function FindByRootClass(RootClass: TBoldClassTypeInfo): TBoldConcreteRegionDefinition;
-    property Items[i: NativeInt]: TBoldConcreteRegionDefinition read GetItem; default;
+    property Items[i: TListIndex]: TBoldConcreteRegionDefinition read GetItem; default;
   public
     property AsCommaText: string read GetAsCommaText;
   end;
 
   TBoldSubregionReferenceList = class(TList)
   private
-    function GetItem(i: NativeInt): TBoldSubregionReference;
+    function GetItem(i: TListIndex): TBoldSubregionReference;
     function GetAsCommaText: string;
   public
-    property Items[i: NativeInt]: TBoldSubregionReference read GetItem; default;
+    property Items[i: TListIndex]: TBoldSubregionReference read GetItem; default;
     property AsCommaText: string read GetAsCommaText;
   end;
 
   TBoldRegionElementInclusionList = class(TList)
   private
-    function GetItem(i: NativeInt): TBoldRegionElementInclusion;
+    function GetItem(i: TListIndex): TBoldRegionElementInclusion;
     function GetAsCommaText: string;
   public
-    property Items[i: NativeInt]: TBoldRegionElementInclusion read GetItem; default;
+    property Items[i: TListIndex]: TBoldRegionElementInclusion read GetItem; default;
     property AsCommaText: string read GetAsCommaText;
   end;
 
@@ -194,7 +195,7 @@ begin
   end;
 end;
 
-function TBoldConcreteRegionDefinitionList.GetItem(i: NativeInt): TBoldConcreteRegionDefinition;
+function TBoldConcreteRegionDefinitionList.GetItem(i: TListIndex): TBoldConcreteRegionDefinition;
 begin
   result := TObject(inherited Items[i]) as TBoldConcreteRegionDefinition;
 end;
@@ -332,7 +333,7 @@ begin
 end;
 
 function TBoldRegionElementInclusionList.GetItem(
-  i: NativeInt): TBoldRegionElementInclusion;
+  i: TListIndex): TBoldRegionElementInclusion;
 begin
   result := TObject(inherited Items[i]) as TBoldRegionElementInclusion;
 end;
@@ -355,7 +356,7 @@ begin
 end;
 
 function TBoldSubregionReferenceList.GetItem(
-  i: NativeInt): TBoldSubregionReference;
+  i: TListIndex): TBoldSubregionReference;
 begin
   result := TObject(inherited Items[i]) as TBoldSubregionReference;
 end;

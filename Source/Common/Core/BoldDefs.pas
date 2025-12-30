@@ -105,6 +105,12 @@ const
   BOLD_DATABASE_ERROR_UPDATE = 'Failed to update database';
   BOLD_DATABASE_ERROR_DEADLOCK = 'Deadlock occured. (%s)';
 type
+  // TListIndex: Delphi 12+ uses NativeInt for TList.Items index, older versions use Integer
+  {$IF CompilerVersion >= 36.0}  // Delphi 12+
+  TListIndex = NativeInt;
+  {$ELSE}
+  TListIndex = Integer;
+  {$IFEND}
 
   TBoldRoleType= (rtRole, rtLinkRole, rtInnerLinkRole);
   TBoldRoleSet = set of TBoldRoleType;

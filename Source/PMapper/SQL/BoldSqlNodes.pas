@@ -8,6 +8,7 @@ uses
   DB,
   Classes,
   BoldBase,
+  BoldDefs,
   BoldPSDescriptionsSQL,
   BoldPMappersSQL,
   BoldSqlQuery,
@@ -55,13 +56,13 @@ type
 
   TBoldSqlNodeList = class(TList)
   private
-    function GetItem(index: NativeInt): TBoldSqlNode;
-    procedure PutItem(index: NativeInt; Value: TBoldSqlNode);
+    function GetItem(index: TListIndex): TBoldSqlNode;
+    procedure PutItem(index: TListIndex; Value: TBoldSqlNode);
   public
     destructor Destroy; override;
     function Add(Item: TBoldSqlNode): Integer;
     procedure TraverseList(V: TBoldSqlNodeVisitor); virtual;
-    property Items[index: NativeInt]: TBoldSqlNode read GetItem write PutItem; default;
+    property Items[index: TListIndex]: TBoldSqlNode read GetItem write PutItem; default;
   end;
 
 
@@ -317,7 +318,6 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  BoldDefs,
   BoldSQLMappingInfo,
   BoldPMappersDefault;
 
@@ -625,12 +625,12 @@ begin
   inherited;
 end;
 
-function TBoldSqlNodeList.GetItem(index: NativeInt): TBoldSqlNode;
+function TBoldSqlNodeList.GetItem(index: TListIndex): TBoldSqlNode;
 begin
   result := TObject(Get(index)) as TBoldSqlNode;
 end;
 
-procedure TBoldSqlNodeList.PutItem(index: NativeInt; Value: TBoldSqlNode);
+procedure TBoldSqlNodeList.PutItem(index: TListIndex; Value: TBoldSqlNode);
 begin
   Put(index, value);
 end;

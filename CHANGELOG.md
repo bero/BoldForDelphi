@@ -8,13 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [25.12.1] - 2025-12-30
+
 ### Added
 - SQLite database support for MasterDetail demo
 - Firebird database support for MasterDetail demo
 - PostgreSQL database support for MasterDetail demo
+- CHANGELOG.md with version history
 
 ### Changed
 - Use `NativeInt` instead of `Integer` for TList-derived Items properties (fixes W1075 warnings)
+- Simplified versioning: removed BoldVersionInfo.pas, version now in dproj only
 
 ### Fixed
 - FireDAC SQLite catalog issue causing "near '.': syntax error"
