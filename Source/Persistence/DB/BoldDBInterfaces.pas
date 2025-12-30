@@ -11,6 +11,7 @@ uses
   Classes,
   Db,
   SysUtils,
+  System.DateUtils,
   BoldBase,
   BoldSQLDatabaseConfig,
   WideStrings,
@@ -1209,12 +1210,24 @@ end;
 
 function TBoldFieldWrapper.GetAsDate: TDateTime;
 begin
-  result := trunc(Field.AsDateTime);
+  Result := Trunc(GetAsDateTime);
 end;
 
 function TBoldFieldWrapper.GetAsDateTime: TDateTime;
+var
+  s: string;
 begin
-  result := Field.AsDateTime;
+  // SQLite stores DateTime as TEXT in ISO 8601 format 'YYYY-MM-DD HH:MM:SS'
+  if Field.DataType in [ftString, ftWideString, ftMemo, ftWideMemo] then
+  begin
+    s := Trim(Field.AsString);
+    if s = '' then
+      Result := 0
+    else
+      Result := ISO8601ToDate(s, False);  // False = return local time
+  end
+  else
+    Result := Field.AsDateTime;
 end;
 
 function TBoldFieldWrapper.GetAsFloat: Double;
@@ -1258,7 +1271,7 @@ end;
 
 function TBoldFieldWrapper.GetAsTime: TDateTime;
 begin
-  result := frac(Field.AsDateTime);
+  Result := Frac(GetAsDateTime);
 end;
 
 function TBoldFieldWrapper.GetAsInt64;
@@ -1317,7 +1330,12 @@ end;
 
 procedure TBoldFieldWrapper.SetAsDateTime(const Value: TDateTime);
 begin
-  Field.AsDateTime := Value;
+  // SQLite stores DateTime as TEXT in format 'YYYY-MM-DD HH:MM:SS'
+  // This format is compatible with SQLite date/time functions
+  if Field.DataType in [ftString, ftWideString, ftMemo, ftWideMemo] then
+    Field.AsString := FormatDateTime('yyyy-mm-dd hh:nn:ss', Value)
+  else
+    Field.AsDateTime := Value;
 end;
 
 procedure TBoldFieldWrapper.SetAsFloat(const Value: Double);
@@ -1371,12 +1389,20 @@ end;
 
 procedure TBoldFieldWrapper.SetAsDate(const Value: TDateTime);
 begin
-  Field.AsDateTime := Value;
+  // SQLite stores dates as TEXT in ISO format 'YYYY-MM-DD'
+  if Field.DataType in [ftString, ftWideString, ftMemo, ftWideMemo] then
+    Field.AsString := FormatDateTime('yyyy-mm-dd', Value)
+  else
+    Field.AsDateTime := Value;
 end;
 
 procedure TBoldFieldWrapper.SetAsTime(const Value: TDateTime);
 begin
-  Field.AsDateTime := Value;
+  // SQLite stores times as TEXT in ISO format 'HH:MM:SS'
+  if Field.DataType in [ftString, ftWideString, ftMemo, ftWideMemo] then
+    Field.AsString := FormatDateTime('hh:nn:ss', Value)
+  else
+    Field.AsDateTime := Value;
 end;
 
 { TBoldDatabaseWrapper }

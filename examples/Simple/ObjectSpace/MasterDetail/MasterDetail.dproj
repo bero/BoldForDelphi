@@ -71,6 +71,8 @@
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\Common\Include;..\..\..\..\Source\Common\Core;..\..\..\..\Source\Common\Support;..\..\..\..\Source\Common\SupportWin;..\..\..\..\Source\Common\Subscription;..\..\..\..\Source\Common\Logging;..\..\..\..\Source\Common\Queue;..\..\..\..\Source\Common\Environment;..\..\..\..\Source\Common\TaggedValues;..\..\..\..\Source\Common\UML;..\..\..\..\Source\Common\Stubs;..\..\..\..\Source\Common\Template;..\..\..\..\Source\Common\MSXML;..\..\..\..\Source\Common\UtilsGUI;..\..\..\..\Source\ObjectSpace\Core;..\..\..\..\Source\ObjectSpace\BORepresentation;..\..\..\..\Source\ObjectSpace\RTModel;..\..\..\..\Source\ObjectSpace\Ocl;..\..\..\..\Source\ObjectSpace\Interfaces;..\..\..\..\Source\ObjectSpace\PessimisticLocking;..\..\..\..\Source\ObjectSpace\Undo;..\..\..\..\Source\ObjectSpace\COM;..\..\..\..\Source\Handles\Core;..\..\..\..\Source\Handles\Actions;..\..\..\..\Source\Persistence\Core;..\..\..\..\Source\Persistence\DB;..\..\..\..\Source\Persistence\FireDAC;..\..\..\..\Source\Persistence\File;..\..\..\..\Source\Persistence\IDE;..\..\..\..\Source\Persistence\System;..\..\..\..\Source\Persistence\ObjectUpgrading;..\..\..\..\Source\Persistence\Propagation;..\..\..\..\Source\BoldAwareGUI\BoldControls;..\..\..\..\Source\BoldAwareGUI\ControlPacks;..\..\..\..\Source\BoldAwareGUI\Core;..\..\..\..\Source\BoldAwareGUI\FormGen;..\..\..\..\Source\UMLModel\Handles;..\..\..\..\Source\UMLModel\Core;..\..\..\..\Source\MoldModel\Core;..\..\..\..\Source\MoldModel\Handles;..\..\..\..\Source\MoldModel\CodeGenerator;..\..\..\..\Source\MoldModel\TypeNameDictionary;..\..\..\..\Source\MoldModel\IDE;..\..\..\..\Source\MoldModel\Bld;..\..\..\..\Source\PMapper\Core;..\..\..\..\Source\PMapper\SQL;..\..\..\..\Source\PMapper\Default;..\..\..\..\Source\PMapper\Validator;..\..\..\..\Source\PMapper\DBEvolutor;..\..\..\..\Source\ValueSpace\Id;..\..\..\..\Source\ValueSpace\Interfaces;..\..\..\..\Source\ValueSpace\XMLStreaming;..\..\..\..\Source\ValueSpace\Condition;..\..\..\..\Source\FreestandingValueSpace\Core;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_ExeOutput>.\</DCC_ExeOutput>
+        <DCC_Inlining>off</DCC_Inlining>
+        <DCC_Optimize>false</DCC_Optimize>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
@@ -93,6 +95,7 @@
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
@@ -122,6 +125,12 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
+        <DCC_Inlining>off</DCC_Inlining>
+        <DCC_DebugDCUs>true</DCC_DebugDCUs>
+        <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">

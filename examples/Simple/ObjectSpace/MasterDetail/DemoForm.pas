@@ -156,8 +156,13 @@ begin
     Exit;
   end;
 
-  // Show config file path
-  lblConfigFile.Caption := 'Config: ' + dmDemo.ConfigFile;
+  // Show config file path and persistence info
+  if dmDemo.PersistenceType = ptXML then
+    lblConfigFile.Caption := Format('Config: %s | Persistence: %s',
+      [dmDemo.ConfigFile, dmDemo.PersistenceTypeStr])
+  else
+    lblConfigFile.Caption := Format('Config: %s | Persistence: %s | Type: %s',
+      [dmDemo.ConfigFile, dmDemo.PersistenceTypeStr, dmDemo.DatabaseTypeStr]);
 
   // Check if config file exists
   if not FileExists(dmDemo.ConfigFile) then

@@ -22,7 +22,7 @@ UML Model → Code Generator → Business Classes → Bold Runtime → Database
 ## Prerequisites ✅
 
 - **Delphi 11.3, 12.1 CE, 12.3, or 13**
-- **Database**: Any FireDAC-supported database should work. SQL Server and PostgreSQL are tested
+- **Database**: Any FireDAC-supported database should work. SQLite, SQL Server, PostgreSQL, and Firebird are tested. SQLite requires no installation.
 - **Bold packages installed** (see Installation below)
 
 ---
@@ -96,7 +96,7 @@ First option is to look at ready small app in
 
 Just compile it.
 
-Edit the ini-file according your database. If you don't have installed a database try XML.
+Edit the ini-file according to your database. If you don't have a database server installed, try SQLite (easiest) or XML.
 
 Second option is to build app from scratch. More fun and more learning 😊
 We'll build a simple app with **Person** and **Building** objects, where persons can own buildings.
@@ -173,6 +173,18 @@ Connect them:
    User=SYSDBA
    Password=<your_password>
    ```
+
+   **For SQLite:**
+   ```ini
+   [Database]
+   Persistence=FireDAC
+   Type=SQLite
+
+   [SQLite]
+   Database=BoldDemo.db
+   ```
+
+   SQLite is the easiest to get started with - no server installation needed! The database file is created automatically on first run.
 
 3. Drop a `TBoldDatabaseAdapterFireDAC` component
 4. Set `BoldDatabaseAdapterFireDAC1.Connection` → `FDConnection1`
@@ -374,6 +386,11 @@ self.firstName + ' ' + self.lastName     -- Concatenation
 **Firebird: "fbclient.dll not found" or connection fails**
 - Copy `fbclient.dll` to your executable folder (see Step 4)
 - The DLL is in your Firebird installation folder
+
+**SQLite: Database file not created**
+- SQLite creates the database file automatically on first connection
+- Check that the path in the INI file is writable
+- The file will be created in the same folder as the executable if no path is specified
 
 ---
 

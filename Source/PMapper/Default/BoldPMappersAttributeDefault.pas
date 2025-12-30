@@ -1003,10 +1003,10 @@ begin
   else
   begin
 {$IFDEF NoNegativeDates}
-    if (Field.Value < 0) then
+    if (Field.AsDateTime < 0) then
       raise EBold.Create(Format('Negative date in Object %s column %s', [OwningObjectId.AsString, Field.FieldName]));
 {$ENDIF}
-    aDateTime.AsDateTime := Field.Value;
+    aDateTime.AsDateTime := Field.AsDateTime;
   end;
 end;
 
@@ -1074,7 +1074,7 @@ begin
   if Field.IsNull then
     aDate.SetContentToNull
   else
-    aDate.AsDate := Field.Value;
+    aDate.AsDate := Field.AsDate;
 end;
 
 procedure TBoldPMDate.ValueToParam(const ObjectContent: IBoldObjectContents; const Param: IBoldParameter; ColumnIndex: Integer; TranslationList: TBoldIdTranslationList);
@@ -1138,7 +1138,7 @@ begin
   if Field.IsNull then
     aTime.SetContentToNull
   else
-    aTime.AsTime := Field.Value;
+    aTime.AsTime := Field.AsTime;
 end;
 
 procedure TBoldPMTime.ValueToParam(const ObjectContent: IBoldObjectContents; const Param: IBoldParameter; ColumnIndex: Integer; TranslationList: TBoldIdTranslationList);

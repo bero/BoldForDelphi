@@ -626,13 +626,22 @@ var
   lIndexTempList: Integer;
   lGuard: IBoldGuard;
   i: integer;
+  CatalogName: string;
 begin
   lGuard := TBoldGuard.Create(lTempList);
   lTempList := TStringList.Create;
-  if ShowSystemTables then
-    FDConnection.GetTableNames(FDConnection.Params.Database,'','',lTempList, [osMy, osSystem, osOther], [tkTable])
+
+  // For SQLite, don't pass database filename as catalog - it causes invalid SQL
+  // like "FROM bolddemo.db.sqlite_master" instead of "FROM sqlite_master"
+  if SameText(FDConnection.Params.DriverID, 'SQLite') then
+    CatalogName := ''
   else
-    FDConnection.GetTableNames(FDConnection.Params.Database,'','',lTempList, [osMy], [tkTable]);
+    CatalogName := FDConnection.Params.Database;
+
+  if ShowSystemTables then
+    FDConnection.GetTableNames(CatalogName,'','',lTempList, [osMy, osSystem, osOther], [tkTable])
+  else
+    FDConnection.GetTableNames(CatalogName,'','',lTempList, [osMy], [tkTable]);
 
   // convert from fully qualified names in format: database.catalogue.table to just table name
   for i := 0 to lTempList.Count - 1 do
