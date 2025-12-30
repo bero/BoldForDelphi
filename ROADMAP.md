@@ -88,6 +88,7 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 | :white_check_mark: | DUnitX test framework migration |
 | :white_check_mark: | Code coverage reporting with DelphiCodeCoverage for tests (now 28 %) |
 | :white_large_square: | Increase code coverage |
+| :white_large_square: | Fix warnings from Pascal Analyzer |
 | :thinking: | Automated CI builds (GitHub Actions) |
 | :thinking: | Automated test runs on pull requests |
 | :thinking: | Performance benchmarks |
