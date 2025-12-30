@@ -81,19 +81,31 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 
 ---
 
-## 4. Testing & Quality
+## 4. Testing & Code Quality
+
+### Testing Infrastructure
 
 | Status | Comment |
 |--------|---------|
 | :white_check_mark: | DUnitX test framework migration |
 | :white_check_mark: | Code coverage reporting with DelphiCodeCoverage for tests (now 28 %) |
 | :white_large_square: | Increase code coverage |
-| :white_large_square: | Fix warnings from Pascal Analyzer |
 | :thinking: | Automated CI builds (GitHub Actions) |
 | :thinking: | Automated test runs on pull requests |
 | :thinking: | Performance benchmarks |
 
-### Focus Areas
+### Code Quality
+
+| Status | Comment |
+|--------|---------|
+| :white_check_mark: | Remove deprecated database adapters (ADO, BDE, DBExpress) |
+| :white_check_mark: | Removed C++Builder-specific code |
+| :white_large_square: | Fix warnings from Pascal Analyzer |
+| :calendar: | Consolidate duplicate code |
+| :calendar: | Improve error messages |
+| :thinking: | Modernize to Delphi language features (inline vars, generics) |
+
+### Test Focus Areas
 
 | Status | Comment |
 |--------|---------|
@@ -123,22 +135,12 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 
 | Status | Comment |
 |---------|--------|
-| :calendar: | Generate BOLD_ID from Windows service instead of database
-| :calendar: | Object synchronization from Windows service
-| :calendar: | SpanFetch for efficient batch loading
-| :calendar: | Lazy loading improvements
-| :calendar: | Query result caching
-| :calendar: | Parallel object loading
-
-### Code Quality
-
-| Status | Comment |
-|---------|--------|
-| :white_check_mark: | Remove deprecated database adapters (ADO, BDE, DBExpress) |
-| :white_check_mark: | Removed C++Builder-specific code |
-| :calendar: | Consolidate duplicate code |
-| :calendar: | Improve error messages |
-| :thinking: | Modernize to Delphi language features (inline vars, generics) |
+| :calendar: | Generate BOLD_ID from Windows service instead of database |
+| :calendar: | Object synchronization from Windows service |
+| :calendar: | SpanFetch for efficient batch loading |
+| :calendar: | Lazy loading improvements |
+| :calendar: | Query result caching |
+| :calendar: | Parallel object loading |
 
 ### Model Editor
 
