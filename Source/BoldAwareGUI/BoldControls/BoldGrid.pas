@@ -626,7 +626,7 @@ var
 begin
   Assert(Assigned(Grid));
   R := Rect(2, 2, TBoldCustomGrid(Grid).Columns[TBoldCustomGrid(Grid).Col].Width - 2, Height);
-  SendMessage(Handle, EM_SETRECTNP, 0, LongInt(@R));
+  SendMessage(Handle, EM_SETRECTNP, 0, LPARAM(@R));
   SendMessage(Handle, EM_SCROLLCARET, 0, 0);
 end;
 

@@ -678,7 +678,7 @@ begin
     if (fButtonStyle<>bbsNone) then
       Loc.Right := fBtnControl.Left - 2;
   end;
-  SendMessage(Handle, EM_SETRECTNP, 0, LongInt(@Loc));
+  SendMessage(Handle, EM_SETRECTNP, 0, LPARAM(@Loc));
 end;
 
 procedure TBoldCustomEditCom.WMSize(var message: TWMSize);
