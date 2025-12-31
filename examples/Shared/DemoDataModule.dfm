@@ -17,11 +17,7 @@ object DemoDataModule: TDemoDataModule
       #9'"BusinessClassesRoot"'
       #9'""'
       #9'""'
-      
-        #9'"_Boldify.RootClass=BusinessClassesRoot,_BoldInternal.flattened' +
-        '=True,_Boldify.boldified=True,_BoldInternal.ModelErrors=,Bold.De' +
-        'lphiName=<Name>,Bold.UnitName=DemoClasses,Bold.RootClass=Busines' +
-        'sClassesRoot,Bold.CRC=635243925"'
+      #9'"_Boldify.RootClass=BusinessClassesRoot,_BoldInternal.flattened=True,_Boldify.boldified=True,_BoldInternal.ModelErrors=,Bold.DelphiName=<Name>,Bold.UnitName=DemoClasses,Bold.RootClass=BusinessClassesRoot"'
       #9'(Classes'
       #9#9'(Class'
       #9#9#9'"BusinessClassesRoot"'
@@ -99,7 +95,7 @@ object DemoDataModule: TDemoDataModule
       #9#9#9'"persistence=persistent"'
       #9#9#9'(Attributes'
       #9#9#9#9'(Attribute'
-      #9#9#9#9#9'"Share"'
+      #9#9#9#9#9'"SharedValue"'
       #9#9#9#9#9'"Float"'
       #9#9#9#9#9'FALSE'
       #9#9#9#9#9'""'
@@ -189,9 +185,7 @@ object DemoDataModule: TDemoDataModule
       #9#9#9#9#9'""'
       #9#9#9#9#9'2'
       #9#9#9#9#9'""'
-      
-        #9#9#9#9#9'"derived=True,persistence=transient,\"Bold.DerivationOCL=fi' +
-        'rstName + '#39' '#39' + lastName\""'
+      #9#9#9#9#9'"derived=True,persistence=transient,\"Bold.DerivationOCL=firstName + '#39' '#39' + lastName\""'
       #9#9#9#9')'
       #9#9#9')'
       #9#9#9'(Methods'
@@ -224,7 +218,7 @@ object DemoDataModule: TDemoDataModule
       #9#9#9#9#9'""'
       #9#9#9#9#9'2'
       #9#9#9#9#9'""'
-      #9#9#9#9#9'"persistence=persistent,derived=False,Bold.Length=500"'
+      #9#9#9#9#9'"persistence=persistent,derived=False,Bold.Length=500,Bold.AllowNULL=True"'
       #9#9#9#9')'
       #9#9#9#9'(Attribute'
       #9#9#9#9#9'"StartDate"'
@@ -327,10 +321,7 @@ object DemoDataModule: TDemoDataModule
       #9#9#9#9#9'""'
       #9#9#9#9#9'2'
       #9#9#9#9#9'""'
-      
-        #9#9#9#9#9'"persistence=transient,derived=True,Bold.AllowNULL=True,\"B' +
-        'old.DerivationOCL=if project.isNull then nil else project.enddat' +
-        'e + 7 endif.floatAsDateTime\""'
+      #9#9#9#9#9'"persistence=transient,derived=True,Bold.AllowNULL=True,\"Bold.DerivationOCL=if project.isNull then nil else project.enddate + 7 endif.floatAsDateTime\""'
       #9#9#9#9')'
       #9#9#9')'
       #9#9#9'(Methods'

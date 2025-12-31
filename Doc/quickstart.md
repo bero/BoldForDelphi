@@ -22,7 +22,7 @@ UML Model → Code Generator → Business Classes → Bold Runtime → Database
 ## Prerequisites ✅
 
 - **Delphi 11.3, 12.1 CE, 12.3, or 13**
-- **Database**: Any FireDAC-supported database should work. SQLite, SQL Server, PostgreSQL, and Firebird are tested. SQLite requires no installation.
+- **Database**: The following FireDAC-supported databases should work. SQLite, SQL Server, PostgreSQL, Firebird, MariaDB/MySQL and Oracle. SQLite requires no installation.
 - **Bold packages installed** (see Installation below)
 
 ---
@@ -173,6 +173,38 @@ Connect them:
    User=SYSDBA
    Password=<your_password>
    ```
+
+   **For MariaDB (or MySQL):**
+   ```ini
+   [Database]
+   Persistence=FireDAC
+   Type=MariaDB
+
+   [MariaDB]
+   Server=localhost
+   Port=3306
+   Database=bolddemo
+   User=root
+   Password=<your_password>
+   VendorLib=C:\Program Files\MariaDB\MariaDB Connector C 64-bit\lib\libmariadb.dll
+   ```
+
+   Note: MariaDB requires the MariaDB Connector/C client library. Download it from https://mariadb.com/downloads/connectors/ (select Connector/C for Windows 64-bit). MySQL uses the same configuration - just point VendorLib to `libmysql.dll` instead.
+
+   **For Oracle:**
+   ```ini
+   [Database]
+   Persistence=FireDAC
+   Type=Oracle
+
+   [Oracle]
+   Database=//localhost:1521/XEPDB1
+   User=bolduser
+   Password=<your_password>
+   VendorLib=C:\oracle\instantclient_23_7\oci.dll
+   ```
+
+   Note: Oracle requires the Oracle Instant Client. Download from https://www.oracle.com/database/technologies/instant-client/downloads.html (Basic or Basic Light package). The `Database` parameter uses Easy Connect format: `//host:port/service_name`. Oracle treats empty strings as NULL, so Bold uses an EmptyStringMarker internally to preserve empty string values.
 
    **For SQLite:**
    ```ini
@@ -386,6 +418,23 @@ self.firstName + ' ' + self.lastName     -- Concatenation
 **Firebird: "fbclient.dll not found" or connection fails**
 - Copy `fbclient.dll` to your executable folder (see Step 4)
 - The DLL is in your Firebird installation folder
+
+**MariaDB/MySQL: "libmysql.dll not found" or connection fails**
+- MariaDB Server does not include the client library - you need MariaDB Connector/C
+- Download from https://mariadb.com/downloads/connectors/ (Connector/C, Windows 64-bit)
+- Set VendorLib in your INI to point to `libmariadb.dll`
+- For MySQL, point VendorLib to `libmysql.dll` in your MySQL installation
+
+**Oracle: "oci.dll not found" or connection fails**
+- Download Oracle Instant Client from https://www.oracle.com/database/technologies/instant-client/downloads.html
+- Extract to a folder (e.g., `C:\oracle\instantclient_23_7`)
+- Set VendorLib in your INI to point to `oci.dll` in that folder
+- The Database parameter uses Easy Connect format: `//host:port/service_name`
+
+**Oracle: ORA-01400 "cannot insert NULL" errors**
+- This can occur if your database schema was created with an older Bold version
+- Use the "Reset Oracle Schema" option in the demo app to recreate tables
+- Or manually drop all tables and let Bold recreate them
 
 **SQLite: Database file not created**
 - SQLite creates the database file automatically on first connection

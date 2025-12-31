@@ -67,7 +67,7 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 | :white_check_mark: | FireDAC | Firebird |
 | :white_check_mark: | FireDAC | SQLite |
 | :white_check_mark: | XML | Not used |
-| :white_large_square: | FireDAC | Oracle |
+| :white_check_mark: | FireDAC | Oracle |
 | :white_large_square: | FireDAC | MySQL |
 | :white_large_square: | FireDAC | MariaDB |
 | UniDAC (all supported databases) | UniDAC | :calendar: Needs testing (Optional as UniDAC is commercial) |

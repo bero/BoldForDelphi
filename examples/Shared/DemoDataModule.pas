@@ -14,6 +14,7 @@ uses
   Data.DB,
   Vcl.ActnList,
   Vcl.Dialogs,
+  Vcl.Forms,
 
   // FireDAC
   FireDAC.Stan.Intf,
@@ -28,14 +29,15 @@ uses
   FireDAC.VCLUI.Wait,
   FireDAC.Comp.Client,
   FireDAC.DApt,
+
+  // FireDAC drivers - include all supported databases
+  // This uses must be here to register database specific drivers
   FireDAC.Phys.MSSQL,
-  FireDAC.Phys.MSSQLDef,
   FireDAC.Phys.PG,
-  FireDAC.Phys.PGDef,
   FireDAC.Phys.FB,
-  FireDAC.Phys.FBDef,
   FireDAC.Phys.SQLite,
-  FireDAC.Phys.SQLiteDef,
+  FireDAC.Phys.MySQL,
+  FireDAC.Phys.Oracle,
 
   {$IFDEF UNIDAC}
   // UniDAC (optional - define UNIDAC in project options if available)
@@ -44,21 +46,23 @@ uses
   {$ENDIF}
 
   // Bold
-  BoldAbstractModel,
   BoldAbstractDatabaseAdapter,
+  BoldAbstractModel,
   BoldAbstractPersistenceHandleDB,
   BoldActions,
   BoldDatabaseAdapterFireDAC,
+  BoldDefs,
   BoldHandle,
+  BoldHandleAction,
   BoldHandles,
   BoldModel,
   BoldPersistenceHandle,
   BoldPersistenceHandleDB,
   BoldPersistenceHandleFileXML,
+  BoldSQLDatabaseConfig,
   BoldSubscription,
   BoldSystem,
-  BoldSystemHandle,
-  BoldSQLDatabaseConfig, BoldHandleAction;
+  BoldSystemHandle;
 
 {$REGION 'Constants'}
 const
@@ -68,6 +72,8 @@ const
   cSectionPostgreSQL = 'PostgreSQL';
   cSectionFirebird = 'Firebird';
   cSectionSQLite = 'SQLite';
+  cSectionMariaDB = 'MariaDB';
+  cSectionOracle = 'Oracle';
   cSectionXML = 'XML';
 
   // INI Key names
@@ -77,6 +83,8 @@ const
   cKeyDatabase = 'Database';
   cKeyUser = 'User';
   cKeyPassword = 'Password';
+  cKeyAdminUser = 'AdminUser';
+  cKeyAdminPassword = 'AdminPassword';
   cKeyOSAuthent = 'OSAuthent';
   cKeyPort = 'Port';
   cKeyVendorLib = 'VendorLib';
@@ -93,12 +101,16 @@ const
   cDbTypePostgreSQL = 'PostgreSQL';
   cDbTypeFirebird = 'Firebird';
   cDbTypeSQLite = 'SQLite';
+  cDbTypeMariaDB = 'MariaDB';
+  cDbTypeOracle = 'Oracle';
 
   // FireDAC Driver IDs
   cDriverMSSQL = 'MSSQL';
   cDriverPG = 'PG';
   cDriverFB = 'FB';
+  cDriverMySQL = 'MySQL';
   cDriverSQLite = 'SQLite';
+  cDriverOracle = 'Ora';
 
   // FireDAC Parameter names
   cParamDriverID = 'DriverID';
@@ -135,62 +147,20 @@ const
   cDefaultFirebirdUser = 'SYSDBA';
   cDefaultFirebirdPassword = 'masterkey';
   cDefaultSQLiteDatabase = 'BoldDemo.db';
+  cDefaultMariaDBDatabase = 'bolddemo';
+  cDefaultMariaDBUser = 'root';
+  cDefaultMariaDBPort = 3306;
+  cDefaultOracleDatabase = 'bolddemo';
+  cDefaultOracleUser = 'bolduser';
 
-  // SQL Column types - MSSQL
-  cMSSQLDate = 'DATE';
-  cMSSQLTime = 'TIME';
-  cMSSQLDateTime = 'DATETIME';
-  cMSSQLBlob = 'VARBINARY(MAX)';
-  cMSSQLFloat = 'FLOAT';
-  cMSSQLCurrency = 'DECIMAL(18,4)';
-  cMSSQLString = 'NVARCHAR(%d)';
-  cMSSQLText = 'NVARCHAR(MAX)';
-  cMSSQLAnsiString = 'VARCHAR(%d)';
-  cMSSQLAnsiText = 'VARCHAR(MAX)';
-  cMSSQLInteger = 'INT';
-  cMSSQLSmallInt = 'SMALLINT';
-  cMSSQLBigInt = 'BIGINT';
-
-  // SQL Column types - PostgreSQL
-  cPGDate = 'DATE';
-  cPGTime = 'TIME';
-  cPGDateTime = 'TIMESTAMP';
-  cPGBlob = 'BYTEA';
-  cPGFloat = 'DOUBLE PRECISION';
-  cPGCurrency = 'DECIMAL(18,4)';
-  cPGString = 'VARCHAR(%d)';
-  cPGText = 'TEXT';
-  cPGInteger = 'INTEGER';
-  cPGSmallInt = 'SMALLINT';
-  cPGBigInt = 'BIGINT';
-
-  // SQL Column types - Firebird
-  cFBDate = 'DATE';
-  cFBTime = 'TIME';
-  cFBDateTime = 'TIMESTAMP';
-  cFBBlob = 'BLOB';
-  cFBFloat = 'DOUBLE PRECISION';
-  cFBCurrency = 'DECIMAL(18,4)';
-  cFBString = 'VARCHAR(%d)';
-  cFBText = 'BLOB SUB_TYPE TEXT';
-  cFBInteger = 'INTEGER';
-  cFBSmallInt = 'SMALLINT';
-  cFBBigInt = 'BIGINT';
-
-  // SQL Column types - SQLite
-  cSQLiteDate = 'TEXT';
-  cSQLiteTime = 'TEXT';
-  cSQLiteDateTime = 'TEXT';
-  cSQLiteBlob = 'BLOB';
-  cSQLiteFloat = 'REAL';
-  cSQLiteString = 'TEXT';
-  cSQLiteInteger = 'INTEGER';
-
-  // SQL Queries
-  cSQLMSSQLCheckDb = 'SELECT 1 FROM sys.databases WHERE name = ';
-  cSQLPGCheckDb = 'SELECT 1 FROM pg_database WHERE datname = ';
+  // SQL Queries for database admin operations
+  cSQLOracleCheckUser = 'SELECT USERNAME FROM ALL_USERS WHERE UPPER(USERNAME) = UPPER(''%s'')';
+  cSQLOracleCreateUser = 'CREATE USER %s IDENTIFIED BY %s DEFAULT TABLESPACE USERS TEMPORARY TABLESPACE TEMP QUOTA UNLIMITED ON USERS';
+  cSQLOracleGrantUser = 'GRANT CONNECT, RESOURCE, CREATE TABLE, CREATE SEQUENCE, CREATE VIEW TO %s';
+  cSQLOracleDropUser = 'DROP USER %s CASCADE';
   cSQLMSSQLDropDb = 'DROP DATABASE [%s]';
   cSQLPGDropDb = 'DROP DATABASE "%s"';
+  cSQLMariaDBDropDb = 'DROP DATABASE `%s`';
 
   // Misc
   cSharedFolder = 'Shared';
@@ -199,7 +169,7 @@ const
 
 type
   TPersistenceType = (ptFireDAC, {$IFDEF UNIDAC}ptUniDAC,{$ENDIF} ptXML);
-  TDatabaseType = (dtUnknown, dtMSSQL, dtPostgreSQL, dtFirebird, dtSQLite);
+  TDatabaseType = (dtUnknown, dtMSSQL, dtPostgreSQL, dtFirebird, dtSQLite, dtMariaDB, dtOracle);
 
 function StringToDatabaseType(const AType: string): TDatabaseType;
 
@@ -242,13 +212,20 @@ type
     procedure ConfigurePostgreSQL(AIni: TIniFile);
     procedure ConfigureFirebird(AIni: TIniFile);
     procedure ConfigureSQLite(AIni: TIniFile);
+    procedure ConfigureMariaDB(AIni: TIniFile);
+    procedure ConfigureOracle(AIni: TIniFile);
     procedure ConfigureXML(AIni: TIniFile);
-    procedure ConfigureSQLDatabaseConfig(AConfig: TBoldSQLDatabaseConfig; ADatabaseType: TDatabaseType);
+    function OracleUserHasTable(const TableName: string): Boolean;
+    procedure DropOracleSchemaTables;
   public
     procedure CreateDatabaseSchema;
     procedure CreateDatabaseIfNotExists;
     procedure DropDatabase;
     function DatabaseExists: Boolean;
+    procedure ResetOracleSchema;
+    procedure ResetOracleSchemaWithConfirm(AskConfirmation: Boolean);
+    function IsOracleSchemaError(const ErrorMessage: string): Boolean;
+    function HandleOracleSchemaError(const ErrorMessage: string): Boolean;
     procedure OpenSystem;
     procedure CloseSystem;
     function GetConnected: Boolean;
@@ -276,11 +253,13 @@ implementation
 
 function StringToDatabaseType(const AType: string): TDatabaseType;
 begin
-  case IndexText(AType, [cDbTypeMSSQL, cDbTypePostgreSQL, cDbTypeFirebird, cDbTypeSQLite]) of
+  case IndexText(AType, [cDbTypeMSSQL, cDbTypePostgreSQL, cDbTypeFirebird, cDbTypeSQLite, cDbTypeMariaDB, cDbTypeOracle]) of
     0: Result := dtMSSQL;
     1: Result := dtPostgreSQL;
     2: Result := dtFirebird;
     3: Result := dtSQLite;
+    4: Result := dtMariaDB;
+    5: Result := dtOracle;
   else
     Result := dtUnknown;
   end;
@@ -306,6 +285,8 @@ begin
     dtPostgreSQL: Result := 'PostgreSQL';
     dtFirebird: Result := 'Firebird';
     dtSQLite: Result := 'SQLite';
+    dtMariaDB: Result := 'MariaDB';
+    dtOracle: Result := 'Oracle';
   else
     Result := 'Unknown';
   end;
@@ -321,11 +302,33 @@ end;
 
 procedure TDemoDataModule.DataModuleDestroy(Sender: TObject);
 begin
-  // Free dynamically created components
+  // Close the Bold system first to release all database resources
+  CloseSystem;
+
+  // Deactivate persistence handles to release database resources
+  if Assigned(FPersistenceHandleDB) then
+  begin
+    FPersistenceHandleDB.Active := False;
+    FPersistenceHandleDB.DatabaseAdapter := nil;
+  end;
+
+  // Free adapters first (they hold internal connection wrappers with cached queries)
   FreeAndNil(FFireDACAdapter);
-  FreeAndNil(FFDConnection);
   {$IFDEF UNIDAC}
   FreeAndNil(FUniDACAdapter);
+  {$ENDIF}
+
+  // Disconnect database connections
+  if Assigned(FFDConnection) and FFDConnection.Connected then
+    FFDConnection.Connected := False;
+  {$IFDEF UNIDAC}
+  if Assigned(FUniConnection) and FUniConnection.Connected then
+    FUniConnection.Connected := False;
+  {$ENDIF}
+
+  // Free remaining components
+  FreeAndNil(FFDConnection);
+  {$IFDEF UNIDAC}
   FreeAndNil(FUniConnection);
   {$ENDIF}
   FreeAndNil(FPersistenceHandleDB);
@@ -383,99 +386,6 @@ begin
   end;
 end;
 
-procedure TDemoDataModule.ConfigureSQLDatabaseConfig(AConfig: TBoldSQLDatabaseConfig; ADatabaseType: TDatabaseType);
-begin
-  case ADatabaseType of
-    dtMSSQL:
-      begin
-        AConfig.ColumnTypeForDate := cMSSQLDate;
-        AConfig.ColumnTypeForTime := cMSSQLTime;
-        AConfig.ColumnTypeForDateTime := cMSSQLDateTime;
-        AConfig.ColumnTypeForBlob := cMSSQLBlob;
-        AConfig.ColumnTypeForFloat := cMSSQLFloat;
-        AConfig.ColumnTypeForCurrency := cMSSQLCurrency;
-        AConfig.ColumnTypeForString := cMSSQLString;
-        AConfig.ColumnTypeForUnicodeString := cMSSQLString;
-        AConfig.ColumnTypeForAnsiString := cMSSQLAnsiString;
-        AConfig.ColumnTypeForText := cMSSQLText;
-        AConfig.ColumnTypeForUnicodeText := cMSSQLText;
-        AConfig.ColumnTypeForAnsiText := cMSSQLAnsiText;
-        AConfig.ColumnTypeForInteger := cMSSQLInteger;
-        AConfig.ColumnTypeForSmallInt := cMSSQLSmallInt;
-        AConfig.ColumnTypeForInt64 := cMSSQLBigInt;
-      end;
-    dtPostgreSQL:
-      begin
-        AConfig.ColumnTypeForDate := cPGDate;
-        AConfig.ColumnTypeForTime := cPGTime;
-        AConfig.ColumnTypeForDateTime := cPGDateTime;
-        AConfig.ColumnTypeForBlob := cPGBlob;
-        AConfig.ColumnTypeForFloat := cPGFloat;
-        AConfig.ColumnTypeForCurrency := cPGCurrency;
-        AConfig.ColumnTypeForString := cPGString;
-        AConfig.ColumnTypeForUnicodeString := cPGString;
-        AConfig.ColumnTypeForAnsiString := cPGString;
-        AConfig.ColumnTypeForText := cPGText;
-        AConfig.ColumnTypeForUnicodeText := cPGText;
-        AConfig.ColumnTypeForAnsiText := cPGText;
-        AConfig.ColumnTypeForInteger := cPGInteger;
-        AConfig.ColumnTypeForSmallInt := cPGSmallInt;
-        AConfig.ColumnTypeForInt64 := cPGBigInt;
-      end;
-    dtFirebird:
-      begin
-        AConfig.ColumnTypeForDate := cFBDate;
-        AConfig.ColumnTypeForTime := cFBTime;
-        AConfig.ColumnTypeForDateTime := cFBDateTime;
-        AConfig.ColumnTypeForBlob := cFBBlob;
-        AConfig.ColumnTypeForFloat := cFBFloat;
-        AConfig.ColumnTypeForCurrency := cFBCurrency;
-        AConfig.ColumnTypeForString := cFBString;
-        AConfig.ColumnTypeForUnicodeString := cFBString;
-        AConfig.ColumnTypeForAnsiString := cFBString;
-        AConfig.ColumnTypeForText := cFBText;
-        AConfig.ColumnTypeForUnicodeText := cFBText;
-        AConfig.ColumnTypeForAnsiText := cFBText;
-        AConfig.ColumnTypeForInteger := cFBInteger;
-        AConfig.ColumnTypeForSmallInt := cFBSmallInt;
-        AConfig.ColumnTypeForInt64 := cFBBigInt;
-      end;
-    dtSQLite:
-      begin
-        // Column types
-        AConfig.ColumnTypeForDate := cSQLiteDate;
-        AConfig.ColumnTypeForTime := cSQLiteTime;
-        AConfig.ColumnTypeForDateTime := cSQLiteDateTime;
-        AConfig.ColumnTypeForBlob := cSQLiteBlob;
-        AConfig.ColumnTypeForFloat := cSQLiteFloat;
-        AConfig.ColumnTypeForCurrency := cSQLiteFloat;
-        AConfig.ColumnTypeForString := cSQLiteString;
-        AConfig.ColumnTypeForUnicodeString := cSQLiteString;
-        AConfig.ColumnTypeForAnsiString := cSQLiteString;
-        AConfig.ColumnTypeForText := cSQLiteString;
-        AConfig.ColumnTypeForUnicodeText := cSQLiteString;
-        AConfig.ColumnTypeForAnsiText := cSQLiteString;
-        AConfig.ColumnTypeForInteger := cSQLiteInteger;
-        AConfig.ColumnTypeForSmallInt := cSQLiteInteger;
-        AConfig.ColumnTypeForInt64 := cSQLiteInteger;
-
-        // SQLite-specific templates (no schema qualification with periods)
-        AConfig.DropIndexTemplate := 'DROP INDEX IF EXISTS <IndexName>';
-        AConfig.DropTableTemplate := 'DROP TABLE IF EXISTS <TableName>';
-        AConfig.TableExistsTemplate := 'SELECT name FROM sqlite_master WHERE type=''table'' AND name=''<TableName>''';
-        AConfig.IndexExistsTemplate := 'SELECT name FROM sqlite_master WHERE type=''index'' AND name=''<IndexName>''';
-        AConfig.ColumnExistsTemplate := 'SELECT name FROM pragma_table_info(''<TableName>'') WHERE name=''<ColumnName>''';
-
-        // SQLite supports standard SQL-92 joins and constraints in CREATE TABLE
-        AConfig.UseSQL92Joins := True;
-        AConfig.SupportsConstraintsInCreateTable := True;
-
-        // SQLite identifier limits
-        AConfig.MaxDbIdentifierLength := 128;  // SQLite has no real limit, use reasonable value
-      end;
-  end;
-end;
-
 procedure TDemoDataModule.LoadConfiguration;
 var
   Ini: TIniFile;
@@ -513,6 +423,8 @@ begin
         dtPostgreSQL: ConfigurePostgreSQL(Ini);
         dtFirebird: ConfigureFirebird(Ini);
         dtSQLite: ConfigureSQLite(Ini);
+        dtMariaDB: ConfigureMariaDB(Ini);
+        dtOracle: ConfigureOracle(Ini);
       end;
     end;
   finally
@@ -562,7 +474,6 @@ begin
           FFDConnection.Params.Add(cParamPassword + '=' + Password);
         end;
         FFireDACAdapter.DatabaseEngine := dbeSQLServer;
-        ConfigureSQLDatabaseConfig(FFireDACAdapter.SQLDatabaseConfig, dtMSSQL);
       end;
     {$IFDEF UNIDAC}
     ptUniDAC:
@@ -578,7 +489,6 @@ begin
           FUniConnection.Password := Password;
         end;
         FUniDACAdapter.DatabaseEngine := dbeSQLServer;
-        ConfigureSQLDatabaseConfig(FUniDACAdapter.SQLDatabaseConfig, dtMSSQL);
       end;
     {$ENDIF}
   end;
@@ -609,7 +519,6 @@ begin
         if VendorLib <> '' then
           FFDConnection.Params.Add(cParamVendorLib + '=' + VendorLib);
         FFireDACAdapter.DatabaseEngine := dbePostgres;
-        ConfigureSQLDatabaseConfig(FFireDACAdapter.SQLDatabaseConfig, dtPostgreSQL);
       end;
     {$IFDEF UNIDAC}
     ptUniDAC:
@@ -621,7 +530,6 @@ begin
         FUniConnection.Username := User;
         FUniConnection.Password := Password;
         FUniDACAdapter.DatabaseEngine := dbePostgres;
-        ConfigureSQLDatabaseConfig(FUniDACAdapter.SQLDatabaseConfig, dtPostgreSQL);
       end;
     {$ENDIF}
   end;
@@ -649,7 +557,6 @@ begin
         if VendorLib <> '' then
           FFDConnection.Params.Add(cParamVendorLib + '=' + VendorLib);
         FFireDACAdapter.DatabaseEngine := dbeInterbaseSQLDialect3;
-        ConfigureSQLDatabaseConfig(FFireDACAdapter.SQLDatabaseConfig, dtFirebird);
       end;
     {$IFDEF UNIDAC}
     ptUniDAC:
@@ -659,7 +566,6 @@ begin
         FUniConnection.Username := User;
         FUniConnection.Password := Password;
         FUniDACAdapter.DatabaseEngine := dbeInterbaseSQLDialect3;
-        ConfigureSQLDatabaseConfig(FUniDACAdapter.SQLDatabaseConfig, dtFirebird);
       end;
     {$ENDIF}
   end;
@@ -678,7 +584,6 @@ begin
         FFDConnection.Params.Add(cParamDriverID + '=' + cDriverSQLite);
         FFDConnection.Params.Add(cParamDatabase + '=' + Database);
         FFireDACAdapter.DatabaseEngine := dbeGenericANSISQL92;
-        ConfigureSQLDatabaseConfig(FFireDACAdapter.SQLDatabaseConfig, dtSQLite);
       end;
     {$IFDEF UNIDAC}
     ptUniDAC:
@@ -686,253 +591,170 @@ begin
         FUniConnection.ProviderName := cProviderSQLite;
         FUniConnection.Database := Database;
         FUniDACAdapter.DatabaseEngine := dbeGenericANSISQL92;
-        ConfigureSQLDatabaseConfig(FUniDACAdapter.SQLDatabaseConfig, dtSQLite);
       end;
     {$ENDIF}
   end;
 end;
 
-function TDemoDataModule.DatabaseExists: Boolean;
+procedure TDemoDataModule.ConfigureMariaDB(AIni: TIniFile);
+var
+  Server, Database, User, Password, VendorLib: string;
+  Port: Integer;
+begin
+  Server := AIni.ReadString(cSectionMariaDB, cKeyServer, cDefaultServer);
+  Port := AIni.ReadInteger(cSectionMariaDB, cKeyPort, cDefaultMariaDBPort);
+  Database := AIni.ReadString(cSectionMariaDB, cKeyDatabase, cDefaultMariaDBDatabase);
+  User := AIni.ReadString(cSectionMariaDB, cKeyUser, cDefaultMariaDBUser);
+  Password := AIni.ReadString(cSectionMariaDB, cKeyPassword, '');
+  VendorLib := AIni.ReadString(cSectionMariaDB, cKeyVendorLib, '');
+
+  case FPersistenceType of
+    ptFireDAC:
+      begin
+        FFDConnection.Params.Clear;
+        FFDConnection.Params.Add(cParamDriverID + '=' + cDriverMySQL);
+        FFDConnection.Params.Add(cParamServer + '=' + Server);
+        FFDConnection.Params.Add(cParamPort + '=' + IntToStr(Port));
+        FFDConnection.Params.Add(cParamDatabase + '=' + Database);
+        FFDConnection.Params.Add(cParamUserName + '=' + User);
+        FFDConnection.Params.Add(cParamPassword + '=' + Password);
+        if VendorLib <> '' then
+          FFDConnection.Params.Add(cParamVendorLib + '=' + VendorLib);
+        FFireDACAdapter.DatabaseEngine := dbeMySQL;
+      end;
+    {$IFDEF UNIDAC}
+    ptUniDAC:
+      begin
+        FUniConnection.ProviderName := 'MySQL';
+        FUniConnection.Server := Server;
+        FUniConnection.Port := Port;
+        FUniConnection.Database := Database;
+        FUniConnection.Username := User;
+        FUniConnection.Password := Password;
+        FUniDACAdapter.DatabaseEngine := dbeMySQL;
+      end;
+    {$ENDIF}
+  end;
+end;
+
+procedure TDemoDataModule.ConfigureOracle(AIni: TIniFile);
+var
+  Database, User, Password, VendorLib: string;
+begin
+  Database := AIni.ReadString(cSectionOracle, cKeyDatabase, cDefaultOracleDatabase);
+  User := AIni.ReadString(cSectionOracle, cKeyUser, cDefaultOracleUser);
+  Password := AIni.ReadString(cSectionOracle, cKeyPassword, '');
+  VendorLib := AIni.ReadString(cSectionOracle, cKeyVendorLib, '');
+
+  case FPersistenceType of
+    ptFireDAC:
+      begin
+        FFDConnection.Params.Clear;
+        FFDConnection.Params.Add(cParamDriverID + '=' + cDriverOracle);
+        FFDConnection.Params.Add(cParamDatabase + '=' + Database);
+        FFDConnection.Params.Add(cParamUserName + '=' + User);
+        FFDConnection.Params.Add(cParamPassword + '=' + Password);
+        if VendorLib <> '' then
+          FFDConnection.Params.Add(cParamVendorLib + '=' + VendorLib);
+        FFireDACAdapter.DatabaseEngine := dbeOracle;
+      end;
+    {$IFDEF UNIDAC}
+    ptUniDAC:
+      begin
+        FUniConnection.ProviderName := 'Oracle';
+        FUniConnection.Database := Database;
+        FUniConnection.Username := User;
+        FUniConnection.Password := Password;
+        FUniDACAdapter.DatabaseEngine := dbeOracle;
+      end;
+    {$ENDIF}
+  end;
+end;
+
+function TDemoDataModule.OracleUserHasTable(const TableName: string): Boolean;
 var
   Ini: TIniFile;
-  DbType: TDatabaseType;
-  DatabaseName: string;
-  TempFDConn: TFDConnection;
+  TempConn: TFDConnection;
   Query: TFDQuery;
-  {$IFDEF UNIDAC}
-  TempUniConn: TUniConnection;
-  UniQuery: TUniQuery;
-  {$ENDIF}
+  AdminUser, AdminPassword, Database, OracleUser, VendorLib: string;
 begin
   Result := False;
+  Ini := TIniFile.Create(FConfigFile);
+  try
+    AdminUser := Ini.ReadString(cSectionOracle, cKeyAdminUser, '');
+    if AdminUser = '' then
+      Exit;  // No admin credentials configured
 
+    AdminPassword := Ini.ReadString(cSectionOracle, cKeyAdminPassword, '');
+    Database := Ini.ReadString(cSectionOracle, cKeyDatabase, '');
+    OracleUser := Ini.ReadString(cSectionOracle, cKeyUser, cDefaultOracleUser);
+    VendorLib := Ini.ReadString(cSectionOracle, cKeyVendorLib, '');
+
+    TempConn := TFDConnection.Create(nil);
+    Query := TFDQuery.Create(nil);
+    try
+      TempConn.LoginPrompt := False;
+      TempConn.Params.Clear;
+      TempConn.Params.Add(cParamDriverID + '=' + cDriverOracle);
+      TempConn.Params.Add(cParamDatabase + '=' + Database);
+      TempConn.Params.Add(cParamUserName + '=' + AdminUser);
+      TempConn.Params.Add(cParamPassword + '=' + AdminPassword);
+      if VendorLib <> '' then
+        TempConn.Params.Add(cParamVendorLib + '=' + VendorLib);
+      try
+        TempConn.Connected := True;
+        Query.Connection := TempConn;
+        Query.SQL.Text := 'SELECT TABLE_NAME FROM ALL_TABLES WHERE OWNER = UPPER(''' +
+          OracleUser + ''') AND TABLE_NAME = UPPER(''' + TableName + ''')';
+        Query.Open;
+        Result := not Query.IsEmpty;
+        Query.Close;
+      except
+        Result := False;
+      end;
+    finally
+      Query.Free;
+      TempConn.Free;
+    end;
+  finally
+    Ini.Free;
+  end;
+end;
+
+function TDemoDataModule.DatabaseExists: Boolean;
+begin
   // XML persistence always "exists"
   if FPersistenceType = ptXML then
     Exit(True);
 
-  if not FileExists(FConfigFile) then
-    Exit(False);
+  // For file-based databases, check if file exists
+  if FDatabaseType in [dtFirebird, dtSQLite] then
+  begin
+    Exit(FileExists(GetDatabaseName));
+  end;
 
-  Ini := TIniFile.Create(FConfigFile);
+  // For Oracle, we must use admin credentials because we can't connect as
+  // a user that doesn't exist yet. Check if user exists and has BOLD_TYPE table.
+  if FDatabaseType = dtOracle then
+  begin
+    Exit(OracleUserHasTable('BOLD_TYPE'));
+  end;
+
+  // For other server-based databases (MSSQL, PostgreSQL, MySQL, MariaDB),
+  // use Bold's built-in TableExists check.
   try
-    DbType := StringToDatabaseType(Ini.ReadString(cSectionDatabase, cKeyType, cDbTypeMSSQL));
-
     case FPersistenceType of
       ptFireDAC:
-        begin
-          case DbType of
-            dtMSSQL:
-              begin
-                DatabaseName := Ini.ReadString(cSectionMSSQL, cKeyDatabase, cDefaultMSSQLDatabase);
-                TempFDConn := TFDConnection.Create(nil);
-                Query := TFDQuery.Create(nil);
-                try
-                  try
-                    TempFDConn.LoginPrompt := False;
-                    TempFDConn.Params.Clear;
-                    TempFDConn.Params.Add(cParamDriverID + '=' + cDriverMSSQL);
-                    TempFDConn.Params.Add(cParamServer + '=' + Ini.ReadString(cSectionMSSQL, cKeyServer, cDefaultServer));
-                    TempFDConn.Params.Add(cParamDatabase + '=' + cAdminDbMaster);
-                    if Ini.ReadBool(cSectionMSSQL, cKeyOSAuthent, True) then
-                      TempFDConn.Params.Add(cParamOSAuthent + '=' + cValueYes)
-                    else
-                    begin
-                      TempFDConn.Params.Add(cParamUserName + '=' + Ini.ReadString(cSectionMSSQL, cKeyUser, cDefaultMSSQLUser));
-                      TempFDConn.Params.Add(cParamPassword + '=' + Ini.ReadString(cSectionMSSQL, cKeyPassword, ''));
-                    end;
-                    TempFDConn.Connected := True;
-                    Query.Connection := TempFDConn;
-                    Query.SQL.Text := cSQLMSSQLCheckDb + QuotedStr(DatabaseName);
-                    Query.Open;
-                    Result := not Query.IsEmpty;
-                    Query.Close;
-                    TempFDConn.Connected := False;
-                  except
-                    Result := False;
-                  end;
-                finally
-                  Query.Free;
-                  TempFDConn.Free;
-                end;
-              end;
-            dtPostgreSQL:
-              begin
-                DatabaseName := Ini.ReadString(cSectionPostgreSQL, cKeyDatabase, cDefaultPostgreSQLDatabase);
-                TempFDConn := TFDConnection.Create(nil);
-                Query := TFDQuery.Create(nil);
-                try
-                  try
-                    TempFDConn.LoginPrompt := False;
-                    TempFDConn.Params.Clear;
-                    TempFDConn.Params.Add(cParamDriverID + '=' + cDriverPG);
-                    TempFDConn.Params.Add(cParamServer + '=' + Ini.ReadString(cSectionPostgreSQL, cKeyServer, cDefaultServer));
-                    TempFDConn.Params.Add(cParamPort + '=' + Ini.ReadString(cSectionPostgreSQL, cKeyPort, IntToStr(cDefaultPostgreSQLPort)));
-                    TempFDConn.Params.Add(cParamDatabase + '=' + cAdminDbPostgres);
-                    TempFDConn.Params.Add(cParamUserName + '=' + Ini.ReadString(cSectionPostgreSQL, cKeyUser, cDefaultPostgreSQLUser));
-                    TempFDConn.Params.Add(cParamPassword + '=' + Ini.ReadString(cSectionPostgreSQL, cKeyPassword, ''));
-                    TempFDConn.Connected := True;
-                    Query.Connection := TempFDConn;
-                    Query.SQL.Text := cSQLPGCheckDb + QuotedStr(DatabaseName);
-                    Query.Open;
-                    Result := not Query.IsEmpty;
-                    Query.Close;
-                    TempFDConn.Connected := False;
-                  except
-                    Result := False;
-                  end;
-                finally
-                  Query.Free;
-                  TempFDConn.Free;
-                end;
-              end;
-            dtFirebird:
-              begin
-                DatabaseName := Ini.ReadString(cSectionFirebird, cKeyDatabase, cDefaultFirebirdDatabase);
-                Result := FileExists(DatabaseName);
-              end;
-            dtSQLite:
-              begin
-                DatabaseName := Ini.ReadString(cSectionSQLite, cKeyDatabase, cDefaultSQLiteDatabase);
-                // For SQLite, check if file exists AND has schema (BOLD_TYPE table)
-                if not FileExists(DatabaseName) then
-                  Result := False
-                else
-                begin
-                  TempFDConn := TFDConnection.Create(nil);
-                  Query := TFDQuery.Create(nil);
-                  try
-                    try
-                      TempFDConn.LoginPrompt := False;
-                      TempFDConn.Params.Clear;
-                      TempFDConn.Params.Add(cParamDriverID + '=' + cDriverSQLite);
-                      TempFDConn.Params.Add(cParamDatabase + '=' + DatabaseName);
-                      TempFDConn.Connected := True;
-                      Query.Connection := TempFDConn;
-                      Query.SQL.Text := 'SELECT name FROM sqlite_master WHERE type=''table'' AND name=''BOLD_TYPE''';
-                      Query.Open;
-                      Result := not Query.IsEmpty;
-                      Query.Close;
-                      TempFDConn.Connected := False;
-                    except
-                      Result := False;
-                    end;
-                  finally
-                    Query.Free;
-                    TempFDConn.Free;
-                  end;
-                end;
-              end;
-          end;
-        end;
-
+        Result := FFireDACAdapter.DatabaseInterface.TableExists('BOLD_TYPE');
       {$IFDEF UNIDAC}
       ptUniDAC:
-        begin
-          case DbType of
-            dtMSSQL:
-              begin
-                DatabaseName := Ini.ReadString(cSectionMSSQL, cKeyDatabase, cDefaultMSSQLDatabase);
-                TempUniConn := TUniConnection.Create(nil);
-                UniQuery := TUniQuery.Create(nil);
-                try
-                  try
-                    TempUniConn.LoginPrompt := False;
-                    TempUniConn.ProviderName := cProviderSQLServer;
-                    TempUniConn.Server := Ini.ReadString(cSectionMSSQL, cKeyServer, cDefaultServer);
-                    TempUniConn.Database := cAdminDbMaster;
-                    if Ini.ReadBool(cSectionMSSQL, cKeyOSAuthent, True) then
-                      TempUniConn.SpecificOptions.Values[cUniDACAuthOption] := cUniDACAuthWindows
-                    else
-                    begin
-                      TempUniConn.Username := Ini.ReadString(cSectionMSSQL, cKeyUser, cDefaultMSSQLUser);
-                      TempUniConn.Password := Ini.ReadString(cSectionMSSQL, cKeyPassword, '');
-                    end;
-                    TempUniConn.Connected := True;
-                    UniQuery.Connection := TempUniConn;
-                    UniQuery.SQL.Text := cSQLMSSQLCheckDb + QuotedStr(DatabaseName);
-                    UniQuery.Open;
-                    Result := not UniQuery.IsEmpty;
-                    UniQuery.Close;
-                    TempUniConn.Connected := False;
-                  except
-                    Result := False;
-                  end;
-                finally
-                  UniQuery.Free;
-                  TempUniConn.Free;
-                end;
-              end;
-            dtPostgreSQL:
-              begin
-                DatabaseName := Ini.ReadString(cSectionPostgreSQL, cKeyDatabase, cDefaultPostgreSQLDatabase);
-                TempUniConn := TUniConnection.Create(nil);
-                UniQuery := TUniQuery.Create(nil);
-                try
-                  try
-                    TempUniConn.LoginPrompt := False;
-                    TempUniConn.ProviderName := cProviderPostgreSQL;
-                    TempUniConn.Server := Ini.ReadString(cSectionPostgreSQL, cKeyServer, cDefaultServer);
-                    TempUniConn.Port := Ini.ReadInteger(cSectionPostgreSQL, cKeyPort, cDefaultPostgreSQLPort);
-                    TempUniConn.Database := cAdminDbPostgres;
-                    TempUniConn.Username := Ini.ReadString(cSectionPostgreSQL, cKeyUser, cDefaultPostgreSQLUser);
-                    TempUniConn.Password := Ini.ReadString(cSectionPostgreSQL, cKeyPassword, '');
-                    TempUniConn.Connected := True;
-                    UniQuery.Connection := TempUniConn;
-                    UniQuery.SQL.Text := cSQLPGCheckDb + QuotedStr(DatabaseName);
-                    UniQuery.Open;
-                    Result := not UniQuery.IsEmpty;
-                    UniQuery.Close;
-                    TempUniConn.Connected := False;
-                  except
-                    Result := False;
-                  end;
-                finally
-                  UniQuery.Free;
-                  TempUniConn.Free;
-                end;
-              end;
-            dtFirebird:
-              begin
-                DatabaseName := Ini.ReadString(cSectionFirebird, cKeyDatabase, cDefaultFirebirdDatabase);
-                Result := FileExists(DatabaseName);
-              end;
-            dtSQLite:
-              begin
-                DatabaseName := Ini.ReadString(cSectionSQLite, cKeyDatabase, cDefaultSQLiteDatabase);
-                // For SQLite, check if file exists AND has schema (BOLD_TYPE table)
-                if not FileExists(DatabaseName) then
-                  Result := False
-                else
-                begin
-                  TempUniConn := TUniConnection.Create(nil);
-                  UniQuery := TUniQuery.Create(nil);
-                  try
-                    try
-                      TempUniConn.LoginPrompt := False;
-                      TempUniConn.ProviderName := cProviderSQLite;
-                      TempUniConn.Database := DatabaseName;
-                      TempUniConn.Connected := True;
-                      UniQuery.Connection := TempUniConn;
-                      UniQuery.SQL.Text := 'SELECT name FROM sqlite_master WHERE type=''table'' AND name=''BOLD_TYPE''';
-                      UniQuery.Open;
-                      Result := not UniQuery.IsEmpty;
-                      UniQuery.Close;
-                      TempUniConn.Connected := False;
-                    except
-                      Result := False;
-                    end;
-                  finally
-                    UniQuery.Free;
-                    TempUniConn.Free;
-                  end;
-                end;
-              end;
-          end;
-        end;
+        Result := FUniDACAdapter.DatabaseInterface.TableExists('BOLD_TYPE');
       {$ENDIF}
+    else
+      Result := False;
     end;
-  finally
-    Ini.Free;
+  except
+    Result := False;
   end;
 end;
 
@@ -977,9 +799,54 @@ begin
         end;
       dtSQLite:
         ; // SQLite creates the file automatically on first connect
-      dtMSSQL, dtPostgreSQL:
+      dtOracle:
         begin
-          // MSSQL/PostgreSQL - use Bold's built-in CreateDatabase method
+          // Create Oracle user/schema if it doesn't exist
+          // Uses AdminUser/AdminPassword to connect and create the target user
+          var OracleUser := Ini.ReadString(cSectionOracle, cKeyUser, cDefaultOracleUser);
+          var OraclePassword := Ini.ReadString(cSectionOracle, cKeyPassword, '');
+          var AdminUser := Ini.ReadString(cSectionOracle, cKeyAdminUser, '');
+          var AdminPassword := Ini.ReadString(cSectionOracle, cKeyAdminPassword, '');
+
+          // If no admin credentials, skip automatic user creation
+          if AdminUser = '' then
+            Exit;
+
+          var TempConn := TFDConnection.Create(nil);
+          var Query := TFDQuery.Create(nil);
+          try
+            TempConn.LoginPrompt := False;
+            TempConn.Params.Clear;
+            TempConn.Params.Add(cParamDriverID + '=' + cDriverOracle);
+            TempConn.Params.Add(cParamDatabase + '=' + Ini.ReadString(cSectionOracle, cKeyDatabase, cDefaultOracleDatabase));
+            TempConn.Params.Add(cParamUserName + '=' + AdminUser);
+            TempConn.Params.Add(cParamPassword + '=' + AdminPassword);
+            var VendorLib := Ini.ReadString(cSectionOracle, cKeyVendorLib, '');
+            if VendorLib <> '' then
+              TempConn.Params.Add(cParamVendorLib + '=' + VendorLib);
+            TempConn.Connected := True;
+            Query.Connection := TempConn;
+            // Check if user exists
+            Query.SQL.Text := Format(cSQLOracleCheckUser, [OracleUser]);
+            Query.Open;
+            if Query.IsEmpty then
+            begin
+              Query.Close;
+              // Create the user
+              TempConn.ExecSQL(Format(cSQLOracleCreateUser, [OracleUser, OraclePassword]));
+              // Grant necessary privileges
+              TempConn.ExecSQL(Format(cSQLOracleGrantUser, [OracleUser]));
+            end;
+            Query.Close;
+            TempConn.Connected := False;
+          finally
+            Query.Free;
+            TempConn.Free;
+          end;
+        end;
+      dtMSSQL, dtPostgreSQL, dtMariaDB:
+        begin
+          // MSSQL/PostgreSQL/MariaDB - use Bold's built-in CreateDatabase method
           case FPersistenceType of
             ptFireDAC:
               FFireDACAdapter.CreateDatabase(False);
@@ -1002,6 +869,124 @@ begin
   // XML persistence doesn't need schema creation
 end;
 
+procedure TDemoDataModule.DropOracleSchemaTables;
+var
+  Ini: TIniFile;
+  TempConn: TFDConnection;
+  Query: TFDQuery;
+  TableNames: TStringList;
+  AdminUser, AdminPassword, Database, OracleUser, VendorLib: string;
+  i: Integer;
+begin
+  Ini := TIniFile.Create(FConfigFile);
+  TableNames := TStringList.Create;
+  try
+    AdminUser := Ini.ReadString(cSectionOracle, cKeyAdminUser, '');
+    if AdminUser = '' then
+      raise Exception.Create('Admin credentials required to reset Oracle schema');
+
+    AdminPassword := Ini.ReadString(cSectionOracle, cKeyAdminPassword, '');
+    Database := Ini.ReadString(cSectionOracle, cKeyDatabase, '');
+    OracleUser := Ini.ReadString(cSectionOracle, cKeyUser, cDefaultOracleUser);
+    VendorLib := Ini.ReadString(cSectionOracle, cKeyVendorLib, '');
+
+    // Disconnect main connection if connected
+    if Assigned(FFDConnection) and FFDConnection.Connected then
+      FFDConnection.Connected := False;
+
+    TempConn := TFDConnection.Create(nil);
+    Query := TFDQuery.Create(nil);
+    try
+      TempConn.LoginPrompt := False;
+      TempConn.Params.Clear;
+      TempConn.Params.Add(cParamDriverID + '=' + cDriverOracle);
+      TempConn.Params.Add(cParamDatabase + '=' + Database);
+      TempConn.Params.Add(cParamUserName + '=' + AdminUser);
+      TempConn.Params.Add(cParamPassword + '=' + AdminPassword);
+      if VendorLib <> '' then
+        TempConn.Params.Add(cParamVendorLib + '=' + VendorLib);
+      TempConn.Connected := True;
+      Query.Connection := TempConn;
+
+      // Get all table names for the Oracle user
+      Query.SQL.Text := 'SELECT TABLE_NAME FROM ALL_TABLES WHERE OWNER = UPPER(''' + OracleUser + ''')';
+      Query.Open;
+      while not Query.Eof do
+      begin
+        TableNames.Add(Query.FieldByName('TABLE_NAME').AsString);
+        Query.Next;
+      end;
+      Query.Close;
+
+      // Drop each table with CASCADE CONSTRAINTS and PURGE (to avoid recyclebin)
+      for i := 0 to TableNames.Count - 1 do
+      begin
+        TempConn.ExecSQL('DROP TABLE ' + UpperCase(OracleUser) + '.' + TableNames[i] + ' CASCADE CONSTRAINTS PURGE');
+      end;
+
+      TempConn.Connected := False;
+    finally
+      Query.Free;
+      TempConn.Free;
+    end;
+  finally
+    TableNames.Free;
+    Ini.Free;
+  end;
+end;
+
+procedure TDemoDataModule.ResetOracleSchema;
+begin
+  ResetOracleSchemaWithConfirm(True);
+end;
+
+procedure TDemoDataModule.ResetOracleSchemaWithConfirm(AskConfirmation: Boolean);
+begin
+  if FDatabaseType <> dtOracle then
+  begin
+    MessageDlg('This function is only for Oracle databases.', mtInformation, [mbOK], 0);
+    Exit;
+  end;
+
+  if AskConfirmation then
+  begin
+    if MessageDlg('This will drop ALL tables in the Oracle schema and recreate the Bold schema.' + sLineBreak + sLineBreak +
+                  'All data will be lost!' + sLineBreak + sLineBreak +
+                  'Do you want to continue?',
+                  mtWarning, [mbYes, mbNo], 0) <> mrYes then
+      Exit;
+  end;
+
+  try
+    Screen.Cursor := crHourGlass;
+    try
+      // Deactivate system if active, discarding any dirty objects
+      if BoldSystemHandle1.Active then
+      begin
+        if BoldSystemHandle1.System.BoldDirty then
+          BoldSystemHandle1.System.Discard;
+        BoldSystemHandle1.Active := False;
+      end;
+
+      // Drop all existing tables
+      DropOracleSchemaTables;
+
+      // Recreate the Bold schema
+      CreateDatabaseSchema;
+
+      if AskConfirmation then
+        MessageDlg('Oracle schema has been reset successfully.' + sLineBreak +
+                   'The Bold tables have been recreated.',
+                   mtInformation, [mbOK], 0);
+    finally
+      Screen.Cursor := crDefault;
+    end;
+  except
+    on E: Exception do
+      MessageDlg('Error resetting Oracle schema: ' + E.Message, mtError, [mbOK], 0);
+  end;
+end;
+
 procedure TDemoDataModule.DropDatabase;
 var
   Ini: TIniFile;
@@ -1019,6 +1004,14 @@ begin
   // Check if database exists first
   if not DatabaseExists then
     Exit;
+
+  // Close the Bold system first, discarding any dirty objects
+  if BoldSystemHandle1.Active then
+  begin
+    if BoldSystemHandle1.System.BoldDirty then
+      BoldSystemHandle1.System.Discard;
+    BoldSystemHandle1.Active := False;
+  end;
 
   // Disconnect existing connection
   if Assigned(FFDConnection) and FFDConnection.Connected then
@@ -1087,6 +1080,63 @@ begin
                   if FileExists(DatabaseName) then
                     DeleteFile(DatabaseName);
                 end;
+              dtMariaDB:
+                begin
+                  DatabaseName := Ini.ReadString(cSectionMariaDB, cKeyDatabase, cDefaultMariaDBDatabase);
+                  TempFDConn.Params.Clear;
+                  TempFDConn.Params.Add(cParamDriverID + '=' + cDriverMySQL);
+                  TempFDConn.Params.Add(cParamServer + '=' + Ini.ReadString(cSectionMariaDB, cKeyServer, cDefaultServer));
+                  TempFDConn.Params.Add(cParamPort + '=' + Ini.ReadString(cSectionMariaDB, cKeyPort, IntToStr(cDefaultMariaDBPort)));
+                  TempFDConn.Params.Add(cParamUserName + '=' + Ini.ReadString(cSectionMariaDB, cKeyUser, cDefaultMariaDBUser));
+                  TempFDConn.Params.Add(cParamPassword + '=' + Ini.ReadString(cSectionMariaDB, cKeyPassword, ''));
+                  TempFDConn.Connected := True;
+                  TempFDConn.ExecSQL(Format(cSQLMariaDBDropDb, [DatabaseName]));
+                  TempFDConn.Connected := False;
+                end;
+              dtOracle:
+                begin
+                  // Drop all tables in Oracle schema (can't drop user without DBA privileges)
+                  var OracleUser := Ini.ReadString(cSectionOracle, cKeyUser, cDefaultOracleUser);
+                  TempFDConn.Params.Clear;
+                  TempFDConn.Params.Add(cParamDriverID + '=' + cDriverOracle);
+                  TempFDConn.Params.Add(cParamDatabase + '=' + Ini.ReadString(cSectionOracle, cKeyDatabase, cDefaultOracleDatabase));
+                  TempFDConn.Params.Add(cParamUserName + '=' + OracleUser);
+                  TempFDConn.Params.Add(cParamPassword + '=' + Ini.ReadString(cSectionOracle, cKeyPassword, ''));
+                  var VendorLib := Ini.ReadString(cSectionOracle, cKeyVendorLib, '');
+                  if VendorLib <> '' then
+                    TempFDConn.Params.Add(cParamVendorLib + '=' + VendorLib);
+                  TempFDConn.Connected := True;
+                  // Get all table names and drop them
+                  var TableNames := TStringList.Create;
+                  try
+                    var Query := TFDQuery.Create(nil);
+                    try
+                      Query.Connection := TempFDConn;
+                      Query.SQL.Text := 'SELECT TABLE_NAME FROM USER_TABLES';
+                      Query.Open;
+                      while not Query.Eof do
+                      begin
+                        TableNames.Add(Query.FieldByName('TABLE_NAME').AsString);
+                        Query.Next;
+                      end;
+                      Query.Close;
+                    finally
+                      Query.Free;
+                    end;
+                    // Drop all tables
+                    for var i := 0 to TableNames.Count - 1 do
+                    begin
+                      try
+                        TempFDConn.ExecSQL('DROP TABLE ' + TableNames[i] + ' CASCADE CONSTRAINTS PURGE');
+                      except
+                        // Ignore errors - table might have been dropped by CASCADE
+                      end;
+                    end;
+                  finally
+                    TableNames.Free;
+                  end;
+                  TempFDConn.Connected := False;
+                end;
             end;
           finally
             TempFDConn.Free;
@@ -1143,6 +1193,58 @@ begin
                   if FileExists(DatabaseName) then
                     DeleteFile(DatabaseName);
                 end;
+              dtMariaDB:
+                begin
+                  DatabaseName := Ini.ReadString(cSectionMariaDB, cKeyDatabase, cDefaultMariaDBDatabase);
+                  TempUniConn.ProviderName := 'MySQL';
+                  TempUniConn.Server := Ini.ReadString(cSectionMariaDB, cKeyServer, cDefaultServer);
+                  TempUniConn.Port := Ini.ReadInteger(cSectionMariaDB, cKeyPort, cDefaultMariaDBPort);
+                  TempUniConn.Username := Ini.ReadString(cSectionMariaDB, cKeyUser, cDefaultMariaDBUser);
+                  TempUniConn.Password := Ini.ReadString(cSectionMariaDB, cKeyPassword, '');
+                  TempUniConn.Connected := True;
+                  TempUniConn.ExecSQL(Format(cSQLMariaDBDropDb, [DatabaseName]));
+                  TempUniConn.Connected := False;
+                end;
+              dtOracle:
+                begin
+                  // Drop all tables in Oracle schema (can't drop user without DBA privileges)
+                  var OracleUser := Ini.ReadString(cSectionOracle, cKeyUser, cDefaultOracleUser);
+                  TempUniConn.ProviderName := 'Oracle';
+                  TempUniConn.Database := Ini.ReadString(cSectionOracle, cKeyDatabase, cDefaultOracleDatabase);
+                  TempUniConn.Username := OracleUser;
+                  TempUniConn.Password := Ini.ReadString(cSectionOracle, cKeyPassword, '');
+                  TempUniConn.Connected := True;
+                  // Get all table names and drop them
+                  var TableNames := TStringList.Create;
+                  try
+                    var Query := TUniQuery.Create(nil);
+                    try
+                      Query.Connection := TempUniConn;
+                      Query.SQL.Text := 'SELECT TABLE_NAME FROM USER_TABLES';
+                      Query.Open;
+                      while not Query.Eof do
+                      begin
+                        TableNames.Add(Query.FieldByName('TABLE_NAME').AsString);
+                        Query.Next;
+                      end;
+                      Query.Close;
+                    finally
+                      Query.Free;
+                    end;
+                    // Drop all tables
+                    for var i := 0 to TableNames.Count - 1 do
+                    begin
+                      try
+                        TempUniConn.ExecSQL('DROP TABLE ' + TableNames[i] + ' CASCADE CONSTRAINTS PURGE');
+                      except
+                        // Ignore errors - table might have been dropped by CASCADE
+                      end;
+                    end;
+                  finally
+                    TableNames.Free;
+                  end;
+                  TempUniConn.Connected := False;
+                end;
             end;
           finally
             TempUniConn.Free;
@@ -1193,6 +1295,31 @@ begin
   end;
 end;
 
+function TDemoDataModule.IsOracleSchemaError(const ErrorMessage: string): Boolean;
+begin
+  // Detect Oracle errors that indicate schema/constraint mismatch
+  Result := (FDatabaseType = dtOracle) and
+            (Pos('ORA-01400', ErrorMessage) > 0);  // Cannot insert NULL
+end;
+
+function TDemoDataModule.HandleOracleSchemaError(const ErrorMessage: string): Boolean;
+begin
+  Result := False;
+  if not IsOracleSchemaError(ErrorMessage) then
+    Exit;
+
+  if MessageDlg('Oracle database error: ' + sLineBreak + sLineBreak +
+                ErrorMessage + sLineBreak + sLineBreak +
+                'This may be caused by a schema mismatch (table constraints don''t match the model).' + sLineBreak + sLineBreak +
+                'Do you want to reset the Oracle schema?' + sLineBreak +
+                '(This will DROP all tables and recreate them - all data will be lost)',
+                mtWarning, [mbYes, mbNo], 0) = mrYes then
+  begin
+    ResetOracleSchemaWithConfirm(False);  // Already confirmed
+    Result := True;
+  end;
+end;
+
 procedure TDemoDataModule.OpenSystem;
 begin
   // Check if database exists (skip for XML persistence)
@@ -1214,10 +1341,44 @@ begin
       end
       else
         Exit;  // User declined, don't open system
-    end;
+    end
+    // For Oracle, just use existing schema - errors will be handled below
   end;
 
-  BoldSystemHandle1.Active := True;
+  try
+    BoldSystemHandle1.Active := True;
+  except
+    on E: EBoldMissingID do
+    begin
+      // Schema mismatch - BOLD_TYPE table doesn't have entries for model classes
+      if (FDatabaseType = dtOracle) and
+         (MessageDlg('The Oracle schema exists but is out of sync with the model.' + sLineBreak + sLineBreak +
+                     'This usually happens when:' + sLineBreak +
+                     '- The model was changed after the schema was created' + sLineBreak +
+                     '- The schema was created by a different application' + sLineBreak + sLineBreak +
+                     'Do you want to reset the Oracle schema?' + sLineBreak +
+                     '(This will DROP all tables and recreate them)',
+                     mtWarning, [mbYes, mbNo], 0) = mrYes) then
+      begin
+        ResetOracleSchemaWithConfirm(False);  // Already confirmed
+        // Try again after reset
+        BoldSystemHandle1.Active := True;
+      end
+      else
+        raise;  // Re-raise if not Oracle or user declined
+    end;
+    on E: Exception do
+    begin
+      // Check for Oracle schema errors
+      if HandleOracleSchemaError(E.Message) then
+      begin
+        // Schema was reset, try again
+        BoldSystemHandle1.Active := True;
+      end
+      else
+        raise;
+    end;
+  end;
 end;
 
 procedure TDemoDataModule.CloseSystem;

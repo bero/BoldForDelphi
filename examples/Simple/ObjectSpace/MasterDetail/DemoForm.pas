@@ -147,6 +147,10 @@ const
   clWarning = $000066AA;  // Dark orange
   clNeutral = $00606060;  // Gray
 begin
+  // Safety check - form may be destroying
+  if not Assigned(lblDatabaseStatus) or not Assigned(lblBoldStatus) or not Assigned(lblConfigFile) then
+    Exit;
+
   // Safety check
   if not Assigned(dmDemo) then
   begin
@@ -272,9 +276,13 @@ begin
                 'This will permanently delete all data!',
                 mtWarning, [mbYes, mbNo], 0) = mrYes then
   begin
-    // Close the Bold system first
+    // Close the Bold system first, discarding any dirty objects
     if dmDemo.BoldSystemHandle1.Active then
+    begin
+      if dmDemo.BoldSystemHandle1.System.BoldDirty then
+        dmDemo.BoldSystemHandle1.System.Discard;
       dmDemo.BoldSystemHandle1.Active := False;
+    end;
 
     dmDemo.DropDatabase;
     UpdateStatusLabels;
