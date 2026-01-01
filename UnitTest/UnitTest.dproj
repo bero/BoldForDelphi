@@ -84,6 +84,7 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+        <Debugger_RunParams>--exit:pause</Debugger_RunParams>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -111,6 +112,7 @@
         <DCCReference Include="Code\ObjectSpace\maan_Modify.pas"/>
         <DCCReference Include="Code\ObjectSpace\maan_Undo.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldSystem.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldLinks.pas"/>
         <DCCReference Include="Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas"/>
         <DCCReference Include="Code\Common\Test.BoldDefaultTaggedValues.pas"/>
         <DCCReference Include="Code\RTModel\Test.BoldMemberTypeDictionary.pas"/>

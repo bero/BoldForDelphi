@@ -222,6 +222,7 @@ type
   protected
     function GetColumnCount: Integer; override;
     function GetColumnSize(ColumnIndex: Integer): Integer; override;
+    procedure InitializeTimestampFields(MoldClass: TMoldClass; const ColumnName: string);
   public
     class procedure EnsureFirstColumn(ColumnIndex: Integer);
   end;
@@ -3776,6 +3777,17 @@ begin
     raise EBoldBadColumnIndex.CreateFmt(sIllegalColumnIndex, [ClassName, 'EnsureFirstColumn', ColumnIndex]); // do not localize
 end;
 
+procedure TBoldSingleColumnMember.InitializeTimestampFields(MoldClass: TMoldClass; const ColumnName: string);
+begin
+  fExpressionname := '_' + ColumnName;
+  fDefaultDbValue := '';
+  fAllowNull := false;
+  fDelayedFetch := MoldClass.EffectiveOptimisticLocking <> bolmTimeStamp;
+  fContentName := '';
+  fIsStoredInObject := true;
+  fInitialColumnRootName := ColumnName;
+end;
+
 { TBoldModelVersionMember }
 
 function TBoldModelVersionMember.CompareField(
@@ -3978,13 +3990,7 @@ constructor TBoldTimeStampMember.CreateFromMold(moldMember: TMoldMember;
   moldClass: TMoldClass; Owner: TBoldObjectPersistenceMapper;
   const MemberIndex: Integer; TypeNameDictionary: TBoldTypeNameDictionary);
 begin
-  fExpressionname := '_' + TIMESTAMPCOLUMN_NAME;
-  fDefaultDbValue := '';
-  fAllowNull := false;
-  fDelayedFetch := MoldClass.EffectiveOptimisticLocking <> bolmTimeStamp;
-  fContentName := '';
-  fIsStoredInObject := true;
-  fInitialColumnRootName := TIMESTAMPCOLUMN_NAME;
+  InitializeTimestampFields(MoldClass, TIMESTAMPCOLUMN_NAME);
   inherited CreateFromMold(MoldMember, MoldClass, Owner, TIMESTAMPMEMBERINDEX, TypeNameDictionary);
 end;
 
@@ -4166,13 +4172,7 @@ constructor TBoldNonXFileTimeStampMember.CreateFromMold(moldMember: TMoldMember;
   moldClass: TMoldClass; Owner: TBoldObjectPersistenceMapper;
   const MemberIndex: Integer; TypeNameDictionary: TBoldTypeNameDictionary);
 begin
-  fExpressionname := '_' + TIMESTAMPCOLUMN_NAME;
-  fDefaultDbValue := '';
-  fAllowNull := false;
-  fDelayedFetch := MoldClass.EffectiveOptimisticLocking <> bolmTimeStamp;
-  fContentName := '';
-  fIsStoredInObject := true;
-  fInitialColumnRootName := TIMESTAMPCOLUMN_NAME;
+  InitializeTimestampFields(MoldClass, TIMESTAMPCOLUMN_NAME);
   inherited CreateFromMold(MoldMember, MoldClass, Owner, TIMESTAMPMEMBERINDEX, TypeNameDictionary);
 end;
 

@@ -3097,6 +3097,10 @@ begin
   result := OwningList.OwningObject.BoldMembers[RoleRTInfo.IndexOfMainRole] as TBoldObjectList;
 end;
 
+// Note: This ProxyInterface implementation is duplicated in TBoldLinkObjectReferenceController.
+// The duplication exists because the two classes have different base classes
+// (TBoldAbstractObjectListController vs TBoldAbstractObjectReferenceController)
+// and both must override ProxyInterface with the same null-returning behavior.
 function TBoldLinkObjectListController.ProxyInterface(const IId: TGUID; Mode: TBoldDomainElementProxyMode; out Obj): Boolean;
 begin
   if IsEqualGuid(IID, IBoldValue) or IsEqualGuid(IID, IBoldStreamable) then

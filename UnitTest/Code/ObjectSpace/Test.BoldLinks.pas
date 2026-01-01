@@ -1,7 +1,7 @@
 unit Test.BoldLinks;
 
 { DUnitX tests for BoldLinks - Multi-link controller functionality }
-{ Tests DoPreChangeIfNeeded refactoring through multi-link operations }
+{ Tests multi-link operations which exercise DoPreChangeIfNeeded internally }
 
 interface
 
@@ -12,6 +12,7 @@ uses
   BoldSystem,
   BoldSubscription,
   BoldElements,
+  BoldLinks,
   UndoTestModelClasses,
   maan_UndoRedoBase,
   maan_UndoRedoTestCaseUtils;
