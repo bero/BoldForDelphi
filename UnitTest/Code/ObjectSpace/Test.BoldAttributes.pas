@@ -88,6 +88,9 @@ type
     [Test]
     [Category('Quick')]
     procedure TestCompareTypes;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobContentTypeValidation;
   end;
 
 var
@@ -567,6 +570,87 @@ begin
     Assert.IsFalse(ExceptionRaised, Format('CompareType %d should work but raised exception', [Ord(CompareType)]))
   else
     Assert.IsTrue(ExceptionRaised, Format('CompareType %d should not work but no exception', [Ord(CompareType)]));
+end;
+
+procedure TTestBoldAttributes.TestBlobContentTypeValidation;
+var
+  BlobJPEG: TBABlobImageJPEG;
+  BlobBMP: TBABlobImageBMP;
+  TypedBlob: TBATypedBlob;
+  ExceptionRaised: Boolean;
+begin
+  // Test TBABlobImageJPEG - should reject wrong content type
+  BlobJPEG := TBABlobImageJPEG.Create;
+  try
+    // Setting correct content type should work (no exception)
+    ExceptionRaised := False;
+    try
+      BlobJPEG.ContentType := 'image/jpeg';
+    except
+      ExceptionRaised := True;
+    end;
+    Assert.IsFalse(ExceptionRaised, 'JPEG blob should accept image/jpeg content type');
+
+    // Setting wrong content type should raise exception
+    ExceptionRaised := False;
+    try
+      BlobJPEG.ContentType := 'image/png';
+    except
+      ExceptionRaised := True;
+    end;
+    Assert.IsTrue(ExceptionRaised, 'JPEG blob should reject image/png content type');
+  finally
+    BlobJPEG.Free;
+  end;
+
+  // Test TBABlobImageBMP - should reject wrong content type
+  BlobBMP := TBABlobImageBMP.Create;
+  try
+    // Setting correct content type should work
+    ExceptionRaised := False;
+    try
+      BlobBMP.ContentType := 'image/bitmap';
+    except
+      ExceptionRaised := True;
+    end;
+    Assert.IsFalse(ExceptionRaised, 'BMP blob should accept image/bitmap content type');
+
+    // Setting wrong content type should raise exception
+    ExceptionRaised := False;
+    try
+      BlobBMP.ContentType := 'image/jpeg';
+    except
+      ExceptionRaised := True;
+    end;
+    Assert.IsTrue(ExceptionRaised, 'BMP blob should reject image/jpeg content type');
+  finally
+    BlobBMP.Free;
+  end;
+
+  // Test TBATypedBlob - should allow changing content type
+  TypedBlob := TBATypedBlob.Create;
+  try
+    ExceptionRaised := False;
+    try
+      TypedBlob.ContentType := 'application/pdf';
+    except
+      ExceptionRaised := True;
+    end;
+    Assert.IsFalse(ExceptionRaised, 'TypedBlob should accept any content type');
+    Assert.AreEqual('application/pdf', TypedBlob.ContentType, 'TypedBlob content type should be set');
+
+    // Change to different type should also work
+    ExceptionRaised := False;
+    try
+      TypedBlob.ContentType := 'text/plain';
+    except
+      ExceptionRaised := True;
+    end;
+    Assert.IsFalse(ExceptionRaised, 'TypedBlob should allow changing content type');
+    Assert.AreEqual('text/plain', TypedBlob.ContentType, 'TypedBlob content type should be changed');
+  finally
+    TypedBlob.Free;
+  end;
 end;
 
 initialization

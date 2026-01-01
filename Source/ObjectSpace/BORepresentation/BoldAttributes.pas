@@ -504,14 +504,12 @@ type
   TBABlobImageJPEG = class(TBABlob)
   protected
     function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
-    procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); override;
   end;
 
   {-- TBABlobImageBMP --}
   TBABlobImageBMP = class(TBABlob)
   protected
     function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
-    procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); override;
   end;
 
   {---TBAMoment---}
@@ -1320,6 +1318,11 @@ begin
   FValue := Value;
 end;
 
+// Note: This GetAttributeTypeInfoForType pattern is intentionally duplicated across
+// 16 attribute classes (TBAString, TBAInteger, TBAFloat, TBACurrency, TBABlob, etc.).
+// Each class has its own class variable 'AttributeTypeInfo' for per-class caching.
+// Moving this to a base class would require a class dictionary lookup, adding complexity
+// with no real benefit since the code is stable and rarely modified.
 function TBAString.GetAttributeTypeInfoForType: TBoldElementTypeInfo;
 begin
   if not Assigned(AttributeTypeInfo) then
@@ -2842,7 +2845,10 @@ begin
     BoldRaiseLastFailure(self, Meth_SetStringRepresentation, sStringValidationFailed);
   case Representation of
     brDefault: SetDataValue(TBoldAnsiString(Value));
-    brShort: {Content type is lost when assigned to a Blob};
+    brShort:
+      // Validate content type for typed blobs (JPEG, BMP, etc.)
+      if (Value <> '') and (Value <> ContentType) then
+        raise EBold.CreateFmt(sCannotAssignXtoY, [ClassName, Value, ContentType]);
   else
     inherited SetStringRepresentation(Representation, Value);
   end;
@@ -3383,18 +3389,6 @@ begin
 end;
 
 {-- TBABlobImageJPEG --}
-procedure TBABlobImageJPEG.SetStringRepresentation(Representation: TBoldRepresentation; const Value: string);
-begin
-  case Representation of
-    brShort: begin
-      if (Value <> '') and (Value <> ContentType) then
-        raise EBold.CreateFmt(sCannotAssignXtoY, [ClassName, Value, ContentType]);
-    end;
-  else
-    inherited SetStringRepresentation(Representation, Value);
-  end;
-end;
-
 function TBABlobImageJPEG.GetStringRepresentation(Representation: TBoldRepresentation): string;
 begin
   case Representation of
@@ -3407,18 +3401,6 @@ begin
 end;
 
 {-- TBABlobImageBMP --}
-procedure TBABlobImageBMP.SetStringRepresentation(Representation: TBoldRepresentation; const Value: string);
-begin
-  case Representation of
-    brShort: begin
-      if (Value <> '') and (Value <> ContentType) then
-        raise EBold.CreateFmt(sCannotAssignXtoY, [ClassName, Value, ContentType]);
-    end;
-  else
-    inherited SetStringRepresentation(Representation, Value);
-  end;
-end;
-
 function TBABlobImageBMP.GetStringRepresentation(Representation: TBoldRepresentation): string;
 begin
   case Representation of
@@ -5183,6 +5165,11 @@ begin
   result := ProxedMember as TBAString;
 end;
 
+// Note: This MakeProxy pattern is duplicated in TBAUnicodeString_Proxy.
+// Each class has its own class variables (fLastUsed, fLastUsedAsInterface) for
+// per-class proxy caching. The child class shadows parent's class variables,
+// so it needs its own MakeProxy to use its own cache - otherwise wrong proxy
+// types would be returned.
 class function TBAString_Proxy.MakeProxy(ProxedMember: TBoldMember;
   Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy;
 begin
