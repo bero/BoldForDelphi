@@ -229,6 +229,7 @@ type
     procedure ReleaseTable(var Table: IBoldTable); override;
     procedure ReleaseQuery(var Query: IBoldQuery); override;
     procedure ReleaseExecQuery(var Query: IBoldExecQuery); override;
+    function TableExists(const TableName: String): Boolean; override;
     property Transaction: TFDTransaction read GetTransaction write SetTransaction;
     property UpdateTransaction: TFDTransaction read GetUpdateTransaction write SetUpdateTransaction;
   public
@@ -661,6 +662,31 @@ begin
       TableNameList.Add(lTempList[lIndexTempList]);
     end;
   end;
+end;
+
+function TBoldFireDACConnection.TableExists(const TableName: String): Boolean;
+begin
+  // For Oracle, we need to check ALL_TABLES with OWNER filter because:
+  // 1. We might be connected as admin (SYSTEM) checking for tables in another schema
+  // 2. The default AllTableNames only shows current user's tables
+  if GetSQLDatabaseConfig.Engine = dbeOracle then
+  begin
+    var Query: IBoldQuery;
+    var SchemaOwner: string;
+    SchemaOwner := FDConnection.Params.UserName;
+    Query := GetQuery;
+    try
+      Query.AssignSQLText(
+        'SELECT TABLE_NAME FROM ALL_TABLES WHERE OWNER = UPPER(''' + SchemaOwner + ''') AND TABLE_NAME = UPPER(''' + TableName + ''')');
+      Query.Open;
+      Result := not Query.Eof;
+      Query.Close;
+    finally
+      ReleaseQuery(Query);
+    end;
+  end
+  else
+    Result := inherited TableExists(TableName);
 end;
 
 procedure TBoldFireDACConnection.Commit;

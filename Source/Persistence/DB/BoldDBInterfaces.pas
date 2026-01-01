@@ -502,7 +502,7 @@ type
     function GetIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray; virtual;
     function GetTable: IBoldTable; virtual; abstract;
     procedure ReleaseTable(var Table: IBoldTable); virtual; abstract;
-    function TableExists(const TableName: String): Boolean;
+    function TableExists(const TableName: String): Boolean; virtual;
     function GetQuery: IBoldQuery; virtual; abstract;
     procedure ReleaseQuery(var Query: IBoldQuery); virtual; abstract;
     function GetExecQuery: IBoldExecQuery; virtual;

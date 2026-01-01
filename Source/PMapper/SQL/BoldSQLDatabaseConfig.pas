@@ -17,6 +17,7 @@ type
     dbeGenericANSISQL92,
     dbeSQLServer,
     dbePostgres,
+    dbeMySQL,
     dbeDBISAM,
     dbeOracle,
     dbeAdvantage,
@@ -823,15 +824,15 @@ begin
   fColumnTypeForFloat := 'DOUBLE PRECISION';
   fColumnTypeForCurrency := 'DOUBLE PRECISION';
   fColumnTypeForString := 'VARCHAR(%d)';
-  fColumnTypeForUnicodeString := 'NVARCHAR(%d)'; // do not localize
-  fColumnTypeForAnsiString := 'VARCHAR(%d)'; // do not localize
-  fColumnTypeForText := 'VARCHAR(MAX)'; // do not localize
-  fColumnTypeForUnicodeText := 'NVARCHAR(MAX)'; // do not localize
-  fColumnTypeForAnsiText := 'VARCHAR(MAX)'; // do not localize
+  fColumnTypeForUnicodeString := 'NVARCHAR(%d)';
+  fColumnTypeForAnsiString := 'VARCHAR(%d)';
+  fColumnTypeForText := 'VARCHAR(MAX)';
+  fColumnTypeForUnicodeText := 'NVARCHAR(MAX)';
+  fColumnTypeForAnsiText := 'VARCHAR(MAX)';
   fLongStringLimit := -1;
   fColumnTypeForInteger := 'INTEGER';
   fColumnTypeForSmallInt := 'SMALLINT';
-  fColumnTypeForInt64 := 'BIGINT'; // do not localize
+  fColumnTypeForInt64 := 'BIGINT';
   fDefaultStringLength := 255;
   fMaxParamsInIdList := 20;
   fMaxIndexNameLength := 18;
@@ -984,17 +985,17 @@ begin
   case Engine of
     dbePostgres:
     begin
-      fColumnTypeForBlob := 'BYTEA'; // do not localize
-      fColumnTypeForCurrency := 'NUMERIC'; // do not localize
-      fColumnTypeForDateTime := 'TIMESTAMP'; // do not localize
-      fColumnTypeForFloat := 'NUMERIC'; // do not localize
-      FColumnTypeForTime := 'TIME'; // do not localize
+      fColumnTypeForBlob := 'BYTEA';
+      fColumnTypeForCurrency := 'NUMERIC';
+      fColumnTypeForDateTime := 'TIMESTAMP';
+      fColumnTypeForFloat := 'NUMERIC';
+      FColumnTypeForTime := 'TIME';
       fColumnTypeForGuid := 'UUID';
       fMaxIndexNameLength := 63;
       fMaxDbIdentifierLength := 63;
       fMultiRowInsertLimit := 1000;
       fIndexColumnExistsTemplate := 'select indexname name from pg_indexes where upper(tablename) = upper(''<TableName>'')';
-      FColumnExistsTemplate := 'SELECT column_name FROM information_schema.columns WHERE upper(table_name)=upper(''<TableName>'') and upper(column_name)=upper(''<ColumnName>'')'; // do not localize
+      FColumnExistsTemplate := 'SELECT column_name FROM information_schema.columns WHERE upper(table_name)=upper(''<TableName>'') and upper(column_name)=upper(''<ColumnName>'')';
       fDatabaseExistsTemplate := 'select exists(SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower(''<DatabaseName>''));';
 //      IndexInfoTemplate fields: IndexName, IsPrimary, IsUnique, ColumnName
       IndexInfoTemplate :=  'SELECT ix.relname IndexName, indisunique isUnique, indisprimary isPrimary, '+
@@ -1006,50 +1007,109 @@ begin
 +          'WHERE t.relname = (''<TableName>'')';
 
 
-      fReservedWords.Text := 'ALL, ANALYSE, AND, ANY, ARRAY, AS, ASC, ASYMMETRIC, AUTHORIZATION,'#10 + // do not localize
-                             'BETWEEN, BINARY, BOOLEAN, BOTH, CASE, CAST, CHAR, CHARACTER, CHECK,'#10 + // do not localize
-                             'CMIN, COALESCE, COLLATE, COLUMN, CONSTRAINT, CONVERT, CREATE, CROSS,'#10 + // do not localize
-                             'CURRENT_DATE, CURRENT_ROLE, CURRENT_TIME, CURRENT_TIMESTAMP,'#10 + // do not localize
-                             'CURRENT_USER, DEC, DECIMAL, DEFAULT, DEFERRABLE, SEC, ELSE, END,'#10 + // do not localize
-                             'EXCEPT, EXISTS, EXTRACT, FALSE, FLOAT, FOR, FOREIGN, FREEZE, FROM,'#10 + // do not localize
-                             'FULL, GRANT, GREATEST, GROUP, HAVING, ILIKE, IN, INITIALLY, INNER,'#10 + // do not localize
-                             'INOUT, INT, INTEGER, INTERSECT, INTERVAL, INTO, IS, ISNULL, JOIN,'#10 + // do not localize
-                             'LEADING, LEAST, LEFT, LIKE, LIMIT, LOCALTIME, LOCALTIMESTAMP,'#10 + // do not localize
-                             'NATIONAL, NATURAL, NCHAR, NEW, NONE, NOT, NOTNULL, NULL, NULLIF,'#10 + // do not localize
-                             'NUMERIC, OFF, OFFSET, OLD, ON, ONLY, OR, ORDER, OUT, OUTER, OVERLAPS,'#10 + // do not localize
-                             'OVERLAY, PLI, POSITION, PRECISION, PRIMARY, REAL, REFERENCES,'#10 + // do not localize
-                             'RETURNING, RIGHT, ROW, SELECT, SESSION_USER, SETOF, SIMILAR,'#10 + // do not localize
-                             'SMALLINT, SOME, SUBSTRING, SYMMETRIC, TABLE, THEN, TIME, TIMESTAMP,'#10 + // do not localize
-                             'TOP_LEVEL_COUNT, TRAILING, TREAT, TRIM, TRUE, UNION, UNIQUE, USER,'#10 + // do not localize
-                             'USING, VALUES, VARCHAR, VERBOSE, WHEN, WHERE'; // do not localize
+      fReservedWords.Text := 'ALL, ANALYSE, AND, ANY, ARRAY, AS, ASC, ASYMMETRIC, AUTHORIZATION,'#10 +
+                             'BETWEEN, BINARY, BOOLEAN, BOTH, CASE, CAST, CHAR, CHARACTER, CHECK,'#10 +
+                             'CMIN, COALESCE, COLLATE, COLUMN, CONSTRAINT, CONVERT, CREATE, CROSS,'#10 +
+                             'CURRENT_DATE, CURRENT_ROLE, CURRENT_TIME, CURRENT_TIMESTAMP,'#10 +
+                             'CURRENT_USER, DEC, DECIMAL, DEFAULT, DEFERRABLE, SEC, ELSE, END,'#10 +
+                             'EXCEPT, EXISTS, EXTRACT, FALSE, FLOAT, FOR, FOREIGN, FREEZE, FROM,'#10 +
+                             'FULL, GRANT, GREATEST, GROUP, HAVING, ILIKE, IN, INITIALLY, INNER,'#10 +
+                             'INOUT, INT, INTEGER, INTERSECT, INTERVAL, INTO, IS, ISNULL, JOIN,'#10 +
+                             'LEADING, LEAST, LEFT, LIKE, LIMIT, LOCALTIME, LOCALTIMESTAMP,'#10 +
+                             'NATIONAL, NATURAL, NCHAR, NEW, NONE, NOT, NOTNULL, NULL, NULLIF,'#10 +
+                             'NUMERIC, OFF, OFFSET, OLD, ON, ONLY, OR, ORDER, OUT, OUTER, OVERLAPS,'#10 +
+                             'OVERLAY, PLI, POSITION, PRECISION, PRIMARY, REAL, REFERENCES,'#10 +
+                             'RETURNING, RIGHT, ROW, SELECT, SESSION_USER, SETOF, SIMILAR,'#10 +
+                             'SMALLINT, SOME, SUBSTRING, SYMMETRIC, TABLE, THEN, TIME, TIMESTAMP,'#10 +
+                             'TOP_LEVEL_COUNT, TRAILING, TREAT, TRIM, TRUE, UNION, UNIQUE, USER,'#10 +
+                             'USING, VALUES, VARCHAR, VERBOSE, WHEN, WHERE';
 
 
     end;
+    dbeMySQL:
+    begin
+      // MySQL/MariaDB settings
+      fColumnTypeForBlob := 'LONGBLOB';
+      fColumnTypeForCurrency := 'DECIMAL(18,4)';
+      fColumnTypeForDateTime := 'DATETIME';
+      fColumnTypeForDate := 'DATE';
+      fColumnTypeForTime := 'TIME';
+      fColumnTypeForFloat := 'DOUBLE';
+      fColumnTypeForText := 'LONGTEXT';
+      fColumnTypeForUnicodeText := 'LONGTEXT';
+      fColumnTypeForInt64 := 'BIGINT';
+      fColumnTypeForGuid := 'CHAR(36)';
+      fMaxIndexNameLength := 64;
+      fMaxDbIdentifierLength := 64;
+      fMultiRowInsertLimit := 1000;
+      fLongStringLimit := 65535;
+      FColumnExistsTemplate := 'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE UPPER(TABLE_NAME)=UPPER(''<TableName>'') AND UPPER(COLUMN_NAME)=UPPER(''<ColumnName>'') AND TABLE_SCHEMA=DATABASE()';
+      FTableExistsTemplate := 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE UPPER(TABLE_NAME)=UPPER(''<TableName>'') AND TABLE_SCHEMA=DATABASE()';
+      FIndexExistsTemplate := 'SELECT INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS WHERE UPPER(INDEX_NAME)=UPPER(''<IndexName>'') AND UPPER(TABLE_NAME)=UPPER(''<TableName>'') AND TABLE_SCHEMA=DATABASE()';
+      fIndexColumnExistsTemplate := 'SELECT INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS WHERE UPPER(TABLE_NAME)=UPPER(''<TableName>'') AND UPPER(COLUMN_NAME)=UPPER(''<IndexColumnName>'') AND TABLE_SCHEMA=DATABASE()';
+      fDatabaseExistsTemplate := 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME=''<DatabaseName>''';
+      fCreateDatabaseTemplate := 'CREATE DATABASE <DatabaseName> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci';
+      fDropColumnTemplate := 'ALTER TABLE <TableName> DROP COLUMN <ColumnName>';
+      fDropIndexTemplate := 'DROP INDEX <IndexName> ON <TableName>';
+      fSqlScriptStartTransaction := 'START TRANSACTION';
+      fReservedWords.Text := 'ACCESSIBLE, ADD, ALL, ALTER, ANALYZE, AND, AS, ASC, ASENSITIVE,'#10 +
+                             'BEFORE, BETWEEN, BIGINT, BINARY, BLOB, BOTH, BY, CALL, CASCADE,'#10 +
+                             'CASE, CHANGE, CHAR, CHARACTER, CHECK, COLLATE, COLUMN, CONDITION,'#10 +
+                             'CONSTRAINT, CONTINUE, CONVERT, CREATE, CROSS, CURRENT_DATE,'#10 +
+                             'CURRENT_TIME, CURRENT_TIMESTAMP, CURRENT_USER, CURSOR, DATABASE,'#10 +
+                             'DATABASES, DAY_HOUR, DAY_MICROSECOND, DAY_MINUTE, DAY_SECOND,'#10 +
+                             'DEC, DECIMAL, DECLARE, DEFAULT, DELAYED, DELETE, DESC, DESCRIBE,'#10 +
+                             'DETERMINISTIC, DISTINCT, DISTINCTROW, DIV, DOUBLE, DROP, DUAL,'#10 +
+                             'EACH, ELSE, ELSEIF, ENCLOSED, ESCAPED, EXISTS, EXIT, EXPLAIN,'#10 +
+                             'FALSE, FETCH, FLOAT, FLOAT4, FLOAT8, FOR, FORCE, FOREIGN, FROM,'#10 +
+                             'FULLTEXT, GRANT, GROUP, HAVING, HIGH_PRIORITY, HOUR_MICROSECOND,'#10 +
+                             'HOUR_MINUTE, HOUR_SECOND, IF, IGNORE, IN, INDEX, INFILE, INNER,'#10 +
+                             'INOUT, INSENSITIVE, INSERT, INT, INT1, INT2, INT3, INT4, INT8,'#10 +
+                             'INTEGER, INTERVAL, INTO, IS, ITERATE, JOIN, KEY, KEYS, KILL,'#10 +
+                             'LEADING, LEAVE, LEFT, LIKE, LIMIT, LINEAR, LINES, LOAD, LOCALTIME,'#10 +
+                             'LOCALTIMESTAMP, LOCK, LONG, LONGBLOB, LONGTEXT, LOOP, LOW_PRIORITY,'#10 +
+                             'MASTER_SSL_VERIFY_SERVER_CERT, MATCH, MAXVALUE, MEDIUMBLOB,'#10 +
+                             'MEDIUMINT, MEDIUMTEXT, MIDDLEINT, MINUTE_MICROSECOND, MINUTE_SECOND,'#10 +
+                             'MOD, MODIFIES, NATURAL, NOT, NO_WRITE_TO_BINLOG, NULL, NUMERIC,'#10 +
+                             'ON, OPTIMIZE, OPTION, OPTIONALLY, OR, ORDER, OUT, OUTER, OUTFILE,'#10 +
+                             'PRECISION, PRIMARY, PROCEDURE, PURGE, RANGE, READ, READS,'#10 +
+                             'READ_WRITE, REAL, REFERENCES, REGEXP, RELEASE, RENAME, REPEAT,'#10 +
+                             'REPLACE, REQUIRE, RESIGNAL, RESTRICT, RETURN, REVOKE, RIGHT,'#10 +
+                             'RLIKE, SCHEMA, SCHEMAS, SECOND_MICROSECOND, SELECT, SENSITIVE,'#10 +
+                             'SEPARATOR, SET, SHOW, SIGNAL, SMALLINT, SPATIAL, SPECIFIC, SQL,'#10 +
+                             'SQLEXCEPTION, SQLSTATE, SQLWARNING, SQL_BIG_RESULT,'#10 +
+                             'SQL_CALC_FOUND_ROWS, SQL_SMALL_RESULT, SSL, STARTING, STRAIGHT_JOIN,'#10 +
+                             'TABLE, TERMINATED, THEN, TINYBLOB, TINYINT, TINYTEXT, TO, TRAILING,'#10 +
+                             'TRIGGER, TRUE, UNDO, UNION, UNIQUE, UNLOCK, UNSIGNED, UPDATE,'#10 +
+                             'USAGE, USE, USING, UTC_DATE, UTC_TIME, UTC_TIMESTAMP, VALUES,'#10 +
+                             'VARBINARY, VARCHAR, VARCHARACTER, VARYING, WHEN, WHERE, WHILE,'#10 +
+                             'WITH, WRITE, XOR, YEAR_MONTH, ZEROFILL';
+    end;
     dbeSQLServer:
     begin
-      FDatabaseCaseSensitiveTemplate := 'EXECUTE sp_helpsort'; // do not localize
-      FIfTemplate := 'IF <Condition> BEGIN <SQLStatement> END'; // do not localize
-      FColumnExistsTemplate := 'SELECT * FROM SYS.COLUMNS WHERE UPPER(NAME) = UPPER(N''<ColumnName>'') AND OBJECT_ID = OBJECT_ID(UPPER(N''<TableName>''))'; // do not localize
-      FTableExistsTemplate := 'SELECT * FROM SYS.TABLES WHERE UPPER(NAME)=UPPER(''<TableName>'')'; // do not localize
-      FIndexExistsTemplate := 'SELECT NAME FROM SYS.INDEXES WHERE UPPER(NAME)=UPPER(''<IndexName>'') AND OBJECT_ID = OBJECT_ID(UPPER(N''<TableName>''))'; // do not localize
+      FDatabaseCaseSensitiveTemplate := 'EXECUTE sp_helpsort';
+      FIfTemplate := 'IF <Condition> BEGIN <SQLStatement> END';
+      FColumnExistsTemplate := 'SELECT * FROM SYS.COLUMNS WHERE UPPER(NAME) = UPPER(N''<ColumnName>'') AND OBJECT_ID = OBJECT_ID(UPPER(N''<TableName>''))';
+      FTableExistsTemplate := 'SELECT * FROM SYS.TABLES WHERE UPPER(NAME)=UPPER(''<TableName>'')';
+      FIndexExistsTemplate := 'SELECT NAME FROM SYS.INDEXES WHERE UPPER(NAME)=UPPER(''<IndexName>'') AND OBJECT_ID = OBJECT_ID(UPPER(N''<TableName>''))';
       FIndexColumnExistsTemplate :=
-         'SELECT IND.NAME FROM SYS.INDEXES IND INNER'  // do not localize
-        +' JOIN SYS.INDEX_COLUMNS IC ON  IND.OBJECT_ID = IC.OBJECT_ID AND'  // do not localize
-        +' IND.INDEX_ID = IC.INDEX_ID INNER JOIN SYS.COLUMNS COL ON'  // do not localize
-        +' IC.OBJECT_ID = COL.OBJECT_ID AND IC.COLUMN_ID = COL.COLUMN_ID'  // do not localize
-        +' WHERE IND.OBJECT_ID = OBJECT_ID(UPPER(N''<TableName>'')) AND UPPER(COL.NAME) = UPPER(''<IndexColumnName>'')';  // do not localize
-      fColumnTypeForDate := 'DATETIME';  // do not localize
-      fColumnTypeForTime := 'DATETIME';  // do not localize
-      fColumnTypeForDateTime := 'DATETIME';  // do not localize
+         'SELECT IND.NAME FROM SYS.INDEXES IND INNER' 
+        +' JOIN SYS.INDEX_COLUMNS IC ON  IND.OBJECT_ID = IC.OBJECT_ID AND' 
+        +' IND.INDEX_ID = IC.INDEX_ID INNER JOIN SYS.COLUMNS COL ON' 
+        +' IC.OBJECT_ID = COL.OBJECT_ID AND IC.COLUMN_ID = COL.COLUMN_ID' 
+        +' WHERE IND.OBJECT_ID = OBJECT_ID(UPPER(N''<TableName>'')) AND UPPER(COL.NAME) = UPPER(''<IndexColumnName>'')'; 
+      fColumnTypeForDate := 'DATETIME'; 
+      fColumnTypeForTime := 'DATETIME'; 
+      fColumnTypeForDateTime := 'DATETIME'; 
       fCreateDatabaseTemplate := 'USE MASTER;GO;CREATE DATABASE <DatabaseName>';
       fDatabaseExistsTemplate := 'SELECT name FROM master.sys.databases WHERE name = N''<DatabaseName>''';
-      fColumnTypeForFloat := 'DECIMAL (28,10)';  // do not localize
-      fColumnTypeForCurrency := 'DECIMAL (28,10)';  // do not localize
-      fColumnTypeForText := 'VARCHAR(MAX)'; // do not localize
-      fColumnTypeForUnicodeText := 'NVARCHAR(MAX)'; // do not localize
-      FColumnTypeForBlob := 'VARBINARY(MAX)'; // do not localize
-      fColumnTypeForInt64 := 'BIGINT'; // do not localize
-      fColumnTypeForGuid := 'UNIQUEIDENTIFIER';  // do not localize
+      fColumnTypeForFloat := 'DECIMAL (28,10)'; 
+      fColumnTypeForCurrency := 'DECIMAL (28,10)'; 
+      fColumnTypeForText := 'VARCHAR(MAX)';
+      fColumnTypeForUnicodeText := 'NVARCHAR(MAX)';
+      FColumnTypeForBlob := 'VARBINARY(MAX)';
+      fColumnTypeForInt64 := 'BIGINT';
+      fColumnTypeForGuid := 'UNIQUEIDENTIFIER'; 
       MaxDbIdentifierLength := 128;
       fMaxIndexNameLength := 128;
       fLongStringLimit := 4000;
@@ -1058,24 +1118,24 @@ begin
       fMultiRowInsertLimit := 1000;
       fSqlScriptStartTransaction := 'BEGIN TRANSACTION';
       fDropColumnTemplate :=
-          'DECLARE @CONSTRAINTNAME NVARCHAR(200)'  // do not localize
-         +' SELECT @CONSTRAINTNAME=OD.NAME'  // do not localize
-         +'   FROM   SYSOBJECTS OT, SYSCOLUMNS C, SYSOBJECTS OD'  // do not localize
-         +'   WHERE  UPPER(OT.NAME) = UPPER(''<TableName>'')'  // do not localize
-         +'   AND  OT.ID          = C.ID'  // do not localize
-         +'   AND  UPPER(C.NAME)  = UPPER(''<ColumnName>'')'  // do not localize
-         +'   AND  C.CDEFAULT     = OD.ID'  // do not localize
-         +' IF @CONSTRAINTNAME IS NOT NULL'  // do not localize
-         +'   EXEC(''ALTER TABLE <TableName> DROP CONSTRAINT '' + @CONSTRAINTNAME)'  // do not localize
-         +' IF EXISTS (SELECT * FROM SYSCOLUMNS WHERE ID=OBJECT_ID(''<TableName>'') AND UPPER(NAME)=UPPER(''<ColumnName>''))'  // do not localize
-         +' EXEC(''ALTER TABLE <TableName> DROP COLUMN <ColumnName>'')';  // do not localize
-      fDropIndexTemplate := 'DROP INDEX <TableName>.<IndexName>';  // do not localize
+          'DECLARE @CONSTRAINTNAME NVARCHAR(200)' 
+         +' SELECT @CONSTRAINTNAME=OD.NAME' 
+         +'   FROM   SYSOBJECTS OT, SYSCOLUMNS C, SYSOBJECTS OD' 
+         +'   WHERE  UPPER(OT.NAME) = UPPER(''<TableName>'')' 
+         +'   AND  OT.ID          = C.ID' 
+         +'   AND  UPPER(C.NAME)  = UPPER(''<ColumnName>'')' 
+         +'   AND  C.CDEFAULT     = OD.ID' 
+         +' IF @CONSTRAINTNAME IS NOT NULL' 
+         +'   EXEC(''ALTER TABLE <TableName> DROP CONSTRAINT '' + @CONSTRAINTNAME)' 
+         +' IF EXISTS (SELECT * FROM SYSCOLUMNS WHERE ID=OBJECT_ID(''<TableName>'') AND UPPER(NAME)=UPPER(''<ColumnName>''))' 
+         +' EXEC(''ALTER TABLE <TableName> DROP COLUMN <ColumnName>'')'; 
+      fDropIndexTemplate := 'DROP INDEX <TableName>.<IndexName>'; 
       fIndexInfoTemplate:=
-        'SELECT IND.NAME INDEXNAME, IND.IS_PRIMARY_KEY ISPRIMARY, IND.IS_UNIQUE ISUNIQUE, COL.NAME COLUMNNAME FROM'      // do not localize
-        +' SYS.INDEXES IND INNER JOIN SYS.INDEX_COLUMNS IC ON IND.OBJECT_ID = IC.OBJECT_ID AND IND.INDEX_ID = IC.INDEX_ID'  // do not localize
-        +' INNER JOIN SYS.COLUMNS COL ON IC.OBJECT_ID = COL.OBJECT_ID AND IC.COLUMN_ID = COL.COLUMN_ID'      // do not localize
-        +' WHERE UPPER(OBJECT_NAME(IND.OBJECT_ID))=UPPER(''<TableName>'')'  // do not localize
-        +' ORDER BY INDEXNAME, INDEX_COLUMN_ID';  // do not localize
+        'SELECT IND.NAME INDEXNAME, IND.IS_PRIMARY_KEY ISPRIMARY, IND.IS_UNIQUE ISUNIQUE, COL.NAME COLUMNNAME FROM'     
+        +' SYS.INDEXES IND INNER JOIN SYS.INDEX_COLUMNS IC ON IND.OBJECT_ID = IC.OBJECT_ID AND IND.INDEX_ID = IC.INDEX_ID' 
+        +' INNER JOIN SYS.COLUMNS COL ON IC.OBJECT_ID = COL.OBJECT_ID AND IC.COLUMN_ID = COL.COLUMN_ID'     
+        +' WHERE UPPER(OBJECT_NAME(IND.OBJECT_ID))=UPPER(''<TableName>'')' 
+        +' ORDER BY INDEXNAME, INDEX_COLUMN_ID'; 
     end;
     dbeGenericANSISQL92:
     begin
@@ -1085,29 +1145,29 @@ begin
     end;
     dbeInterbaseSQLDialect3:
     begin
-      fColumnTypeForDate := 'TIMESTAMP';  // do not localize
-      fColumnTypeForTime := 'TIMESTAMP';  // do not localize
-      fColumnTypeForDateTime := 'TIMESTAMP';  // do not localize
+      fColumnTypeForDate := 'TIMESTAMP'; 
+      fColumnTypeForTime := 'TIMESTAMP'; 
+      fColumnTypeForDateTime := 'TIMESTAMP'; 
       fMaxIndexNameLength := 31;
       fMaxDbIdentifierLength := 31;
       fAllowMetadataChangesInTransaction := true;
-      fColumnTypeForInt64:='INT64';  // do not localize
-      fColumnTypeForText:='VARCHAR(32765)';  // do not localize
-      fColumnTypeForUnicodeString:='VARCHAR(%d) CHARACTER SET UNICODE';  // do not localize
-      fColumnTypeForUnicodeText:='VARCHAR(4000) CHARACTER SET UNICODE';  // do not localize
-      fColumnTypeForAnsiText:='VARCHAR(32765)';  // do not localize
-      fIfTemplate:='EXECUTE BLOCK AS BEGIN IF (<Condition>) THEN EXECUTE STATEMENT ''<SQLStatement>''; END';  // do not localize
+      fColumnTypeForInt64:='INT64'; 
+      fColumnTypeForText:='VARCHAR(32765)'; 
+      fColumnTypeForUnicodeString:='VARCHAR(%d) CHARACTER SET UNICODE'; 
+      fColumnTypeForUnicodeText:='VARCHAR(4000) CHARACTER SET UNICODE'; 
+      fColumnTypeForAnsiText:='VARCHAR(32765)'; 
+      fIfTemplate:='EXECUTE BLOCK AS BEGIN IF (<Condition>) THEN EXECUTE STATEMENT ''<SQLStatement>''; END'; 
       fIndexColumnExistsTemplate:=
-          'SELECT IX.RDB$INDEX_NAME AS Name FROM RDB$INDICES IX, RDB$INDEX_SEGMENTS SG WHERE IX.RDB$INDEX_NAME = SG.RDB$INDEX_NAME AND '  // do not localize
-          +' UPPER(SG.RDB$FIELD_NAME)=UPPER(''<IndexColumnName>'') AND UPPER(IX.RDB$RELATION_NAME)=UPPER(''<TableName>'')';  // do not localize
+          'SELECT IX.RDB$INDEX_NAME AS Name FROM RDB$INDICES IX, RDB$INDEX_SEGMENTS SG WHERE IX.RDB$INDEX_NAME = SG.RDB$INDEX_NAME AND ' 
+          +' UPPER(SG.RDB$FIELD_NAME)=UPPER(''<IndexColumnName>'') AND UPPER(IX.RDB$RELATION_NAME)=UPPER(''<TableName>'')'; 
       fIndexExistsTemplate:=
-          'SELECT * FROM RDB$INDICES WHERE UPPER(RDB$INDEX_NAME) = UPPER(''<IndexName>'')';  // do not localize
+          'SELECT * FROM RDB$INDICES WHERE UPPER(RDB$INDEX_NAME) = UPPER(''<IndexName>'')'; 
       fTableExistsTemplate:=
-          'SELECT * FROM RDB$RELATIONS WHERE UPPER(RDB$RELATION_NAME) = UPPER(''<TableName>'')';  // do not localize
+          'SELECT * FROM RDB$RELATIONS WHERE UPPER(RDB$RELATION_NAME) = UPPER(''<TableName>'')'; 
       fColumnExistsTemplate:=
-          'SELECT * FROM RDB$RELATION_FIELDS WHERE UPPER(RDB$RELATION_NAME)='  // do not localize
-          +'UPPER(''<TableName>'') AND UPPER(RDB$FIELD_NAME)=UPPER(''<ColumnName>'')';        // do not localize
-      fIndexInfoTemplate := 'select ix.rdb$index_name INDEXNAME, sg.rdb$field_name COLUMNNAME,' + // do not localize
+          'SELECT * FROM RDB$RELATION_FIELDS WHERE UPPER(RDB$RELATION_NAME)=' 
+          +'UPPER(''<TableName>'') AND UPPER(RDB$FIELD_NAME)=UPPER(''<ColumnName>'')';       
+      fIndexInfoTemplate := 'select ix.rdb$index_name INDEXNAME, sg.rdb$field_name COLUMNNAME,' +
                            'case (ix.rdb$unique_flag) when 1 then ''T'' else ''F'' end isunique,' +
                            'case(rc.rdb$constraint_type) when ''PRIMARY KEY'' then ''T'' else ''F'' end isprimary ' +
                            'from rdb$indices ix ' +
@@ -1122,23 +1182,23 @@ begin
       fMaxIndexNameLength := 31;
       fMaxDbIdentifierLength := 31;
       fAllowMetadataChangesInTransaction := true;
-      fColumnTypeForInt64:='INT64';  // do not localize
-      fColumnTypeForText:='VARCHAR(32765)';  // do not localize
-      fColumnTypeForUnicodeString:='VARCHAR(%d) CHARACTER SET UNICODE';  // do not localize
-      fColumnTypeForUnicodeText:='VARCHAR(4000) CHARACTER SET UNICODE';  // do not localize
-      fColumnTypeForAnsiText:='VARCHAR(32765)';  // do not localize
-      fIfTemplate:='EXECUTE BLOCK AS BEGIN IF (<Condition>) THEN EXECUTE STATEMENT ''<SQLStatement>''; END';  // do not localize
+      fColumnTypeForInt64:='INT64'; 
+      fColumnTypeForText:='VARCHAR(32765)'; 
+      fColumnTypeForUnicodeString:='VARCHAR(%d) CHARACTER SET UNICODE'; 
+      fColumnTypeForUnicodeText:='VARCHAR(4000) CHARACTER SET UNICODE'; 
+      fColumnTypeForAnsiText:='VARCHAR(32765)'; 
+      fIfTemplate:='EXECUTE BLOCK AS BEGIN IF (<Condition>) THEN EXECUTE STATEMENT ''<SQLStatement>''; END'; 
       fIndexColumnExistsTemplate:=
-          'SELECT IX.RDB$INDEX_NAME AS Name FROM RDB$INDICES IX, RDB$INDEX_SEGMENTS SG WHERE IX.RDB$INDEX_NAME = SG.RDB$INDEX_NAME AND '  // do not localize
-          +' UPPER(SG.RDB$FIELD_NAME)=UPPER(''<IndexColumnName>'') AND UPPER(IX.RDB$RELATION_NAME)=UPPER(''<TableName>'')';  // do not localize
+          'SELECT IX.RDB$INDEX_NAME AS Name FROM RDB$INDICES IX, RDB$INDEX_SEGMENTS SG WHERE IX.RDB$INDEX_NAME = SG.RDB$INDEX_NAME AND ' 
+          +' UPPER(SG.RDB$FIELD_NAME)=UPPER(''<IndexColumnName>'') AND UPPER(IX.RDB$RELATION_NAME)=UPPER(''<TableName>'')'; 
       fIndexExistsTemplate:=
-          'SELECT * FROM RDB$INDICES WHERE UPPER(RDB$INDEX_NAME) = UPPER(''<IndexName>'')';  // do not localize
+          'SELECT * FROM RDB$INDICES WHERE UPPER(RDB$INDEX_NAME) = UPPER(''<IndexName>'')'; 
       fTableExistsTemplate:=
-          'SELECT * FROM RDB$RELATIONS WHERE UPPER(RDB$RELATION_NAME) = UPPER(''<TableName>'')';  // do not localize
+          'SELECT * FROM RDB$RELATIONS WHERE UPPER(RDB$RELATION_NAME) = UPPER(''<TableName>'')'; 
       fColumnExistsTemplate:=
-          'SELECT * FROM RDB$RELATION_FIELDS WHERE UPPER(RDB$RELATION_NAME)='  // do not localize
-          +'UPPER(''<TableName>'') AND UPPER(RDB$FIELD_NAME)=UPPER(''<ColumnName>'')';        // do not localize
-      fIndexInfoTemplate := 'select ix.rdb$index_name INDEXNAME, sg.rdb$field_name COLUMNNAME,' + // do not localize
+          'SELECT * FROM RDB$RELATION_FIELDS WHERE UPPER(RDB$RELATION_NAME)=' 
+          +'UPPER(''<TableName>'') AND UPPER(RDB$FIELD_NAME)=UPPER(''<ColumnName>'')';       
+      fIndexInfoTemplate := 'select ix.rdb$index_name INDEXNAME, sg.rdb$field_name COLUMNNAME,' +
                            'case (ix.rdb$unique_flag) when 1 then ''T'' else ''F'' end isunique,' +
                            'case(rc.rdb$constraint_type) when ''PRIMARY KEY'' then ''T'' else ''F'' end isprimary ' +
                            'from rdb$indices ix ' +
@@ -1173,49 +1233,83 @@ begin
     end;
     dbeOracle:
     begin
-      FColumnTypeForString := 'VARCHAR2(%d)';  // do not localize
-      FColumnTypeForFloat := 'NUMBER';  // do not localize
-      FColumnTypeForCurrency := 'NUMBER(10,2)';  // do not localize
-      fColumnTypeForText:='CLOB';  // do not localize
-      fColumnTypeForUnicodeString:='NVARCHAR2(%d)';  // do not localize
-      fColumnTypeForUnicodeText:='CLOB';  // do not localize
-      fColumnTypeForAnsiText:='CLOB';  // do not localize
-      fMaxIndexNameLength := 30;
-      fMaxDbIdentifierLength := 30;
-      fSupportsStringDefaultValues:=False;
-      fIfTemplate:=
-          'DECLARE V_COUNT INTEGER; BEGIN SELECT CASE WHEN (<Condition>) THEN 1 ELSE 0 END CASE1 INTO V_COUNT FROM DUAL;'  // do not localize
-          +' IF (V_COUNT=1) THEN EXECUTE IMMEDIATE ''<SQLStatement>''; END IF;END;';  // do not localize
-      fIndexColumnExistsTemplate:=
-          'SELECT INDEX_NAME AS NAME FROM USER_IND_COLUMNS WHERE UPPER(COLUMN_NAME)=UPPER(''<IndexColumnName>'')'  // do not localize
-          +' AND UPPER(TABLE_NAME)=UPPER(''<TableName>'')';  // do not localize
-      fIndexExistsTemplate:=
-          'SELECT * FROM USER_INDEXES WHERE UPPER(INDEX_NAME) = UPPER(''<IndexName>'') AND GENERATED = ''N''';  // do not localize
-      fTableExistsTemplate:=
-          'SELECT * FROM USER_TABLES WHERE UPPER(TABLE_NAME) = UPPER(''<TableName>'')';  // do not localize
-      fColumnExistsTemplate:=
-          'SELECT * FROM USER_TAB_COLUMNS WHERE UPPER(TABLE_NAME) = UPPER(''<TableName>'')'  // do not localize
-          +' AND UPPER(COLUMN_NAME) = UPPER(''<ColumnName>'')';  // do not localize
-      fIndexInfoTemplate:=
-          'SELECT AIC.INDEX_NAME AS IndexName,'  // do not localize
-          +'   CASE ALC.CONSTRAINT_TYPE'  // do not localize
-          +'      WHEN ''P'' THEN ''T'''  // do not localize
-          +'      ELSE ''F'''  // do not localize
-          +'   END AS IsPrimary,'  // do not localize
-          +'   CASE ALC.CONSTRAINT_TYPE'  // do not localize
-          +'      WHEN ''U'' THEN ''T'''  // do not localize
-          +'      WHEN ''P'' THEN ''T'''  // do not localize
-          +'      ELSE ''F'''  // do not localize
-          +'   END AS IsUnique,'  // do not localize
-          +'   AIC.COLUMN_NAME AS ColumnName'  // do not localize
-          +' FROM USER_IND_COLUMNS AIC'  // do not localize
-          +' LEFT JOIN USER_CONSTRAINTS ALC ON AIC.INDEX_NAME = ALC.CONSTRAINT_NAME'  // do not localize
-          +'  AND AIC.TABLE_NAME = ALC.TABLE_NAME'  // do not localize
-          +' WHERE UPPER(AIC.TABLE_NAME) = UPPER(''<TableName>'')'  // do not localize
-          +' ORDER BY IndexName, Column_Position';  // do not localize
-      fDropColumnTemplate := 'ALTER TABLE <TableName> DROP COLUMN <ColumnName>';  // do not localize
+      FColumnTypeForString := 'VARCHAR2(%d)'; 
+      FColumnTypeForFloat := 'NUMBER'; 
+      FColumnTypeForCurrency := 'NUMBER(18,4)'; 
+      fColumnTypeForText := 'CLOB'; 
+      fColumnTypeForUnicodeString := 'NVARCHAR2(%d)'; 
+      fColumnTypeForUnicodeText := 'NCLOB'; 
+      fColumnTypeForAnsiString := 'VARCHAR2(%d)'; 
+      fColumnTypeForAnsiText := 'CLOB'; 
+      fColumnTypeForBlob := 'BLOB'; 
+      fColumnTypeForDateTime := 'TIMESTAMP'; 
+      fColumnTypeForDate := 'DATE'; 
+      fColumnTypeForTime := 'TIMESTAMP';  // Oracle has no TIME type
+      fColumnTypeForInteger := 'NUMBER(10)'; 
+      fColumnTypeForSmallInt := 'NUMBER(5)'; 
+      fColumnTypeForInt64 := 'NUMBER(19)'; 
+      fColumnTypeForGuid := 'RAW(16)'; 
+      fLongStringLimit := 4000;  // VARCHAR2 max in Oracle
+      fMaxIndexNameLength := 30;  // Oracle 12.1 and earlier
+      fMaxDbIdentifierLength := 30;  // Oracle 12.1 and earlier (128 in 12.2+)
+      fMultiRowInsertLimit := 1;  // Oracle doesn't support VALUES (...), (...) syntax
+      fEmptyStringMarker := #1;  // Oracle treats '' as NULL, use non-printable marker
+      fSupportsStringDefaultValues := False;
+      fAllowMetadataChangesInTransaction := False;  // Oracle auto-commits DDL
+      fDatabaseExistsTemplate := 'SELECT USERNAME FROM ALL_USERS WHERE UPPER(USERNAME) = UPPER(''<DatabaseName>'')'; 
+      fIfTemplate :=
+          'DECLARE V_COUNT INTEGER; BEGIN SELECT CASE WHEN (<Condition>) THEN 1 ELSE 0 END CASE1 INTO V_COUNT FROM DUAL;' 
+          +' IF (V_COUNT=1) THEN EXECUTE IMMEDIATE ''<SQLStatement>''; END IF;END;'; 
+      fIndexColumnExistsTemplate :=
+          'SELECT INDEX_NAME AS NAME FROM USER_IND_COLUMNS WHERE UPPER(COLUMN_NAME)=UPPER(''<IndexColumnName>'')' 
+          +' AND UPPER(TABLE_NAME)=UPPER(''<TableName>'')'; 
+      fIndexExistsTemplate :=
+          'SELECT * FROM USER_INDEXES WHERE UPPER(INDEX_NAME) = UPPER(''<IndexName>'') AND GENERATED = ''N'''; 
+      fTableExistsTemplate :=
+          'SELECT * FROM USER_TABLES WHERE UPPER(TABLE_NAME) = UPPER(''<TableName>'')'; 
+      fColumnExistsTemplate :=
+          'SELECT * FROM USER_TAB_COLUMNS WHERE UPPER(TABLE_NAME) = UPPER(''<TableName>'')' 
+          +' AND UPPER(COLUMN_NAME) = UPPER(''<ColumnName>'')'; 
+      fIndexInfoTemplate :=
+          'SELECT AIC.INDEX_NAME AS IndexName,' 
+          +'   CASE ALC.CONSTRAINT_TYPE' 
+          +'      WHEN ''P'' THEN ''T''' 
+          +'      ELSE ''F''' 
+          +'   END AS IsPrimary,' 
+          +'   CASE ALC.CONSTRAINT_TYPE' 
+          +'      WHEN ''U'' THEN ''T''' 
+          +'      WHEN ''P'' THEN ''T''' 
+          +'      ELSE ''F''' 
+          +'   END AS IsUnique,' 
+          +'   AIC.COLUMN_NAME AS ColumnName' 
+          +' FROM USER_IND_COLUMNS AIC' 
+          +' LEFT JOIN USER_CONSTRAINTS ALC ON AIC.INDEX_NAME = ALC.CONSTRAINT_NAME' 
+          +'  AND AIC.TABLE_NAME = ALC.TABLE_NAME' 
+          +' WHERE UPPER(AIC.TABLE_NAME) = UPPER(''<TableName>'')' 
+          +' ORDER BY IndexName, Column_Position'; 
+      fDropColumnTemplate := 'ALTER TABLE <TableName> DROP COLUMN <ColumnName>'; 
+      fDropIndexTemplate := 'DROP INDEX <IndexName>';  // Oracle indexes are not table-scoped
       fBatchQueryBegin := 'BEGIN';
       fBatchQueryEnd := 'END;';
+      fBatchQuerySeparator := ';';
+      fSqlScriptStartTransaction := '';  // Oracle auto-starts transactions
+      fSqlScriptCommitTransaction := 'COMMIT';
+      fSqlScriptRollBackTransaction := 'ROLLBACK';
+      fReservedWords.Text := 'ACCESS, ADD, ALL, ALTER, AND, ANY, AS, ASC, AUDIT,'#10 +
+                             'BETWEEN, BY, CHAR, CHECK, CLUSTER, COLUMN, COLUMN_VALUE,'#10 +
+                             'COMMENT, COMPRESS, CONNECT, CREATE, CURRENT, DATE, DECIMAL,'#10 +
+                             'DEFAULT, DELETE, DESC, DISTINCT, DROP, ELSE, EXCLUSIVE, EXISTS,'#10 +
+                             'FILE, FLOAT, FOR, FROM, GRANT, GROUP, HAVING, IDENTIFIED,'#10 +
+                             'IMMEDIATE, IN, INCREMENT, INDEX, INITIAL, INSERT, INTEGER,'#10 +
+                             'INTERSECT, INTO, IS, LEVEL, LIKE, LOCK, LONG, MAXEXTENTS,'#10 +
+                             'MINUS, MLSLABEL, MODE, MODIFY, NESTED_TABLE_ID, NOAUDIT,'#10 +
+                             'NOCOMPRESS, NOT, NOWAIT, NULL, NUMBER, OF, OFFLINE, ON, ONLINE,'#10 +
+                             'OPTION, OR, ORDER, PCTFREE, PRIOR, PUBLIC, RAW, RENAME,'#10 +
+                             'RESOURCE, REVOKE, ROW, ROWID, ROWNUM, ROWS, SELECT, SESSION,'#10 +
+                             'SET, SHARE, SIZE, SMALLINT, START, SUCCESSFUL, SYNONYM,'#10 +
+                             'SYSDATE, TABLE, THEN, TO, TRIGGER, UID, UNION, UNIQUE, UPDATE,'#10 +
+                             'USER, VALIDATE, VALUES, VARCHAR, VARCHAR2, VIEW, WHENEVER,'#10 +
+                             'WHERE, WITH';
     end;
     dbeParadox:
     begin
