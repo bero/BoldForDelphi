@@ -106,6 +106,7 @@ type
     function EmbeddingMapper: TBoldEmbeddedSingleLinkDefaultMapper;
     function GetOtherEndObjectMapper: TBoldObjectDefaultMapper; override;
     function GetSupportsPolymorphicFetch: Boolean; override;
+    procedure InitializeDirectLinkFields(MoldMember: TMoldMember);
   public
     property ClosestColumnName: string read GetClosestColumnName;
     property RemoteInnerLinkMapper: TBoldEmbeddedSingleLinkDefaultMapper read GetRemoteInnerLinkMapper;
@@ -1099,18 +1100,9 @@ constructor TBoldDirectSingleLinkDefaultmapper.CreateFromMold(
   moldMember: TMoldMember; moldClass: TMoldClass;
   Owner: TBoldObjectPersistenceMapper; const MemberIndex: Integer;
   TypeNameDictionary: TBoldTypeNameDictionary);
-var
-  Role: TMoldRole;
-  ClassOfOtherEnd: TMoldClass;
 begin
   inherited;
-
-  Role := moldMember as TMoldRole;
-  ClassOfOtherEnd := Role.OtherEnd.moldClass;
-  fClosestOtherEndObjectMapperIndex := ClassOfOtherEnd.TopSortedIndex;
-  fClosestOtherEndMemberIndex := Role.OtherEnd.Index;
-  fRemoteOtherEndObjectMapperIndex := fClosestOtherEndObjectMapperIndex;
-  fRemoteInnerLinkMemberIndex := -1;
+  InitializeDirectLinkFields(moldMember);
 end;
 
 function TBoldDirectSingleLinkDefaultmapper.GetLinkClassObjectMapper: TBoldObjectDefaultMapper;
@@ -1224,18 +1216,9 @@ constructor TBoldDirectMultiLinkDefaultmapper.CreateFromMold(
   moldMember: TMoldMember; moldClass: TMoldClass;
   Owner: TBoldObjectPersistenceMapper; const MemberIndex: Integer;
   TypeNameDictionary: TBoldTypeNameDictionary);
-var
-  Role: TMoldRole;
-  ClassOfOtherEnd: TMoldClass;
 begin
   inherited;
-
-  Role := moldMember as TMoldRole;
-  ClassOfOtherEnd := Role.OtherEnd.moldClass;
-  fClosestOtherEndObjectMapperIndex := ClassOfOtherEnd.TopSortedIndex;
-  fClosestOtherEndMemberIndex := Role.OtherEnd.Index;
-  fRemoteOtherEndObjectMapperIndex := fClosestOtherEndObjectMapperIndex;
-  fRemoteInnerLinkMemberIndex := -1;
+  InitializeDirectLinkFields(moldMember);
 end;
 
 function TBoldDirectMultiLinkDefaultmapper.GetLinkClassObjectMapper: TBoldObjectDefaultMapper;
@@ -1588,6 +1571,19 @@ end;
 function TBoldNonEmbeddedLinkDefaultMapper.GetSupportsPolymorphicFetch: Boolean;
 begin
   result := true;
+end;
+
+procedure TBoldNonEmbeddedLinkDefaultMapper.InitializeDirectLinkFields(MoldMember: TMoldMember);
+var
+  Role: TMoldRole;
+  ClassOfOtherEnd: TMoldClass;
+begin
+  Role := MoldMember as TMoldRole;
+  ClassOfOtherEnd := Role.OtherEnd.moldClass;
+  fClosestOtherEndObjectMapperIndex := ClassOfOtherEnd.TopSortedIndex;
+  fClosestOtherEndMemberIndex := Role.OtherEnd.Index;
+  fRemoteOtherEndObjectMapperIndex := fClosestOtherEndObjectMapperIndex;
+  fRemoteInnerLinkMemberIndex := -1;
 end;
 
 initialization
