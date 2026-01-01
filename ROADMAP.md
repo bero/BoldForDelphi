@@ -102,8 +102,7 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 | :white_check_mark: | Removed C++Builder-specific code |
 | :white_large_square: | Fix warnings from Pascal Analyzer |
 | :calendar: | Consolidate duplicate code |
-| :calendar: | Improve error messages |
-| :thinking: | Modernize to Delphi language features (inline vars, generics) |
+| :calendar: | [Use generics](https://github.com/bero/BoldForDelphi/issues/12) |
 
 ### Test Focus Areas
 
