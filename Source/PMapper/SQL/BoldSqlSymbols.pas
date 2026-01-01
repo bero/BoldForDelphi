@@ -326,6 +326,7 @@ type
   TBSS_ListOperations = class(TBSS_Symbol)
   protected
     function CreateBoldIdMatchWCF(MainNode: TBoldSQLOperation; ArgNode: TBoldSQLNode): TBoldSQLWCF;
+    procedure BuildWCFOrQueryWithOperator(OperationNode: TBoldSQLOperation; NameSpace: TBoldSqlNameSpace; const Operator: string);
   public
     function ResolveObjectMapper(OperationNode: TBoldSqlOperation): TBoldObjectSqlMapper; override;
   end;
@@ -992,12 +993,7 @@ procedure TBSS_union.BuildWCFOrQuery(OperationNode: TBoldSQLOperation;
   NameSpace: TBoldSqlNameSpace);
 // a->union(b) >> (id in a) or (id in b)
 begin
-  OperationNode.NewQuery(nameSpace);
-  OperationNode.Query.AddWCF(
-    TBoldSQLWCFBinaryInfix.Create(
-      CreateBoldIdMatchWCF(OperationNode, OperationNode.args[0]),
-      CreateBoldIdMatchWCF(OperationNode, OperationNode.args[1]),
-      'OR')); // do not localize
+  BuildWCFOrQueryWithOperator(OperationNode, NameSpace, 'OR');
 end;
 
 { TBSS_Intersection }
@@ -1006,12 +1002,7 @@ procedure TBSS_Intersection.BuildWCFOrQuery(
   OperationNode: TBoldSQLOperation; NameSpace: TBoldSqlNameSpace);
 // a->Intersection(b) >> (id in a) and (id in b)
 begin
-  OperationNode.NewQuery(nameSpace);
-  OperationNode.Query.AddWCF(
-    TBoldSQLWCFBinaryInfix.Create(
-      CreateBoldIdMatchWCF(OperationNode, OperationNode.args[0]),
-      CreateBoldIdMatchWCF(OperationNode, OperationNode.args[1]),
-      'AND')); // do not localize
+  BuildWCFOrQueryWithOperator(OperationNode, NameSpace, 'AND');
 end;
 
 { TBSS_SymmetricDifference }
@@ -1100,6 +1091,17 @@ begin
       Query,
       ArgNode.MainTableRef(Query));
   end;
+end;
+
+procedure TBSS_ListOperations.BuildWCFOrQueryWithOperator(OperationNode: TBoldSQLOperation;
+  NameSpace: TBoldSqlNameSpace; const Operator: string);
+begin
+  OperationNode.NewQuery(nameSpace);
+  OperationNode.Query.AddWCF(
+    TBoldSQLWCFBinaryInfix.Create(
+      CreateBoldIdMatchWCF(OperationNode, OperationNode.args[0]),
+      CreateBoldIdMatchWCF(OperationNode, OperationNode.args[1]),
+      Operator));
 end;
 
 function TBSS_ListOperations.ResolveObjectMapper(

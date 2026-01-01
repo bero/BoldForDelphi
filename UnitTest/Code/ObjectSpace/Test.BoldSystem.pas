@@ -338,6 +338,14 @@ type
     [Test]
     [Category('Quick')]
     procedure TestCreateTransientObject;
+
+    // OCL Collection Operations (tests SQL generation in BoldSqlSymbols)
+    [Test]
+    [Category('Quick')]
+    procedure TestOCLUnion;
+    [Test]
+    [Category('Quick')]
+    procedure TestOCLIntersection;
   end;
 
 implementation
@@ -1813,6 +1821,91 @@ begin
     Assert.Pass('Persistent object is marked as persistent')
   else
     Assert.Pass('In transient mode, even objects created with Persistent=True may not be marked persistent');
+end;
+
+{ OCL Collection Operations }
+
+procedure TTestBoldSystem.TestOCLUnion;
+var
+  Obj1, Obj2, Obj3: TClassA;
+  ResultList: TBoldObjectList;
+  IndirectElement: TBoldIndirectElement;
+begin
+  GetSystem.Discard;
+
+  // Create test objects with distinct values
+  Obj1 := TClassA.Create(GetSystem);
+  Obj1.aString := 'Union Test 1';
+
+  Obj2 := TClassA.Create(GetSystem);
+  Obj2.aString := 'Union Test 2';
+
+  Obj3 := TClassA.Create(GetSystem);
+  Obj3.aString := 'Union Test 3';
+
+  // Test union using OCL: select objects with 'Union Test 1' OR 'Union Test 2'
+  // This exercises TBSS_union.BuildWCFOrQuery
+  IndirectElement := TBoldIndirectElement.Create;
+  try
+    GetSystem.EvaluateExpression(
+      'ClassA.allInstances->select(aString = ''Union Test 1'')'
+      + '->union(ClassA.allInstances->select(aString = ''Union Test 2''))',
+      IndirectElement, False);
+
+    Assert.IsTrue(IndirectElement.Value is TBoldObjectList,
+      'Union result should be a TBoldObjectList');
+
+    ResultList := IndirectElement.Value as TBoldObjectList;
+    Assert.AreEqual(2, ResultList.Count, 'Union should contain 2 objects');
+    Assert.IsTrue(ResultList.Includes(Obj1), 'Union should include Obj1');
+    Assert.IsTrue(ResultList.Includes(Obj2), 'Union should include Obj2');
+    Assert.IsFalse(ResultList.Includes(Obj3), 'Union should not include Obj3');
+  finally
+    IndirectElement.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestOCLIntersection;
+var
+  Obj1, Obj2, Obj3: TClassA;
+  ResultList: TBoldObjectList;
+  IndirectElement: TBoldIndirectElement;
+begin
+  GetSystem.Discard;
+
+  // Create test objects
+  Obj1 := TClassA.Create(GetSystem);
+  Obj1.aString := 'Common';
+  Obj1.aInteger := 100;
+
+  Obj2 := TClassA.Create(GetSystem);
+  Obj2.aString := 'Common';
+  Obj2.aInteger := 200;
+
+  Obj3 := TClassA.Create(GetSystem);
+  Obj3.aString := 'Different';
+  Obj3.aInteger := 100;
+
+  // Test intersection using OCL: objects with aString='Common' AND aInteger=100
+  // This exercises TBSS_Intersection.BuildWCFOrQuery
+  IndirectElement := TBoldIndirectElement.Create;
+  try
+    GetSystem.EvaluateExpression(
+      'ClassA.allInstances->select(aString = ''Common'')'
+      + '->intersection(ClassA.allInstances->select(aInteger = 100))',
+      IndirectElement, False);
+
+    Assert.IsTrue(IndirectElement.Value is TBoldObjectList,
+      'Intersection result should be a TBoldObjectList');
+
+    ResultList := IndirectElement.Value as TBoldObjectList;
+    Assert.AreEqual(1, ResultList.Count, 'Intersection should contain 1 object');
+    Assert.IsTrue(ResultList.Includes(Obj1), 'Intersection should include Obj1');
+    Assert.IsFalse(ResultList.Includes(Obj2), 'Intersection should not include Obj2 (different aInteger)');
+    Assert.IsFalse(ResultList.Includes(Obj3), 'Intersection should not include Obj3 (different aString)');
+  finally
+    IndirectElement.Free;
+  end;
 end;
 
 initialization
