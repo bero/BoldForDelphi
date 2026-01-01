@@ -71,7 +71,7 @@ type
     { Private declarations }
   protected
   public
-    { Public declarations }
+    destructor Destroy; override;
   end;
 
   Tmaan_UndoRedoAbstractTestCase = class
@@ -454,21 +454,23 @@ begin
   Assert.IsTrue(res, Format('%s VerifyIsInRedoArea failed', [member.DisplayName]));
 end;
 
+{ TdmUndoRedo }
+
+destructor TdmUndoRedo.Destroy;
+begin
+  // Clear global reference so finalization knows we're already destroyed
+  // (Application owns us and frees us during DoneApplication)
+  if dmUndoRedo = Self then
+    dmUndoRedo := nil;
+  inherited;
+end;
+
 initialization
   Randomize;
   BoldCleanDatabaseForced := True;  // Suppress confirmation dialog during automated tests
 
 finalization
-  // Clean up test database when tests are done
   try
-    if Assigned(dmUndoRedo) then
-    begin
-      if dmUndoRedo.BoldSystemHandle1.Active then
-        dmUndoRedo.BoldSystemHandle1.Active := False;
-      if dmUndoRedo.FDConnection1.Connected then
-        dmUndoRedo.FDConnection1.Close;
-      FreeAndNil(dmUndoRedo);
-    end;
     DropTestDatabase;
   except
     // Ignore errors during cleanup

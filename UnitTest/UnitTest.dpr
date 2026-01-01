@@ -23,6 +23,7 @@ uses
   maan_Modify in 'Code\ObjectSpace\maan_Modify.pas',
   maan_Undo in 'Code\ObjectSpace\maan_Undo.pas',
   Test.BoldSystem in 'Code\ObjectSpace\Test.BoldSystem.pas',
+  Test.BoldLinks in 'Code\ObjectSpace\Test.BoldLinks.pas',
   Test.BoldFreeStandingValueFactories in 'Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas',
   Test.BoldDefaultTaggedValues in 'Code\Common\Test.BoldDefaultTaggedValues.pas',
   Test.BoldMemberTypeDictionary in 'Code\RTModel\Test.BoldMemberTypeDictionary.pas',

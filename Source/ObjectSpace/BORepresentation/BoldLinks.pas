@@ -103,6 +103,7 @@ type
     function CreateNew: TBoldElement; override;
     function IsInOrder: Boolean; virtual; abstract;
     procedure Resort; virtual; abstract;
+    procedure DoPreChangeIfNeeded(var PreChangeCalled: Boolean);
   public
     procedure MarkPossiblyOutOfOrder;
     procedure EnsureOrder;
@@ -376,6 +377,9 @@ begin
   Result := DirectSingleLInkController.OrderNo;
 end;
 
+// Note: This MakeProxy pattern is duplicated in TBoldDirectMultiLinkController_Proxy.
+// Each class has its own class variables (fLastUsed, fLastUsedAsInterface) for
+// per-class proxy caching. Cannot be shared - each class needs its own cache.
 class function TBoldDirectSingleLinkController_Proxy.MakeProxy(
   ProxedMember: TBoldMember;
   Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy;
@@ -617,6 +621,15 @@ procedure TBoldMultiLinkController.EnsureOrder;
 begin
   if (fMayBeOutOfOrder) then
     DoEnsureOrder;
+end;
+
+procedure TBoldMultiLinkController.DoPreChangeIfNeeded(var PreChangeCalled: Boolean);
+begin
+  if not PreChangeCalled then
+  begin
+    PreChange;
+    PreChangeCalled := True;
+  end;
 end;
 
 procedure TBoldDirectMultiLinkController.AddLocator(Locator: TBoldObjectLocator);
@@ -984,19 +997,8 @@ var
     end;
   end;
 
-  var
-    PreChangeCalled: Boolean;
-
-  procedure PreChangeIfNeeded;
-  begin
-    if not PreChangeCalled then
-    begin
-      PreChange;
-      PreChangeCalled := True;
-    end;
-  end;
-
 var
+  PreChangeCalled: Boolean;
   OldLocator, NewLocator:TBoldObjectLocator;
   I: integer;
   PreserveOrder: Boolean;
@@ -1033,7 +1035,7 @@ begin
     OldLocator := LocatorList[i];
     if not NewListOfOtherEnd.IdInList[OldLocator.BoldObjectId] then
     begin
-      PreChangeIfNeeded;
+      DoPreChangeIfNeeded(PreChangeCalled);
       if mode = bdepPMIn then
         SingleLinkUnlink(LocatorList[I], OwningBoldObjectLocator, LinkUnlinkMode);
       LocatorList.RemoveByIndex(I);
@@ -1048,7 +1050,7 @@ begin
       NewLocator := AssertedLocatorForId(NewListOfOtherEnd[I]);
       if i >= LocatorList.Count then
       begin
-        PreChangeIfNeeded;
+        DoPreChangeIfNeeded(PreChangeCalled);
         if mode = bdepPMIn then
           SingleLinkLinkTo(NewLocator, OwningBoldObjectLocator, false, LinkUnlinkMode);
         LocatorList.Add(NewLocator);
@@ -1057,13 +1059,13 @@ begin
       else if NewLocator = LocatorList[i] then
       else if LocatorList.IndexOf(NewLocator) <> -1 then
       begin
-        PreChangeIfNeeded;
+        DoPreChangeIfNeeded(PreChangeCalled);
         LocatorList.Move(LocatorList.IndexOf(NewLocator), I);
         OrderHasChanged := true;
       end
       else
       begin
-        PreChangeIfNeeded;
+        DoPreChangeIfNeeded(PreChangeCalled);
         if mode = bdepPMIn then
           SingleLinkLinkTo(NewLocator, OwningBoldObjectLocator, false, LinkUnlinkMode);
         LocatorList.Insert(I, NewLocator);
@@ -1081,7 +1083,7 @@ begin
         NewLocator := AssertedLocatorForId(NewListOfOtherEnd[I]);
         if not IncludesLocator(NewLocator) then
         begin
-          PreChangeIfNeeded;
+          DoPreChangeIfNeeded(PreChangeCalled);
           if mode = bdepPMIn then
             SingleLinkLinkTo(NewLocator, OwningBoldObjectLocator, false, LinkUnlinkMode);
           LocatorList.Add(NewLocator);
@@ -2556,17 +2558,6 @@ var
 
 var
   PreChangeCalled: Boolean;
-
-  procedure PreChangeIfNeeded;
-  begin
-    if not PreChangeCalled then
-    begin
-      PreChange;
-      PreChangeCalled := True;
-    end;
-  end;
-
-var
   I: Integer;
   OldLocator, NewLocator: TBoldObjectLocator;
   PreserveOrder: Boolean;
@@ -2601,7 +2592,7 @@ begin
   for I := GetCount - 1 downto 0 do
     if not NewListOfLinkObjects.IdInList[LinkLocatorList[I].BoldObjectID] then
     begin
-      PreChangeIfNeeded;
+      DoPreChangeIfNeeded(PreChangeCalled);
       OldLocator := LinkLocatorList[i];
       LinkLocatorList.RemoveByIndex(I);
       Changed(beItemDeleted, [OldLocator]);
@@ -2617,7 +2608,7 @@ begin
       ObjectLocator := AssertedLocatorForId(NewListOfOtherEnd[i]);
       if i >= ReferredLocatorList.Count then
       begin
-        PreChangeIfNeeded;
+        DoPreChangeIfNeeded(PreChangeCalled);
         NewLocator :=  AssertedLocatorForId(NewListOfLinkObjects[I]);
         LinkLocatorList.Add(NewLocator);
         Changed(beItemAdded, [NewLocator]);
@@ -2627,7 +2618,7 @@ begin
       else if ObjectLocator = ReferredLocatorList[i] then
       else if ReferredLocatorList.IndexOf(ObjectLocator) <> -1 then
       begin
-        PreChangeIfNeeded;
+        DoPreChangeIfNeeded(PreChangeCalled);
         LinkLocatorList.Move(ReferredLocatorList.IndexOf(ObjectLocator), I);
         ReferredLocatorList.Move(ReferredLocatorList.IndexOf(ObjectLocator), I);
         Changed(beOrderChanged, []);
@@ -2635,7 +2626,7 @@ begin
       end
       else
       begin
-        PreChangeIfNeeded;
+        DoPreChangeIfNeeded(PreChangeCalled);
         NewLocator :=  AssertedLocatorForId(NewListOfLinkObjects[I]);
         LinkLocatorList.Insert(I, NewLocator);
         ReferredLocatorList.Insert(I, ObjectLocator);
@@ -2651,7 +2642,7 @@ begin
 
       if not ReferredLocatorList.LocatorInList[ObjectLocator] then
       begin
-        PreChangeIfNeeded;
+        DoPreChangeIfNeeded(PreChangeCalled);
         NewLocator :=  AssertedLocatorForId(NewListOfLinkObjects[I]);
         LinkLocatorList.Add(NewLocator);
         Changed(beItemAdded, [NewLocator]);

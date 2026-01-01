@@ -280,6 +280,10 @@ end;
 
 { TBoldNonSystemHandle }
 
+// Note: This _Receive logic is duplicated in TBoldSystemExtensionComponent._Receive.
+// The duplication exists because the two classes have different base classes and
+// different method signatures (TBoldSystemExtensionComponent uses Args parameter).
+// Extracting to a shared helper would add indirection for minimal benefit.
 procedure TBoldNonSystemHandle._Receive(Originator: TObject;
   OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
 begin
