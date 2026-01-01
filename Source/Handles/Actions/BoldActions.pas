@@ -127,15 +127,20 @@ uses
 const
   breValueIdentityChanged = 45;
 
+function SystemHasDirtyObjects(Handle: TBoldSystemHandle): Boolean;
+begin
+  Result := Handle.Active
+            and not Handle.System.IsProcessingTransactionOrUpdatingDatabase
+            and (Handle.System.DirtyObjects.Count > 0);
+end;
+
 { TBoldUpdateDBAction }
 
 procedure TBoldUpdateDBAction.CheckAllowEnable(var EnableAction: boolean);
 begin
   inherited;
   if EnableAction then
-    EnableAction := BoldSystemHandle.Active
-                    and not BoldSystemHandle.System.IsProcessingTransactionOrUpdatingDatabase
-                    and (BoldSystemHandle.System.DirtyObjects.Count > 0);
+    EnableAction := SystemHasDirtyObjects(BoldSystemHandle);
 end;
 
 constructor TBoldUpdateDBAction.Create(AOwner: TComponent);
@@ -360,9 +365,7 @@ procedure TBoldDiscardChangesAction.CheckAllowEnable(var EnableAction: boolean);
 begin
   inherited;
   if EnableAction then
-    EnableAction := BoldSystemHandle.Active
-                    and not BoldSystemHandle.System.IsProcessingTransactionOrUpdatingDatabase
-                    and (BoldSystemHandle.System.DirtyObjects.Count > 0);
+    EnableAction := SystemHasDirtyObjects(BoldSystemHandle);
 end;
 
 constructor TBoldDiscardChangesAction.Create(AOwner: TComponent);
