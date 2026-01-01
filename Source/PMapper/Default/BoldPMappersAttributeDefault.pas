@@ -317,8 +317,11 @@ var
 
 {---TBoldPMString---}
 constructor TBoldPMString.CreateFromMold(Moldmember: TMoldMember; MoldClass: TMoldClass; Owner: TBoldObjectPersistenceMapper; const MemberIndex: Integer; TypeNameDictionary: TBoldTypeNameDictionary);
+var
+  ModelAllowNull: Boolean;
 begin
   fColumnSize := (Moldmember as TMoldAttribute).Length;
+  ModelAllowNull := (Moldmember as TMoldAttribute).AllowNull;
   inherited;
   if (DefaultDbValue <> '') and
      (DefaultDbValue[1] <> '''') and
@@ -326,10 +329,16 @@ begin
     DefaultDbValue := '''' + DefaultDbValue + '''';
   if SystemPersistenceMapper.SQLDataBaseConfig.StoreEmptyStringsAsNULL then
   begin
-    if (MoldMember as TMoldAttribute).AllowNull then
+    if ModelAllowNull then
       raise EBold.CreateFmt(sAttributeMustNotAllowNullIfEmptyStringsStoreAsNull, [
         MoldClass.Name, MoldMember.Name]);
     fAllowNull := True;
+  end
+  else if SystemPersistenceMapper.SQLDataBaseConfig.EmptyStringMarker <> '' then
+  begin
+    // When using EmptyStringMarker (e.g. for Oracle), preserve model's AllowNull setting
+    // This ensures columns with AllowNull=True are created as nullable
+    fAllowNull := ModelAllowNull;
   end;
 end;
 
