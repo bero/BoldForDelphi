@@ -107,6 +107,7 @@ type
     function GetOtherEndObjectMapper: TBoldObjectDefaultMapper; override;
     function GetSupportsPolymorphicFetch: Boolean; override;
     procedure InitializeDirectLinkFields(MoldMember: TMoldMember);
+    procedure InitializeIndirectLinkFields(MoldMember: TMoldMember; MoldClass: TMoldClass);
   public
     property ClosestColumnName: string read GetClosestColumnName;
     property RemoteInnerLinkMapper: TBoldEmbeddedSingleLinkDefaultMapper read GetRemoteInnerLinkMapper;
@@ -1140,21 +1141,9 @@ constructor TBoldIndirectSingleLinkDefaultmapper.CreateFromMold(
   moldMember: TMoldMember; moldClass: TMoldClass;
   Owner: TBoldObjectPersistenceMapper; const MemberIndex: Integer;
   TypeNameDictionary: TBoldTypeNameDictionary);
-var
-  Role: TMoldRole;
-  LinkClass: TMoldClass;
 begin
   inherited;
-  Role := moldMember as TMoldRole;
-  fIsIndirect := True;
-  LinkClass := Role.Association.LinkClass;
-  fClosestOtherEndObjectMapperIndex := LinkClass.TopSortedIndex;
-  fClosestOtherEndMemberIndex := Role.LinkRole.OtherEnd.Index;
-  fRemoteOtherEndObjectMapperIndex := Role.OtherEnd.MoldClass.TopSortedIndex;
-  fRemoteInnerLinkMemberIndex := Role.OtherEnd.LinkRole.OtherEnd.Index;
-  if (LinkClass.TableMapping = tmChildren) then
-    raise EBoldFeatureNotImplementedYet.CreateFmt(sChildMappedLinkClassesNotSupported,
-                                                  [MoldClass.name, Role.Name, LinkClass.Name]);
+  InitializeIndirectLinkFields(moldMember, moldClass);
 end;
 
 function TBoldIndirectSingleLinkDefaultmapper.GetLinkClassObjectMapper: TBoldObjectDefaultMapper;
@@ -1265,21 +1254,9 @@ constructor TBoldIndirectMultiLinkDefaultmapper.CreateFromMold(
   moldMember: TMoldMember; moldClass: TMoldClass;
   Owner: TBoldObjectPersistenceMapper; const MemberIndex: Integer;
   TypeNameDictionary: TBoldTypeNameDictionary);
-var
-  Role: TMoldRole;
-  LinkClass: TMoldClass;
 begin
   inherited;
-  Role := moldMember as TMoldRole;
-  fIsIndirect := True;
-  LinkClass := Role.Association.LinkClass;
-  fClosestOtherEndObjectMapperIndex := LinkClass.TopSortedIndex;
-  fClosestOtherEndMemberIndex := Role.LinkRole.OtherEnd.Index;
-  fRemoteOtherEndObjectMapperIndex := Role.OtherEnd.MoldClass.TopSortedIndex;
-  fRemoteInnerLinkMemberIndex := Role.OtherEnd.LinkRole.OtherEnd.Index;
-  if (LinkClass.TableMapping = tmChildren) then
-    raise EBoldFeatureNotImplementedYet.CreateFmt(sChildMappedLinkClassesNotSupported,
-                                                  [MoldClass.name, Role.Name, LinkClass.Name]);
+  InitializeIndirectLinkFields(moldMember, moldClass);
 end;
 
 function TBoldIndirectMultiLinkDefaultmapper.GetLinkClassObjectMapper: TBoldObjectDefaultMapper;
@@ -1584,6 +1561,23 @@ begin
   fClosestOtherEndMemberIndex := Role.OtherEnd.Index;
   fRemoteOtherEndObjectMapperIndex := fClosestOtherEndObjectMapperIndex;
   fRemoteInnerLinkMemberIndex := -1;
+end;
+
+procedure TBoldNonEmbeddedLinkDefaultMapper.InitializeIndirectLinkFields(MoldMember: TMoldMember; MoldClass: TMoldClass);
+var
+  Role: TMoldRole;
+  LinkClass: TMoldClass;
+begin
+  Role := MoldMember as TMoldRole;
+  fIsIndirect := True;
+  LinkClass := Role.Association.LinkClass;
+  fClosestOtherEndObjectMapperIndex := LinkClass.TopSortedIndex;
+  fClosestOtherEndMemberIndex := Role.LinkRole.OtherEnd.Index;
+  fRemoteOtherEndObjectMapperIndex := Role.OtherEnd.MoldClass.TopSortedIndex;
+  fRemoteInnerLinkMemberIndex := Role.OtherEnd.LinkRole.OtherEnd.Index;
+  if (LinkClass.TableMapping = tmChildren) then
+    raise EBoldFeatureNotImplementedYet.CreateFmt(sChildMappedLinkClassesNotSupported,
+                                                  [MoldClass.name, Role.Name, LinkClass.Name]);
 end;
 
 initialization
