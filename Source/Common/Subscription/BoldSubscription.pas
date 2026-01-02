@@ -490,6 +490,25 @@ begin
     Result := oldLength + 4;
 end;
 
+procedure FreePublisherInstance(var Publisher: TBoldPublisher; Owner: TObject);
+begin
+  if Assigned(Publisher) then
+  begin
+    Publisher.NotifySubscribersAndClearSubscriptions(Owner);
+    FreeAndNil(Publisher);
+  end;
+end;
+
+function EnsurePublisher(var Publisher: TBoldPublisher; Owner: TObject): TBoldPublisher;
+begin
+  if not Assigned(Publisher) then
+  begin
+    Publisher := TBoldPublisher.Create(Publisher);
+    Publisher.SubscribableObject := Owner;
+  end;
+  Result := Publisher;
+end;
+
 procedure TBoldPublisher.BoldForcedDequeuePostNotify;
 var
   OldInPostNotification: Boolean;
@@ -996,12 +1015,7 @@ end;
 
 function TBoldSubscribableObject.GetPublisher: TBoldPublisher;
 begin
-  if not Assigned(fPublisher) then
-  begin
-    fPublisher := TBoldPublisher.Create(fPublisher);
-    fPublisher.SubscribableObject := self;
-  end;
-  Result := fPublisher
+  Result := EnsurePublisher(fPublisher, Self);
 end;
 
 function TBoldSubscribableObject.GetSubscriptionsAsText: string;
@@ -1011,11 +1025,7 @@ end;
 
 procedure TBoldSubscribableObject.FreePublisher;
 begin
-  if Assigned(fPublisher) then
-  begin
-    fPublisher.NotifySubscribersAndClearSubscriptions(Self);
-    FreeAndNil(fPublisher);
-  end;
+  FreePublisherInstance(fPublisher, Self);
 end;
 
 procedure TBoldSubscribableObject.AddSmallSubscription(Subscriber: TBoldSubscriber;
@@ -1068,12 +1078,7 @@ end;
 
 function TBoldSubscribableComponent.GetPublisher: TBoldPublisher;
 begin
-  if not Assigned(fPublisher) then
-  begin
-    fPublisher := TBoldPublisher.Create(fPublisher);
-    fPublisher.SubscribableObject := self;
-  end;
-  Result := fPublisher
+  Result := EnsurePublisher(fPublisher, Self);
 end;
 
 function TBoldSubscribableComponent.GetSubscriptionsAsText: string;
@@ -1088,11 +1093,7 @@ end;
 
 procedure TBoldSubscribableComponent.FreePublisher;
 begin
-  if Assigned(fPublisher) then
-  begin
-    fPublisher.NotifySubscribersAndClearSubscriptions(Self);
-    FreeAndNil(fPublisher);
-  end;
+  FreePublisherInstance(fPublisher, Self);
 end;
 
 destructor TBoldSubscribableComponent.Destroy;
@@ -1128,12 +1129,7 @@ end;
 
 function TBoldSubscribablePersistent.GetPublisher: TBoldPublisher;
 begin
-  if not Assigned(fPublisher) then
-  begin
-    fPublisher := TBoldPublisher.Create(fPublisher);
-    fPublisher.SubscribableObject := self;
-  end;
-  Result := fPublisher
+  Result := EnsurePublisher(fPublisher, Self);
 end;
 
 function TBoldSubscribablePersistent.GetSubscriptionsAsText: string;
@@ -1151,11 +1147,7 @@ end;
 
 procedure TBoldSubscribablePersistent.FreePublisher;
 begin
-  if Assigned(fPublisher) then
-  begin
-    fPublisher.NotifySubscribersAndClearSubscriptions(Self);
-    FreeAndNil(fPublisher);
-  end;
+  FreePublisherInstance(fPublisher, Self);
 end;
 
 destructor TBoldSubscribablePersistent.Destroy;
@@ -1392,11 +1384,7 @@ end;
 
 procedure TBoldSubscribableNonRefCountedObject.FreePublisher;
 begin
-  if Assigned(fPublisher) then
-  begin
-    fPublisher.NotifySubscribersAndClearSubscriptions(Self);
-    FreeAndNil(fPublisher);
-  end;
+  FreePublisherInstance(fPublisher, Self);
 end;
 
 function TBoldSubscribableNonRefCountedObject.GetHasSubscribers: Boolean;
@@ -1406,12 +1394,7 @@ end;
 
 function TBoldSubscribableNonRefCountedObject.GetPublisher: TBoldPublisher;
 begin
-  if not Assigned(fPublisher) then
-  begin
-    fPublisher := TBoldPublisher.Create(fPublisher);
-    fPublisher.SubscribableObject := self;
-  end;
-  Result := fPublisher
+  Result := EnsurePublisher(fPublisher, Self);
 end;
 
 function TBoldSubscribableNonRefCountedObject.GetSubscriptionsAsText: string;
