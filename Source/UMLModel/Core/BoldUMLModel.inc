@@ -8,6 +8,17 @@
 
 {$INCLUDE BoldUMLModel_Interface.inc}
 
+procedure SetPersistenceTaggedValue(AModelElement: TUMLModelElement; APersistent: Boolean);
+var
+  NewValue: String;
+begin
+  if APersistent then
+    NewValue := TV_PERSISTENCE_PERSISTENT
+  else
+    NewValue := TV_PERSISTENCE_TRANSIENT;
+  AModelElement.SetTaggedValue(TAG_PERSISTENCE, NewValue);
+end;
+
 procedure TUMLModel.Clear;
 begin
   BoldSystem.StartTransaction();
@@ -242,14 +253,8 @@ begin
 end;
 
 procedure TUMLClassifier._Persistent_ReverseDerive(DerivedObject: TObject);
-var
-  NewValue: String;
 begin
-  if Persistent then
-    NewValue := TV_PERSISTENCE_PERSISTENT
-  else
-    NewValue := TV_PERSISTENCE_TRANSIENT;
-  SetTaggedValue(TAG_PERSISTENCE, NewValue);
+  SetPersistenceTaggedValue(Self, Persistent);
 end;
 
 procedure TUMLAssociation._Persistent_DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
@@ -261,14 +266,8 @@ begin
 end;
 
 procedure TUMLAssociation._Persistent_ReverseDerive(DerivedObject: TObject);
-var
-  NewValue: String;
 begin
-  if Persistent then
-    NewValue := TV_PERSISTENCE_PERSISTENT
-  else
-    NewValue := TV_PERSISTENCE_TRANSIENT;
-  SetTaggedValue(TAG_PERSISTENCE, NewValue);
+  SetPersistenceTaggedValue(Self, Persistent);
 end;
 
 procedure TUMLAttribute._Persistent_DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
@@ -280,14 +279,8 @@ begin
 end;
 
 procedure TUMLAttribute._Persistent_ReverseDerive(DerivedObject: TObject);
-var
-  NewValue: String;
 begin
-  if Persistent then
-    NewValue := TV_PERSISTENCE_PERSISTENT
-  else
-    NewValue := TV_PERSISTENCE_TRANSIENT;
-  SetTaggedValue(TAG_PERSISTENCE, NewValue);
+  SetPersistenceTaggedValue(Self, Persistent);
 end;
 
 procedure TUMLModelElement._StereotypeName_DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
