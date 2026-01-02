@@ -160,8 +160,8 @@ try {
         New-Item -ItemType Directory -Path $OutputDir | Out-Null
     }
 
-    # Run coverage analysis
-    Write-Host "[COVERAGE] Running code coverage analysis..." -ForegroundColor Yellow
+    # Run coverage analysis (this also runs the tests)
+    Write-Host "[COVERAGE] Running tests with code coverage..." -ForegroundColor Yellow
     Write-Host ""
 
     $CoverageArgs = @(
@@ -173,12 +173,23 @@ try {
         "-uf", "coverage_units.lst",
         "-html",
         "-xml",
-        "-od", $OutputDir
+        "-od", $OutputDir,
+        "-tec"  # Pass through test executable exit code
     )
 
-    & $CoverageExe @CoverageArgs | Out-Null
+    & $CoverageExe @CoverageArgs
+    $TestExitCode = $LASTEXITCODE
 
     Write-Host ""
+
+    if ($TestExitCode -ne 0) {
+        Write-Host "=" * 50 -ForegroundColor DarkGray
+        Write-Host " ERROR: Tests failed with exit code $TestExitCode" -ForegroundColor Red
+        Write-Host "=" * 50 -ForegroundColor DarkGray
+        Write-Host ""
+        exit $TestExitCode
+    }
+
     Write-Host "=" * 50 -ForegroundColor DarkGray
     Write-Host " Report: $OutputDir\CodeCoverage_summary.html" -ForegroundColor Green
     Write-Host "=" * 50 -ForegroundColor DarkGray
