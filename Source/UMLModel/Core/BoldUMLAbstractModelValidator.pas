@@ -11,7 +11,7 @@ uses
   BoldSQLDatabaseConfig;
 
 type
-  TBoldModelValidatorSourceLanguage = (mvslNone, mvslDelphi, mvslCpp);
+  TBoldModelValidatorSourceLanguage = (mvslNone, mvslDelphi);
 
   TBoldUMLAbstractModelValidator = class
   private
@@ -37,12 +37,7 @@ type
   end;
 
 const
-  {$IFDEF BOLD_DELPHI}
   BoldDefaultValidatorSourceLanguage = mvslDelphi;
-  {$ENDIF}
-  {$IFDEF BOLD_BCB}
-  BoldDefaultValidatorSourceLanguage = mvslCpp;
-  {$ENDIF}
 
 implementation
 

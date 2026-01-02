@@ -123,11 +123,6 @@ resourcestring
   sUMVDelphiNameReserved = 'Delphi name "%s" in "%s" is a reserved word';
   sUMVDelphiNameExists = 'Duplicate Delphi name "%s" in "%s"';
   sUMVDelphiNameExists2 = 'Duplicate Delphi name "%s" in "%s": "%s" and "%s"';
-  sUMVCppNameEmpty = '"%s" must have a C++ name';
-  sUMVCppNameInvalid = 'Invalid C++ name "%s" in "%s"';
-  sUMVCppNameReserved = 'C++ name "%s" in "%s" is a reserved word';
-  sUMVCppNameExists = 'Duplicate C++ name "%s" in "%s"';
-  sUMVCppNameExists2 = 'Duplicate C++ name "%s" in "%s": "%s" and "%s"';
 
   sUMVUnitNameEmpty = '"%s" must have a unit name';
   sUMVExpressionNameEmpty = '"%s" must have an expression name';
@@ -201,23 +196,6 @@ begin
   Result := True;
 end;
 
-function IsValidCppIdentifier(const Ident: string): Boolean;
-const
-  Alpha = ['A'..'Z', 'a'..'z', '_'];
-  AlphaNumeric = Alpha + ['0'..'9'];
-var
-  I: Integer;
-begin
-  Result := False;
-  if (Length(Ident) = 0) or not CharInSet(Ident[1], Alpha) then
-    Exit;
-  for I := 2 to Length(Ident) do if not CharInSet(Ident[I], AlphaNumeric) then
-    Exit;
-  Result := True;
-end;
-
-
-
 function IsValidOCLIdentifier(const Ident: string): Boolean;
 begin
   Result := (IsValidDelphiIdentifier(Ident)) and (Ident[1] <> '_');
@@ -275,26 +253,6 @@ begin
     end;
 end;
 
-function IsCppReservedWord(const S: string): Boolean;
-const
-  CppReservedCount = 1;
-  CppReserved: array[1..CppReservedCount] of string = ('if');
-var
-  I: Integer;
-begin
-  Result := False;
-  if Length(S) = 0 then
-    Exit;
-  for I := 1 to CppReservedCount do
-    if CompareText(S, CppReserved[I]) = 0 then
-    begin
-      Result := True;
-      Exit;
-    end;
-
-end;
-
-
 function IsBoldReservedWord(const S: String): Boolean;
 const
   BoldReservedCount = 2;
@@ -344,11 +302,10 @@ end;
 
 function TBoldUMLModelValidator.ExpandedSourceName(Elem: TUMLModelElement): String;
 begin
-  case Language of
-    mvslDelphi: result := BoldExpandName(Elem.GetBoldTV(TAG_DELPHINAME), Elem.Name, xtDelphi, -1, NationalCharConversion);
-    mvslCpp: result := BoldExpandName(Elem.GetBoldTV(TAG_CPPNAME), Elem.Name, xtDelphi, -1, NationalCharConversion);
-    else result := '';
-  end;
+  if Language = mvslDelphi then
+    result := BoldExpandName(Elem.GetBoldTV(TAG_DELPHINAME), Elem.Name, xtDelphi, -1, NationalCharConversion)
+  else
+    result := '';
 end;
 
 function TBoldUMLModelValidator.ExpandedExpressionName(Elem: TUMLModelElement): String;
@@ -433,11 +390,10 @@ begin
             AddError(sUMVClassNameExists, [(Names.Objects[i] as TUMLClass).Name], Names.Objects[i] as TUMLClass);
           if (Language <> mvslNone) and (SourceCodeNames[i] = SourceCodeNames[i + 1]) then
           begin
-            case Language of
-              mvslDelphi: ErrorStr := sUMVDelphiNameExists;
-              mvslCpp: ErrorStr := sUMVCppNameExists
-              else ErrorStr := 'Unknown source language in validator';
-            end;
+            if Language = mvslDelphi then
+              ErrorStr := sUMVDelphiNameExists
+            else
+              ErrorStr := 'Unknown source language in validator';
             AddError(ErrorStr, [ExpandedSourceName(SourceCodeNames.Objects[i] as TUMLClass),
                                             (SourceCodeNames.Objects[i] as TUMLClass).Name],
                                             SourceCodeNames.Objects[i] as TUMLClass)
@@ -700,10 +656,8 @@ begin
     Reported := false;
     CheckAndAddName(Names, aClass.name, AssoEnd.Name, AssoEnd, sUMVMemberNameExists, reported, true);
     CheckAndAddName(ExpressionNames, aClass.name, AssoEnd.ExpandedExpressionName, AssoEnd, sUMVExpressionNameExists2, reported, false);
-    case Language of
-      mvslDelphi: CheckAndAddName(SourceNames, aClass.name, ExpandedSourceName(AssoEnd), AssoEnd, sUMVDelphiNameExists2, reported, false);
-      mvslCpp: CheckAndAddName(SourceNames, aClass.name, ExpandedSourceName(AssoEnd), AssoEnd, sUMVCppNameExists2, reported, false);
-    end;
+    if Language = mvslDelphi then
+      CheckAndAddName(SourceNames, aClass.name, ExpandedSourceName(AssoEnd), AssoEnd, sUMVDelphiNameExists2, reported, false);
     if AssoEnd.Association.EffectivePersistent and CheckDBStuff then
       CheckAndAddName(DatabaseNames, aClass.name, ExpandedDBName(AssoEnd), AssoEnd, sUMVColumnNameExists, reported, false);
   end;
@@ -720,10 +674,8 @@ begin
     Reported := false;
     CheckAndAddName(Names, aClass.Name, aClass.Feature[i].Name, aClass.Feature[i], sUMVMemberNameExists, reported, true);
     CheckAndAddName(ExpressionNames, aClass.Name, aClass.Feature[i].ExpandedExpressionName, aClass.Feature[i], sUMVExpressionNameExists2, reported, false);
-    case language of
-      mvslDelphi: CheckAndAddName(SourceNames, aClass.Name, ExpandedSourceName(aClass.Feature[i]), aClass.Feature[i], sUMVDelphiNameExists2, reported, false);
-      mvslCpp: CheckAndAddName(SourceNames, aClass.Name, ExpandedSourceName(aClass.Feature[i]), aClass.Feature[i], sUMVCppNameExists2, reported, false);
-    end;
+    if Language = mvslDelphi then
+      CheckAndAddName(SourceNames, aClass.Name, ExpandedSourceName(aClass.Feature[i]), aClass.Feature[i], sUMVDelphiNameExists2, reported, false);
     
     if (aClass.Feature[i] is TUMLAttribute) and
        (aClass.Feature[i] as TUMLAttribute).EffectivePersistent and
@@ -1001,29 +953,15 @@ begin
     exit;
   end;
 
-  if Language <> mvslNone then
+  if Language = mvslDelphi then
   begin
     S := ExpandedSourceName(Element);
-    case Language of
-    mvslDelphi:
-      begin
-        if s = '' then
-          AddError(sUMVDelphiNameEmpty, [ElementName], Element)
-        else if not IsValidDelphiIdentifier(S) then
-          AddError(sUMVDelphiNameInvalid, [S, ElementName], Element)
-        else if IsDelphiReservedWord(S) then
-          AddError(sUMVDelphiNameReserved, [S, ElementName], Element);
-      end;
-    mvslCpp:
-      begin
-        if s = '' then
-          AddError(sUMVCppNameEmpty, [ElementName], Element)
-        else if not IsValidCppIdentifier(S) then
-          AddError(sUMVCppNameInvalid, [S, ElementName], Element)
-        else if IsCppReservedWord(S) then
-          AddError(sUMVCppNameReserved, [S, ElementName], Element);
-      end;
-    end;
+    if s = '' then
+      AddError(sUMVDelphiNameEmpty, [ElementName], Element)
+    else if not IsValidDelphiIdentifier(S) then
+      AddError(sUMVDelphiNameInvalid, [S, ElementName], Element)
+    else if IsDelphiReservedWord(S) then
+      AddError(sUMVDelphiNameReserved, [S, ElementName], Element);
   end;
 
   // check expression name
