@@ -2375,17 +2375,24 @@ begin
   SetElementFlag(befSystemIsRunnable, false);
 end;
 
+{ Helper procedure for constraint list initialization }
+
+procedure EnsureConstraintListAndAdd(var ConstraintList: TBoldConstraintRTInfoList; Constraint: TBoldConstraintRTInfo);
+begin
+  if not Assigned(ConstraintList) then
+  begin
+    ConstraintList := TBoldConstraintRTInfoList.Create;
+    ConstraintList.OwnsEntries := True;
+  end;
+  ConstraintList.Add(Constraint);
+end;
+
 { TBoldElementTypeInfoWithConstraint }
 
 procedure TBoldElementTypeInfoWithConstraint.AddConstraint(
   Constraint: TBoldConstraintRTInfo);
 begin
-  if not assigned(fConstraints) then
-  begin
-    fConstraints := TBoldConstraintRTInfoList.Create;
-    fConstraints.OwnsEntries := true;
-  end;
-  fConstraints.Add(Constraint);
+  EnsureConstraintListAndAdd(fConstraints, Constraint);
 end;
 
 constructor TBoldElementTypeInfoWithConstraint.Create(MoldElement: TMoldElement; SystemTypeInfo: TBoldSystemTypeInfo);
@@ -2481,12 +2488,7 @@ end;
 procedure TBoldMetaElementWithConstraint.AddConstraint(
   Constraint: TBoldConstraintRTinfo);
 begin
-  if not assigned(fConstraints) then
-  begin
-    fConstraints := TBoldConstraintRTInfoList.Create;
-    fConstraints.OwnsEntries := true;
-  end;
-  fConstraints.Add(Constraint);
+  EnsureConstraintListAndAdd(fConstraints, Constraint);
 end;
 
 constructor TBoldMetaElementWithConstraint.Create(MoldElement: TMoldElement; const ModelName, ExpressionName, DelphiName: String; SystemTypeInfo: TBoldSystemTypeInfo);

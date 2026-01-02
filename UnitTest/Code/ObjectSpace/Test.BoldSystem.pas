@@ -346,6 +346,14 @@ type
     [Test]
     [Category('Quick')]
     procedure TestOCLIntersection;
+
+    // Constraint AddConstraint Tests (tests EnsureConstraintListAndAdd helper)
+    [Test]
+    [Category('Quick')]
+    procedure TestClassTypeInfoAddConstraint;
+    [Test]
+    [Category('Quick')]
+    procedure TestClassTypeInfoAddMultipleConstraints;
   end;
 
 implementation
@@ -1906,6 +1914,67 @@ begin
   finally
     IndirectElement.Free;
   end;
+end;
+
+procedure TTestBoldSystem.TestClassTypeInfoAddConstraint;
+var
+  ClassTypeInfo: TBoldClassTypeInfo;
+  InitialCount: Integer;
+begin
+  // Get a class type info - ClassA is available in the test model
+  ClassTypeInfo := GetSystem.BoldSystemTypeInfo.TopSortedClasses.ItemsByExpressionName['ClassA'];
+  Assert.IsNotNull(ClassTypeInfo, 'ClassA type info should exist');
+
+  // Store initial constraint count
+  InitialCount := ClassTypeInfo.ConstraintCount;
+
+  // Add a constraint - this exercises EnsureConstraintListAndAdd through
+  // TBoldElementTypeInfoWithConstraint.AddConstraint
+  ClassTypeInfo.AddConstraint(
+    TBoldConstraintRTInfo.Create(nil, 'TestConstraint', '', '',
+      GetSystem.BoldSystemTypeInfo, 'self.aString <> ''''', 'Test constraint message'));
+
+  // Verify constraint was added
+  Assert.AreEqual(InitialCount + 1, ClassTypeInfo.ConstraintCount,
+    'Constraint count should increase by 1');
+  Assert.IsNotNull(ClassTypeInfo.Constraint['TestConstraint'],
+    'Added constraint should be retrievable by name');
+end;
+
+procedure TTestBoldSystem.TestClassTypeInfoAddMultipleConstraints;
+var
+  ClassTypeInfo: TBoldClassTypeInfo;
+  InitialCount: Integer;
+begin
+  // Get a class type info
+  ClassTypeInfo := GetSystem.BoldSystemTypeInfo.TopSortedClasses.ItemsByExpressionName['ClassA'];
+  Assert.IsNotNull(ClassTypeInfo, 'ClassA type info should exist');
+
+  // Store initial constraint count
+  InitialCount := ClassTypeInfo.ConstraintCount;
+
+  // Add multiple constraints to verify the list grows correctly
+  ClassTypeInfo.AddConstraint(
+    TBoldConstraintRTInfo.Create(nil, 'MultiConstraint1', '', '',
+      GetSystem.BoldSystemTypeInfo, 'self.aInteger > 0', 'First constraint'));
+
+  ClassTypeInfo.AddConstraint(
+    TBoldConstraintRTInfo.Create(nil, 'MultiConstraint2', '', '',
+      GetSystem.BoldSystemTypeInfo, 'self.aString <> ''''', 'Second constraint'));
+
+  ClassTypeInfo.AddConstraint(
+    TBoldConstraintRTInfo.Create(nil, 'MultiConstraint3', '', '',
+      GetSystem.BoldSystemTypeInfo, 'true', 'Third constraint'));
+
+  // Verify all constraints were added
+  Assert.AreEqual(InitialCount + 3, ClassTypeInfo.ConstraintCount,
+    'Constraint count should increase by 3');
+  Assert.IsNotNull(ClassTypeInfo.Constraint['MultiConstraint1'],
+    'First constraint should be retrievable');
+  Assert.IsNotNull(ClassTypeInfo.Constraint['MultiConstraint2'],
+    'Second constraint should be retrievable');
+  Assert.IsNotNull(ClassTypeInfo.Constraint['MultiConstraint3'],
+    'Third constraint should be retrievable');
 end;
 
 initialization
