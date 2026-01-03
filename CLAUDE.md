@@ -18,6 +18,13 @@ By default never guess to generate the answer. If information is missing ask for
 - **UnitTest.exe**: `C:\Attracs\BoldForDelphi\UnitTest\UnitTest.exe`
 - **UnitTest project folder**: `C:\Attracs\BoldForDelphi\UnitTest`
 
+### After Every Code Change
+
+Run code coverage after every change to BoldForDelphi source code or unit tests:
+```powershell
+powershell -ExecutionPolicy Bypass -File "C:\Attracs\Run_coverage.ps1"
+```
+
 ### Git Commit Messages
 
 Do not include Claude references in git commit messages. No "Generated with Claude", no "Co-Authored-By: Claude", and no similar attributions.

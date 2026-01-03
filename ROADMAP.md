@@ -88,11 +88,20 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 | Status | Comment |
 |--------|---------|
 | :white_check_mark: | DUnitX test framework migration |
-| :white_check_mark: | Code coverage reporting with DelphiCodeCoverage for tests (now 28 %) |
+| :white_check_mark: | Code coverage reporting with DelphiCodeCoverage for tests |
 | :white_large_square: | Increase code coverage |
 | :thinking: | Automated CI builds (GitHub Actions) |
 | :thinking: | Automated test runs on pull requests |
 | :thinking: | Performance benchmarks |
+
+### Code Coverage Progress
+
+|    Date    | Units | Covered | Not covered | Total lines | Coverage % |
+|------------|-------|---------|-------------|-------------|------------|
+| 2025-12-22 |   153 |   15657 |       44318 |       59975 |    26.106% |
+| 2025-12-24 |   149 |   15629 |       40552 |       56181 |    27.819% |
+| 2026-01-01 |   149 |   20619 |       35624 |       56243 |    36.661% |
+| 2026-01-02 |   149 |   22481 |       33724 |       56205 |    39.998% |
 
 ### Code Quality
 
