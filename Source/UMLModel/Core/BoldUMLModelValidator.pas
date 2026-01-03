@@ -181,19 +181,24 @@ resourcestring
   sUMVAssociationAndClassNotEquallyPersistent = 'Association (%s) and its association class are not equally persistent';
   sUMVClassNameClashWithAttribute = 'Class "%s" has same name as Attribute type';
 
-function IsValidDelphiIdentifier(const Ident: string): Boolean;
-const
-  Alpha = ['A'..'Z', 'a'..'z', '_'];
-  AlphaNumeric = Alpha + ['0'..'9'];
+function IsValidIdentifier(const Ident: string; const ValidFirstChars, ValidChars: TSysCharSet): Boolean;
 var
   I: Integer;
 begin
   Result := False;
-  if (Length(Ident) = 0) or not CharInSet(Ident[1], Alpha) then
+  if (Length(Ident) = 0) or not CharInSet(Ident[1], ValidFirstChars) then
     Exit;
-  for I := 2 to Length(Ident) do if not CharInSet(Ident[I], AlphaNumeric) then
+  for I := 2 to Length(Ident) do if not CharInSet(Ident[I], ValidChars) then
     Exit;
   Result := True;
+end;
+
+function IsValidDelphiIdentifier(const Ident: string): Boolean;
+const
+  Alpha = ['A'..'Z', 'a'..'z', '_'];
+  AlphaNumeric = Alpha + ['0'..'9'];
+begin
+  Result := IsValidIdentifier(Ident, Alpha, AlphaNumeric);
 end;
 
 function IsValidOCLIdentifier(const Ident: string): Boolean;
@@ -205,15 +210,8 @@ function IsValidSQLIdentifier(const Ident: string): Boolean;
 const
   Alpha = ['A'..'Z', 'a'..'z', '$', '_'];
   AlphaNumeric = Alpha + ['0'..'9'];
-var
-  I: Integer;
 begin
-  Result := False;
-  if (Length(Ident) = 0) or not CharInSet(Ident[1], Alpha) then
-    Exit;
-  for I := 2 to Length(Ident) do if not CharInSet(Ident[I], AlphaNumeric) then
-    Exit;
-  Result := True;
+  Result := IsValidIdentifier(Ident, Alpha, AlphaNumeric);
 end;
 
 function IsDelphiReservedWord(const S: string): Boolean;
