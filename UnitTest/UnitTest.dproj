@@ -85,6 +85,8 @@
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <Debugger_RunParams>--exit:pause</Debugger_RunParams>
+        <DCC_Inlining>off</DCC_Inlining>
+        <DCC_ConsoleTarget>true</DCC_ConsoleTarget>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -128,6 +130,8 @@
         <DCCReference Include="Code\Common\Test.BoldThreadSafeLog.pas"/>
         <DCCReference Include="Code\Common\Test.BoldLogInterfaces.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldAttributes.pas"/>
+        <DCCReference Include="Code\UMLModel\Test.BoldUMLModelValidator.pas"/>
+        <DCCReference Include="Code\Handles\Test.BoldListHandle.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

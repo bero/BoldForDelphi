@@ -18,7 +18,8 @@ uses
   BoldTypeNameHandle,
   BoldDefs,
   BoldAttributes,
-  BoldAbstractModel;
+  BoldAbstractModel,
+  BoldListHandle;
 
 type
   TCompareTypeSet = set of TBoldCompareType;
@@ -28,6 +29,7 @@ type
     BoldSystemHandle1: TBoldSystemHandle;
     BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle;
     BoldTypeNameHandle1: TBoldTypeNameHandle;
+    BoldListHandle1: TBoldListHandle;
   end;
 
   [TestFixture]

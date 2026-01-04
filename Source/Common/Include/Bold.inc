@@ -131,7 +131,7 @@ Illegal symbol combination
 {.$DEFINE NoAutoSubscription}
 
   // Mechanism for efficient fetching
-{$DEFINE SpanFetch}
+{.$DEFINE SpanFetch}
 
   // Turns off query mechanism
 {$DEFINE BOLD_NO_QUERIES}

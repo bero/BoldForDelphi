@@ -19,7 +19,8 @@ uses
   BoldTypeNameHandle,
   BoldDefs,
   TestFrameWork,
-  BoldAttributes, BoldAbstractModel;
+  BoldAttributes, BoldAbstractModel, BoldRootedHandles, BoldAbstractListHandle,
+  BoldCursorHandle, BoldListHandle;
 
 type
    TCompareTypeSet = set of TBoldCompareType; //(ctDefault, ctAsText, ctAsAnsiString, ctAsAnsiText, ctAsDate, ctAsTime);
@@ -29,7 +30,6 @@ type
     BoldModel1: TBoldModel;
     BoldSystemHandle1: TBoldSystemHandle;
     BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle;
-    BoldUMLRose98Link1: TBoldUMLRose98Link;
     BoldTypeNameHandle1: TBoldTypeNameHandle;
   private
     { Private declarations }

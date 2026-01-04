@@ -221,26 +221,22 @@ begin
     result := nil;
 end;
 
-function TBoldAbstractListHandle.GetObjectList: TBoldObjectList;
-var
-  BoldList: TBoldList;
+function AsObjectList(BoldList: TBoldList): TBoldObjectList;
 begin
-  BoldList := List;
   if BoldList is TBoldObjectList then
     result := TBoldObjectList(BoldList)
   else
     result := nil;
 end;
 
-function TBoldAbstractListHandle.GetMutableObjectList: TBoldObjectList;
-var
-  BoldList: TBoldList;
+function TBoldAbstractListHandle.GetObjectList: TBoldObjectList;
 begin
-  BoldList := MutableList;
-  if BoldList is TBoldObjectList then
-    result := TBoldObjectList(BoldList)
-  else
-    result := nil;
+  result := AsObjectList(List);
+end;
+
+function TBoldAbstractListHandle.GetMutableObjectList: TBoldObjectList;
+begin
+  result := AsObjectList(MutableList);
 end;
 
 end.

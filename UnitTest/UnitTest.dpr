@@ -39,7 +39,8 @@ uses
   Test.BoldThreadSafeLog in 'Code\Common\Test.BoldThreadSafeLog.pas',
   Test.BoldLogInterfaces in 'Code\Common\Test.BoldLogInterfaces.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
-  Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas';
+  Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas',
+  Test.BoldListHandle in 'Code\Handles\Test.BoldListHandle.pas';
 
 {$R *.res}
 
