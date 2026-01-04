@@ -59,10 +59,8 @@ uses
   SysUtils,
   BoldDefs,
   BoldTraceLog,
-  {$IFDEF ATTRACS}
   BoldPerformanceStub,
   BoldStubDefs,
-  {$ENDIF}
   BoldSystemRT;
 
 {---TBoldFilter---}
@@ -130,17 +128,13 @@ var
   ListTypeInfo: TBoldListTypeInfo;
   ClassTypeInfo: TBoldClassTypeInfo;
   MemberRTInfo: TBoldMemberRTInfo;
-  {$IFDEF ATTRACS}
-  PerformanceMeasurement : TPerformanceMeasurement;
-  HandleLongName : String;
-  {$ENDIF}
-
+  PerformanceMeasurement: TPerformanceMeasurement;
+  HandleLongName: String;
 begin
   if csDestroying in ComponentState then
     raise EBold.CreateFmt('%s.DeriveAndSubscribe: %s Handle is in csDestroying state, can not DeriveAndSubscribe.', [classname, name]);
-  {$IFDEF ATTRACS}
+
   PerformanceMeasurement := TPerformanceMeasurement.ReStart;
-  {$ENDIF}
   if EffectiveRootValue = nil then
     ResultElement.SetOwnedValue(nil)
   else if not Assigned(BoldFilter) then
@@ -181,7 +175,6 @@ begin
     end;
   end;
   SubscribeToValue;
-  {$IFDEF ATTRACS}
   if not PerformanceMeasurement.AcceptableTimeForSmallComputation then
   begin
     if Assigned(Self.Owner) then
@@ -192,7 +185,6 @@ begin
     PerformanceMeasurement.WhatMeasured := 'Deriving TBoldFilteredHandle ' + HandleLongName;
     PerformanceMeasurement.Trace;
   end;
-  {$ENDIF}
 end;
 
 function TBoldFilteredHandle.GetStaticBoldType: TBoldElementTypeInfo;

@@ -56,10 +56,8 @@ uses
   SysUtils,
   BoldDefs,
   BoldTraceLog,
-  {$IFDEF ATTRACS}
   BoldPerformanceStub,
   BoldStubDefs,
-  {$ENDIF}
   BoldSystemRT,
   BoldElementList;
 
@@ -88,16 +86,13 @@ var
   ValueAsListHolder: TBoldIndirectElement;
   SourceList: TBoldList;
   NewList: TBoldList;
-  {$IFDEF ATTRACS}
   PerformanceMeasurement : TPerformanceMeasurement;
   HandleLongName : String;
-  {$ENDIF}
 begin
   if csDestroying in ComponentState then
     raise EBold.CreateFmt('%s.DeriveAndSubscribe: %s Handle is in csDestroying state, can not DeriveAndSubscribe.', [classname, name]);
-  {$IFDEF ATTRACS}
+
   PerformanceMeasurement := TPerformanceMeasurement.ReStart;
-  {$ENDIF}
   if EffectiveRootValue = nil then
     ResultElement.SetOwnedValue(nil)
   else if not Assigned(BoldComparer) then
@@ -137,7 +132,6 @@ begin
     end;
   end;
   SubscribeToValue;
-  {$IFDEF ATTRACS}
   if not PerformanceMeasurement.AcceptableTimeForSmallComputation then
   begin
     if Assigned(Self.Owner) then
@@ -147,7 +141,6 @@ begin
     PerformanceMeasurement.WhatMeasured := 'Deriving TBoldSortedHandle ' +  HandleLongName;
     PerformanceMeasurement.Trace;
   end;
-  {$ENDIF}
 end;
 
 function TBoldSortedHandle.GetStaticBoldType: TBoldElementTypeInfo;

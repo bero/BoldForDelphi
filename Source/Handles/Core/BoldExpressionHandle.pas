@@ -72,10 +72,8 @@ implementation
 uses
   SysUtils,
   BoldTraceLog,
-  {$IFDEF ATTRACS}
   BoldPerformanceStub,
   BoldStubDefs,
-  {$ENDIF}
   {$IFDEF SpanFetch}
   BoldSpanFetchManager,
   {$ENDIF}
@@ -122,17 +120,13 @@ procedure TBoldExpressionHandle.DeriveAndSubscribe(DerivedObject: TObject;
 var
   RootValue: TBoldElement;
   vars: TBoldExternalVariableList;
-{$IFDEF ATTRACS}
-  PerformanceMeasurement : TPerformanceMeasurement;
-  HandleLongName : String;
-{$ENDIF}
+  PerformanceMeasurement: TPerformanceMeasurement;
+  HandleLongName: String;
 begin
   if csDestroying in ComponentState then
     raise EBold.CreateFmt('%s.DeriveAndSubscribe: %s Handle is in csDestroying state, can not DeriveAndSubscribe.', [classname, name]);
-{$IFDEF ATTRACS}
   PerformanceMeasurement := TPerformanceMeasurement.ReStart;
   try
-{$ENDIF}
     RootValue := EffectiveRootValue;
     if Assigned(RootValue) then
     begin
@@ -158,7 +152,6 @@ begin
     end else
       ResultElement.SetOwnedValue(nil);
     SubscribeToValue;
-{$IFDEF ATTRACS}
   finally
     if not PerformanceMeasurement.AcceptableTimeForSmallComputation then
     begin
@@ -169,9 +162,8 @@ begin
       PerformanceMeasurement.WhatMeasured := 'Deriving TBoldExpressionHandle ' + HandleLongName;
       PerformanceMeasurement.WhatMeasuredParameter := 'expression ' + Self.Expression;
       PerformanceMeasurement.Trace;
-    end; // if TimeTaken too long
+    end;
   end;
-{$ENDIF}
 end;
 
 function TBoldExpressionHandle.GetExpression: String;

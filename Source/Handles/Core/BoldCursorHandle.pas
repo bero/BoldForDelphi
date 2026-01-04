@@ -48,10 +48,8 @@ uses
   BoldCoreConsts,
   BoldDefs,
   BoldTraceLog,
-  {$IFDEF ATTRACS}
   BoldPerformanceStub,
   BoldStubDefs,
-  {$ENDIF}
   BoldSystemRT;
 
 { TBoldCursorhandle }
@@ -73,16 +71,13 @@ var
   NewCurrentIndex: integer;
   TheList: TBoldList;
   NewValue: TBoldElement;
-  {$IFDEF ATTRACS}
-  PerformanceMeasurement : TPerformanceMeasurement;
-  HandleLongName, ListTypeName : String;
-  {$ENDIF}
+  PerformanceMeasurement: TPerformanceMeasurement;
+  HandleLongName, ListTypeName: String;
 begin
   if csDestroying in ComponentState then
     raise EBold.CreateFmt('%s.DeriveAndSubscribe: %s Handle is in csDestroying state, can not DeriveAndSubscribe.', [classname, name]);
-  {$IFDEF ATTRACS}
+
   PerformanceMeasurement := TPerformanceMeasurement.ReStart;
-  {$ENDIF}
   fListSubscriber.CancelAllSubscriptions;
 
   if EffectiveRootValue = nil then
@@ -128,7 +123,7 @@ begin
 
   if Assigned(subscriber) and (EffectiveRootValue <> nil) then
     EffectiveRootValue.DefaultSubscribe(Subscriber, breReEvaluate);
-  {$IFDEF ATTRACS}
+
   if not PerformanceMeasurement.AcceptableTimeForSmallComputation then
   begin
     if Assigned(Self.Owner) then
@@ -145,7 +140,6 @@ begin
      PerformanceMeasurement.WhatMeasuredParameter := Format('a list of type %s(%d)',[ListTypeName, ListCount]);
      PerformanceMeasurement.Trace;
   end; // if not AcceptableTimeForSmallComputation
-  {$ENDIF}
 end;
 
 destructor TBoldCursorhandle.Destroy;

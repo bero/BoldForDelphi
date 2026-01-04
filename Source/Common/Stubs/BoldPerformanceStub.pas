@@ -8,14 +8,19 @@ unit BoldPerformanceStub;
 
   Strategy: DO NOTHING
   Performance tracking is optional and safely skipped.
+  All methods are no-ops that return safe default values.
 }
 
 interface
 
 type
-  TPerformanceMeasurement = class
+  TPerformanceMeasurement = record
   public
-    class function ReStart : TPerformanceMeasurement;
+    WhatMeasured: string;
+    WhatMeasuredParameter: string;
+    class function ReStart: TPerformanceMeasurement; static;
+    function AcceptableTimeForSmallComputation: Boolean;
+    procedure Trace;
   end;
 
 implementation
@@ -24,7 +29,17 @@ implementation
 
 class function TPerformanceMeasurement.ReStart: TPerformanceMeasurement;
 begin
+  Result := Default(TPerformanceMeasurement);
+end;
 
+function TPerformanceMeasurement.AcceptableTimeForSmallComputation: Boolean;
+begin
+  Result := False; // Never log
+end;
+
+procedure TPerformanceMeasurement.Trace;
+begin
+  // Do nothing
 end;
 
 end.
