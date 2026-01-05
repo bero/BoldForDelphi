@@ -196,6 +196,8 @@ type
   TBANumeric = class(TBoldAttribute)
   protected
     function GetAsFloat: Double; virtual; abstract;
+    function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
+    function GetValueAsString: string; virtual;
     procedure SetAsInteger(Value: integer); virtual; abstract;
   public
     procedure SetEmptyValue; override;
@@ -224,7 +226,7 @@ type
     function CheckRangeWithBounds(Value, Min, Max: integer): boolean;
     function GetAsInteger: integer; virtual;
     function GetAsFloat: Double; override;
-    function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
+    function GetValueAsString: string; override;
     procedure SetAsInteger(Value: integer); override;
     procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); override;
     function MaySetValue(NewValue: integer; Subscriber: TBoldSubscriber): Boolean; virtual;
@@ -328,7 +330,6 @@ type
     procedure AssignContentValue(const Source: IBoldValue); override;
     procedure AssignCloneValue(AClone: TBoldMember); override;
     function GetAsFloat: Double; override;
-    function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
     procedure SetAsFloat(Value: Double); virtual;
     procedure SetAsInteger(Value: integer); override;
     procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); override;
@@ -370,7 +371,7 @@ type
     procedure AssignCloneValue(AClone: TBoldMember); override;
     function GetAsCurrency: Currency;
     function GetAsFloat: Double; override;
-    function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
+    function GetValueAsString: string; override;
     procedure SetAsCurrency(Value: Currency);
     procedure SetAsFloat(Value: Double); virtual;
     procedure SetAsInteger(Value: integer); override;
@@ -516,6 +517,7 @@ type
   TBAMoment = class(TBANumeric)
   private
     FValue: TDateTime;
+    function GetCheckedValue: Double;
     procedure SetDataValue(NewValue: TDateTime);
     procedure SetDateTimeContent(NewValue: TDateTime);
     function GetDays: Word;
@@ -1615,6 +1617,24 @@ begin
     AsInteger := 0;
 end;
 
+function TBANumeric.GetStringRepresentation(Representation: TBoldRepresentation): string;
+begin
+  BoldClearLastFailure;
+  if not CanRead(nil) then
+    BoldRaiseLastFailure(self, Meth_GetStringRepresentation, '');
+  if Representation <> brDefault then
+    inherited GetStringRepresentation(Representation);
+  if IsNull then
+    Result := ''
+  else
+    Result := GetValueAsString;
+end;
+
+function TBANumeric.GetValueAsString: string;
+begin
+  Result := FloatToStr(GetAsFloat);
+end;
+
 { TBAInteger }
 
 procedure TBAInteger.SetDataValue(NewValue: Integer);
@@ -1671,17 +1691,9 @@ begin
     inherited SetStringRepresentation(Representation, Value);
 end;
 
-function TBAInteger.GetStringRepresentation(Representation: TBoldRepresentation): string;
+function TBAInteger.GetValueAsString: string;
 begin
-  BoldClearLastFailure;
-  if not CanRead(nil) then
-    BoldRaiseLastFailure(self, Meth_GetStringRepresentation, '');
-  if Representation <> brDefault then
-    inherited GetStringRepresentation(Representation);
-  if IsNull then {IsNull ensures current}
-    Result := ''
-  else
-    Result := IntToStr(GetAsInteger);
+  Result := IntToStr(GetAsInteger);
 end;
 
 function TBAInteger.IsEqualToValue(const Value: IBoldValue): Boolean;
@@ -2084,19 +2096,6 @@ begin
     inherited SetStringRepresentation(Representation, Value);
 end;
 
-function TBAFloat.GetStringRepresentation(Representation: TBoldRepresentation): string;
-begin
-  BoldClearLastFailure;
-  if not CanRead(nil) then
-    BoldRaiseLastFailure(self, Meth_GetStringRepresentation, '');
-  if Representation <> brDefault then
-    inherited GetStringRepresentation(Representation);
-  if IsNull then {IsNull ensures current}
-    Result := ''
-  else
-    Result := FloatToStr(GetAsFloat);
-end;
-
 function TBAFloat.IsEqualToValue(const Value: IBoldValue): Boolean;
 var
   vFloat: IBoldFloatContent;
@@ -2379,17 +2378,9 @@ begin
     inherited SetStringRepresentation(Representation, Value);
 end;
 
-function TBACurrency.GetStringRepresentation(Representation: TBoldRepresentation): string;
+function TBACurrency.GetValueAsString: string;
 begin
-  BoldClearLastFailure;
-  if not CanRead(nil) then
-    BoldRaiseLastFailure(self, Meth_GetStringRepresentation, '');
-  if Representation <> brDefault then
-    inherited GetStringRepresentation(Representation);
-  if IsNull then {IsNull ensures current}
-    Result := ''
-  else
-    Result := CurrToStr(GetAsCurrency);
+  Result := CurrToStr(GetAsCurrency);
 end;
 
 function TBACurrency.IsEqualToValue(const Value: IBoldValue): Boolean;
@@ -3503,22 +3494,23 @@ begin
   Result := GetAsDateTime;
 end;
 
-function TBAMoment.GetAsDate: TDateTime;
+function TBAMoment.GetCheckedValue: Double;
 begin
   BoldClearLastFailure;
   if not CanRead(nil) then
-    BoldRaiseLastFailure(self, 'GetAsDate', '');
+    BoldRaiseLastFailure(self, 'GetCheckedValue', '');
   EnsureNotNull; {ensures current}
-  Result := Int(fValue);
+  Result := fValue;
+end;
+
+function TBAMoment.GetAsDate: TDateTime;
+begin
+  Result := Int(GetCheckedValue);
 end;
 
 function TBAMoment.GetAsTime: TDateTime;
 begin
-  BoldClearLastFailure;
-  if not CanRead(nil) then
-    BoldRaiseLastFailure(self, 'GetAsTime', '');
-  EnsureNotNull; {ensures current}
-  Result := frac(fValue);
+  Result := Frac(GetCheckedValue);
 end;
 
 procedure TBAMoment.SetAsDateTime(Value: TDateTime);

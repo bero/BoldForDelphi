@@ -93,6 +93,12 @@ type
     [Test]
     [Category('Quick')]
     procedure TestBlobContentTypeValidation;
+    [Test]
+    [Category('Quick')]
+    procedure TestValueSetValueListFindByText;
+    [Test]
+    [Category('Quick')]
+    procedure TestNumericGetStringRepresentation;
   end;
 
 var
@@ -652,6 +658,66 @@ begin
     Assert.AreEqual('text/plain', TypedBlob.ContentType, 'TypedBlob content type should be changed');
   finally
     TypedBlob.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestValueSetValueListFindByText;
+var
+  ValueList: TBAValueSetValueList;
+  FoundValue: TBAValueSetValue;
+begin
+  ValueList := TBAValueSetValueList.Create;
+  try
+    ValueList.Add(1, ['One', 'First']);
+    ValueList.Add(2, ['Two', 'Second']);
+    ValueList.Add(3, ['Three', 'Third']);
+
+    // Test case-insensitive find
+    FoundValue := ValueList.FindByText(brDefault, 'one');
+    Assert.IsNotNull(FoundValue, 'Should find "one" case-insensitively');
+    Assert.AreEqual(1, FoundValue.AsInteger, 'Found value should have integer 1');
+
+    FoundValue := ValueList.FindByText(brDefault, 'TWO');
+    Assert.IsNotNull(FoundValue, 'Should find "TWO" case-insensitively');
+    Assert.AreEqual(2, FoundValue.AsInteger, 'Found value should have integer 2');
+
+    // Test not found
+    FoundValue := ValueList.FindByText(brDefault, 'Four');
+    Assert.IsNull(FoundValue, 'Should not find "Four"');
+  finally
+    ValueList.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestNumericGetStringRepresentation;
+var
+  TestClass: TClassA;
+begin
+  TestClass := TClassA.Create(nil);
+  try
+    // Test TBAInteger.GetStringRepresentation
+    TestClass.m_aInteger.AsInteger := 42;
+    Assert.AreEqual('42', TestClass.m_aInteger.AsString, 'Integer string representation');
+
+    // Test TBAFloat.GetStringRepresentation
+    TestClass.m_aFloat.AsFloat := 3.14;
+    Assert.AreEqual(FloatToStr(3.14), TestClass.m_aFloat.AsString, 'Float string representation');
+
+    // Test TBACurrency.GetStringRepresentation
+    TestClass.m_aCurrency.AsCurrency := 99.95;
+    Assert.AreEqual(CurrToStr(99.95), TestClass.m_aCurrency.AsString, 'Currency string representation');
+
+    // Test null values return empty string
+    TestClass.m_aInteger.SetToNull;
+    Assert.AreEqual('', TestClass.m_aInteger.AsString, 'Null integer should be empty string');
+
+    TestClass.m_aFloat.SetToNull;
+    Assert.AreEqual('', TestClass.m_aFloat.AsString, 'Null float should be empty string');
+
+    TestClass.m_aCurrency.SetToNull;
+    Assert.AreEqual('', TestClass.m_aCurrency.AsString, 'Null currency should be empty string');
+  finally
+    TestClass.Delete;
   end;
 end;
 
