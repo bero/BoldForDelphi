@@ -44,4 +44,6 @@ __recovery/
 dunitx-results.xml
 UnitTest/coverage_report/
 UnitTest/Win32/
+UnitTest/cobertura.xml
+UnitTest/codecov.exe
 TestInsightSettings.ini
