@@ -1,4 +1,4 @@
-﻿unit Test.BoldAttributes;
+unit Test.BoldAttributes;
 
 { DUnitX version of dmjehoBoldTest - Bold Attribute Tests }
 
@@ -99,6 +99,9 @@ type
     [Test]
     [Category('Quick')]
     procedure TestNumericGetStringRepresentation;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobImageGetStringRepresentationInherited;
   end;
 
 var
@@ -718,6 +721,47 @@ begin
     Assert.AreEqual('', TestClass.m_aCurrency.AsString, 'Null currency should be empty string');
   finally
     TestClass.Delete;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestBlobImageGetStringRepresentationInherited;
+var
+  BlobJPEG: TBABlobImageJPEG;
+  BlobBMP: TBABlobImageBMP;
+  TestData: TBytes;
+begin
+  // Test that GetStringRepresentation returns inherited result for non-brShort representations
+  // Bug: Missing "Result :=" before inherited call caused undefined return value
+  // ContentType uses brShort, AsString uses brDefault
+
+  TestData := TEncoding.Default.GetBytes('TestBlobData');
+
+  BlobJPEG := TBABlobImageJPEG.Create;
+  try
+    // brShort (via ContentType) should return the MIME type
+    Assert.AreEqual('image/jpeg', BlobJPEG.ContentType,
+      'JPEG ContentType should return image/jpeg');
+
+    // Set blob data and verify brDefault returns it via inherited
+    BlobJPEG.AsStream.Write(TestData, Length(TestData));
+    Assert.AreEqual('TestBlobData', BlobJPEG.AsString,
+      'JPEG AsString should return blob data via inherited GetStringRepresentation');
+  finally
+    BlobJPEG.Free;
+  end;
+
+  BlobBMP := TBABlobImageBMP.Create;
+  try
+    // brShort (via ContentType) should return the MIME type
+    Assert.AreEqual('image/bitmap', BlobBMP.ContentType,
+      'BMP ContentType should return image/bitmap');
+
+    // Set blob data and verify brDefault returns it via inherited
+    BlobBMP.AsStream.Write(TestData, Length(TestData));
+    Assert.AreEqual('TestBlobData', BlobBMP.AsString,
+      'BMP AsString should return blob data via inherited GetStringRepresentation');
+  finally
+    BlobBMP.Free;
   end;
 end;
 

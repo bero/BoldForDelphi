@@ -1,4 +1,4 @@
-﻿
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldAttributes;
@@ -3387,7 +3387,7 @@ begin
       Result := 'image/jpeg';
     end;
   else
-    inherited GetStringRepresentation(Representation);
+    Result := inherited GetStringRepresentation(Representation);
   end;
 end;
 
@@ -3399,7 +3399,7 @@ begin
       Result := 'image/bitmap';
     end;
   else
-    inherited GetStringRepresentation(Representation);
+    Result := inherited GetStringRepresentation(Representation);
   end;
 end;
 
