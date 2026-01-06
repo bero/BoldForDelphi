@@ -108,6 +108,9 @@ type
     [Test]
     [Category('Quick')]
     procedure TestNumericSetStringRepresentation;
+    [Test]
+    [Category('Quick')]
+    procedure TestDateTimeSetStringRepresentation;
   end;
 
 var
@@ -915,6 +918,72 @@ begin
     Assert.IsTrue(CurrAttr.IsNull, 'TBACurrency should be null after setting empty string');
   finally
     CurrAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestDateTimeSetStringRepresentation;
+var
+  DateTimeAttr: TBADateTime;
+  DateAttr: TBADate;
+  TimeAttr: TBATime;
+  TestDateTime: TDateTime;
+begin
+  // Test SetStringRepresentation via AsString property (which uses brDefault)
+
+  TestDateTime := EncodeDate(2026, 1, 6) + EncodeTime(14, 30, 0, 0);
+
+  // TBADateTime
+  DateTimeAttr := TBADateTime.Create;
+  try
+    // Set value from string
+    DateTimeAttr.AsString := DateTimeToStr(TestDateTime);
+    Assert.AreEqual(TestDateTime, DateTimeAttr.AsDateTime, 'TBADateTime should parse string');
+
+    // Set to null via empty string
+    DateTimeAttr.AsString := '';
+    Assert.IsTrue(DateTimeAttr.IsNull, 'TBADateTime should be null after setting empty string');
+
+    // Set via '<NOW>' keyword
+    DateTimeAttr.AsString := '<NOW>';
+    Assert.IsFalse(DateTimeAttr.IsNull, 'TBADateTime should not be null after setting <NOW>');
+  finally
+    DateTimeAttr.Free;
+  end;
+
+  // TBADate
+  DateAttr := TBADate.Create;
+  try
+    // Set value from string
+    DateAttr.AsString := DateToStr(TestDateTime);
+    Assert.AreEqual(Trunc(TestDateTime), Trunc(DateAttr.AsDateTime), 'TBADate should parse string');
+
+    // Set to null via empty string
+    DateAttr.AsString := '';
+    Assert.IsTrue(DateAttr.IsNull, 'TBADate should be null after setting empty string');
+
+    // Set via '<NOW>' keyword
+    DateAttr.AsString := '<NOW>';
+    Assert.IsFalse(DateAttr.IsNull, 'TBADate should not be null after setting <NOW>');
+  finally
+    DateAttr.Free;
+  end;
+
+  // TBATime
+  TimeAttr := TBATime.Create;
+  try
+    // Set value from string
+    TimeAttr.AsString := TimeToStr(TestDateTime);
+    Assert.AreEqual(TimeToStr(TestDateTime), TimeToStr(TimeAttr.AsDateTime), 'TBATime should parse string');
+
+    // Set to null via empty string
+    TimeAttr.AsString := '';
+    Assert.IsTrue(TimeAttr.IsNull, 'TBATime should be null after setting empty string');
+
+    // Set via '<NOW>' keyword
+    TimeAttr.AsString := '<NOW>';
+    Assert.IsFalse(TimeAttr.IsNull, 'TBATime should not be null after setting <NOW>');
+  finally
+    TimeAttr.Free;
   end;
 end;
 

@@ -538,6 +538,8 @@ type
     procedure SetAsTime(Value: TDateTime);
     function IsSameValue(Value: TDateTime): boolean; virtual; abstract;
     function MaySetValue(NewValue: TDateTime; Subscriber: TBoldSubscriber): Boolean; virtual;
+    function StrToDateTimeValue(const Value: string): TDateTime; virtual; abstract;
+    procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); override;
     property AsDate: TDateTime read GetAsDate write SetAsDate;
     property AsTime: TDateTime read GetAsTime write SetAsTime;
     property Seconds: Word read GetSeconds;
@@ -571,7 +573,7 @@ type
     procedure SetAsDate(Value: TDateTime); override;
     procedure AssignContentValue(const Source: IBoldValue); override;
     function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
-    procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); override;
+    function StrToDateTimeValue(const Value: string): TDateTime; override;
     function GetProxy(Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
     function GetFreeStandingClass: TBoldFreeStandingElementClass; override;
   public
@@ -602,7 +604,7 @@ type
     procedure SetAsDate(Value: TDateTime); override;
     function IsSameValue(Value: TDateTime): boolean; override;
     procedure AssignContentValue(const Source: IBoldValue); override;
-    procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); override;
+    function StrToDateTimeValue(const Value: string): TDateTime; override;
     function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
     function GetProxy(Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
     function GetFreeStandingClass: TBoldFreeStandingElementClass; override;
@@ -631,7 +633,7 @@ type
     procedure SetAsDate(Value: TDateTime); override;
     function IsSameValue(Value: TDateTime): boolean; override;
     procedure AssignContentValue(const Source: IBoldValue); override;
-    procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); override;
+    function StrToDateTimeValue(const Value: string): TDateTime; override;
     function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
     function GetProxy(Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
     function GetFreeStandingClass: TBoldFreeStandingElementClass; override;
@@ -3531,6 +3533,21 @@ begin
     SetAsDateTime(frac(Value) + AsDate);
 end;
 
+procedure TBAMoment.SetStringRepresentation(Representation: TBoldRepresentation; const Value: string);
+begin
+  if not ValidateString(Value, Representation) then
+    BoldRaiseLastFailure(self, Meth_SetStringRepresentation, sStringValidationFailed);
+  if Representation = brDefault then
+    if Value = '' then
+      SetToNull
+    else if UpperCase(Value) = DEFAULTNOW then
+      SetDataValue(Now)
+    else
+      SetDataValue(StrToDateTimeValue(Value))
+  else
+    inherited SetStringRepresentation(Representation, Value);
+end;
+
 procedure TBAMoment.Assign(Source: TBoldElement);
 begin
   if (Source is TBAMoment) then
@@ -3784,19 +3801,9 @@ end;
 
 { TBADateTime }
 
-procedure TBADateTime.SetStringRepresentation(Representation: TBoldRepresentation; const Value: string);
+function TBADateTime.StrToDateTimeValue(const Value: string): TDateTime;
 begin
-  if not ValidateString(Value, Representation) then
-    BoldRaiseLastFailure(self, Meth_SetStringRepresentation, sStringValidationFailed);
-  if Representation = brDefault then
-    if Value = '' then
-      SetToNull
-    else if upperCase(Value) = DEFAULTNOW then
-      SetDataValue(now)
-    else
-      SetDataValue(StrToDateTime(Value))
-  else
-    inherited SetStringRepresentation(Representation, Value);
+  Result := StrToDateTime(Value);
 end;
 
 function TBADateTime.GetStringRepresentation(Representation: TBoldRepresentation): string;
@@ -3833,22 +3840,10 @@ begin
 end;
 
 {---TBADate---}
-procedure TBADate.SetStringRepresentation(Representation: TBoldRepresentation; const Value: string);
+
+function TBADate.StrToDateTimeValue(const Value: string): TDateTime;
 begin
-  if not ValidateString(Value, Representation) then
-    BoldRaiseLastFailure(self, Meth_SetStringRepresentation, sStringValidationFailed);
-  if Representation = brDefault then
-    if Value = '' then
-      SetToNull
-    else if upperCase(Value) = DEFAULTNOW then
-      SetDataValue(now)
-    else
-      try
-        SetDataValue(StrToDate(Value));
-      except
-      end
-  else
-    inherited SetStringRepresentation(Representation, Value);
+  Result := StrToDate(Value);
 end;
 
 function TBADate.GetStringRepresentation(Representation: TBoldRepresentation): string;
@@ -3885,19 +3880,10 @@ begin
 end;
 
 {---TBATime---}
-procedure TBATime.SetStringRepresentation(Representation: TBoldRepresentation; const Value: string);
+
+function TBATime.StrToDateTimeValue(const Value: string): TDateTime;
 begin
-  if not ValidateString(Value, Representation) then
-    BoldRaiseLastFailure(self, Meth_SetStringRepresentation, sStringValidationFailed);
-  if Representation = brDefault then
-    if Value = '' then
-      SetToNull
-    else if upperCase(Value) = DEFAULTNOW then
-      SetDataValue(now)
-    else
-      SetDataValue(StrToTime(Value))
-  else
-    inherited SetStringRepresentation(Representation, Value);
+  Result := StrToTime(Value);
 end;
 
 function TBATime.GetStringRepresentation(Representation: TBoldRepresentation): string;
