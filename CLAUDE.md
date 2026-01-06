@@ -22,7 +22,7 @@ By default never guess to generate the answer. If information is missing ask for
 
 Run code coverage after every change to BoldForDelphi source code or unit tests:
 ```powershell
-powershell -ExecutionPolicy Bypass -File "C:\Attracs\Run_coverage.ps1"
+powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\run_coverage.ps1"
 ```
 
 ### Git Commit Messages

@@ -8,12 +8,18 @@
 #   .\Convert-ToCobertura.ps1 -InputFile coverage_report\CodeCoverage_Summary.xml -OutputFile cobertura.xml
 
 param(
-    [string]$InputFile = "coverage_report\CodeCoverage_Summary.xml",
-    [string]$OutputFile = "cobertura.xml",
-    [string]$SourceRoot = "..\Source"
+    [string]$InputFile,
+    [string]$OutputFile,
+    [string]$RepoRoot
 )
 
 $ErrorActionPreference = "Stop"
+
+# Get script directory and set defaults relative to it
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $InputFile) { $InputFile = Join-Path $ScriptDir "coverage_report\CodeCoverage_Summary.xml" }
+if (-not $OutputFile) { $OutputFile = Join-Path $ScriptDir "cobertura.xml" }
+if (-not $RepoRoot) { $RepoRoot = Split-Path -Parent $ScriptDir }
 
 # Use invariant culture for decimal formatting (dot separator)
 [System.Threading.Thread]::CurrentThread.CurrentCulture = [System.Globalization.CultureInfo]::InvariantCulture
@@ -25,6 +31,20 @@ if (-not (Test-Path $InputFile)) {
     exit 1
 }
 
+# Build a map of filename -> repo-relative path
+Write-Host "  Building file path map..." -ForegroundColor Gray
+$filePathMap = @{}
+$sourceDir = Join-Path $RepoRoot "Source"
+Get-ChildItem -Path $sourceDir -Filter "*.pas" -Recurse | ForEach-Object {
+    $filename = $_.Name
+    # Get path relative to repo root, using forward slashes for Codecov
+    $relativePath = $_.FullName.Substring((Resolve-Path $RepoRoot).Path.Length + 1).Replace('\', '/')
+    if (-not $filePathMap.ContainsKey($filename)) {
+        $filePathMap[$filename] = $relativePath
+    }
+}
+Write-Host "  Found $($filePathMap.Count) source files" -ForegroundColor Gray
+
 # Load source XML
 [xml]$sourceXml = Get-Content $InputFile -Encoding UTF8
 
@@ -34,14 +54,14 @@ $totalLines = [int]$stats.totallines.value
 $coveredLines = [int]$stats.coveredlines.value
 $lineRate = if ($totalLines -gt 0) { [math]::Round($coveredLines / $totalLines, 4) } else { 0 }
 
-# Create Cobertura XML
+# Create Cobertura XML - source should be repo root
 $timestamp = [int][double]::Parse((Get-Date -UFormat %s))
 $coberturaXml = [xml]@"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
 <coverage line-rate="$lineRate" branch-rate="0" lines-covered="$coveredLines" lines-valid="$totalLines" branches-covered="0" branches-valid="0" complexity="0" version="1.0" timestamp="$timestamp">
     <sources>
-        <source>$SourceRoot</source>
+        <source>.</source>
     </sources>
     <packages>
     </packages>
@@ -78,6 +98,12 @@ foreach ($package in $allData.package) {
     # Process source files in package
     foreach ($srcfile in $package.srcfile) {
         $filename = $srcfile.name
+        
+        # Look up the full repo-relative path
+        $fullPath = $filename
+        if ($filePathMap.ContainsKey($filename)) {
+            $fullPath = $filePathMap[$filename]
+        }
 
         # Process classes in source file
         foreach ($class in $srcfile.class) {
@@ -99,7 +125,7 @@ foreach ($package in $allData.package) {
             # Create class element
             $classElement = $coberturaXml.CreateElement("class")
             $classElement.SetAttribute("name", $className)
-            $classElement.SetAttribute("filename", $filename)
+            $classElement.SetAttribute("filename", $fullPath)
             $classElement.SetAttribute("line-rate", $classLineRate.ToString())
             $classElement.SetAttribute("branch-rate", "0")
             $classElement.SetAttribute("complexity", "0")

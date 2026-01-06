@@ -96,6 +96,10 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 
 ### Code Coverage Progress
 
+**Live tracking**: [Codecov.io Dashboard](https://app.codecov.io/github/bero/BoldForDelphi) (since 2026-01-06)
+
+Historical data (before Codecov integration):
+
 |    Date    | Units | Covered | Not covered | Total lines | Coverage % |
 |------------|-------|---------|-------------|-------------|------------|
 | 2025-12-22 |   153 |   15657 |       44318 |       59975 |    26.106% |

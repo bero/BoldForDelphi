@@ -1,144 +1,95 @@
-# Codecov.io Setup Guide for Bold for Delphi
+# Codecov.io Integration for Bold for Delphi
 
-## Current Status
+## Status: Complete
 
-- [x] DelphiCodeCoverage running and generating XML output
-- [x] Cobertura converter created: `UnitTest\Convert-ToCobertura.ps1`
-- [x] Converter tested successfully (40.32% coverage, 22944/56901 lines)
-- [ ] Codecov.io account setup
-- [ ] Repository token configured
-- [ ] Upload integrated into coverage script
-- [ ] README badge added
+Codecov.io integration is fully working. Coverage data is uploaded in Codecov's native JSON format with line-level detail.
 
-## Files Created
+**Dashboard**: https://app.codecov.io/gh/bero/BoldForDelphi
+
+## Usage
+
+### Upload coverage manually
+
+```powershell
+# Set token (once per session)
+$env:CODECOV_TOKEN = "your-token-here"
+
+# Run tests with coverage and upload
+powershell -ExecutionPolicy Bypass -File "C:\Attracs\Run_coverage.ps1" -Upload
+```
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `-SkipBuild` | Skip compilation, use existing UnitTest.exe |
+| `-OpenReport` | Open HTML report in browser after completion |
+| `-Upload` | Upload coverage to Codecov.io (requires CODECOV_TOKEN) |
+
+## Files
 
 | File | Purpose |
 |------|---------|
-| `UnitTest\Convert-ToCobertura.ps1` | Converts DelphiCodeCoverage XML to Cobertura format |
-| `UnitTest\cobertura.xml` | Output file for Codecov upload |
+| `UnitTest/Convert-ToCodecovJson.ps1` | Parses HTML coverage reports to Codecov JSON format |
+| `UnitTest/codecov.json` | Output file for Codecov upload (gitignored) |
+| `UnitTest/codecov.exe` | Codecov uploader (downloaded automatically, gitignored) |
 
-## Next Steps
-
-### Step 1: Create Codecov Account
-
-1. Go to https://codecov.io
-2. Click "Sign up with GitHub"
-3. Authorize Codecov to access your repositories
-4. Select the `BoldForDelphi` repository
-
-### Step 2: Get Repository Token
-
-1. In Codecov dashboard, go to your repository settings
-2. Copy the "Repository Upload Token"
-3. Save it securely (you'll need it for uploads)
-
-### Step 3: Test Manual Upload
-
-```powershell
-cd C:\Attracs\BoldForDelphi\UnitTest
-
-# Generate coverage
-..\Run_coverage.ps1
-
-# Convert to Cobertura
-.\Convert-ToCobertura.ps1
-
-# Download Codecov uploader
-Invoke-WebRequest -Uri "https://uploader.codecov.io/latest/windows/codecov.exe" -OutFile "codecov.exe"
-
-# Upload (replace YOUR_TOKEN with actual token)
-.\codecov.exe -t YOUR_TOKEN -f cobertura.xml -r owner/BoldForDelphi
-```
-
-### Step 4: Integrate into Run_coverage.ps1
-
-Add this to the end of `C:\Attracs\Run_coverage.ps1` (before the `finally` block):
-
-```powershell
-# Optional: Upload to Codecov
-if ($env:CODECOV_TOKEN) {
-    Write-Host "[CODECOV] Converting and uploading coverage..." -ForegroundColor Yellow
-
-    # Convert to Cobertura format
-    & "$ProjectDir\Convert-ToCobertura.ps1" -OutputFile "$ProjectDir\cobertura.xml"
-
-    # Upload to Codecov
-    $codecovExe = "$ProjectDir\codecov.exe"
-    if (-not (Test-Path $codecovExe)) {
-        Invoke-WebRequest -Uri "https://uploader.codecov.io/latest/windows/codecov.exe" -OutFile $codecovExe
-    }
-    & $codecovExe -t $env:CODECOV_TOKEN -f "$ProjectDir\cobertura.xml"
-}
-```
-
-Then run with:
-```powershell
-$env:CODECOV_TOKEN = "your-token-here"
-.\Run_coverage.ps1
-```
-
-### Step 5: Add Badge to README
-
-Add to `README.md`:
-
-```markdown
-[![codecov](https://codecov.io/gh/OWNER/BoldForDelphi/branch/develop/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/OWNER/BoldForDelphi)
-```
-
-Replace `OWNER` with the GitHub username/org and `YOUR_TOKEN` with the badge token from Codecov.
-
-## Coverage Flow Diagram
+## How It Works
 
 ```
 Run_coverage.ps1
-      │
-      ▼
-┌─────────────────────┐
-│ Build UnitTest.exe  │
-│ with MAP file       │
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐
-│ DelphiCodeCoverage  │
-│ runs tests          │
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐     ┌─────────────────────┐
-│ CodeCoverage_       │────▶│ Convert-ToCobertura │
-│ Summary.xml         │     │ .ps1                │
-└─────────────────────┘     └──────────┬──────────┘
-                                       │
-                                       ▼
-                            ┌─────────────────────┐
-                            │ cobertura.xml       │
-                            └──────────┬──────────┘
-                                       │
-                                       ▼
-                            ┌─────────────────────┐
-                            │ codecov.exe upload  │
-                            └──────────┬──────────┘
-                                       │
-                                       ▼
-                            ┌─────────────────────┐
-                            │ Codecov.io          │
-                            │ - Dashboard         │
-                            │ - Trend graphs      │
-                            │ - PR comments       │
-                            │ - Badge             │
-                            └─────────────────────┘
+      |
+      v
++---------------------+
+| Build UnitTest.exe  |
+| with MAP file       |
++----------+----------+
+           |
+           v
++---------------------+
+| DelphiCodeCoverage  |
+| runs tests          |
++----------+----------+
+           |
+           v
++---------------------+     +-------------------------+
+| HTML coverage       |---->| Convert-ToCodecovJson   |
+| reports (per file)  |     | .ps1                    |
++---------------------+     +------------+------------+
+                                         |
+                                         v
+                            +-------------------------+
+                            | codecov.json            |
+                            | (line-level coverage)   |
+                            +------------+------------+
+                                         |
+                                         v
+                            +-------------------------+
+                            | codecov.exe upload      |
+                            +------------+------------+
+                                         |
+                                         v
+                            +-------------------------+
+                            | Codecov.io              |
+                            | - Dashboard             |
+                            | - Trend graphs          |
+                            | - PR comments           |
+                            | - Badge                 |
+                            +-------------------------+
 ```
 
-## Troubleshooting
+## Token Security
 
-### Decimal separator issues
-The converter uses `InvariantCulture` to ensure decimals use dots (0.40) not commas (0,40).
-
-### Large XML file
-The CodeCoverage_Summary.xml is ~2.8MB with all method-level detail. This is normal.
-
-### Token security
 - Never commit the token to git
 - Use environment variable `CODECOV_TOKEN`
 - For GitHub Actions, use repository secrets
+
+## Troubleshooting
+
+### "Unusable report" error
+The Codecov JSON format requires line-level data. The converter parses HTML reports which contain this detail. If you see this error:
+1. Ensure coverage HTML reports exist in `UnitTest/coverage_report/`
+2. Check that source files in the report match paths in the git repository
+
+### Decimal separator issues
+The converter uses proper number formatting regardless of system locale.

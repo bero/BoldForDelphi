@@ -1,4 +1,4 @@
-﻿# BoldForDelphi
+# BoldForDelphi
 
 Bold is a Model Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool for Delphi. It allows you to start with a UML model of your application and execute it with a sophisticated object-relational mapping layer, OCL query language, change synchronization, and IDE-integrated tools.
 
@@ -45,21 +45,22 @@ Adjust -DelphiVersion from what you use.
 
 Unit tests are located in `UnitTest/` and use the DUnitX framework.
 
-### Running Tests
-```batch
+### Running Tests with Code Coverage
+
+```powershell
 cd UnitTest
-build.bat
-UnitTest.exe --exit:Continue
+.\run_coverage.ps1
 ```
 
-### Code Coverage
+This builds the test project, runs all tests, generates a coverage report, and opens it in your browser.
 
-Code coverage reports can be generated using DelphiCodeCoverage. See `UnitTest/UnitTesting.md` for setup instructions.
+**Options:**
+- `-SkipBuild` - Skip compilation, run coverage on existing executable
+- `-OpenReport:$false` - Don't open the report automatically
+- `-Upload` - Upload results to [Codecov.io](https://app.codecov.io/gh/bero/BoldForDelphi) (requires `CODECOV_TOKEN` environment variable)
 
-```batch
-cd UnitTest
-run_coverage.bat
-```
+**Prerequisites:**
+- [DelphiCodeCoverage](https://github.com/DelphiCodeCoverage/DelphiCodeCoverage) installed at `C:\Attracs\DelphiCodeCoverage\`
 
 Results are generated in `UnitTest/coverage_report/`. Open `CodeCoverage_summary.html` to view the report.
 

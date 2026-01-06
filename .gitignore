@@ -45,5 +45,7 @@ dunitx-results.xml
 UnitTest/coverage_report/
 UnitTest/Win32/
 UnitTest/cobertura.xml
+UnitTest/codecov.json
 UnitTest/codecov.exe
+UnitTest/test_codecov.json
 TestInsightSettings.ini

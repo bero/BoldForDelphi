@@ -2,26 +2,26 @@
 # Uses DelphiBuildDPROJ.ps1 for flexible Delphi version detection
 #
 # USAGE:
-#   .\run_coverage.ps1 [-SkipBuild] [-OpenReport]
+#   .\run_coverage.ps1 [-SkipBuild] [-OpenReport:$false] [-Upload]
 #
 # PARAMETERS:
-#   -SkipBuild   : Skip build, only run coverage analysis on existing executable
-#   -OpenReport  : Open the coverage report in browser after completion
+#   -SkipBuild        : Skip build, only run coverage analysis on existing executable
+#   -OpenReport:$false: Suppress opening the coverage report (opens by default)
+#   -Upload           : Upload coverage to Codecov.io (requires CODECOV_TOKEN env var)
 #
 # EXAMPLES:
-#   .\run_coverage.ps1
-#   .\run_coverage.ps1 -SkipBuild
-#   .\run_coverage.ps1 -OpenReport
+#   .\run_coverage.ps1                    # Build, run coverage, open report
+#   .\run_coverage.ps1 -SkipBuild         # Skip build, run coverage, open report
+#   .\run_coverage.ps1 -OpenReport:$false # Build, run coverage, don't open report
+#   .\run_coverage.ps1 -Upload            # Build, run coverage, open report, upload
 
 param(
     [switch]$SkipBuild,
-    [switch]$OpenReport
+    [bool]$OpenReport = $true,
+    [switch]$Upload
 )
 
 $ErrorActionPreference = "Stop"
-
-# Set DUnitX environment variable (required for console test runner)
-$env:DUnitX = "C:\Attracs\DUnitX\Source"
 
 # Configuration
 $CoverageExe = "C:\Attracs\DelphiCodeCoverage\build\Win32\CodeCoverage.exe"
@@ -32,9 +32,9 @@ $SourceDir = "..\Source"
 $OutputDir = "coverage_report"
 $BuildScript = "C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1"
 
-# Get script directory
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-Push-Location $ScriptDir
+# UnitTest project directory
+$ProjectDir = "C:\Attracs\BoldForDelphi\UnitTest"
+Push-Location $ProjectDir
 
 try {
     Write-Host "Bold for Delphi - Code Coverage" -ForegroundColor Cyan
@@ -58,7 +58,7 @@ try {
             exit 1
         }
 
-        $ProjectPath = Join-Path $ScriptDir "$ProjectName.dproj"
+        $ProjectPath = Join-Path $ProjectDir "$ProjectName.dproj"
 
         # We need to build with MAP file generation enabled
         # The DelphiBuildDPROJ.ps1 script uses MSBuild, so we need to call it
@@ -110,6 +110,10 @@ try {
         }
         Remove-Item $tempFile
 
+        # Set DUnitX environment variable (must be after rsvars.bat capture)
+        $env:DUnitX = "C:\Attracs\DUnitX\Source"
+        Write-Host "  DUnitX: $env:DUnitX" -ForegroundColor Gray
+
         # Build with MAP file generation (DCC_MapFile=3 for detailed MAP)
         $MSBuildArgs = @(
             "$ProjectName.dproj",
@@ -118,12 +122,11 @@ try {
             "/p:Platform=Win32",
             "/p:DCC_MapFile=3",
             "/p:DCC_Define=DEBUG",
-            "/v:minimal",
-            "/nologo"
+            "/v:minimal"
         )
 
         Write-Host "  Running MSBuild..." -ForegroundColor Gray
-        $BuildResult = & msbuild @MSBuildArgs
+        & msbuild @MSBuildArgs
         $BuildExitCode = $LASTEXITCODE
 
         if ($BuildExitCode -ne 0) {
@@ -197,10 +200,55 @@ try {
 
     # Open report if requested
     if ($OpenReport) {
-        $ReportPath = Join-Path $ScriptDir "$OutputDir\CodeCoverage_summary.html"
+        $ReportPath = Join-Path $ProjectDir "$OutputDir\CodeCoverage_summary.html"
         if (Test-Path $ReportPath) {
             Start-Process $ReportPath
         }
+    }
+
+    # Upload to Codecov if requested
+    if ($Upload) {
+        Write-Host "[CODECOV] Uploading coverage to Codecov.io..." -ForegroundColor Yellow
+        Write-Host ""
+
+        if (-not $env:CODECOV_TOKEN) {
+            Write-Host "ERROR: CODECOV_TOKEN environment variable not set" -ForegroundColor Red
+            Write-Host "       Set it with: `$env:CODECOV_TOKEN = 'your-token-here'" -ForegroundColor Yellow
+            exit 1
+        }
+
+        # Convert to Codecov JSON format (parses HTML for line-level data)
+        $ConverterScript = Join-Path $ProjectDir "Convert-ToCodecovJson.ps1"
+        $CodecovFile = Join-Path $ProjectDir "codecov.json"
+        
+        if (-not (Test-Path $ConverterScript)) {
+            Write-Host "ERROR: Converter script not found: $ConverterScript" -ForegroundColor Red
+            exit 1
+        }
+
+        Write-Host "  Converting to Codecov JSON format..." -ForegroundColor Gray
+        & $ConverterScript -OutputFile $CodecovFile
+
+        # Download Codecov uploader if not present
+        $CodecovExe = Join-Path $ProjectDir "codecov.exe"
+        if (-not (Test-Path $CodecovExe)) {
+            Write-Host "  Downloading Codecov uploader..." -ForegroundColor Gray
+            Invoke-WebRequest -Uri "https://uploader.codecov.io/latest/windows/codecov.exe" -OutFile $CodecovExe
+        }
+
+        # Upload to Codecov
+        Write-Host "  Uploading to Codecov..." -ForegroundColor Gray
+        & $CodecovExe -t $env:CODECOV_TOKEN -f $CodecovFile -r "bero/BoldForDelphi" -B "develop"
+        $UploadExitCode = $LASTEXITCODE
+
+        Write-Host ""
+        if ($UploadExitCode -eq 0) {
+            Write-Host "[CODECOV] Upload successful!" -ForegroundColor Green
+            Write-Host "          View at: https://app.codecov.io/gh/bero/BoldForDelphi" -ForegroundColor Cyan
+        } else {
+            Write-Host "[CODECOV] Upload failed with exit code $UploadExitCode" -ForegroundColor Red
+        }
+        Write-Host ""
     }
 }
 finally {
