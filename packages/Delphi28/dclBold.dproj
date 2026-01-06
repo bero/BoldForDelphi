@@ -590,7 +590,9 @@
         <DCCReference Include="..\..\Source\Common\ConnectionHandlesCOM\BoldXMLDispatcherVB.pas"/>
         <DCCReference Include="..\..\Source\Common\IDECOM\BoldXMLDispatcherVBReg.pas"/>
         <DCCReference Include="..\..\Source\Common\Stubs\BoldStubs.pas"/>
+        <DCCReference Include="..\..\Source\Common\Stubs\BoldPerformanceStub.pas"/>
         <DCCReference Include="..\..\Source\Common\Stubs\BoldTraceLog.pas"/>
+        <DCCReference Include="..\..\Source\Common\Stubs\BoldStubDefs.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -622,9 +624,9 @@
             </Platforms>
             <Deployment Version="4">
                 <DeployFile LocalName="..\..\Bin\BPL\Bold.bpl" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="C:\Attracs\BPL\dclBold.29.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="..\Bin\dclBold.28.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>Bold.bpl</RemoteName>
+                        <RemoteName>dclBold.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

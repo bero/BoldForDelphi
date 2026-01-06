@@ -10,6 +10,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [26.01.0] - 2026-01-06
+
+### Added
+- **Oracle Database Support**: Full Oracle support in Bold core persistence mappers (#10)
+- `AsObjectList` helper for `TBoldAbstractListHandle` (#17)
+- Codecov.io integration for code coverage tracking
+- PowerShell scripts for unit tests and coverage
+
+### Changed
+- Refactored code to reduce duplication with extracted helper methods (#13, #15, #18, #19):
+  - `IsValidIdentifier`, `SetPersistenceTaggedValue`, `EnsureConstraintListAndAdd`
+  - `FreePublisherInstance`, `EnsurePublisher`, `BuildWCFOrQueryWithOperator`
+  - `InitializeIndirectLinkFields`, `InitializeDirectLinkFields`, `InitializeTimestampFields`
+  - `SystemHasDirtyObjects`, `DoPreChangeIfNeeded`
+- Removed C++ support from `BoldUMLModelValidator` (#16)
+- Refactored `TBANumeric.GetStringRepresentation` to extract common logic (#19)
+- Refactored `TBABlob` validation (#14)
+- Code coverage improved from 28% to 40%
+
+### Fixed
+- Missing `Result :=` in `TBABlobImageJPEG/BMP.GetStringRepresentation` (#20)
+- String columns ignoring `AllowNull` when using `EmptyStringMarker` (#11)
+- 64-bit `ACCESS_VIOLATION` in grid and edit controls (#9)
+
+---
+
 ## [25.12.1] - 2025-12-30
 
 ### Added

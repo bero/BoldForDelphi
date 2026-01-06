@@ -30,8 +30,7 @@ package dclBold;
 {$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
-requires
-  vcl,
+requires                                                                                   vcl,
   vcldb,
   DesignIDE,
   soaprtl,
@@ -512,6 +511,10 @@ contains
   BoldWebConnectionReg in '..\..\Source\Common\IDE\BoldWebConnectionReg.pas',
   BoldXMLDispatcherVB in '..\..\Source\Common\ConnectionHandlesCOM\BoldXMLDispatcherVB.pas',
   BoldXMLDispatcherVBReg in '..\..\Source\Common\IDECOM\BoldXMLDispatcherVBReg.pas',
+  BoldPerformanceStub in '..\..\Source\Common\Stubs\BoldPerformanceStub.pas',
+  BoldSpanFetch in '..\..\Source\Common\Stubs\BoldSpanFetch.pas',
+  BoldSpanFetchManager in '..\..\Source\Common\Stubs\BoldSpanFetchManager.pas',
+  BoldStubDefs in '..\..\Source\Common\Stubs\BoldStubDefs.pas',
   BoldStubs in '..\..\Source\Common\Stubs\BoldStubs.pas',
   BoldTraceLog in '..\..\Source\Common\Stubs\BoldTraceLog.pas';
 

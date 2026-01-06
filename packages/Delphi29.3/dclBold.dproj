@@ -603,6 +603,8 @@
         <DCCReference Include="..\..\Source\Common\IDECOM\BoldXMLDispatcherVBReg.pas"/>
         <DCCReference Include="..\..\Source\Common\Stubs\BoldTraceLog.pas"/>
         <DCCReference Include="..\..\Source\Common\Stubs\BoldStubs.pas"/>
+        <DCCReference Include="..\..\Source\Common\Stubs\BoldPerformanceStub.pas"/>
+        <DCCReference Include="..\..\Source\Common\Stubs\BoldStubDefs.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -638,7 +640,7 @@
             </Platforms>
             <Deployment Version="5">
                 <DeployFile LocalName="..\..\Bin\BPL\Bold.bpl" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="..\Bin\dclBold.29.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="..\Bin\dclBold.29.3.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>dclBold.bpl</RemoteName>
                         <Overwrite>true</Overwrite>

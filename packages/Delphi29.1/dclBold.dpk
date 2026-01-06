@@ -513,6 +513,7 @@ contains
   BoldXMLDispatcherVB in '..\..\Source\Common\ConnectionHandlesCOM\BoldXMLDispatcherVB.pas',
   BoldXMLDispatcherVBReg in '..\..\Source\Common\IDECOM\BoldXMLDispatcherVBReg.pas',
   BoldStubs in '..\..\Source\Common\Stubs\BoldStubs.pas',
+  BoldPerformanceStub in '..\..\Source\Common\Stubs\BoldPerformanceStub.pas',
   BoldTraceLog in '..\..\Source\Common\Stubs\BoldTraceLog.pas';
 
 end.
