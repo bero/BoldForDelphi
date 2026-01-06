@@ -49,3 +49,10 @@ UnitTest/codecov.json
 UnitTest/codecov.exe
 UnitTest/test_codecov.json
 TestInsightSettings.ini
+
+# Example app data files
+*.db
+BoldDemo.xml
+
+# Windows nul device file accidentally created
+nul
