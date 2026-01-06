@@ -105,6 +105,9 @@ type
     [Test]
     [Category('Quick')]
     procedure TestDateTimeGetStringRepresentationNonDefault;
+    [Test]
+    [Category('Quick')]
+    procedure TestNumericSetStringRepresentation;
   end;
 
 var
@@ -861,6 +864,57 @@ begin
       'TBATime brDefault should return empty string when null');
   finally
     Time.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestNumericSetStringRepresentation;
+var
+  IntAttr: TBAInteger;
+  FloatAttr: TBAFloat;
+  CurrAttr: TBACurrency;
+begin
+  // Test SetStringRepresentation via AsString property (which uses brDefault)
+
+  // TBAInteger
+  IntAttr := TBAInteger.Create;
+  try
+    // Set value from string
+    IntAttr.AsString := '42';
+    Assert.AreEqual(42, IntAttr.AsInteger, 'TBAInteger should parse string to integer');
+
+    // Set to null via empty string
+    IntAttr.AsString := '';
+    Assert.IsTrue(IntAttr.IsNull, 'TBAInteger should be null after setting empty string');
+  finally
+    IntAttr.Free;
+  end;
+
+  // TBAFloat
+  FloatAttr := TBAFloat.Create;
+  try
+    // Set value from string (use locale-correct format)
+    FloatAttr.AsString := FloatToStr(3.14);
+    Assert.AreEqual(3.14, FloatAttr.AsFloat, 0.001, 'TBAFloat should parse string to float');
+
+    // Set to null via empty string
+    FloatAttr.AsString := '';
+    Assert.IsTrue(FloatAttr.IsNull, 'TBAFloat should be null after setting empty string');
+  finally
+    FloatAttr.Free;
+  end;
+
+  // TBACurrency
+  CurrAttr := TBACurrency.Create;
+  try
+    // Set value from string (use locale-correct format)
+    CurrAttr.AsString := CurrToStr(99.95);
+    Assert.AreEqual(99.95, CurrAttr.AsCurrency, 0.001, 'TBACurrency should parse string to currency');
+
+    // Set to null via empty string
+    CurrAttr.AsString := '';
+    Assert.IsTrue(CurrAttr.IsNull, 'TBACurrency should be null after setting empty string');
+  finally
+    CurrAttr.Free;
   end;
 end;
 
