@@ -102,6 +102,9 @@ type
     [Test]
     [Category('Quick')]
     procedure TestBlobImageGetStringRepresentationInherited;
+    [Test]
+    [Category('Quick')]
+    procedure TestDateTimeGetStringRepresentationNonDefault;
   end;
 
 var
@@ -762,6 +765,102 @@ begin
       'BMP AsString should return blob data via inherited GetStringRepresentation');
   finally
     BlobBMP.Free;
+  end;
+end;
+
+type
+  // Helper class to access protected GetStringRepresentation
+  TBADateTimeAccess = class(TBADateTime);
+  TBADateAccess = class(TBADate);
+  TBATimeAccess = class(TBATime);
+
+procedure TTestBoldAttributes.TestDateTimeGetStringRepresentationNonDefault;
+var
+  DateTime: TBADateTimeAccess;
+  Date: TBADateAccess;
+  Time: TBATimeAccess;
+  TestDateTime: TDateTime;
+begin
+  // Test GetStringRepresentation for both brDefault and non-brDefault paths
+
+  TestDateTime := EncodeDate(2026, 1, 6) + EncodeTime(14, 30, 0, 0);
+
+  // TBADateTime
+  DateTime := TBADateTimeAccess.Create;
+  try
+    DateTime.AsDateTime := TestDateTime;
+
+    // brDefault path - should return DateTimeToStr
+    Assert.AreEqual(DateTimeToStr(TestDateTime), DateTime.GetStringRepresentation(brDefault),
+      'TBADateTime brDefault should return DateTimeToStr format');
+
+    // brShort path (non-brDefault) - should raise exception via inherited
+    Assert.WillRaise(
+      procedure
+      begin
+        DateTime.GetStringRepresentation(brShort);
+      end,
+      EBold,
+      'TBADateTime brShort should raise exception via inherited');
+
+    // Test null value with brDefault
+    DateTime.SetToNull;
+    Assert.AreEqual('', DateTime.GetStringRepresentation(brDefault),
+      'TBADateTime brDefault should return empty string when null');
+  finally
+    DateTime.Free;
+  end;
+
+  // TBADate
+  Date := TBADateAccess.Create;
+  try
+    Date.AsDateTime := TestDateTime;
+
+    // brDefault path - should return DateToStr
+    Assert.AreEqual(DateToStr(TestDateTime), Date.GetStringRepresentation(brDefault),
+      'TBADate brDefault should return DateToStr format');
+
+    // brShort path (non-brDefault) - should raise exception via inherited
+    Assert.WillRaise(
+      procedure
+      begin
+        Date.GetStringRepresentation(brShort);
+      end,
+      EBold,
+      'TBADate brShort should raise exception via inherited');
+
+    // Test null value with brDefault
+    Date.SetToNull;
+    Assert.AreEqual('', Date.GetStringRepresentation(brDefault),
+      'TBADate brDefault should return empty string when null');
+  finally
+    Date.Free;
+  end;
+
+  // TBATime
+  Time := TBATimeAccess.Create;
+  try
+    Time.AsDateTime := TestDateTime;
+
+    // brDefault path - should return TimeToStr
+    Assert.AreEqual(TimeToStr(TestDateTime), Time.GetStringRepresentation(brDefault),
+      'TBATime brDefault should return TimeToStr format');
+
+    // brShort path (non-brDefault) - should raise exception via inherited
+    Assert.WillRaise(
+      procedure
+      begin
+        Time.GetStringRepresentation(brShort);
+      end,
+      EBold,
+      'TBATime brShort should raise exception via inherited');
+
+    // Test null value with brDefault
+    Time.SetToNull;
+    Assert.AreEqual('', Time.GetStringRepresentation(brDefault),
+      'TBATime brDefault should return empty string when null');
+  finally
+    Time.Free;
   end;
 end;
 

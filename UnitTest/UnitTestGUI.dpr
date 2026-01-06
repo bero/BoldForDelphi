@@ -11,7 +11,6 @@ uses
   BoldTestCaseFireDAC in 'Code\Persistence\BoldTestCaseFireDAC.pas',
   BoldTestCaseUniDAC in 'Code\Persistence\BoldTestCaseUniDAC.pas',
   Test.BoldUMLTypes in 'Code\Common\Test.BoldUMLTypes.pas',
-  Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   jehoBCBoldTest in 'Code\ObjectSpace\jehoBCBoldTest.pas',
   Test.FetchInvalidAttribute in 'Code\ObjectSpace\Test.FetchInvalidAttribute.pas',
   TestModel1 in 'Code\Main\TestModel1.pas',
@@ -37,6 +36,7 @@ uses
   Test.BoldThreadSafeQueue in 'Code\Propagator\Test.BoldThreadSafeQueue.pas',
   Test.BoldThreadSafeLog in 'Code\Common\Test.BoldThreadSafeLog.pas',
   Test.BoldLogInterfaces in 'Code\Common\Test.BoldLogInterfaces.pas',
+  Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas',
   Test.BoldListHandle in 'Code\Handles\Test.BoldListHandle.pas';
 
