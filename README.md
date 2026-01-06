@@ -43,7 +43,9 @@ Adjust -DelphiVersion from what you use.
 
 ## Unit Tests and Code Coverage
 
-Unit tests are located in `UnitTest/` and use the DUnitX framework.
+[![codecov](https://codecov.io/gh/bero/BoldForDelphi/branch/develop/graph/badge.svg)](https://codecov.io/gh/bero/BoldForDelphi)
+
+Unit tests are located in `UnitTest/` and use the DUnitX framework. Code coverage is tracked on [Codecov.io](https://codecov.io/gh/bero/BoldForDelphi).
 
 ### Running Tests with Code Coverage
 
@@ -57,12 +59,12 @@ This builds the test project, runs all tests, generates a coverage report, and o
 **Options:**
 - `-SkipBuild` - Skip compilation, run coverage on existing executable
 - `-OpenReport:$false` - Don't open the report automatically
-- `-Upload` - Upload results to [Codecov.io](https://app.codecov.io/gh/bero/BoldForDelphi) (requires `CODECOV_TOKEN` environment variable)
+- `-Upload` - Upload results to Codecov.io (requires `CODECOV_TOKEN` environment variable)
 
 **Prerequisites:**
 - [DelphiCodeCoverage](https://github.com/DelphiCodeCoverage/DelphiCodeCoverage) installed at `C:\Attracs\DelphiCodeCoverage\`
 
-Results are generated in `UnitTest/coverage_report/`. Open `CodeCoverage_summary.html` to view the report.
+Results are generated in `UnitTest/coverage_report/`. Open `CodeCoverage_summary.html` to view the local report.
 
 ## Source Organization
 
