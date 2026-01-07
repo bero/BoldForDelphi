@@ -18,12 +18,43 @@ By default never guess to generate the answer. If information is missing ask for
 - **UnitTest.exe**: `C:\Attracs\BoldForDelphi\UnitTest\UnitTest.exe`
 - **UnitTest project folder**: `C:\Attracs\BoldForDelphi\UnitTest`
 
-### After Every Code Change
+### Testing Strategy for Bold Source Changes
 
-Run code coverage after every change to BoldForDelphi source code or unit tests:
+When modifying any code in `Source/`, follow this workflow:
+
+#### 1. Check Coverage First
+Before making changes, check if the method(s) you're modifying have 100% test coverage.
+- Look at `UnitTest/coverage_report/CodeCoverage_summary.html`
+- If already 100% covered, proceed to step 4
+
+#### 2. Write Test First (if not fully covered)
+Create a unit test that covers the code you're about to change:
+- For **refactoring**: Write a test that passes with current code
+- For **bugfix**: Write a test that FAILS with current code (demonstrates the bug)
+
+#### 3. Run New Test Only
+Build and run just the new test to verify it works as expected:
+```powershell
+# Build test project
+C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "UnitTest\UnitTest.dproj"
+
+# Run only the new test
+UnitTest\UnitTest.exe --run:TestFixtureName.TestMethodName
+```
+
+#### 4. Make the Source Change
+Now implement your refactoring or bugfix in Bold source.
+
+#### 5. Run Full Coverage
 ```powershell
 powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\run_coverage.ps1"
 ```
+
+#### 6. Verify
+- All tests pass
+- Changed code is now covered in the coverage report
+
+**Summary**: Test-first for bugfixes (test fails then passes), test-first for refactoring (test passes before and after).
 
 ### Git Commit Messages
 
