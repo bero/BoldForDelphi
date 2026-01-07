@@ -25,6 +25,9 @@ $ErrorActionPreference = "Stop"
 # Set DUnitX environment variable (required for console test runner)
 $env:DUnitX = "C:\Attracs\DUnitX\Source"
 
+# Set Delphi-Mocks environment variable (required for mock framework)
+$env:DelphiMocks = "C:\Attracs\Delphi-Mocks\Source"
+
 # Determine which project to build
 if ($GUI) {
     $ProjectFile = "UnitTestGUI.dproj"

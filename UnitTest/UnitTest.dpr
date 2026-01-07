@@ -44,6 +44,7 @@ uses
   maan_FetchRefetch in 'Code\ObjectSpace\maan_FetchRefetch.pas',
   maan_Modify in 'Code\ObjectSpace\maan_Modify.pas',
   maan_Undo in 'Code\ObjectSpace\maan_Undo.pas',
+  Test.BoldUndoHandler in 'Code\ObjectSpace\Test.BoldUndoHandler.pas',
   Test.BoldSystem in 'Code\ObjectSpace\Test.BoldSystem.pas',
   Test.BoldLinks in 'Code\ObjectSpace\Test.BoldLinks.pas',
   Test.BoldFreeStandingValueFactories in 'Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas',

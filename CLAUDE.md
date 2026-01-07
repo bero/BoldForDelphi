@@ -50,18 +50,31 @@ UnitTest\UnitTest.exe --run:UnitName.ClassName.TestMethodName
 
 ### Running Specific Tests
 
-The `--run` filter uses the full namespace path `UnitName.ClassName[.TestName]`:
+The `--run` filter uses the full namespace path `UnitName.ClassName[.TestName]`.
+
+**IMPORTANT**: On Windows PowerShell, use this exact syntax to capture all output:
 
 ```powershell
+# From project root (C:\Attracs\BoldForDelphi)
+powershell -Command "& '.\UnitTest\UnitTest.exe' --run:Test.BoldUndoHandler.TTestBoldUndoHandler --consolemode:Verbose 2>&1"
+
 # Run ALL tests in a test class
-.\UnitTest.exe --run:Test.BoldPMappersDefault.TTestBoldPMappersDefault
+powershell -Command "& '.\UnitTest\UnitTest.exe' --run:Test.BoldPMappersDefault.TTestBoldPMappersDefault 2>&1"
 
 # Run ONE specific test
-.\UnitTest.exe --run:Test.BoldPMappersDefault.TTestBoldPMappersDefault.TestMockQueryWithBoldDbTypeField
+powershell -Command "& '.\UnitTest\UnitTest.exe' --run:Test.BoldPMappersDefault.TTestBoldPMappersDefault.TestMockQueryWithBoldDbTypeField 2>&1"
 
 # Run with quiet output
-.\UnitTest.exe --run:Test.BoldDBInterfacesMock.TTestBoldDBInterfacesMock --consolemode:Quiet
+powershell -Command "& '.\UnitTest\UnitTest.exe' --run:Test.BoldDBInterfacesMock.TTestBoldDBInterfacesMock --consolemode:Quiet 2>&1"
+
+# Run with verbose output (recommended for debugging)
+powershell -Command "& '.\UnitTest\UnitTest.exe' --run:Test.BoldUndoHandler.TTestBoldUndoHandler --consolemode:Verbose 2>&1"
 ```
+
+**Why this syntax?**
+- `powershell -Command "& '...' 2>&1"` ensures both stdout and stderr are captured
+- Use single quotes around the exe path for paths with spaces
+- Always run from project root with `.\UnitTest\UnitTest.exe` path
 
 #### 4. Make the Source Change
 Now implement your refactoring or bugfix in Bold source.
