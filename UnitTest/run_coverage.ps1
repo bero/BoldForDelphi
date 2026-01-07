@@ -117,6 +117,10 @@ try {
         $env:DUnitX = "C:\Attracs\DUnitX\Source"
         Write-Host "  DUnitX: $env:DUnitX" -ForegroundColor Gray
 
+        # Set Delphi-Mocks environment variable
+        $env:DelphiMocks = "C:\Attracs\Delphi-Mocks\Source"
+        Write-Host "  DelphiMocks: $env:DelphiMocks" -ForegroundColor Gray
+
         # Build with MAP file generation (DCC_MapFile=3 for detailed MAP)
         $MSBuildArgs = @(
             "$ProjectName.dproj",

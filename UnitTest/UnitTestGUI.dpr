@@ -1,4 +1,4 @@
-program UnitTestGUI;
+﻿program UnitTestGUI;
 
 {$STRONGLINKTYPES ON}
 
@@ -38,7 +38,12 @@ uses
   Test.BoldLogInterfaces in 'Code\Common\Test.BoldLogInterfaces.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas',
-  Test.BoldListHandle in 'Code\Handles\Test.BoldListHandle.pas';
+  Test.BoldListHandle in 'Code\Handles\Test.BoldListHandle.pas',
+  { Mock tests using Delphi-Mocks framework }
+  Test.BoldDBInterfacesMock in 'Code\Mocks\Test.BoldDBInterfacesMock.pas',
+  { Integration tests with transaction rollback }
+  BoldTestPersistence in 'Code\Integration\BoldTestPersistence.pas',
+  Test.BoldPersistence in 'Code\Integration\Test.BoldPersistence.pas';
 
 {$R *.res}
 

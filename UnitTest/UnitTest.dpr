@@ -1,4 +1,26 @@
-program UnitTest;
+﻿program UnitTest;
+
+{╔════════════════════════════════════════════════════════════════════════════╗
+ ║ DUnitX Command Line Options                                                ║
+ ╠════════════════════════════════════════════════════════════════════════════╣
+ ║   --options:value      -opt:value    Options File                          ║
+ ║   --hidebanner         -b            Hide the License Banner               ║
+ ║   --xmlfile:value      -xml:value    XML output file path                  ║
+ ║   --runlist:value      -rl:value     File listing tests to run             ║
+ ║   --run:value          -r:value      Tests to run (comma-separated)        ║
+ ║   --include:value      -i:value      Categories to include                 ║
+ ║   --exclude:value      -e:value      Categories to exclude                 ║
+ ║   --dontshowignored    -dsi          Don't show ignored tests              ║
+ ║   --loglevel:value     -l:value      Logging: Information, Warning, Error  ║
+ ║   --exitbehavior:value -exit:value   Exit: Continue (default), Pause       ║
+ ║   --consolemode:value  -cm:value     Console: Off, Quiet, Verbose (default)║
+ ║   -h  -?                             Show Usage                            ║
+ ╠════════════════════════════════════════════════════════════════════════════╣
+ ║ Examples:                                                                  ║
+ ║   UnitTest.exe --include:Quick       Run only Quick category tests         ║
+ ║   UnitTest.exe --run:TTFoo.TestBar   Run specific test                     ║
+ ║   UnitTest.exe --exit:Pause          Pause before exit                     ║
+ ╚════════════════════════════════════════════════════════════════════════════╝}
 
 {$IFNDEF TESTINSIGHT}
 {$APPTYPE CONSOLE}
@@ -42,7 +64,12 @@ uses
   Test.BoldLogInterfaces in 'Code\Common\Test.BoldLogInterfaces.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas',
-  Test.BoldListHandle in 'Code\Handles\Test.BoldListHandle.pas';
+  Test.BoldListHandle in 'Code\Handles\Test.BoldListHandle.pas',
+  { Mock tests using Delphi-Mocks framework }
+  Test.BoldDBInterfacesMock in 'Code\Mocks\Test.BoldDBInterfacesMock.pas',
+  { Integration tests with transaction rollback }
+  BoldTestPersistence in 'Code\Integration\BoldTestPersistence.pas',
+  Test.BoldPersistence in 'Code\Integration\Test.BoldPersistence.pas';
 
 {$R *.res}
 

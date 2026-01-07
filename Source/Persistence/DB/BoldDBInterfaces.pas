@@ -1,4 +1,4 @@
-﻿{ Global compiler directives }
+{ Global compiler directives }
 {$include bold.inc}
 unit BoldDBInterfaces;
 
@@ -18,6 +18,9 @@ uses
 
 const
   cInitialBatchBufferSize = 1024*64; // 64 kb
+
+{$M+}  // Enable RTTI for interfaces to allow mocking with Delphi-Mocks
+
 type
   IBoldQuery = interface;
   IBoldDataBase = interface;
@@ -329,6 +332,8 @@ type
     function GetImplementor: TObject;
     property Implementor: TObject read GetImplementor;
   end;
+
+{$M-}  // Disable RTTI after interface declarations
 
   TBoldParameterWrapper = class(TBoldRefCountedObject)
   private

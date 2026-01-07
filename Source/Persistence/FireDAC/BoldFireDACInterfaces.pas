@@ -1,9 +1,11 @@
-﻿
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldFireDACInterfaces;
 
 interface
+
+{$M-}  // Reset RTTI state (BoldDBInterfaces enables {$M+} for interface mocking)
 
 uses
   Classes,
@@ -186,6 +188,7 @@ type
 
   { TBoldFireDACConnection }
   TBoldFireDACConnection = class(TBoldDatabaseWrapper, IBoldDataBase)
+  private
     fFDConnection: TFDConnection;
     fOwnsConnection: Boolean;
     fCachedTable: TBoldFireDACTable;
