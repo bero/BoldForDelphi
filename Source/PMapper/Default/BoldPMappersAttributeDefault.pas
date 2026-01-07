@@ -435,13 +435,9 @@ end;
 
 procedure TBoldPMString.ValueToParam(const ObjectContent: IBoldObjectContents; const Param: IBoldParameter; ColumnIndex: Integer; TranslationList: TBoldIdTranslationList);
 const
-{$IFDEF BOLD_UNICODE}
   // check for 4000 chars, because since using unicode
   // each char requires twice as much space
   cnMaxMSSQLStringLength = 4000;
-{$ELSE}
-  cnMaxMSSQLStringLength = 8000;
-{$ENDIF}
 var
   aString: IBoldStringContent;
 begin

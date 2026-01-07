@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldSamplesReg;
 
@@ -16,9 +15,7 @@ uses
   Classes,
   DesignIntf,
   ActnList,
-{$IFDEF BOLD_DELPHI16_OR_LATER}
   Actions,
-{$ENDIF}
   BoldFormSaver,
   BoldGuard,
   BoldPropertyEditors,

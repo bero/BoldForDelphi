@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldSharedStrings;
 
@@ -35,7 +34,6 @@ type
     property HolderByValue[const s: String]: TBoldSharedStringHolder read GetHolderByValue;
   end;
 
-  {$IFDEF BOLD_UNICODE}
   TBoldSharedAnsiStringHolder = class(TBoldMemoryManagedObject)
   private
     fValue: AnsiString;
@@ -54,7 +52,6 @@ type
     property HolderByValue[const s: AnsiString]: TBoldSharedAnsiStringHolder read GetHolderByValue;
   end;
   {$ENDIF}
-  {$ENDIF}
 
   TBoldSharedStringManager = class
   private
@@ -64,15 +61,11 @@ type
     {$IFNDEF BOLD_DISABLESHAREDSTRINGS}
     fAddsRemainingToGarbageCollect: integer;
     fStringCache: TBoldSharedStringCache;
-    {$IFDEF BOLD_UNICODE}
     fAnsiAddsRemainingToGarbageCollect: integer;
     fAnsiStringCache: TBoldSharedAnsiStringCache;
-    {$ENDIF}
     fCachedHits: integer;
     procedure DoGarbageCollect(KeepStringsWithOneReference: Boolean); overload;
-    {$IFDEF BOLD_UNICODE}
     procedure DoAnsiGarbageCollect(KeepStringsWithOneReference: Boolean); overload;
-    {$ENDIF}
     {$ENDIF}
     function GetSavedMemory: integer;
     function GetInfoString: String;
@@ -81,18 +74,12 @@ type
     destructor Destroy; override;
     procedure GarbageCollect;
     function GetSharedString(const s: String): String;
-    {$IFDEF BOLD_UNICODE}
     function GetSharedAnsiString(const s: AnsiString): AnsiString;
-    {$ENDIF}
     property SavedMemory: integer read GetSavedMemory;
     property InfoString: String read GetInfoString;
   end;
 
 function BoldSharedStringManager: TBoldSharedStringManager;
-
-{$IFNDEF BOLD_UNICODE}
-function StringRefCount(const s: String): integer;
-{$ENDIF}
 
 implementation
 
@@ -118,12 +105,10 @@ type
     function ItemAsKeyString(Item: TObject): string; override;
   end;
 
-  {$IFDEF BOLD_UNICODE}
   TBoldAnsiStringHolderValueIndex = class(TBoldCaseSensitiveStringHashIndex)
   protected
     function ItemAsKeyString(Item: TObject): string; override;
   end;
-  {$ENDIF}
 {$ENDIF}
 
 function BoldSharedStringManager: TBoldSharedStringManager;
@@ -132,13 +117,6 @@ begin
     G_BoldSharedStringManager := TBoldSharedStringManager.Create;
   result := G_BoldSharedStringManager;
 end;
-
-{$IFNDEF BOLD_UNICODE}
-function StringRefCount(const s: String): integer;
-begin
-  result := Integer(Pointer(integer(Addr(s)^)-8)^);
-end;
-{$ENDIF}
 
 {$IFNDEF BOLD_DISABLESHAREDSTRINGS}
 { TBoldSharedStringCache }
@@ -155,7 +133,6 @@ begin
   Result := TBoldSharedStringHolder(TBoldCaseSensitiveStringHashIndex(Indexes[IX_StringHolderValue]).FindByString(s));
 end;
 
-{$IFDEF BOLD_UNICODE}
 constructor TBoldSharedAnsiStringCache.Create;
 begin
   inherited;
@@ -167,7 +144,6 @@ function TBoldSharedAnsiStringCache.GetHolderByValue(
 begin
   Result := TBoldSharedAnsiStringHolder(TBoldCaseSensitiveStringHashIndex(Indexes[TBoldSharedStringCache.IX_StringHolderValue]).FindByString(string(s)));
 end;
-{$ENDIF}
 
 { TBoldStringHolderValueIndex }
 
@@ -176,12 +152,10 @@ begin
   Result := TBoldSharedStringHolder(item).Value;
 end;
 
-{$IFDEF BOLD_UNICODE}
 function TBoldAnsiStringHolderValueIndex.ItemAsKeyString(Item: TObject): string;
 begin
   Result := string(TBoldSharedAnsiStringHolder(item).Value);
 end;
-{$ENDIF}
 
 { TBoldSharedStringHolder }
 
@@ -196,7 +170,6 @@ begin
   result := StringRefCount(fValue)-1;
 end;
 
-{$IFDEF BOLD_UNICODE}
 constructor TBoldSharedAnsiStringHolder.Create(const s: AnsiString);
 begin
   inherited Create;
@@ -207,7 +180,6 @@ function TBoldSharedAnsiStringHolder.GetExternalRefCount: integer;
 begin
   result := StringRefCount(fValue)-1;
 end;
-{$ENDIF}
 {$ENDIF}
 
   { TBoldSharedStringManager }
@@ -220,9 +192,7 @@ begin
   {$ENDIF}
   {$IFNDEF BOLD_DISABLESHAREDSTRINGS}
   fStringCache := TBoldSharedStringCache.Create;
-  {$IFDEF BOLD_UNICODE}
   fAnsiStringCache := TBoldSharedAnsiStringCache.Create;
-  {$ENDIF}
   fAddsRemainingToGarbageCollect := MINIMUM_ADDS;
   {$ENDIF}
 end;
@@ -231,9 +201,7 @@ destructor TBoldSharedStringManager.Destroy;
 begin
   {$IFNDEF BOLD_DISABLESHAREDSTRINGS}
   FreeAndNil(fStringCache);
-  {$IFDEF BOLD_UNICODE}
   FreeAndNil(fAnsiStringCache);
-  {$ENDIF}
   {$ENDIF}
   {$IFDEF UseCriticalSection}
   FreeAndNil(fCriticalSection);
@@ -272,7 +240,6 @@ begin
   end;
 end;
 
-{$IFDEF BOLD_UNICODE}
 procedure TBoldSharedStringManager.DoAnsiGarbageCollect(
     KeepStringsWithOneReference: Boolean);
 var
@@ -303,7 +270,6 @@ begin
   end;
 end;
 {$ENDIF}
-{$ENDIF}
 
 procedure TBoldSharedStringManager.GarbageCollect;
 begin
@@ -313,9 +279,7 @@ begin
   try
   {$ENDIF}
     DoGarbageCollect(False);
-  {$IFDEF BOLD_UNICODE}
     DoAnsiGarbageCollect(False);
-  {$ENDIF}
   {$IFDEF UseCriticalSection}
   finally
     fCriticalSection.Leave;
@@ -338,9 +302,7 @@ begin
   try
   {$ENDIF}
     iSharedStrings := FStringCache.Count;
-  {$IFDEF BOLD_UNICODE}
     Inc(iSharedStrings, fAnsiStringCache.Count);
-  {$ENDIF}
     Result :=
       Format('Number of shared strings: %d', [iSharedStrings]) + BOLDCRLF + {do not localize }
       Format('Saved memory %d', [SavedMemory]); {do not localize }
@@ -357,9 +319,7 @@ function TBoldSharedStringManager.GetSavedMemory: integer;
 var
   Traverser: TBoldIndexableListTraverser;
   Holder: TBoldSharedStringHolder;
-  {$IFDEF BOLD_UNICODE}
   AnsiHolder: TBoldSharedAnsiStringHolder;
-  {$ENDIF}
 {$ENDIF}
 begin
   Result := 0;
@@ -371,7 +331,6 @@ begin
     Result := Result + (Holder.ExternalRefCount-1) * Length(Holder.Value) * SizeOf(Char);
   end;
   Traverser.Free;
-  {$IFDEF BOLD_UNICODE}
   Traverser := fAnsiStringCache.CreateTraverser;
   while Traverser.MoveNext do
   begin
@@ -379,7 +338,6 @@ begin
     Result := Result + (AnsiHolder.ExternalRefCount-1) * Length(AnsiHolder.Value);
   end;
   Traverser.Free;
-  {$ENDIF}
 {$ENDIF}
 end;
 
@@ -418,7 +376,6 @@ begin
 {$ENDIF}
 end;
 
-{$IFDEF BOLD_UNICODE}
 function TBoldSharedStringManager.GetSharedAnsiString(const s: AnsiString):
     AnsiString;
 {$IFDEF BOLD_DISABLESHAREDSTRINGS}
@@ -445,7 +402,6 @@ begin
     DoAnsiGarbageCollect(true);
 {$ENDIF}
 end;
-{$ENDIF}
 
 initialization // empty
 {$IFNDEF BOLD_DISABLESHAREDSTRINGS}
@@ -455,4 +411,3 @@ initialization // empty
 finalization
   FreeAndNil(G_BoldSharedStringManager);
 end.
-

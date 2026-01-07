@@ -1983,7 +1983,7 @@ implementation
 
 uses
   Types,
-{$IFDEF BOLD_DELPHI16_OR_LATER}UiTypes,{$ENDIF}
+  UiTypes,
   BoldAttributes,
   BoldBase,
   Variants,

@@ -227,10 +227,10 @@ begin
     raise EBold.Create(sCannotNestPushFloat);
   FloatSettingsPushed := true;
   FloatSettingsPushed := true;
-  oldDecimalSeparator := {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator;
-  {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator := '.';
-  oldThousandSeparator := {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}ThousandSeparator;
-  {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}ThousandSeparator := ',';
+  oldDecimalSeparator := FormatSettings.DecimalSeparator;
+  FormatSettings.DecimalSeparator := '.';
+  oldThousandSeparator := FormatSettings.ThousandSeparator;
+  FormatSettings.ThousandSeparator := ',';
 end;
 
 procedure PopFloatSettings;

@@ -185,13 +185,8 @@ type
 
   TcxBoldDataSummary = class(TcxDataSummary)
   protected
-{$IFDEF BOLD_DELPHI16_OR_LATER}
     procedure CalculateSummary(ASummaryItems: TcxDataSummaryItems; ABeginIndex, AEndIndex: Integer;
       var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues); override;
-{$ELSE}
-    procedure CalculateSummary(ASummaryItems: TcxDataSummaryItems; ABeginIndex, AEndIndex: Integer;
-      var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues; var SummaryValues: Variant); override;
-{$ENDIF}
   end;
 
   TcxGridUserQueryEvent = procedure (Sender: TObject; var Allow: boolean) of object;
@@ -976,7 +971,7 @@ uses
   SysUtils,
   Variants,
   Windows,
-{$IFDEF BOLD_DELPHI16_OR_LATER}UiTypes,{$ENDIF}
+  UiTypes,
 
   BoldAFP,
   BoldAttributes,
@@ -6221,14 +6216,8 @@ end;
 { TcxBoldDataSummary }
 
 procedure TcxBoldDataSummary.CalculateSummary(
-{$IFDEF BOLD_DELPHI16_OR_LATER}
   ASummaryItems: TcxDataSummaryItems; ABeginIndex, AEndIndex: Integer;
-  var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues
-{$ELSE}
-  ASummaryItems: TcxDataSummaryItems; ABeginIndex, AEndIndex: Integer;
-  var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues; var SummaryValues: Variant
-{$ENDIF}
-);
+  var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues);
 var
   I: Integer;
   lList: TBoldList;

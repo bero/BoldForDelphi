@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldRose98Support;
 
@@ -428,12 +427,12 @@ begin
   begin
     if stop = -1 then
       stop := length(VersionStr);
-    OldDecimalSeparator := {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator;
-    {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator := '.';
+    OldDecimalSeparator := FormatSettings.DecimalSeparator;
+    FormatSettings.DecimalSeparator := '.';
     try
       result := StrToFloat(copy(VersionStr, start, stop-start));
     finally
-      {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator := OldDecimalSeparator;
+      FormatSettings.DecimalSeparator := OldDecimalSeparator;
    end;
   end;
 end;

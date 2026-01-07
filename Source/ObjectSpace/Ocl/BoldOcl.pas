@@ -1,5 +1,4 @@
-﻿
-/////////////////////////////////////////////////////////
+﻿/////////////////////////////////////////////////////////
 //                                                     //
 //              Bold for Delphi                        //
 //    Copyright (c) 2002 BoldSoft AB, Sweden           //
@@ -436,11 +435,7 @@ begin
   inc(fParses);
   Result := nil;
 
-  {$IFDEF BOLD_UNICODE}
   Consumer := SSLexStringConsumer.Create(FixedExpr);
-  {$ELSE}
-  Consumer := SSLexStringConsumer.Create(PChar(FixedExpr));
-  {$ENDIF}
 
   Lexer := ALexClass.Create(Consumer, OclScannerTable);
   Parser := AYaccClass.CreateLex(Lexer, OclParserTable);

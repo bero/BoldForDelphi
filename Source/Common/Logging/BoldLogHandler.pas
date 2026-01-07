@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldLogHandler;
 
@@ -303,9 +302,7 @@ procedure TBoldLogReceiverSubscriber.ReceiveExtended(Originator: TObject;
     case VR.VType of
       vtString: Result := string(VR.vString);
       vtAnsiString: Result := string(VR.vAnsiString);
-      {$IFDEF BOLD_UNICODE}
       vtUnicodeString: Result := string(VR.vUnicodeString);
-      {$ENDIF}
       else
         raise Exception.Create(sUnknownTypeInGetString);
     end;

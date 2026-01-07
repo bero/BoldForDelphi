@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldAFPDefault;
 
@@ -219,7 +218,7 @@ uses
   Windows,
   SysUtils,
   Dialogs,
-  {$IFDEF BOLD_DELPHI16_OR_LATER}UITypes,{$ENDIF}
+  UITypes,
   BoldCoreConsts,
   BoldGuiResourceStrings,
   BoldUtils,

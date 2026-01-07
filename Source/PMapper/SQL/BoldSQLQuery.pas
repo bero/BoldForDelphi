@@ -389,9 +389,6 @@ uses
   BoldPSDescriptionsDefault,
   SysUtils,
   BoldIndex,
-{$IFNDEF BOLD_UNICODE}
-  StringBuilder,
-{$ENDIF}
   BoldUtils,
   BoldIndexableList;
 

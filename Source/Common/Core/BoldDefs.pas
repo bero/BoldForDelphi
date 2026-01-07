@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldDefs;
 
@@ -137,8 +136,8 @@ type
   TBoldSQLStyle = (ssColumns, ssParameters, ssValues);
   TBoldAbstractionLevel = (alAbstract, alConcrete);
 
-  TBoldAnsiString = {$IFDEF BOLD_UNICODE}AnsiString{$ELSE}string{$ENDIF};
-  TBoldUnicodeString = {$IFDEF BOLD_UNICODE}string{$ELSE}WideString{$ENDIF};
+  TBoldAnsiString = AnsiString;
+  TBoldUnicodeString = string;
 
   EBold = class(Exception);
   EBoldDesignTime = class(EBold);
@@ -196,11 +195,7 @@ const
   BOLDMAXTIMESTAMP = high(TBoldTimeStampType);
   BOLDINVALIDTIMESTAMP = -1;
 
-  {$IFDEF BOLD_DELPHI16_OR_LATER}
   BOLDMAXLISTSIZE = MaxInt div 16;
-  {$ELSE}
-  BOLDMAXLISTSIZE = Classes.MaxListSize;
-  {$ENDIF}
 
   {$IFDEF BOLD_DELPHI}
   BOLD_HOST_IDE = 'Delphi';

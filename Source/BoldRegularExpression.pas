@@ -1,5 +1,4 @@
-﻿
-/////////////////////////////////////////////////////////
+﻿/////////////////////////////////////////////////////////
 //                                                     //
 //              Bold for Delphi                        //
 //    Copyright (c) 2002 BoldSoft AB, Sweden           //
@@ -175,7 +174,7 @@ type
     constructor Create(const Source: String);
   end;
 
-  TSetOfChar = set of {$IFDEF BOLD_UNICODE}AnsiChar{$ELSE}Char{$ENDIF};
+  TSetOfChar = set of AnsiChar;
   TTokenType = (ttAnyChar, ttChar, ttCharSet, ttEndOfLine, ttRepeat, ttStartOfLine);
   TToken = class(TBoldMemoryManagedObject)
   private
@@ -741,11 +740,7 @@ var
   procedure BuildCharSetToken;
 
   const
-    {$IFDEF BOLD_UNICODE}
     FullCharacterSet = [Low(AnsiChar)..High(AnsiChar)];
-    {$ELSE}
-    FullCharacterSet = [Low(Char)..High(Char)];
-    {$ENDIF}
 
   var
     c: Char;

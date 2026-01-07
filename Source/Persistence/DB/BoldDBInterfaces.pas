@@ -5,9 +5,6 @@ unit BoldDBInterfaces;
 interface
 
 uses
-  {$IFNDEF BOLD_UNICODE}
-  StringBuilder,
-  {$ENDIF}
   Classes,
   Db,
   SysUtils,
@@ -37,11 +34,7 @@ type
 
   TBoldGetDatabaseEvent = function: IBoldDatabase of object;
 
-  {$IFDEF BOLD_UNICODE}
   TBoldBlobData = AnsiString;
-  {$ELSE}
-  TBoldBlobData = TBlobData;
-  {$ENDIF}
 
   TBoldIndexDescription = record
     IndexName: String;
@@ -784,11 +777,7 @@ end;
 
 function TBoldDbParameter.GetAsAnsiString: TBoldAnsiString;
 begin
-  {$IFDEF BOLD_UNICODE}
   result := Parameter.AsAnsiString;
-  {$ELSE}
-  result := Parameter.AsString;
-  {$ENDIF}
   if string(result) = DatasetWrapper.DatabaseWrapper.SQLDatabaseConfig.EmptyStringMarker then
     result := '';
 end;
@@ -832,11 +821,7 @@ end;
 
 procedure TBoldDbParameter.SetAsBlob(const Value: TBoldBlobData);
 begin
-  {$IFDEF BOLD_UNICODE}
   Parameter.AsBlob := BytesOf(Value);
-  {$ELSE}
-  Parameter.AsBlob := Value;
-  {$ENDIF}
 end;
 
 procedure TBoldDbParameter.SetAsBoolean(Value: Boolean);
@@ -902,11 +887,7 @@ begin
   if value = '' then
     Parameter.Value := DatasetWrapper.DatabaseWrapper.SQLDatabaseConfig.EmptyStringMarker
   else
-  {$IFDEF BOLD_UNICODE}
-    Parameter.AsAnsiString := Value
-  {$ELSE}
-    Parameter.AsString := Value
-  {$ENDIF}
+    Parameter.AsAnsiString := Value;
 end;
 
 procedure TBoldDbParameter.SetAsWideString(const Value: Widestring);
@@ -1191,11 +1172,7 @@ end;
 
 function TBoldFieldWrapper.GetAsBlob: TBoldAnsiString;
 begin
-  {$IFDEF BOLD_UNICODE}
   Result := Field.AsAnsiString;
-  {$ELSE}
-  Result := Field.AsString;
-  {$ENDIF}
 end;
 
 function TBoldFieldWrapper.GetAsBoolean: Boolean;
@@ -1249,24 +1226,14 @@ end;
 
 function TBoldFieldWrapper.GetAsAnsiString: TBoldAnsiString;
 begin
-  {$IFDEF BOLD_UNICODE}
   result := BoldSharedStringManager.GetSharedAnsiString(Field.AsAnsiString);
   if String(result) = DatasetWrapper.DatabaseWrapper.SQLDatabaseConfig.EmptyStringMarker then
     result := '';
-  {$ELSE}
-  Result := GetAsString;
-  {$ENDIF}
 end;
 
 function TBoldFieldWrapper.GetAsWideString: TBoldUnicodeString;
 begin
-  {$IFDEF BOLD_UNICODE}
   result := GetAsString;
-  {$ELSE}
-  result := Field.AsWideString;
-  if result = DatasetWrapper.DatabaseWrapper.SQLDatabaseConfig.EmptyStringMarker then
-    result := '';
-  {$ENDIF}
 end;
 
 function TBoldFieldWrapper.GetAsTime: TDateTime;
@@ -1358,27 +1325,16 @@ end;
 
 procedure TBoldFieldWrapper.SetAsAnsiString(const Value: TBoldAnsiString);
 begin
-  {$IFDEF BOLD_UNICODE}
   if value = '' then
     Field.AsAnsiString := TBoldAnsiString(
         DataSetWrapper.DatabaseWrapper.SQLDatabaseConfig.EmptyStringMarker)
   else
     Field.AsAnsiString := Value;
-  {$ELSE}
-  SetAsString(Value);
-  {$ENDIF}
 end;
 
 procedure TBoldFieldWrapper.SetAsWideString(const Value: TBoldUnicodeString);
 begin
-  {$IFDEF BOLD_UNICODE}
   SetAsString(Value);
-  {$ELSE}
-  if value = '' then
-    Field.AsWideString := TBoldUnicodeString(DataSetWrapper.DatabaseWrapper.SQLDatabaseConfig.EmptyStringMarker)
-  else
-    Field.AsWideString := Value;
-  {$ENDIF}
 end;
 
 procedure TBoldFieldWrapper.SetAsVariant(const Value: Variant);

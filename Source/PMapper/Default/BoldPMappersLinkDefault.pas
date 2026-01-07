@@ -204,11 +204,6 @@ uses
   BoldTaggedValueSupport,
   BoldPMapperLists,
   BoldGuard,
-  {$IFDEF RIL}
-  {$IFNDEF BOLD_UNICODE}
-  StringBuilder,
-  {$ENDIF}
-  {$ENDIF}
   BoldDefaultStreamNames;
 
 { Supporting functions/procedures }

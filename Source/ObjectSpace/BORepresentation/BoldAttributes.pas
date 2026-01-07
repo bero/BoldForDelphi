@@ -1,5 +1,4 @@
-
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldAttributes;
 
@@ -123,48 +122,29 @@ type
 
   {---TBAAnsiString---}
   TBAAnsiString = class(TBAString)
-  {$IFDEF BOLD_UNICODE}
   private
     fValue: TBoldAnsiString;
     function SetContent(NewValue: TBoldAnsiString): boolean;
     procedure SetDataValue(NewValue: TBoldAnsiString);
     procedure SetValue(const Value: string); override;
-  {$ENDIF}
   protected
-  {$IFDEF BOLD_UNICODE}
     procedure FreeContent; override;
     function GetValue: string; override;
     function GetAsAnsiString: TBoldAnsiString; override;
     procedure SetAsAnsiString(const Value: TBoldAnsiString); override;
-  {$ENDIF}
     function GetProxy(Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
   public
     function ProxyInterface(const IId: TGUID; Mode: TBoldDomainElementProxyMode;
         out Obj): Boolean; override;
-  {$IFDEF BOLD_UNICODE}
     function ValidateCharacter(C: Char; Representation: TBoldRepresentation):
         Boolean; override;
     function ValidateString(const Value: string; Representation: TBoldRepresentation):
         Boolean; override;
-  {$ENDIF}
   end;
 
   {---TBAUnicodeString---}
   TBAUnicodeString = class(TBAString)
-  private
-  {$IFNDEF BOLD_UNICODE}
-    fValue: TBoldUnicodeString;
-    function SetContent(NewValue: TBoldUnicodeString): boolean;;
-    procedure SetDataValue(NewValue: TBoldUnicodeString);
-    procedure SetValue(const Value: string); override;
-  {$ENDIF}
   protected
-  {$IFNDEF BOLD_UNICODE}
-    procedure FreeContent; override;
-    function GetAsUnicodeString: TBoldUnicodeString; override;
-    function GetValue: string; override;
-    procedure SetAsUnicodeString(const Value: TBoldUnicodeString); override;
-  {$ENDIF}
     function GetProxy(Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
   public
     function ProxyInterface(const IId: TGUID; Mode: TBoldDomainElementProxyMode;
@@ -800,7 +780,7 @@ implementation
 
 uses
   Math,
-  {$IFDEF BOLD_UNICODE}AnsiStrings,{$ENDIF}
+  AnsiStrings,
   BoldNameExpander,
   BoldTaggedValueSupport,
   Variants,
@@ -969,9 +949,7 @@ begin
     vtExtended:     Result := TBAFloat.CreateWithValue(value.VExtended^);
     vtString:       Result := TBAString.CreateWithValue(String(value.VString^));
     vtAnsiString:   Result := TBAString.CreateWithValue(String(value.VAnsiString));
-{$IFDEF BOLD_UNICODE}
     vtUnicodeString: Result := TBAString.CreateWithValue(String(value.vUnicodeString));
-{$ENDIF}
     vtCurrency:     Result := TBACurrency.CreateWithValue(value.VCurrency^);
     vtWideString:   Result := TBAString.CreateWithValue(PWideString(value.VWideString)^);
   else
@@ -1346,7 +1324,6 @@ end;
 
 { TBAAnsiString }
 
-{$IFDEF BOLD_UNICODE}
 procedure TBAAnsiString.FreeContent;
 begin
   inherited;
@@ -1432,12 +1409,12 @@ function TBAAnsiString.ValidateString(const Value: string; Representation:
     TBoldRepresentation): Boolean;
 begin
   Result := inherited ValidateString(Value, Representation);
-  if Result and (String(AnsiString(Value)) <> Value) then begin
+  if Result and (String(AnsiString(Value)) <> Value) then
+  begin
     Result := False;
     SetBoldLastFailureReason(TBoldFailureReason.Create(sStringIsNotAnsiString, Self));
   end;
 end;
-{$ENDIF}
 
 function TBAAnsiString.GetProxy(
   Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy;
@@ -1462,82 +1439,6 @@ begin
   result := TBAUnicodeString_Proxy.MakeProxy(self, mode);
 end;
 
-{$IFNDEF BOLD_UNICODE}
-procedure TBAUnicodeString.FreeContent;
-begin
-  inherited;
-  FValue := '';
-end;
-
-function TBAUnicodeString.GetAsUnicodeString: TBoldUnicodeString;
-begin
-  BoldClearLastFailure;
-  if not CanRead(nil) then
-    BoldRaiseLastFailure(self, 'GetAsUnicodeString', ''); // do not localize
-
-  if IsNull then {IsNull ensures current}
-    Result := ''
-  else
-    Result := fValue;
-end;
-
-function TBAUnicodeString.GetValue: string;
-begin
-  Result := String(FValue);
-end;
-
-procedure TBAUnicodeString.SetAsUnicodeString(const Value: TBoldUnicodeString);
-begin
-  SetDataValue(Value);
-end;
-
-function TBAUnicodeString.SetContent(NewValue: TBoldUnicodeString): boolean;
-begin
-  result := false;
-  if (BoldPersistenceState = bvpsInvalid) or
-     ContentIsNull or (fValue <> NewValue) then
-  begin
-    PreChange;
-    fValue := NewValue;
-    SetToNonNull;
-    result := true;
-  end;
-end;
-
-procedure TBAUnicodeString.SetDataValue(NewValue: TBoldUnicodeString);
-var
-  bContentIsNull: Boolean;
-  sOldValue: TBoldUnicodeString;
-begin
-  if IsNull or (fValue <> NewValue) then
-  begin
-    BoldClearLastFailure;
-    if not CanSetValue(string(NewValue), nil) then
-      BoldRaiseLastFailure(self, sSetDataValue, ''); // do not localize
-    if not StartModify then
-      BoldRaiseLastFailure(self, sSetDataValue, ''); // do not localize
-    bContentIsNull := ContentIsNull;
-    sOldValue := fValue;
-    try
-      SetContent(NewValue);
-      EndModify;
-      if bContentIsNull then
-        Changed(beValueChanged, [NewValue])
-      else
-        Changed(beValueChanged, [NewValue, sOldValue]);
-    except
-      FailModify;
-      raise;
-    end;
-  end;
-end;
-
-procedure TBAUnicodeString.SetValue(const Value: string);
-begin
-  FValue := TBoldUnicodeString(Value);
-end;
-{$ENDIF}
-
 function TBAUnicodeString.ProxyInterface(const IId: TGUID; Mode:
     TBoldDomainElementProxyMode; out Obj): Boolean;
 begin
@@ -1555,12 +1456,11 @@ begin
   // no inherited (inherited checks length)
   Result := True;
   // but we need AnsiString-Check
-  {$IFDEF BOLD_UNICODE}
-  if (String(AnsiString(Value)) <> Value) then begin
+  if (String(AnsiString(Value)) <> Value) then
+  begin
     Result := False;
     SetBoldLastFailureReason(TBoldFailureReason.Create(sStringIsNotAnsiString, Self));
   end;
-  {$ENDIF}
 end;
 
 { TBAUnicodeText }
@@ -2145,7 +2045,7 @@ end;
 
 function TBAFloat.ValidateCharacter(C: Char; Representation: TBoldRepresentation): Boolean;
 begin
-  Result := CharInSet(C, ['0'..'9', '-', '+', 'e', 'E', {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator]);
+  Result := CharInSet(C, ['0'..'9', '-', '+', 'e', 'E', FormatSettings.DecimalSeparator]);
 end;
 
 function TBAFloat.ValidateString(const Value: string; Representation: TBoldRepresentation): Boolean;
@@ -2373,7 +2273,7 @@ begin
       SetToNull
     else
     begin
-      if Value[Length(Value)] = {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator then
+      if Value[Length(Value)] = FormatSettings.DecimalSeparator then
         SetDataValue(StrToCurr(Concat(Value, '0')))
       else
         SetDataValue(StrToCurr(Value));
@@ -2460,7 +2360,7 @@ end;
 
 function TBACurrency.ValidateCharacter(C: Char; Representation: TBoldRepresentation): Boolean;
 begin
-  Result := CharInSet(C, ['0'..'9', '-', '+', 'e', 'E', {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator]);
+  Result := CharInSet(C, ['0'..'9', '-', '+', 'e', 'E', FormatSettings.DecimalSeparator]);
 end;
 
 procedure TBACurrency.Assign(Source: TBoldElement);
@@ -3838,7 +3738,7 @@ end;
 
 function TBADateTime.ValidateCharacter(C: Char; Representation: TBoldRepresentation): Boolean;
 begin
-  Result := CharInSet(C, ['0'..'9', ' ', {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}TimeSeparator, {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DateSeparator]);
+  Result := CharInSet(C, ['0'..'9', ' ', FormatSettings.TimeSeparator, FormatSettings.DateSeparator]);
 end;
 
 function TBADateTime.GetFormatName: string;
@@ -3865,7 +3765,7 @@ end;
 
 function TBADate.ValidateCharacter(C: Char; Representation: TBoldRepresentation): Boolean;
 begin
-  Result := CharInSet(C, ['0'..'9', {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DateSeparator]);
+  Result := CharInSet(C, ['0'..'9', FormatSettings.DateSeparator]);
 end;
 
 function TBADate.GetFormatName: string;
@@ -3892,7 +3792,7 @@ end;
 
 function TBATime.ValidateCharacter(C: Char; Representation: TBoldRepresentation): Boolean;
 begin
-  Result := CharInSet(C, ['0'..'9', {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}TimeSeparator]);
+  Result := CharInSet(C, ['0'..'9', FormatSettings.TimeSeparator]);
 end;
 
 function TBATime.GetFormatName: string;

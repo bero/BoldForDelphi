@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldAbstractPropertyEditors;
 
@@ -231,7 +230,7 @@ begin
     CurPos := EditorServices.TopBuffer.TopView.CharPosToPos(CharPos);
     Writer := EditorServices.TopBuffer.CreateUndoableWriter;
     Writer.CopyTo(CurPos);
-    Writer.Insert(PAnsiChar({$IFDEF BOLD_UNICODE}AnsiString{$ENDIF}(s)));
+    Writer.Insert(PAnsiChar(AnsiString(s)));
   end;
 end;
 

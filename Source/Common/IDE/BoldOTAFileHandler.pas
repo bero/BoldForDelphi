@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldOTAFileHandler;
 
@@ -224,7 +223,7 @@ begin
   if CheckWriteable(OTAModule.FileName) then
   begin
     OTAEditWriter.DeleteTo(GetEditorSize - 2);
-    OTAEditWriter.Insert(PAnsiChar({$IFDEF BOLD_UNICODE}AnsiString{$ENDIF}(StringList.Text)));
+    OTAEditWriter.Insert(PAnsiChar(AnsiString(StringList.Text)));
     OTAModule.Save(False, True);
   end
   else

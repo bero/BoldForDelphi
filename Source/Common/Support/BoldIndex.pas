@@ -10,11 +10,7 @@ uses
   Contnrs;
 
 const
-  {$IFDEF BOLD_DELPHI16_OR_LATER}
   MaxListSize = MaxInt div 16;
-  {$ELSE}
-  MaxListSize = Classes.MaxListSize;
-  {$ENDIF}
 
 type
   { forward declaration of classes }

@@ -64,9 +64,7 @@ type
 implementation
 
 uses
-{$IFDEF BOLD_DELPHI16_OR_LATER}
   Actions,
-{$ENDIF}
   Variants;
 
 const

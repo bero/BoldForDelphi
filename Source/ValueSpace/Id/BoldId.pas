@@ -241,9 +241,6 @@ implementation
 uses
   {$IFDEF OXML}OXmlPDOM{$ELSE}Bold_MSXML_TLB{$ENDIF},
   SysUtils,
-  {$IFNDEF BOLD_UNICODE}
-  StringBuilder,
-  {$ENDIF}
   BoldDefaultXMLStreaming,
   BoldDefaultStreamNames,
   BoldMeta;

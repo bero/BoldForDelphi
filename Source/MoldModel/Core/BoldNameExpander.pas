@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldNameExpander;
 
@@ -22,7 +21,7 @@ type
   TBoldExpressionNameExpanderClass = class of TBoldExpressionNameExpander;
 
   TExpansionType = (xtDelphi, xtSQL, xtExpression);
-  TBoldCharacterSet = set of {$IFDEF BOLD_UNICODE}AnsiChar{$ELSE}Char{$ENDIF};
+  TBoldCharacterSet = set of AnsiChar;
 
   { TBoldAbstractNameExpander }
   TBoldAbstractNameExpander = class

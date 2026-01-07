@@ -1,5 +1,4 @@
-﻿
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 
 unit BoldOclVariables;
@@ -8,9 +7,6 @@ interface
 
 uses
   Classes,
-{$IFNDEF BOLD_DELPHI16_OR_LATER}
-  Controls, //   TDate = type TDateTime;
-{$ENDIF}
   BoldSubscription,
   BoldHandles,
   BoldElements;

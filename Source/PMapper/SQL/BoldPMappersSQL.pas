@@ -198,13 +198,7 @@ uses
   BoldPSParamsSQL,
   BoldNameExpander,
   BoldValueInterfaces,
-  BoldDefaultStreamNames
-  {$IFDEF RIL}
-  {$IFNDEF BOLD_UNICODE}
-  ,StringBuilder
-  {$ENDIF}
-  {$ENDIF}
-  ;
+  BoldDefaultStreamNames;
   
 {---TBoldSystemSQLMapper---}
 function TBoldSystemSQLMapper.GetAllTables: TBoldSQLTableDescriptionList;
