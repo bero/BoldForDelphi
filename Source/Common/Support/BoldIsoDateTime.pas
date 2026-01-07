@@ -1,4 +1,4 @@
-﻿
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldIsoDateTime;
@@ -6,17 +6,13 @@ unit BoldIsoDateTime;
 interface
 
 uses
-  BoldDefs,
-  Controls; // for TDate
+  BoldDefs;
 
 function ParseISODate(const s: string): TDateTime;
 function ParseISODateTime(const s: string): TDateTime;
 function ParseISOTime(const str: string): TDateTime;
 
 function AsISODateTime(d: TDateTime): string;
-function AsISODate(d: TDate): string;
-function AsISOTime(t: TTime): string;
-
 function AsISODateTimeMS(d: TDateTime): string;
 function AsISOTimeMS(t: TTime): string;
 
@@ -110,16 +106,6 @@ end;
 function AsISODateTime(d: TDateTime): string;
 begin
   result := formatDateTime(cIsoDateTimeFormat, d, FormatSettings);
-end;
-
-function AsISODate(d: TDate): string;
-begin
-  result := formatDateTime(cIsoDateFormat, d, FormatSettings);
-end;
-
-function AsISOTime(t: TTime): string;
-begin
-  result := formatDateTime(cIsoTimeFormat, t, FormatSettings);
 end;
 
 function AsISODateTimeMS(d: TDateTime): string;
