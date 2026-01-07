@@ -97,9 +97,14 @@ begin
   m := StrToInt(copy(str, 4, 2));
   if m > 59 then
     raise EBold.CreateFmt(sInvalidTimeFormatLargeMinute, [str]);
-  s := StrToInt(copy(str, 7, 2));
-  if s > 59 then
-    raise EBold.CreateFmt(sInvalidTimeFormatLargeSecond, [str]);
+  if Length(str) >= 8 then
+  begin
+    s := StrToInt(copy(str, 7, 2));
+    if s > 59 then
+      raise EBold.CreateFmt(sInvalidTimeFormatLargeSecond, [str]);
+  end
+  else
+    s := 0;
   result := EncodeTime(h, m, s, 0);
 end;
 

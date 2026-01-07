@@ -42,7 +42,9 @@ type
     [Test]
     [Category('Quick')]
     procedure TestParseISOTime;
-
+    [Test]
+    [Category('Quick')]
+    procedure TestParseISOTimeShortFormat;
     [Test]
     [Category('Quick')]
     procedure TestParseISOTimeInvalidFormat;
@@ -200,6 +202,19 @@ begin
   Assert.AreEqual(Word(14), h);
   Assert.AreEqual(Word(30), m);
   Assert.AreEqual(Word(45), s);
+end;
+
+procedure TTestBoldIsoDateTime.TestParseISOTimeShortFormat;
+var
+  dt: TDateTime;
+  h, m, s, ms: Word;
+begin
+  // Bug fix: ##:## format should work with seconds defaulting to 0
+  dt := ParseISOTime('14:30');
+  DecodeTime(dt, h, m, s, ms);
+  Assert.AreEqual(Word(14), h);
+  Assert.AreEqual(Word(30), m);
+  Assert.AreEqual(Word(0), s);
 end;
 
 procedure TTestBoldIsoDateTime.TestParseISOTimeInvalidFormat;
