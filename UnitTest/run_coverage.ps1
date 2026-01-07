@@ -2,23 +2,26 @@
 # Uses DelphiBuildDPROJ.ps1 for flexible Delphi version detection
 #
 # USAGE:
-#   .\run_coverage.ps1 [-SkipBuild] [-OpenReport:$false] [-Upload]
+#   .\run_coverage.ps1 [-SkipBuild] [-OpenReport:$false] [-Upload] [-Quick]
 #
 # PARAMETERS:
 #   -SkipBuild        : Skip build, only run coverage analysis on existing executable
 #   -OpenReport:$false: Suppress opening the coverage report (opens by default)
 #   -Upload           : Upload coverage to Codecov.io (requires CODECOV_TOKEN env var)
+#   -Quick            : Run only tests in the 'Quick' category
 #
 # EXAMPLES:
 #   .\run_coverage.ps1                    # Build, run coverage, open report
 #   .\run_coverage.ps1 -SkipBuild         # Skip build, run coverage, open report
 #   .\run_coverage.ps1 -OpenReport:$false # Build, run coverage, don't open report
 #   .\run_coverage.ps1 -Upload            # Build, run coverage, open report, upload
+#   .\run_coverage.ps1 -Quick             # Build, run only Quick tests, open report
 
 param(
     [switch]$SkipBuild,
     [bool]$OpenReport = $true,
-    [switch]$Upload
+    [switch]$Upload,
+    [switch]$Quick
 )
 
 $ErrorActionPreference = "Stop"
@@ -179,6 +182,13 @@ try {
         "-od", $OutputDir,
         "-tec"  # Pass through test executable exit code
     )
+
+    # Add Quick category filter if requested
+    if ($Quick) {
+        Write-Host "  Running Quick category tests only" -ForegroundColor Gray
+        $CoverageArgs += "-a"
+        $CoverageArgs += "^-^-include:Quick"  # Escape dashes for CodeCoverage parser
+    }
 
     & $CoverageExe @CoverageArgs
     $TestExitCode = $LASTEXITCODE

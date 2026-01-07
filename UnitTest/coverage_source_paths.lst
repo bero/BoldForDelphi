@@ -37,6 +37,7 @@
 ..\Source\Common\Rose98
 ..\Source\Common\SOAP
 ..\Source\Common\Subscription
+..\Source\Common\Stubs
 ..\Source\Common\Support
 ..\Source\Common\SupportWin
 ..\Source\Common\TaggedValues
