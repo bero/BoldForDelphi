@@ -35,6 +35,12 @@ Create a unit test that covers the code you're about to change:
 #### 3. Run New Test Only
 Build and run just the new test to verify it works as expected:
 ```powershell
+
+# Set DUnitX environment variable (must be after rsvars.bat capture)
+
+$env:DUnitX = "C:\Attracs\DUnitX\Source"
+Write-Host "  DUnitX: $env:DUnitX" -ForegroundColor Gray
+
 # Build test project
 C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "UnitTest\UnitTest.dproj"
 

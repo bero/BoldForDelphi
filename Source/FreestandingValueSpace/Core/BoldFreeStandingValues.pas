@@ -1,4 +1,4 @@
-﻿{ Global compiler directives }
+{ Global compiler directives }
 {$include bold.inc}
 unit BoldFreeStandingValues;
 
@@ -430,6 +430,7 @@ type
   private
     fObjectIds: TBoldObjectIdList;
     procedure EnsureIdList;
+    function GetIdByIndex(Index: Integer): TBoldObjectID;
     function GetId1: TBoldObjectID;
     function GetId2: TBoldObjectID;
   protected
@@ -1305,22 +1306,23 @@ begin
   result := bctObjectIdRefPair;
 end;
 
-function TBFSObjectIdRefPair.GetId1: TBoldObjectID;
+function TBFSObjectIdRefPair.GetIdByIndex(Index: Integer): TBoldObjectID;
 begin
   EnsureIdList;
-  if fObjectIds.Count > 0 then
-    result := fObjectIds[0]
+  if fObjectIds.Count > Index then
+    Result := fObjectIds[Index]
   else
-    result := nil;
+    Result := nil;
+end;
+
+function TBFSObjectIdRefPair.GetId1: TBoldObjectID;
+begin
+  Result := GetIdByIndex(0);
 end;
 
 function TBFSObjectIdRefPair.GetId2: TBoldObjectID;
 begin
-  EnsureIdList;
-  if fObjectIds.Count > 1 then
-    result := fObjectIds[1]
-  else
-    result := nil;
+  Result := GetIdByIndex(1);
 end;
 
 {--- TBFSObjectIdListref ---}

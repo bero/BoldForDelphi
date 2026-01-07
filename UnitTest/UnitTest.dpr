@@ -25,6 +25,7 @@ uses
   Test.BoldSystem in 'Code\ObjectSpace\Test.BoldSystem.pas',
   Test.BoldLinks in 'Code\ObjectSpace\Test.BoldLinks.pas',
   Test.BoldFreeStandingValueFactories in 'Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas',
+  Test.BoldFreeStandingValues in 'Code\FreestandingValueSpace\Test.BoldFreeStandingValues.pas',
   Test.BoldDefaultTaggedValues in 'Code\Common\Test.BoldDefaultTaggedValues.pas',
   Test.BoldMemberTypeDictionary in 'Code\RTModel\Test.BoldMemberTypeDictionary.pas',
   Test.BoldGeneratedCodeDictionary in 'Code\RTModel\Test.BoldGeneratedCodeDictionary.pas',
