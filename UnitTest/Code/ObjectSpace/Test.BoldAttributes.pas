@@ -111,6 +111,9 @@ type
     [Test]
     [Category('Quick')]
     procedure TestDateTimeSetStringRepresentation;
+    [Test]
+    [Category('Quick')]
+    procedure TestDateTimeValidateString;
   end;
 
 var
@@ -984,6 +987,48 @@ begin
     Assert.IsFalse(TimeAttr.IsNull, 'TBATime should not be null after setting <NOW>');
   finally
     TimeAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestDateTimeValidateString;
+var
+  DateTimeAttr: TBADateTime;
+  DateAttr: TBADate;
+begin
+  // Test TBADateTime.ValidateString
+  DateTimeAttr := TBADateTime.Create;
+  try
+    // Empty string - valid if nullable
+    Assert.IsTrue(DateTimeAttr.ValidateString('', brDefault), 'TBADateTime empty string should be valid');
+
+    // <NOW> keyword
+    Assert.IsTrue(DateTimeAttr.ValidateString('<NOW>', brDefault), 'TBADateTime <NOW> should be valid');
+
+    // Valid datetime string
+    Assert.IsTrue(DateTimeAttr.ValidateString(DateTimeToStr(Now), brDefault), 'TBADateTime valid datetime should be valid');
+
+    // Invalid string - triggers exception path
+    Assert.IsFalse(DateTimeAttr.ValidateString('invalid', brDefault), 'TBADateTime invalid string should be invalid');
+  finally
+    DateTimeAttr.Free;
+  end;
+
+  // Test TBADate.ValidateString
+  DateAttr := TBADate.Create;
+  try
+    // Empty string - valid if nullable
+    Assert.IsTrue(DateAttr.ValidateString('', brDefault), 'TBADate empty string should be valid');
+
+    // <NOW> keyword
+    Assert.IsTrue(DateAttr.ValidateString('<NOW>', brDefault), 'TBADate <NOW> should be valid');
+
+    // Valid date string
+    Assert.IsTrue(DateAttr.ValidateString(DateToStr(Now), brDefault), 'TBADate valid date should be valid');
+
+    // Invalid string - triggers exception path
+    Assert.IsFalse(DateAttr.ValidateString('invalid', brDefault), 'TBADate invalid string should be invalid');
+  finally
+    DateAttr.Free;
   end;
 end;
 

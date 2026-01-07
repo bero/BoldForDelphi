@@ -539,6 +539,7 @@ type
     function IsSameValue(Value: TDateTime): boolean; virtual; abstract;
     function MaySetValue(NewValue: TDateTime; Subscriber: TBoldSubscriber): Boolean; virtual;
     function StrToDateTimeValue(const Value: string): TDateTime; virtual; abstract;
+    function GetFormatName: string; virtual; abstract;
     procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); override;
     property AsDate: TDateTime read GetAsDate write SetAsDate;
     property AsTime: TDateTime read GetAsTime write SetAsTime;
@@ -559,6 +560,7 @@ type
     procedure SetEmptyValue; override;
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
     function IsNullOrZero: boolean; override;
+    function ValidateString(const Value: string; Representation: TBoldRepresentation): Boolean; override;
   end;
 
   {---TBADateTime---}
@@ -574,6 +576,7 @@ type
     procedure AssignContentValue(const Source: IBoldValue); override;
     function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
     function StrToDateTimeValue(const Value: string): TDateTime; override;
+    function GetFormatName: string; override;
     function GetProxy(Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
     function GetFreeStandingClass: TBoldFreeStandingElementClass; override;
   public
@@ -588,7 +591,6 @@ type
     property Days;
     property Months;
     property Years;
-    function ValidateString(const Value: string; Representation: TBoldRepresentation): Boolean; override;
     function ValidateCharacter(C: Char; Representation: TBoldRepresentation): Boolean; override;
     function ProxyInterface(const IId: TGUID; Mode: TBoldDomainElementProxyMode; out Obj): Boolean; override;
   end;
@@ -605,13 +607,13 @@ type
     function IsSameValue(Value: TDateTime): boolean; override;
     procedure AssignContentValue(const Source: IBoldValue); override;
     function StrToDateTimeValue(const Value: string): TDateTime; override;
+    function GetFormatName: string; override;
     function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
     function GetProxy(Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
     function GetFreeStandingClass: TBoldFreeStandingElementClass; override;
   public
     constructor CreateWithValue(Value: TDateTime);
     procedure AssignValue(const Source: IBoldValue); override;
-    function ValidateString(const Value: string; Representation: TBoldRepresentation): Boolean; override;
     function ValidateCharacter(C: Char; Representation: TBoldRepresentation): Boolean; override;
     function ProxyInterface(const IId: TGUID; Mode: TBoldDomainElementProxyMode; out Obj): Boolean; override;
     property AsDate;
@@ -634,13 +636,13 @@ type
     function IsSameValue(Value: TDateTime): boolean; override;
     procedure AssignContentValue(const Source: IBoldValue); override;
     function StrToDateTimeValue(const Value: string): TDateTime; override;
+    function GetFormatName: string; override;
     function GetStringRepresentation(Representation: TBoldRepresentation): string; override;
     function GetProxy(Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
     function GetFreeStandingClass: TBoldFreeStandingElementClass; override;
   public
     constructor CreateWithValue(Value: TDateTime);
     procedure AssignValue(const Source: IBoldValue); override;
-    function ValidateString(const Value: string; Representation: TBoldRepresentation): Boolean; override;
     function ValidateCharacter(C: Char; Representation: TBoldRepresentation): Boolean; override;
     function ProxyInterface(const IId: TGUID; Mode: TBoldDomainElementProxyMode; out Obj): Boolean; override;
     property AsTime;
@@ -3799,6 +3801,24 @@ begin
   result := (VarType(Value) in [varDate, varDouble, varInteger, varInt64]);
 end;
 
+function TBAMoment.ValidateString(const Value: string; Representation: TBoldRepresentation): Boolean;
+begin
+  try
+    if Value = '' then
+      Result := CanSetToNull(nil)
+    else if UpperCase(Value) = DEFAULTNOW then
+      Result := True
+    else
+    begin
+      StrToDateTimeValue(Value);
+      Result := True;
+    end;
+  except
+    Result := False;
+    FormatFailure(Value, GetFormatName);
+  end;
+end;
+
 { TBADateTime }
 
 function TBADateTime.StrToDateTimeValue(const Value: string): TDateTime;
@@ -3821,22 +3841,9 @@ begin
   Result := CharInSet(C, ['0'..'9', ' ', {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}TimeSeparator, {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DateSeparator]);
 end;
 
-function TBADateTime.ValidateString(const Value: string; Representation: TBoldRepresentation): Boolean;
+function TBADateTime.GetFormatName: string;
 begin
-  try
-    if value = '' then
-      result := CanSetToNull(nil)
-    else if upperCase(Value) = DEFAULTNOW then
-      result := true
-    else
-    begin
-      StrToDateTime(Value);
-      Result := True;
-    end;
-  except
-    Result := False;
-    FormatFailure(value, 'datetime'); // do not localize
-  end;
+  Result := 'datetime'; // do not localize
 end;
 
 {---TBADate---}
@@ -3861,22 +3868,9 @@ begin
   Result := CharInSet(C, ['0'..'9', {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DateSeparator]);
 end;
 
-function TBADate.ValidateString(const Value: string; Representation: TBoldRepresentation): Boolean;
+function TBADate.GetFormatName: string;
 begin
-  try
-    if value = '' then
-      result := CanSetToNull(nil)
-    else if upperCase(Value) = DEFAULTNOW then
-      result := true
-    else
-    begin
-      StrToDate(Value);
-      Result := True;
-    end;
-  except
-    Result := False;
-    FormatFailure(value, 'date'); // do not localize
-  end;
+  Result := 'date'; // do not localize
 end;
 
 {---TBATime---}
@@ -3901,22 +3895,9 @@ begin
   Result := CharInSet(C, ['0'..'9', {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}TimeSeparator]);
 end;
 
-function TBATime.ValidateString(const Value: string; Representation: TBoldRepresentation): Boolean;
+function TBATime.GetFormatName: string;
 begin
-  try
-    if value = '' then
-      result := CanSetToNull(nil)
-    else if upperCase(Value) = DEFAULTNOW then
-      result := true
-    else
-    begin
-      StrToTime(Value);
-      Result := True;
-    end;
-  except
-    Result := False;
-    FormatFailure(value, 'time'); // do not localize
-  end;
+  Result := 'time'; // do not localize
 end;
 
 {---TBAValueSetValue---}
