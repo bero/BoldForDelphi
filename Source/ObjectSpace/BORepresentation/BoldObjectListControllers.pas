@@ -1,4 +1,4 @@
-﻿{ Global compiler directives }
+{ Global compiler directives }
 {$include bold.inc}
 unit BoldObjectListControllers;
 
@@ -851,18 +851,6 @@ var
   end;
   end;
 
-{$IFNDEF NoTransientInstancesOfPersistentClass}
-  procedure AddTransientFromSystem(List:TBoldObjectIdList);
-  var
-    Locator: TBoldObjectLocator;
-  begin
-    if not BoldSystem.Locators.IsEmpty then
-    for Locator in BoldSystem.Locators do
-      if assigned(Locator.BoldObject) and not Locator.BoldObject.BoldPersistent and Locator.BoldObject.BoldClassTypeInfo.BoldIsA(ClassTypeinfo) then
-        List.Add(Locator.BoldObjectID);
-  end;
-{$ENDIF}
-
 var
   I: Integer;
   NewList: TBoldObjectIdlist;
@@ -891,9 +879,6 @@ begin
           ((TheObject.BoldExistenceState = besExisting) and (TheObject.BoldPersistenceState = bvpsModified)) then
           NewList.add(TheObject.BoldObjectLocator.BoldObjectID)
       end;
-{$IFNDEF NoTransientInstancesOfPersistentClass}
-      AddTransientFromSystem(NewList);
-{$ENDIF}
     end;
   for I := GetCount - 1 downto 0 do
     if not NewList.IdInList[GetLocator(I).BoldObjectID] then

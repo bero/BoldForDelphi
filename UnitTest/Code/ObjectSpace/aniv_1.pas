@@ -1,4 +1,4 @@
-﻿unit aniv_1;
+unit aniv_1;
 
 {$include bold.inc}
 
@@ -771,7 +771,7 @@ begin
 
   NewObj := TClassA.Create(dm_aniv_test1.BoldSystemHandle1.System);
 
-  TransientObj := TClassA.Create(dm_aniv_test1.BoldSystemHandle1.System, {$IFDEF NoTransientInstancesOfPersistentClass}True{$ELSE}False{$ENDIF});
+  TransientObj := TClassA.Create(dm_aniv_test1.BoldSystemHandle1.System, True);
   DeleteObj.aString := NEW_STRING;
   DeleteObj.Delete;
   ModifiedObj.aString := NEW_STRING;
@@ -1431,18 +1431,9 @@ begin
 end;
 
 procedure TAniv_Various.TransientAttributeWithInitialValue;
-{$IFNDEF NoTransientInstancesOfPersistentClass}
-var
-  aThing: TThing;
-{$ENDIF}  
 begin
+  // Test removed: Transient instances of persistent classes are no longer allowed
   EnsureDM;
-  {$IFNDEF NoTransientInstancesOfPersistentClass}
-  aThing := TThing.Create(dm_aniv_test1.BoldSystemHandle1.System, false);
-  assert(not aThing.BoldDirty, 'Object is dirty');
-  assert(not aThing.M_aTransient.BoldDirty, 'Attribute is dirty');
-  assert(dm_aniv_test1.BoldSystemHandle1.System.DirtyObjects.Count = 0, 'System has dirty objects');
-  {$ENDIF}
 end;
 
 { TAniv_ParentChild }

@@ -1,4 +1,4 @@
-﻿{ Global compiler directives }
+{ Global compiler directives }
 {$include bold.inc}
 
 unit BoldSystem;
@@ -4867,10 +4867,8 @@ end;
 constructor TBoldObject.InternalCreateNewWithClassAndSystem(
   ClassTypeInfo: TBoldClassTypeInfo; aSystem: TBoldSystem; Persistent: Boolean);
 begin
-{$IFDEF NoTransientInstancesOfPersistentClass}
   if not Persistent and ClassTypeInfo.Persistent and aSystem.BoldPersistent then
-    raise EBold.Create('Transient instance of persistent class not allowed due to conditional define NoTransientInstancesOfPersistentClass.');
-{$ENDIF}
+    raise EBold.Create('Transient instance of persistent class not allowed.');
   IsEffectiveInvalidKnown := false;
   if not aSystem.CanCreateObject(ClassTypeInfo) then
     BoldRaiseLastFailure(aSystem, 'InternalCreateNewWithClassAndSystem', // do not localize

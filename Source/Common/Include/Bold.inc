@@ -1,4 +1,4 @@
-﻿{$I BoldDelphiVer.inc}
+{$I BoldDelphiVer.inc}
 
 {$WARN SYMBOL_PLATFORM OFF}
 {$WARN UNIT_PLATFORM OFF}
@@ -136,9 +136,8 @@ Illegal symbol combination
   // Turns off query mechanism
 {$DEFINE BOLD_NO_QUERIES}
 
-  // Do not allow creation of transient instances of a persistent class.
-  // This is rarely used and if explicitly prohibited allows TBoldClassListController to not have to execute AddTransientFromSystem
-{$DEFINE NoTransientInstancesOfPersistentClass}
+  // Transient instances of persistent classes are not allowed.
+  // This simplifies TBoldClassListController by not having to execute AddTransientFromSystem.
 
   // Do not allow adding of objects from different systems to same list
 {.$DEFINE AllowCrossSystemLists}
@@ -228,7 +227,6 @@ Illegal symbol combination
 {$IFNDEF Attracs}
   {$DEFINE NoAutoSubscription}
   {$UNDEF SpanFetch}
-  {$UNDEF NoTransientInstancesOfPersistentClass}
   {$UNDEF CompareToOldValues}
   {$DEFINE NoObjectSpaceTransactions}
   {$DEFINE NoMayUpdate}
