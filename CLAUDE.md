@@ -44,8 +44,23 @@ Write-Host "  DUnitX: $env:DUnitX" -ForegroundColor Gray
 # Build test project
 C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "UnitTest\UnitTest.dproj"
 
-# Run only the new test
-UnitTest\UnitTest.exe --run:TestFixtureName.TestMethodName
+# Run only the new test (see syntax below)
+UnitTest\UnitTest.exe --run:UnitName.ClassName.TestMethodName
+```
+
+### Running Specific Tests
+
+The `--run` filter uses the full namespace path `UnitName.ClassName[.TestName]`:
+
+```powershell
+# Run ALL tests in a test class
+.\UnitTest.exe --run:Test.BoldPMappersDefault.TTestBoldPMappersDefault
+
+# Run ONE specific test
+.\UnitTest.exe --run:Test.BoldPMappersDefault.TTestBoldPMappersDefault.TestMockQueryWithBoldDbTypeField
+
+# Run with quiet output
+.\UnitTest.exe --run:Test.BoldDBInterfacesMock.TTestBoldDBInterfacesMock --consolemode:Quiet
 ```
 
 #### 4. Make the Source Change

@@ -122,6 +122,7 @@
         <DCCReference Include="Code\Persistence\Test.BoldPersistenceHandleDB.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMapperLists.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSQLMappingInfo.pas"/>
+        <DCCReference Include="Code\PMapper\Test.BoldPMappersDefault.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUtils.pas"/>
         <DCCReference Include="Code\Persistence\Test.PersistenceFireDAC.pas"/>
         <DCCReference Include="Code\Common\Test.BoldGUIDUtils.pas"/>

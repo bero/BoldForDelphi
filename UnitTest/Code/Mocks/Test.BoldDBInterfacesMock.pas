@@ -187,6 +187,7 @@ begin
 
   // Verify - this should pass
   MockDb.Verify('GetQuery should be called exactly 3 times');
+  Assert.Pass('Mock expectations verified successfully');
 end;
 
 procedure TTestBoldDBInterfacesMock.TestMockWillExecute;

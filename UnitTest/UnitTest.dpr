@@ -54,6 +54,7 @@ uses
   Test.BoldPersistenceHandleDB in 'Code\Persistence\Test.BoldPersistenceHandleDB.pas',
   Test.BoldPMapperLists in 'Code\PMapper\Test.BoldPMapperLists.pas',
   Test.BoldSQLMappingInfo in 'Code\PMapper\Test.BoldSQLMappingInfo.pas',
+  Test.BoldPMappersDefault in 'Code\PMapper\Test.BoldPMappersDefault.pas',
   Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas',
   Test.PersistenceFireDAC in 'Code\Persistence\Test.PersistenceFireDAC.pas',
   Test.BoldGUIDUtils in 'Code\Common\Test.BoldGUIDUtils.pas',
