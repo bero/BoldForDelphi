@@ -25,6 +25,35 @@ Bold for Delphi is best suited for:
 - Delphi 12.1 Athens (packages/Delphi29.1/)
 - Delphi 11.x Alexandria (packages/Delphi28/)
 
+## Dependencies
+
+### Platform
+
+Bold for Delphi is **Windows only** (Win32/Win64). It is not compatible with cross-platform targets (Linux, macOS, iOS, Android).
+
+### Runtime Dependencies
+
+Bold for Delphi has **no external runtime dependencies**. All required functionality is included in the source.
+
+### Database Adapters
+
+| Adapter | Package | Notes |
+|---------|---------|-------|
+| FireDAC | Built-in | Recommended. Included with Delphi |
+| UniDAC | Optional | Requires [UniDAC](https://www.devart.com/unidac/) license. Set `UniDAC` environment variable |
+
+### Unit Test Dependencies
+
+The unit test project requires these external frameworks (not needed for production use):
+
+| Dependency | Path | Purpose |
+|------------|------|---------|
+| [DUnitX](https://github.com/VSoftTechnologies/DUnitX) | `C:\Attracs\DUnitX\Source` | Unit testing framework |
+| [Delphi-Mocks](https://github.com/VSoftTechnologies/Delphi-Mocks) | `C:\Attracs\Delphi-Mocks\Source` | Mocking framework for interface testing |
+| [DelphiCodeCoverage](https://github.com/DelphiCodeCoverage/DelphiCodeCoverage) | `C:\Attracs\DelphiCodeCoverage\` | Code coverage reporting |
+
+Environment variables `DUnitX` and `DelphiMocks` are set automatically by `run_coverage.ps1`.
+
 ## Building
 
 ### Prerequisites
