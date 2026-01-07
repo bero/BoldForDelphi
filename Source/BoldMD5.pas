@@ -1,4 +1,4 @@
-﻿
+
 /////////////////////////////////////////////////////////
 //                                                     //
 //              Bold for Delphi                        //
@@ -33,7 +33,6 @@ documentation and/or software. *)
 interface
 
 uses
-  Classes,
   BoldDefs;
 
 type
@@ -71,8 +70,6 @@ type
     procedure Update(const Data: TBoldAnsiString); overload;
     property DigestData: TBoldMD5DigestData read GetDigestData;
     class function Test(Data, CorrectDigest: TBoldAnsiString): Boolean;
-    class function DigestString(const S: TBoldAnsiString): TBoldMD5DigestStr;
-    class function DigestStream(const Source: TStream): TBoldMD5DigestStr;
     class procedure SelfTest;
   end;
 
@@ -286,48 +283,6 @@ begin
     Result.DigestStr[2+i shl 1]:= hc[fDigest[i] and $F]
   end;
   TBoldMD5Digest(Result.DigestInteger):= fDigest
-end;
-
-class function TBoldMD5.DigestString(const S: TBoldAnsiString): TBoldMD5DigestStr;
-var
-  MD5: TBoldMD5;
-begin
-  Result:= '';
-  MD5:= TBoldMD5.Create;
-  if Length(S)>0 then
-    MD5.Update(S[1], Length(S));
-  Result:= MD5.DigestData.DigestStr;
-  MD5.Free;
-end;
-
-class function TBoldMD5.DigestStream(const Source: TStream): TBoldMD5DigestStr;
-const
-  MaxBufSize = $F000;
-var
-  MD5: TBoldMD5;
-  BufSize, N: Integer;
-  Buffer: PAnsiChar;
-  Count: Int64;
-begin
-  Result:= '';
-  MD5:= TBoldMD5.Create;
-  Source.Position := 0;
-  Count := Source.Size;
-  if Count > MaxBufSize then BufSize := MaxBufSize else BufSize := Count;
-  GetMem(Buffer, BufSize);
-  try
-    while Count <> 0 do
-    begin
-      if Count > BufSize then N := BufSize else N := Count;
-      Source.ReadBuffer(Buffer^, N);
-      MD5.Update(Buffer^, N);
-      Dec(Count, N);
-    end;
-    Result:= MD5.DigestData.DigestStr;
-  finally
-    FreeMem(Buffer, BufSize);
-    MD5.Free;
-  end;
 end;
 
 class function TBoldMD5.Test(Data, CorrectDigest: TBoldAnsiString): Boolean;
