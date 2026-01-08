@@ -75,6 +75,17 @@ powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\run_
 - All tests pass
 - Changed code is now covered in the coverage report
 
+#### 7. Upload Coverage to Codecov.io (optional)
+```powershell
+# Convert coverage to Codecov JSON format
+powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\Convert-ToCodecovJson.ps1"
+
+# Upload (requires codecov.exe in repo root and CODECOV_TOKEN env var)
+./codecov.exe -f "UnitTest/codecov.json"
+```
+
+See `CODECOV_SETUP.md` for full details.
+
 **Summary**: Test-first for bugfixes (test fails then passes), test-first for refactoring (test passes before and after).
 
 ### Git Commit Messages
