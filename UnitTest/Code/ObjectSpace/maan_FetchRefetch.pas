@@ -32,7 +32,7 @@ type
     procedure TestFetchModifiedAttribute;
     [Test]
     [Category('Slow')]
-    [Ignore('Fix: Change bdepContents to bdepPMIn at BoldLinks.pas:742 TBoldDirectMultiLinkController.MakeDbCurrent')]
+    [Ignore('EmbeddedSingleLinks not populated when FetchFromClassList uses bdepContents - needs investigation')]
     procedure TestFetchEmbeddedRoleInvalid;
     [Test]
     [Category('Slow')]
@@ -42,7 +42,7 @@ type
     procedure TestFetchEmbeddedRoleCurrent;
     [Test]
     [Category('Slow')]
-    [Ignore('BoldUndoHandler.pas:305 - HandleMember passes RegardAsExisting=true, forcing besExisting state')]
+    [Ignore('Complex multi-system test - needs investigation')]
     procedure TestFetchNonEmbeddedRoleInvalid;
   end;
 
