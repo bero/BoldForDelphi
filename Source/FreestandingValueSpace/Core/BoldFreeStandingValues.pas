@@ -434,6 +434,8 @@ type
     function GetId1: TBoldObjectID;
     function GetId2: TBoldObjectID;
   protected
+    function GetStringRepresentation(representation: integer): String; override;
+    function GetContentAsString: String; override;
     procedure AssignContentValue(const Source: IBoldValue); override;
     function GetStreamName: String; override;
     procedure ApplyTranslationList(TranslationList: TBoldIdTranslationList); override;
@@ -1323,6 +1325,25 @@ end;
 function TBFSObjectIdRefPair.GetId2: TBoldObjectID;
 begin
   Result := GetIdByIndex(1);
+end;
+
+function TBFSObjectIdRefPair.GetStringRepresentation(representation: integer): String;
+
+  function IdToString(Id: TBoldObjectId): string;
+  begin
+    if Assigned(Id) then
+      Result := Id.AsString
+    else
+      Result := '<nil>';
+  end;
+
+begin
+  Result := IdToString(Id1) + ', ' + IdToString(Id2);
+end;
+
+function TBFSObjectIdRefPair.GetContentAsString: String;
+begin
+  Result := GetStringRepresentation(brDefault);
 end;
 
 {--- TBFSObjectIdListref ---}
