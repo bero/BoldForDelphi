@@ -32,21 +32,8 @@ Create a unit test that covers the code you're about to change:
 - For **refactoring**: Write a test that passes with current code
 - For **bugfix**: Write a test that FAILS with current code (demonstrates the bug)
 
-#### 3. Run New Test Only
-Build and run just the new test to verify it works as expected:
-```powershell
-
-# Set DUnitX environment variable (must be after rsvars.bat capture)
-
-$env:DUnitX = "C:\Attracs\DUnitX\Source"
-Write-Host "  DUnitX: $env:DUnitX" -ForegroundColor Gray
-
-# Build test project
-C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "UnitTest\UnitTest.dproj"
-
-# Run only the new test (see syntax below)
-UnitTest\UnitTest.exe --run:UnitName.ClassName.TestMethodName
-```
+#### 3. Building Unit Tests (MANDATORY - USE EXACTLY)
+powershell -Command "& {  = 'C:\Attracs\DUnitX\Source';  = 'C:\Attracs\Delphi-Mocks\Source'; & 'C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1' -Projectfile 'UnitTest\UnitTest.dproj' }"
 
 ### Running Specific Tests
 
@@ -93,6 +80,11 @@ powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\run_
 ### Git Commit Messages
 
 Do not include Claude references in git commit messages. No "Generated with Claude", no "Co-Authored-By: Claude", and no similar attributions.
+
+### File Encoding
+
+- **New Delphi units**: Always use UTF-8 with BOM
+- **Existing units**: Convert to UTF-8 with BOM when modifying the file
 
 ### Writing Unit Tests
 
