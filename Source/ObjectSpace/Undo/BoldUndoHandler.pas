@@ -1,4 +1,4 @@
-﻿
+
 { Global compiler directives }
 {$include bold.inc}
 unit BoldUndoHandler;
@@ -302,11 +302,7 @@ begin
   FSObjectContents := FSValueSpace.GetFSObjectContentsByObjectId(ObjectId);
   if not Assigned(FSObjectContents) then
   begin
-    // TODO: Passing true for RegardAsExisting forces BoldExistenceState to besExisting,
-    // even for newly created objects where it should be besNotCreated.
-    // Fix: HandleObject(ObjectContents, ObjectContents.BoldExistenceState = besExisting);
-    // Tests: maan_Modify.pas, maan_Undo.pas, maan_FetchRefetch.pas
-    HandleObject(ObjectContents, true);
+    HandleObject(ObjectContents, ObjectContents.BoldExistenceState = besExisting);
     FSObjectContents := FSValueSpace.GetFSObjectContentsByObjectId(ObjectId);
   end;
   if not Assigned(FSObjectContents) or (MemberIndex >= FSObjectContents.memberCount) or not Assigned(FSObjectContents.ValueByIndex[MemberIndex]) then

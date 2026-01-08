@@ -1,3 +1,0 @@
-Common: Connection, ConnectionHandles, Core, GUIUtils,  Handles, Licensing, Logging, Streaming, Subscription, Support, Threads
-CommonCOM: COM, ConnectionCOM
-CommonIDE: IDE
