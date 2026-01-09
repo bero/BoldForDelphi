@@ -36,7 +36,6 @@ type
     function GetUndoHandler: TBoldUndoHandler;
     procedure RefreshSystem;
     procedure UpdateDatabase;
-    procedure SetupParentChildRelationships;
     // Helper methods for verification
     procedure StoreValue(const Member: TBoldMember);
     function GetStoredValueOfMember(const Member: TBoldMember): IBoldValue;
@@ -252,15 +251,6 @@ end;
 procedure TTestBoldUndoHandler.UpdateDatabase;
 begin
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-end;
-
-procedure TTestBoldUndoHandler.SetupParentChildRelationships;
-begin
-  GenerateObjects(System, 'SomeClass', 4);
-  UpdateDatabase;
-  FetchClassSorted(System, FSomeClassList, TSomeClass);
-  FSomeClassList[1].parent := FSomeClassList[0];
-  FSomeClassList[3].parent := FSomeClassList[2];
 end;
 
 procedure TTestBoldUndoHandler.SetSimpleConfiguration;
