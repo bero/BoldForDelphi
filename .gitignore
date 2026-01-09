@@ -56,3 +56,5 @@ BoldDemo.xml
 
 # Windows nul device file accidentally created
 nul
+# MkDocs generated site
+site/
