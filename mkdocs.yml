@@ -75,6 +75,7 @@ nav:
     - TBoldMember: classes/TBoldMember.md
     - TBoldAttribute: classes/TBoldAttribute.md
   - FAQ: faq.md
+  - Contributing: contributing.md
 
 extra:
   social:
