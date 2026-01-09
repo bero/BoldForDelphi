@@ -1,8 +1,8 @@
 site_name: Bold for Delphi
 site_description: Documentation for Bold for Delphi - Model-Driven Architecture (MDA) and ORM Framework
-site_url: https://ArtDabbler.github.io/BoldForDelphi/
-repo_url: https://github.com/ArtDabbler/BoldForDelphi
-repo_name: ArtDabbler/BoldForDelphi
+site_url: https://bero.github.io/BoldForDelphi/
+repo_url: https://github.com/bero/BoldForDelphi
+repo_name: bero/BoldForDelphi
 
 theme:
   name: material
@@ -79,4 +79,4 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/ArtDabbler/BoldForDelphi
+      link: https://github.com/bero/BoldForDelphi

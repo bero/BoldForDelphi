@@ -61,7 +61,7 @@ end;
 
 ## Resources
 
-- [GitHub Repository](https://github.com/ArtDabbler/BoldForDelphi)
+- [GitHub Repository](https://github.com/bero/BoldForDelphi)
 - [Bold for Delphi Wiki](https://delphi.fandom.com/wiki/Bold_for_Delphi)
 - [Bold Blog](http://boldfordelphi.blogspot.com/)
 - [Discord Community](https://discord.gg/C6frzsn)

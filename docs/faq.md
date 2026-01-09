@@ -284,6 +284,6 @@ Yes, but you need to:
 
 ## Resources
 
-- [GitHub Repository](https://github.com/ArtDabbler/BoldForDelphi)
+- [GitHub Repository](https://github.com/bero/BoldForDelphi)
 - [Bold Wiki](https://delphi.fandom.com/wiki/Bold_for_Delphi)
 - [Discord Community](https://discord.gg/C6frzsn)
