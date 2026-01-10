@@ -2,57 +2,83 @@
 
 ## Prerequisites
 
-- Delphi 11.3 Alexandria, 12.x Athens, or 13+
-- Git (for cloning the repository)
+- **Delphi 11.3, 12.1 CE, 12.3, or 13**
+- **Database**: SQLite (easiest), SQL Server, PostgreSQL, Firebird, MariaDB/MySQL, or Oracle
+- **Git** (for cloning the repository)
 
-## Clone the Repository
+## Step 1: Get the Source
 
 ```bash
-git clone https://github.com/ArtDabbler/BoldForDelphi.git
+git clone https://github.com/bero/BoldForDelphi.git
 ```
 
-## Build the Packages
+Or download and extract to a folder like `C:\BoldForDelphi`.
 
-Bold uses relative paths, so no environment variables are required for basic setup.
+## Step 2: Install the Packages
 
-### Using PowerShell Build Script
+### Option A: Download Pre-built Binaries (Recommended)
 
-```powershell
-# Build for Delphi 12.3
-C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 `
-  -Projectfile "packages\Delphi29.3\dclBold.dproj" `
-  -DelphiVersion "23.0" `
-  -VerboseOutPut
-```
+1. Download the binary package for your Delphi version from:
+   [https://github.com/bero/BoldForDelphi/releases/](https://github.com/bero/BoldForDelphi/releases/)
 
-### Manual Build
+2. Extract to `packages\Bin\`
 
-1. Open Delphi IDE
-2. Open the package group for your Delphi version:
-   - Delphi 11.3: `packages\Delphi28\`
-   - Delphi 12.1: `packages\Delphi29.1\`
-   - Delphi 12.3: `packages\Delphi29.3\`
-3. Build and install `dclBold.dpk`
+3. In Delphi: **Component → Install Packages...**
 
-## Package Structure
+4. Click **Add** and select the BPL file for your Delphi version
 
-| Package | Type | Purpose |
-|---------|------|---------|
-| `dclBold.dpk` | Design-time | Core Bold components |
-| `dclBoldUniDAC.dpk` | Design-time | UniDAC database adapter |
-| `dclBoldDevEx.dpk` | Design-time | DevExpress integration |
+### Option B: Build from Source
 
-## Optional: UniDAC Support
+Building from source gives you the latest version or lets you use Bold with unsupported Delphi versions.
 
-For UniDAC database adapter support, set the `UniDAC` environment variable:
+1. Open the package file for your Delphi version:
 
-1. In Delphi: **Tools > Options > Environment Variables**
-2. Add `UniDAC` pointing to your UniDAC installation root
+| Delphi Version | Package Path |
+|----------------|--------------|
+| Delphi 11.3 | `packages\Delphi28\dclBold.dpk` |
+| Delphi 12.1 | `packages\Delphi29.1\dclBold.dpk` |
+| Delphi 12.3 | `packages\Delphi29.3\dclBold.dpk` |
+| Delphi 13 | `packages\Delphi30\dclBold.dpk` |
+
+2. Build the package (Shift+F9)
+
+3. Right-click the BPL file in the Project Manager and choose **Install**
+
+4. Verify via **Component → Install Packages...**
+
+### Using an Unsupported Delphi Version
+
+If your Delphi version is not listed:
+
+1. Copy the folder of the closest supported version (e.g., copy `Delphi30` for Delphi 14)
+2. Rename the folder to match the compiler version (e.g., `Delphi31`)
+3. Open Project Options and update the Lib version in Description
+4. Build and install
+
+!!! tip
+    When you verify everything works, please submit a pull request to include the new package in the repository!
 
 ## Verify Installation
 
-After installation, you should see Bold components in the Delphi component palette:
+After installation, you should see Bold components in the Delphi Tool Palette:
 
-- **Bold Handles** - TBoldSystemHandle, TBoldListHandle, etc.
-- **Bold Controls** - TBoldGrid, TBoldEdit, TBoldComboBox, etc.
-- **Bold Persistence** - TBoldPersistenceHandleDB, etc.
+- **Bold Handles** - TBoldSystemHandle, TBoldListHandle, TBoldExpressionHandle
+- **Bold Controls** - TBoldGrid, TBoldEdit, TBoldComboBox, TBoldNavigator
+- **Bold Persistence** - TBoldPersistenceHandleDB, TBoldDatabaseAdapterFireDAC
+- **Bold Actions** - TBoldActivateSystemAction, TBoldUpdateDBAction
+
+## Troubleshooting
+
+### "Bold.inc not found"
+
+Add `Source\Common\Include` to your project's search path.
+
+### Components not showing in palette
+
+- Verify the BPL is installed: **Component → Install Packages...**
+- Check that all dependent packages are loaded
+
+### Package won't compile
+
+- Ensure you're using the correct package for your Delphi version
+- Check that no older Bold packages are installed

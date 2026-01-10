@@ -21,6 +21,7 @@ theme:
         name: Switch to light mode
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - navigation.expand
     - navigation.top
@@ -31,7 +32,6 @@ theme:
 
 plugins:
   - search
-  - mermaid2
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -74,10 +74,21 @@ nav:
     - TBoldObjectList: classes/TBoldObjectList.md
     - TBoldMember: classes/TBoldMember.md
     - TBoldAttribute: classes/TBoldAttribute.md
+  - Examples: examples/index.md
+  - Development:
+    - Overview: development/index.md
+    - Unit Testing: development/testing.md
+    - Codecov Setup: development/codecov.md
   - FAQ: faq.md
+  - Roadmap: roadmap.md
+  - Changelog: changelog.md
   - Contributing: contributing.md
 
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/bero/BoldForDelphi
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid.js

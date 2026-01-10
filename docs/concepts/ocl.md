@@ -35,20 +35,20 @@ Customer.allInstances->exists(totalPurchases > 10000)
 
 ### Collection Operations
 
-| Operation | Description | Example |
-|-----------|-------------|---------|
-| `->select(expr)` | Filter elements | `orders->select(total > 100)` |
-| `->reject(expr)` | Exclude elements | `orders->reject(cancelled)` |
-| `->collect(expr)` | Transform elements | `orders->collect(total)` |
-| `->exists(expr)` | Any match? | `orders->exists(total > 1000)` |
-| `->forAll(expr)` | All match? | `orders->forAll(paid)` |
-| `->isEmpty` | Collection empty? | `orders->isEmpty` |
-| `->notEmpty` | Collection has items? | `orders->notEmpty` |
-| `->size` | Count elements | `orders->size` |
-| `->first` | First element | `orders->first` |
-| `->last` | Last element | `orders->last` |
-| `->at(n)` | Element at index | `orders->at(0)` |
-| `->includes(x)` | Contains element? | `orders->includes(anOrder)` |
+| Operation | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `->select(expr)` | Collection | Filter elements | `orders->select(total > 100)` |
+| `->reject(expr)` | Collection | Exclude elements | `orders->reject(cancelled)` |
+| `->collect(expr)` | Collection | Transform elements | `orders->collect(total)` |
+| `->exists(expr)` | Boolean | Any match? | `orders->exists(total > 1000)` |
+| `->forAll(expr)` | Boolean | All match? | `orders->forAll(paid)` |
+| `->isEmpty` | Boolean | Collection empty? | `orders->isEmpty` |
+| `->notEmpty` | Boolean | Collection has items? | `orders->notEmpty` |
+| `->size` | Integer | Count elements | `orders->size` |
+| `->first` | Element | First element | `orders->first` |
+| `->last` | Element | Last element | `orders->last` |
+| `->at(n)` | Element | Element at index | `orders->at(0)` |
+| `->includes(x)` | Boolean | Contains element? | `orders->includes(anOrder)` |
 
 ### Aggregation
 
