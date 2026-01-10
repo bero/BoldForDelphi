@@ -43,6 +43,12 @@ Bold for Delphi has **no external runtime dependencies**. All required functiona
 | FireDAC | Built-in | Recommended. Included with Delphi |
 | UniDAC | Optional | Requires [UniDAC](https://www.devart.com/unidac/) license. Set `UniDAC` environment variable |
 
+### GUI Component Integrations
+
+| Integration | Package | Notes |
+|-------------|---------|-------|
+| DevExpress | dclBoldDevEx.dpk | Bold-aware DevExpress components. Requires [DevExpress VCL](https://www.devexpress.com/products/vcl/) license with full source code |
+
 ### Unit Test Dependencies
 
 The unit test project requires these external frameworks (not needed for production use):
@@ -102,6 +108,7 @@ Results are generated in `UnitTest/coverage_report/`. Open `CodeCoverage_summary
 Source/
 ├── BoldAwareGUI/          # GUI components and control packs
 │   ├── BoldControls/      # Visual controls (Grid, Edit, ComboBox, etc.)
+│   ├── BoldDevex/         # DevExpress integration (requires DevExpress license)
 │   ├── ControlPacks/      # Renderer/follower pattern for UI binding
 │   ├── Core/              # GUI base functionality
 ├── Common/                # Shared infrastructure

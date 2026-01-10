@@ -75,6 +75,9 @@ nav:
     - TBoldMember: classes/TBoldMember.md
     - TBoldAttribute: classes/TBoldAttribute.md
   - Examples: examples/index.md
+  - Integrations:
+    - Overview: integrations/index.md
+    - DevExpress: integrations/devexpress.md
   - Development:
     - Overview: development/index.md
     - Unit Testing: development/testing.md
