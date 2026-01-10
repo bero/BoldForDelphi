@@ -2,8 +2,6 @@
 
 {$I cxVer.inc}
 
-//  v2.03 - 25 Jan 2011  2007-2011 Daniel Mauric
-
 interface
 
 uses
@@ -166,7 +164,7 @@ uses
   BoldSystem,
   BoldOcl,
   BoldSystemRT,
-  BoldControlPackDefs;
+  BoldControlPackDefs, BoldControllerListControlPack;
 //  cxEditBoldRegisteredRepositoryItems; //  cxEditDBRegisteredRepositoryItems;
 
 function TcxLookupBoldGridDefaultValuesProvider.IsDisplayFormatDefined(AIsCurrencyValueAccepted: Boolean): Boolean;

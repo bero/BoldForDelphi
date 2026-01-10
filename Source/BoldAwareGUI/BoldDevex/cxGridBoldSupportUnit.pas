@@ -80,6 +80,9 @@ uses
   cxBoldEditors; // for IcxBoldEditProperties, perhaps extract that class to another unit later on and use that instead
 
 type
+  TcxGridBoldListOperation = reference to function(ListObject: TBoldElement): Boolean;
+  TcxGridBoldObjectListOperation = reference to procedure(ObjectList: TBoldObjectList);
+
   TcxGridBoldTableView = class;
   TcxGridBoldColumn = class;
   TcxGridItemBoldDataBinding = class;
@@ -185,8 +188,13 @@ type
 
   TcxBoldDataSummary = class(TcxDataSummary)
   protected
+{$IFDEF BOLD_DELPHI16_OR_LATER}
     procedure CalculateSummary(ASummaryItems: TcxDataSummaryItems; ABeginIndex, AEndIndex: Integer;
       var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues); override;
+{$ELSE}
+    procedure CalculateSummary(ASummaryItems: TcxDataSummaryItems; ABeginIndex, AEndIndex: Integer;
+      var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues; var SummaryValues: Variant); override;
+{$ENDIF}
   end;
 
   TcxGridUserQueryEvent = procedure (Sender: TObject; var Allow: boolean) of object;
@@ -204,7 +212,7 @@ type
     fSelection: TBoldList;
     fBoldAutoColumns: Boolean;
     fDataChanged: boolean;
-    fInvalidating: boolean;
+//    fInvalidating: boolean;
     fFetchedAll: boolean;
     fInternalLoading: boolean;
 //    fBeforeLoad: TNotifyEvent;
@@ -228,18 +236,18 @@ type
     fFocusedDataRecordIndex: integer;
     fNewItemRecordFocusingChanged: boolean;
 {$ENDIF}
-    function GetRecNo: Integer;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
+    function GetRecNo: Integer;
     procedure SetRecNo(const Value: Integer);
-    function GetBoldHandle: TBoldAbstractListHandle;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
+    function GetBoldHandle: TBoldAbstractListHandle;
     function GetBoldHandleIndexLock: Boolean;
     procedure SetBoldHandle(const Value: TBoldAbstractListHandle);
     procedure SetBoldHandleIndexLock(const Value: Boolean);
     procedure SetController(const Value: TBoldListAsFollowerListController);
-    function GetRowFollower(DataRow: Integer): TBoldFollower;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
-    function GetFollower: TBoldFollower;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
-    function GetCellFollower(ARecordIndex, AItemIndex: Integer): TBoldFollower;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
-    function GetSelection: TBoldList; {$IFDEF BOLD_INLINE} inline; {$ENDIF}
-    function GetBoldList: TBoldList; {$IFDEF BOLD_INLINE} inline; {$ENDIF}
+    function GetRowFollower(DataRow: Integer): TBoldFollower;
+    function GetFollower: TBoldFollower;
+    function GetCellFollower(ARecordIndex, AItemIndex: Integer): TBoldFollower;
+    function GetSelection: TBoldList;
+    function GetBoldList: TBoldList;
     procedure SetDataChanged(const Value: boolean);
     procedure FindMinMaxIndex(ListA, ListB: TBoldList; var AFrom, ATo: integer);
     procedure Receive(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
@@ -288,7 +296,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function InDelayScrollUpdate: boolean;
-    function IsProviderMode: Boolean; override;
+    function GetIsProviderMode: Boolean; override;
     function GetRecordCount: Integer; override;
     procedure Cancel; override;
     procedure AdjustActiveRange(aList: TBoldList = nil; aItem: integer = -1); overload; virtual;
@@ -310,7 +318,7 @@ type
     property LoadAll: boolean read fLoadAll write fLoadAll default false;
     property Selection: TBoldList read GetSelection;
     property BoldList: TBoldList read GetBoldList;
-    property CellFollowers[ARecordIndex, AItemIndex: Integer]: TBoldFollower read GetCellFollower;    
+    property CellFollowers[ARecordIndex, AItemIndex: Integer]: TBoldFollower read GetCellFollower;
   published
     property OnInsert: TNotifyEvent read fOnInsert write fOnInsert;
     property OnDelete: TNotifyEvent read fOnDelete write fOnDelete;
@@ -326,12 +334,14 @@ type
     fCreatingColumns: boolean;
     fInternalChange: boolean;
     fTriggerAfterLoad: boolean;
+    FOnPrefetchList: TcxGridBoldObjectListOperation;
     function GetController: TcxCustomGridTableController;
     function GetGridViewValue: TcxCustomGridTableView;
     procedure ConstraintColumnCustomDrawCell(Sender: TcxCustomGridTableView;
       ACanvas: TcxCanvas; AViewInfo: TcxGridTableDataCellViewInfo; var ADone: Boolean);
     procedure ColumnCustomDrawCell(Sender: TcxCustomGridTableView;
       ACanvas: TcxCanvas; AViewInfo: TcxGridTableDataCellViewInfo; var ADone: Boolean);
+    procedure SetOnPrefetchList(const Value: TcxGridBoldObjectListOperation);
   protected
     function GetSummaryItemClass: TcxDataSummaryItemClass; override;
     function GetSummaryGroupItemLinkClass: TcxDataSummaryGroupItemLinkClass; override;
@@ -429,6 +439,7 @@ type
     procedure ForEachRow(ASelectedRows: Boolean; AProc: TcxDataControllerEachRowProc); override;
     property GridView: TcxCustomGridTableView read GetGridViewValue;
     property Controller: TcxCustomGridTableController read GetController;
+    property OnPrefetchList: TcxGridBoldObjectListOperation read FOnPrefetchList write SetOnPrefetchList;
   published
     property BoldProperties;
     property BoldHandle;
@@ -715,7 +726,7 @@ type
   TcxGridBoldBandedTableView = class(TcxGridBandedTableView, IBoldAwareView, IBoldValidateableComponent)
   private
     FPrevFocusedRecordIndex: integer;
-    FPrevFocusedDataRecordIndex: integer;  
+    FPrevFocusedDataRecordIndex: integer;
     procedure HookDragDrop;
     function GetDataController: TcxGridBoldDataController;
     procedure SetDataController(Value: TcxGridBoldDataController);
@@ -740,12 +751,12 @@ type
     procedure DoChanged(AChangeKind: TcxGridViewChangeKind); override;
     procedure DoFocusedRecordChanged(APrevFocusedRecordIndex, AFocusedRecordIndex,
       APrevFocusedDataRecordIndex, AFocusedDataRecordIndex: Integer;
-      ANewItemRecordFocusingChanged: Boolean); override;    
+      ANewItemRecordFocusingChanged: Boolean); override;
 {$IFDEF DelayOnFocusedRecordChange}
     procedure InheritedDoFocusedRecordChanged(APrevFocusedRecordIndex, AFocusedRecordIndex, // a bit ugly
       APrevFocusedDataRecordIndex, AFocusedDataRecordIndex: Integer;
       ANewItemRecordFocusingChanged: Boolean);
-{$ENDIF}    
+{$ENDIF}
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -824,9 +835,13 @@ type
     function GetViewInfoClass: TcxCustomGridViewInfoClass; override;
     procedure DoCustomDrawCell(ACanvas: TcxCanvas; AViewInfo: TcxGridTableDataCellViewInfo;
       var ADone: Boolean); override;
+    procedure Loaded; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function DoMultiSelectAction(Operation: TcxGridBoldListOperation; Reverse: Boolean = False;
+        StopOnFailure: Boolean = False): Boolean;
+    function CanDoMultiSelectAction(CheckOperation: TcxGridBoldListOperation; AllowIfAny: Boolean = True): Boolean;
     property Items[Index: Integer]: IBoldAwareViewItem read GetItem; default;
     property ItemCount: Integer read GetItemCount;
     property Selection: TBoldList read GetSelection;
@@ -971,7 +986,7 @@ uses
   SysUtils,
   Variants,
   Windows,
-  UiTypes,
+{$IFDEF BOLD_DELPHI16_OR_LATER}UiTypes,{$ENDIF}
 
   BoldAFP,
   BoldAttributes,
@@ -1010,7 +1025,7 @@ uses
   cxTimeEdit,
 
 {$IFDEF SpanFetch}
-  BoldSpanFetchManager,
+  AttracsSpanFetchManager,
 {$ENDIF}
   BoldGuard, TypInfo;
 
@@ -1128,7 +1143,7 @@ begin
                   (aItem.properties as TcxSpinEditProperties).SpinButtons.Visible := false;
                   (aItem.Properties as TcxSpinEditProperties).Alignment.Horz := taRightJustify;
                   (aItem.Properties as TcxSpinEditProperties).Increment := 0;
-                  (aItem.Properties as TcxSpinEditProperties).LargeIncrement := 0;                                    
+                  (aItem.Properties as TcxSpinEditProperties).LargeIncrement := 0;
                 end;
                 if lAttributeClass.InheritsFrom(TBAFloat) then
                 begin
@@ -1353,7 +1368,7 @@ var
 begin
   inc(FSkipMakeCellUptoDate);
   try
-    if not AViewInfo.RecordViewInfo.Focused then
+    if not AViewInfo.RecordViewInfo.Focused and Assigned(AViewInfo.RecordViewInfo.GridRecord) then
     begin
       lCellFollower := CellFollowers[AViewInfo.RecordViewInfo.GridRecord.RecordIndex, AViewInfo.Item.Id];
       if Assigned(lCellFollower) then
@@ -1391,7 +1406,7 @@ end;
 
 procedure TcxGridBoldDataController.CreateAllItems(
   AMissingItemsOnly: Boolean);
-  
+
 function ClassTypeHasConstraints(aBoldClassTypeInfo: TBoldClassTypeInfo): boolean;
 var
   lBoldClassTypeInfo: TBoldClassTypeInfo;
@@ -1624,6 +1639,12 @@ begin
   inherited;
 end;
 
+procedure TcxGridBoldDataController.SetOnPrefetchList(
+  const Value: TcxGridBoldObjectListOperation);
+begin
+  FOnPrefetchList := Value;
+end;
+
 type
   TcxCustomGridTableControllerHack = class(TcxCustomGridTableController);
 
@@ -1839,6 +1860,8 @@ procedure TcxGridBoldDataController.PreFetchColumns(AList: TBoldList; aItem: int
     cCollectOcl = 'self->collect(%s)';
 {$ENDIF}
   begin
+    if FetchList.Empty or not TBoldObjectList(FetchList).Locators[0].BoldSystem.BoldPersistent then
+      exit;
     try
   {$IFDEF SpanFetch}
       FetchOclSpan(FetchList, AOcl, AVariableList);
@@ -1856,7 +1879,7 @@ procedure TcxGridBoldDataController.PreFetchColumns(AList: TBoldList; aItem: int
       finally
         IE.free;
       end;
-{$ENDIF}      
+{$ENDIF}
     except
       // ignore all exceptions during prefetch, otherwise the grid view infos will be messed up
     end;
@@ -1877,8 +1900,8 @@ var
   lRowIndex: integer;
   lSameCount: boolean;
   lGuard: IBoldGuard;
-  lTableViewInfo: TcxGridTableViewInfo;
-  lRowsViewInfo: TcxGridRowsViewInfo;
+//  lTableViewInfo: TcxGridTableViewInfo;
+//  lRowsViewInfo: TcxGridRowsViewInfo;
   lVisibleList: TBoldList;
 const
   cCollectOcl = 'self->collect(%s)';
@@ -1904,8 +1927,12 @@ begin
   FetchList.DuplicateMode := bldmAllow;
   FetchList.Capacity := AList.Count;
   IsObjectList := (AList is TBoldObjectList) and (lWholeList is TBoldObjectList);
-  lSameCount := AList.Count = lWholeList.Count;
+//  lSameCount := AList.Count = lWholeList.Count;
   Locator := nil;
+  if IsObjectList and Assigned(FOnPrefetchList) then
+  begin
+    FOnPrefetchList(TBoldObjectList(ALIst));
+  end;
   for i := 0 to AList.Count - 1 do
   begin
 {    if lSameCount then
@@ -1958,6 +1985,8 @@ begin
   end;
 //  if FetchList.Empty then
 //    exit;
+  if Assigned(BoldHandle) and Assigned(BoldHandle.BoldSystem) and not BoldHandle.BoldSystem.BoldPersistent then
+    exit;
   ConnectEvents(false);
   inc(FSkipMakeCellUptoDate);
   try
@@ -1967,9 +1996,11 @@ begin
       lItem := TcxCustomGridTableItem(FindItemByData(i));
       if (aItem = i) or ((aItem = -1) and lItem.ActuallyVisible) {or RequiresAllRecords(lItem)} then
       begin
-        lItem.GetInterface(IBoldAwareViewItem, lBoldAwareViewItem);
-        lOcl := lBoldAwareViewItem.BoldProperties.Expression;
-        Prefetch(FetchList, lOcl, lBoldAwareViewItem.BoldProperties.VariableList);
+        if lItem.GetInterface(IBoldAwareViewItem, lBoldAwareViewItem) then
+        begin
+          lOcl := lBoldAwareViewItem.BoldProperties.Expression;
+          Prefetch(FetchList, lOcl, lBoldAwareViewItem.BoldProperties.VariableList);
+        end;
       end;
     end;
     DisplayFollowers;
@@ -2086,7 +2117,7 @@ begin
     or (lcxCustomGridTableView.GroupedItemCount > 0)
     or (Summary.FooterSummaryItems.Count > 0)
     or (Assigned(Filter) and Filter.Active and (Filter.Root.Count > 0));
-  if not result  then    
+  if not result  then
   for I := 0 to lcxCustomGridTableView.ItemCount - 1 do
     result := result or RequiresAllRecords(lcxCustomGridTableView.Items[i]);
 end;
@@ -2115,11 +2146,12 @@ end;
 constructor TcxGridBoldDataController.Create(AOwner: TComponent);
 begin
   inherited;
+  Filter.Options := Filter.Options + [fcoSoftNull];
 end;
 
 destructor TcxGridBoldDataController.Destroy;
 begin
-  BoldInstalledQueue.RemoveFromPostDisplayQueue(self);
+  TBoldQueueable.RemoveFromPostDisplayQueue(self);
   inherited;
 end;
 
@@ -2127,7 +2159,7 @@ procedure TcxGridBoldDataController.DisplayFollowers;
 var
   Queueable: TBoldQueueable;
 begin
-  if Assigned(Follower) and (Follower.IsInDisplayList {or not Follower.Displayable}) and not (GridView.IsLoading or GridView.IsDestroying) then
+  if Assigned(Follower) and (Follower.IsInDisplayList or not Follower.Displayable) and not (GridView.IsLoading or GridView.IsDestroying) then
   repeat
     Queueable := TBoldFollowerAccess(Follower).MostPrioritizedQueuableOrSelf;
     if Assigned(Queueable) then
@@ -2138,10 +2170,10 @@ end;
 procedure TcxGridBoldDataController.CollectVisibleRecords(var aList: TBoldList);
 var
   i,j: integer;
-  lFollower: TBoldFollower;
+//  lFollower: TBoldFollower;
   lRecordIndex: integer;
   lList: TBoldList;
-  lGuard: IBoldGuard;
+//  lGuard: IBoldGuard;
   lWholeList: TBoldList;
   lRecord: TcxCustomGridRecord;
   IsObjectList: boolean;
@@ -2553,7 +2585,7 @@ begin
   begin
     fTriggerAfterLoad := false;
     OnAfterLoad(GridView)
-  end;  
+  end;
 end;
 
 function TcxGridBoldDataController.BoldSetValue(AItemHandle: TcxDataItemHandle;
@@ -2564,11 +2596,14 @@ var
   lEdit: TcxCustomEdit;
 begin
   result := false;
-  lcxCustomGridTableItem := GetItem(Integer(AItemHandle)) as TcxCustomGridTableItem;
-  if Supports(lcxCustomGridTableItem.GetProperties, IcxBoldEditProperties, lcxBoldEditProperties) then
-  begin
-    lEdit := Controller.EditingController.Edit;
-    lcxBoldEditProperties.SetStoredValue(AValue, nil, lEdit, ACellFollower, result);
+  if Assigned(Controller) and Assigned(Controller.EditingController) then begin
+    lcxCustomGridTableItem := Controller.EditingController.EditingItem;
+  //  lcxCustomGridTableItem := GetItem(Integer(AItemHandle)) as TcxCustomGridTableItem;
+    if Supports(lcxCustomGridTableItem.GetProperties, IcxBoldEditProperties, lcxBoldEditProperties) then
+    begin
+      lEdit := Controller.EditingController.Edit;
+      lcxBoldEditProperties.SetStoredValue(AValue, nil, lEdit, ACellFollower, result);
+    end;
   end;
 end;
 
@@ -2665,10 +2700,14 @@ begin
     Result := inherited GetDisplayText(ARecordIndex, AItemIndex);
   TcxCustomGridTableItemAccess(GridView.Items[AItemIndex]).DoGetDataText(ARecordIndex, Result);
 }
+  Result := '';
   AItemIndex := GridView.Items[AItemIndex].ID;
   EnsureFollower(ARecordIndex, AItemIndex);
   lCellFollower := CellFollowers[ARecordIndex, AItemIndex];
-  result := VarToStr((lCellFollower.Controller as TBoldVariantFollowerController).GetCurrentAsVariant(lCellFollower));
+  if Assigned(lCellFollower) then
+  begin
+    result := VarToStr((lCellFollower.Controller as TBoldVariantFollowerController).GetCurrentAsVariant(lCellFollower));
+  end;
 end;
 
 function TcxGridBoldDataController.GetFilterDataValue(
@@ -3011,7 +3050,7 @@ constructor TcxBoldDataController.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FUseDelayedScrollUpdate := true;
-  fClearColumnsOnTypeChange := true;  
+  fClearColumnsOnTypeChange := true;
   fBoldColumnsProperties := TBoldControllerList.Create(AOwner{GridView});
   fBoldProperties := TBoldListAsFollowerListController.Create(AOwner{GridView}, fBoldColumnsProperties);
   fBoldHandleFollower := TBoldListHandleFollower.Create(AOwner.Owner{Form}, fBoldProperties);
@@ -3105,12 +3144,12 @@ end;
 
 function TcxBoldDataController.MainFollowerNeedsDisplay: boolean;
 begin
-  result := Assigned(Follower) and (Follower.IsInDisplayList or not Follower.Displayable);
+  result := Assigned(BoldHandle) and (Follower.IsInDisplayList or not Follower.Displayable);
 end;
 
 procedure TcxBoldDataController.EnsureEventQueued;
 begin
-  BoldInstalledQueue.AddEventToPostDisplayQueue(ProcessQueueEvent, nil, self)
+  TBoldQueueable.AddToPostDisplayQueue(ProcessQueueEvent, nil, self);
 end;
 
 function TcxBoldDataController.EnsureFollower(ARecordIndex, AItemIndex: integer): boolean;
@@ -3118,12 +3157,12 @@ var
   lMainFollower: TBoldFollower;
   lRowFollower: TBoldFollower;
   lCellFollower: TBoldFollower;
-  lResultElement: TBoldElement;
+//  lResultElement: TBoldElement;
   lItem: TObject;
   lBoldAwareViewItem: IBoldAwareViewItem;
-  lIcxBoldEditProperties: IcxBoldEditProperties;
+//  lIcxBoldEditProperties: IcxBoldEditProperties;
 begin
-  result := false;
+//  result := false;
   lCellFollower := nil;
   lMainFollower := Follower;
   lItem := FindItemByData(AItemIndex);
@@ -3167,15 +3206,15 @@ begin
     if not lRowFollower.Displayable then
       lRowFollower.EnsureDisplayable;
     Assert(lRowFollower.Active, 'lRowFollower.Active');
-    if not lRowFollower.SubFollowerAssigned[AItemIndex] then
-    begin
-  //    AdjustActiveRange(nil, AItemIndex);
-//      if not lRowFollower.SubFollowerAssigned[AItemIndex] then
-        result := false;
-//        AdjustActiveRange(nil, AItemIndex);//      Assert(false);
-  //      lCellFollower := lRowFollower.SubFollowers[AItemIndex];
-  //    Assert(lRowFollower.SubFollowerAssigned[AItemIndex], 'SubFollowerAssigned not assigned');
-    end;
+//    if not lRowFollower.SubFollowerAssigned[AItemIndex] then
+//    begin
+//  //    AdjustActiveRange(nil, AItemIndex);
+////      if not lRowFollower.SubFollowerAssigned[AItemIndex] then
+//        result := false;
+////        AdjustActiveRange(nil, AItemIndex);//      Assert(false);
+//  //      lCellFollower := lRowFollower.SubFollowers[AItemIndex];
+//  //    Assert(lRowFollower.SubFollowerAssigned[AItemIndex], 'SubFollowerAssigned not assigned');
+//    end;
     try
       lRowFollower.EnsureDisplayable;
     except
@@ -3194,10 +3233,10 @@ end;
 
 destructor TcxBoldDataController.Destroy;
 begin
-  BoldInstalledQueue.RemoveFromPostDisplayQueue(Self);
+  TBoldQueueable.RemoveFromPostDisplayQueue(Self);
   fBoldProperties.OnAfterInsertItem := nil;
   fBoldProperties.OnAfterDeleteItem := nil;
-  fBoldProperties.OnReplaceitem := nil;  
+  fBoldProperties.OnReplaceitem := nil;
   FreeAndNil(fBoldHandleFollower);
   FreeAndNil(fBoldProperties);
   CustomDataSource.Free;
@@ -3291,9 +3330,9 @@ end;
 
 procedure TcxBoldDataController._DeleteRow(index: Integer;
   owningFollower: TBoldFollower);
-var
-  vRowIndex: integer;
-  vRecordIndex: integer;
+//var
+//  vRowIndex: integer;
+//  vRecordIndex: integer;
 begin
   DataHasChanged := true;
   if fInDeleteSelection then
@@ -3567,7 +3606,7 @@ begin
     aNewType.SystemTypeInfo.AddSubscription(fSubscriber, beDestroying, beSystemDestroying);
 end;
 
-function TcxBoldDataController.IsProviderMode: Boolean;
+function TcxBoldDataController.GetIsProviderMode: Boolean;
 begin
   result := true;
 end;
@@ -3657,8 +3696,8 @@ begin
 end;
 
 function TcxBoldDataController.GetSelection: TBoldList;
-var
-  ListType: TBoldElementTypeInfo;
+//var
+//  ListType: TBoldElementTypeInfo;
 begin
   if not Assigned(fSelection) then
   begin
@@ -3728,7 +3767,7 @@ var
   lResultElement: TBoldElement;
   lItem: TObject;
   lcxBoldDataController: TcxBoldDataController;
-  lBoldAwareViewItem: IBoldAwareViewItem;
+//  lBoldAwareViewItem: IBoldAwareViewItem;
   lIcxBoldEditProperties: IcxBoldEditProperties;
 begin
   result := null;
@@ -4311,6 +4350,17 @@ begin
   end;
   inherited DoFocusedRecordChanged(APrevFocusedRecordIndex, AFocusedRecordIndex, APrevFocusedDataRecordIndex, AFocusedDataRecordIndex, ANewItemRecordFocusingChanged);
 end;
+
+procedure TcxGridBoldTableView.Loaded;
+//var
+//  i: Integer;
+begin
+  inherited;
+//  for i := 0 to ColumnCount - 1 do begin
+//    Columns[i].DataBinding.Data := TObject(Columns[i].Index);
+//  end;
+end;
+
 {$ENDIF}
 
 procedure TcxGridBoldTableView.DoFocusedRecordChanged(APrevFocusedRecordIndex,
@@ -4338,7 +4388,7 @@ begin
     DataController.fNewItemRecordFocusingChanged := ANewItemRecordFocusingChanged;
   end
   else
-{$ENDIF}  
+{$ENDIF}
   begin
 //    if not TBoldQueueable.IsDisplayQueueEmpty and not TBoldQueueable.IsDisplaying then
 //      TBoldQueueable.DisplayAll;
@@ -4380,6 +4430,58 @@ procedure TcxGridBoldTableView.DoItemsAssigned;
 begin
   DataController.RestructData;
   inherited;
+end;
+
+function TcxGridBoldTableView.DoMultiSelectAction(Operation: TcxGridBoldListOperation; Reverse,
+  StopOnFailure: Boolean): Boolean;
+var
+  i: Integer;
+begin
+  Result := True;
+  BeginUpdate;
+  ShowHourglassCursor;
+  try
+    if Assigned(Selection) and (Selection.Count > 0) then
+    begin
+      if Reverse then
+      begin
+        for i := Selection.Count - 1 downto 0 do
+        begin
+          if not Operation(Selection[i]) then
+          begin
+            Result := False;
+            if StopOnFailure then
+            begin
+              Break;
+            end;
+          end;
+        end;
+      end else
+      begin
+        for i := 0 to Selection.Count - 1 do
+        begin
+          if not Operation(Selection[i]) then
+          begin
+            Result := False;
+            if StopOnFailure then
+            begin
+              Break;
+            end;
+          end;
+        end;
+      end;
+    end else if Assigned(CurrentBoldObject) then
+    begin
+      Operation(CurrentBoldObject);
+    end else if Assigned(DataController) and Assigned(DataController.BoldHandle) and
+        Assigned(DataController.BoldHandle.CurrentElement) then
+    begin
+      Result := Operation(DataController.BoldHandle.CurrentElement);
+    end;
+  finally
+    HideHourglassCursor;
+    EndUpdate;
+  end;
 end;
 
 function TcxGridBoldTableView.GetSelection: TBoldList;
@@ -4465,6 +4567,25 @@ begin
     end;
 end;
 
+function TcxGridBoldTableView.CanDoMultiSelectAction(CheckOperation: TcxGridBoldListOperation;
+  AllowIfAny: Boolean): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  if Assigned(Selection) and (Selection.Count > 0) then
+  begin
+    for i := 0 to Selection.Count - 1 do
+    begin
+      Result := CheckOperation(Selection[i]);
+      if (Result = AllowIfAny) then begin
+        Break;
+      end;
+    end;
+  end;
+end;
+
+
 constructor TcxGridBoldTableView.Create(AOwner: TComponent);
 begin
   inherited;
@@ -4529,7 +4650,7 @@ begin
     DataController.fNewItemRecordFocusingChanged := ANewItemRecordFocusingChanged;
   end
   else
-{$ENDIF}  
+{$ENDIF}
   begin
 //    if not TBoldQueueable.IsDisplayQueueEmpty and not TBoldQueueable.IsDisplaying then
 //      TBoldQueueable.DisplayAll;
@@ -5190,7 +5311,7 @@ begin
       vDataController := TcxGridTableControllerAccess(Controller).DataController as TcxBoldDataController;
       if Assigned(vDataController) and (vDataController.LockCount = 0) then
       begin
-        Case Message.Msg of WM_PAINT, WM_SETFOCUS, WM_KILLFOCUS, WM_WINDOWPOSCHANGING, WM_MOVE, WM_MOUSEMOVE:
+        Case Message.Msg of WM_PAINT, WM_SETFOCUS, WM_KILLFOCUS, WM_WINDOWPOSCHANGING, WM_MOVE, WM_MOUSEMOVE, WM_MOUSEWHEEL:
           if Assigned(vDataController.CustomDataSource) and vDataController.MainFollowerNeedsDisplay then
             vDataController.DisplayFollowers;
         end;
@@ -5974,7 +6095,13 @@ begin
           DisplayFollowers;
     end;
   end;
-  inherited;
+  if (vDataController as TcxBoldDataController).MainFollowerNeedsDisplay then
+  begin
+    Assert(Assigned(self));
+    exit;
+  end;
+  if BoldInstalledQueue.IsActive then
+    inherited;
 end;
 
 { TcxGridBoldBandedTableViewInfo }
@@ -6151,13 +6278,14 @@ end;
 { TcxBoldCustomDataControllerInfo }
 
 procedure TcxBoldCustomDataControllerInfo.DoFilter;
-var
-  i: integer;
-  RootFilter: TcxFilterCriteriaItemList;
-  lList: TBoldList;
-  lDataController: TcxBoldDataController;
+//var
+//  i: integer;
+//  RootFilter: TcxFilterCriteriaItemList;
+//  lList: TBoldList;
+//  lDataController: TcxBoldDataController;
 begin
-  try
+  if BoldInstalledQueue.IsActive then
+{  try
     lDataController := (DataController as TcxBoldDataController);
     lList := lDataController.BoldList;
     RootFilter := (DataController.Filter as TcxFilterCriteria).Root;
@@ -6165,10 +6293,10 @@ begin
       for I := 0 to RootFilter.Count - 1 do
         if RootFilter.Items[i] is TcxDataFilterCriteriaItem then
           lDataController.PreFetchColumns(lList, lDataController.GetItemData(TcxDataFilterCriteriaItem(RootFilter.Items[i]).Field.Item));
-  finally
+  finally}
     inherited;
-  //  SelectionChanged; // ?  
-  end;
+  //  SelectionChanged; // ?
+//  end;
 end;
 
 procedure TcxBoldCustomDataControllerInfo.DoSort;
@@ -6216,8 +6344,14 @@ end;
 { TcxBoldDataSummary }
 
 procedure TcxBoldDataSummary.CalculateSummary(
+{$IFDEF BOLD_DELPHI16_OR_LATER}
   ASummaryItems: TcxDataSummaryItems; ABeginIndex, AEndIndex: Integer;
-  var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues);
+  var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues
+{$ELSE}
+  ASummaryItems: TcxDataSummaryItems; ABeginIndex, AEndIndex: Integer;
+  var ACountValues: TcxDataSummaryCountValues; var ASummaryValues: TcxDataSummaryValues; var SummaryValues: Variant
+{$ENDIF}
+);
 var
   I: Integer;
   lList: TBoldList;
@@ -6258,7 +6392,7 @@ begin
     if Assigned(ASummaryItems[i].Field) then
       with TcxBoldDataController(DataController) do
         PreFetchColumns(lList, GetItemData(ASummaryItems[i].Field.Item));
-  inherited;        
+  inherited;
 end;
 
 initialization
@@ -6279,3 +6413,6 @@ finalization
 //  FilterEditsController.Unregister(TcxSingleLinkEditProperties, TcxFilterSingleLinkEditHelper);
 
 end.
+
+
+

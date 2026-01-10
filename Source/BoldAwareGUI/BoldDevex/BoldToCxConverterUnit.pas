@@ -13,6 +13,8 @@ uses
   BoldGrid,
   BoldMemo,
   BoldLabel,
+  BoldCheckBox,
+  BoldCheckboxStateControlPack,
   Buttons,
   cxBoldEditors,
   cxGridBoldSupportUnit,
@@ -30,6 +32,7 @@ uses
   TypInfo;
 
 type
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TBoldToCxConverter = class(TComponent)
   private
     fBoldToCxConverterForm : TfrmBoldToCxConverter;
@@ -44,6 +47,7 @@ type
     procedure FoundTBoldEdit(aEdit: TBoldEdit);
     procedure FoundTBoldMemo(aMemo: TBoldMemo);
     procedure FoundTBoldLabel(aLabel: TBoldLabel);
+    procedure FoundTBoldCheckBox(aCheckBox: TBoldCheckBox);
     procedure FoundTBoldComboBox(aComboBox : TBoldComboBox);
     procedure FoundTEdit(aEdit: TEdit);
     procedure FoundTLabel(aLabel: TLabel);
@@ -54,6 +58,7 @@ type
     function ConvertTBoldEditToDateEdit(aBoldEdit: TBoldEdit): Boolean;
     function ConvertTBoldMemo(aBoldMemo: TBoldMemo): Boolean;
     function ConvertTBoldLabel(aBoldLabel: TBoldLabel): Boolean;
+    function ConvertTBoldCheckBox(aBoldCheckBox: TBoldCheckBox): Boolean;
     function ConvertTBoldComboBox(aBoldComboBox: TBoldComboBox): Boolean;
     function ConvertTEdit(aEdit: TEdit): Boolean;
     function ConvertTMemo(aMemo: TMemo): Boolean;
@@ -61,7 +66,8 @@ type
     function ConvertTGroupBox(aBox: TGroupBox): Boolean;
     function ConvertTSpeedButton(aButton: TSpeedButton): Boolean;
     procedure CopyPublishedProperties(FromControl, ToControl: TControl);
-    procedure CopyFollowerProperties(FromFollower: TBoldStringFollowerController; ToFollower: TBoldVariantFollowerController);
+    procedure CopyFollowerProperties(FromFollower: TBoldStringFollowerController; ToFollower: TBoldVariantFollowerController); overload;
+    procedure CopyFollowerProperties(FromFollower: TBoldCheckBoxStateFollowerController; ToFollower: TBoldVariantFollowerController); overload;
     procedure CopyBoldComboListControllerProperties(FromComboListController: BoldComboBox.TBoldComboListController; ToComboListController: cxBoldEditors.TBoldComboListController);
     procedure CheckEvents(AEventList: array of string; AObject: TObject);
     function TryRename(aComponent: TComponent): Boolean;
@@ -101,7 +107,9 @@ const
 procedure Register;
 
 implementation
-uses Dialogs, cxGrid,Forms, BoldElements,  CxEdit, CxGridLevel;
+
+uses
+  Dialogs, cxGrid,Forms, BoldElements,  CxEdit, CxGridLevel;
 
 procedure Register;
 begin
@@ -133,6 +141,7 @@ begin
     if (vComponent is TBoldMemo) then FoundTBoldMemo(vComponent as TBoldMemo);
     if (vComponent is TBoldLabel) then FoundTBoldLabel(vComponent as TBoldLabel);
     if (vComponent is TBoldComboBox) then FoundTBoldComboBox(vComponent as TBoldComboBox);
+    if (vComponent is TBoldCheckBox) then FoundTBoldCheckBox(vComponent as TBoldCheckBox);
     if (vComponent is TEdit) then FoundTEdit(vComponent as TEdit);
     if (vComponent is TLabel) then FoundTLabel(vComponent as TLabel);
     if (vComponent is TMemo) then FoundTMemo(vComponent as TMemo);
@@ -156,14 +165,15 @@ begin
         vComponent := fBoldComponents.Objects[I] as TComponent;
         res := false;
         // TODO
-        if vComponent is TBoldGrid then    res := ConvertGrid(vComponent as TBoldGrid);
-        if vComponent is TBoldMemo then    res := ConvertTBoldMemo(vComponent as TBoldMemo);
-        if vComponent is TBoldLabel then   res := ConvertTBoldLabel(vComponent as TBoldLabel);
-        if vComponent is TEdit then        res := ConvertTEdit(vComponent as TEdit);
-        if vComponent is TMemo then        res := ConvertTMemo(vComponent as TMemo);
-        if vComponent is TLabel then       res := ConvertTLabel(vComponent as TLabel);
-        if vComponent is TGroupBox then    res := ConvertTGroupBox(vComponent as TGroupBox);
-        if vComponent is TSpeedButton then res := ConvertTSpeedButton(vComponent as TSpeedButton);
+        if vComponent is TBoldGrid then     res := ConvertGrid(vComponent as TBoldGrid);
+        if vComponent is TBoldMemo then     res := ConvertTBoldMemo(vComponent as TBoldMemo);
+        if vComponent is TBoldLabel then    res := ConvertTBoldLabel(vComponent as TBoldLabel);
+        if vComponent is TBoldCheckBox then res := ConvertTBoldCheckBox(vComponent as TBoldCheckBox);
+        if vComponent is TEdit then         res := ConvertTEdit(vComponent as TEdit);
+        if vComponent is TMemo then         res := ConvertTMemo(vComponent as TMemo);
+        if vComponent is TLabel then        res := ConvertTLabel(vComponent as TLabel);
+        if vComponent is TGroupBox then     res := ConvertTGroupBox(vComponent as TGroupBox);
+        if vComponent is TSpeedButton then  res := ConvertTSpeedButton(vComponent as TSpeedButton);
         if vComponent is TBoldEdit then
         begin
           if GridController.Values[I,3] = 'TcxBoldDateEdit' then
@@ -194,6 +204,12 @@ begin
   fBoldComponents.AddObject(aComponent.Name,aComponent);
   GridController.Values[fBoldComponents.Count - 1, 0] := aComponent.Name;
   GridController.Values[fBoldComponents.Count - 1, 1] := aComponent.ClassName;
+end;
+
+procedure TBoldToCxConverter.FoundTBoldCheckBox(aCheckBox: TBoldCheckBox);
+begin
+  FoundBoldComponent(aCheckBox);
+  GridController.Values[fBoldComponents.Count - 1, 3] := 'TcxBoldCheckBox';
 end;
 
 procedure TBoldToCxConverter.FoundTBoldComboBox(aComboBox: TBoldComboBox);
@@ -312,7 +328,7 @@ begin
   begin
     vComponent := AOwner.Components[I];
     // TODO
-    if (vComponent is TBoldGrid) or (vComponent is TBoldEdit) or (vComponent is TBoldComboBox) or (vComponent is TBoldMemo) or (vComponent is TBoldLabel)
+    if (vComponent is TBoldGrid) or (vComponent is TBoldEdit) or (vComponent is TBoldComboBox) or (vComponent is TBoldCheckBox) or (vComponent is TBoldMemo) or (vComponent is TBoldLabel)
       or (vComponent is TEdit) or (vComponent is TLabel) or (vComponent is TMemo) or (vComponent is TGroupBox) or (vComponent is TSpeedButton)
     then
       Inc(vBoldComponentCount);
@@ -418,6 +434,7 @@ begin
   vCxEdit.PopupMenu := aEdit.PopupMenu;
   vCxEdit.TabOrder := aEdit.TabOrder;
   vCxEdit.TabStop := aEdit.TabStop;
+  vCxEdit.Hint := aEdit.Hint;
 
   vCxEdit.Text := aEdit.Text;
   if aEdit.ReadOnly then
@@ -686,6 +703,36 @@ begin
   result := true;
 end;
 
+function TBoldToCxConverter.ConvertTBoldCheckBox(
+  aBoldCheckBox: TBoldCheckBox): Boolean;
+var
+  vCxCheckBox: TcxBoldCheckBox;
+begin
+  result := false;
+  if not TryRename(aBoldCheckBox) then Exit;
+  vCxCheckBox := TcxBoldCheckBox.Create(aBoldCheckBox.Owner);
+  CopyPublishedProperties(aBoldCheckBox, vCxCheckBox);
+  vCxCheckBox.DataBinding.BoldHandle := aBoldCheckBox.BoldHandle;
+  vCxCheckBox.DataBinding.BoldProperties.Expression := aBoldCheckBox.BoldProperties.Expression;
+  CopyFollowerProperties(aBoldCheckBox.BoldProperties, vCxCheckBox.DataBinding.BoldProperties);
+  vCxCheckBox.Caption := aBoldCheckBox.Caption;
+  vCxCheckBox.Hint := aBoldCheckBox.Hint;
+  vCxCheckBox.Style.BorderStyle := ebsFlat;
+  vCxCheckBox.Style.Color := aBoldCheckBox.Color;
+  vCxCheckBox.DragCursor := aBoldCheckBox.DragCursor;
+  vCxCheckBox.DragKind := aBoldCheckBox.DragKind;
+  vCxCheckBox.DragMode := aBoldCheckBox.DragMode;
+  vCxCheckBox.Style.Font := aBoldCheckBox.Font;
+  vCxCheckBox.ParentColor := aBoldCheckBox.ParentColor;  //??
+  vCxCheckBox.ParentFont := aBoldCheckBox.ParentFont;    //??
+  vCxCheckBox.PopupMenu := aBoldCheckBox.PopupMenu;
+  if aBoldCheckBox.ReadOnly then
+    vCxCheckBox.Properties.ReadOnly := aBoldCheckBox.ReadOnly;
+  vCxCheckBox.TabOrder := aBoldCheckBox.TabOrder;
+  vCxCheckBox.TabStop := aBoldCheckBox.TabStop;
+  result := true;
+end;
+
 function TBoldToCxConverter.ConvertTBoldMemo(aBoldMemo: TBoldMemo): Boolean;
 var
   vCxEdit : TcxBoldMemo;
@@ -730,6 +777,23 @@ begin
     ToFollower.DragMode := DragMode;
     ToFollower.DropMode := DropMode;
     ToFollower.NilRepresentation := NilStringRepresentation;
+    ToFollower.Representation := Representation;
+    ToFollower.Variables := Variables;
+    //Renderer  One is variant and the other stringrenderer
+  end;
+end;
+
+procedure TBoldToCxConverter.CopyFollowerProperties(
+  FromFollower: TBoldCheckBoxStateFollowerController;
+  ToFollower: TBoldVariantFollowerController);
+begin
+  with FromFollower do
+  begin
+    ToFollower.Expression := Expression;
+    ToFollower.ApplyPolicy := ApplyPolicy;
+    ToFollower.CleanOnEqual := CleanOnEqual;
+    ToFollower.DragMode := DragMode;
+    ToFollower.DropMode := DropMode;
     ToFollower.Representation := Representation;
     ToFollower.Variables := Variables;
     //Renderer  One is variant and the other stringrenderer

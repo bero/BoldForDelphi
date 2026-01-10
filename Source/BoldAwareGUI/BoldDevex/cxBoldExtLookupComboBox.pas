@@ -1,11 +1,6 @@
 ﻿unit cxBoldExtLookupComboBox;
-
 {$I cxVer.inc}
-
-//  v2.03 - 25 Jan 2011  2007-2011 Daniel Mauric
-
 interface
-
 uses
 {$IFDEF DELPHI6}
   Variants,
@@ -16,17 +11,17 @@ uses
   cxBoldLookupEdit,
   cxEditConsts, cxGrid, cxGridCustomTableView, cxEdit,
   cxGridCustomView, cxGridStrs, cxGridTableView, cxLookAndFeels, cxLookupEdit,
-
   BoldElements,
   cxBoldEditors,
   cxGridBoldSupportUnit,
   BoldControlPack,
+  BoldVariantControlPack,
   BoldHandles,
   BoldComponentValidator;
-
 type
-  { TcxBoldExtLookupGrid }
 
+  { TcxBoldExtLookupGrid }
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldExtLookupGrid = class(TcxGrid)
   private
     FEditable: Boolean;
@@ -53,13 +48,9 @@ type
   public
     property View: TcxCustomGridTableView read GetView;
   end;
-
   { TcxCustomBoldExtLookupComboBoxProperties }
-
   TcxCustomBoldExtLookupComboBoxProperties = class(TcxCustomBoldLookupEditProperties);
-
   { TcxBoldExtLookupComboBoxProperties }
-
   TcxBoldExtLookupComboBoxProperties = class(TcxCustomBoldExtLookupComboBoxProperties)
   private
     FAutoSearchOnPopup: Boolean;
@@ -86,7 +77,7 @@ type
     // IcxBoldEditProperties
     procedure SetStoredValue(aValue: Variant; aBoldHandle: TBoldElementHandle; aEdit: TcxCustomEdit; aFollower: TBoldFollower; var aDone: boolean); override;
     function CanEdit(aBoldHandle: TBoldElementHandle; aFollower: TBoldFollower): boolean; override;
-
+    function BoldElementToEditValue(aFollower: TBoldFollower; aElement: TBoldElement; aEdit: TcxCustomEdit): variant; override;
     procedure CheckListFieldItem;
     procedure DeinitializeDataController; override;
     procedure FreeNotification(Sender: TComponent); override;
@@ -116,10 +107,8 @@ type
     procedure LookupGridLockMouseMove; override;
     procedure LookupGridMakeFocusedRowVisible; override;
     procedure LookupGridUnlockMouseMove; override;
-
     procedure BoldLookupGridBeginUpdate; override;
     procedure BoldLookupGridEndUpdate; override;
-
     // DBLookupGrid methods
 {
     procedure DBLookupGridBeginUpdate; override;
@@ -142,7 +131,6 @@ type
   published
     property BoldSelectChangeAction;
     property BoldSetValueExpression;
-
     property Alignment;
     property AssignedValues;
     property AutoSearchOnPopup: Boolean read FAutoSearchOnPopup write FAutoSearchOnPopup default True;
@@ -165,7 +153,6 @@ type
     property ImmediateDropDown;
 //    property ImmediatePost;
     property IncrementalFiltering;
-    property IncrementalFilteringOptions;
     property View: TcxCustomGridTableView read FView write SetView; // before
 //    property KeyFieldNames;
     property ListFieldItem: TcxCustomGridTableItem read GetListFieldItem write SetListFieldItem;
@@ -187,7 +174,7 @@ type
   end;
 
   { TcxCustomBoldExtLookupComboBox }
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxCustomBoldExtLookupComboBox = class(TcxCustomBoldLookupEdit)
   private
     function GetActiveProperties: TcxBoldExtLookupComboBoxProperties;
@@ -206,7 +193,7 @@ type
   end;
 
   { TcxBoldNBExtLookupComboBox }
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldNBExtLookupComboBox = class(TcxCustomBoldExtLookupComboBox)
   published
     property Anchors;
@@ -248,7 +235,7 @@ type
   end;
 
   { TcxBoldExtLookupComboBox }
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldExtLookupComboBox = class(TcxCustomBoldExtLookupComboBox, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetDataBinding: TcxBoldTextEditDataBinding;
@@ -298,7 +285,7 @@ type
   end;
 
   { TcxEditRepositoryExtLookupComboBoxItem }
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxEditRepositoryExtLookupComboBoxItem = class(TcxEditRepositoryItem)
   private
     function GetProperties: TcxBoldExtLookupComboBoxProperties;
@@ -312,41 +299,36 @@ type
 implementation
 
 uses
-  Types,
-  cxGridFilterHelpers,
-  BoldSystem,
-  cxDropDownEdit;
+   System.Types,
+   BoldSystem,
+   cxDropDownEdit,
+   cxGridFilterHelpers;
 
 type
   TcxCustomGridTableOptionsBehaviorAccess = class(TcxCustomGridTableOptionsBehavior);
   TcxCustomGridTableOptionsViewAccess = class(TcxCustomGridTableOptionsView);
 
 { TcxBoldExtLookupGrid }
-
 procedure TcxBoldExtLookupGrid.DoCancelMode;
 begin
   FRowPressed := False;
   inherited;
 end;
-
 procedure TcxBoldExtLookupGrid.DoCloseUp(AAccept: Boolean);
 begin
   if AAccept then
     View.DataController.SyncSelected(True);
   if Assigned(FOnCloseUp) then FOnCloseUp(Self, AAccept);
 end;
-
 function TcxBoldExtLookupGrid.IsDataRow(AHitTest: TcxCustomGridHitTest): Boolean;
 begin
   Result := (AHitTest is TcxGridRecordHitTest) and
-    TcxGridRecordHitTest(AHitTest).GridRecord.IsData; 
+    TcxGridRecordHitTest(AHitTest).GridRecord.IsData;
 end;
-
 function TcxBoldExtLookupGrid.GetView: TcxCustomGridTableView;
 begin
   Result := Levels[0].GridView as TcxCustomGridTableView;
 end;
-
 procedure TcxBoldExtLookupGrid.ViewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if Assigned(FPrevOnKeyDown) then
@@ -365,7 +347,6 @@ begin
         DoCloseUp(False);
   end;
 end;
-
 procedure TcxBoldExtLookupGrid.ViewMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
@@ -385,7 +366,6 @@ begin
       FRowPressed := True;
   end;
 end;
-
 procedure TcxBoldExtLookupGrid.ViewMouseMove(Sender: TObject; Shift: TShiftState;
   X, Y: Integer);
 var
@@ -408,7 +388,6 @@ begin
     TcxGridRecordHitTest(AHitTest).GridRecord.Focused := True;
   end;
 end;
-
 procedure TcxBoldExtLookupGrid.ViewMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
@@ -421,15 +400,12 @@ begin
     DoCloseUp(IsDataRow(AHitTest));
   FRowPressed := False;
 end;
-
 { TcxBoldExtLookupComboBoxProperties }
-
 constructor TcxBoldExtLookupComboBoxProperties.Create(AOwner: TPersistent);
 begin
   inherited Create(AOwner);
   FAutoSearchOnPopup := True;
 end;
-
 destructor TcxBoldExtLookupComboBoxProperties.Destroy;
 begin
   FDestroying := True;
@@ -438,7 +414,6 @@ begin
   FreeAndNil(FGrid);
   inherited Destroy;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.Assign(Source: TPersistent);
 begin
   if Source is TcxBoldExtLookupComboBoxProperties then
@@ -459,18 +434,15 @@ begin
   else
     inherited Assign(Source);
 end;
-
 class function TcxBoldExtLookupComboBoxProperties.GetContainerClass: TcxContainerClass;
 begin
   Result := TcxBoldNBExtLookupComboBox;
 end;
-
 class function TcxBoldExtLookupComboBoxProperties.IsViewSupported(Value: TcxCustomGridTableView): Boolean;
 begin
   Result := Value.CanBeLookupList and
     (TcxCustomGridView(Value).DataController is TcxBoldDataController);
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.CheckListFieldItem;
 begin
   FInCheckListFieldItem := True;
@@ -482,14 +454,12 @@ begin
     FInCheckListFieldItem := False;
   end;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.DeinitializeDataController;
 begin
   inherited DeinitializeDataController;
   if DataController <> nil then
     DataController.RemoveDataChangeRefCount;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.FreeNotification(Sender: TComponent);
 begin
   inherited FreeNotification(Sender);
@@ -498,7 +468,6 @@ begin
   if Sender = View then
     View := nil;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetIncrementalFiltering: Boolean;
 begin
   if FocusPopup then
@@ -506,39 +475,32 @@ begin
   else
     Result := inherited GetIncrementalFiltering;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetListIndex: Integer;
 begin
   Result := Self.ListFieldIndex;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.InitializeDataController;
 begin
   inherited InitializeDataController;
   if DataController <> nil then
     DataController.AddDataChangeRefCount;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.LinkView(AView: TcxCustomGridTableView);
 begin
   CheckListFieldItem;
   FreeNotificator.AddSender(AView);
   InitializeDataController;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.PopupWindowCapturesFocus: Boolean;
 begin
   Result := FocusPopup;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.UnlinkView(AView: TcxCustomGridTableView);
 begin
   DeinitializeDataController;
   FreeNotificator.RemoveSender(AView);
 end;
-
 // LookupGrid methods
-
 function TcxBoldExtLookupComboBoxProperties.GetLookupGridActiveControl: TWinControl;
 begin
   if View <> nil then
@@ -546,7 +508,6 @@ begin
   else
     Result := inherited GetLookupGridActiveControl;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetLookupGridCanResize: Boolean;
 begin
   if View <> nil then
@@ -554,7 +515,6 @@ begin
   else
     Result := False;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetLookupGridColumnCount: Integer;
 begin
   if View <> nil then
@@ -562,12 +522,10 @@ begin
   else
     Result := 0;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetLookupGridControl: TWinControl;
 begin
   Result := Grid;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetLookupGridDataController: TcxCustomDataController;
 begin
   if View <> nil then
@@ -575,14 +533,12 @@ begin
   else
     Result := nil;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetLookupGridVisualAreaPreferredWidth: Integer;
 begin
   Result := 0;
   if View <> nil then
     View.ViewInfo.GetWidth(Point(MaxInt, MaxInt), Result);
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetLookupGridNearestPopupHeight(AHeight: Integer): Integer;
 begin
   if View <> nil then
@@ -590,19 +546,17 @@ begin
   else
     Result := AHeight;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetLookupGridPopupHeight(ADropDownRowCount: Integer): Integer;
 begin
   if View <> nil then
   begin
-    if FocusPopup and (ADropDownRowCount < 2) then // TODO: Check New Item Row 
+    if FocusPopup and (ADropDownRowCount < 2) then // TODO: Check New Item Row
       ADropDownRowCount := 2;
     Result := View.ViewInfo.GetPopupHeight(ADropDownRowCount);
   end
   else
     Result := 0;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.IsLookupGridMouseOverList(const P: TPoint): Boolean;
 var
   AHitTest: TcxCustomGridHitTest;
@@ -614,7 +568,6 @@ begin
     Result := AHitTest is TcxGridRecordHitTest;
   end;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.LookupGridDeinitialize;
 begin
   Grid.Levels[0].GridView := nil;
@@ -636,7 +589,6 @@ begin
     View.OnMouseUp := Grid.FPrevOnMouseUp;
   end;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.LookupGridDroppedDown(const AFindStr: string);
 begin
   // Init Inc Search
@@ -645,9 +597,8 @@ begin
   begin
     ListFieldItem.Focused := True;
     View.DataController.Search.Locate(ListFieldItem.Index, AFindStr);
-  end;  
+  end;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.LookupGridInitEvents(AOnClick, AOnFocusedRowChanged: TNotifyEvent;
   AOnCloseUp: cxLookupEdit.TcxLookupGridCloseUpEvent);
 begin
@@ -655,10 +606,9 @@ begin
   if View <> nil then
   begin
 //    View.OnFocusedRecordChanged := AOnFocusedRowChanged;
-    Grid.OnCloseUp := AOnCloseUp; 
+    Grid.OnCloseUp := AOnCloseUp;
   end;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.LookupGridInitialize;
 begin
   if View = nil then
@@ -680,29 +630,22 @@ begin
       TcxGridTableView(View).OptionsCustomize.ColumnsQuickCustomization := False;
     end;
   end;
-
   Grid.FPrevOnKeyDown := View.OnKeyDown;
   View.OnKeyDown := Grid.ViewKeyDown;
-
   Grid.FPrevOnMouseDown := View.OnMouseDown;
   View.OnMouseDown := Grid.ViewMouseDown;
-
   Grid.FMousePos := Point(-1, -1);
   Grid.FPrevOnMouseMove := View.OnMouseMove;
   View.OnMouseMove := Grid.ViewMouseMove;
-
   Grid.FPrevOnMouseUp := View.OnMouseUp;
   View.OnMouseUp := Grid.ViewMouseUp;
-
   Grid.Editable := FocusPopup;
   Grid.Levels[0].GridView := View;
-
   FPrevIncSearch := View.OptionsBehavior.IncSearch;
   if FocusPopup and AutoSearchOnPopup then
     View.OptionsBehavior.IncSearch := True;
-  View.DataController.Search.Cancel;  
+  View.DataController.Search.Cancel;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.LookupGridInitLookAndFeel(ALookAndFeel: TcxLookAndFeel;
   AColor: TColor; AFont: TFont);
 begin
@@ -710,31 +653,26 @@ begin
   Grid.Color := AColor;
   Grid.Font := AFont;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.LookupGridLockMouseMove;
 begin
   Grid.PopupMouseMoveLocked := True;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.LookupGridMakeFocusedRowVisible;
 begin
   if View <> nil then
     View.Controller.MakeFocusedRecordVisible;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.LookupGridUnlockMouseMove;
 begin
   Grid.MouseCapture := False;
   Grid.PopupMouseMoveLocked := False;
 end;
-
 // DBLookupGrid methods
 {
 procedure TcxBoldExtLookupComboBoxProperties.DBLookupGridBeginUpdate;
 begin
   if View <> nil then View.BeginUpdate;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.DBLookupGridCheckColumnByFieldName(const AFieldName: string);
 begin
   if (View <> nil) and (DataController <> nil) then
@@ -747,7 +685,6 @@ begin
       end;
   end;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.DBLookupGridCreateColumnsByFieldNames(const AFieldNames: string);
 var
   I: Integer;
@@ -771,12 +708,10 @@ begin
     end;
   end;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.DBLookupGridEndUpdate;
 begin
   if View <> nil then View.EndUpdate;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetDBLookupGridColumnField(AIndex: Integer): TField;
 begin
   if DataController <> nil then
@@ -784,7 +719,6 @@ begin
   else
     Result := nil;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetDBLookupGridColumnFieldName(AIndex: Integer): string;
 begin
   if DataController <> nil then
@@ -792,7 +726,6 @@ begin
   else
     Result := '';
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetDBLookupGridColumnIndexByFieldName(const AFieldName: string): Integer;
 var
   AItem: TcxCustomGridTableItem;
@@ -805,14 +738,12 @@ begin
   else
     Result := -1;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetDBLookupGridDataController: TcxDBDataController;
 begin
   Result := TcxDBDataController(GetLookupGridDataController);
 end;
 }
 function TcxBoldExtLookupComboBoxProperties.GetGrid: TcxBoldExtLookupGrid;
-
   procedure CreateGrid;
   begin
     FGrid := TcxBoldExtLookupGrid.Create(nil);
@@ -820,18 +751,15 @@ function TcxBoldExtLookupComboBoxProperties.GetGrid: TcxBoldExtLookupGrid;
     FGrid.BorderStyle := cxcbsNone;
     FGrid.Levels.Add;
   end;
-
 begin
   if (FGrid = nil) and not FDestroying then
     CreateGrid;
   Result := FGrid;
 end;
-
 {function TcxBoldExtLookupComboBoxProperties.GetGridMode: Boolean;
 begin
   Result := inherited IsUseLookupList;
 end;}
-
 function TcxBoldExtLookupComboBoxProperties.GetListFieldIndex: Integer;
 var
   AItem: TcxCustomGridTableItem;
@@ -845,9 +773,8 @@ begin
       Result := AItem.Index
     else
       Result := -1;
-  end;  
+  end;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetListFieldItem: TcxCustomGridTableItem;
 begin
   if IsDefinedByLookup then
@@ -855,12 +782,10 @@ begin
   else
     Result := FListFieldItem;
 end;
-
 {procedure TcxBoldExtLookupComboBoxProperties.SetGridMode(Value: Boolean);
 begin
   inherited IsUseLookupList := Value;
 end;}
-
 procedure TcxBoldExtLookupComboBoxProperties.SetListFieldItem(Value: TcxCustomGridTableItem);
 begin
   if (View <> nil) and (View.IndexOfItem(Value) = -1) then
@@ -876,7 +801,6 @@ begin
       Changed;
   end;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.SetView(Value: TcxCustomGridTableView);
 begin
   if (Value <> nil) and not IsViewSupported(Value) then Exit;
@@ -890,63 +814,53 @@ begin
     Changed;
   end;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.GetBoldLookupGridDataController: TcxBoldDataController;
 begin
   Result := TcxBoldDataController(GetLookupGridDataController);
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.SetStoredValue(
   aValue: Variant; aBoldHandle: TBoldElementHandle; aEdit: TcxCustomEdit; aFollower: TBoldFollower; var aDone: boolean);
 var
   lItemIndex: Integer;
   lSelectedElement: TBoldElement;
 begin
-//  inherited;
-//  Assert(aEdit is TcxCustomComboBox, 'TcxBoldLookupComboBoxProperties.SetStoredValue: aEdit is not TcxCustomComboBox;' + aEdit.classname);
-
-//  lItemIndex := (aEdit as TcxCustomComboBox).ItemIndex;
+  Assert(aEdit is TcxCustomComboBox, 'TcxBoldLookupComboBoxProperties.SetStoredValue: aEdit is not TcxCustomComboBox;' + aEdit.classname);
+  lItemIndex := (aEdit as TcxCustomComboBox).ItemIndex;
 //  if TcxCustomComboBox(aEdit).ILookupData.CurrentKey <> null then
-  if (not VarIsNull(aValue)) and (aValue <> -1) then
   begin
-    lItemIndex := aValue; //TcxCustomComboBox(aEdit).ILookupData.CurrentKey;
-
-    lSelectedElement := GetBoldLookupGridDataController.BoldHandle.List[lItemIndex];
+    if lItemIndex <> -1 then
+      lSelectedElement := GetBoldLookupGridDataController.BoldHandle.List[lItemIndex]
+    else
+      lSelectedElement := nil;
     InternalComboSetValue(aBoldHandle, aFollower, lSelectedElement, BoldSelectChangeAction, BoldSetValueExpression, DataController.BoldHandle, aValue);
-{
-  Assert(aEdit.EditingValue = aEdit.EditValue);
-  i := aEdit.EditingValue;
-  Assert(DataController.CurrentIndex = i);
-//  (DataController.Follower.Element as TBoldList)[i].
-  aFollower.Element.Assign(DataController.CurrentBoldObject);
-}
   end;
   aDone := true;
+end;
+function TcxBoldExtLookupComboBoxProperties.BoldElementToEditValue(
+  aFollower: TBoldFollower; aElement: TBoldElement;
+  aEdit: TcxCustomEdit): variant;
+begin
+  result := TBoldVariantFollowerController(aFollower.Controller).GetAsVariant(aFollower);
 end;
 
 procedure TcxBoldExtLookupComboBoxProperties.BoldLookupGridBeginUpdate;
 begin
   if View <> nil then View.BeginUpdate;
 end;
-
 procedure TcxBoldExtLookupComboBoxProperties.BoldLookupGridEndUpdate;
 begin
   if View <> nil then View.EndUpdate;
 end;
-
 function TcxBoldExtLookupComboBoxProperties.CanEdit(
   aBoldHandle: TBoldElementHandle; aFollower: TBoldFollower): boolean;
 begin
-  result := GetBoldLookupGridDataController.RecordCount > 0;
+  result := (GetBoldLookupGridDataController <> nil) and (GetBoldLookupGridDataController.RecordCount > 0);
 end;
-
 { TcxCustomBoldExtLookupComboBox }
-
 class function TcxCustomBoldExtLookupComboBox.GetPropertiesClass: TcxCustomEditPropertiesClass;
 begin
   Result := TcxBoldExtLookupComboBoxProperties;
 end;
-
 function TcxCustomBoldExtLookupComboBox.CanDropDown: Boolean;
 begin
   if ActiveProperties.FocusPopup then
@@ -954,34 +868,27 @@ begin
   else
    Result := inherited CanDropDown;
 end;
-
 function TcxCustomBoldExtLookupComboBox.GetActiveProperties: TcxBoldExtLookupComboBoxProperties;
 begin
   Result := TcxBoldExtLookupComboBoxProperties(InternalGetActiveProperties);
 end;
-
 function TcxCustomBoldExtLookupComboBox.GetProperties: TcxBoldExtLookupComboBoxProperties;
 begin
   Result := TcxBoldExtLookupComboBoxProperties(FProperties);
 end;
-
 procedure TcxCustomBoldExtLookupComboBox.SetProperties(Value: TcxBoldExtLookupComboBoxProperties);
 begin
   FProperties.Assign(Value);
 end;
-
 { TcxBoldExtLookupComboBox }
-
 class function TcxBoldExtLookupComboBox.GetDataBindingClass: TcxEditDataBindingClass;
 begin
   Result := TcxBoldLookupEditDataBinding;
 end;
-
 function TcxBoldExtLookupComboBox.GetDataBinding: TcxBoldTextEditDataBinding;
 begin
   Result := TcxBoldTextEditDataBinding(FDataBinding);
 end;
-
 procedure TcxBoldExtLookupComboBox.SetDataBinding(Value: TcxBoldTextEditDataBinding);
 begin
   FDataBinding.Assign(Value);
@@ -992,17 +899,14 @@ begin
   Message.Result := Integer(GetcxDBEditDataLink(Self));
 end;
 }
-
 type
   TcxBoldTextEditDataBindingAccess = class(TcxBoldTextEditDataBinding);
-
 procedure TcxBoldExtLookupComboBox.Paint;
 begin
   inherited Paint;
   if TcxBoldTextEditDataBindingAccess(DataBinding).ValueOrDefinitionInvalid then
     Canvas.FrameRect(Bounds, clRed, 2 - Ord(IsNativeStyle));
 end;
-
 procedure TcxBoldExtLookupComboBox.Initialize;
 begin
   inherited;
@@ -1011,31 +915,25 @@ begin
     _ValidateEdit(self);
   end;
 end;
-
 { TcxEditRepositoryExtLookupComboBoxItem }
-
 class function TcxEditRepositoryExtLookupComboBoxItem.GetEditPropertiesClass: TcxCustomEditPropertiesClass;
 begin
   Result := TcxBoldExtLookupComboBoxProperties;
 end;
-
 function TcxEditRepositoryExtLookupComboBoxItem.GetProperties: TcxBoldExtLookupComboBoxProperties;
 begin
   Result := inherited Properties as TcxBoldExtLookupComboBoxProperties;
 end;
-
 procedure TcxEditRepositoryExtLookupComboBoxItem.SetProperties(Value: TcxBoldExtLookupComboBoxProperties);
 begin
   inherited Properties := Value;
 end;
-
 // TODO: rename TcxEditRepositoryExtLookupComboBoxItem to something unique
 {
 initialization
   RegisterClasses([TcxEditRepositoryExtLookupComboBoxItem]);
   GetRegisteredEditProperties.Register(TcxBoldExtLookupComboBoxProperties,
     cxSEditRepositoryExtLookupComboBoxItem);
-
 finalization
   GetRegisteredEditProperties.Unregister(TcxBoldExtLookupComboBoxProperties);
 }

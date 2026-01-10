@@ -68,6 +68,7 @@ type
   TBoldNavigatorDeleteEvent = TNotifyEvent;
   TBoldNavigatorInsertEvent = TNotifyEvent;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TdxBarBoldNavigator = class(TComponent)
   private
     FBarManager: TdxBarManager;
@@ -128,6 +129,7 @@ uses
   Forms,
 //  dxBardbNavStrs,
   dxCore,
+  BoldCoreConsts,
   BoldElements,
   BoldSystem,
   BoldGuiResourceStrings,

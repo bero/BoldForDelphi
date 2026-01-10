@@ -22,7 +22,6 @@ object frmBoldToCxConverter: TfrmBoldToCxConverter
     TabOrder = 0
     object tv: TcxGridTableView
       Navigator.Buttons.CustomButtons = <>
-      ScrollbarAnnotations.CustomAnnotations = <>
       OnSelectionChanged = tvSelectionChanged
       DataController.Summary.DefaultGroupSummaryItems = <>
       DataController.Summary.FooterSummaryItems = <>
@@ -34,8 +33,8 @@ object frmBoldToCxConverter: TfrmBoldToCxConverter
       OptionsCustomize.ColumnMoving = False
       OptionsCustomize.ColumnSorting = False
       OptionsSelection.CellSelect = False
-      OptionsSelection.MultiSelect = True
       OptionsSelection.HideFocusRectOnExit = False
+      OptionsSelection.MultiSelect = True
       object tvColumn1: TcxGridColumn
         Caption = 'Component'
         Width = 209
@@ -97,6 +96,7 @@ object frmBoldToCxConverter: TfrmBoldToCxConverter
       Caption = 'Remove old components after convertion'
       State = cbsChecked
       TabOrder = 2
+      Width = 222
     end
   end
   object cxMemoLog: TcxMemo

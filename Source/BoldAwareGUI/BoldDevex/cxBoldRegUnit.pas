@@ -2,8 +2,6 @@
 
 {$I cxVer.inc}
 
-//  v2.03 - 25 Jan 2011  2007-2011 Daniel Mauric
-
 {$ASSERTIONS ON}
 
 interface
@@ -13,10 +11,9 @@ procedure Register;
 implementation
 
 uses
-  Classes, SysUtils,{$IFDEF DELPHI6} DesignIntf, DesignEditors,{$ELSE} DsgnIntf,{$ENDIF}
+  Classes, SysUtils, DesignIntf, DesignEditors,
   cxEditRepositoryEditor,
   cxEditRepositoryItems,
-//  cxEditConsts,
   cxEdit,
   cxBoldEditors,
   dxBarBoldNav,
@@ -27,21 +24,15 @@ uses
   BoldElements,
   BoldDefs,
   BoldHandles,
-//  BoldDataBindingUnit,
-//  BoldDataBindingTestUnit,
   BoldAbstractPropertyEditors,
-
   Dialogs,
   cxDropDownEdit,
   cxGridBoldSupportUnit,
-
   cxGridCustomView,
   cxGridCustomTableView,
-
   cxBoldExtLookupComboBox,
   cxBoldLookupComboBox,
-  cxBoldLookupEdit,
-  BoldToCxConverterUnit;
+  cxBoldLookupEdit;
 
 type
   TcxCustomEditAccess = class(TcxCustomEdit);
@@ -180,7 +171,7 @@ end;
     function GetContextType(Component: TPersistent): TBoldElementTypeInfo; override;
     function GetVariableList(Component: TPersistent): TBoldExternalVariableList; override;
   end;}
-  
+
 procedure Register;
 begin
 {$IFDEF DELPHI9}
@@ -196,13 +187,13 @@ begin
   {$ENDIF}
     TcxBoldLabel, TcxBoldImage, TcxBoldRichEdit,
     TcxBoldListBox, TcxBoldCheckListBox, TcxBoldSelectionCheckListBox, TcxBoldListView,
-    TcxBoldExtLookupComboBox, TcxBoldLookupComboBox, TcxBoldNBLookupComboBox, TcxBoldNBExtLookupComboBox,
-    TBoldToCxConverter]);
+    TcxBoldExtLookupComboBox, TcxBoldLookupComboBox, TcxBoldNBLookupComboBox, TcxBoldNBExtLookupComboBox]);
 
   RegisterNoIcon([TdxBarBoldNavButton]);
 
   RegisterPropertyEditor(TypeInfo(TdxBarBoldNavigator), TdxBarBoldNavButton, 'BarBoldNavigator', nil);
 //  RegisterPropertyEditor(TypeInfo(String), TcxBoldComboBoxProperties, 'BoldSetValueExpression', TBoldOCLExpressionForSetValueExpression);
+  RegisterPropertyEditor(TypeInfo(String), TcxBoldTextEditProperties, 'BoldSetValueExpression', TBoldOCLExpressionForCxBoldPropertiesSetValueExpression);
 
   BarDesignController.RegisterBarControlEditor(TdxBoldItemEditor);
   RegisterEditRepositoryItems;
@@ -262,12 +253,21 @@ var
   lcxBoldDataController: TcxBoldDataController;
   lcxCustomBoldLookupEditProperties: TcxCustomBoldLookupEditProperties;
   lcxBoldEditDataBinding: TcxBoldEditDataBinding;
+  lcxBoldTextEditProperties: TcxBoldTextEditProperties;
 begin
   result := nil;
+  if Component is TcxBoldTextEditProperties then
+  begin
+    lcxBoldTextEditProperties := Component as TcxBoldTextEditProperties;
+    if lcxBoldTextEditProperties.Owner is TcxBoldTextEdit then
+    begin
+      if Assigned((lcxBoldTextEditProperties.Owner as TcxBoldTextEdit).DataBinding.BoldHandle) then
+        result := (lcxBoldTextEditProperties.Owner as TcxBoldTextEdit).DataBinding.BoldHandle.StaticBoldType;
+    end;
+  end
+  else
   if Component is TcxBoldComboBoxProperties then
   begin
-//    ShowMessage(lcxBoldComboBoxProperties.GetContainerClass.ClassName);
-//    ShowMessage(lcxBoldComboBoxProperties.Owner.ClassName);
     lcxBoldComboBoxProperties := Component as TcxBoldComboBoxProperties;
     if (lcxBoldComboBoxProperties.Owner is TcxCustomGridTableItem) and lcxBoldComboBoxProperties.Owner.GetInterface(IBoldAwareViewItem, lBoldAwareViewItem) then
     begin
@@ -289,9 +289,6 @@ begin
     end
     else
       raise Exception.Create('Unknown context: ' + lcxBoldComboBoxProperties.Owner.ClassName );
-{      if Assigned(lcxBoldComboBoxProperties.BoldLookupListHandle) then
-        result := lcxBoldComboBoxProperties.BoldLookupListHandle.StaticBoldType;
-}
   end
   else
   if component is TcxCustomBoldLookupEditProperties then
@@ -315,7 +312,7 @@ end;
 
 function TcxExtLookupComboBoxPropertiesItemColumnProperty.InternalGetGridView(
   APersistent: TPersistent): TcxCustomGridView;
-var           
+var
   AProperties: TcxBoldExtLookupComboBoxProperties;
 begin
   AProperties := APersistent as TcxBoldExtLookupComboBoxProperties;

@@ -2,11 +2,10 @@
 
 {$I cxVer.inc}
 
-//  v2.03 - 25 Jan 2011  2007-2011 Daniel Mauric
-
 interface
 
 uses
+
 {$IFDEF DELPHI6}
   Variants,
 {$ENDIF}
@@ -19,14 +18,12 @@ uses
   cxLookupGrid,
   cxLookupBoldGrid,
   cxFilterControlUtils,
-
   cxGridBoldSupportUnit,
   cxBoldEditors,
-
   BoldListHandleFollower,
   BoldComboBox, // TODO: it's only neede for TBoldComboListController, perhaps we can replace it
   BoldControlPack,
-//  BoldStringControlPack,
+  BoldVariantControlPack,
   BoldAbstractListHandle,
   BoldElements,
   BoldHandles,
@@ -34,7 +31,6 @@ uses
 
 type
   { TcxBoldLookupComboBoxProperties }
-
   TcxBoldLookupComboBoxProperties = class(TcxCustomBoldLookupEditProperties)
   private
     FGrid: TcxCustomLookupBoldGrid;
@@ -89,11 +85,9 @@ type
   published
     property BoldLookupListHandle: TBoldAbstractListHandle read GetBoldListHandle write SetBoldListHandle;
 //    property BoldLookupListProperties: TBoldComboListController read fBoldListProperties write SetBoldListProperties;
-//    property BoldRowProperties: TBoldStringFollowerController read fBoldRowProperties write SetRowProperties;
-
+//    property BoldRowProperties: TBoldVariantFollowerController read GetBoldRowProperties write SetBoldRowProperties;
     property BoldSelectChangeAction;
     property BoldSetValueExpression;
-
     property Alignment;
     property AutoSelect;
     property AssignedValues;
@@ -114,7 +108,6 @@ type
     property ImmediateDropDown;
 //    property ImmediatePost;
     property IncrementalFiltering;
-    property IncrementalFilteringOptions;
 //    property KeyFieldNames;
     property ListColumns: TcxLookupBoldGridColumns read GetListColumns write SetListColumns;
 //    property ListFieldNames;
@@ -140,7 +133,7 @@ type
   end;
 
   { TcxCustomBoldLookupComboBox }
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxCustomBoldLookupComboBox = class(TcxCustomBoldLookupEdit)
   private
     function GetProperties: TcxBoldLookupComboBoxProperties;
@@ -157,7 +150,7 @@ type
   end;
 
   { TcxBoldLookupComboBox }
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldNBLookupComboBox = class(TcxCustomBoldLookupComboBox)
   published
     property Anchors;
@@ -201,7 +194,7 @@ type
   end;
 
   { TcxBoldLookupComboBox }
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldLookupComboBox = class(TcxCustomBoldLookupComboBox, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetDataBinding: TcxBoldTextEditDataBinding;
@@ -253,7 +246,7 @@ type
   end;
 
   { TcxBoldFilterLookupComboBoxHelper }
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldFilterLookupComboBoxHelper = class(TcxFilterComboBoxHelper)
   protected
     class function IsIDefaultValuesProviderNeeded(
@@ -276,7 +269,6 @@ implementation
 
 uses
   cxTextEdit,
-
   BoldSystem,
   BoldQueue;
 
@@ -284,7 +276,6 @@ type
   TControlAccess = class(TControl);
 
 { TcxBoldLookupComboBoxProperties }
-
 constructor TcxBoldLookupComboBoxProperties.Create(AOwner: TPersistent);
 //var
 //  lMatchObject: TComponent;
@@ -294,7 +285,7 @@ begin
     lMatchObject := aOwner as TComponent
   else
     lMatchObject := nil;
-}    
+}
   FGrid := GetLookupGridClass.Create(nil);
   FGrid.IsPopupControl := True;
   FGrid.Options.OnChanged := ListOptionsChanged;
@@ -356,7 +347,6 @@ begin
 end;
 
 // LookupGrid
-
 function TcxBoldLookupComboBoxProperties.GetLookupGridColumnCount: Integer;
 begin
   Result := ListColumns.Count;
@@ -429,7 +419,6 @@ begin
 end;
 
 // BoldLookupGrid
-
 procedure TcxBoldLookupComboBoxProperties.BoldLookupGridBeginUpdate;
 begin
   Grid.BeginUpdate;
@@ -452,7 +441,6 @@ function TcxBoldLookupComboBoxProperties.GetGrid: TcxCustomLookupBoldGrid;
 begin
   Result := FGrid;
 end;
-
 {function TcxBoldLookupComboBoxProperties.GetGridMode: Boolean;
 begin
   Result := inherited IsUseLookupList;
@@ -512,17 +500,15 @@ var
   lItemIndex: Integer;
   lSelectedElement: TBoldElement;
 begin
-//  inherited;
-
-//  if TcxCustomComboBox(aEdit).ILookupData.CurrentKey <> null then
-  if (not VarIsNull(aValue)) and (aValue <> -1) then
-  begin
-    lItemIndex := aValue; //(aEdit as TcxCustomComboBox).ItemIndex;
-    lSelectedElement := DataController.BoldHandle.List[lItemIndex]; //(DataController.Follower.Element as TBoldList)[lItemIndex];
-
-    InternalComboSetValue(aBoldHandle, aFollower, lSelectedElement, BoldSelectChangeAction, BoldSetValueExpression, BoldLookupListHandle, AValue);
-  //  aEdit.EditModified := false
-  end;
+  Assert(aEdit is TcxCustomComboBox, 'TcxBoldLookupComboBoxProperties.SetStoredValue: aEdit is not TcxCustomComboBox;' + aEdit.classname);
+//  lItemIndex := (aEdit as TcxCustomComboBox).ItemIndex;
+  lItemIndex := TcxCustomComboBox(aEdit).ILookupData.SelectedItem;
+  if lItemIndex <> -1 then
+    lSelectedElement := DataController.BoldHandle.List[lItemIndex]
+  else
+    lSelectedElement := nil;
+  InternalComboSetValue(aBoldHandle, aFollower, lSelectedElement, BoldSelectChangeAction, BoldSetValueExpression, BoldLookupListHandle, aValue);
+//  aEdit.EditModified := false
   aDone := true;
 end;
 
@@ -533,7 +519,6 @@ begin
 end;
 
 { TcxCustomBoldLookupComboBox }
-
 class function TcxCustomBoldLookupComboBox.GetPropertiesClass: TcxCustomEditPropertiesClass;
 begin
   Result := TcxBoldLookupComboBoxProperties;
@@ -555,7 +540,6 @@ begin
 end;
 
 { TcxBoldLookupComboBox }
-
 class function TcxBoldLookupComboBox.GetDataBindingClass: TcxEditDataBindingClass;
 begin
   Result := TcxBoldLookupEditDataBinding;
@@ -596,7 +580,6 @@ begin
 end;
 
 { TcxBoldFilterLookupComboBoxHelper }
-
 class function TcxBoldFilterLookupComboBoxHelper.GetFilterEditClass: TcxCustomEditClass;
 begin
   Result := TcxBoldLookupComboBox;
@@ -651,5 +634,4 @@ initialization
 
 finalization
   FilterEditsController.Unregister(TcxBoldLookupComboBoxProperties, TcxBoldFilterLookupComboBoxHelper);
-
 end.

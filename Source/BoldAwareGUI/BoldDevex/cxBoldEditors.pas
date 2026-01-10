@@ -117,7 +117,7 @@ type
     function CanEdit(aBoldHandle: TBoldElementHandle; aFollower: TBoldFollower): boolean;
     procedure SetBoldSetValueExpression(const Value: TBoldExpression);
   protected
-    function IsNilRepresentation(AValue: Variant): boolean;  
+    function IsNilRepresentation(AValue: Variant): boolean;
     procedure _InsertItem(Index: Integer; Follower: TBoldFollower);
     procedure _ReplaceItem(Index: Integer; Follower: TBoldFollower);
     procedure _DeleteItem(Index: Integer; OwningFollower: TBoldFollower);
@@ -246,7 +246,7 @@ type
     property UseLeftAlignmentOnEditing;
 //    property UsePrefix;
     property ValidateOnEnter;
-    property ValidationOptions;    
+    property ValidationOptions;
     property OnChange;
     property OnEditValueChanged;
     property OnStartClick;
@@ -278,7 +278,7 @@ type
     property UseLeftAlignmentOnEditing;
 
     property ValidateOnEnter;
-    property ValidationOptions;    
+    property ValidationOptions;
     property OnChange;
     property OnEditValueChanged;
     property OnNewLookupDisplayText;
@@ -471,9 +471,10 @@ type
     function GetModified: Boolean; override;
     function ImmediatePost: boolean; override;
   public
-    constructor Create(AEdit: TcxCustomEdit); override;  
+    constructor Create(AEdit: TcxCustomEdit); override;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldTextEdit = class(TcxCustomTextEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxBoldTextEditProperties;
@@ -552,7 +553,7 @@ type
   TcxBoldDateEditProperties = class(TcxCustomBoldDateEditProperties)
   end;
 }
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldDateEdit = class(TcxCustomDateEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxDateEditProperties;
@@ -573,7 +574,7 @@ type
   public
     class function GetPropertiesClass: TcxCustomEditPropertiesClass; override;
     property ActiveProperties: TcxDateEditProperties read GetActiveProperties;
-    procedure DoEnter; override;    
+    procedure DoEnter; override;
     procedure DoExit; override;
   published
     property DataBinding: TcxBoldDateTimeEditDataBinding read GetDataBinding write SetDataBinding implements IBoldValidateableComponent, IBoldOCLComponent;
@@ -629,6 +630,7 @@ type
     property OnStartDock;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldMemo = class(TcxCustomMemo, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxMemoProperties;
@@ -644,7 +646,7 @@ type
   public
     class function GetPropertiesClass: TcxCustomEditPropertiesClass; override;
     property ActiveProperties: TcxMemoProperties read GetActiveProperties;
-    procedure DoEnter; override;    
+    procedure DoEnter; override;
     procedure DoExit; override;
   published
     property Align;
@@ -695,6 +697,7 @@ type
     property OnStartDrag;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldTimeEdit = class(TcxCustomTimeEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxTimeEditProperties;
@@ -712,7 +715,7 @@ type
   public
     class function GetPropertiesClass: TcxCustomEditPropertiesClass; override;
     property ActiveProperties: TcxTimeEditProperties read GetActiveProperties;
-    procedure DoEnter; override;    
+    procedure DoEnter; override;
     procedure DoExit; override;
   published
     property Anchors;
@@ -764,6 +767,7 @@ type
     property OnStartDrag;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldCurrencyEdit = class(TcxCustomCurrencyEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxCurrencyEditProperties;
@@ -825,6 +829,7 @@ type
     property OnStartDock;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldMaskEdit = class(TcxCustomMaskEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxMaskEditProperties;
@@ -892,6 +897,7 @@ type
     property OnStartDock;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldCheckBox = class(TcxCustomCheckBox, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxCheckBoxProperties;
@@ -961,6 +967,7 @@ type
     property OnStartDock;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldComboBox = class(TcxCustomComboBox, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxBoldComboBoxProperties;
@@ -1031,6 +1038,7 @@ type
   end;
 
   // perhaps use TBoldIntegerFollowerController ?
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldSpinEdit = class(TcxCustomSpinEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxSpinEditProperties;
@@ -1098,6 +1106,7 @@ type
     property OnStartDrag;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldButtonEdit = class(TcxCustomButtonEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxButtonEditProperties;
@@ -1164,6 +1173,7 @@ type
     property OnStartDock;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldHyperLinkEdit = class(TcxCustomHyperLinkEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxHyperLinkEditProperties;
@@ -1224,6 +1234,7 @@ type
     property OnStartDock;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldProgressBar = class(TcxCustomProgressBar, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxProgressBarProperties;
@@ -1281,6 +1292,7 @@ type
     property OnStartDrag;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBarBoldEditItem = class(TcxCustomBarEditItem)
   private
     fInternalChange: integer;
@@ -1319,6 +1331,7 @@ type
 //    property TextHint;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBarBoldEditItemControl = class(TcxBarEditItemControl)
   private
   protected
@@ -1332,6 +1345,7 @@ type
   end;
 
 {$IFDEF DevExScheduler}
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldDateNavigator = class(TcxCustomDateNavigator, IBoldValidateableComponent)
   private
     fInternalChange: integer;
@@ -1437,6 +1451,7 @@ type
 
   { TcxBoldLabel }
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldLabel = class(TcxCustomLabel, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxLabelProperties;
@@ -1499,6 +1514,7 @@ type
     property OnStartDrag;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldImage = class(TcxCustomImage, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxImageProperties;
@@ -1558,6 +1574,7 @@ type
     property OnStartDrag;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldRichEdit = class(TcxCustomRichEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxRichEditProperties;
@@ -1623,7 +1640,8 @@ type
     property OnStartDock;
     property OnStartDrag;
   end;
-  
+
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldListBox = class(TcxListBox, IBoldValidateableComponent)
   private
     fInternalUpdate: boolean;
@@ -1679,14 +1697,14 @@ type
     property BoldHandleIndexLock: Boolean read GetBoldHandleIndexLock write SetBoldHandleIndexLock default true;
   end;
 
-
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldCustomCheckListBox = class(TcxCustomCheckListBox, IBoldValidateableComponent)
   private
     fInternalUpdate: boolean;
     fListHandleFollower: TBoldListHandleFollower;
     fBoldListProperties: TBoldAbstractListAsFollowerListController;
     fBoldRowProperties: TBoldVariantFollowerController;
-    FUpdateCount: Integer; // for Items
+
     fBoldRowCheckBoxProperties: TBoldCheckBoxStateFollowerController;
     fControllerList: TBoldControllerList;
 
@@ -1704,13 +1722,13 @@ type
     function ValidateComponent(ComponentValidator: TBoldComponentValidator; NamePrefix: string): Boolean; virtual; abstract;
   protected
     procedure WndProc(var Message: TMessage); override;
-    procedure SyncSelection;
+    procedure SyncSelection; virtual;
     function GetInnerCheckListBoxClass: TcxCustomInnerCheckListBoxClass; override;
 
     procedure Loaded; override;
 
     function GetContextType: TBoldElementTypeInfo;
-    procedure _DisplayCheckBox(Follower: TBoldFollower);
+    procedure _DisplayCheckBox(Follower: TBoldFollower); virtual;
     procedure _DisplayString(Follower: TBoldFollower);
     procedure _ListInsertItem(Index: integer; Follower: TBoldFollower);
     procedure _ReplaceItem(Index: Integer; Follower: TBoldFollower);
@@ -1795,6 +1813,7 @@ type
     property OnStartDrag;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldCheckListBox = class(TcxBoldCustomCheckListBox{, IBoldValidateableComponent, IBoldOCLComponent})
   private
     // IBoldValidateableComponent
@@ -1808,6 +1827,7 @@ const
   beSelectionHandleChanged = 400;
 
 type
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldSelectionCheckListBox = class(TcxBoldCustomCheckListBox{, IBoldValidateableComponent, IBoldOCLComponent})
   private
     fCheckBoxRenderer: TBoldAsCheckBoxStateRenderer;
@@ -1821,6 +1841,8 @@ type
     function ValidateComponent(ComponentValidator: TBoldComponentValidator; NamePrefix: string): Boolean; override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure SyncSelection; override;
+    procedure _DisplayCheckBox(Follower: TBoldFollower); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1828,13 +1850,14 @@ type
     property BoldSelectionHandle: TBoldAbstractListHandle read fBoldSelectionHandle write SetSelectionHandle;
   end;
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxBoldListView = class(TcxCustomListView{, IBoldValidateableComponent, IBoldOCLComponent})
   private
     fListHandleFollower: TBoldListHandleFollower;
     fBoldProperties: TBoldAbstractListAsFollowerListController;
     fBoldRowProperties: TBoldVariantFollowerController;
-    FUpdateCount: Integer;
     function GetContextType: TBoldElementTypeInfo;
+
     function GetBoldHandle: TBoldAbstractListHandle;
     procedure SetBoldHandle(value: TBoldAbstractListHandle);
     function GetFollower: TBoldFollower;
@@ -1983,7 +2006,7 @@ implementation
 
 uses
   Types,
-  UiTypes,
+{$IFDEF BOLD_DELPHI16_OR_LATER}UiTypes,{$ENDIF}
   BoldAttributes,
   BoldBase,
   Variants,
@@ -2010,6 +2033,8 @@ uses
   BoldHashIndexes,
   BoldIndex,
   BoldIndexableList,
+  BoldId,
+  ExtDlgs,
   Forms, dxMessages;
 
 type
@@ -2090,7 +2115,7 @@ begin
     else
       s := '_ValidateEdit ' + aEdit.ClassName + ':' + lValue;
 
-    OutPutDebugString(PChar(S));
+//    OutPutDebugString(PChar(S));
   end
   else
   if Supports(aEdit.ActiveProperties, IBoldValidateableComponent, lBoldValidateableComponent) then
@@ -2109,8 +2134,6 @@ procedure InternalComboSetValue(
 var
   ElementToAssignTo: TBoldElement;
   lValue: Variant;
-  lOldValue: IBoldValue;
-  lHasOldValue: boolean;
 
   procedure InternalSetValue();
   begin
@@ -2129,18 +2152,14 @@ var
         if elementToAssignTo is TBoldObjectReference then
         begin
           if not ElementToAssignTo.IsEqual(aSelectedElement) then
-          begin
             ElementToAssignTo.Assign(aSelectedElement);
-          end;
         end
         else
-  //            if elementToAssignTo is TBoldAttribute then
         begin
           lValue := Null;
           if Assigned(aSelectedElement) then
             lValue := aSelectedElement.AsVariant;
           ElementToAssignTo.AsVariant := lValue;
-  //              (aFollower.Controller as TBoldVariantFollowerController).MayHaveChanged(lValue, aFollower);
         end;
     end;
   end;
@@ -2202,16 +2221,12 @@ end;
 procedure TcxCustomBoldTextEditProperties._DeleteItem(Index: Integer;
   OwningFollower: TBoldFollower);
 begin
-  if not LookupItems.Updating then
-    LookupItems.BeginUpdate;
   LookupItems.Delete(index);
 end;
 
 procedure TcxCustomBoldTextEditProperties._InsertItem(Index: Integer; Follower: TBoldFollower);
 begin
   Assert(Assigned(Follower));
-  if not LookupItems.Updating then
-    LookupItems.BeginUpdate;
   Follower.EnsureDisplayable;
   LookupItems.Insert(Index, VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower)));
 end;
@@ -2219,8 +2234,6 @@ end;
 procedure TcxCustomBoldTextEditProperties._ReplaceItem(Index: Integer;
   Follower: TBoldFollower);
 begin
-  if not LookupItems.Updating then
-    LookupItems.BeginUpdate;
   Follower.EnsureDisplayable;
   LookupItems.Strings[Index] := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
 end;
@@ -2229,7 +2242,6 @@ procedure TcxCustomBoldTextEditProperties._RowAfterMakeUptoDate(
   Follower: TBoldFollower);
 var
   index: Integer;
-  NewValue: String;
 begin
 {  OutputDebugString('TcxCustomBoldTextEditProperties._RowAfterMakeUptoDate');
   if (Owner is TcxCustomEdit) and TcxCustomEdit(Owner).IsDesigning then
@@ -2239,11 +2251,7 @@ begin
 }
   index := Follower.index;
   if (index > -1) and (index < LookupItems.Count) then
-  begin
-    NewValue := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
-    if LookupItems[index] <> NewValue then
-      LookupItems[index] := NewValue;
-  end;
+    LookupItems[index] := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
 //  LookupDataChanged(self);
   // forces a redisplay of the edit-area, the windows component might go blank if the active row is removed and then reinserted
 //  fBoldHandleFollower.Follower.MarkValueOutOfDate; // do we really need this here ? Danny
@@ -2304,7 +2312,6 @@ begin
 end;
 
 constructor TcxCustomBoldTextEditProperties.Create(AOwner: TPersistent);
-
 begin
   inherited;
   fBoldRowProperties := TBoldVariantFollowerController.Create(Owner as TComponent);
@@ -2335,14 +2342,14 @@ procedure TcxCustomBoldTextEditProperties._AfterMakeUptoDate(
   Follower: TBoldFollower);
 begin
   fBoldRowProperties.AfterMakeUptoDate := _RowAfterMakeUptoDate;
-  if LookupItems.Updating then
-    LookupItems.EndUpdate;
+  LookupItems.EndUpdate;
 end;
 
 procedure TcxCustomBoldTextEditProperties._BeforeMakeUptoDate(
   Follower: TBoldFollower);
 begin
   fBoldRowProperties.AfterMakeUptoDate := nil;
+  LookupItems.BeginUpdate;
 end;
 
 
@@ -2378,7 +2385,7 @@ begin
     end;
     bapDemand: Follower.DiscardChange;
   end;
-  FreeAndNil(fBrokenConstraints);  
+  FreeAndNil(fBrokenConstraints);
   FreeAndNil(fBoldHandleFollower);
   FreeAndNil(fBoldFollowerController);
   Edit.ViewInfo.OnPaint := nil;
@@ -2479,7 +2486,7 @@ end;
 
 function TcxBoldEditDataBinding.GetDefaultValuesProvider: TcxCustomBoldEditDefaultValuesProvider;
 begin
-  Result := TcxCustomBoldEditDefaultValuesProvider(IDefaultValuesProvider.GetInstance);
+  Result := inherited DefaultValuesProvider as TcxCustomBoldEditDefaultValuesProvider;
 end;
 
 class function TcxBoldEditDataBinding.GetDefaultValuesProviderClass: TcxCustomEditDefaultValuesProviderClass;
@@ -2957,8 +2964,6 @@ function TcxBoldEditDataBinding.HandleApplyException(E: Exception;
   Elem: TBoldElement; var Discard: Boolean): Boolean;
 begin
   result := false;
-  if Edit.IsDestroying then
-    exit;
   if Assigned(Edit.ActiveProperties) then
     result := not (evoRaiseException in Edit.ActiveProperties.ValidationOptions);
   if not TcxCustomEditAccess(Edit).IsEditValidated then
@@ -3421,7 +3426,7 @@ procedure TcxBoldDateEdit.HidePopup(Sender: TcxControl;
 begin
   inherited;
 // this will post the value when the calednar popup is closed with ok or enter
-// the idea being to post the value even if using bapExit  
+// the idea being to post the value even if using bapExit
   if AReason = crEnter then
   begin
     DataBinding.InternalSetValue(EditingValue);
@@ -3494,7 +3499,7 @@ procedure TcxBoldMemo.DoValidateDisplayValue(var ADisplayValue: TcxEditValue;
   var AErrorText: TCaption; var AError: Boolean);
 begin
   inherited;
-  if Assigned(DataBinding) then    
+  if Assigned(DataBinding) then
     DataBinding.ValidateDisplayValue(ADisplayValue, AErrorText, AError);
 end;
 
@@ -3793,7 +3798,7 @@ end;
 
 function TcxBoldCheckBoxEditDataBinding.MayModify: boolean;
 begin
-  result := inherited MayModify; //and (fCurrentElementType is TBoldAttributeTypeInfo) and TBoldAttributeTypeInfo(fCurrentElementType).AttributeClass.InheritsFrom(TBABoolean);
+  result := inherited MayModify;
 end;
 
 
@@ -3842,7 +3847,7 @@ procedure TcxBoldCheckBox.DoValidateDisplayValue(
 begin
   inherited;
   ADisplayValue := EditingValue;
-  if Assigned(DataBinding) then    
+  if Assigned(DataBinding) then
     DataBinding.ValidateDisplayValue(ADisplayValue, AErrorText, AError);
 end;
 
@@ -3914,15 +3919,11 @@ end;
 procedure TcxBoldComboBoxProperties._DeleteItem(Index: Integer;
   OwningFollower: TBoldFollower);
 begin
-  if not Items.Updating then
-    Items.BeginUpdate;
   Items.Delete(index);
 end;
 
 procedure TcxBoldComboBoxProperties._InsertItem(Index: Integer; Follower: TBoldFollower);
 begin
-  if not Items.Updating then
-    Items.BeginUpdate;
   if Assigned(Follower) then
   begin
     Follower.EnsureDisplayable;
@@ -3937,8 +3938,6 @@ end;
 procedure TcxBoldComboBoxProperties._ReplaceItem(Index: Integer;
   Follower: TBoldFollower);
 begin
-  if not Items.Updating then
-    Items.BeginUpdate;
   Follower.EnsureDisplayable;
   Items.Strings[Index] := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
 end;
@@ -3947,15 +3946,10 @@ procedure TcxBoldComboBoxProperties._RowAfterMakeUptoDate(
   Follower: TBoldFollower);
 var
   index: Integer;
-  NewValue: String;
 begin
   index := Follower.index;
   if (index > -1) and (index < Items.Count) then
-  begin
-    NewValue := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
-    if NewValue <> Items[index] then
-      Items[index] := NewValue;
-  end;
+    Items[index] := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
 //  LookupDataChanged(self);
   // forces a redisplay of the edit-area, the windows component might go blank if the active row is removed and then reinserted
 //  fBoldHandleFollower.Follower.MarkValueOutOfDate; // do we really need this here ? Danny
@@ -3965,14 +3959,19 @@ procedure TcxBoldComboBoxProperties._AfterMakeUptoDate(
   Follower: TBoldFollower);
 begin
   fBoldRowProperties.AfterMakeUptoDate := _RowAfterMakeUptoDate;
-  if Items.Updating then
-    Items.EndUpdate;
+  Items.EndUpdate;
 end;
 
 procedure TcxBoldComboBoxProperties._BeforeMakeUptoDate(
   Follower: TBoldFollower);
 begin
+  if Owner is TcxBoldComboBox then
+  begin
+    TcxBoldComboBox(Owner).DataBinding.fBoldHandleFollower.PrioritizedQueuable := self.fListHandleFollower;
+    TcxBoldComboBox(Owner).DataBinding.fBoldHandleFollower.StronglyDependedOfPrioritized := true;
+  end;
   fBoldRowProperties.AfterMakeUptoDate := nil;
+  Items.BeginUpdate;
 end;
 
 constructor TcxBoldComboBoxProperties.Create(AOwner: TPersistent);
@@ -4209,7 +4208,7 @@ begin
   if Owner is TcxCustomEdit and (TcxCustomEdit(Owner).IsDesigning) and not (TcxCustomEdit(Owner).IsLoading) then
   begin
     _ValidateEdit(TcxCustomEdit(Owner));
-  end;  
+  end;
 end;
 
 { TcxBoldComboBox }
@@ -4256,7 +4255,7 @@ procedure TcxBoldComboBox.DoValidateDisplayValue(
   var AError: Boolean);
 begin
   inherited;
-  if Assigned(DataBinding) then  
+  if Assigned(DataBinding) then
     DataBinding.ValidateDisplayValue(ADisplayValue, AErrorText, AError);
 end;
 
@@ -4401,7 +4400,7 @@ procedure TcxBoldButtonEdit.DoValidateDisplayValue(
   var AError: Boolean);
 begin
   inherited;
-  if Assigned(DataBinding) then    
+  if Assigned(DataBinding) then
     DataBinding.ValidateDisplayValue(ADisplayValue, AErrorText, AError);
 end;
 
@@ -4576,7 +4575,7 @@ procedure TcxBarBoldEditItem._AfterMakeUptoDate(Follower: TBoldFollower);
 var
   lValue: variant;//string;
   lElement: TBoldElement;
-  lIcxBoldEditProperties: IcxBoldEditProperties;  
+  lIcxBoldEditProperties: IcxBoldEditProperties;
 begin
 //  lValue := BoldProperties.GetAsVariant(Follower);
   if fInternalChange = 0 then
@@ -5315,8 +5314,15 @@ begin
       //  lcxBoldComboBox.ActiveProperties.BoldLookupListProperties.ListIndexToIndex(lItemIndex);
       if (lcxBoldComboBox.ActiveProperties.BoldLookupListProperties.NilElementMode = neInsertFirst) then
         Dec(lItemIndex);
-      lNewElement := lcxBoldComboBox.ActiveProperties.BoldLookupListHandle.List[lItemIndex];
-      Result := lOriginalElement <> lNewElement;
+
+      var oListFormHandle := lcxBoldComboBox.ActiveProperties.BoldLookupListHandle.List;
+      if Assigned(oListFormHandle) then
+      begin
+        lNewElement := oListFormHandle[lItemIndex];
+        Result := lOriginalElement <> lNewElement;
+      end
+      else
+        Result := False;
     end
     else
     begin
@@ -5468,18 +5474,12 @@ procedure TcxBoldListBox._DeleteItem(Index: Integer;
   OwningFollower: TBoldFollower);
 begin
   if not (ListStyle in [lbVirtual, lbVirtualOwnerDraw]) then
-  begin
-    if not Items.Updating then
-      Items.BeginUpdate;
     Items.Delete(index);
-  end;
 end;
 
 procedure TcxBoldListBox._InsertItem(Index: Integer; Follower: TBoldFollower);
 begin
   Assert(Assigned(Follower));
-  if not Items.Updating then
-    Items.BeginUpdate;
   Follower.EnsureDisplayable;
   if not (ListStyle in [lbVirtual, lbVirtualOwnerDraw]) then
     Items.Insert(Follower.Index, VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower)))
@@ -5487,8 +5487,6 @@ end;
 
 procedure TcxBoldListBox._ReplaceItem(Index: Integer; Follower: TBoldFollower);
 begin
-  if not Items.Updating then
-    Items.BeginUpdate;
   Follower.EnsureDisplayable;
   if not (ListStyle in [lbVirtual, lbVirtualOwnerDraw]) then
     Items.Strings[Index] := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
@@ -5522,8 +5520,7 @@ begin
       Selected[ItemIndex] := true;
   end;
   SyncSelection;
-  if Items.Updating then
-    Items.EndUpdate;
+  Items.EndUpdate;
 end;
 
 procedure TcxBoldListBox._BeforeMakeUptoDate(Follower: TBoldFollower);
@@ -5531,6 +5528,7 @@ begin
   fBoldRowProperties.AfterMakeUptoDate := nil;
   if assigned(BoldListHandle) and assigned(BoldListHandle.list) then
     BoldListHandle.list.EnsureRange(0, BoldListHandle.list.Count-1);
+  Items.BeginUpdate;
 end;
 
 function TcxBoldListBox.GetBoldListHandle: TBoldAbstractListHandle;
@@ -5572,7 +5570,7 @@ begin
   begin
     OnAfterInsertItem := _InsertItem;
     OnAfterDeleteItem := _DeleteItem;
-    OnReplaceitem := _ReplaceItem;    
+    OnReplaceitem := _ReplaceItem;
     BeforeMakeUptoDate := _BeforeMakeUptoDate;
     AfterMakeUptoDate := _AfterMakeUptoDate;
   end;
@@ -5643,7 +5641,7 @@ begin
   if Assigned(fListHandleFollower) then
     result := fListHandleFollower.Follower
   else
-    result := nil;  
+    result := nil;
 end;
 
 procedure TcxBoldListBox.Loaded;
@@ -5777,6 +5775,7 @@ begin
   // Will fetch all
   if assigned(BoldHandle) and assigned(Boldhandle.list) then
     BoldHandle.list.EnsureRange(0, BoldHandle.list.Count-1);
+  Items.BeginUpdate;
 end;
 
 procedure TcxBoldListView._AfterMakeUptoDate(Follower: TBoldFollower);
@@ -5786,11 +5785,7 @@ begin
     fBoldProperties.SelectAll(Follower, False)
   else
     ;
-  if FUpdateCount > 0 then
-  begin
-    dec(FUpdateCount);
-    Items.EndUpdate;
-  end;
+  Items.EndUpdate;
 end;
 
 procedure TcxBoldListView._InsertItem(Index: Integer; Follower: TBoldFollower);
@@ -5798,11 +5793,6 @@ var
   lItem: TListItem;
 begin
   Assert(Assigned(Follower));
-  if FUpdateCount = 0 then
-  begin
-    inc(FUpdateCount);
-    Items.BeginUpdate;
-  end;
   Follower.EnsureDisplayable;
   lItem := Items.Insert(Follower.Index);
   lItem.Caption := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
@@ -5812,32 +5802,18 @@ end;
 procedure TcxBoldListView._DeleteItem(index: Integer;
   OwningFollower: TBoldFollower);
 begin
-  if FUpdateCount = 0 then
-  begin
-    inc(FUpdateCount);
-    Items.BeginUpdate;
-  end;
   Items.Delete(index);
 end;
 
 procedure TcxBoldListView._ReplaceItem(Index: Integer; Follower: TBoldFollower);
 begin
-  if FUpdateCount = 0 then
-  begin
-    inc(FUpdateCount);
-    Items.BeginUpdate;
-  end;
   Follower.EnsureDisplayable;
   items[Index].Caption := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
 end;
 
 procedure TcxBoldListView._RowAfterMakeUptoDate(Follower: TBoldFollower);
-var
-  NewValue: string;
 begin
-  NewValue := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
-  if Items[Follower.index].Caption <> NewValue then
-    Items[Follower.index].Caption := NewValue;
+//  Items[Follower.index].Caption := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
 end;
 
 function TcxBoldListView.GetBoldHandle: TBoldAbstractListHandle;
@@ -6157,11 +6133,7 @@ var
   lIndex: integer;
 begin
 //  fBoldRowProperties.AfterMakeUptoDate := _RowAfterMakeUptoDate;
-  if FUpdateCount > 0 then
-  begin
-    dec(FUpdateCount);
-    Items.EndUpdate;
-  end;
+  Items.EndUpdate;
   if not fInternalUpdate then
   begin
     lIndex := Follower.CurrentIndex;
@@ -6180,16 +6152,12 @@ begin
   // will fetch all
   if Assigned(BoldListHandle) and Assigned(BoldListHandle.List) then
     BoldListHandle.List.EnsureRange(0, BoldListHandle.List.Count - 1);
+  Items.BeginUpdate;
 end;
 
 procedure TcxBoldCustomCheckListBox._ListDeleteItem(Index: integer;
   Follower: TBoldFollower);
 begin
-  if FUpdateCount = 0 then
-  begin
-    inc(FUpdateCount);
-    Items.BeginUpdate;
-  end;
   Items.Delete(Index);
 end;
 
@@ -6197,31 +6165,21 @@ procedure TcxBoldCustomCheckListBox._ListInsertItem(Index: Integer; Follower: TB
 var
   lCheckListBoxItem: TcxCheckListBoxItem;
 begin
-  if FUpdateCount = 0 then
-  begin
-    inc(FUpdateCount);
-    Items.BeginUpdate;
-  end;
   Assert(Assigned(Follower));
   lCheckListBoxItem := Items.Insert(Follower.Index) as TcxCheckListBoxItem;
   if Assigned(Follower) then
   begin
     Follower.EnsureDisplayable;
     if Assigned(Follower.Value) then
-      lCheckListBoxItem.Text := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
+      lCheckListBoxItem.Text := Follower.Value.AsString; // VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
   end;
 end;
 
 procedure TcxBoldCustomCheckListBox._ReplaceItem(Index: Integer;
   Follower: TBoldFollower);
 begin
-  if FUpdateCount = 0 then
-  begin
-    inc(FUpdateCount);
-    Items.BeginUpdate;
-  end;
   Follower.EnsureDisplayable;
-  Items[Index].Text := VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
+  Items[Index].Text := Follower.Value.AsString; //VarToStr(TBoldVariantFollowerController(Follower.Controller).GetAsVariant(Follower));
 end;
 
 { TcxBoldSelectionCheckListBox }
@@ -6229,7 +6187,7 @@ end;
 constructor TcxBoldSelectionCheckListBox.Create(AOwner: TComponent);
 begin
   inherited;
-  fPublisher := TBoldPublisher.Create;
+  fPublisher := TBoldPublisher.Create(fPublisher);
 {
   TBoldGetAsCheckBoxState = function (Element: TBoldElement; Representation: TBoldRepresentation; Expression: TBoldExpression): TCheckBoxState of object;
   TBoldSetAsCheckBoxState = procedure (Element: TBoldElement; newValue: TCheckBoxState; Representation: TBoldRepresentation; Expression: TBoldExpression) of object;
@@ -6254,7 +6212,7 @@ function TcxBoldSelectionCheckListBox.GetAsCheckBoxState(
 begin
   if Assigned(BoldSelectionHandle) then
   begin
-    if (BoldSelectionHandle.List.IndexOf(aFollower.Element) <> -1 ) then
+    if (BoldSelectionHandle.List.Includes(aFollower.Element)) then
       Result := cbChecked
     else
       Result := cbUnChecked;
@@ -6309,6 +6267,15 @@ begin
   end;
 end;
 
+procedure TcxBoldSelectionCheckListBox.SyncSelection;
+var
+  i: integer;
+begin
+  if Assigned(BoldSelectionHandle) and Assigned(BoldSelectionHandle.List) then
+    for i := 0 to Count - 1 do
+      Items[i].Checked := BoldSelectionHandle.List.Includes(Follower.SubFollowers[i].Element);
+end;
+
 function TcxBoldSelectionCheckListBox.ValidateComponent(
   ComponentValidator: TBoldComponentValidator;
   NamePrefix: string): Boolean;
@@ -6323,6 +6290,18 @@ begin
       BoldRowProperties.Expression,
       lContext,
       format('%s %s.BoldRowProperties.Expression', [NamePrefix, Name]), BoldRowProperties.VariableList); // do not localize
+  end;
+end;
+
+procedure TcxBoldSelectionCheckListBox._DisplayCheckBox(
+  Follower: TBoldFollower);
+var
+  index: integer;
+begin
+  index := Follower.OwningFollower.index;
+  if (index > -1) and (index < Items.Count) then
+  begin
+    Items[Index].Checked := TcxCheckBoxState(TBoldCheckBoxStateFollowerController(Follower.Controller).GetCurrentAsCheckBoxState(Follower)) = cbsChecked;
   end;
 end;
 

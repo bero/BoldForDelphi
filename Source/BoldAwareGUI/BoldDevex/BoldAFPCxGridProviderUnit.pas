@@ -41,20 +41,7 @@ uses
   SysUtils,
   cxGridCustomPopupMenu,
   cxGridPopupMenu;
-
-const
-  BOXMARGIN           = 8;
-  BOXSPACING          = 2;
-  CONTROLMARGIN       = 10;
-  LISTBOXLABELHEIGHT  = 18;
-  MAXFORMHEIGHT       = 450;
-  MINFORMHEIGHT       = 150;
-  EDITHEIGHT          = 20;
-  EDITWIDTH           = 121;
-  LISTBOXHEIGHT       = 97;
-  LISTBOXWIDTH        = 121;
-  PANELHEIGHT         = 35;
-
+  
 { TBoldCxGridFormProviderForList }
 
 procedure TBoldCxGridFormProviderForList.EnsureHandle;

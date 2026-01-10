@@ -2,8 +2,6 @@
 
 interface
 
-//  v2.03 - 25 Jan 2011  2007-2011 Daniel Mauric
-
 uses
   classes,
   cxLookupEdit,
@@ -52,6 +50,7 @@ type
 //    FSyncLookup: Boolean;
     fBoldSelectChangeAction: TBoldComboSelectChangeAction;
     fBoldSetValueExpression: TBoldExpression;
+//    fBoldRowProperties: TBoldVariantFollowerController;
 //    function GetIsUseLookupList: Boolean;
 //    function GetKeyFieldNames: string;
 //    function GetListField: TField;
@@ -67,7 +66,7 @@ type
   protected
     // IcxBoldEditProperties
     procedure SetStoredValue(aValue: Variant; aBoldHandle: TBoldElementHandle; aEdit: TcxCustomEdit; aFollower: TBoldFollower; var aDone: boolean); virtual;
-    function BoldElementToEditValue(aFollower: TBoldFollower; aElement: TBoldElement; aEdit: TcxCustomEdit): variant;
+    function BoldElementToEditValue(aFollower: TBoldFollower; aElement: TBoldElement; aEdit: TcxCustomEdit): variant; virtual;
     function CanEdit(aBoldHandle: TBoldElementHandle; aFollower: TBoldFollower): boolean; virtual;
     // IBoldValidateableComponent
     function ValidateComponent(ComponentValidator: TBoldComponentValidator; NamePrefix: string): Boolean;
@@ -134,6 +133,7 @@ type
 
   { TcxCustomBoldLookupEdit }
 
+  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
   TcxCustomBoldLookupEdit = class(TcxCustomLookupEdit)
   private
     function GetProperties: TcxCustomBoldLookupEditProperties;
@@ -658,6 +658,8 @@ function TcxCustomBoldLookupEditProperties.BoldElementToEditValue(
 var
   lBoldList: TBoldList;
 begin
+  result := aFollower.Value.AsVariant;
+  exit;
   result := Null; // used to be -1
   if Assigned(DataController) and Assigned(DataController.BoldHandle) and Assigned(aElement) then
   begin
@@ -667,7 +669,9 @@ begin
       if aElement is TBoldObjectReference then
         result := lBoldList.IndexOf( TBoldObjectReference(aElement).BoldObject )
       else
+      begin
         result := lBoldList.IndexOf(aElement);
+      end;
     end;
   end;
 end;
@@ -698,7 +702,8 @@ begin
       result := ComponentValidator.ValidateExpressionInContext(
         TBoldFollowerControllerAccess(DataController.BoldProperties).Expression,
         lContext,
-        format('%s %s.BoldProperties.Expression', [NamePrefix, lName]), DataController.BoldProperties.VariableList) and result; // do not localize
+        format('%s %s.BoldProperties.Expression', [NamePrefix, lName])
+        {$IFDEF Attracs}, DataController.BoldProperties.VariableList{$ENDIF}) and result; // do not localize
       if (BoldSelectChangeAction = bdcsSetValue) and (Owner is TcxCustomEdit) then
       begin
         lcxBoldEditDataBinding := TcxCustomEditAccess(TcxCustomEdit(Owner)).DataBinding as TcxBoldEditDataBinding;
@@ -706,8 +711,8 @@ begin
         result := ComponentValidator.ValidateExpressionInContext(
           BoldSetValueExpression,
           lContext,
-          format('%s %s.BoldSetValueExpression', [NamePrefix, lName]),
-          lcxBoldEditDataBinding.BoldProperties.VariableList) and result; // do not localize
+          format('%s %s.BoldSetValueExpression', [NamePrefix, lName])
+          {$IFDEF Attracs}, lcxBoldEditDataBinding.BoldProperties.VariableList{$ENDIF}) and result; // do not localize
       end;
     end;
   end;
@@ -726,7 +731,7 @@ begin
   if Owner is TcxCustomEdit and (TcxCustomEdit(Owner).IsDesigning) and not (TcxCustomEdit(Owner).IsLoading) then
   begin
     _ValidateEdit(TcxCustomEdit(Owner));
-  end;  
+  end;
 end;
 
 { TcxCustomBoldLookupEdit }

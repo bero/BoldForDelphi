@@ -9,7 +9,7 @@ uses
   cxData, cxDataStorage, cxEdit, cxDropDownEdit, Menus, cxContainer, cxCheckBox,
   StdCtrls, cxButtons, cxGridCustomTableView, cxGridTableView, cxGridCustomView,
   cxClasses, cxGridLevel, cxGrid, cxNavigator, cxStyles, ExtCtrls,
-  cxTextEdit, cxMemo, dxDateRanges, dxScrollbarAnnotations;
+  cxTextEdit, cxMemo;
 
 type
   TfrmBoldToCxConverter = class(TForm)
