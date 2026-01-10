@@ -3,9 +3,12 @@ site_description: Documentation for Bold for Delphi - Model-Driven Architecture 
 site_url: https://bero.github.io/BoldForDelphi/
 repo_url: https://github.com/bero/BoldForDelphi
 repo_name: bero/BoldForDelphi
+edit_uri: edit/main/docs/
 
 theme:
   name: material
+  logo: images/boldlogo.png
+  favicon: images/favbold.png
   palette:
     - scheme: default
       primary: indigo
@@ -31,7 +34,11 @@ theme:
     - content.code.annotate
 
 plugins:
-  - search
+  - search:
+      lang: en
+      separator: '[\\s\\-]+'
+  - git-revision-date-localized:
+      type: datetime
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -58,17 +65,17 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
-    - Introduction: getting-started/index.md
+    - getting-started/index.md
     - Installation: getting-started/installation.md
     - First Application: getting-started/first-app.md
   - Core Concepts:
-    - Overview: concepts/index.md
+    - concepts/index.md
     - Object Space: concepts/object-space.md
     - OCL Queries: concepts/ocl.md
     - Persistence: concepts/persistence.md
     - Subscriptions: concepts/subscriptions.md
   - Classes:
-    - Overview: classes/index.md
+    - classes/index.md
     - TBoldSystem: classes/TBoldSystem.md
     - TBoldObject: classes/TBoldObject.md
     - TBoldObjectList: classes/TBoldObjectList.md
@@ -79,7 +86,7 @@ nav:
     - integrations/index.md
     - DevExpress: integrations/devexpress.md
   - Development:
-    - Overview: development/index.md
+    - development/index.md
     - Unit Testing: development/testing.md
     - Codecov Setup: development/codecov.md
   - FAQ: faq.md
@@ -93,5 +100,4 @@ extra:
       link: https://github.com/bero/BoldForDelphi
 
 extra_javascript:
-  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
-  - javascripts/mermaid.js
+  - https://unpkg.com/mermaid

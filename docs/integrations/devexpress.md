@@ -168,4 +168,5 @@ If Bold-specific properties don't appear in the Object Inspector:
 
 ## Version Compatibility
 
-The DevExpress integration is tested with recent DevExpress VCL versions. If you encounter compatibility issues with a specific DevExpress version, please report them on GitHub.
+The DevExpress integration is tested with DevExpress VCL 24.2.4. 
+If you encounter compatibility issues with a specific DevExpress version, please report them on GitHub.
