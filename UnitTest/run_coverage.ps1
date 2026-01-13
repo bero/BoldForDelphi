@@ -181,6 +181,7 @@ try {
         "-lcl", "3",
         "-spf", "coverage_source_paths.lst",
         "-uf", "coverage_units.lst",
+        "-ife",  # Enable include file tracking for .inc files
         "-html",
         "-xml",
         "-od", $OutputDir,
