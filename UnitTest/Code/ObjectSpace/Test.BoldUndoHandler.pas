@@ -47,6 +47,10 @@ type
     procedure SetSimpleConfiguration;
     procedure SetTransientConfiguration;
   public
+    [SetupFixture]
+    procedure SetUpFixture;
+    [TearDownFixture]
+    procedure TearDownFixture;
     [Setup]
     procedure SetUp;
     [TearDown]
@@ -167,18 +171,35 @@ type
 implementation
 
 uses
-  maan_UndoRedoBase,
+  dmBoldTest,
   maan_UndoRedoTestCaseUtils;
 
 { TTestBoldUndoHandler }
 
+procedure TTestBoldUndoHandler.SetUpFixture;
+begin
+  // Create DataModule and database ONCE for the entire test fixture
+  EnsureBoldTestDM;
+  Assert.IsNotNull(dmBoldTest, 'dmBoldTest should be created');
+  Assert.IsNotNull(dmBoldTest.BoldSystemHandle1.System, 'System should be active');
+end;
+
+procedure TTestBoldUndoHandler.TearDownFixture;
+begin
+  // Clean up DataModule at the end of all tests
+  CloseBoldTestDM;
+end;
+
 procedure TTestBoldUndoHandler.SetUp;
 begin
-  EnsureDM;
-  Assert.IsNotNull(dmUndoRedo, 'dmUndoRedo should be created');
-  Assert.IsNotNull(dmUndoRedo.BoldSystemHandle1.System, 'System should be active');
+  // Ensure system is active for this test
+  if not dmBoldTest.BoldSystemHandle1.Active then
+    dmBoldTest.BoldSystemHandle1.Active := True;
 
-  FUndoHandler := dmUndoRedo.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
+  // Start database transaction for test isolation - will be rolled back in TearDown
+  dmBoldTest.FDConnection1.StartTransaction;
+
+  FUndoHandler := dmBoldTest.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
   FUndoHandler.Enabled := True;
 
   FSomeClassList := TSomeClassList.Create;
@@ -189,24 +210,26 @@ end;
 
 procedure TTestBoldUndoHandler.TearDown;
 begin
-  if Assigned(dmUndoRedo) then
-  begin
-    if dmUndoRedo.BoldSystemHandle1.Active then
-    begin
-      dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-      dmUndoRedo.BoldSystemHandle1.Active := False;
-    end;
-    FreeAndNil(dmUndoRedo);
-  end;
   FreeAndNil(FSomeClassList);
   FreeAndNil(FAPersistentClassList);
   FreeAndNil(FATransientClassList);
   FreeAndNil(FFSValueSpace);
+
+  if Assigned(dmBoldTest) and dmBoldTest.BoldSystemHandle1.Active then
+  begin
+    // Discard in-memory changes and rollback database transaction for test isolation
+    dmBoldTest.BoldSystemHandle1.System.Discard;
+    if dmBoldTest.FDConnection1.InTransaction then
+      dmBoldTest.FDConnection1.Rollback;
+    // Deactivate system to get a clean state for next test
+    dmBoldTest.BoldSystemHandle1.Active := False;
+  end;
+  // Note: dmBoldTest is NOT freed here - it's reused across tests
 end;
 
 function TTestBoldUndoHandler.GetSystem: TBoldSystem;
 begin
-  Result := dmUndoRedo.BoldSystemHandle1.System;
+  Result := dmBoldTest.BoldSystemHandle1.System;
 end;
 
 function TTestBoldUndoHandler.GetUndoHandler: TBoldUndoHandler;
@@ -238,19 +261,19 @@ end;
 procedure TTestBoldUndoHandler.RefreshSystem;
 begin
   UpdateDatabase;
-  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmBoldTest.BoldSystemHandle1.Active := False;
   FSomeClassList.Clear;
   FAPersistentClassList.Clear;
   FATransientClassList.Clear;
-  dmUndoRedo.BoldSystemHandle1.Active := True;
-  FUndoHandler := dmUndoRedo.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
+  dmBoldTest.BoldSystemHandle1.Active := True;
+  FUndoHandler := dmBoldTest.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
   FUndoHandler.Enabled := True;
   FetchClassSorted(System, FSomeClassList, TSomeClass);
 end;
 
 procedure TTestBoldUndoHandler.UpdateDatabase;
 begin
-  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  dmBoldTest.BoldSystemHandle1.UpdateDatabase;
 end;
 
 procedure TTestBoldUndoHandler.SetSimpleConfiguration;
@@ -498,7 +521,7 @@ begin
 
       Assert.AreEqual(1, ParentObj.child.Count, 'Parent should have 1 child');
 
-      // Undo the child creation
+      // Undo the child creation - child was never persisted, so undo should just remove from memory
       UndoHandler.UndoBlock(BlockName);
 
       // Re-fetch parent

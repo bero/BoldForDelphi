@@ -42,6 +42,7 @@ uses
   maan_UndoRedoTestCaseUtils in 'Code\ObjectSpace\maan_UndoRedoTestCaseUtils.pas',
   maan_UndoRedoBase in 'Code\ObjectSpace\maan_UndoRedoBase.pas',
   maan_FetchRefetch in 'Code\ObjectSpace\maan_FetchRefetch.pas',
+  dmBoldTest in 'Code\ObjectSpace\dmBoldTest.pas' {dmBoldTest: TDataModule},
   Test.BoldUndoHandler in 'Code\ObjectSpace\Test.BoldUndoHandler.pas',
   Test.BoldSystem in 'Code\ObjectSpace\Test.BoldSystem.pas',
   Test.BoldLinks in 'Code\ObjectSpace\Test.BoldLinks.pas',
