@@ -65,6 +65,7 @@ uses
   Test.BoldGuard in 'Code\Common\Test.BoldGuard.pas',
   Test.BoldQueue in 'Code\Common\Test.BoldQueue.pas',
   Test.BoldContainers in 'Code\Common\Test.BoldContainers.pas',
+  Test.BoldIndexCollection in 'Code\Common\Test.BoldIndexCollection.pas',
   Test.BoldGlobalId in 'Code\ValueSpace\Test.BoldGlobalId.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas',
