@@ -16,6 +16,7 @@ flowchart TB
         ObjectSpace[Object Space]
         OCL[OCL Queries]
         Subscriptions[Subscription System]
+        Logging[Logging System]
     end
 
     subgraph Data["Data Layer"]
@@ -40,6 +41,7 @@ flowchart TB
 | **OCL** | Query language for navigating and filtering objects | [OCL Queries](ocl.md) |
 | **Persistence** | Automatic object-relational mapping | [Persistence](persistence.md) |
 | **Subscriptions** | Observer pattern for reactive updates | [Subscriptions](subscriptions.md) |
+| **Logging** | Flexible logging with multiple output options | [Logging](logging.md) |
 
 ## The Bold Workflow
 

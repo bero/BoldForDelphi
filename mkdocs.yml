@@ -74,6 +74,7 @@ nav:
     - OCL Queries: concepts/ocl.md
     - Persistence: concepts/persistence.md
     - Subscriptions: concepts/subscriptions.md
+    - Logging: concepts/logging.md
   - Classes:
     - classes/index.md
     - TBoldSystem: classes/TBoldSystem.md
