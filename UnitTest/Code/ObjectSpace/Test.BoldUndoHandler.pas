@@ -25,6 +25,7 @@ uses
 type
   [TestFixture]
   [Category('UndoHandler')]
+  [Ignore('Requires database connection')]
   TTestBoldUndoHandler = class
   private
     FUndoHandler: TBoldUndoHandler;
@@ -180,8 +181,8 @@ procedure TTestBoldUndoHandler.SetUpFixture;
 begin
   // Create DataModule and database ONCE for the entire test fixture
   EnsureBoldTestDM;
-  Assert.IsNotNull(dmBoldTest, 'dmBoldTest should be created');
-  Assert.IsNotNull(dmBoldTest.BoldSystemHandle1.System, 'System should be active');
+  Assert.IsNotNull(BoldTestDM, 'BoldTestDM should be created');
+  Assert.IsNotNull(BoldTestDM.BoldSystemHandle1.System, 'System should be active');
 end;
 
 procedure TTestBoldUndoHandler.TearDownFixture;
@@ -193,13 +194,13 @@ end;
 procedure TTestBoldUndoHandler.SetUp;
 begin
   // Ensure system is active for this test
-  if not dmBoldTest.BoldSystemHandle1.Active then
-    dmBoldTest.BoldSystemHandle1.Active := True;
+  if not BoldTestDM.BoldSystemHandle1.Active then
+    BoldTestDM.BoldSystemHandle1.Active := True;
 
   // Start database transaction for test isolation - will be rolled back in TearDown
-  dmBoldTest.FDConnection1.StartTransaction;
+  BoldTestDM.FDConnection1.StartTransaction;
 
-  FUndoHandler := dmBoldTest.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
+  FUndoHandler := BoldTestDM.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
   FUndoHandler.Enabled := True;
 
   FSomeClassList := TSomeClassList.Create;
@@ -215,21 +216,21 @@ begin
   FreeAndNil(FATransientClassList);
   FreeAndNil(FFSValueSpace);
 
-  if Assigned(dmBoldTest) and dmBoldTest.BoldSystemHandle1.Active then
+  if Assigned(BoldTestDM) and BoldTestDM.BoldSystemHandle1.Active then
   begin
     // Discard in-memory changes and rollback database transaction for test isolation
-    dmBoldTest.BoldSystemHandle1.System.Discard;
-    if dmBoldTest.FDConnection1.InTransaction then
-      dmBoldTest.FDConnection1.Rollback;
+    BoldTestDM.BoldSystemHandle1.System.Discard;
+    if BoldTestDM.FDConnection1.InTransaction then
+      BoldTestDM.FDConnection1.Rollback;
     // Deactivate system to get a clean state for next test
-    dmBoldTest.BoldSystemHandle1.Active := False;
+    BoldTestDM.BoldSystemHandle1.Active := False;
   end;
-  // Note: dmBoldTest is NOT freed here - it's reused across tests
+  // Note: BoldTestDM is NOT freed here - it's reused across tests
 end;
 
 function TTestBoldUndoHandler.GetSystem: TBoldSystem;
 begin
-  Result := dmBoldTest.BoldSystemHandle1.System;
+  Result := BoldTestDM.BoldSystemHandle1.System;
 end;
 
 function TTestBoldUndoHandler.GetUndoHandler: TBoldUndoHandler;
@@ -261,19 +262,19 @@ end;
 procedure TTestBoldUndoHandler.RefreshSystem;
 begin
   UpdateDatabase;
-  dmBoldTest.BoldSystemHandle1.Active := False;
+  BoldTestDM.BoldSystemHandle1.Active := False;
   FSomeClassList.Clear;
   FAPersistentClassList.Clear;
   FATransientClassList.Clear;
-  dmBoldTest.BoldSystemHandle1.Active := True;
-  FUndoHandler := dmBoldTest.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
+  BoldTestDM.BoldSystemHandle1.Active := True;
+  FUndoHandler := BoldTestDM.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
   FUndoHandler.Enabled := True;
   FetchClassSorted(System, FSomeClassList, TSomeClass);
 end;
 
 procedure TTestBoldUndoHandler.UpdateDatabase;
 begin
-  dmBoldTest.BoldSystemHandle1.UpdateDatabase;
+  BoldTestDM.BoldSystemHandle1.UpdateDatabase;
 end;
 
 procedure TTestBoldUndoHandler.SetSimpleConfiguration;

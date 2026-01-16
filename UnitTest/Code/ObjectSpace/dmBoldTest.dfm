@@ -1,4 +1,4 @@
-object dmBoldTest: TdmBoldTest
+object BoldTestDM: TdmBoldTest
   Height = 400
   Width = 600
   object BoldSystemHandle1: TBoldSystemHandle

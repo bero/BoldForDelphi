@@ -31,7 +31,7 @@ uses
   FireDAC.VCLUI.Wait;
 
 type
-  TdmBoldTest = class(TDataModule)
+  TBoldTestDM = class(TDataModule)
     BoldSystemHandle1: TBoldSystemHandle;
     BoldModel1: TBoldModel;
     BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle;
@@ -43,7 +43,7 @@ type
   end;
 
 var
-  dmBoldTest: TdmBoldTest;
+  BoldTestDM: TBoldTestDM;
 
 procedure EnsureBoldTestDM;
 procedure CloseBoldTestDM;
@@ -56,7 +56,7 @@ implementation
 uses
   BoldTestDatabaseConfig;
 
-destructor TdmBoldTest.Destroy;
+destructor TBoldTestDM.Destroy;
 begin
   if BoldSystemHandle1.Active then
     BoldSystemHandle1.Active := False;
@@ -77,7 +77,7 @@ procedure EnsureBoldTestDM;
 var
   NeedSchema: Boolean;
 begin
-  if not Assigned(dmBoldTest) then
+  if not Assigned(BoldTestDM) then
   begin
     if not Assigned(Application) then
       raise Exception.Create('Application is nil');
@@ -86,40 +86,40 @@ begin
     // Create the test database first (IF NOT EXISTS)
     CreateTestDatabase;
 
-    dmBoldTest := TdmBoldTest.Create(Application);
-    if not Assigned(dmBoldTest) then
-      raise Exception.Create('Failed to create dmBoldTest');
+    BoldTestDM := TBoldTestDM.Create(Application);
+    if not Assigned(BoldTestDM) then
+      raise Exception.Create('Failed to create BoldTestDM');
 
     // Configure database connection from INI file
-    ConfigureConnection(dmBoldTest.FDConnection1,
-                        dmBoldTest.BoldDatabaseAdapterFireDAC1);
+    ConfigureConnection(BoldTestDM.FDConnection1,
+                        BoldTestDM.BoldDatabaseAdapterFireDAC1);
 
     // Open connection
-    dmBoldTest.FDConnection1.Open;
-    if not dmBoldTest.FDConnection1.Connected then
+    BoldTestDM.FDConnection1.Open;
+    if not BoldTestDM.FDConnection1.Connected then
       raise Exception.Create('FDConnection1 failed to open');
 
     // Only create schema if it doesn't exist (much faster on subsequent runs)
-    NeedSchema := not SchemaExists(dmBoldTest.FDConnection1);
+    NeedSchema := not SchemaExists(BoldTestDM.FDConnection1);
     if NeedSchema then
-      dmBoldTest.BoldPersistenceHandleDB1.CreateDataBaseSchema
+      BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema
     else
       ClearAllTables; // Clear existing data instead
 
     // Activate system
-    dmBoldTest.BoldSystemHandle1.Active := True;
-    if not Assigned(dmBoldTest.BoldSystemHandle1.System) then
+    BoldTestDM.BoldSystemHandle1.Active := True;
+    if not Assigned(BoldTestDM.BoldSystemHandle1.System) then
       raise Exception.Create('BoldSystem failed to activate');
   end;
 end;
 
 procedure CloseBoldTestDM;
 begin
-  if Assigned(dmBoldTest) then
+  if Assigned(BoldTestDM) then
   begin
-    if dmBoldTest.BoldSystemHandle1.Active then
-      dmBoldTest.BoldSystemHandle1.Active := False;
-    FreeAndNil(dmBoldTest);
+    if BoldTestDM.BoldSystemHandle1.Active then
+      BoldTestDM.BoldSystemHandle1.Active := False;
+    FreeAndNil(BoldTestDM);
   end;
 end;
 
@@ -140,8 +140,8 @@ const
     'DELETE FROM TESTMODELCLASSESROOT;' +
     'DELETE FROM BOLD_ID;';
 begin
-  if Assigned(dmBoldTest) and dmBoldTest.FDConnection1.Connected then
-    dmBoldTest.FDConnection1.ExecSQL(ClearSQL);
+  if Assigned(BoldTestDM) and BoldTestDM.FDConnection1.Connected then
+    BoldTestDM.FDConnection1.ExecSQL(ClearSQL);
 end;
 
 end.
