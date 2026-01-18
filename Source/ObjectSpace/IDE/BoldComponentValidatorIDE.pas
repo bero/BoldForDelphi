@@ -142,8 +142,11 @@ begin
     if ModuleServices.GetModule(i).QueryInterface(IOTAProjectGroup, ProjectGroup) = S_OK then
     begin
       Project := ProjectGroup.ActiveProject;
-      BoldLog.LogFmt(sDefaultProject, [Project.FileName]);
-      Break;
+      if Assigned(Project) then
+      begin
+        BoldLog.LogFmt(sDefaultProject, [Project.FileName]);
+        Break;
+      end;
     end;
   end;
   BoldLog.Dedent;
@@ -164,22 +167,27 @@ begin
   BoldLog.Dedent;
 
   ChangeFocus;
-  BoldLog.ProgressMax := Project.GetModuleCount - 1;
-  BoldLog.Progress := 0;
-  for i := 0 to Project.GetModuleCount - 1 do
+  if Assigned(Project) then
   begin
-    OTAModuleInfo := Project.GetModule(i);
-    try
-      Module := OTAModuleInfo.OpenModule;
-      if FileNames.IndexOf(Module.FileName) = - 1 then
-      begin
-        ValidateIOTAModule(Module);
-        Module.CloseModule(True);
+    BoldLog.ProgressMax := Project.GetModuleCount - 1;
+    BoldLog.Progress := 0;
+    for i := 0 to Project.GetModuleCount - 1 do
+    begin
+      OTAModuleInfo := Project.GetModule(i);
+      try
+        Module := OTAModuleInfo.OpenModule;
+        if FileNames.IndexOf(Module.FileName) = - 1 then
+        begin
+          ValidateIOTAModule(Module);
+          Module.CloseModule(True);
+        end;
+        BoldLog.ProgressStep;
+      except
       end;
-      BoldLog.ProgressStep;
-    except
     end;
-  end;
+  end
+  else
+    BoldLog.Log('No project found to validate');
   BoldLog.EndLog;
 end;
 
