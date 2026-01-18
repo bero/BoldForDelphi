@@ -201,7 +201,7 @@
         <DCCReference Include="..\..\Source\ObjectSpace\IDE\BoldComponentValidatorIDE.pas"/>
         <DCCReference Include="..\..\Source\ConcurrencyControl\IDECOM\BoldConcurrencyControlReg.pas"/>
         <DCCReference Include="..\..\Source\ValueSpace\Condition\BoldCondition.pas"/>
-        <DCCReference Include="..\..\Source\BoldConstraintValidator.pas"/>
+        <DCCReference Include="..\..\Source\ObjectSpace\Core\BoldConstraintValidator.pas"/>
         <DCCReference Include="..\..\Source\Samples\ConstraintValidator\BoldConstraintValidatorReg.pas"/>
         <DCCReference Include="..\..\Source\Common\Core\BoldContainers.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldControlPack.pas"/>
@@ -222,7 +222,7 @@
         <DCCReference Include="..\..\Source\PMapper\DBEvolutor\BoldDbEvolutor.pas"/>
         <DCCReference Include="..\..\Source\PMapper\DBEvolutor\BoldDbEvolutorForm.pas"/>
         <DCCReference Include="..\..\Source\PMapper\DBEvolutor\BoldDbEvolutorScript.pas"/>
-        <DCCReference Include="..\..\Source\BoldDbPlugins.pas"/>
+        <DCCReference Include="..\..\Source\Persistence\DB\BoldDbPlugins.pas"/>
         <DCCReference Include="..\..\Source\PMapper\Validator\BoldDbStructureValidator.pas"/>
         <DCCReference Include="..\..\Source\PMapper\Validator\BoldDbValidator.pas"/>
         <DCCReference Include="..\..\Source\Samples\Actions\BoldDebugActions.pas"/>
@@ -271,7 +271,7 @@
         <DCCReference Include="..\..\Source\Persistence\FireDAC\BoldFireDACInterfaces.pas"/>
         <DCCReference Include="..\..\Source\BoldAwareGUI\ControlPacks\BoldFloatControlPack.pas"/>
         <DCCReference Include="..\..\Source\Samples\FormSaver\BoldFormSaver.pas"/>
-        <DCCReference Include="..\..\Source\BoldFormSaverActions.pas"/>
+        <DCCReference Include="..\..\Source\BoldAwareGUI\Core\BoldFormSaverActions.pas"/>
         <DCCReference Include="..\..\Source\FreestandingValueSpace\Core\BoldFreeStandingValueFactories.pas"/>
         <DCCReference Include="..\..\Source\FreestandingValueSpace\Core\BoldFreeStandingValues.pas"/>
         <DCCReference Include="..\..\Source\BoldAwareGUI\Core\BoldGUI.pas"/>
@@ -364,7 +364,7 @@
         <DCCReference Include="..\..\Source\Common\IDE\BoldOTASupport.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\BORepresentation\BoldObjectListControllers.pas"/>
         <DCCReference Include="..\..\Source\Common\IDECOM\BoldObjectNamePropertyEditor.pas"/>
-        <DCCReference Include="..\..\Source\BoldObjectRepresentationJson.pas"/>
+        <DCCReference Include="..\..\Source\Common\Support\BoldObjectRepresentationJson.pas"/>
         <DCCReference Include="..\..\Source\ValueSpace\ExternalEvents\BoldObjectSpaceExternalEvents.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\BORepresentation\BoldObjectSpaceLists.pas"/>
         <DCCReference Include="..\..\Source\Persistence\ObjectUpgrading\BoldObjectUpgrader.pas"/>
@@ -418,7 +418,7 @@
         <DCCReference Include="..\..\Source\Persistence\Core\BoldPersistenceNotifier.pas"/>
         <DCCReference Include="..\..\Source\Persistence\IDE\BoldPersistenceNotifierReg.pas"/>
         <DCCReference Include="..\..\Source\Persistence\SOAP\BoldPersistenceOperationXMLStreaming.pas"/>
-        <DCCReference Include="..\..\Source\BoldPlaceableListSubscriber.pas"/>
+        <DCCReference Include="..\..\Source\Common\Subscription\BoldPlaceableListSubscriber.pas"/>
         <DCCReference Include="..\..\Source\Handles\Core\BoldPlaceableSubscriber.pas"/>
         <DCCReference Include="..\..\Source\BoldAwareGUI\BoldControls\BoldProgressBar.pas"/>
         <DCCReference Include="..\..\Source\Propagator\Common\BoldPropagatorConstants.pas"/>
@@ -428,11 +428,11 @@
         <DCCReference Include="..\..\Source\BoldAwareGUI\BoldControls\BoldPropertiesController.pas"/>
         <DCCReference Include="..\..\Source\BoldAwareGUI\IDE\BoldPropertiesControllerPropertyEditors.pas"/>
         <DCCReference Include="..\..\Source\Common\IDE\BoldPropertyEditors.pas"/>
-        <DCCReference Include="..\..\Source\BoldPropertyMapper.pas"/>
-        <DCCReference Include="..\..\Source\BoldPropertyMappingPropertyEditors.pas"/>
+        <DCCReference Include="..\..\Source\BoldAwareGUI\Core\BoldPropertyMapper.pas"/>
+        <DCCReference Include="..\..\Source\BoldAwareGUI\IDE\BoldPropertyMappingPropertyEditors.pas"/>
         <DCCReference Include="..\..\Source\Common\UtilsGUI\BoldQueryUserDlg.pas"/>
         <DCCReference Include="..\..\Source\Common\Queue\BoldQueue.pas"/>
-        <DCCReference Include="..\..\Source\BoldRawSQLHandle.pas"/>
+        <DCCReference Include="..\..\Source\Handles\BoldRawSQLHandle.pas"/>
         <DCCReference Include="..\..\Source\Handles\Core\BoldReferenceHandle.pas"/>
         <DCCReference Include="..\..\Source\Common\IDE\BoldReg.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\PessimisticLocking\BoldRegionDefinitionParser.pas"/>
@@ -479,7 +479,7 @@
         <DCCReference Include="..\..\Source\Samples\SystemComparer\BoldSystemComparer.pas"/>
         <DCCReference Include="..\..\Source\Samples\SystemDebugger\BoldSystemDebuggerForm.pas"/>
         <DCCReference Include="..\..\Source\Handles\Core\BoldSystemHandle.pas"/>
-        <DCCReference Include="..\..\Source\BoldSystemMerger.pas"/>
+        <DCCReference Include="..\..\Source\ObjectSpace\Core\BoldSystemMerger.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\BORepresentation\BoldSystemOldValuehandler.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\BORepresentation\BoldSystemPersistenceHandler.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\RTModel\BoldSystemRT.pas"/>
@@ -501,7 +501,7 @@
         <DCCReference Include="..\..\Source\UMLModel\Core\BoldUMLAbstractModelValidator.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\Editor\BoldUMLAddTV.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\Core\BoldUMLAttributes.pas"/>
-        <DCCReference Include="..\..\Source\BoldUMLBldLink.pas"/>
+        <DCCReference Include="..\..\Source\UMLModel\ModelLinks\BoldUMLBldLink.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\Editor\BoldUMLConstraintEditor.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\ModelLinks\XMI\BoldUMLDTDData.pas"/>
         <DCCReference Include="..\..\Source\Common\UML\BoldUMLDelphiSupport.pas"/>
@@ -512,7 +512,7 @@
         <DCCReference Include="..\..\Source\UMLModel\Editor\BoldUMLModelEditForm.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\Plugins\BoldUMLModelEditPlugIn.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\IDE\BoldUMLModelEditReg.pas"/>
-        <DCCReference Include="..\..\Source\BoldUMLModelEditorHandlesDataModule.pas"/>
+        <DCCReference Include="..\..\Source\UMLModel\Editor\BoldUMLModelEditorHandlesDataModule.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\IDE\BoldUMLModelHandleReg.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\ModelLinks\Core\BoldUMLModelLink.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\ModelLinks\Core\BoldUMLModelLinkSupport.pas"/>
@@ -540,7 +540,7 @@
         <DCCReference Include="..\..\Source\UMLModel\ModelLinks\XMI\BoldUMLXMILink.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\ModelLinks\XMI\BoldUMLXMILinkSupport.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\ModelLinks\XMI\BoldUMXMILinkreg.pas"/>
-        <DCCReference Include="..\..\Source\BoldURI.pas"/>
+        <DCCReference Include="..\..\Source\Common\Support\BoldURI.pas"/>
         <DCCReference Include="..\..\Source\Handles\Actions\BoldUndoActions.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\Undo\BoldUndoHandler.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\Interfaces\BoldUndoInterfaces.pas"/>
@@ -583,7 +583,6 @@
         <DCCReference Include="..\..\Source\Common\SOAP\BoldXMLRequests.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldXMLStreaming.pas"/>
         <DCCReference Include="..\..\Source\Common\MSXML\Bold_MSXML_TLB.pas"/>
-        <DCCReference Include="..\..\Source\RationalRose_TLB.pas"/>
         <DCCReference Include="..\..\Source\Common\Rose98\RationalRose98_TLB.pas"/>
         <DCCReference Include="..\..\Source\Persistence\UDPPropagator\BoldAbstractModificationPropagator.pas"/>
         <DCCReference Include="..\..\Source\Samples\BoldCheckListBox\BoldCustomCheckListBox.pas"/>

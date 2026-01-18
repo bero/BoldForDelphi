@@ -19,11 +19,13 @@ uses
   BoldAbstractListHandle,
   BoldCursorHandle,
   BoldDBActions,
+  BoldEdit,
   BoldElements,
   BoldGrid,
   BoldHandle,
   BoldHandleAction,
   BoldHandles,
+  BoldLabel,
   BoldListBox,
   BoldListHandle,
   BoldNavigator,
@@ -31,7 +33,7 @@ uses
   BoldRootedHandles,
   BoldSubscription,
   BoldSystem,
-  BoldSystemHandle, BoldEdit, BoldLabel;
+  BoldSystemHandle;
 
 type
   TMainForm = class(TForm)

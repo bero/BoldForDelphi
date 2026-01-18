@@ -145,8 +145,9 @@ type
 implementation
 
 uses
-  SysUtils,
-  StrUtils,
+  System.SysUtils,
+  System.StrUtils,
+  System.UITypes,  // Prevent H2443 for TFont.GetStyle
 
   BoldCoreConsts,
   BoldUtils,

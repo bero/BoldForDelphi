@@ -1,4 +1,4 @@
-program LogBridgeDemo;
+﻿program LogBridgeDemo;
 
 {$APPTYPE CONSOLE}
 
