@@ -48,14 +48,6 @@ Illegal symbol combination BOLD_DELPHI and BOLD_BCB
   {DEFINE BOLD_IDEVCL}
 {$ENDIF}
 
-// Edition switches
-{$IFNDEF BOLD_PROFESSIONAL}
-  {$IFNDEF BOLD_LITE}
-    {$DEFINE BOLD_ENTERPRISE}
-  {$ENDIF}
-{$ENDIF}
-
-
 // Compiler control
 {$IFDEF BOLD_DEV}
   {$ASSERTIONS ON}

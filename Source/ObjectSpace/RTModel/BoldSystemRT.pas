@@ -16,10 +16,6 @@ uses
   BoldTaggedValueSupport,
   Classes;
 
-const
-  LITE_VERSION_CLASS_LIMIT = 15;
-  CLASS_TYPE_INFO_MEM_SIZE = 24;
-
 type
   TBoldTypeInfoSearchOption = (soPartialMatch);
   TBoldTypeInfoSearchOptions = set of TBoldTypeInfoSearchOption;
@@ -261,9 +257,6 @@ type
   {---TBoldSystemTypeInfo---}
   TBoldSystemTypeInfo = class(TBoldElementTypeInfoWithConstraint)
   private
-{$IFDEF BOLD_LITE}
-    fClassTypeInfoMem: array[0..LITE_VERSION_CLASS_LIMIT*CLASS_TYPE_INFO_MEM_SIZE] of Integer;
-{$ENDIF}
     fInitializationLog: TStringList;
     fOptimisticLocking: TBoldOptimisticLockingMode;
     fAttributeTypes: TBoldAttributeTypeInfoList;
@@ -379,10 +372,6 @@ type
     function GetDisplayName: String; override;
     function GetListTypeInfo: TBoldListTypeInfo; override;
   public
-{$IFDEF BOLD_LITE}
-    class function NewInstance: TObject; override;
-    procedure FreeInstance; override;
-{$ENDIF}
     destructor Destroy; override;
     function BoldIsA(C2: TBoldElementTypeInfo): Boolean; virtual;
     function ConformsTo(CompareElement: TBoldElementTypeInfo): Boolean; override;
@@ -660,11 +649,6 @@ uses
   BoldAttributes,
   BoldDefaultStreamNames;
 
-{$IFDEF BOLD_LITE}
-var
-  G_TheSystemType: TBoldSystemTypeInfo;
-{$ENDIF}
-
 type
   {---TObjectClassIndex---}
   TObjectClassIndex = class(TBoldClassHashIndex)
@@ -920,9 +904,6 @@ begin
 
   SetElementFlag(befSystemIsRunnable, true);
   fOptimisticLocking := AMoldModel.OptimisticLocking;
-{$IFDEF BOLD_LITE}
-  G_TheSystemType := self;
-{$ENDIF}
   SetValueType(bvtSystem);
   fTypeTypeInfo := TBoldTypeTypeInfo.Create('MetaType', 'MetaType', 'MetaType', self); // do not localize
 
@@ -1997,22 +1978,6 @@ begin
     result := -1;
 end;
 
-{$IFDEF BOLD_LITE}
-class function TBoldClassTypeInfo.NewInstance: TObject;
-begin
-  if G_TheSystemType.TopSortedClasses.Count >= LITE_VERSION_CLASS_LIMIT then
-    raise EBold.Create('Class limit exceeded');
-
-  result := InitInstance(addr(G_TheSystemType.fClassTypeInfoMem[G_TheSystemType.TopSortedClasses.Count *
-                                                       CLASS_TYPE_INFO_MEM_SIZE]));
-end;
-
-procedure TBoldClassTypeInfo.FreeInstance;
-begin
-  CleanUpInstance;
-end;
-{$ENDIF}
-
 procedure TBoldSystemTypeInfo.ReleaseEvaluator;
 begin
   FreeAndNil(fEvaluator);
@@ -2705,10 +2670,6 @@ begin
 end;
 
 initialization
-{$IFDEF BOLD_LITE}
-  if CLASS_TYPE_INFO_MEM_SIZE <> TBoldClassTypeInfo.InstanceSize then
-    Raise EBold.Create('CLASS_TYPE_INFO_MEM_SIZE <> TBoldClassTypeInfo.InstanceSize');
-{$ENDIF}
   TBoldClassTypeInfoList.IX_ObjectClass := -1;
   TBoldListTypeInfoList.IX_Element := -1;
   TBoldListTypeInfoList.IX_ListClass := -1;

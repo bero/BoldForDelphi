@@ -287,10 +287,6 @@ end;
 
 procedure TBoldSystemSQLMapper.StartTransaction(const ValueSpace: IBoldValueSpace);
 begin
-{$IFDEF BOLD_LITE}
-  if Database.InTransaction then
-    raise EBold.Create('Transactions not supported in Bold Lite');
-{$ELSE}
   with Database do
     if IsSqlBased and (not InTransaction) then
     begin
@@ -299,35 +295,24 @@ begin
     end
     else
       fTransactionStartedByMe := false;
-{$ENDIF}
 end;
 
 procedure TBoldSystemSQLMapper.Commit(const ValueSpace: IBoldValueSpace);
 begin
-{$IFDEF BOLD_LITE}
-  if Database.InTransaction then
-    raise EBold.Create('Transactions not supported in Bold Lite');
-{$ELSE}
   if fTransactionStartedByMe then
     with Database do
       if IsSqlBased and InTransaction then
         Commit;
   fTransactionStartedByMe := false;
-{$ENDIF}
 end;
 
 procedure TBoldSystemSQLMapper.RollBack(const ValueSpace: IBoldValueSpace);
 begin
-{$IFDEF BOLD_LITE}
-  if Database.InTransaction then
-    raise EBold.Create('Transactions not supported in Bold Lite');
-{$ELSE}
   if fTransactionStartedByMe then
     with Database do
       if IsSqlBased and InTransaction then
         RollBack;
   fTransactionStartedByMe := false;
-{$ENDIF}
 end;
 
 function TBoldSystemSQLMapper.EnsureColumn(const TableName, ColumnName, SQLType, SQLAllowNull: string;
