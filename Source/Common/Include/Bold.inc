@@ -20,21 +20,8 @@
   {$DEFINE VER130}
 {$ENDIF}
 
-{$IFDEF BCB}
-  {$DEFINE BOLD_BCB}
-{$ENDIF}
-
-{$IFDEF DELPHI}
-  {$DEFINE BOLD_DELPHI}
-{$ENDIF}
-
-{$IFDEF BOLD_DELPHI} {$IFDEF BOLD_BCB}
-Illegal symbol combination BOLD_DELPHI and BOLD_BCB
-{$ENDIF} {$ENDIF}
-
-{$IFNDEF BOLD_DELPHI} {$IFNDEF BOLD_BCB}
-  {$DEFINE BOLD_DELPHI}
-{$ENDIF} {$ENDIF}
+// Always Delphi (C++ Builder support removed)
+{$DEFINE BOLD_DELPHI}
 
 
 {$IFDEF LINUX}

@@ -44,12 +44,7 @@ type
   protected
     procedure DoIconChanged(Follower: TBoldFollowerCom);
     procedure DoTextChanged(Follower: TBoldFollowerCom);
-    {$IFDEF BOLD_BCB}
-    procedure DoGetFollowerController(Name: string; var FollowerController: TBoldFollowerControllerCom);
-    {$ENDIF}
-    {$IFDEF BOLD_DELPHI}
     function DoGetFollowerController(Name: string): TBoldFollowerControllerCom;
-    {$ENDIF}
     procedure DoAssign(Source: TPersistent); override;
     function GetBoldNodeDescriptionsClass: TBoldNodeDescriptionsClassCom; virtual;
   public
@@ -224,29 +219,12 @@ begin
     FOnTextChanged(Follower);
 end;
 
-{$IFDEF BOLD_BCB}
-procedure TBoldTreeFollowerControllerCom.DoGetFollowerController(Name: string; var FollowerController: TBoldFollowerControllerCom);
-{$ENDIF}
-{$IFDEF BOLD_DELPHI}
 function TBoldTreeFollowerControllerCom.DoGetFollowerController(Name: string): TBoldFollowerControllerCom;
-{$ENDIF}
 begin
-{$IFDEF BOLD_BCB}
-  if Assigned(FOnGetFollowerController) then
-  begin
-    FollowerController := nil;
-    fOnGetFollowerController(Name, FollowerController);
-  end
-  else
-    FollowerController := DefaultGetNodeFollowerControllerByName(Name);
-{$ENDIF}
-
-{$IFDEF BOLD_DELPHI}
   if Assigned(FOnGetFollowerController) then
     Result := FOnGetFollowerController(Name)
   else
     Result := DefaultGetNodeFollowerControllerByName(Name);
-{$ENDIF}
 end;
 
 {-- TBoldNodeDescriptionsCom --}

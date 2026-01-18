@@ -30,12 +30,7 @@ type
   TBoldAbstractViewAdapter = class;
 
   { TBoldAsViewerRenderer }
-  {$IFDEF BOLD_BCB}
-  TBoldGetAsViewer = procedure (Element: TBoldElement; Representation: TBoldRepresentation; Expression: TBoldExpression; var AbstractViewAdapter: TBoldAbstractViewAdapter) of object;
-  {$ENDIF}
-  {$IFDEF BOLD_DELPHI}
   TBoldGetAsViewer = function (aFollower: TBoldFollower): TBoldAbstractViewAdapter of object;
-  {$ENDIF}
   TBoldSetAsViewer = procedure (aFollower: TBoldFollower; Value: TBoldAbstractViewAdapter) of object;
   TBoldViewerIsChanged = function (aFollower: TBoldFollower; NewValue: TBoldAbstractViewAdapter): Boolean of object;
 
@@ -317,15 +312,7 @@ begin
     Subscriber := nil;
   end;
   if Assigned(OnGetAsViewer) then
-  begin
-    {$IFDEF BOLD_BCB}
-    Result := nil;
-    OnGetAsViewer(Element, Representation, Expression, Result);
-    {$ENDIF}
-    {$IFDEF BOLD_DELPHI}
-    Result := OnGetAsViewer(aFollower);
-    {$ENDIF}
-  end
+    Result := OnGetAsViewer(aFollower)
   else
     Result := DefaultGetAsViewerAndSubscribe(aFollower, Subscriber);
 end;

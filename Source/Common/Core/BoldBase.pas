@@ -48,10 +48,8 @@ type
     function _AddRef: Integer; override;
     function _Release: Integer; override;
   public
-    {$IFNDEF BOLD_BCB}
     procedure AfterConstruction; override;
     class function NewInstance: TObject; override;
-    {$ENDIF}
     procedure BeforeDestruction; override;
     property RefCount: Integer read FRefCount;
   end;
@@ -192,12 +190,10 @@ begin
 end;
 
 {-- TBoldRefCountedObject -----------------------------------------------------}
-{$IFNDEF BOLD_BCB}
 procedure TBoldRefCountedObject.AfterConstruction;
 begin
   InterlockedDecrement(fRefCount);  // was set by NewInstace
 end;
-{$ENDIF}
 
 procedure TBoldRefCountedObject.BeforeDestruction;
 begin
@@ -205,13 +201,11 @@ begin
     raise EBold.CreateFmt(sRefCountNotNilOnDestruction, [ClassName]);
 end;
 
-{$IFNDEF BOLD_BCB}
 class function TBoldRefCountedObject.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
   TBoldRefCountedObject(Result).fRefCount := 1;
 end;
-{$ENDIF}
 
 function TBoldRefCountedObject._AddRef: Integer;
 begin

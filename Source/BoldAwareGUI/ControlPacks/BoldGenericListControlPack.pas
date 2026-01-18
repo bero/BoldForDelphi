@@ -23,15 +23,8 @@ type
   TBoldGenericListParts = class;
   TBoldFollowerListWithOwnedList = class;
 
-  {$IFDEF BOLD_BCB}
-  TGetFollowerControllerByNameEvent = procedure (const Name: string; var FollowerController: TBoldFollowerController) of object;
-  TGetFollowerControllerEvent = procedure (Element: TBoldElement; Subscriber: TBoldSubscriber; GetFollowerControllerByName: TGetFollowerControllerByNameEvent; var FollowerController: TBoldFollowerController) of object;
-  {$ENDIF}
-
-  {$IFDEF BOLD_DELPHI}
   TGetFollowerControllerByNameEvent = function (const Name: string): TBoldFollowerController of object;
   TGetFollowerControllerEvent = function (Element: TBoldElement; Subscriber: TBoldSubscriber; GetFollowerControllerByName: TGetFollowerControllerByNameEvent): TBoldFollowerController of object;
-  {$ENDIF}
 
   {$IFNDEF BOLDCOMCLIENT}
   TGetElementEvent = procedure (Sender: TBoldGenericListPart; Element: TBoldElement; Subscriber: TBoldSubscriber; ResultElement: TBoldIndirectElement; Resubscribe: Boolean) of object;
@@ -286,12 +279,7 @@ begin
   result := nil;
   for i := 0 to List.Count - 1 do
   begin
-    {$IFDEF BOLD_BCB}
-    GetFollowerControllerByname(List.Elements[i].AsString, Result);
-    {$ENDIF}
-    {$IFDEF BOLD_DELPHI}
     Result := GetFollowerControllerByname(List.Elements[i].AsString);
-    {$ENDIF}
     if Assigned(Result) then
       break;
   end;
@@ -323,12 +311,7 @@ begin
   end;
   {$ENDIF}
   if not Assigned(Result) then
-    {$IFDEF BOLD_BCB}
-    GetFollowerControllerByName(DefaultName, Result);
-    {$ENDIF}
-    {$IFDEF BOLD_DELPHI}
     Result := GetFollowerControllerByName(DefaultName);
-    {$ENDIF}
 end;
 
 function TBoldGenericListPart.GetFollowerController(Element: TBoldElement; Subscriber: TBoldSubscriber; GetFollowerControllerByName: TGetFollowerControllerByNameEvent): TBoldFollowerController;
@@ -336,12 +319,7 @@ begin
   try
     Result := nil;
     if Assigned(FOnGetFollowerController) then
-      {$IFDEF BOLD_BCB}
-      FOnGetFollowerController(Element, Subscriber, GetFollowerControllerByName, Result);
-      {$ENDIF}
-      {$IFDEF BOLD_DELPHI}
       Result := FOnGetFollowerController(Element, Subscriber, GetFollowerControllerByName);
-      {$ENDIF}
     if not Assigned(Result) then
       Result := DefaultGetFollowerController(Element, Subscriber, GetFollowerControllerByName);
   except

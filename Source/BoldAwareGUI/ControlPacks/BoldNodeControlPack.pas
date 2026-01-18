@@ -48,12 +48,7 @@ type
     class function PrecreateFollowers: boolean; override;
     procedure DoIconChanged(Follower: TBoldFollower);
     procedure DoTextChanged(Follower: TBoldFollower);
-    {$IFDEF BOLD_BCB}
-    procedure DoGetFollowerController(const Name: string; var FollowerController: TBoldFollowerController);
-    {$ENDIF}
-    {$IFDEF BOLD_DELPHI}
     function DoGetFollowerController(const Name: string): TBoldFollowerController;
-    {$ENDIF}
     procedure DoAssign(Source: TPersistent); override;
     function GetBoldNodeDescriptionsClass: TBoldNodeDescriptionsClass; virtual;
   public
@@ -232,29 +227,12 @@ begin
     FOnTextChanged(Follower);
 end;
 
-{$IFDEF BOLD_BCB}
-procedure TBoldTreeFollowerController.DoGetFollowerController(const Name: string; var FollowerController: TBoldFollowerController);
-{$ENDIF}
-{$IFDEF BOLD_DELPHI}
 function TBoldTreeFollowerController.DoGetFollowerController(const Name: string): TBoldFollowerController;
-{$ENDIF}
 begin
-{$IFDEF BOLD_BCB}
-  if Assigned(FOnGetFollowerController) then
-  begin
-    FollowerController := nil;
-    fOnGetFollowerController(Name, FollowerController);
-  end
-  else
-    FollowerController := DefaultGetNodeFollowerControllerByName(Name);
-{$ENDIF}
-
-{$IFDEF BOLD_DELPHI}
   if Assigned(FOnGetFollowerController) then
     Result := FOnGetFollowerController(Name)
   else
     Result := DefaultGetNodeFollowerControllerByName(Name);
-{$ENDIF}
 end;
 
 {-- TBoldNodeDescriptions --}

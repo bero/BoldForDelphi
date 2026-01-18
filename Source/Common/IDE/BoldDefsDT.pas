@@ -34,7 +34,7 @@ const
   { Component editor verbs }
   BOLD_OPENUMLEDITOR = 'Open Bold UML Editor';
 
-{$IFDEF BOLD_DELPHI}
+  { Delphi syntax symbols }
   BOLDSYM_ASSIGNMENT = ':=';
   BOLDSYM_BEGIN = 'begin';
   BOLDSYM_END = 'end;';
@@ -45,20 +45,6 @@ const
   BOLDSYM_RETURNRESULT = '';
   BOLDSYM_POINTERDEREFERENCE = '.';
   BOLDSYM_QUOTECHAR = '''';
-{$ENDIF}
-
-{$IFDEF BOLD_BCB}
-  BOLDSYM_ASSIGNMENT = '=';
-  BOLDSYM_BEGIN = '{';
-  BOLDSYM_END = '}';
-  BOLDSYM_THEN = '';
-  BOLDSYM_ASSIGNED = '';
-  BOLDSYM_AND = '&&';
-  BOLDSYM_TYPEINTEGER = 'int ';
-  BOLDSYM_RETURNRESULT = BOLDCRLF + BOLDCRLF + '  return result;';
-  BOLDSYM_POINTERDEREFERENCE = '->';
-  BOLDSYM_QUOTECHAR = '"';
-{$ENDIF}
 
 implementation
 

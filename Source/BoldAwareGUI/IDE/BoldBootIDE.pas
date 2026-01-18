@@ -82,11 +82,7 @@ end;
 {$ENDIF}
 
 initialization
-  {$IFDEF BOLD_DELPHI}
   {$IFDEF BOLD_DELPHI6}
   DrawOnD6StartupScreen;
-  {$ENDIF}
-  {$ENDIF}
-  {$IFDEF BCB}
   {$ENDIF}
 end.

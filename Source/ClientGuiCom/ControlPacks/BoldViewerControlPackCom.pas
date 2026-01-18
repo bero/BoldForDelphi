@@ -31,12 +31,7 @@ type
   TBoldAbstractViewAdapterCom = class;
 
   { TBoldAsViewerRendererCom }
-  {$IFDEF BOLD_BCB}
-  TBoldGetAsViewerCom = procedure (Element: IBoldElement; Representation: TBoldRepresentation; Expression: TBoldExpression; var AbstractViewAdapter: TBoldAbstractViewAdapterCom) of object;
-  {$ENDIF}
-  {$IFDEF BOLD_DELPHI}
   TBoldGetAsViewerCom = function (Element: IBoldElement; Representation: TBoldRepresentation; Expression: TBoldExpression): TBoldAbstractViewAdapterCom of object;
-  {$ENDIF}
   TBoldSetAsViewerCom = procedure (Element: IBoldElement; Value: TBoldAbstractViewAdapterCom; Representation: TBoldRepresentation; Expression: TBoldExpression) of object;
   TBoldViewerIsChangedCom = function (RendererData: TBoldViewerRendererDataCom; NewValue: TBoldAbstractViewAdapterCom; Representation: TBoldRepresentation; Expression: TBoldExpression): Boolean of object;
 
@@ -318,15 +313,7 @@ begin
     Subscriber := nil;
   end;
   if Assigned(OnGetAsViewer) then
-  begin
-    {$IFDEF BOLD_BCB}
-    Result := nil;
-    OnGetAsViewer(Element, Representation, Expression, Result);
-    {$ENDIF}
-    {$IFDEF BOLD_DELPHI}
-    Result := OnGetAsViewer(Element, Representation, Expression);
-    {$ENDIF}
-  end
+    Result := OnGetAsViewer(Element, Representation, Expression)
   else
     Result := DefaultGetAsViewerAndSubscribe(Element, Representation, Expression, VariableList, Subscriber);
 end;

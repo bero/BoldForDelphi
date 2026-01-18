@@ -435,9 +435,7 @@ type
     property Color;
     property Constraints;
     property Columns;
-    {$IFNDEF BCB}
     property Ctl3d;
-    {$ENDIF}
     property DefaultColWidth;
     property DefaultRowHeight;
     property DragCursor;

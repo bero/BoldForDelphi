@@ -197,12 +197,7 @@ const
 
   BOLDMAXLISTSIZE = MaxInt div 16;
 
-  {$IFDEF BOLD_DELPHI}
   BOLD_HOST_IDE = 'Delphi';
-  {$ENDIF}
-  {$IFDEF BOLD_BCB}
-  BOLD_HOST_IDE = 'C++Builder';
-  {$ENDIF}
 
   {$IFDEF BOLD_DELPHI6}
   BOLD_HOST_IDE_REGISTRYPATH = '\Software\Borland\' + BOLD_HOST_IDE + '\6.0\';

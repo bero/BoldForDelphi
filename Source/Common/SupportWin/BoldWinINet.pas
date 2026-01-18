@@ -53,7 +53,6 @@ uses
   SysUtils,
   BoldUtils;
 
-{$IFDEF BOLD_DELPHI}
 function BoldInternetOpen(Agent: String; AccessType: integer; Proxy: string; ProxyByPass: String; Flags: integer): pointer;
 begin
   result := InternetOpen(PChar(Agent), AccessType, PChar(Proxy), PChar(ProxyByPass), flags);
@@ -62,7 +61,6 @@ end;
 function BoldInternetOpenUrl(iNet: Pointer; URL: string; Headers: String; Flags, Context: cardinal): Pointer;
 begin
   result := InternetOpenURL(iNet, pChar(Url), PChar(Headers), length(Headers), Flags, Context);
-
 end;
 
 function BoldInternetReadFile(hFile: Pointer; Buffer: Pointer; NumberOfBytesToRead: Cardinal; var NumberOfBytesRead: Cardinal): LongBool;
@@ -114,68 +112,5 @@ function BoldInternetCrackUrl(Url: PChar; UrlLength, dwFlags: DWORD; var lpUrlCo
 begin
   result := InternetCrackURL(URL, UrlLength, dwFlags, lpUrlComponents);
 end;
-{$ENDIF}
-
-{$IFDEF BOLD_BCB}
-function BoldInternetOpen(Agent: String; AccessType: integer; Proxy: string; ProxyByPass: String; Flags: integer): pointer;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldInternetOpen now yet implemented in Bold for C++');
-end;
-
-function BoldInternetOpenUrl(iNet: Pointer; URL: string; Headers: String; Flags, Context: cardinal): Pointer;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldInternetOpenUrl now yet implemented in Bold for C++');
-end;
-
-function BoldInternetReadFile(hFile: Pointer; Buffer: Pointer; NumberOfBytesToRead: Cardinal; var NumberOfBytesRead: Cardinal): LongBool;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldInternetReadFile now yet implemented in Bold for C++');
-end;
-
-function BoldInternetCloseHandle(HINet: Pointer): LongBool;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldInternetCloseHandle now yet implemented in Bold for C++');
-end;
-
-function BoldHttpQueryInfo(hRequest: Pointer; InfoLevel: Cardinal; Buffer: Pointer; BufferLength: Cardinal; Reserved: Cardinal): LongBool;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldHttpQueryInfo now yet implemented in Bold for C++');
-end;
-
-function BoldInternetQueryDataAvailable(hFile: Pointer; var NumberOfBytesAvailable: Cardinal; flags: Cardinal; Context: Cardinal): LongBool;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldInternetQueryDataAvailable now yet implemented in Bold for C++');
-end;
-
-function BoldHttpOpenRequest(hConnect: Pointer; Verb, ObjectName, Version, Referrer: String; AcceptTypes: PCharArr; Flags, Context: Cardinal): Pointer;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldHttpOpenRequest now yet implemented in Bold for C++');
-end;
-
-function BoldHttpSendRequest(hRequest: Pointer; Headers: string; Optional: Pointer; OptionalLength: Cardinal): LongBool;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldHttpSendRequest now yet implemented in Bold for C++');
-end;
-
-function BoldInternetErrorDlg(hWnd: HWND; hRequest: HINTERNET; dwError, dwFlags: DWORD; var lppvData: Pointer): DWORD;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldInternetErrorDlg now yet implemented in Bold for C++');
-end;
-
-function BoldInternetAttemptConnect(dwReserved: DWORD): DWORD;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldInternetAttemptConnect now yet implemented in Bold for C++');
-end;
-
-function BoldInternetConnect(hInet: HINTERNET; ServerName: string; nServerPort: INTERNET_PORT; Username: string; Password: string; dwService: DWORD; dwFlags: DWORD; dwContext: DWORD): HINTERNET;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldInternetConnect now yet implemented in Bold for C++');
-end;
-
-function BoldInternetCrackUrl(Url: PChar; UrlLength, dwFlags: DWORD; var lpUrlComponents: TURLComponents): BOOL;
-begin
-  raise EBoldFeatureNotImplementedYet.Create('BoldInternetCrackUrl now yet implemented in Bold for C++');
-end;
-{$ENDIF}
 
 end.

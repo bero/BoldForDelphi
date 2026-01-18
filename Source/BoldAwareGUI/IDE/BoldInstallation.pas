@@ -42,12 +42,7 @@ uses
 
 function GetLibraryPath: String;
 const
-  {$IFDEF BOLD_DELPHI}
   ROOT_MACRO = '';
-  {$ENDIF}
-  {$IFDEF BOLD_BCB}
-  ROOT_MACRO = '';
-  {$ENDIF}
 var
   Registry: TRegistry;
   Guard: IBoldGuard;

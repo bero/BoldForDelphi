@@ -54,7 +54,6 @@ type
 
 const
   // kala 990707  It should not be ',' as separator between param-names.
-  {$IFDEF BOLD_DELPHI}
   FrameworkMethods: array[0..20] of String = (
   'protected function GetStringRepresentation(Representation: TBoldRepresentation): string; virtual;',
   'protected procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string); virtual;',
@@ -78,25 +77,6 @@ const
   'protected procedure InternalPrepareDeleteOrDeleteByDiscard; virtual;',
   'protected function InternalCanDeleteObject: Boolean; virtual;'
  );
- {$ENDIF}
- {$IFDEF BOLD_BCB}
-  // TODO: BCB Methods not updated, adjust from the Delphi list above
-  FrameworkMethods: array[0..12] of String = (
-  'function GetStringRepresentation(Representation: int): String; virtual;',
-  'procedure SetStringRepresentation(Representation: int; const Value: String); virtual;',
-  'procedure SubscribeToStringRepresentation(Representation: int; Subscriber: TBoldSubscriber*; RequestedEvent: int); virtual;',
-  'function ValidateCharacter(C: Char; Representation: int): Boolean; virtual;',
-  'function ValidateString(Value: String; Representation: int): Boolean; virtual;',
-  'function CompareToAs(CompareType: TBoldCompareType; BoldDirectElement: TBoldElement*): Integer; virtual;',
-  'procedure ReceiveEventFromOwned(Originator: TObject*; OriginalEvent: int); virtual;',
-  'function ReceiveQueryFromOwned(Originator: TObject*; OriginalEvent: int; Args: const TVarRec*; Subscriber: TBoldSubscriber*): Boolean; virtual;',
-  'procedure Assign(Source: TBoldElement*); virtual;',
-  'procedure CompleteCreate; virtual;',
-  'function MayDelete: Boolean; virtual;',
-  'function MayUpdate: Boolean; virtual;',
-  'procedure PrepareDelete; virtual;'
- );
- {$ENDIF}
 
 implementation
 
