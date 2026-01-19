@@ -3,7 +3,7 @@ site_description: Documentation for Bold for Delphi - Model-Driven Architecture 
 site_url: https://bero.github.io/BoldForDelphi/
 repo_url: https://github.com/bero/BoldForDelphi
 repo_name: bero/BoldForDelphi
-edit_uri: edit/main/docs/
+edit_uri: edit/develop/docs/
 
 theme:
   name: material
@@ -23,11 +23,10 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-    - navigation.tabs
-    - navigation.tabs.sticky
-    - navigation.sections
-    - navigation.expand
-    - navigation.top
+    - navigation.indexes       # Section index pages (folder/index.md)
+    - navigation.top           # Back to top button
+    - navigation.tracking      # URL updates with anchor
+    - toc.follow               # TOC follows scroll position
     - search.suggest
     - search.highlight
     - content.code.copy
@@ -75,14 +74,17 @@ nav:
     - Persistence: concepts/persistence.md
     - Subscriptions: concepts/subscriptions.md
     - Logging: concepts/logging.md
-  - Classes:
+  - API Reference:
     - classes/index.md
-    - TBoldSystem: classes/TBoldSystem.md
-    - TBoldObject: classes/TBoldObject.md
-    - TBoldObjectList: classes/TBoldObjectList.md
-    - TBoldMember: classes/TBoldMember.md
-    - TBoldAttribute: classes/TBoldAttribute.md
-  - Examples: examples/index.md
+    - Core Classes:
+      - TBoldSystem: classes/TBoldSystem.md
+      - TBoldObject: classes/TBoldObject.md
+      - TBoldObjectList: classes/TBoldObjectList.md
+    - Members:
+      - TBoldMember: classes/TBoldMember.md
+      - TBoldAttribute: classes/TBoldAttribute.md
+  - Examples:
+    - examples/index.md
   - Integrations:
     - integrations/index.md
     - DevExpress: integrations/devexpress.md
@@ -90,10 +92,11 @@ nav:
     - development/index.md
     - Unit Testing: development/testing.md
     - Codecov Setup: development/codecov.md
-  - FAQ: faq.md
-  - Roadmap: roadmap.md
-  - Changelog: changelog.md
-  - Contributing: contributing.md
+  - Resources:
+    - FAQ: faq.md
+    - Roadmap: roadmap.md
+    - Changelog: changelog.md
+    - Contributing: contributing.md
 
 extra:
   social:
@@ -101,4 +104,4 @@ extra:
       link: https://github.com/bero/BoldForDelphi
 
 extra_javascript:
-  - https://unpkg.com/mermaid
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
