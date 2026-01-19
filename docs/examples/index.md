@@ -74,13 +74,14 @@ In-depth tutorials are available in PDF format in the `Doc/` folder:
 
 | Tutorial | Description |
 |----------|-------------|
-| Starting Bfd - Part 1 | Introducing the Basics |
-| Starting Bfd - Part 2 | Extending Models |
-| Starting Bfd - Part 3 | OCL Queries |
-| ad970808_UML11_OCL.pdf | Official OCL Language Reference |
-| Creating custom Bold-aware components.pdf | Building Bold-aware controls |
+| [Starting Bfd - Part 1](https://github.com/bero/BoldForDelphi/blob/develop/Doc/Starting%20Bfd%20-%20Part%201%20-%20Introducing%20the%20Basics.pdf) | Introducing the Basics |
+| [Starting Bfd - Part 2](https://github.com/bero/BoldForDelphi/blob/develop/Doc/Starting%20Bfd%20-%20Part%202%20-%20Extending%20Models.pdf) | Extending Models |
+| [Starting Bfd - Part 3](https://github.com/bero/BoldForDelphi/blob/develop/Doc/Starting%20Bfd%20-%20Part%203%20-%20OCL.pdf) | OCL Queries |
+| [Delphi and Model Driven Architecture](https://github.com/bero/BoldForDelphi/blob/develop/Doc/Delphi%20and%20model%20Driven%20Architecture/Delphi%20and%20Model%20Driven%20Architecture.pdf) | Complete MDA guide |
+| [ad970808_UML11_OCL.pdf](https://github.com/bero/BoldForDelphi/blob/develop/Doc/ad970808_UML11_OCL.pdf) | Official OCL Language Reference |
+| [Creating custom Bold-aware components.pdf](https://github.com/bero/BoldForDelphi/blob/develop/Doc/Creating%20custom%20Bold-aware%20components.pdf) | Building Bold-aware controls |
 
-Download from: [Doc folder on GitHub](https://github.com/bero/BoldForDelphi/tree/develop/Doc)
+More PDFs: [Doc folder on GitHub](https://github.com/bero/BoldForDelphi/tree/develop/Doc)
 
 ## Running Examples
 
