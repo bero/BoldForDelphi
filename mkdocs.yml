@@ -7,8 +7,6 @@ edit_uri: edit/develop/docs/
 
 theme:
   name: material
-  logo: images/boldlogo.png
-  favicon: images/favbold.png
   palette:
     - scheme: default
       primary: indigo

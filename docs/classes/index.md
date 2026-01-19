@@ -55,6 +55,12 @@ classDiagram
     TBoldMember <|-- TBoldObjectReference
     TBoldMember <|-- TBoldObjectList
     TBoldElement <|-- TBoldSystem
+
+    click TBoldSystem "TBoldSystem/" "TBoldSystem documentation"
+    click TBoldObject "TBoldObject/" "TBoldObject documentation"
+    click TBoldObjectList "TBoldObjectList/" "TBoldObjectList documentation"
+    click TBoldMember "TBoldMember/" "TBoldMember documentation"
+    click TBoldAttribute "TBoldAttribute/" "TBoldAttribute documentation"
 ```
 
 ## Core Classes
@@ -85,6 +91,11 @@ flowchart TB
     Object -->|"has members"| List
     Reference -->|"points to"| Object
     List -->|"contains"| Object
+
+    click System "TBoldSystem/" "TBoldSystem documentation"
+    click Object "TBoldObject/" "TBoldObject documentation"
+    click Attribute "TBoldAttribute/" "TBoldAttribute documentation"
+    click List "TBoldObjectList/" "TBoldObjectList documentation"
 ```
 
 ## Common Patterns

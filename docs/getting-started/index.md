@@ -21,6 +21,11 @@ graph LR
     B --> C[TBoldObject instances]
     C --> D[TBoldAttribute values]
     C --> E[TBoldObjectReference links]
+
+    click A "../classes/TBoldSystem/" "TBoldSystem documentation"
+    click C "../classes/TBoldObject/" "TBoldObject documentation"
+    click D "../classes/TBoldAttribute/" "TBoldAttribute documentation"
+    click E "../classes/TBoldMember/" "TBoldMember documentation"
 ```
 
 ### Persistence Layer

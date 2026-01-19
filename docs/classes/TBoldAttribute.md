@@ -6,6 +6,9 @@
 
 ```mermaid
 classDiagram
+    class TBoldMember {
+        <<abstract>>
+    }
     TBoldMember <|-- TBoldAttribute
     TBoldAttribute <|-- TBAString
     TBoldAttribute <|-- TBAInteger
@@ -17,6 +20,8 @@ classDiagram
     TBoldAttribute : +IsNull
     TBoldAttribute : +SetToNull()
     TBoldAttribute : +AsString
+
+    click TBoldMember href "TBoldMember/" "TBoldMember documentation"
 ```
 
 ## Attribute Types

@@ -31,6 +31,13 @@ flowchart TB
     ObjectSpace --> Subscriptions
     ObjectSpace --> Persistence
     Persistence --> DB
+
+    click ObjectSpace "object-space/" "Object Space documentation"
+    click OCL "ocl/" "OCL documentation"
+    click Subscriptions "subscriptions/" "Subscriptions documentation"
+    click Logging "logging/" "Logging documentation"
+    click Persistence "persistence/" "Persistence documentation"
+    click DB "persistence/" "Database persistence documentation"
 ```
 
 ## Key Concepts

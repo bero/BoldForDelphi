@@ -276,9 +276,11 @@ BoldDbEvolutor1.GenerateScript;
 ### Can I use Bold with an existing database?
 
 Yes, but you need to:
-1. Create a UML model matching the existing schema
-2. Configure table/column mappings in tagged values
-3. Import existing data carefully
+
+1. Create a UML model matching the existing schema.
+2. Create a new database with Bold.
+3. Configure table/column mappings in tagged values.
+4. Import existing data carefully.
 
 ---
 
