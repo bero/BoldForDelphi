@@ -75,12 +75,18 @@ nav:
   - API Reference:
     - classes/index.md
     - Core Classes:
+      - TBoldElement: classes/TBoldElement.md
       - TBoldSystem: classes/TBoldSystem.md
       - TBoldObject: classes/TBoldObject.md
       - TBoldObjectList: classes/TBoldObjectList.md
     - Members:
       - TBoldMember: classes/TBoldMember.md
       - TBoldAttribute: classes/TBoldAttribute.md
+      - TBoldObjectReference: classes/TBoldObjectReference.md
+    - Handles:
+      - TBoldSystemHandle: classes/TBoldSystemHandle.md
+      - TBoldListHandle: classes/TBoldListHandle.md
+      - TBoldExpressionHandle: classes/TBoldExpressionHandle.md
   - Examples:
     - examples/index.md
   - Integrations:

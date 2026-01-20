@@ -45,9 +45,9 @@ classDiagram
 
 | Type | Description | Example |
 |------|-------------|---------|
-| `TBoldAttribute` | Stores a value | `Customer.Name` |
-| `TBoldObjectReference` | Single object link | `Order.Customer` |
-| `TBoldObjectList` | Multiple object links | `Customer.Orders` |
+| [`TBoldAttribute`](TBoldAttribute.md) | Stores a value | `Customer.Name` |
+| [`TBoldObjectReference`](TBoldObjectReference.md) | Single object link | `Order.Customer` |
+| [`TBoldObjectList`](TBoldObjectList.md) | Multiple object links | `Customer.Orders` |
 
 ## Properties
 

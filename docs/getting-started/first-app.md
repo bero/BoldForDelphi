@@ -23,7 +23,7 @@ Drop these components on your DataModule from the Bold palette:
 | Component | Purpose |
 |-----------|---------|
 | `TBoldModel` | Holds your UML model |
-| `TBoldSystemHandle` | Main runtime system |
+| [`TBoldSystemHandle`](../classes/TBoldSystemHandle.md) | Main runtime system |
 | `TBoldSystemTypeInfoHandle` | Type information for design-time |
 | `TBoldPersistenceHandleDB` | Database persistence |
 

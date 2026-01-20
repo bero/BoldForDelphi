@@ -38,11 +38,12 @@ flowchart TB
     Objects --> PMapper
     PMapper --> DB
 
-    click System "classes/TBoldSystem/" "TBoldSystem documentation"
-    click Objects "classes/TBoldObject/" "TBoldObject documentation"
-    click OCL "concepts/ocl/" "OCL documentation"
-    click PMapper "concepts/persistence/" "Persistence documentation"
-    click DB "concepts/persistence/" "Database persistence documentation"
+    click Handles href "classes/#handle-classes" "Bold Handle classes"
+    click System href "classes/TBoldSystem.md" "TBoldSystem documentation"
+    click Objects href "classes/TBoldObject.md" "TBoldObject documentation"
+    click OCL href "concepts/ocl.md" "OCL documentation"
+    click PMapper href "concepts/persistence.md" "Persistence documentation"
+    click DB href "concepts/persistence.md" "Database persistence documentation"
 ```
 
 ## Quick Start

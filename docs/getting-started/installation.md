@@ -62,7 +62,7 @@ If your Delphi version is not listed:
 
 After installation, you should see Bold components in the Delphi Tool Palette:
 
-- **Bold Handles** - TBoldSystemHandle, TBoldListHandle, TBoldExpressionHandle
+- **Bold Handles** - [TBoldSystemHandle](../classes/TBoldSystemHandle.md), [TBoldListHandle](../classes/TBoldListHandle.md), [TBoldExpressionHandle](../classes/TBoldExpressionHandle.md)
 - **Bold Controls** - TBoldGrid, TBoldEdit, TBoldComboBox, TBoldNavigator
 - **Bold Persistence** - TBoldPersistenceHandleDB, TBoldDatabaseAdapterFireDAC
 - **Bold Actions** - TBoldActivateSystemAction, TBoldUpdateDBAction

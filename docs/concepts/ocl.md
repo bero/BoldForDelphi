@@ -68,10 +68,23 @@ Customer.allInstances->orderDescending(createdDate)
 
 ### Type Operations
 
+#### Class Hierarchy Example
+
+```mermaid
+classDiagram
+    Customer <|-- PremiumCustomer
+    Customer <|-- RegularCustomer
+    Customer : +name
+    PremiumCustomer : +discountRate
+    RegularCustomer : +loyaltyPoints
+```
+
+#### Type Checking Operations
+
 ```ocl
-self.oclIsKindOf(Customer)       // Instance of class or subclass
-self.oclIsTypeOf(Customer)       // Exact type match
-self.oclAsType(PremiumCustomer)  // Cast to type
+self.oclIsKindOf(Customer)       // True for Customer, PremiumCustomer, RegularCustomer
+self.oclIsTypeOf(Customer)       // True only for exact Customer type
+self.oclAsType(PremiumCustomer)  // Cast to PremiumCustomer type
 ```
 
 ## Using OCL in Delphi
@@ -109,12 +122,14 @@ end;
 ### In Bold Handles
 
 ```pascal
-// TBoldListHandle
+// TBoldListHandle - for lists of objects
 BoldListHandle1.Expression := 'Customer.allInstances->select(active)';
 
-// TBoldExpressionHandle
+// TBoldExpressionHandle - for single values
 BoldExpressionHandle1.Expression := 'self.orders->collect(total)->sum';
 ```
+
+See [TBoldListHandle](../classes/TBoldListHandle.md) and [TBoldExpressionHandle](../classes/TBoldExpressionHandle.md) for more details.
 
 ## Advanced Examples
 
@@ -124,11 +139,13 @@ BoldExpressionHandle1.Expression := 'self.orders->collect(total)->sum';
 // Customers with at least one order over $1000 this year
 Customer.allInstances->select(
   orders->exists(
-    total > 1000 and
-    orderDate.year = 2024
+    (total > 1000) and
+    (orderDate.year = 2024)
   )
 )
 ```
+
+**Note:** `Customer` (uppercase) refers to the class/metatype, while `orders` (lowercase) is a navigation property on the current object. In OCL, `Customer.allInstances` accesses all instances of the Customer class, whereas `self.orders` navigates from the current object to its related orders.
 
 ### Nested Navigation
 

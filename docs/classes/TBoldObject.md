@@ -43,6 +43,8 @@ classDiagram
     TBoldObject : +BoldSystem
     TBoldObject : +BoldMembers
     TBoldObject : +Delete()
+
+    click TBoldElement href "TBoldElement.md" "TBoldElement documentation"
 ```
 
 ## Object States

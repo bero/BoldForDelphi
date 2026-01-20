@@ -42,6 +42,8 @@ classDiagram
     TBoldSystem : +DirtyObjects
     TBoldSystem : +StartTransaction()
     TBoldSystem : +UpdateDatabase()
+
+    click TBoldElement href "TBoldElement.md" "TBoldElement documentation"
 ```
 
 ## Properties

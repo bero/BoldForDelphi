@@ -56,22 +56,34 @@ classDiagram
     TBoldMember <|-- TBoldObjectList
     TBoldElement <|-- TBoldSystem
 
-    click TBoldSystem "TBoldSystem/" "TBoldSystem documentation"
-    click TBoldObject "TBoldObject/" "TBoldObject documentation"
-    click TBoldObjectList "TBoldObjectList/" "TBoldObjectList documentation"
-    click TBoldMember "TBoldMember/" "TBoldMember documentation"
-    click TBoldAttribute "TBoldAttribute/" "TBoldAttribute documentation"
+    click TBoldElement href "TBoldElement.md" "TBoldElement documentation"
+    click TBoldSystem href "TBoldSystem.md" "TBoldSystem documentation"
+    click TBoldObject href "TBoldObject.md" "TBoldObject documentation"
+    click TBoldObjectList href "TBoldObjectList.md" "TBoldObjectList documentation"
+    click TBoldMember href "TBoldMember.md" "TBoldMember documentation"
+    click TBoldAttribute href "TBoldAttribute.md" "TBoldAttribute documentation"
+    click TBoldObjectReference href "TBoldObjectReference.md" "TBoldObjectReference documentation"
 ```
 
 ## Core Classes
 
-| Class | Description | Documentation |
-|-------|-------------|---------------|
-| [TBoldSystem](TBoldSystem.md) | The Object Space - manages all objects | Core |
-| [TBoldObject](TBoldObject.md) | Base class for all domain objects | Core |
-| [TBoldObjectList](TBoldObjectList.md) | Collection of Bold objects | Core |
-| [TBoldMember](TBoldMember.md) | Base class for attributes and references | Core |
-| [TBoldAttribute](TBoldAttribute.md) | Stores attribute values | Core |
+| Class | Description |
+|-------|-------------|
+| [TBoldElement](TBoldElement.md) | Abstract base class for all Bold elements |
+| [TBoldSystem](TBoldSystem.md) | The Object Space - manages all objects |
+| [TBoldObject](TBoldObject.md) | Base class for all domain objects |
+| [TBoldObjectList](TBoldObjectList.md) | Collection of Bold objects |
+| [TBoldMember](TBoldMember.md) | Base class for attributes and references |
+| [TBoldAttribute](TBoldAttribute.md) | Stores attribute values |
+| [TBoldObjectReference](TBoldObjectReference.md) | Single-valued associations |
+
+## Handle Classes
+
+| Class | Description |
+|-------|-------------|
+| [TBoldSystemHandle](TBoldSystemHandle.md) | Manages the Object Space connection |
+| [TBoldListHandle](TBoldListHandle.md) | OCL list expressions with filtering and sorting |
+| [TBoldExpressionHandle](TBoldExpressionHandle.md) | Single value OCL expressions |
 
 ## Relationship Between Classes
 
@@ -92,10 +104,11 @@ flowchart TB
     Reference -->|"points to"| Object
     List -->|"contains"| Object
 
-    click System "TBoldSystem/" "TBoldSystem documentation"
-    click Object "TBoldObject/" "TBoldObject documentation"
-    click Attribute "TBoldAttribute/" "TBoldAttribute documentation"
-    click List "TBoldObjectList/" "TBoldObjectList documentation"
+    click System href "TBoldSystem.md" "TBoldSystem documentation"
+    click Object href "TBoldObject.md" "TBoldObject documentation"
+    click Attribute href "TBoldAttribute.md" "TBoldAttribute documentation"
+    click Reference href "TBoldObjectReference.md" "TBoldObjectReference documentation"
+    click List href "TBoldObjectList.md" "TBoldObjectList documentation"
 ```
 
 ## Common Patterns
