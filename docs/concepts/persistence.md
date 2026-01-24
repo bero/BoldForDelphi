@@ -154,7 +154,83 @@ end;
 
 ### Nested Transactions
 
-Bold supports nested transactions with savepoints.
+Bold supports nested transactions using savepoints. Each call to `StartTransaction` creates a new nesting level, and `CommitTransaction` or `RollbackTransaction` operates on that level.
+
+```mermaid
+flowchart TB
+    subgraph Level0["Transaction Level 0"]
+        Start0[StartTransaction]
+        Change1[Modify Customer]
+
+        subgraph Level1["Transaction Level 1 (Savepoint)"]
+            Start1[StartTransaction]
+            Change2[Create Order]
+
+            subgraph Level2["Transaction Level 2 (Savepoint)"]
+                Start2[StartTransaction]
+                Change3[Add OrderItems]
+                Rollback2[RollbackTransaction]
+            end
+
+            Commit1[CommitTransaction]
+        end
+
+        Commit0[CommitTransaction]
+    end
+```
+
+```pascal
+// Outer transaction
+BoldSystem.StartTransaction;
+try
+  Customer.Name := 'Updated Name';
+
+  // Nested transaction (savepoint)
+  BoldSystem.StartTransaction;
+  try
+    Order := TOrder.Create(BoldSystem);
+    Order.Customer := Customer;
+
+    // Deeper nesting
+    BoldSystem.StartTransaction;
+    try
+      OrderItem := TOrderItem.Create(BoldSystem);
+      OrderItem.Order := Order;
+      // Something goes wrong here
+      raise Exception.Create('Validation failed');
+      BoldSystem.CommitTransaction;
+    except
+      // Only rolls back OrderItem creation
+      BoldSystem.RollbackTransaction;
+      raise;
+    end;
+
+    BoldSystem.CommitTransaction;
+  except
+    // Rolls back Order creation
+    BoldSystem.RollbackTransaction;
+    raise;
+  end;
+
+  BoldSystem.CommitTransaction;
+  BoldSystem.UpdateDatabase;
+except
+  // Rolls back everything including Customer change
+  BoldSystem.RollbackTransaction;
+  raise;
+end;
+```
+
+**Key behaviors:**
+
+| Operation | Effect |
+|-----------|--------|
+| `StartTransaction` | Creates savepoint at current nesting level |
+| `CommitTransaction` | Confirms changes at current level, moves to parent level |
+| `RollbackTransaction` | Reverts changes at current level, moves to parent level |
+| `UpdateDatabase` | Persists all committed changes to database |
+
+**Important:** `UpdateDatabase` should only be called after the outermost transaction commits. Nested transactions operate in memory until the final commit and database update.
 
 ## Schema Evolution
 

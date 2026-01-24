@@ -53,20 +53,19 @@ More complex example showing:
 - Derived attributes
 - OCL queries
 
-## Online Example Documentation
+## Example Tutorials
 
-Interactive example documentation is available in the repository at `Doc/html/index.html`.
+More tutorials coming soon:
 
-Topics covered:
-
-- MasterDetail - Basic CRUD
-- Buildings & Owners - Associations
-- Derived Attributes - Calculated values
+- Buildings & Owners - Associations between objects
+- MasterDetail - Basic CRUD operations
 - Constraints - Model validation
 - Transactions - Transaction handling
 - OCL Variables - Query parameters
 - Renderers - Custom display
 - TreeView - Hierarchical display
+
+See also [Derived Attributes](../concepts/derived-attributes.md) in Core Concepts.
 
 ## PDF Tutorials
 

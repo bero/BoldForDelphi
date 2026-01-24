@@ -37,12 +37,16 @@ classDiagram
     TBoldSubscribableObject <|-- TBoldElement
     TBoldElement <|-- TBoldDomainElement
     TBoldElement <|-- TBoldSystem
+    TBoldDomainElement <|-- TBoldObject
+    TBoldDomainElement <|-- TBoldMember
 
     TBoldElement : +AsString
     TBoldElement : +CompareTo()
     TBoldElement : +EvaluateExpression()
 
-    click TBoldSystem href "TBoldSystem.md" "TBoldSystem documentation"
+    click TBoldSystem href "../TBoldSystem/" "TBoldSystem documentation"
+    click TBoldObject href "../TBoldObject/" "TBoldObject documentation"
+    click TBoldMember href "../TBoldMember/" "TBoldMember documentation"
 ```
 
 ## Properties

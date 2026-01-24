@@ -52,7 +52,8 @@ flowchart LR
     System -->|"manages"| Objects
     Persistence -->|"persists"| DB
 
-    click System href "TBoldSystem.md" "TBoldSystem documentation"
+    click System href "../TBoldSystem/" "TBoldSystem documentation"
+    click Objects href "../TBoldObject/" "TBoldObject documentation"
 ```
 
 ## Properties

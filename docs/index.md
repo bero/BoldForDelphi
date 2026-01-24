@@ -38,12 +38,12 @@ flowchart TB
     Objects --> PMapper
     PMapper --> DB
 
-    click Handles href "classes/#handle-classes" "Bold Handle classes"
-    click System href "classes/TBoldSystem.md" "TBoldSystem documentation"
-    click Objects href "classes/TBoldObject.md" "TBoldObject documentation"
-    click OCL href "concepts/ocl.md" "OCL documentation"
-    click PMapper href "concepts/persistence.md" "Persistence documentation"
-    click DB href "concepts/persistence.md" "Database persistence documentation"
+    click Handles href "classes/TBoldSystemHandle/" "Bold Handle classes"
+    click System href "classes/TBoldSystem/" "TBoldSystem documentation"
+    click Objects href "classes/TBoldObject/" "TBoldObject documentation"
+    click OCL href "concepts/ocl/" "OCL documentation"
+    click PMapper href "concepts/persistence/" "Persistence documentation"
+    click DB href "concepts/persistence/" "Database persistence documentation"
 ```
 
 ## Quick Start
@@ -62,7 +62,7 @@ end;
 
 ## Version
 
-**Current Version**: 26.1.0 (community-maintained)
+**Current Version**: 26.01.0 (community-maintained)
 
 **Supported Delphi Versions**: 11.3, 12.1, 12.3, 13
 

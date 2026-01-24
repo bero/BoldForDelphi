@@ -21,7 +21,7 @@ classDiagram
     TBoldAttribute : +SetToNull()
     TBoldAttribute : +AsString
 
-    click TBoldMember href "TBoldMember.md" "TBoldMember documentation"
+    click TBoldMember href "../TBoldMember/" "TBoldMember documentation"
 ```
 
 ## Attribute Types

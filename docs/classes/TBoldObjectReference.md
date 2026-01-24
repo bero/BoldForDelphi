@@ -29,9 +29,9 @@ classDiagram
     TBoldObjectReference : +BoldObject
     TBoldObjectReference : +HasOldValues
 
-    click TBoldMember href "TBoldMember.md" "TBoldMember documentation"
-    click TBoldAttribute href "TBoldAttribute.md" "TBoldAttribute documentation"
-    click TBoldObjectList href "TBoldObjectList.md" "TBoldObjectList documentation"
+    click TBoldMember href "../TBoldMember/" "TBoldMember documentation"
+    click TBoldAttribute href "../TBoldAttribute/" "TBoldAttribute documentation"
+    click TBoldObjectList href "../TBoldObjectList/" "TBoldObjectList documentation"
 ```
 
 ## Understanding References

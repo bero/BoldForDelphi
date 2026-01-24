@@ -22,10 +22,10 @@ graph LR
     C --> D[TBoldAttribute values]
     C --> E[TBoldObjectReference links]
 
-    click A href "../classes/TBoldSystem.md" "TBoldSystem documentation"
-    click C href "../classes/TBoldObject.md" "TBoldObject documentation"
-    click D href "../classes/TBoldAttribute.md" "TBoldAttribute documentation"
-    click E href "../classes/TBoldObjectReference.md" "TBoldObjectReference documentation"
+    click A href "../classes/TBoldSystem/" "TBoldSystem documentation"
+    click C href "../classes/TBoldObject/" "TBoldObject documentation"
+    click D href "../classes/TBoldAttribute/" "TBoldAttribute documentation"
+    click E href "../classes/TBoldObjectReference/" "TBoldObjectReference documentation"
 ```
 
 ### Persistence Layer

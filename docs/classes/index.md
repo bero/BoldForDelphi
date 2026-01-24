@@ -56,13 +56,13 @@ classDiagram
     TBoldMember <|-- TBoldObjectList
     TBoldElement <|-- TBoldSystem
 
-    click TBoldElement href "TBoldElement.md" "TBoldElement documentation"
-    click TBoldSystem href "TBoldSystem.md" "TBoldSystem documentation"
-    click TBoldObject href "TBoldObject.md" "TBoldObject documentation"
-    click TBoldObjectList href "TBoldObjectList.md" "TBoldObjectList documentation"
-    click TBoldMember href "TBoldMember.md" "TBoldMember documentation"
-    click TBoldAttribute href "TBoldAttribute.md" "TBoldAttribute documentation"
-    click TBoldObjectReference href "TBoldObjectReference.md" "TBoldObjectReference documentation"
+    click TBoldElement href "TBoldElement/" "TBoldElement documentation"
+    click TBoldSystem href "TBoldSystem/" "TBoldSystem documentation"
+    click TBoldObject href "TBoldObject/" "TBoldObject documentation"
+    click TBoldObjectList href "TBoldObjectList/" "TBoldObjectList documentation"
+    click TBoldMember href "TBoldMember/" "TBoldMember documentation"
+    click TBoldAttribute href "TBoldAttribute/" "TBoldAttribute documentation"
+    click TBoldObjectReference href "TBoldObjectReference/" "TBoldObjectReference documentation"
 ```
 
 ## Core Classes
@@ -104,11 +104,11 @@ flowchart TB
     Reference -->|"points to"| Object
     List -->|"contains"| Object
 
-    click System href "TBoldSystem.md" "TBoldSystem documentation"
-    click Object href "TBoldObject.md" "TBoldObject documentation"
-    click Attribute href "TBoldAttribute.md" "TBoldAttribute documentation"
-    click Reference href "TBoldObjectReference.md" "TBoldObjectReference documentation"
-    click List href "TBoldObjectList.md" "TBoldObjectList documentation"
+    click System href "TBoldSystem/" "TBoldSystem documentation"
+    click Object href "TBoldObject/" "TBoldObject documentation"
+    click Attribute href "TBoldAttribute/" "TBoldAttribute documentation"
+    click Reference href "TBoldObjectReference/" "TBoldObjectReference documentation"
+    click List href "TBoldObjectList/" "TBoldObjectList documentation"
 ```
 
 ## Common Patterns

@@ -4,6 +4,8 @@
 
 ## Basic Syntax
 
+**Important naming convention:** In OCL, uppercase names like `Customer` refer to classes (metatypes), while lowercase names like `orders` refer to properties/associations on the current object. `Customer.allInstances` gets all Customer objects, while `self.orders` navigates from the current object to its orders.
+
 ### Getting All Instances
 
 ```ocl

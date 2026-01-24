@@ -69,6 +69,7 @@ nav:
     - concepts/index.md
     - Object Space: concepts/object-space.md
     - OCL Queries: concepts/ocl.md
+    - Derived Attributes: concepts/derived-attributes.md
     - Persistence: concepts/persistence.md
     - Subscriptions: concepts/subscriptions.md
     - Logging: concepts/logging.md

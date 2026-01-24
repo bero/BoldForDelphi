@@ -1,6 +1,5 @@
 # Delphi/Windows project - use CRLF line endings
 * text=auto eol=crlf
-
 # Delphi source files
 *.pas text eol=crlf
 *.dfm text eol=crlf
@@ -13,12 +12,10 @@
 *.dcu binary
 *.bpl binary
 *.dcp binary
-
 # Documentation
 *.txt text eol=crlf
 *.md text eol=crlf
 *.UnitDoc text eol=crlf
-
 # Other text files
 *.rc text eol=crlf
 *.ini text eol=crlf
@@ -28,11 +25,9 @@
 *.xslt text eol=crlf
 *.css text eol=crlf
 *.js text eol=crlf
-
 # Model files
 *.mdl text eol=crlf
 *.bld text eol=crlf
-
 # Binary files
 *.exe binary
 *.dll binary

@@ -90,7 +90,9 @@ OCL variables for parameterized expressions:
 // Filter by status variable
 BoldListHandle1.Expression := 'Order.allInstances->select(status = statusVar)';
 BoldListHandle1.Variables := BoldOclVariables1;
-// Set statusVar value in BoldOclVariables1
+
+// Set variable value (in code or at design-time)
+BoldOclVariables1.SetVariable('statusVar', 'Pending');
 ```
 
 ### BoldFilter
@@ -158,12 +160,14 @@ end;
 
 ### EvaluateInPS
 
-Evaluate in Persistence Storage (database) for better performance:
+When True, the OCL expression is evaluated in the database (Persistence Storage) instead of in memory. This is much faster for large datasets because only matching objects are fetched:
 
 ```pascal
-// Evaluate filter in database
+// Evaluate filter in database - fetches only active customers
 BoldListHandle1.EvaluateInPS := True;
 BoldListHandle1.Expression := 'Customer.allInstances->select(active = true)';
+
+// Without EvaluateInPS, all customers would be loaded into memory first, then filtered
 ```
 
 ### UsePrefetch

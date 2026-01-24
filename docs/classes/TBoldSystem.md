@@ -43,7 +43,7 @@ classDiagram
     TBoldSystem : +StartTransaction()
     TBoldSystem : +UpdateDatabase()
 
-    click TBoldElement href "TBoldElement.md" "TBoldElement documentation"
+    click TBoldElement href "../TBoldElement/" "TBoldElement documentation"
 ```
 
 ## Properties

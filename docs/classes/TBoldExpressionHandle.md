@@ -110,10 +110,10 @@ BoldExpressionHandle1.Subscribe := True;
 
 ### EvaluateInPS
 
-Evaluate in the database for better performance:
+When True, the OCL expression is evaluated in the database (Persistence Storage) instead of in memory. This is essential for aggregates on large datasets:
 
 ```pascal
-// Database-side evaluation
+// Count active customers in database - fast even with millions of records
 BoldExpressionHandle1.EvaluateInPS := True;
 BoldExpressionHandle1.Expression := 'Customer.allInstances->select(active)->size';
 ```

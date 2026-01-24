@@ -2,7 +2,7 @@
 
 This roadmap outlines the development direction for Bold for Delphi. It is a living document that evolves based on community feedback and contributions.
 
-**Current Version**: 26.1.0
+**Current Version**: 26.01.0
 **Status**: Active Development
 
 ## Vision
