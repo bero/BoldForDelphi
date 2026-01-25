@@ -65,8 +65,6 @@ DelphiBuildDPROJ.ps1 -Projectfile "packages\Delphi29.3\dclBold.dproj" -VerboseOu
 Key defines in `Bold.inc`:
 
 ```pascal
-{$DEFINE SpanFetch}           // Efficient batch fetching
-{$DEFINE IDServer}            // External ID server
 {$DEFINE CompareToOldValues}  // Skip unchanged values in updates
 {$DEFINE BoldJson}            // JSON serialization support
 ```
