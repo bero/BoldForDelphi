@@ -33,7 +33,23 @@ Create a unit test that covers the code you're about to change:
 - For **bugfix**: Write a test that FAILS with current code (demonstrates the bug)
 
 #### 3. Building Unit Tests (MANDATORY - USE EXACTLY)
-powershell -Command "& {  = 'C:\Attracs\DUnitX\Source';  = 'C:\Attracs\Delphi-Mocks\Source'; & 'C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1' -Projectfile 'UnitTest\UnitTest.dproj' }"
+
+**Use the build.ps1 script** - it properly sets DUnitX and DelphiMocks environment variables:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\build.ps1"
+```
+
+**Why use build.ps1?**
+- Sets `$env:DUnitX` and `$env:DelphiMocks` correctly
+- Avoids "Unit 'DUnitX.Loggers.Console' not found" errors
+- Works reliably from bash shell
+
+**DO NOT use inline env var setting** - it fails due to bash-to-PowerShell transition issues:
+```powershell
+# WRONG - env vars get mangled
+powershell -Command "& { $env:DUnitX = '...'; ... }"
+```
 
 ### Running Specific Tests
 

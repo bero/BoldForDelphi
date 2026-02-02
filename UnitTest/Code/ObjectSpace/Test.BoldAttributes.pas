@@ -114,6 +114,51 @@ type
     [Test]
     [Category('Quick')]
     procedure TestDateTimeValidateString;
+    [Test]
+    [Category('Quick')]
+    procedure TestCreateWithValueConstructors;
+    [Test]
+    [Category('Quick')]
+    procedure TestIsNullOrEmptyAndIsNullOrZero;
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerValidateCharacter;
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyValidateCharacter;
+    [Test]
+    [Category('Quick')]
+    procedure TestFloatValidateCharacter;
+    [Test]
+    [Category('Quick')]
+    procedure TestTrimmedStringTrimsWhitespace;
+    [Test]
+    [Category('Quick')]
+    procedure TestTextValidateStringNoLengthCheck;
+    [Test]
+    [Category('Quick')]
+    procedure TestUnicodeTextValidateString;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobStreamSaveOperations;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobStreamTruncate;
+    [Test]
+    [Category('Quick')]
+    procedure TestAnsiStringValidation;
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerGetAsFloat;
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyGetAsFloat;
+    [Test]
+    [Category('Quick')]
+    procedure TestNumericCompareToAsCtDefault;
+    [Test]
+    [Category('Quick')]
+    procedure TestBooleanCreateWithValue;
   end;
 
 var
@@ -1029,6 +1074,430 @@ begin
     Assert.IsFalse(DateAttr.ValidateString('invalid', brDefault), 'TBADate invalid string should be invalid');
   finally
     DateAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestCreateWithValueConstructors;
+var
+  StrAttr: TBAString;
+  IntAttr: TBAInteger;
+  FloatAttr: TBAFloat;
+  CurrAttr: TBACurrency;
+  BoolAttr: TBABoolean;
+begin
+  // Test TBAString.CreateWithValue
+  StrAttr := TBAString.CreateWithValue('TestString');
+  try
+    Assert.AreEqual('TestString', StrAttr.AsString, 'TBAString.CreateWithValue should set value');
+    Assert.IsFalse(StrAttr.IsNull, 'TBAString.CreateWithValue should not be null');
+  finally
+    StrAttr.Free;
+  end;
+
+  // Test TBAInteger.CreateWithValue
+  IntAttr := TBAInteger.CreateWithValue(42);
+  try
+    Assert.AreEqual(42, IntAttr.AsInteger, 'TBAInteger.CreateWithValue should set value');
+    Assert.IsFalse(IntAttr.IsNull, 'TBAInteger.CreateWithValue should not be null');
+  finally
+    IntAttr.Free;
+  end;
+
+  // Test TBAFloat.CreateWithValue
+  FloatAttr := TBAFloat.CreateWithValue(3.14);
+  try
+    Assert.AreEqual(3.14, FloatAttr.AsFloat, 0.001, 'TBAFloat.CreateWithValue should set value');
+    Assert.IsFalse(FloatAttr.IsNull, 'TBAFloat.CreateWithValue should not be null');
+  finally
+    FloatAttr.Free;
+  end;
+
+  // Test TBACurrency.CreateWithValue
+  CurrAttr := TBACurrency.CreateWithValue(99.95);
+  try
+    Assert.AreEqual(99.95, CurrAttr.AsCurrency, 0.001, 'TBACurrency.CreateWithValue should set value');
+    Assert.IsFalse(CurrAttr.IsNull, 'TBACurrency.CreateWithValue should not be null');
+  finally
+    CurrAttr.Free;
+  end;
+
+  // Test TBABoolean.CreateWithValue
+  BoolAttr := TBABoolean.CreateWithValue(True);
+  try
+    Assert.IsTrue(BoolAttr.AsBoolean, 'TBABoolean.CreateWithValue(True) should return True');
+    Assert.IsFalse(BoolAttr.IsNull, 'TBABoolean.CreateWithValue should not be null');
+  finally
+    BoolAttr.Free;
+  end;
+
+  BoolAttr := TBABoolean.CreateWithValue(False);
+  try
+    Assert.IsFalse(BoolAttr.AsBoolean, 'TBABoolean.CreateWithValue(False) should return False');
+    Assert.IsFalse(BoolAttr.IsNull, 'TBABoolean.CreateWithValue should not be null');
+  finally
+    BoolAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestIsNullOrEmptyAndIsNullOrZero;
+var
+  StrAttr: TBAString;
+  IntAttr: TBAInteger;
+  FloatAttr: TBAFloat;
+begin
+  // Test TBAString.IsNullOrEmpty
+  StrAttr := TBAString.Create;
+  try
+    // When null
+    StrAttr.SetToNull;
+    Assert.IsTrue(StrAttr.IsNullOrEmpty, 'Null string should be NullOrEmpty');
+
+    // When empty string
+    StrAttr.AsString := '';
+    Assert.IsTrue(StrAttr.IsNullOrEmpty, 'Empty string should be NullOrEmpty');
+
+    // When has value
+    StrAttr.AsString := 'Test';
+    Assert.IsFalse(StrAttr.IsNullOrEmpty, 'Non-empty string should not be NullOrEmpty');
+  finally
+    StrAttr.Free;
+  end;
+
+  // Test TBAInteger.IsNullOrZero (via TBANumeric)
+  IntAttr := TBAInteger.Create;
+  try
+    // When null
+    IntAttr.SetToNull;
+    Assert.IsTrue(IntAttr.IsNullOrZero, 'Null integer should be NullOrZero');
+
+    // When zero
+    IntAttr.AsInteger := 0;
+    Assert.IsTrue(IntAttr.IsNullOrZero, 'Zero integer should be NullOrZero');
+
+    // When non-zero
+    IntAttr.AsInteger := 5;
+    Assert.IsFalse(IntAttr.IsNullOrZero, 'Non-zero integer should not be NullOrZero');
+  finally
+    IntAttr.Free;
+  end;
+
+  // Test TBAFloat.IsNullOrZero
+  FloatAttr := TBAFloat.Create;
+  try
+    // When null
+    FloatAttr.SetToNull;
+    Assert.IsTrue(FloatAttr.IsNullOrZero, 'Null float should be NullOrZero');
+
+    // When zero
+    FloatAttr.AsFloat := 0.0;
+    Assert.IsTrue(FloatAttr.IsNullOrZero, 'Zero float should be NullOrZero');
+
+    // When non-zero
+    FloatAttr.AsFloat := 3.14;
+    Assert.IsFalse(FloatAttr.IsNullOrZero, 'Non-zero float should not be NullOrZero');
+  finally
+    FloatAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestIntegerValidateCharacter;
+var
+  IntAttr: TBAInteger;
+begin
+  IntAttr := TBAInteger.Create;
+  try
+    // Valid characters
+    Assert.IsTrue(IntAttr.ValidateCharacter('0', brDefault), 'Digit 0 should be valid');
+    Assert.IsTrue(IntAttr.ValidateCharacter('5', brDefault), 'Digit 5 should be valid');
+    Assert.IsTrue(IntAttr.ValidateCharacter('9', brDefault), 'Digit 9 should be valid');
+    Assert.IsTrue(IntAttr.ValidateCharacter('-', brDefault), 'Minus should be valid');
+    Assert.IsTrue(IntAttr.ValidateCharacter('+', brDefault), 'Plus should be valid');
+
+    // Invalid characters
+    Assert.IsFalse(IntAttr.ValidateCharacter('a', brDefault), 'Letter should be invalid');
+    Assert.IsFalse(IntAttr.ValidateCharacter('.', brDefault), 'Decimal point should be invalid');
+    Assert.IsFalse(IntAttr.ValidateCharacter(' ', brDefault), 'Space should be invalid');
+  finally
+    IntAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestCurrencyValidateCharacter;
+var
+  CurrAttr: TBACurrency;
+begin
+  CurrAttr := TBACurrency.Create;
+  try
+    // Valid characters
+    Assert.IsTrue(CurrAttr.ValidateCharacter('0', brDefault), 'Digit 0 should be valid');
+    Assert.IsTrue(CurrAttr.ValidateCharacter('5', brDefault), 'Digit 5 should be valid');
+    Assert.IsTrue(CurrAttr.ValidateCharacter('-', brDefault), 'Minus should be valid');
+    Assert.IsTrue(CurrAttr.ValidateCharacter('+', brDefault), 'Plus should be valid');
+    Assert.IsTrue(CurrAttr.ValidateCharacter('e', brDefault), 'Lowercase e should be valid');
+    Assert.IsTrue(CurrAttr.ValidateCharacter('E', brDefault), 'Uppercase E should be valid');
+    Assert.IsTrue(CurrAttr.ValidateCharacter(FormatSettings.DecimalSeparator, brDefault), 'Decimal separator should be valid');
+
+    // Invalid characters
+    Assert.IsFalse(CurrAttr.ValidateCharacter('a', brDefault), 'Letter a should be invalid');
+    Assert.IsFalse(CurrAttr.ValidateCharacter(' ', brDefault), 'Space should be invalid');
+  finally
+    CurrAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestFloatValidateCharacter;
+var
+  FloatAttr: TBAFloat;
+begin
+  FloatAttr := TBAFloat.Create;
+  try
+    // Valid characters
+    Assert.IsTrue(FloatAttr.ValidateCharacter('0', brDefault), 'Digit 0 should be valid');
+    Assert.IsTrue(FloatAttr.ValidateCharacter('5', brDefault), 'Digit 5 should be valid');
+    Assert.IsTrue(FloatAttr.ValidateCharacter('-', brDefault), 'Minus should be valid');
+    Assert.IsTrue(FloatAttr.ValidateCharacter('+', brDefault), 'Plus should be valid');
+    Assert.IsTrue(FloatAttr.ValidateCharacter('e', brDefault), 'Lowercase e should be valid');
+    Assert.IsTrue(FloatAttr.ValidateCharacter('E', brDefault), 'Uppercase E should be valid');
+    Assert.IsTrue(FloatAttr.ValidateCharacter(FormatSettings.DecimalSeparator, brDefault), 'Decimal separator should be valid');
+
+    // Invalid characters
+    Assert.IsFalse(FloatAttr.ValidateCharacter('a', brDefault), 'Letter a should be invalid');
+    Assert.IsFalse(FloatAttr.ValidateCharacter(' ', brDefault), 'Space should be invalid');
+  finally
+    FloatAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestTrimmedStringTrimsWhitespace;
+var
+  TrimmedStr: TBATrimmedString;
+begin
+  TrimmedStr := TBATrimmedString.Create;
+  try
+    // Test leading whitespace is trimmed
+    TrimmedStr.AsString := '  Hello';
+    Assert.AreEqual('Hello', TrimmedStr.AsString, 'Leading whitespace should be trimmed');
+
+    // Test trailing whitespace is trimmed
+    TrimmedStr.AsString := 'World  ';
+    Assert.AreEqual('World', TrimmedStr.AsString, 'Trailing whitespace should be trimmed');
+
+    // Test both leading and trailing whitespace trimmed
+    TrimmedStr.AsString := '  Test  ';
+    Assert.AreEqual('Test', TrimmedStr.AsString, 'Both leading and trailing whitespace should be trimmed');
+
+    // Test string with no whitespace unchanged
+    TrimmedStr.AsString := 'NoWhitespace';
+    Assert.AreEqual('NoWhitespace', TrimmedStr.AsString, 'String without whitespace should be unchanged');
+  finally
+    TrimmedStr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestTextValidateStringNoLengthCheck;
+var
+  TextAttr: TBAText;
+  LongString: AnsiString;
+  i: integer;
+begin
+  // TBAText should not check length (unlike TBAString which does)
+  // Note: TBAText is an AnsiString-based class, so we use AnsiString
+  TextAttr := TBAText.Create;
+  try
+    // Create a very long AnsiString (TBAText is for long AnsiStrings)
+    SetLength(LongString, 10000);
+    for i := 1 to Length(LongString) do
+      LongString[i] := AnsiChar('A');
+
+    // TBAText.ValidateString should return True for any length
+    Assert.IsTrue(TextAttr.ValidateString(string(LongString), brDefault), 'TBAText should accept any length string');
+
+    // Normal string should also be valid
+    Assert.IsTrue(TextAttr.ValidateString('Normal text', brDefault), 'TBAText should accept normal string');
+  finally
+    TextAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestUnicodeTextValidateString;
+var
+  UnicodeTextAttr: TBAUnicodeText;
+  LongString: string;
+begin
+  // TBAUnicodeText should not check length
+  UnicodeTextAttr := TBAUnicodeText.Create;
+  try
+    // Create a very long string
+    SetLength(LongString, 10000);
+    FillChar(LongString[1], Length(LongString) * SizeOf(Char), Ord('A'));
+
+    // TBAUnicodeText.ValidateString should return True for any length
+    Assert.IsTrue(UnicodeTextAttr.ValidateString(LongString, brDefault), 'TBAUnicodeText should accept any length string');
+
+    // Normal string should also be valid
+    Assert.IsTrue(UnicodeTextAttr.ValidateString('Unicode text with special chars: äöü', brDefault),
+      'TBAUnicodeText should accept Unicode string');
+  finally
+    UnicodeTextAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestBlobStreamSaveOperations;
+var
+  Blob: TBABlob;
+  OutputStream: TMemoryStream;
+  TestData: TBytes;
+  ReadData: TBytes;
+begin
+  Blob := TBABlob.Create;
+  OutputStream := TMemoryStream.Create;
+  try
+    // Write some test data to the blob
+    TestData := TEncoding.Default.GetBytes('SaveToStreamTest');
+    Blob.AsStream.Write(TestData, Length(TestData));
+
+    // Test SaveToStream
+    Blob.AsStream.Position := 0;
+    Blob.AsStream.SaveToStream(OutputStream);
+
+    // Verify data was saved correctly
+    Assert.AreEqual(Int64(Length(TestData)), OutputStream.Size, 'SaveToStream size should match');
+    OutputStream.Position := 0;
+    SetLength(ReadData, OutputStream.Size);
+    OutputStream.ReadBuffer(ReadData, OutputStream.Size);
+    Assert.AreEqual(string(TEncoding.Default.GetString(TestData)),
+      string(TEncoding.Default.GetString(ReadData)),
+      'SaveToStream content should match');
+  finally
+    OutputStream.Free;
+    Blob.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestBlobStreamTruncate;
+var
+  Blob: TBABlob;
+  TestData: TBytes;
+begin
+  Blob := TBABlob.Create;
+  try
+    // Write test data
+    TestData := TEncoding.Default.GetBytes('TruncateTestData');
+    Blob.AsStream.Write(TestData, Length(TestData));
+    Assert.AreEqual(Int64(Length(TestData)), Blob.AsStream.Size, 'Initial size should match data length');
+
+    // Move position to middle and truncate
+    Blob.AsStream.Position := 8; // Middle of 'Truncate'
+    Blob.AsStream.Truncate;
+
+    // Verify truncation
+    Assert.AreEqual(Int64(8), Blob.AsStream.Size, 'Size after truncate should be position');
+  finally
+    Blob.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestAnsiStringValidation;
+var
+  AnsiAttr: TBAAnsiString;
+begin
+  AnsiAttr := TBAAnsiString.Create;
+  try
+    // Test valid AnsiString
+    Assert.IsTrue(AnsiAttr.ValidateString('Hello World', brDefault), 'ASCII string should be valid AnsiString');
+
+    // Test ValidateCharacter - ASCII chars should be valid
+    Assert.IsTrue(AnsiAttr.ValidateCharacter('A', brDefault), 'ASCII char should be valid');
+    Assert.IsTrue(AnsiAttr.ValidateCharacter('z', brDefault), 'ASCII lowercase should be valid');
+    Assert.IsTrue(AnsiAttr.ValidateCharacter('0', brDefault), 'ASCII digit should be valid');
+  finally
+    AnsiAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestIntegerGetAsFloat;
+var
+  IntAttr: TBAInteger;
+begin
+  IntAttr := TBAInteger.Create;
+  try
+    IntAttr.AsInteger := 42;
+    // GetAsFloat returns the integer value as a float
+    Assert.AreEqual(42.0, IntAttr.AsFloat, 0.001, 'Integer GetAsFloat should return float value');
+
+    IntAttr.AsInteger := -100;
+    Assert.AreEqual(-100.0, IntAttr.AsFloat, 0.001, 'Negative integer GetAsFloat should return float value');
+  finally
+    IntAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestCurrencyGetAsFloat;
+var
+  CurrAttr: TBACurrency;
+begin
+  CurrAttr := TBACurrency.Create;
+  try
+    CurrAttr.AsCurrency := 99.95;
+    // GetAsFloat returns the currency value as a float
+    Assert.AreEqual(99.95, CurrAttr.AsFloat, 0.001, 'Currency GetAsFloat should return float value');
+
+    CurrAttr.AsCurrency := -50.25;
+    Assert.AreEqual(-50.25, CurrAttr.AsFloat, 0.001, 'Negative currency GetAsFloat should return float value');
+  finally
+    CurrAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestNumericCompareToAsCtDefault;
+var
+  Float1, Float2: TBAFloat;
+begin
+  Float1 := TBAFloat.Create;
+  Float2 := TBAFloat.Create;
+  try
+    // Test TBANumeric.CompareToAs with ctDefault (the uncovered path in base class)
+    Float1.AsFloat := 10.5;
+    Float2.AsFloat := 10.5;
+    Assert.AreEqual(0, Float1.CompareToAs(ctDefault, Float2), 'Equal floats should return 0');
+
+    Float1.AsFloat := 10.5;
+    Float2.AsFloat := 5.0;
+    Assert.AreEqual(1, Float1.CompareToAs(ctDefault, Float2), 'Greater float should return 1');
+
+    Float1.AsFloat := 5.0;
+    Float2.AsFloat := 10.5;
+    Assert.AreEqual(-1, Float1.CompareToAs(ctDefault, Float2), 'Lesser float should return -1');
+
+    // Test with one null
+    Float1.AsFloat := 10.5;
+    Float2.SetToNull;
+    Assert.AreEqual(1, Float1.CompareToAs(ctDefault, Float2), 'Non-null vs null should return 1');
+  finally
+    Float1.Free;
+    Float2.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestBooleanCreateWithValue;
+var
+  BoolAttr: TBABoolean;
+begin
+  // Test TBABoolean.CreateWithValue - covers the constructor
+  BoolAttr := TBABoolean.CreateWithValue(True);
+  try
+    Assert.IsTrue(BoolAttr.AsBoolean, 'CreateWithValue(True) should be True');
+    Assert.IsFalse(BoolAttr.IsNull, 'CreateWithValue should not be null');
+  finally
+    BoolAttr.Free;
+  end;
+
+  BoolAttr := TBABoolean.CreateWithValue(False);
+  try
+    Assert.IsFalse(BoolAttr.AsBoolean, 'CreateWithValue(False) should be False');
+    Assert.IsFalse(BoolAttr.IsNull, 'CreateWithValue should not be null');
+  finally
+    BoolAttr.Free;
   end;
 end;
 
