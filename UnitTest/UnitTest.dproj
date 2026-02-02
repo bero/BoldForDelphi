@@ -159,6 +159,7 @@
         <DCCReference Include="Code\ValueSpace\Test.BoldCondition.pas"/>
         <DCCReference Include="Code\ValueSpace\Test.BoldDefaultId.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldAttributes.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldElements.pas"/>
         <DCCReference Include="Code\UMLModel\Test.BoldUMLModelValidator.pas"/>
         <DCCReference Include="Code\Handles\Test.BoldListHandle.pas"/>
         <DCCReference Include="Code\Handles\Test.BoldSortedHandle.pas"/>

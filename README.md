@@ -83,6 +83,10 @@ Adjust -DelphiVersion from what you use.
 
 Unit tests are located in `UnitTest/` and use the DUnitX framework. Code coverage is tracked on [Codecov.io](https://codecov.io/gh/bero/BoldForDelphi).
 
+**Current Statistics** (as of 2026-02-02):
+- **Tests**: 896 total (869 passing, 27 ignored)
+- **Code Coverage**: 44% (25,023 lines covered)
+
 ### Running Tests with Code Coverage
 
 ```powershell

@@ -86,9 +86,13 @@ uses
   Test.BoldCondition in 'Code\ValueSpace\Test.BoldCondition.pas',
   Test.BoldDefaultId in 'Code\ValueSpace\Test.BoldDefaultId.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
+  Test.BoldElements in 'Code\ObjectSpace\Test.BoldElements.pas',
   Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas',
   Test.BoldListHandle in 'Code\Handles\Test.BoldListHandle.pas',
   Test.BoldSortedHandle in 'Code\Handles\Test.BoldSortedHandle.pas',
+  Test.BoldCollections in 'Code\Common\Test.BoldCollections.pas',
+  Test.BoldSSExcept in 'Code\ObjectSpace\Test.BoldSSExcept.pas',
+  Test.BoldDefs in 'Code\Common\Test.BoldDefs.pas',
   { Mock tests using Delphi-Mocks framework }
   Test.BoldDBInterfacesMock in 'Code\Mocks\Test.BoldDBInterfacesMock.pas',
   { Integration tests with transaction rollback }
