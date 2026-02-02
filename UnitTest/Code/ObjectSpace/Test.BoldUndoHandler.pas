@@ -12,7 +12,7 @@ uses
   BoldSystem,
   BoldDomainElement,
   BoldAttributes,
-  BoldId,
+  BoldId,  // includes TBoldInternalObjectId
   BoldSubscription,
   BoldUndoHandler,
   BoldUndoInterfaces,
@@ -23,6 +23,85 @@ uses
   UndoTestModelClasses;
 
 type
+  { Isolated tests for TBoldUndoBlockList and TBoldUndoBlock - no database required }
+  [TestFixture]
+  [Category('UndoHandler')]
+  TTestBoldUndoBlockListIsolated = class
+  private
+    FBlockList: TBoldUndoBlockList;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    // TBoldUndoBlockList tests
+    [Test]
+    procedure TestBlockListCountInitiallyZero;
+    [Test]
+    procedure TestBlockListIsEmptyInitially;
+    [Test]
+    procedure TestAddBlockIncreasesCount;
+    [Test]
+    procedure TestGetBlockByIndex;
+    [Test]
+    procedure TestGetBlockByName;
+    [Test]
+    procedure TestIndexOfByName;
+    [Test]
+    procedure TestIndexOfByBlock;
+    [Test]
+    procedure TestIndexOfNonExistentReturnsMinusOne;
+    [Test]
+    procedure TestRemoveBlock;
+    [Test]
+    procedure TestRenameBlock;
+    [Test]
+    procedure TestClearRemovesAllBlocks;
+    [Test]
+    procedure TestGetContainsChangesWhenEmpty;
+    [Test]
+    procedure TestGetContainsChangesWithEmptyBlock;
+    [Test]
+    procedure TestAddBlockDuplicateNameRaises;
+    [Test]
+    procedure TestGetAssertedBlockByNameRaisesWhenNotFound;
+    [Test]
+    procedure TestGetAssertedBlockByIndexRaisesWhenOutOfRange;
+    [Test]
+    procedure TestAssertedIndexOfRaisesWhenNotFound;
+    [Test]
+    procedure TestMergeAllMergesBlocks;
+    [Test]
+    procedure TestMoveBlockSameIndex;
+    [Test]
+    procedure TestCanMoveBlockSameIndex;
+    [Test]
+    procedure TestCanMergeBlockSameIndex;
+    [Test]
+    procedure TestRenameBlockToExistingNameRaises;
+
+    // TBoldUndoBlock tests
+    [Test]
+    procedure TestBlockNameProperty;
+    [Test]
+    procedure TestBlockCaptionProperty;
+    [Test]
+    procedure TestBlockCreatedProperty;
+    [Test]
+    procedure TestBlockContainsChangesInitiallyFalse;
+    [Test]
+    procedure TestBlockObjectCountInitiallyZero;
+    [Test]
+    procedure TestBlockGetIndex;
+    [Test]
+    procedure TestBlockSetFSValueSpace;
+    [Test]
+    procedure TestBlockValueExistsReturnsFalseWhenEmpty;
+    [Test]
+    procedure TestBlockGetFSValueSpaceCreatesIfNil;
+  end;
+
   [TestFixture]
   [Category('UndoHandler')]
   [Ignore('Requires database connection')]
@@ -174,6 +253,384 @@ implementation
 uses
   dmBoldTest,
   maan_UndoRedoTestCaseUtils;
+
+type
+  // Cracker class to access protected members for testing
+  TBoldUndoBlockListCracker = class(TBoldUndoBlockList);
+
+{ TTestBoldUndoBlockListIsolated }
+
+procedure TTestBoldUndoBlockListIsolated.SetUp;
+begin
+  // Create block list with nil handler - works for isolated tests
+  // that don't need full undo handler functionality
+  FBlockList := TBoldUndoBlockList.Create(nil);
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TearDown;
+begin
+  FreeAndNil(FBlockList);
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockListCountInitiallyZero;
+begin
+  Assert.AreEqual(0, FBlockList.Count, 'Count should be 0 initially');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockListIsEmptyInitially;
+begin
+  Assert.IsTrue(FBlockList.IsEmpty, 'IsEmpty should be True initially');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestAddBlockIncreasesCount;
+var
+  BlockName: string;
+begin
+  BlockName := 'Block1';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Caption1');
+  Assert.AreEqual(1, FBlockList.Count, 'Count should be 1 after adding block');
+  Assert.IsFalse(FBlockList.IsEmpty, 'IsEmpty should be False after adding block');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestGetBlockByIndex;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+begin
+  BlockName := 'TestBlock';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'TestCaption');
+  Block := FBlockList.BlockByIndex[0];
+  Assert.IsNotNull(Block, 'BlockByIndex[0] should return block');
+  Assert.AreEqual('TestBlock', Block.BlockName, 'Block name should match');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestGetBlockByName;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+begin
+  BlockName := 'NamedBlock';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Caption');
+  Block := FBlockList.BlockByName['NamedBlock'];
+  Assert.IsNotNull(Block, 'BlockByName should find block');
+  Assert.AreEqual('NamedBlock', Block.BlockName, 'Block name should match');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestIndexOfByName;
+var
+  BlockName1, BlockName2: string;
+begin
+  BlockName1 := 'First';
+  BlockName2 := 'Second';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName1, 'Cap1');
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName2, 'Cap2');
+  Assert.AreEqual(0, FBlockList.IndexOf('First'), 'IndexOf First should be 0');
+  Assert.AreEqual(1, FBlockList.IndexOf('Second'), 'IndexOf Second should be 1');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestIndexOfByBlock;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+begin
+  BlockName := 'BlockForIndex';
+  Block := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  Assert.AreEqual(0, FBlockList.IndexOf(Block), 'IndexOf(Block) should return 0');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestIndexOfNonExistentReturnsMinusOne;
+begin
+  Assert.AreEqual(-1, FBlockList.IndexOf('NonExistent'), 'IndexOf non-existent should return -1');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestRemoveBlock;
+var
+  BlockName: string;
+begin
+  BlockName := 'ToRemove';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  Assert.AreEqual(1, FBlockList.Count, 'Count should be 1 before remove');
+  FBlockList.RemoveBlock('ToRemove');
+  Assert.AreEqual(0, FBlockList.Count, 'Count should be 0 after remove');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestRenameBlock;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+begin
+  BlockName := 'OldName';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  FBlockList.RenameBlock('OldName', 'NewName');
+  Block := FBlockList.BlockByName['NewName'];
+  Assert.IsNotNull(Block, 'Block should be found by new name');
+  Assert.AreEqual('NewName', Block.BlockName, 'Block name should be updated');
+  Assert.IsNull(FBlockList.BlockByName['OldName'], 'Old name should not find block');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestClearRemovesAllBlocks;
+var
+  BlockName1, BlockName2: string;
+begin
+  BlockName1 := 'B1';
+  BlockName2 := 'B2';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName1, 'C1');
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName2, 'C2');
+  Assert.AreEqual(2, FBlockList.Count, 'Count should be 2 before clear');
+  TBoldUndoBlockListCracker(FBlockList).Clear;
+  Assert.AreEqual(0, FBlockList.Count, 'Count should be 0 after clear');
+  Assert.IsTrue(FBlockList.IsEmpty, 'IsEmpty should be True after clear');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestGetContainsChangesWhenEmpty;
+begin
+  // When empty, should return false (iterates and finds no blocks with changes)
+  Assert.IsFalse(FBlockList.ContainsChanges, 'ContainsChanges should be False when empty');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestGetContainsChangesWithEmptyBlock;
+var
+  BlockName: string;
+begin
+  BlockName := 'EmptyBlock';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  // New block has no changes
+  Assert.IsFalse(FBlockList.ContainsChanges, 'ContainsChanges should be False with empty block');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestAddBlockDuplicateNameRaises;
+var
+  BlockName: string;
+  Cracker: TBoldUndoBlockListCracker;
+begin
+  Cracker := TBoldUndoBlockListCracker(FBlockList);
+  BlockName := 'Duplicate';
+  Cracker.AddBlock(BlockName, 'Cap1');
+  Assert.WillRaise(
+    procedure
+    var
+      TempName: string;
+    begin
+      TempName := 'Duplicate';
+      Cracker.AddBlock(TempName, 'Cap2');
+    end,
+    EBold);
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestGetAssertedBlockByNameRaisesWhenNotFound;
+var
+  Cracker: TBoldUndoBlockListCracker;
+begin
+  Cracker := TBoldUndoBlockListCracker(FBlockList);
+  Assert.WillRaise(
+    procedure
+    begin
+      Cracker.AssertedBlockByName['NonExistent'];
+    end,
+    EBold);
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestGetAssertedBlockByIndexRaisesWhenOutOfRange;
+var
+  Cracker: TBoldUndoBlockListCracker;
+begin
+  Cracker := TBoldUndoBlockListCracker(FBlockList);
+  Assert.WillRaise(
+    procedure
+    begin
+      Cracker.AssertedBlockByIndex[0];
+    end,
+    EBold);
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestAssertedIndexOfRaisesWhenNotFound;
+var
+  Cracker: TBoldUndoBlockListCracker;
+begin
+  Cracker := TBoldUndoBlockListCracker(FBlockList);
+  Assert.WillRaise(
+    procedure
+    begin
+      Cracker.AssertedIndexOf('NonExistent');
+    end,
+    EBold);
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestMergeAllMergesBlocks;
+var
+  BlockName1, BlockName2, BlockName3: string;
+begin
+  BlockName1 := 'B1';
+  BlockName2 := 'B2';
+  BlockName3 := 'B3';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName1, 'C1');
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName2, 'C2');
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName3, 'C3');
+  Assert.AreEqual(3, FBlockList.Count, 'Count should be 3 before merge');
+  FBlockList.MergeAll;
+  Assert.AreEqual(1, FBlockList.Count, 'Count should be 1 after MergeAll');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestMoveBlockSameIndex;
+var
+  BlockName: string;
+begin
+  BlockName := 'OnlyBlock';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  // Moving to same index should be no-op
+  FBlockList.MoveBlock(0, 0);
+  Assert.AreEqual(1, FBlockList.Count, 'Count should still be 1');
+  Assert.AreEqual('OnlyBlock', FBlockList.BlockByIndex[0].BlockName, 'Block should still be there');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestCanMoveBlockSameIndex;
+var
+  BlockName: string;
+begin
+  BlockName := 'TestBlock';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  Assert.IsTrue(FBlockList.CanMoveBlock(0, 0), 'CanMoveBlock(0, 0) should return True');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestCanMergeBlockSameIndex;
+var
+  BlockName: string;
+begin
+  BlockName := 'TestBlock';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  Assert.IsTrue(FBlockList.CanMergeBlock(0, 0), 'CanMergeBlock(0, 0) should return True');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestRenameBlockToExistingNameRaises;
+var
+  BlockName1, BlockName2: string;
+begin
+  BlockName1 := 'First';
+  BlockName2 := 'Second';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName1, 'C1');
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName2, 'C2');
+  Assert.WillRaise(
+    procedure
+    begin
+      FBlockList.RenameBlock('First', 'Second');
+    end,
+    EBold);
+end;
+
+// TBoldUndoBlock tests
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockNameProperty;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+begin
+  BlockName := 'MyBlockName';
+  Block := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  Assert.AreEqual('MyBlockName', Block.BlockName, 'BlockName property should return correct name');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockCaptionProperty;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+begin
+  BlockName := 'Block';
+  Block := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'MyCaption');
+  Assert.AreEqual('MyCaption', Block.Caption, 'Caption property should return correct caption');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockCreatedProperty;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+  BeforeCreate, AfterCreate: TDateTime;
+begin
+  BeforeCreate := Now;
+  BlockName := 'Block';
+  Block := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  AfterCreate := Now;
+  Assert.IsTrue(Block.Created >= BeforeCreate, 'Created should be >= time before creation');
+  Assert.IsTrue(Block.Created <= AfterCreate, 'Created should be <= time after creation');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockContainsChangesInitiallyFalse;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+begin
+  BlockName := 'Block';
+  Block := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  Assert.IsFalse(Block.ContainsChanges, 'ContainsChanges should be False for new block');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockObjectCountInitiallyZero;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+begin
+  BlockName := 'Block';
+  Block := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  Assert.AreEqual(0, Block.ObjectCount, 'ObjectCount should be 0 for new block');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockGetIndex;
+var
+  BlockName1, BlockName2, BlockName3: string;
+  Block1, Block2, Block3: TBoldUndoBlock;
+begin
+  BlockName1 := 'B1';
+  BlockName2 := 'B2';
+  BlockName3 := 'B3';
+  Block1 := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName1, 'C1');
+  Block2 := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName2, 'C2');
+  Block3 := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName3, 'C3');
+  Assert.AreEqual(0, Block1.Index, 'Block1.Index should be 0');
+  Assert.AreEqual(1, Block2.Index, 'Block2.Index should be 1');
+  Assert.AreEqual(2, Block3.Index, 'Block3.Index should be 2');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockSetFSValueSpace;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+  NewVS: TBoldFreeStandingValueSpace;
+begin
+  BlockName := 'Block';
+  Block := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  Assert.IsFalse(Block.ContainsChanges, 'ContainsChanges should be False initially');
+  NewVS := TBoldFreeStandingValueSpace.Create;
+  Block.FSValueSpace := NewVS;
+  Assert.IsTrue(Block.ContainsChanges, 'ContainsChanges should be True after setting FSValueSpace');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockValueExistsReturnsFalseWhenEmpty;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+  ObjectId: TBoldObjectId;
+begin
+  BlockName := 'Block';
+  Block := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  ObjectId := TBoldInternalObjectId.CreateWithClassID(0, True);
+  try
+    Assert.IsFalse(Block.ValueExists(ObjectId, 0), 'ValueExists should return False for empty block');
+  finally
+    ObjectId.Free;
+  end;
+end;
+
+procedure TTestBoldUndoBlockListIsolated.TestBlockGetFSValueSpaceCreatesIfNil;
+var
+  BlockName: string;
+  Block: TBoldUndoBlock;
+  VS: TBoldFreeStandingValueSpace;
+begin
+  BlockName := 'Block';
+  Block := TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName, 'Cap');
+  // FSValueSpace is nil initially when created without one
+  VS := Block.FSValueSpace;
+  Assert.IsNotNull(VS, 'FSValueSpace getter should create value space if nil');
+end;
 
 { TTestBoldUndoHandler }
 
@@ -1031,6 +1488,7 @@ begin
 end;
 
 initialization
+  TDUnitX.RegisterTestFixture(TTestBoldUndoBlockListIsolated);
   TDUnitX.RegisterTestFixture(TTestBoldUndoHandler);
 
 end.
