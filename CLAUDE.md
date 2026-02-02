@@ -129,6 +129,28 @@ When adding unit tests to improve code coverage:
 
 Example: If `BoldFoo.pas` has 97% coverage with only an exception handler uncovered, write a single test that triggers that exception - don't write additional tests for the already-covered happy paths.
 
+### Keeping README.md Updated
+
+**IMPORTANT**: When adding or modifying unit tests, always update README.md with current statistics:
+
+1. **After adding tests**, update the README.md with:
+   - Current number of unit tests (from test runner output: "Tests Found: XXX")
+   - Current code coverage percentage (from coverage report summary)
+
+2. **Location in README.md**: Look for the testing/coverage section and update the numbers.
+
+3. **How to get current values**:
+   ```powershell
+   # Run tests to get count
+   powershell -Command "& '.\UnitTest\UnitTest.exe' --consolemode:Quiet 2>&1" | Select-String "Tests Found"
+
+   # Run coverage to get percentage
+   powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\run_coverage.ps1"
+   # Check the summary output for "Covered %"
+   ```
+
+4. **Keep it accurate**: The README.md is the public face of the project. Outdated test counts or coverage numbers mislead users about project quality.
+
 ## Project Structure
 
 ```

@@ -15,6 +15,204 @@ type
     procedure TestApplyTranslationList(TranslationList: TBoldIdTranslationList);
   end;
 
+  { Tests for TBoldFreeStandingValueSpace and TBoldFreeStandingObjectContents }
+  [TestFixture]
+  [Category('FreeStandingValues')]
+  TTestBoldFreeStandingValueSpace = class
+  public
+    // TBoldFreeStandingValueSpace tests
+    [Test]
+    procedure TestValueSpaceCreate;
+    [Test]
+    procedure TestValueSpaceIsEmptyInitially;
+    [Test]
+    procedure TestValueSpaceIdCountZeroInitially;
+    [Test]
+    procedure TestValueSpaceEnsureObjectContents;
+    [Test]
+    procedure TestValueSpaceGetHasContentsForId;
+    [Test]
+    procedure TestValueSpaceGetFSObjectContentsByObjectId;
+    [Test]
+    procedure TestValueSpaceRemoveFSObjectContents;
+    [Test]
+    procedure TestValueSpaceAllObjectIds;
+    [Test]
+    procedure TestValueSpaceClear;
+    [Test]
+    procedure TestValueSpaceGetAnyObjectId;
+    [Test]
+    procedure TestValueSpaceContentType;
+
+    // TBoldFreeStandingObjectContents tests
+    [Test]
+    procedure TestObjectContentsCreate;
+    [Test]
+    procedure TestObjectContentsIsEmptyInitially;
+    [Test]
+    procedure TestObjectContentsMemberCountZero;
+    [Test]
+    procedure TestObjectContentsEnsureMemberAndGetValueByIndex;
+    [Test]
+    procedure TestObjectContentsGetValueByIndex;
+    [Test]
+    procedure TestObjectContentsExistenceState;
+    [Test]
+    procedure TestObjectContentsPersistenceState;
+    [Test]
+    procedure TestObjectContentsTimeStamp;
+    [Test]
+    procedure TestObjectContentsMarkAllMembersCurrent;
+    [Test]
+    procedure TestObjectContentsRemoveMemberByIndex;
+  end;
+
+  { Tests for nullable value types (TBFSInteger, TBFSString, etc.) }
+  [TestFixture]
+  [Category('FreeStandingValues')]
+  TTestBoldFreeStandingNullableValues = class
+  public
+    // TBFSInteger tests
+    [Test]
+    procedure TestIntegerCreate;
+    [Test]
+    procedure TestIntegerSetAndGet;
+    [Test]
+    procedure TestIntegerIsNullInitially;
+    [Test]
+    procedure TestIntegerSetToNonNull;
+    [Test]
+    procedure TestIntegerContentType;
+    [Test]
+    procedure TestIntegerIsEqualToValue;
+    [Test]
+    procedure TestIntegerAssignContent;
+
+    // TBFSString tests
+    [Test]
+    procedure TestStringCreate;
+    [Test]
+    procedure TestStringSetAndGet;
+    [Test]
+    procedure TestStringIsNullInitially;
+    [Test]
+    procedure TestStringContentType;
+    [Test]
+    procedure TestStringIsEqualToValue;
+    [Test]
+    procedure TestStringAssignContent;
+
+    // TBFSFloat tests
+    [Test]
+    procedure TestFloatCreate;
+    [Test]
+    procedure TestFloatSetAndGet;
+    [Test]
+    procedure TestFloatContentType;
+    [Test]
+    procedure TestFloatIsEqualToValue;
+
+    // TBFSCurrency tests
+    [Test]
+    procedure TestCurrencyCreate;
+    [Test]
+    procedure TestCurrencySetAndGet;
+    [Test]
+    procedure TestCurrencyContentType;
+
+    // TBFSBoolean tests
+    [Test]
+    procedure TestBooleanCreate;
+    [Test]
+    procedure TestBooleanSetAndGet;
+    [Test]
+    procedure TestBooleanContentType;
+
+    // TBFSDateTime tests
+    [Test]
+    procedure TestDateTimeCreate;
+    [Test]
+    procedure TestDateTimeSetAndGet;
+    [Test]
+    procedure TestDateTimeContentType;
+
+    // TBFSDate tests
+    [Test]
+    procedure TestDateCreate;
+    [Test]
+    procedure TestDateSetAndGet;
+    [Test]
+    procedure TestDateContentType;
+
+    // TBFSTime tests
+    [Test]
+    procedure TestTimeCreate;
+    [Test]
+    procedure TestTimeSetAndGet;
+    [Test]
+    procedure TestTimeContentType;
+
+    // TBFSBlob tests
+    [Test]
+    procedure TestBlobCreate;
+    [Test]
+    procedure TestBlobSetAndGet;
+    [Test]
+    procedure TestBlobContentType;
+
+    // TBFSTypedBlob tests
+    [Test]
+    procedure TestTypedBlobCreate;
+    [Test]
+    procedure TestTypedBlobContentTypeProperty;
+    [Test]
+    procedure TestTypedBlobContentType;
+  end;
+
+  { Tests for TBFSObjectIdRef and list types }
+  [TestFixture]
+  [Category('FreeStandingValues')]
+  TTestBoldFreeStandingIdRefs = class
+  public
+    // TBFSObjectIdRef tests
+    [Test]
+    procedure TestObjectIdRefCreate;
+    [Test]
+    procedure TestObjectIdRefSetFromId;
+    [Test]
+    procedure TestObjectIdRefSetFromIdAdopt;
+    [Test]
+    procedure TestObjectIdRefContentType;
+    [Test]
+    procedure TestObjectIdRefGetStringRepresentation;
+    [Test]
+    procedure TestObjectIdRefIsEqualToValue;
+    [Test]
+    procedure TestObjectIdRefAssignContent;
+
+    // TBFSObjectIdListRef tests
+    [Test]
+    procedure TestObjectIdListRefCreate;
+    [Test]
+    procedure TestObjectIdListRefCountZero;
+    [Test]
+    procedure TestObjectIdListRefSetFromIdList;
+    [Test]
+    procedure TestObjectIdListRefContentType;
+    [Test]
+    procedure TestObjectIdListRefAddAndRemoveId;
+
+    // TBFSObjectIdListRefPair tests
+    [Test]
+    procedure TestObjectIdListRefPairCreate;
+    [Test]
+    procedure TestObjectIdListRefPairSetFromIdLists;
+    [Test]
+    procedure TestObjectIdListRefPairContentType;
+    [Test]
+    procedure TestObjectIdListRefPairAddIds;
+  end;
+
   [TestFixture]
   [Category('FreeStandingValues')]
   TTestBoldFreeStandingValues = class
@@ -107,7 +305,1081 @@ implementation
 
 uses
   SysUtils,
+  BoldDefs,
+  BoldValueSpaceInterfaces,
   BoldDefaultStreamNames;
+
+{ TTestBoldFreeStandingValueSpace }
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceCreate;
+var
+  VS: TBoldFreeStandingValueSpace;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  try
+    Assert.IsNotNull(VS, 'ValueSpace should be created');
+  finally
+    VS.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceIsEmptyInitially;
+var
+  VS: TBoldFreeStandingValueSpace;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  try
+    Assert.IsTrue(VS.IsEmpty, 'ValueSpace should be empty initially');
+  finally
+    VS.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceIdCountZeroInitially;
+var
+  VS: TBoldFreeStandingValueSpace;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  try
+    Assert.AreEqual(0, VS.IdCount, 'IdCount should be 0 initially');
+  finally
+    VS.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceEnsureObjectContents;
+var
+  VS: TBoldFreeStandingValueSpace;
+  ObjectId: TBoldObjectId;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  try
+    ObjectId := TBoldInternalObjectId.CreateWithClassID(0, True);
+    try
+      VS.EnsureObjectContents(ObjectId);
+      Assert.AreEqual(1, VS.IdCount, 'IdCount should be 1 after EnsureObjectContents');
+      Assert.IsFalse(VS.IsEmpty, 'ValueSpace should not be empty');
+    finally
+      ObjectId.Free;
+    end;
+  finally
+    VS.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceGetHasContentsForId;
+var
+  VS: TBoldFreeStandingValueSpace;
+  ObjectId1, ObjectId2: TBoldObjectId;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  try
+    ObjectId1 := TBoldInternalObjectId.CreateWithClassID(0, True);
+    ObjectId2 := TBoldInternalObjectId.CreateWithClassID(1, True);
+    try
+      Assert.IsFalse(VS.GetHasContentsForId(ObjectId1), 'Should not have contents before ensure');
+      VS.EnsureObjectContents(ObjectId1);
+      Assert.IsTrue(VS.GetHasContentsForId(ObjectId1), 'Should have contents after ensure');
+      Assert.IsFalse(VS.GetHasContentsForId(ObjectId2), 'Should not have contents for different ID');
+    finally
+      ObjectId1.Free;
+      ObjectId2.Free;
+    end;
+  finally
+    VS.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceGetFSObjectContentsByObjectId;
+var
+  VS: TBoldFreeStandingValueSpace;
+  ObjectId: TBoldObjectId;
+  OC: TBoldFreeStandingObjectContents;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  try
+    ObjectId := TBoldInternalObjectId.CreateWithClassID(0, True);
+    try
+      Assert.IsNull(VS.GetFSObjectContentsByObjectId(ObjectId), 'Should be nil before ensure');
+      VS.EnsureObjectContents(ObjectId);
+      OC := VS.GetFSObjectContentsByObjectId(ObjectId);
+      Assert.IsNotNull(OC, 'Should return object contents after ensure');
+    finally
+      ObjectId.Free;
+    end;
+  finally
+    VS.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceRemoveFSObjectContents;
+var
+  VS: TBoldFreeStandingValueSpace;
+  ObjectId: TBoldObjectId;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  try
+    ObjectId := TBoldInternalObjectId.CreateWithClassID(0, True);
+    try
+      VS.EnsureObjectContents(ObjectId);
+      Assert.AreEqual(1, VS.IdCount, 'IdCount should be 1');
+      VS.RemoveFSObjectContentsByObjectId(ObjectId);
+      // Note: RemoveFSObjectContents only removes from ObjectContentsList,
+      // not from IdList. GetHasContentsForId checks ObjectContentsList.
+      Assert.IsFalse(VS.GetHasContentsForId(ObjectId), 'Should not have contents after remove');
+    finally
+      ObjectId.Free;
+    end;
+  finally
+    VS.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceAllObjectIds;
+var
+  VS: TBoldFreeStandingValueSpace;
+  ObjectId1, ObjectId2: TBoldObjectId;
+  ResultList: TBoldObjectIdList;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  ResultList := TBoldObjectIdList.Create;
+  try
+    ObjectId1 := TBoldInternalObjectId.CreateWithClassID(0, True);
+    ObjectId2 := TBoldInternalObjectId.CreateWithClassID(1, True);
+    try
+      VS.EnsureObjectContents(ObjectId1);
+      VS.EnsureObjectContents(ObjectId2);
+      VS.AllObjectIds(ResultList, False);
+      Assert.AreEqual(2, ResultList.Count, 'Should have 2 object IDs');
+    finally
+      ObjectId1.Free;
+      ObjectId2.Free;
+    end;
+  finally
+    VS.Free;
+    ResultList.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceClear;
+var
+  VS: TBoldFreeStandingValueSpace;
+  ObjectId: TBoldObjectId;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  try
+    ObjectId := TBoldInternalObjectId.CreateWithClassID(0, True);
+    try
+      VS.EnsureObjectContents(ObjectId);
+      Assert.AreEqual(1, VS.IdCount, 'IdCount should be 1');
+      VS.Clear;
+      Assert.AreEqual(0, VS.IdCount, 'IdCount should be 0 after clear');
+      Assert.IsTrue(VS.IsEmpty, 'Should be empty after clear');
+    finally
+      ObjectId.Free;
+    end;
+  finally
+    VS.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceGetAnyObjectId;
+var
+  VS: TBoldFreeStandingValueSpace;
+  ObjectId: TBoldObjectId;
+  AnyId: TBoldObjectId;
+begin
+  VS := TBoldFreeStandingValueSpace.Create;
+  try
+    Assert.IsNull(VS.GetAnyObjectId, 'GetAnyObjectId should be nil when empty');
+    ObjectId := TBoldInternalObjectId.CreateWithClassID(0, True);
+    try
+      VS.EnsureObjectContents(ObjectId);
+      AnyId := VS.GetAnyObjectId;
+      Assert.IsNotNull(AnyId, 'GetAnyObjectId should return an ID');
+    finally
+      ObjectId.Free;
+    end;
+  finally
+    VS.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestValueSpaceContentType;
+begin
+  Assert.AreEqual(Ord(bctValueSpace), Ord(TBoldFreeStandingValueSpace.ContentType),
+    'ContentType should be bctValueSpace');
+end;
+
+// TBoldFreeStandingObjectContents tests
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsCreate;
+var
+  OC: TBoldFreeStandingObjectContents;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    Assert.IsNotNull(OC, 'ObjectContents should be created');
+  finally
+    OC.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsIsEmptyInitially;
+var
+  OC: TBoldFreeStandingObjectContents;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    Assert.IsTrue(OC.IsEmpty, 'ObjectContents should be empty initially');
+  finally
+    OC.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsMemberCountZero;
+var
+  OC: TBoldFreeStandingObjectContents;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    Assert.AreEqual(0, OC.MemberCount, 'MemberCount should be 0 initially');
+  finally
+    OC.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsEnsureMemberAndGetValueByIndex;
+var
+  OC: TBoldFreeStandingObjectContents;
+  Value: IBoldValue;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    Value := OC.EnsureMemberAndGetValueByIndex(0, 'String');
+    Assert.IsNotNull(Value, 'EnsureMemberAndGetValueByIndex should create value');
+    Assert.AreEqual(1, OC.MemberCount, 'MemberCount should be 1');
+  finally
+    OC.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsGetValueByIndex;
+var
+  OC: TBoldFreeStandingObjectContents;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    Assert.IsNull(OC.ValueByIndex[0], 'ValueByIndex should be nil for non-existent index');
+    OC.EnsureMemberAndGetValueByIndex(0, 'String');
+    Assert.IsNotNull(OC.ValueByIndex[0], 'ValueByIndex should return value after ensure');
+  finally
+    OC.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsExistenceState;
+var
+  OC: TBoldFreeStandingObjectContents;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    Assert.AreEqual(Ord(besExisting), Ord(OC.BoldExistenceState), 'Default should be besExisting');
+    OC.BoldExistenceState := besNotCreated;
+    Assert.AreEqual(Ord(besNotCreated), Ord(OC.BoldExistenceState), 'Should be besNotCreated');
+    OC.BoldExistenceState := besDeleted;
+    Assert.AreEqual(Ord(besDeleted), Ord(OC.BoldExistenceState), 'Should be besDeleted');
+  finally
+    OC.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsPersistenceState;
+var
+  OC: TBoldFreeStandingObjectContents;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    OC.BoldPersistenceState := bvpsCurrent;
+    Assert.AreEqual(Ord(bvpsCurrent), Ord(OC.BoldPersistenceState), 'Should be bvpsCurrent');
+    OC.BoldPersistenceState := bvpsModified;
+    Assert.AreEqual(Ord(bvpsModified), Ord(OC.BoldPersistenceState), 'Should be bvpsModified');
+  finally
+    OC.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsTimeStamp;
+var
+  OC: TBoldFreeStandingObjectContents;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    Assert.AreEqual(-1, OC.TimeStamp, 'Default TimeStamp should be -1');
+    OC.TimeStamp := 12345;
+    Assert.AreEqual(12345, OC.TimeStamp, 'TimeStamp should be 12345');
+  finally
+    OC.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsMarkAllMembersCurrent;
+var
+  OC: TBoldFreeStandingObjectContents;
+  Value: IBoldValue;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    Value := OC.EnsureMemberAndGetValueByIndex(0, 'String');
+    Value.BoldPersistenceState := bvpsModified;
+    OC.MarkAllMembersCurrent;
+    Assert.AreEqual(Ord(bvpsCurrent), Ord(Value.BoldPersistenceState), 'Should be current after MarkAllMembersCurrent');
+  finally
+    OC.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingValueSpace.TestObjectContentsRemoveMemberByIndex;
+var
+  OC: TBoldFreeStandingObjectContents;
+begin
+  OC := TBoldFreeStandingObjectContents.Create;
+  try
+    OC.EnsureMemberAndGetValueByIndex(0, 'String');
+    Assert.IsNotNull(OC.ValueByIndex[0], 'Value should exist');
+    OC.RemoveMemberByIndex(0);
+    Assert.IsNull(OC.ValueByIndex[0], 'Value should be nil after remove');
+  finally
+    OC.Free;
+  end;
+end;
+
+{ TTestBoldFreeStandingNullableValues }
+
+procedure TTestBoldFreeStandingNullableValues.TestIntegerCreate;
+var
+  V: TBFSInteger;
+begin
+  V := TBFSInteger.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSInteger should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestIntegerSetAndGet;
+var
+  V: TBFSInteger;
+begin
+  V := TBFSInteger.Create;
+  try
+    V.AsInteger := 42;
+    Assert.AreEqual(42, V.AsInteger, 'AsInteger should be 42');
+    V.AsInteger := -100;
+    Assert.AreEqual(-100, V.AsInteger, 'AsInteger should be -100');
+    V.AsInteger := MaxInt;
+    Assert.AreEqual(MaxInt, V.AsInteger, 'AsInteger should be MaxInt');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestIntegerIsNullInitially;
+var
+  V: TBFSInteger;
+  Nullable: IBoldNullableValue;
+begin
+  V := TBFSInteger.Create;
+  try
+    Nullable := V as IBoldNullableValue;
+    // Note: Default is NOT null - fIsNull defaults to False (Delphi boolean default)
+    Assert.IsFalse(Nullable.IsNull, 'Default is not null (fIsNull defaults to False)');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestIntegerSetToNonNull;
+var
+  V: TBFSInteger;
+  Nullable: IBoldNullableValue;
+begin
+  V := TBFSInteger.Create;
+  try
+    Nullable := V as IBoldNullableValue;
+    // Set to null explicitly first
+    Nullable.SetContentToNull;
+    Assert.IsTrue(Nullable.IsNull, 'Should be null after SetToNull');
+    V.AsInteger := 0;
+    Assert.IsFalse(Nullable.IsNull, 'Should not be null after setting value');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestIntegerContentType;
+begin
+  Assert.AreEqual(Ord(bctInteger), Ord(TBFSInteger.ContentType), 'ContentType should be bctInteger');
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestIntegerIsEqualToValue;
+var
+  V1, V2: TBFSInteger;
+begin
+  V1 := TBFSInteger.Create;
+  V2 := TBFSInteger.Create;
+  try
+    // Both null - should be equal
+    Assert.IsTrue(V1.IsEqualToValue(V2 as IBoldValue), 'Two null integers should be equal');
+    V1.AsInteger := 42;
+    V2.AsInteger := 42;
+    Assert.IsTrue(V1.IsEqualToValue(V2 as IBoldValue), 'Same value integers should be equal');
+    V2.AsInteger := 43;
+    Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue), 'Different value integers should not be equal');
+  finally
+    V1.Free;
+    V2.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestIntegerAssignContent;
+var
+  V1, V2: TBFSInteger;
+begin
+  V1 := TBFSInteger.Create;
+  V2 := TBFSInteger.Create;
+  try
+    V1.AsInteger := 99;
+    V2.AssignContent(V1 as IBoldValue);
+    Assert.AreEqual(99, V2.AsInteger, 'Assigned value should be 99');
+  finally
+    V1.Free;
+    V2.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestStringCreate;
+var
+  V: TBFSString;
+begin
+  V := TBFSString.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSString should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestStringSetAndGet;
+var
+  V: TBFSString;
+begin
+  V := TBFSString.Create;
+  try
+    V.AsString := 'Hello';
+    Assert.AreEqual('Hello', V.AsString, 'AsString should be Hello');
+    V.AsString := '';
+    Assert.AreEqual('', V.AsString, 'AsString should be empty');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestStringIsNullInitially;
+var
+  V: TBFSString;
+  Nullable: IBoldNullableValue;
+begin
+  V := TBFSString.Create;
+  try
+    Nullable := V as IBoldNullableValue;
+    // Note: Default is NOT null - fIsNull defaults to False (Delphi boolean default)
+    Assert.IsFalse(Nullable.IsNull, 'Default is not null (fIsNull defaults to False)');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestStringContentType;
+begin
+  Assert.AreEqual(Ord(bctString), Ord(TBFSString.ContentType), 'ContentType should be bctString');
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestStringIsEqualToValue;
+var
+  V1, V2: TBFSString;
+begin
+  V1 := TBFSString.Create;
+  V2 := TBFSString.Create;
+  try
+    V1.AsString := 'Test';
+    V2.AsString := 'Test';
+    Assert.IsTrue(V1.IsEqualToValue(V2 as IBoldValue), 'Same strings should be equal');
+    V2.AsString := 'Different';
+    Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue), 'Different strings should not be equal');
+  finally
+    V1.Free;
+    V2.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestStringAssignContent;
+var
+  V1, V2: TBFSString;
+begin
+  V1 := TBFSString.Create;
+  V2 := TBFSString.Create;
+  try
+    V1.AsString := 'Copied';
+    V2.AssignContent(V1 as IBoldValue);
+    Assert.AreEqual('Copied', V2.AsString, 'Assigned value should be Copied');
+  finally
+    V1.Free;
+    V2.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestFloatCreate;
+var
+  V: TBFSFloat;
+begin
+  V := TBFSFloat.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSFloat should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestFloatSetAndGet;
+var
+  V: TBFSFloat;
+begin
+  V := TBFSFloat.Create;
+  try
+    V.AsFloat := 3.14159;
+    Assert.AreEqual(3.14159, V.AsFloat, 0.00001, 'AsFloat should be 3.14159');
+    V.AsFloat := -273.15;
+    Assert.AreEqual(-273.15, V.AsFloat, 0.01, 'AsFloat should be -273.15');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestFloatContentType;
+begin
+  Assert.AreEqual(Ord(bctFloat), Ord(TBFSFloat.ContentType), 'ContentType should be bctFloat');
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestFloatIsEqualToValue;
+var
+  V1, V2: TBFSFloat;
+begin
+  V1 := TBFSFloat.Create;
+  V2 := TBFSFloat.Create;
+  try
+    V1.AsFloat := 1.5;
+    V2.AsFloat := 1.5;
+    Assert.IsTrue(V1.IsEqualToValue(V2 as IBoldValue), 'Same floats should be equal');
+    V2.AsFloat := 1.6;
+    Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue), 'Different floats should not be equal');
+  finally
+    V1.Free;
+    V2.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestCurrencyCreate;
+var
+  V: TBFSCurrency;
+begin
+  V := TBFSCurrency.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSCurrency should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestCurrencySetAndGet;
+var
+  V: TBFSCurrency;
+begin
+  V := TBFSCurrency.Create;
+  try
+    V.AsCurrency := 123.45;
+    Assert.AreEqual(123.45, Double(V.AsCurrency), 0.001, 'AsCurrency should be 123.45');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestCurrencyContentType;
+begin
+  Assert.AreEqual(Ord(bctCurrency), Ord(TBFSCurrency.ContentType), 'ContentType should be bctCurrency');
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestBooleanCreate;
+var
+  V: TBFSBoolean;
+begin
+  V := TBFSBoolean.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSBoolean should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestBooleanSetAndGet;
+var
+  V: TBFSBoolean;
+begin
+  V := TBFSBoolean.Create;
+  try
+    V.AsBoolean := True;
+    Assert.IsTrue(V.AsBoolean, 'AsBoolean should be True');
+    V.AsBoolean := False;
+    Assert.IsFalse(V.AsBoolean, 'AsBoolean should be False');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestBooleanContentType;
+begin
+  Assert.AreEqual(Ord(bctBoolean), Ord(TBFSBoolean.ContentType), 'ContentType should be bctBoolean');
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestDateTimeCreate;
+var
+  V: TBFSDateTime;
+begin
+  V := TBFSDateTime.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSDateTime should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestDateTimeSetAndGet;
+var
+  V: TBFSDateTime;
+  DT: TDateTime;
+begin
+  V := TBFSDateTime.Create;
+  try
+    DT := Now;
+    V.AsDateTime := DT;
+    Assert.AreEqual(DT, V.AsDateTime, 'AsDateTime should match');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestDateTimeContentType;
+begin
+  Assert.AreEqual(Ord(bctDateTime), Ord(TBFSDateTime.ContentType), 'ContentType should be bctDateTime');
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestDateCreate;
+var
+  V: TBFSDate;
+begin
+  V := TBFSDate.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSDate should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestDateSetAndGet;
+var
+  V: TBFSDate;
+  D: TDateTime;
+begin
+  V := TBFSDate.Create;
+  try
+    D := Date;
+    V.AsDate := D;
+    Assert.AreEqual(D, V.AsDate, 'AsDate should match');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestDateContentType;
+begin
+  Assert.AreEqual(Ord(bctDate), Ord(TBFSDate.ContentType), 'ContentType should be bctDate');
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestTimeCreate;
+var
+  V: TBFSTime;
+begin
+  V := TBFSTime.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSTime should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestTimeSetAndGet;
+var
+  V: TBFSTime;
+  T: TDateTime;
+begin
+  V := TBFSTime.Create;
+  try
+    T := Time;
+    V.AsTime := T;
+    // Time comparison with small tolerance due to fractional seconds
+    Assert.AreEqual(T, V.AsTime, 1/86400, 'AsTime should match within 1 second');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestTimeContentType;
+begin
+  Assert.AreEqual(Ord(bctTime), Ord(TBFSTime.ContentType), 'ContentType should be bctTime');
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestBlobCreate;
+var
+  V: TBFSBlob;
+begin
+  V := TBFSBlob.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSBlob should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestBlobSetAndGet;
+var
+  V: TBFSBlob;
+  Data: AnsiString;
+begin
+  V := TBFSBlob.Create;
+  try
+    Data := 'BinaryData123';
+    V.AsBlob := Data;
+    Assert.AreEqual(string(Data), string(V.AsBlob), 'AsBlob should match');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestBlobContentType;
+begin
+  Assert.AreEqual(Ord(bctBlob), Ord(TBFSBlob.ContentType), 'ContentType should be bctBlob');
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestTypedBlobCreate;
+var
+  V: TBFSTypedBlob;
+begin
+  V := TBFSTypedBlob.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSTypedBlob should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestTypedBlobContentTypeProperty;
+var
+  V: TBFSTypedBlob;
+begin
+  V := TBFSTypedBlob.Create;
+  try
+    V.ContentTypeContent := 'image/png';
+    Assert.AreEqual('image/png', V.ContentTypeContent, 'ContentTypeContent should be image/png');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingNullableValues.TestTypedBlobContentType;
+begin
+  Assert.AreEqual(Ord(bctTypedBlob), Ord(TBFSTypedBlob.ContentType), 'ContentType should be bctTypedBlob');
+end;
+
+{ TTestBoldFreeStandingIdRefs }
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdRefCreate;
+var
+  V: TBFSObjectIdRef;
+begin
+  V := TBFSObjectIdRef.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSObjectIdRef should be created');
+    Assert.IsNull(V.Id, 'Id should be nil initially');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdRefSetFromId;
+var
+  V: TBFSObjectIdRef;
+  ObjId: TBoldObjectId;
+begin
+  V := TBFSObjectIdRef.Create;
+  try
+    ObjId := TBoldInternalObjectId.CreateWithClassID(5, True);
+    try
+      V.SetFromId(ObjId, False); // Don't adopt
+      Assert.IsNotNull(V.Id, 'Id should be set');
+      Assert.AreNotSame(ObjId, V.Id, 'Id should be cloned, not adopted');
+      Assert.IsTrue(V.Id.IsEqual[ObjId], 'Id should equal original');
+    finally
+      ObjId.Free;
+    end;
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdRefSetFromIdAdopt;
+var
+  V: TBFSObjectIdRef;
+  ObjId: TBoldObjectId;
+begin
+  V := TBFSObjectIdRef.Create;
+  try
+    ObjId := TBoldInternalObjectId.CreateWithClassID(5, True);
+    V.SetFromId(ObjId, True); // Adopt - V now owns ObjId
+    Assert.IsNotNull(V.Id, 'Id should be set');
+    Assert.AreSame(ObjId, V.Id, 'Id should be adopted (same instance)');
+    // Don't free ObjId - it's owned by V now
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdRefContentType;
+begin
+  Assert.AreEqual(Ord(bctObjectIdRef), Ord(TBFSObjectIdRef.ContentType), 'ContentType should be bctObjectIdRef');
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdRefGetStringRepresentation;
+var
+  V: TBFSObjectIdRef;
+  ObjId: TBoldObjectId;
+  StrRep: IBoldStringRepresentable;
+begin
+  V := TBFSObjectIdRef.Create;
+  try
+    ObjId := TBoldInternalObjectId.CreateWithClassID(10, True);
+    try
+      V.SetFromId(ObjId, False);
+      StrRep := V as IBoldStringRepresentable;
+      Assert.IsNotEmpty(StrRep.StringRepresentation[0], 'StringRepresentation should not be empty');
+    finally
+      ObjId.Free;
+    end;
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdRefIsEqualToValue;
+var
+  V1, V2: TBFSObjectIdRef;
+  ObjId: TBoldObjectId;
+begin
+  V1 := TBFSObjectIdRef.Create;
+  V2 := TBFSObjectIdRef.Create;
+  try
+    ObjId := TBoldInternalObjectId.CreateWithClassID(5, True);
+    try
+      V1.SetFromId(ObjId, False);
+      V2.SetFromId(ObjId, False);
+      Assert.IsTrue(V1.IsEqualToValue(V2 as IBoldValue), 'Same IDs should be equal');
+    finally
+      ObjId.Free;
+    end;
+  finally
+    V1.Free;
+    V2.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdRefAssignContent;
+var
+  V1, V2: TBFSObjectIdRef;
+  ObjId: TBoldObjectId;
+begin
+  V1 := TBFSObjectIdRef.Create;
+  V2 := TBFSObjectIdRef.Create;
+  try
+    ObjId := TBoldInternalObjectId.CreateWithClassID(7, True);
+    try
+      V1.SetFromId(ObjId, False);
+      V2.AssignContent(V1 as IBoldValue);
+      Assert.IsNotNull(V2.Id, 'V2.Id should be set after assign');
+      Assert.IsTrue(V2.Id.IsEqual[ObjId], 'V2.Id should equal original');
+    finally
+      ObjId.Free;
+    end;
+  finally
+    V1.Free;
+    V2.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdListRefCreate;
+var
+  V: TBFSObjectIdListRef;
+begin
+  V := TBFSObjectIdListRef.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSObjectIdListRef should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdListRefCountZero;
+var
+  V: TBFSObjectIdListRef;
+begin
+  V := TBFSObjectIdListRef.Create;
+  try
+    Assert.AreEqual(0, V.Count, 'Count should be 0 initially');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdListRefSetFromIdList;
+var
+  V: TBFSObjectIdListRef;
+  IdList: TBoldObjectIdList;
+  ObjId1, ObjId2: TBoldObjectId;
+begin
+  V := TBFSObjectIdListRef.Create;
+  IdList := TBoldObjectIdList.Create;
+  try
+    ObjId1 := TBoldInternalObjectId.CreateWithClassID(1, True);
+    ObjId2 := TBoldInternalObjectId.CreateWithClassID(2, True);
+    try
+      IdList.Add(ObjId1);
+      IdList.Add(ObjId2);
+      V.SetFromIdList(IdList);
+      Assert.AreEqual(2, V.Count, 'Count should be 2 after SetFromIdList');
+    finally
+      ObjId1.Free;
+      ObjId2.Free;
+    end;
+  finally
+    V.Free;
+    IdList.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdListRefContentType;
+begin
+  Assert.AreEqual(Ord(bctObjectIdListRef), Ord(TBFSObjectIdListRef.ContentType), 'ContentType should be bctObjectIdListRef');
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdListRefAddAndRemoveId;
+var
+  V: TBFSObjectIdListRef;
+  ObjId: TBoldObjectId;
+  IdList: IBoldFreeStandingIdList;
+begin
+  V := TBFSObjectIdListRef.Create;
+  try
+    ObjId := TBoldInternalObjectId.CreateWithClassID(1, True);
+    try
+      IdList := V as IBoldFreeStandingIdList;
+      IdList.AddId(ObjId);
+      Assert.AreEqual(1, V.Count, 'Count should be 1 after AddId');
+      IdList.RemoveId(ObjId);
+      Assert.AreEqual(0, V.Count, 'Count should be 0 after RemoveId');
+    finally
+      ObjId.Free;
+    end;
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdListRefPairCreate;
+var
+  V: TBFSObjectIdListRefPair;
+begin
+  V := TBFSObjectIdListRefPair.Create;
+  try
+    Assert.IsNotNull(V, 'TBFSObjectIdListRefPair should be created');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdListRefPairSetFromIdLists;
+var
+  V: TBFSObjectIdListRefPair;
+  IdList1, IdList2: TBoldObjectIdList;
+  ObjId1, ObjId2: TBoldObjectId;
+begin
+  V := TBFSObjectIdListRefPair.Create;
+  IdList1 := TBoldObjectIdList.Create;
+  IdList2 := TBoldObjectIdList.Create;
+  try
+    ObjId1 := TBoldInternalObjectId.CreateWithClassID(1, True);
+    ObjId2 := TBoldInternalObjectId.CreateWithClassID(2, True);
+    try
+      IdList1.Add(ObjId1);
+      IdList2.Add(ObjId2);
+      V.SetFromIdLists(IdList1, IdList2);
+      Assert.AreEqual(1, V.Count, 'Count should be 1 after SetFromIdLists');
+    finally
+      ObjId1.Free;
+      ObjId2.Free;
+    end;
+  finally
+    V.Free;
+    IdList1.Free;
+    IdList2.Free;
+  end;
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdListRefPairContentType;
+begin
+  Assert.AreEqual(Ord(bctObjectIdListRefPair), Ord(TBFSObjectIdListRefPair.ContentType), 'ContentType should be bctObjectIdListRefPair');
+end;
+
+procedure TTestBoldFreeStandingIdRefs.TestObjectIdListRefPairAddIds;
+var
+  V: TBFSObjectIdListRefPair;
+  ObjId1, ObjId2: TBoldObjectId;
+  IdListPair: IBoldFreeStandingIdListPair;
+begin
+  V := TBFSObjectIdListRefPair.Create;
+  try
+    ObjId1 := TBoldInternalObjectId.CreateWithClassID(1, True);
+    ObjId2 := TBoldInternalObjectId.CreateWithClassID(2, True);
+    try
+      IdListPair := V as IBoldFreeStandingIdListPair;
+      IdListPair.AddIds(ObjId1, ObjId2);
+      Assert.AreEqual(1, V.Count, 'Count should be 1 after AddIds');
+    finally
+      ObjId1.Free;
+      ObjId2.Free;
+    end;
+  finally
+    V.Free;
+  end;
+end;
 
 { TTestableObjectIdRefPair }
 
@@ -670,6 +1942,9 @@ begin
 end;
 
 initialization
+  TDUnitX.RegisterTestFixture(TTestBoldFreeStandingValueSpace);
+  TDUnitX.RegisterTestFixture(TTestBoldFreeStandingNullableValues);
+  TDUnitX.RegisterTestFixture(TTestBoldFreeStandingIdRefs);
   TDUnitX.RegisterTestFixture(TTestBoldFreeStandingValues);
 
 end.
