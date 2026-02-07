@@ -1,4 +1,4 @@
-unit Test.BoldIndexCollection;
+﻿unit Test.BoldIndexCollection;
 
 interface
 
@@ -121,7 +121,7 @@ end;
 
 procedure TTestBoldIndexCollection.TestSaveAndLoadStringList;
 var
-  SaveList, LoadList: TStringList;
+  SaveList: TStringList;
   Def: TBoldIndexDefintion;
   NewCollection: TBoldIndexCollection;
 begin

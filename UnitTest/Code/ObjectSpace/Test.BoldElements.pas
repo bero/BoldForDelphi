@@ -1,4 +1,4 @@
-unit Test.BoldElements;
+﻿unit Test.BoldElements;
 
 interface
 
@@ -270,9 +270,17 @@ type
   end;
 
   /// <summary>
+  /// Concrete meta element that resolves the abstract GetBoldType
+  /// </summary>
+  TTestConcreteMetaElement = class(TBoldMetaElement)
+  protected
+    function GetBoldType: TBoldElementTypeInfo; override;
+  end;
+
+  /// <summary>
   /// Mutable meta element for testing DefaultSubscribe exception
   /// </summary>
-  TTestMutableMetaElement = class(TBoldMetaElement)
+  TTestMutableMetaElement = class(TTestConcreteMetaElement)
   public
     constructor Create;
   end;
@@ -372,6 +380,13 @@ end;
 procedure TTestBoldElement.GetAsList(ResultList: TBoldIndirectElement);
 begin
   ResultList.SetReferenceValue(Self);
+end;
+
+{ TTestConcreteMetaElement }
+
+function TTestConcreteMetaElement.GetBoldType: TBoldElementTypeInfo;
+begin
+  Result := nil;
 end;
 
 { TTestMutableMetaElement }
@@ -539,6 +554,7 @@ var
   Indirect: TBoldIndirectElement;
   Element, Relinquished: TTestBoldElement;
 begin
+  Relinquished := nil;
   Indirect := TBoldIndirectElement.Create;
   Element := TTestBoldElement.Create;
   try
@@ -693,9 +709,9 @@ end;
 
 procedure TTestBoldMetaElement.TestCreate;
 var
-  Meta: TBoldMetaElement;
+  Meta: TTestConcreteMetaElement;
 begin
-  Meta := TBoldMetaElement.Create('ModelName', 'ExprName', 'DelphiName');
+  Meta := TTestConcreteMetaElement.Create('ModelName', 'ExprName', 'DelphiName');
   try
     Assert.IsNotNull(Meta, 'Should create successfully');
   finally
@@ -705,9 +721,9 @@ end;
 
 procedure TTestBoldMetaElement.TestProperties;
 var
-  Meta: TBoldMetaElement;
+  Meta: TTestConcreteMetaElement;
 begin
-  Meta := TBoldMetaElement.Create('TestModel', 'TestExpr', 'TestDelphi');
+  Meta := TTestConcreteMetaElement.Create('TestModel', 'TestExpr', 'TestDelphi');
   try
     Assert.AreEqual('TestModel', Meta.ModelName, 'ModelName mismatch');
     Assert.AreEqual('TestExpr', Meta.ExpressionName, 'ExpressionName mismatch');
@@ -719,9 +735,9 @@ end;
 
 procedure TTestBoldMetaElement.TestGetStringRepresentation;
 var
-  Meta: TBoldMetaElement;
+  Meta: TTestConcreteMetaElement;
 begin
-  Meta := TBoldMetaElement.Create('Model', 'Expression', 'Delphi');
+  Meta := TTestConcreteMetaElement.Create('Model', 'Expression', 'Delphi');
   try
     Assert.AreEqual('Expression', Meta.AsString, 'AsString should return ExpressionName');
   finally
@@ -731,9 +747,9 @@ end;
 
 procedure TTestBoldMetaElement.TestDisplayName;
 var
-  Meta: TBoldMetaElement;
+  Meta: TTestConcreteMetaElement;
 begin
-  Meta := TBoldMetaElement.Create('Model', 'ExpressionName', 'Delphi');
+  Meta := TTestConcreteMetaElement.Create('Model', 'ExpressionName', 'Delphi');
   try
     Assert.AreEqual('ExpressionName', Meta.DisplayName, 'DisplayName should return ExpressionName');
   finally
@@ -743,9 +759,9 @@ end;
 
 procedure TTestBoldMetaElement.TestIsImmutableAfterCreate;
 var
-  Meta: TBoldMetaElement;
+  Meta: TTestConcreteMetaElement;
 begin
-  Meta := TBoldMetaElement.Create('Model', 'Expr', 'Delphi');
+  Meta := TTestConcreteMetaElement.Create('Model', 'Expr', 'Delphi');
   try
     Assert.IsFalse(Meta.Mutable, 'Should be immutable after creation');
   finally
@@ -755,9 +771,9 @@ end;
 
 procedure TTestBoldMetaElement.TestIsEqualAs_SameObject;
 var
-  Meta: TBoldMetaElement;
+  Meta: TTestConcreteMetaElement;
 begin
-  Meta := TBoldMetaElement.Create('Model', 'Expr', 'Delphi');
+  Meta := TTestConcreteMetaElement.Create('Model', 'Expr', 'Delphi');
   try
     Assert.IsTrue(Meta.IsEqualAs(ctDefault, Meta), 'Should be equal to itself');
   finally
@@ -767,10 +783,10 @@ end;
 
 procedure TTestBoldMetaElement.TestIsEqualAs_DifferentObject;
 var
-  Meta1, Meta2: TBoldMetaElement;
+  Meta1, Meta2: TTestConcreteMetaElement;
 begin
-  Meta1 := TBoldMetaElement.Create('Model', 'Expr', 'Delphi');
-  Meta2 := TBoldMetaElement.Create('Model', 'Expr', 'Delphi');
+  Meta1 := TTestConcreteMetaElement.Create('Model', 'Expr', 'Delphi');
+  Meta2 := TTestConcreteMetaElement.Create('Model', 'Expr', 'Delphi');
   try
     Assert.IsFalse(Meta1.IsEqualAs(ctDefault, Meta2), 'Different objects should not be equal');
   finally
@@ -796,10 +812,10 @@ end;
 
 procedure TTestBoldMetaElement.TestGetAsListRaises;
 var
-  Meta: TBoldMetaElement;
+  Meta: TTestConcreteMetaElement;
   ResultList: TBoldIndirectElement;
 begin
-  Meta := TBoldMetaElement.Create('Model', 'Expr', 'Delphi');
+  Meta := TTestConcreteMetaElement.Create('Model', 'Expr', 'Delphi');
   ResultList := TBoldIndirectElement.Create;
   try
     Assert.WillRaise(procedure
@@ -1380,7 +1396,7 @@ procedure TTestBoldElementBase.TestGetIsPartOfSystemDefault;
 var
   MetaElement: TBoldMetaElement;
 begin
-  MetaElement := TBoldMetaElement.Create('Model', 'Expr', 'Delphi');
+  MetaElement := TTestConcreteMetaElement.Create('Model', 'Expr', 'Delphi');
   try
     // TBoldMetaElement inherits from TBoldElement, so it has GetIsPartOfSystem
     Assert.IsTrue(MetaElement.IsPartOfSystem, 'Default should return true');
