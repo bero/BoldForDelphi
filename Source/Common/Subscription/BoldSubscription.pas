@@ -891,17 +891,20 @@ begin
   begin
     Inc(_SendQuery);
     StartNotify;
-    for I := fSubscriptionCount - 1 downto 0 do
-    begin
-      if Assigned( fSubscriptionArray[I].Subscriber) and fSubscriptionArray[I].IsMatchingEvent(OriginalEvent) then
-        if not  fSubscriptionArray[I].Subscriber.Answer(Originator, OriginalEvent, fSubscriptionArray[I].RequestedEvent, Args, Subscriber) then
-        begin
-          Inc(_QueryMatch);
-          result := false;
-          Exit;
-        end;
+    try
+      for I := fSubscriptionCount - 1 downto 0 do
+      begin
+        if Assigned( fSubscriptionArray[I].Subscriber) and fSubscriptionArray[I].IsMatchingEvent(OriginalEvent) then
+          if not  fSubscriptionArray[I].Subscriber.Answer(Originator, OriginalEvent, fSubscriptionArray[I].RequestedEvent, Args, Subscriber) then
+          begin
+            Inc(_QueryMatch);
+            result := false;
+            Exit;
+          end;
+      end;
+    finally
+      EndNotify;
     end;
-    EndNotify;
   end;
   result := true;
 end;

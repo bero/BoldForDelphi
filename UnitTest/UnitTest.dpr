@@ -82,6 +82,7 @@ uses
   Test.BoldNamedValueList in 'Code\Common\Test.BoldNamedValueList.pas',
   Test.BoldHashIndexes in 'Code\Common\Test.BoldHashIndexes.pas',
   Test.BoldDeriver in 'Code\Common\Test.BoldDeriver.pas',
+  Test.BoldSubscription in 'Code\Common\Test.BoldSubscription.pas',
   Test.BoldBase64 in 'Code\Common\Test.BoldBase64.pas',
   Test.BoldSorter in 'Code\Common\Test.BoldSorter.pas',
   Test.BoldGlobalId in 'Code\ValueSpace\Test.BoldGlobalId.pas',
