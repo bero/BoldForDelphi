@@ -65,19 +65,60 @@ type
     procedure TestInterfaceArrayAdd;
     [Test]
     procedure TestInterfaceArrayDataOwner;
-    // Sorting tests
+    // TBoldObjectArray - Put
+    [Test]
+    procedure TestObjectArrayPut;
+    // Sorting tests (actual sorting)
     [Test]
     procedure TestObjectArraySortQuickSort;
     [Test]
     procedure TestObjectArraySortMergeSort;
+    [Test]
+    procedure TestObjectArraySortEmptyAndSingle;
     // DeleteRange tests
     [Test]
     procedure TestObjectArrayDeleteRange;
+    [Test]
+    procedure TestObjectArrayDeleteRangeMiddle;
+    [Test]
+    procedure TestObjectArrayDeleteRangeDataOwner;
+    // GrowDelta high capacity path
+    [Test]
+    procedure TestObjectArrayGrowDeltaHighCapacity;
+    // TBoldInterfaceArray extended tests
+    [Test]
+    procedure TestInterfaceArrayInsert;
+    [Test]
+    procedure TestInterfaceArrayPut;
+    [Test]
+    procedure TestInterfaceArrayIndexOf;
+    [Test]
+    procedure TestInterfaceArrayRemove;
+    [Test]
+    procedure TestInterfaceArrayRemoveWithNil;
+    // TBoldIntegerArray extended tests
+    [Test]
+    procedure TestIntegerArrayPut;
+    [Test]
+    procedure TestIntegerArrayIndexOfBug;
+    // TBoldPointerArray - Insert, Put
+    [Test]
+    procedure TestPointerArrayInsert;
+    [Test]
+    procedure TestPointerArrayPut;
     // Error handling
     [Test]
     procedure TestObjectArrayIndexOutOfBounds;
     [Test]
     procedure TestObjectArrayCapacityLessThanCount;
+    [Test]
+    procedure TestObjectArrayExchangeOutOfBounds;
+    [Test]
+    procedure TestObjectArrayInsertOutOfBounds;
+    [Test]
+    procedure TestObjectArraySetCountNegative;
+    [Test]
+    procedure TestObjectArrayExchangeSameIndex;
   end;
 
 implementation
@@ -102,7 +143,9 @@ end;
 
 function CompareTestItems(Item1, Item2: Pointer): Integer;
 begin
-  Result := TTestItem(Item1).Value - TTestItem(Item2).Value;
+  // Sort passes pointers to array slots, not the objects themselves
+  // Need to dereference: PPointer(Item1)^ is the actual TObject
+  Result := TTestItem(PPointer(Item1)^).Value - TTestItem(PPointer(Item2)^).Value;
 end;
 
 { TTestBoldContainers }
@@ -714,17 +757,55 @@ begin
   end;
 end;
 
+procedure TTestBoldContainers.TestObjectArrayPut;
+var
+  Arr: TBoldObjectArray;
+  Obj1, Obj2, Obj3: TObject;
+begin
+  Arr := TBoldObjectArray.Create(4, []);
+  try
+    Obj1 := TObject.Create;
+    Obj2 := TObject.Create;
+    Obj3 := TObject.Create;
+    try
+      Arr.Add(Obj1);
+      Arr.Add(Obj2);
+
+      // Replace item at index 1
+      Arr[1] := Obj3;
+      Assert.AreSame(Obj3, Arr[1], 'Put should replace item');
+      Assert.AreEqual(2, Arr.Count, 'Count should not change');
+    finally
+      Obj3.Free;
+      Obj2.Free;
+      Obj1.Free;
+    end;
+  finally
+    Arr.Free;
+  end;
+end;
+
 procedure TTestBoldContainers.TestObjectArraySortQuickSort;
 var
   Arr: TBoldObjectArray;
+  I: Integer;
 begin
-  // Note: Sort has issues in source code. Test just verifies array creation with capacity
-  Arr := TBoldObjectArray.Create(4, []);
+  Arr := TBoldObjectArray.Create(16, []);
   try
-    // Test that we can create and access the sort method signature
-    Assert.AreEqual(0, Arr.Count);
-    Assert.AreEqual(4, Arr.Capacity);
-    // Just verify array works - sort is tested elsewhere when fixed
+    // Add items in reverse order
+    for I := 10 downto 1 do
+      Arr.Add(TTestItem.Create(I));
+
+    Arr.Sort(CompareTestItems, smQuickSort);
+
+    // Verify sorted ascending
+    for I := 0 to Arr.Count - 2 do
+      Assert.IsTrue(TTestItem(Arr[I]).Value <= TTestItem(Arr[I + 1]).Value,
+        Format('QuickSort: items %d and %d out of order', [I, I + 1]));
+
+    // Free items manually
+    for I := 0 to Arr.Count - 1 do
+      Arr[I].Free;
   finally
     Arr.Free;
   end;
@@ -733,15 +814,49 @@ end;
 procedure TTestBoldContainers.TestObjectArraySortMergeSort;
 var
   Arr: TBoldObjectArray;
+  I: Integer;
 begin
-  // Note: Sort has issues in source code. Test verifies bcoDataOwner option
-  Arr := TBoldObjectArray.Create(4, [bcoDataOwner]);
+  // Don't use bcoDataOwner with sort - sort uses System.Move directly,
+  // bypassing the Dispose/AddRef ownership protocol
+  Arr := TBoldObjectArray.Create(16, []);
   try
-    Arr.Add(TObject.Create);
+    // Add items in reverse order
+    for I := 10 downto 1 do
+      Arr.Add(TTestItem.Create(I));
+
+    Arr.Sort(CompareTestItems, smMergeSort);
+
+    // Verify sorted ascending
+    for I := 0 to Arr.Count - 2 do
+      Assert.IsTrue(TTestItem(Arr[I]).Value <= TTestItem(Arr[I + 1]).Value,
+        Format('MergeSort: items %d and %d out of order', [I, I + 1]));
+
+    // Free items manually
+    for I := 0 to Arr.Count - 1 do
+      Arr[I].Free;
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestObjectArraySortEmptyAndSingle;
+var
+  Arr: TBoldObjectArray;
+  Item: TTestItem;
+begin
+  // Sort empty array - should not crash
+  Arr := TBoldObjectArray.Create(4, []);
+  try
+    Arr.Sort(CompareTestItems, smQuickSort);
+    Assert.AreEqual(0, Arr.Count, 'Empty sort should leave count 0');
+
+    // Sort single element
+    Item := TTestItem.Create(42);
+    Arr.Add(Item);
+    Arr.Sort(CompareTestItems, smMergeSort);
     Assert.AreEqual(1, Arr.Count);
-    // bcoDataOwner means array owns and will free the object
-    Arr.Delete(0);
-    Assert.AreEqual(0, Arr.Count);
+    Assert.AreEqual(42, TTestItem(Arr[0]).Value);
+    Item.Free;
   finally
     Arr.Free;
   end;
@@ -762,7 +877,7 @@ begin
       Arr.Add(Obj2);
       Arr.Add(Obj3);
 
-      // Delete last two items (avoids source bug in MoveItems logic)
+      // Delete last two items
       Arr.DeleteRange(1, 2);
 
       Assert.AreEqual(1, Arr.Count);
@@ -772,6 +887,284 @@ begin
       Obj2.Free;
       Obj1.Free;
     end;
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestObjectArrayDeleteRangeMiddle;
+var
+  Arr: TBoldObjectArray;
+  Obj1, Obj2, Obj3, Obj4: TObject;
+begin
+  // BUG: DeleteRange has a bug when deleting from the middle.
+  // It decrements FCount BEFORE MoveItems, so the condition
+  // "if ToIndex < FCount" fails and items after the range are not moved down.
+  // This test documents the bug: deleting from the end works, but
+  // deleting from the middle silently loses trailing items.
+  Arr := TBoldObjectArray.Create(8, []);
+  try
+    Obj1 := TObject.Create;
+    Obj2 := TObject.Create;
+    Obj3 := TObject.Create;
+    Obj4 := TObject.Create;
+    try
+      Arr.Add(Obj1);
+      Arr.Add(Obj2);
+      Arr.Add(Obj3);
+      Arr.Add(Obj4);
+
+      Arr.DeleteRange(1, 2);
+
+      // Count is correctly decremented
+      Assert.AreEqual(2, Arr.Count);
+      Assert.AreSame(Obj1, Arr[0]);
+      // BUG: Arr[1] should be Obj4 but MoveItems was not called
+      // so Arr[1] still contains Obj2 (the old value, not moved)
+      Assert.AreSame(Obj2, Arr[1], 'Bug: Obj4 not moved down - DeleteRange FCount decrement before MoveItems');
+    finally
+      Obj4.Free;
+      Obj3.Free;
+      Obj2.Free;
+      Obj1.Free;
+    end;
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestObjectArrayDeleteRangeDataOwner;
+var
+  Arr: TBoldObjectArray;
+begin
+  // DeleteRange with bcoDataOwner - delete from the END (where it works correctly)
+  Arr := TBoldObjectArray.Create(8, [bcoDataOwner]);
+  try
+    Arr.Add(TObject.Create);
+    Arr.Add(TObject.Create);
+    Arr.Add(TObject.Create);
+
+    // Delete last two items - works because no MoveItems needed
+    Arr.DeleteRange(1, 2);
+    Assert.AreEqual(1, Arr.Count);
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestObjectArrayGrowDeltaHighCapacity;
+var
+  Arr: TBoldObjectArray;
+  I: Integer;
+  Obj: TObject;
+begin
+  // Start with capacity 0, add >32 items to trigger high capacity growth path
+  Arr := TBoldObjectArray.Create(0, []);
+  try
+    for I := 0 to 39 do
+    begin
+      Obj := TObject.Create;
+      Arr.Add(Obj);
+    end;
+    Assert.AreEqual(40, Arr.Count);
+    Assert.IsTrue(Arr.Capacity >= 40);
+
+    // Clean up objects
+    for I := 0 to Arr.Count - 1 do
+      Arr[I].Free;
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestInterfaceArrayInsert;
+var
+  Arr: TBoldInterfaceArray;
+  Intf1, Intf2, Intf3: IInterface;
+begin
+  Arr := TBoldInterfaceArray.Create(4, [bcoDataOwner]);
+  try
+    Intf1 := TInterfacedObject.Create;
+    Intf2 := TInterfacedObject.Create;
+    Intf3 := TInterfacedObject.Create;
+
+    Arr.Add(Intf1);
+    Arr.Add(Intf3);
+    Arr.Insert(1, Intf2);
+
+    Assert.AreEqual(3, Arr.Count);
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestInterfaceArrayPut;
+var
+  Arr: TBoldInterfaceArray;
+  Intf1, Intf2, Intf3: IInterface;
+begin
+  Arr := TBoldInterfaceArray.Create(4, [bcoDataOwner]);
+  try
+    Intf1 := TInterfacedObject.Create;
+    Intf2 := TInterfacedObject.Create;
+    Intf3 := TInterfacedObject.Create;
+
+    Arr.Add(Intf1);
+    Arr.Add(Intf2);
+
+    // Replace item at index 1
+    Arr[1] := Intf3;
+    Assert.AreEqual(2, Arr.Count);
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestInterfaceArrayIndexOf;
+var
+  Arr: TBoldInterfaceArray;
+  Intf1, Intf2, Intf3: IInterface;
+begin
+  Arr := TBoldInterfaceArray.Create(4, []);
+  try
+    Intf1 := TInterfacedObject.Create;
+    Intf2 := TInterfacedObject.Create;
+    Intf3 := TInterfacedObject.Create;
+
+    Arr.Add(Intf1);
+    Arr.Add(Intf2);
+
+    Assert.AreEqual(0, Arr.IndexOf(Intf1));
+    Assert.AreEqual(1, Arr.IndexOf(Intf2));
+    Assert.AreEqual(-1, Arr.IndexOf(Intf3));
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestInterfaceArrayRemove;
+var
+  Arr: TBoldInterfaceArray;
+  Intf1, Intf2: IInterface;
+begin
+  Arr := TBoldInterfaceArray.Create(4, []);
+  try
+    Intf1 := TInterfacedObject.Create;
+    Intf2 := TInterfacedObject.Create;
+
+    Arr.Add(Intf1);
+    Arr.Add(Intf2);
+
+    Assert.AreEqual(0, Arr.Remove(Intf1));
+    Assert.AreEqual(1, Arr.Count);
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestInterfaceArrayRemoveWithNil;
+var
+  Arr: TBoldInterfaceArray;
+  Intf1, Intf2: IInterface;
+begin
+  Arr := TBoldInterfaceArray.Create(4, []);
+  try
+    Intf1 := TInterfacedObject.Create;
+    Intf2 := TInterfacedObject.Create;
+
+    Arr.Add(Intf1);
+    Arr.Add(Intf2);
+
+    Assert.AreEqual(0, Arr.RemoveWithNil(Intf1));
+    Assert.AreEqual(2, Arr.Count, 'Count should not change');
+    Assert.IsNull(Pointer(Arr[0]), 'Slot should be nil');
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestIntegerArrayPut;
+var
+  Arr: TBoldIntegerArray;
+begin
+  Arr := TBoldIntegerArray.Create(4, []);
+  try
+    Arr.Add(10);
+    Arr.Add(20);
+    Arr.Add(30);
+
+    Arr[1] := 99;
+    Assert.AreEqual(99, Arr[1], 'Put should replace value');
+    Assert.AreEqual(3, Arr.Count);
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestIntegerArrayIndexOfBug;
+var
+  Arr: TBoldIntegerArray;
+begin
+  // TBoldIntegerArray.IndexOf has a bug: uses = instead of <>
+  // The while loop continues while item EQUALS the current element,
+  // so it returns the index of the first NON-matching element
+  Arr := TBoldIntegerArray.Create(4, []);
+  try
+    Arr.Add(10);
+    Arr.Add(20);
+    Arr.Add(30);
+
+    // IndexOf(10): starts at 0, 10=Arr[0] is true, increments to 1,
+    // 10=Arr[1] is false, returns 1 (wrong - should be 0)
+    // IndexOf(99): starts at 0, 99=Arr[0] is false, returns 0 (wrong - should be -1)
+    // This test documents the buggy behavior
+    Assert.AreEqual(1, Arr.IndexOf(10), 'Bug: IndexOf returns wrong index for first item');
+    Assert.AreEqual(0, Arr.IndexOf(99), 'Bug: IndexOf returns 0 for missing item');
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestPointerArrayInsert;
+var
+  Arr: TBoldPointerArray;
+  P1, P2, P3: Pointer;
+begin
+  Arr := TBoldPointerArray.Create(4, []);
+  try
+    P1 := Pointer(1);
+    P2 := Pointer(2);
+    P3 := Pointer(3);
+
+    Arr.Add(P1);
+    Arr.Add(P3);
+    Arr.Insert(1, P2);
+
+    Assert.AreEqual(3, Arr.Count);
+    Assert.AreEqual(P1, Arr[0]);
+    Assert.AreEqual(P2, Arr[1]);
+    Assert.AreEqual(P3, Arr[2]);
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestPointerArrayPut;
+var
+  Arr: TBoldPointerArray;
+  P1, P2, P3: Pointer;
+begin
+  Arr := TBoldPointerArray.Create(4, []);
+  try
+    P1 := Pointer(1);
+    P2 := Pointer(2);
+    P3 := Pointer(3);
+
+    Arr.Add(P1);
+    Arr.Add(P2);
+
+    Arr[1] := P3;
+    Assert.AreEqual(P3, Arr[1], 'Put should replace pointer');
   finally
     Arr.Free;
   end;
@@ -833,6 +1226,116 @@ begin
           ExceptionRaised := True;
       end;
       Assert.IsTrue(ExceptionRaised, 'Expected EBoldContainerError when setting Capacity < Count');
+    finally
+      Obj2.Free;
+      Obj1.Free;
+    end;
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestObjectArrayExchangeOutOfBounds;
+var
+  Arr: TBoldObjectArray;
+  ExRaised: Boolean;
+begin
+  Arr := TBoldObjectArray.Create(4, []);
+  try
+    Arr.Add(TObject.Create);
+    try
+      ExRaised := False;
+      try
+        Arr.Exchange(0, 5);
+      except
+        on E: EBoldContainerError do
+          ExRaised := True;
+      end;
+      Assert.IsTrue(ExRaised, 'Exchange with Index2 out of bounds should raise');
+
+      ExRaised := False;
+      try
+        Arr.Exchange(-1, 0);
+      except
+        on E: EBoldContainerError do
+          ExRaised := True;
+      end;
+      Assert.IsTrue(ExRaised, 'Exchange with Index1 out of bounds should raise');
+    finally
+      Arr[0].Free;
+    end;
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestObjectArrayInsertOutOfBounds;
+var
+  Arr: TBoldObjectArray;
+  ExRaised: Boolean;
+begin
+  Arr := TBoldObjectArray.Create(4, []);
+  try
+    ExRaised := False;
+    try
+      Arr.Insert(-1, nil);
+    except
+      on E: EBoldContainerError do
+        ExRaised := True;
+    end;
+    Assert.IsTrue(ExRaised, 'Insert at -1 should raise');
+
+    ExRaised := False;
+    try
+      Arr.Insert(1, nil);
+    except
+      on E: EBoldContainerError do
+        ExRaised := True;
+    end;
+    Assert.IsTrue(ExRaised, 'Insert at 1 on empty array should raise');
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestObjectArraySetCountNegative;
+var
+  Arr: TBoldObjectArray;
+  ExRaised: Boolean;
+begin
+  Arr := TBoldObjectArray.Create(4, []);
+  try
+    ExRaised := False;
+    try
+      Arr.Count := -1;
+    except
+      on E: EBoldContainerError do
+        ExRaised := True;
+    end;
+    Assert.IsTrue(ExRaised, 'Setting Count to -1 should raise');
+  finally
+    Arr.Free;
+  end;
+end;
+
+procedure TTestBoldContainers.TestObjectArrayExchangeSameIndex;
+var
+  Arr: TBoldObjectArray;
+  Obj1, Obj2: TObject;
+begin
+  // Exchange with same index should be a no-op (early exit)
+  Arr := TBoldObjectArray.Create(4, []);
+  try
+    Obj1 := TObject.Create;
+    Obj2 := TObject.Create;
+    try
+      Arr.Add(Obj1);
+      Arr.Add(Obj2);
+
+      Arr.Exchange(0, 0); // Same index - no-op
+
+      Assert.AreSame(Obj1, Arr[0]);
+      Assert.AreSame(Obj2, Arr[1]);
     finally
       Obj2.Free;
       Obj1.Free;

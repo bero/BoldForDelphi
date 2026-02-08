@@ -72,6 +72,7 @@ uses
   Test.BoldThreadSafeQueue in 'Code\Propagator\Test.BoldThreadSafeQueue.pas',
   Test.BoldThreadSafeLog in 'Code\Common\Test.BoldThreadSafeLog.pas',
   Test.BoldLogInterfaces in 'Code\Common\Test.BoldLogInterfaces.pas',
+  Test.BoldLogHandler in 'Code\Common\Test.BoldLogHandler.pas',
   Test.BoldGuard in 'Code\Common\Test.BoldGuard.pas',
   Test.BoldQueue in 'Code\Common\Test.BoldQueue.pas',
   Test.BoldContainers in 'Code\Common\Test.BoldContainers.pas',
