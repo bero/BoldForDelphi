@@ -66,11 +66,13 @@ end;
 
 procedure TTestBoldLinks.TearDown;
 begin
-  if dmUndoRedo.BoldSystemHandle1.Active then
+  if Assigned(dmUndoRedo) and dmUndoRedo.BoldSystemHandle1.Active then
   begin
     dmUndoRedo.BoldSystemHandle1.System.Discard;
+    dmUndoRedo.BoldSystemHandle1.Active := False;
   end;
   FreeAndNil(FSubscriber);
+  FreeAndNil(dmUndoRedo);
 end;
 
 procedure TTestBoldLinks.TestDirectMultiLinkAdd;

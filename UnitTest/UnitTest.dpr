@@ -60,6 +60,7 @@ uses
   Test.BoldAbstractObjectUpgraderHandle in 'Code\Persistence\Test.BoldAbstractObjectUpgraderHandle.pas',
   Test.BoldPMapperLists in 'Code\PMapper\Test.BoldPMapperLists.pas',
   Test.BoldSQLMappingInfo in 'Code\PMapper\Test.BoldSQLMappingInfo.pas',
+  Test.BoldSqlNodes in 'Code\PMapper\Test.BoldSqlNodes.pas',
   Test.BoldPMappersDefault in 'Code\PMapper\Test.BoldPMappersDefault.pas',
   Test.BoldAbstractObjectUpgrader in 'Code\PMapper\Test.BoldAbstractObjectUpgrader.pas',
   Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas',
