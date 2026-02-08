@@ -24,142 +24,142 @@ type
     [TearDown]
     procedure TearDown;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestCreateObject;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestPersistAndReload;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestDatabaseExistsReturnsTrue;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestDatabaseExistsReturnsFalseForNonExistent;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestDropDatabase;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestCreateDatabase;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestConnectionOpenClose;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestTransactionCommitRollback;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestGetQueryAndRelease;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestQueryExecuteSQL;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestQueryWithParameters;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestAllTableNames;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestQueryRecordCount;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryRowsAffected;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestQueryPrepare;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestParameterTypes;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestGetTableAndRelease;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestConnectionProperties;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQuery;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestQueryRecNo;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestQueryAssignParams;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestQueryRequestLiveQuery;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestParameterInt64;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestParameterAnsiString;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestParameterDataType;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestTableExists;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestTableFieldDefs;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestConnectionReconnect;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestReadTransaction;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestCreateAnotherDatabaseConnection;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryClear;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryCreateParam;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryFindParam;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryEnsureParamByName;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryPrepare;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryParamCheck;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryUseReadTransactions;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryBatchOperations;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestExecQueryAssignParams;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestParameterDateTimeTypes;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestParameterNumericTypes;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestParameterMemo;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestParameterWideString;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestParameterAssign;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestQueryAssignSQL;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestQueryRowsAffected;
   end;
 

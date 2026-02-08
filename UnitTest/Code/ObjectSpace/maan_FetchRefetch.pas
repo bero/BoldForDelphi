@@ -22,26 +22,26 @@ type
   Tmaan_FetchRefetchTestCase = class(Tmaan_UndoRedoAbstractTestCase)
   public
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestFetchInvalidAttribute;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestFetchCurrentAttribute;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestFetchModifiedAttribute;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     [Ignore('EmbeddedSingleLinks not populated when FetchFromClassList uses bdepContents - needs investigation')]
     procedure TestFetchEmbeddedRoleInvalid;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestFetchEmbeddedRoleInvalidAdjust;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     procedure TestFetchEmbeddedRoleCurrent;
     [Test]
-    [Category('Slow')]
+    [Category('DB')]
     [Ignore('Complex multi-system test - needs investigation')]
     procedure TestFetchNonEmbeddedRoleInvalid;
   end;
