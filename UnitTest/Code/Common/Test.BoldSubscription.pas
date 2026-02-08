@@ -198,6 +198,36 @@ type
     { Post-Notification Queue }
     [Test]
     procedure TestDelayTillAfterNotification;
+    [Test]
+    procedure TestDelayTillAfterNotification_Immediate;
+    [Test]
+    procedure TestBoldForcedDequeuePostNotify;
+
+    { Deduplication — Subscriber-Side Paths }
+    [Test]
+    procedure TestSmallEventDeduplication_SubscriberSidePath;
+    [Test]
+    procedure TestBigEventDeduplication_SubscriberSidePath;
+
+    { Publisher Diagnostics }
+    [Test]
+    procedure TestPublisher_ContextString_WithSubscribableObject;
+
+    { Subscriber Diagnostics — Additional Paths }
+    [Test]
+    procedure TestSubscriber_ContextString_TComponentOwner;
+    [Test]
+    procedure TestSubscriber_BaseContextString;
+    [Test]
+    procedure TestSubscriber_SubscriptionsAsText_PlainObject;
+
+    { SubscribableObject Diagnostics }
+    [Test]
+    procedure TestSubscribableObject_SubscriptionsAsText;
+
+    { Array Growth }
+    [Test]
+    procedure TestManySubscriptions_TriggersLargeGrowth;
   end;
 
 implementation
@@ -218,6 +248,14 @@ type
       Subscriber: TBoldSubscriber): Boolean;
   end;
 
+  // Helper TComponent descendant with a Receive handler for testing subscriber ContextString
+  TTestHelperComponent = class(TComponent)
+  public
+    ReceiveCallCount: Integer;
+    procedure HandleReceive(Originator: TObject; OriginalEvent: TBoldEvent;
+      RequestedEvent: TBoldRequestedEvent);
+  end;
+
 procedure TBoldSubscriberAccess.Receive(Originator: TObject;
   OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
 begin
@@ -229,6 +267,14 @@ function TBoldSubscriberAccess.CallAnswer(Originator: TObject;
   const Args: array of const; Subscriber: TBoldSubscriber): Boolean;
 begin
   Result := Answer(Originator, OriginalEvent, RequestedEvent, Args, Subscriber);
+end;
+
+{ TTestHelperComponent }
+
+procedure TTestHelperComponent.HandleReceive(Originator: TObject;
+  OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
+begin
+  Inc(ReceiveCallCount);
 end;
 
 { TTestBoldSubscription }
@@ -1795,6 +1841,289 @@ begin
     end;
   finally
     Subscriber.Free;
+  end;
+end;
+
+{ Post-Notification Queue — Immediate Execution }
+
+procedure TTestBoldSubscription.TestDelayTillAfterNotification_Immediate;
+begin
+  // When G_NotificationNesting = 0 (outside any notification),
+  // BoldAddEventToPostNotifyQueue should execute the handler immediately (line 1307)
+  BoldAddEventToPostNotifyQueue(HandleDelayedAction, nil, Self);
+  Assert.AreEqual(1, FDelayedActionCallCount,
+    'Handler should execute immediately when not inside a notification');
+end;
+
+procedure TTestBoldSubscription.TestBoldForcedDequeuePostNotify;
+var
+  PublisherVar: TBoldPublisher;
+begin
+  // Test BoldForcedDequeuePostNotify (lines 515-524):
+  // Queue a delayed action during StartNotify, then force dequeue before EndNotify
+  PublisherVar := nil;
+  PublisherVar := TBoldPublisher.Create(PublisherVar);
+  try
+    TBoldPublisher.StartNotify;
+    try
+      // Queue delayed action — should NOT execute yet (nesting > 0)
+      BoldAddEventToPostNotifyQueue(HandleDelayedAction, nil, Self);
+      Assert.AreEqual(0, FDelayedActionCallCount,
+        'Handler should not execute while inside StartNotify');
+
+      // Force dequeue while still inside notification
+      PublisherVar.BoldForcedDequeuePostNotify;
+      Assert.AreEqual(1, FDelayedActionCallCount,
+        'Handler should execute after BoldForcedDequeuePostNotify');
+    finally
+      TBoldPublisher.EndNotify;
+    end;
+  finally
+    PublisherVar.Free;
+  end;
+end;
+
+{ Deduplication — Subscriber-Side Paths }
+
+procedure TTestBoldSubscription.TestSmallEventDeduplication_SubscriberSidePath;
+var
+  PublisherVar: TBoldPublisher;
+  Sub1, Sub2: TBoldPassthroughSubscriber;
+begin
+  // To trigger subscriber-side dedup loop (lines 781-782):
+  // pubCount > subCount, so publisher has more subscriptions than subscriber
+  // We need 2 subscribers on publisher (pubCount=2), and Sub1 has only 1 subscription (subCount=1)
+  PublisherVar := nil;
+  Sub1 := TBoldPassthroughSubscriber.Create(HandleReceive);
+  Sub2 := TBoldPassthroughSubscriber.Create(HandleReceive2);
+  try
+    PublisherVar := TBoldPublisher.Create(PublisherVar);
+    try
+      // Add Sub1 and Sub2 so publisher has 2 subscriptions
+      PublisherVar.AddSmallSubscription(Sub1, [beValueChanged], beDefaultRequestedEvent);
+      PublisherVar.AddSmallSubscription(Sub2, [beItemAdded], beDefaultRequestedEvent);
+
+      // Now pubCount(2) > Sub1.subCount(1) → subscriber-side dedup path
+      // Re-add Sub1 with different events but same RequestedEvent → should extend
+      PublisherVar.AddSmallSubscription(Sub1, [beItemDeleted], beDefaultRequestedEvent);
+
+      Assert.AreEqual(2, PublisherVar.SubscriptionCount,
+        'Should still be 2 subscriptions (Sub1 extended, not duplicated)');
+
+      // Verify both original and extended events work for Sub1
+      PublisherVar.SendEvent(beValueChanged);
+      PublisherVar.SendEvent(beItemDeleted);
+      Assert.AreEqual(2, FReceiveCallCount,
+        'Sub1 should receive both original and extended events');
+    finally
+      PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
+      PublisherVar.Free;
+    end;
+  finally
+    Sub1.Free;
+    Sub2.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestBigEventDeduplication_SubscriberSidePath;
+var
+  PublisherVar: TBoldPublisher;
+  Sub1, Sub2: TBoldPassthroughSubscriber;
+begin
+  // To trigger subscriber-side big event dedup (lines 825-834):
+  // pubCount > subCount, publisher has more subscriptions than subscriber
+  PublisherVar := nil;
+  Sub1 := TBoldPassthroughSubscriber.Create(HandleReceive);
+  Sub2 := TBoldPassthroughSubscriber.Create(HandleReceive2);
+  try
+    PublisherVar := TBoldPublisher.Create(PublisherVar);
+    try
+      // Add Sub1 (big event) and Sub2 so publisher has 2 subscriptions
+      PublisherVar.AddSubscription(Sub1, boeClassChanged, beDefaultRequestedEvent);
+      PublisherVar.AddSubscription(Sub2, boeClassChanged, beDefaultRequestedEvent);
+
+      // Now pubCount(2) > Sub1.subCount(1) → subscriber-side loop
+      // Re-add same big event for Sub1 → should deduplicate (exit early)
+      PublisherVar.AddSubscription(Sub1, boeClassChanged, beDefaultRequestedEvent);
+
+      Assert.AreEqual(2, PublisherVar.SubscriptionCount,
+        'Big event dedup should not create a third subscription');
+
+      PublisherVar.SendExtendedEvent(nil, boeClassChanged, []);
+      Assert.AreEqual(1, FReceiveCallCount, 'Sub1 should receive exactly one event');
+      Assert.AreEqual(1, FReceiveCallCount2, 'Sub2 should receive exactly one event');
+    finally
+      PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
+      PublisherVar.Free;
+    end;
+  finally
+    Sub1.Free;
+    Sub2.Free;
+  end;
+end;
+
+{ Publisher Diagnostics }
+
+procedure TTestBoldSubscription.TestPublisher_ContextString_WithSubscribableObject;
+var
+  PublisherVar: TBoldPublisher;
+  Obj: TObject;
+begin
+  // Test ContextString when SubscribableObject is set to a plain TObject (line 612)
+  PublisherVar := nil;
+  Obj := TObject.Create;
+  try
+    PublisherVar := TBoldPublisher.Create(PublisherVar);
+    try
+      PublisherVar.SubscribableObject := Obj;
+      Assert.AreEqual('TObject', PublisherVar.ContextString,
+        'ContextString should return ClassName of SubscribableObject');
+
+      // Also verify DebugInfo returns the same (lines 618-620)
+      Assert.AreEqual(PublisherVar.ContextString, PublisherVar.DebugInfo,
+        'DebugInfo should equal ContextString');
+    finally
+      PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
+      PublisherVar.Free;
+    end;
+  finally
+    Obj.Free;
+  end;
+end;
+
+{ Subscriber Diagnostics — Additional Paths }
+
+procedure TTestBoldSubscription.TestSubscriber_ContextString_TComponentOwner;
+var
+  Comp: TTestHelperComponent;
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  // Test ContextString when method owner is a TComponent (line 981)
+  Comp := TTestHelperComponent.Create(nil);
+  try
+    Comp.Name := 'MyTestComp';
+    Subscriber := TBoldPassthroughSubscriber.Create(Comp.HandleReceive);
+    try
+      Assert.AreEqual('MyTestComp', Subscriber.ContextString,
+        'ContextString should return TComponent.Name when method owner is TComponent');
+    finally
+      Subscriber.Free;
+    end;
+  finally
+    Comp.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscriber_BaseContextString;
+var
+  Subscriber: TBoldSubscriberAccess;
+begin
+  // Test base TBoldSubscriber.GetContextString (lines 1192-1194)
+  // TBoldSubscriberAccess does NOT override GetContextString, so it uses the base
+  // which returns ClassName
+  Subscriber := TBoldSubscriberAccess.Create;
+  try
+    Assert.AreEqual('TBoldSubscriberAccess', Subscriber.ContextString,
+      'Base GetContextString should return ClassName');
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscriber_SubscriptionsAsText_PlainObject;
+var
+  PublisherVar: TBoldPublisher;
+  Obj: TObject;
+  Subscriber: TBoldPassthroughSubscriber;
+  Text: string;
+begin
+  // Test subscriber's SubscriptionsAsText when SubscribableObject is a plain TObject (line 1240)
+  // This hits the else branch: SubscribableObject.ClassName
+  PublisherVar := nil;
+  Obj := TObject.Create;
+  try
+    Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+    try
+      PublisherVar := TBoldPublisher.Create(PublisherVar);
+      try
+        PublisherVar.SubscribableObject := Obj;
+        PublisherVar.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+
+        Text := Subscriber.SubscriptionsAsText;
+        Assert.IsNotEmpty(Text, 'SubscriptionsAsText should be non-empty');
+        Assert.Contains(Text, 'TObject',
+          'Should contain TObject class name for plain object SubscribableObject');
+      finally
+        PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
+        PublisherVar.Free;
+      end;
+    finally
+      Subscriber.Free;
+    end;
+  finally
+    Obj.Free;
+  end;
+end;
+
+{ SubscribableObject Diagnostics }
+
+procedure TTestBoldSubscription.TestSubscribableObject_SubscriptionsAsText;
+var
+  Obj: TBoldSubscribableObject;
+  Subscriber: TBoldPassthroughSubscriber;
+  Text: string;
+begin
+  // Test TBoldSubscribableObject.SubscriptionsAsText (lines 1025-1027)
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Obj := TBoldSubscribableObject.Create;
+    try
+      Obj.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+      Text := Obj.SubscriptionsAsText;
+      Assert.IsNotEmpty(Text, 'SubscriptionsAsText should be non-empty');
+      Assert.Contains(Text, '0:', 'Should contain subscription index');
+    finally
+      Obj.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+{ Array Growth }
+
+procedure TTestBoldSubscription.TestManySubscriptions_TriggersLargeGrowth;
+var
+  PublisherVar: TBoldPublisher;
+  Subscribers: array[0..69] of TBoldPassthroughSubscriber;
+  i: Integer;
+begin
+  // Test GetNewLength > 64 branch (line 486): adding 65+ subscriptions
+  // Each subscriber gets a unique RequestedEvent to prevent deduplication
+  PublisherVar := nil;
+  for i := 0 to High(Subscribers) do
+    Subscribers[i] := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    PublisherVar := TBoldPublisher.Create(PublisherVar);
+    try
+      for i := 0 to High(Subscribers) do
+        PublisherVar.AddSmallSubscription(Subscribers[i], [beValueChanged], i + 1);
+
+      Assert.AreEqual(Length(Subscribers), PublisherVar.SubscriptionCount,
+        'Should have 70 subscriptions');
+
+      // Send event to verify all still work
+      FReceiveCallCount := 0;
+      PublisherVar.SendEvent(beValueChanged);
+      Assert.AreEqual(Length(Subscribers), FReceiveCallCount,
+        'All 70 subscribers should receive the event');
+    finally
+      PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
+      PublisherVar.Free;
+    end;
+  finally
+    for i := 0 to High(Subscribers) do
+      Subscribers[i].Free;
   end;
 end;
 

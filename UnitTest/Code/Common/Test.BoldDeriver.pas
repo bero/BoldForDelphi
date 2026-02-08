@@ -15,9 +15,12 @@ type
     FDeriveCallCount: Integer;
     FNotifyOutOfDateCalled: Boolean;
     FReverseDeriveCalled: Boolean;
+    FReentrantDeriver: TBoldDeriver;
+    FReentrantFirstCall: Boolean;
     procedure HandleDeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
     procedure HandleNotifyOutOfDate;
     procedure HandleReverseDerive(DerivedObject: TObject);
+    procedure HandleReentrantDeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
   public
     [Setup]
     procedure Setup;
@@ -58,6 +61,10 @@ type
     [Test]
     procedure TestReverseDerive_FromCurrent;
 
+    // Reentrant derive (line 128)
+    [Test]
+    procedure TestDerive_ReentrantStateChange;
+
     // GetContextString branches
     [Test]
     procedure TestContextString_WithTComponent;
@@ -93,17 +100,23 @@ uses
   BoldDefs;
 
 type
-  // Expose protected Receive method for testing unknown event path
+  // Expose protected Receive and GetCanReverseDerive for testing
   TTestableDeriver = class(TBoldDeriver)
   public
     procedure CallReceive(Originator: TObject; OriginalEvent: TBoldEvent;
       RequestedEvent: TBoldRequestedEvent);
+    function CallGetCanReverseDerive: Boolean;
   end;
 
 procedure TTestableDeriver.CallReceive(Originator: TObject;
   OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
 begin
   Receive(Originator, OriginalEvent, RequestedEvent);
+end;
+
+function TTestableDeriver.CallGetCanReverseDerive: Boolean;
+begin
+  Result := GetCanReverseDerive;
 end;
 
 { TTestBoldDeriver }
@@ -189,24 +202,32 @@ end;
 
 procedure TTestBoldDeriver.TestGetCanReverseDerive_NoHandler;
 var
-  Deriver: TBoldDeriver;
+  Deriver: TTestableDeriver;
 begin
-  Deriver := TBoldDeriver.Create(Self);
+  Deriver := TTestableDeriver.Create(Self);
   try
-    // No OnReverseDerive assigned
+    Deriver.OnDeriveAndSubscribe := HandleDeriveAndSubscribe;
     Deriver.OnReverseDerive := nil;
-    // Cannot determine from public interface, just verify no error
-    Assert.Pass;
+    Assert.IsFalse(Deriver.CallGetCanReverseDerive,
+      'GetCanReverseDerive should return False when no handler assigned');
   finally
     Deriver.Free;
   end;
 end;
 
 procedure TTestBoldDeriver.TestGetCanReverseDerive_WithHandler;
+var
+  Deriver: TTestableDeriver;
 begin
-  FDeriver.OnReverseDerive := HandleReverseDerive;
-  // With handler assigned, should be able to reverse derive
-  Assert.Pass;
+  Deriver := TTestableDeriver.Create(Self);
+  try
+    Deriver.OnDeriveAndSubscribe := HandleDeriveAndSubscribe;
+    Deriver.OnReverseDerive := HandleReverseDerive;
+    Assert.IsTrue(Deriver.CallGetCanReverseDerive,
+      'GetCanReverseDerive should return True when handler assigned');
+  finally
+    Deriver.Free;
+  end;
 end;
 
 procedure TTestBoldDeriver.TestReverseDerive_FromSubscriptionOutOfDate;
@@ -371,6 +392,46 @@ begin
   // Should still be able to recover
   FDeriver.EnsureCurrent;
   Assert.IsTrue(FDeriver.IsCurrent, 'Should recover from multiple MarkOutOfdate calls');
+end;
+
+{ Reentrant derive test }
+
+procedure TTestBoldDeriver.HandleReentrantDeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+begin
+  Inc(FDeriveCallCount);
+  // On first invocation, knock the deriver out of bdsIsDeriving state
+  // This triggers line 128: CancelAllSubscriptions and loop retry
+  if FReentrantFirstCall then
+  begin
+    FReentrantFirstCall := False;
+    FReentrantDeriver.MarkSubscriptionOutOfdate;
+  end;
+end;
+
+procedure TTestBoldDeriver.TestDerive_ReentrantStateChange;
+var
+  Deriver: TBoldDeriver;
+begin
+  // Test the repeat loop in Derive when state gets knocked out of bdsIsDeriving (line 128)
+  // On first call, the handler calls MarkSubscriptionOutOfdate which changes state
+  // away from bdsIsDeriving, causing CancelAllSubscriptions on line 128 and loop retry
+  Deriver := TBoldDeriver.Create(Self);
+  try
+    FReentrantDeriver := Deriver;
+    FReentrantFirstCall := True;
+    FDeriveCallCount := 0;
+    Deriver.OnDeriveAndSubscribe := HandleReentrantDeriveAndSubscribe;
+    Deriver.MarkSubscriptionOutOfdate;
+
+    Deriver.EnsureCurrent;
+
+    Assert.IsTrue(Deriver.IsCurrent, 'Deriver should be current after reentrant derive');
+    Assert.AreEqual(2, FDeriveCallCount,
+      'Derive should be called twice (first interrupted, second succeeds)');
+  finally
+    FReentrantDeriver := nil;
+    Deriver.Free;
+  end;
 end;
 
 initialization
