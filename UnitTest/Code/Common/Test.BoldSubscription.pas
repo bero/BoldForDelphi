@@ -228,6 +228,20 @@ type
     { Array Growth }
     [Test]
     procedure TestManySubscriptions_TriggersLargeGrowth;
+
+    { HasMatchingSubscription — No-Match Paths }
+    [Test]
+    procedure TestHasMatchingSubscription_PublisherSide_NoMatch;
+    [Test]
+    procedure TestHasMatchingSubscription_SubscriberSide_NoMatch;
+
+    { Big Event — New Subscription via Subscriber-Side Path }
+    [Test]
+    procedure TestBigEvent_NewSubscription_SubscriberSidePath;
+
+    { Publisher Destroy with NeedsPacking }
+    [Test]
+    procedure TestPublisher_DestroyWithNeedsPacking;
   end;
 
 implementation
@@ -2095,7 +2109,7 @@ end;
 procedure TTestBoldSubscription.TestManySubscriptions_TriggersLargeGrowth;
 var
   PublisherVar: TBoldPublisher;
-  Subscribers: array[0..69] of TBoldPassthroughSubscriber;
+  Subscribers: array[0..76] of TBoldPassthroughSubscriber;
   i: Integer;
 begin
   // Test GetNewLength > 64 branch (line 486): adding 65+ subscriptions
@@ -2110,13 +2124,13 @@ begin
         PublisherVar.AddSmallSubscription(Subscribers[i], [beValueChanged], i + 1);
 
       Assert.AreEqual(Length(Subscribers), PublisherVar.SubscriptionCount,
-        'Should have 70 subscriptions');
+        'Should have 77 subscriptions');
 
       // Send event to verify all still work
       FReceiveCallCount := 0;
       PublisherVar.SendEvent(beValueChanged);
       Assert.AreEqual(Length(Subscribers), FReceiveCallCount,
-        'All 70 subscribers should receive the event');
+        'All 77 subscribers should receive the event');
     finally
       PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
       PublisherVar.Free;
@@ -2125,6 +2139,198 @@ begin
     for i := 0 to High(Subscribers) do
       Subscribers[i].Free;
   end;
+end;
+
+{ HasMatchingSubscription — No-Match Paths }
+
+procedure TTestBoldSubscription.TestHasMatchingSubscription_PublisherSide_NoMatch;
+var
+  Pub1Var, Pub2Var: TBoldPublisher;
+  Sub1, Sub2: TBoldPassthroughSubscriber;
+begin
+  // Publisher-side path: pubCount(1) < subCount(2)
+  // Publisher has Sub1 but we query for Sub2 → loop iterates, no match → result := false
+  Pub1Var := nil;
+  Pub2Var := nil;
+  Sub1 := TBoldPassthroughSubscriber.Create(HandleReceive);
+  Sub2 := TBoldPassthroughSubscriber.Create(HandleReceive2);
+  try
+    Pub1Var := TBoldPublisher.Create(Pub1Var);
+    try
+      Pub2Var := TBoldPublisher.Create(Pub2Var);
+      try
+        // Sub2 subscribes to two publishers → Sub2.SubscriptionCount = 2
+        Pub1Var.AddSmallSubscription(Sub1, [beValueChanged], beDefaultRequestedEvent);
+        Pub2Var.AddSmallSubscription(Sub2, [beItemAdded], 100);
+        Pub1Var.AddSmallSubscription(Sub2, [beItemDeleted], 200);
+
+        // Pub2 has 1 subscription (Sub2), Sub1 has 1 subscription → pub(1) < sub? No.
+        // Pub1 has 2 subscriptions (Sub1+Sub2), query Sub2 → pub(2) >= sub(2) → subscriber side.
+        // We need pubCount < subCount. Pub2 has 1 sub, Sub2 has 2 subs → 1 < 2 → publisher-side
+        Assert.IsFalse(Pub2Var.HasMatchingSubscription(Sub1),
+          'Sub1 not subscribed to Pub2; publisher-side loop should return false');
+      finally
+        Pub2Var.NotifySubscribersAndClearSubscriptions(nil);
+        Pub2Var.Free;
+      end;
+    finally
+      Pub1Var.NotifySubscribersAndClearSubscriptions(nil);
+      Pub1Var.Free;
+    end;
+  finally
+    Sub1.Free;
+    Sub2.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestHasMatchingSubscription_SubscriberSide_NoMatch;
+var
+  Pub1Var, Pub2Var: TBoldPublisher;
+  Sub1, Sub2, Sub3, Sub4: TBoldPassthroughSubscriber;
+begin
+  // Subscriber-side path: pubCount >= subCount
+  // Publisher has 3 subs, Sub4 has 1 sub to a different publisher → no match
+  Pub1Var := nil;
+  Pub2Var := nil;
+  Sub1 := TBoldPassthroughSubscriber.Create(HandleReceive);
+  Sub2 := TBoldPassthroughSubscriber.Create(HandleReceive2);
+  Sub3 := TBoldPassthroughSubscriber.Create(HandleReceive);
+  Sub4 := TBoldPassthroughSubscriber.Create(HandleReceive2);
+  try
+    Pub1Var := TBoldPublisher.Create(Pub1Var);
+    try
+      Pub2Var := TBoldPublisher.Create(Pub2Var);
+      try
+        // Pub1 gets 3 subscribers
+        Pub1Var.AddSmallSubscription(Sub1, [beValueChanged], beDefaultRequestedEvent);
+        Pub1Var.AddSmallSubscription(Sub2, [beItemAdded], beDefaultRequestedEvent);
+        Pub1Var.AddSmallSubscription(Sub3, [beItemDeleted], beDefaultRequestedEvent);
+
+        // Sub4 subscribes only to Pub2
+        Pub2Var.AddSmallSubscription(Sub4, [beValueChanged], beDefaultRequestedEvent);
+
+        // Pub1 has 3 subs, Sub4 has 1 sub → 3 >= 1 → subscriber-side path
+        // Sub4's subscription points to Pub2, not Pub1 → loop finds no match
+        Assert.IsFalse(Pub1Var.HasMatchingSubscription(Sub4),
+          'Sub4 not subscribed to Pub1; subscriber-side loop should return false');
+      finally
+        Pub2Var.NotifySubscribersAndClearSubscriptions(nil);
+        Pub2Var.Free;
+      end;
+    finally
+      Pub1Var.NotifySubscribersAndClearSubscriptions(nil);
+      Pub1Var.Free;
+    end;
+  finally
+    Sub1.Free;
+    Sub2.Free;
+    Sub3.Free;
+    Sub4.Free;
+  end;
+end;
+
+{ Big Event — New Subscription via Subscriber-Side Path }
+
+procedure TTestBoldSubscription.TestBigEvent_NewSubscription_SubscriberSidePath;
+var
+  PublisherVar: TBoldPublisher;
+  Sub1, Sub2: TBoldPassthroughSubscriber;
+begin
+  // Trigger subscriber-side dedup loop (lines 825-834) for big events
+  // where no match is found, so the loop falls through and a new subscription is created.
+  // Sub1 already has boeClassChanged; we add boeObjectCreated (different big event)
+  // via the subscriber-side path.
+  PublisherVar := nil;
+  Sub1 := TBoldPassthroughSubscriber.Create(HandleReceive);
+  Sub2 := TBoldPassthroughSubscriber.Create(HandleReceive2);
+  try
+    PublisherVar := TBoldPublisher.Create(PublisherVar);
+    try
+      // Sub1 subscribes with boeClassChanged, Sub2 with a small event
+      // → pubCount = 2
+      PublisherVar.AddSubscription(Sub1, boeClassChanged, beDefaultRequestedEvent);
+      PublisherVar.AddSmallSubscription(Sub2, [beValueChanged], beDefaultRequestedEvent);
+
+      // Sub1 has 1 subscription → pubCount(2) > subCount(1) → subscriber-side path
+      // Add a DIFFERENT big event for Sub1: boeObjectCreated
+      // Loop finds Sub1's entry but IsMatchingEvent returns false → falls through line 834
+      // → creates new subscription
+      PublisherVar.AddSubscription(Sub1, boeObjectCreated, beDefaultRequestedEvent);
+
+      Assert.AreEqual(3, PublisherVar.SubscriptionCount,
+        'Different big event should create a new subscription (no dedup)');
+
+      // Verify both big events work for Sub1
+      FReceiveCallCount := 0;
+      PublisherVar.SendExtendedEvent(nil, boeClassChanged, []);
+      Assert.AreEqual(1, FReceiveCallCount, 'Sub1 should receive boeClassChanged');
+
+      FReceiveCallCount := 0;
+      PublisherVar.SendExtendedEvent(nil, boeObjectCreated, []);
+      Assert.AreEqual(1, FReceiveCallCount, 'Sub1 should receive boeObjectCreated');
+    finally
+      PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
+      PublisherVar.Free;
+    end;
+  finally
+    Sub1.Free;
+    Sub2.Free;
+  end;
+end;
+
+{ Publisher Destroy with NeedsPacking }
+
+procedure TTestBoldSubscription.TestPublisher_DestroyWithNeedsPacking;
+var
+  PublisherVar: TBoldPublisher;
+  Subscribers: array[0..4] of TBoldPassthroughSubscriber;
+  i: Integer;
+begin
+  // Test lines 935-936 (RemoveFromPostNotificationQueue in destructor)
+  // and lines 1351-1354 (RemoveFromPostNotificationQueue body).
+  // Setup: Create publisher with 5 subs inside StartNotify, cancel 2 non-trailing
+  // subs to trigger NeedsPacking, then NotifySubscribersAndClearSubscriptions
+  // (sets fSubscriptionCount=0 but NeedsPacking stays true), then Free.
+  PublisherVar := nil;
+  for i := 0 to High(Subscribers) do
+    Subscribers[i] := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    PublisherVar := TBoldPublisher.Create(PublisherVar);
+    try
+      for i := 0 to High(Subscribers) do
+        PublisherVar.AddSmallSubscription(Subscribers[i], [beValueChanged], i + 1);
+
+      Assert.AreEqual(5, PublisherVar.SubscriptionCount, 'Should have 5 subscriptions');
+
+      TBoldPublisher.StartNotify;
+      try
+        // Cancel two non-trailing subscriptions to create holes and trigger NeedsPacking.
+        // With 5 subs in array of 8: cancel sub[0] → hole=1, 5-1=4 < 4? No.
+        // Cancel sub[1] → hole=2, 5-2=3 < 4? Yes → NeedsPacking := true, queued.
+        PublisherVar.CancelSubscriptionTo(Subscribers[0]);
+        PublisherVar.CancelSubscriptionTo(Subscribers[1]);
+
+        // NotifySubscribersAndClearSubscriptions sets fSubscriptionCount := 0
+        // but NeedsPacking flag stays true (PackSubscriptions is still in the queue)
+        PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
+      finally
+        // Free publisher while NeedsPacking is true → line 936 executes
+        // RemoveFromPostNotificationQueue(self) → lines 1351-1354
+        PublisherVar.Free;
+        PublisherVar := nil;
+        TBoldPublisher.EndNotify;
+      end;
+    finally
+      if Assigned(PublisherVar) then
+        PublisherVar.Free;
+    end;
+  finally
+    for i := 0 to High(Subscribers) do
+      Subscribers[i].Free;
+  end;
+
+  // If we get here without assertion failures or access violations, the test passed
+  Assert.Pass('Publisher destroyed cleanly with NeedsPacking=true');
 end;
 
 initialization
