@@ -63,6 +63,7 @@ uses
   Test.BoldSqlNodes in 'Code\PMapper\Test.BoldSqlNodes.pas',
   Test.BoldPMappersDefault in 'Code\PMapper\Test.BoldPMappersDefault.pas',
   Test.BoldAbstractObjectUpgrader in 'Code\PMapper\Test.BoldAbstractObjectUpgrader.pas',
+  Test.BoldSQLDatabaseConfig in 'Code\PMapper\Test.BoldSQLDatabaseConfig.pas',
   Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas',
   Test.PersistenceFireDAC in 'Code\Persistence\Test.PersistenceFireDAC.pas',
   Test.BoldGUIDUtils in 'Code\Common\Test.BoldGUIDUtils.pas',
