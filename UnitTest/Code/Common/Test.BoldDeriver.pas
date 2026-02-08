@@ -58,6 +58,18 @@ type
     [Test]
     procedure TestReverseDerive_FromCurrent;
 
+    // GetContextString branches
+    [Test]
+    procedure TestContextString_WithTComponent;
+    [Test]
+    procedure TestContextString_WithSubscribableObject;
+    [Test]
+    procedure TestContextString_WithPlainObject;
+
+    // Receive unknown event
+    [Test]
+    procedure TestReceive_UnknownEvent_RaisesException;
+
     // State machine transitions
     [Test]
     procedure TestMarkOutOfdate_WhenAlreadyCurrent;
@@ -77,7 +89,22 @@ implementation
 
 uses
   SysUtils,
-  Classes;
+  Classes,
+  BoldDefs;
+
+type
+  // Expose protected Receive method for testing unknown event path
+  TTestableDeriver = class(TBoldDeriver)
+  public
+    procedure CallReceive(Originator: TObject; OriginalEvent: TBoldEvent;
+      RequestedEvent: TBoldRequestedEvent);
+  end;
+
+procedure TTestableDeriver.CallReceive(Originator: TObject;
+  OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
+begin
+  Receive(Originator, OriginalEvent, RequestedEvent);
+end;
 
 { TTestBoldDeriver }
 
@@ -196,6 +223,79 @@ begin
   FDeriver.EnsureCurrent;  // Make current first
   FDeriver.ReverseDerive;
   Assert.IsTrue(FReverseDeriveCalled);
+end;
+
+{ GetContextString branch tests }
+
+procedure TTestBoldDeriver.TestContextString_WithTComponent;
+var
+  Deriver: TBoldDeriver;
+  Comp: TComponent;
+begin
+  Comp := TComponent.Create(nil);
+  try
+    Comp.Name := 'TestComp';
+    Deriver := TBoldDeriver.Create(Comp);
+    try
+      Deriver.OnDeriveAndSubscribe := HandleDeriveAndSubscribe;
+      Assert.AreEqual('TestComp', Deriver.ContextString,
+        'ContextString should return TComponent.Name');
+    finally
+      Deriver.Free;
+    end;
+  finally
+    Comp.Free;
+  end;
+end;
+
+procedure TTestBoldDeriver.TestContextString_WithSubscribableObject;
+var
+  Deriver: TBoldDeriver;
+  Obj: TBoldSubscribableObject;
+begin
+  Obj := TBoldSubscribableObject.Create;
+  try
+    Deriver := TBoldDeriver.Create(Obj);
+    try
+      Deriver.OnDeriveAndSubscribe := HandleDeriveAndSubscribe;
+      Assert.AreEqual('TBoldSubscribableObject', Deriver.ContextString,
+        'ContextString should return SubscribableObject.ContextString');
+    finally
+      Deriver.Free;
+    end;
+  finally
+    Obj.Free;
+  end;
+end;
+
+procedure TTestBoldDeriver.TestContextString_WithPlainObject;
+begin
+  // The fixture passes Self (TTestBoldDeriver) as DerivedObject, which is neither
+  // TComponent nor TBoldSubscribableObject, so it hits the ClassName branch
+  Assert.AreEqual('TTestBoldDeriver', FDeriver.ContextString,
+    'ContextString should return DerivedObject.ClassName for plain objects');
+end;
+
+{ Receive unknown event test }
+
+procedure TTestBoldDeriver.TestReceive_UnknownEvent_RaisesException;
+var
+  Deriver: TTestableDeriver;
+begin
+  Deriver := TTestableDeriver.Create(Self);
+  try
+    Deriver.OnDeriveAndSubscribe := HandleDeriveAndSubscribe;
+    Assert.WillRaise(
+      procedure
+      begin
+        // RequestedEvent 9999 is neither breReEvaluate nor breReSubscribe → raises EBold
+        Deriver.CallReceive(nil, beValueChanged, 9999);
+      end,
+      EBold,
+      'Unknown RequestedEvent should raise EBold');
+  finally
+    Deriver.Free;
+  end;
 end;
 
 { State machine transition tests }

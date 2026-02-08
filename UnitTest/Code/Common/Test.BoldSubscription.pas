@@ -5,6 +5,7 @@ interface
 uses
   DUnitX.TestFramework,
   BoldDefs,
+  BoldBase,
   BoldSubscription,
   BoldSubscribableCollection;
 
@@ -142,6 +143,54 @@ type
     [Test]
     procedure TestContextString_Publisher;
 
+    { Subscriber Diagnostic Methods }
+    [Test]
+    procedure TestSubscriber_ContextString;
+    [Test]
+    procedure TestSubscriber_DebugInfo;
+    [Test]
+    procedure TestSubscriber_SubscriptionsAsText;
+    [Test]
+    procedure TestSubscriber_SubscriptionsAsText_Component;
+    [Test]
+    procedure TestSubscriber_SubscriptionsAsText_NoSubscriptions;
+    [Test]
+    procedure TestSubscriber_Answer_RaisesEBold;
+
+    { Variant SendQuery/SendExtendedEvent }
+    [Test]
+    procedure TestSubscribableComponent_SendQuery;
+    [Test]
+    procedure TestSubscribableComponent_SendExtendedEvent;
+    [Test]
+    procedure TestSubscribableComponent_SubscriptionsAsText;
+    [Test]
+    procedure TestSubscribablePersistent_SendQuery;
+    [Test]
+    procedure TestSubscribablePersistent_SendExtendedEvent;
+    [Test]
+    procedure TestSubscribablePersistent_AddSubscription_BigEvent;
+    [Test]
+    procedure TestSubscribablePersistent_SubscriptionsAsText;
+    [Test]
+    procedure TestSubscribablePersistent_SubscriptionsAsText_NoPublisher;
+    [Test]
+    procedure TestSubscribableNonRefCounted_AddSubscription_BigEvent;
+    [Test]
+    procedure TestSubscribableNonRefCounted_SendExtendedEvent;
+    [Test]
+    procedure TestSubscribableNonRefCounted_SendQuery;
+    [Test]
+    procedure TestSubscribableNonRefCounted_SendQuery_WithOriginator;
+    [Test]
+    procedure TestSubscribableNonRefCounted_SubscriptionsAsText;
+
+    { Publisher Loop Path Coverage }
+    [Test]
+    procedure TestHasMatchingSubscription_PublisherSidePath;
+    [Test]
+    procedure TestCancelSubscriptionTo_SubscriberSidePath;
+
     { Statistics }
     [Test]
     procedure TestGlobalStatistics;
@@ -156,6 +205,31 @@ implementation
 uses
   SysUtils,
   Classes;
+
+type
+  // Helper to access protected Answer method for testing
+  TBoldSubscriberAccess = class(TBoldSubscriber)
+  public
+    // Expose the protected Receive method (abstract in base, but we just need Answer)
+    procedure Receive(Originator: TObject; OriginalEvent: TBoldEvent;
+      RequestedEvent: TBoldRequestedEvent); override;
+    function CallAnswer(Originator: TObject; OriginalEvent: TBoldEvent;
+      RequestedEvent: TBoldRequestedEvent; const Args: array of const;
+      Subscriber: TBoldSubscriber): Boolean;
+  end;
+
+procedure TBoldSubscriberAccess.Receive(Originator: TObject;
+  OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
+begin
+  // No-op, needed to make the class concrete
+end;
+
+function TBoldSubscriberAccess.CallAnswer(Originator: TObject;
+  OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent;
+  const Args: array of const; Subscriber: TBoldSubscriber): Boolean;
+begin
+  Result := Answer(Originator, OriginalEvent, RequestedEvent, Args, Subscriber);
+end;
 
 { TTestBoldSubscription }
 
@@ -1172,6 +1246,488 @@ begin
     Assert.AreEqual('TBoldSubscribableObject', ContextStr, 'ContextString should be the class name');
   finally
     Obj.Free;
+  end;
+end;
+
+{ Subscriber Diagnostic Methods }
+
+procedure TTestBoldSubscription.TestSubscriber_ContextString;
+var
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    // GetContextString on TBoldPassthroughSubscriber extracts the method's object
+    // and returns its class name (since test fixture is not TComponent or TBoldMemoryManagedObject)
+    Assert.Contains(Subscriber.ContextString, 'TTestBoldSubscription',
+      'ContextString should contain the class name of the method owner');
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscriber_DebugInfo;
+var
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    // DebugInfo delegates to ContextString
+    Assert.IsNotEmpty(Subscriber.DebugInfo, 'DebugInfo should return non-empty string');
+    Assert.AreEqual(Subscriber.ContextString, Subscriber.DebugInfo,
+      'DebugInfo should equal ContextString');
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscriber_SubscriptionsAsText;
+var
+  Obj: TBoldSubscribableObject;
+  Subscriber: TBoldPassthroughSubscriber;
+  Text: string;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Obj := TBoldSubscribableObject.Create;
+    try
+      Obj.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+
+      Text := Subscriber.SubscriptionsAsText;
+      Assert.IsNotEmpty(Text, 'SubscriptionsAsText should be non-empty when subscribed');
+      // SubscribableObject is TBoldSubscribableObject (TBoldMemoryManagedObject descendant)
+      // so it should use DebugInfo path
+      Assert.Contains(Text, '0:', 'Should contain subscription index');
+    finally
+      Obj.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscriber_SubscriptionsAsText_Component;
+var
+  Comp: TBoldSubscribableComponent;
+  Subscriber: TBoldPassthroughSubscriber;
+  Text: string;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Comp := TBoldSubscribableComponent.Create(nil);
+    try
+      Comp.Name := 'TestComponent';
+      Comp.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+
+      Text := Subscriber.SubscriptionsAsText;
+      Assert.IsNotEmpty(Text, 'SubscriptionsAsText should be non-empty');
+      Assert.Contains(Text, 'TestComponent', 'Should contain component Name');
+    finally
+      Comp.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscriber_SubscriptionsAsText_NoSubscriptions;
+var
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Assert.AreEqual('', Subscriber.SubscriptionsAsText,
+      'SubscriptionsAsText should be empty when no subscriptions');
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscriber_Answer_RaisesEBold;
+var
+  Subscriber: TBoldSubscriberAccess;
+  Originator: TObject;
+begin
+  // TBoldSubscriberAccess inherits the base TBoldSubscriber.Answer which raises EBold
+  Subscriber := TBoldSubscriberAccess.Create;
+  Originator := TObject.Create;
+  try
+    Assert.WillRaise(
+      procedure
+      begin
+        Subscriber.CallAnswer(Originator, beValueChanged, beDefaultRequestedEvent, [], nil);
+      end,
+      EBold,
+      'Base Answer should raise EBold');
+  finally
+    Originator.Free;
+    Subscriber.Free;
+  end;
+end;
+
+{ Variant SendQuery/SendExtendedEvent }
+
+procedure TTestBoldSubscription.TestSubscribableComponent_SendQuery;
+var
+  Comp: TBoldSubscribableComponent;
+  Subscriber: TBoldExtendedPassthroughSubscriber;
+  QueryResult: Boolean;
+begin
+  FAnswerResult := True;
+  Subscriber := TBoldExtendedPassthroughSubscriber.CreateWithReceiveAndAnswer(HandleReceive, HandleAnswer);
+  try
+    Comp := TBoldSubscribableComponent.Create(nil);
+    try
+      Comp.AddSubscription(Subscriber, bqMayModify, bqMayModify);
+      QueryResult := Comp.SendQuery(Comp, bqMayModify, [], nil);
+
+      Assert.IsTrue(QueryResult, 'Query should be approved');
+      Assert.AreEqual(1, FAnswerCallCount, 'Answer should be called');
+    finally
+      Comp.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribableComponent_SendExtendedEvent;
+var
+  Comp: TBoldSubscribableComponent;
+  Subscriber: TBoldExtendedPassthroughSubscriber;
+begin
+  Subscriber := TBoldExtendedPassthroughSubscriber.CreateWithExtendedReceive(HandleExtendedReceive);
+  try
+    Comp := TBoldSubscribableComponent.Create(nil);
+    try
+      Comp.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+      Comp.SendExtendedEvent(Comp, beValueChanged, [42, 'test']);
+
+      Assert.AreEqual(1, FExtendedCallCount, 'Extended receive should be called');
+      Assert.AreEqual(2, FExtendedArgCount, 'Should receive 2 args');
+    finally
+      Comp.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribableComponent_SubscriptionsAsText;
+var
+  Comp: TBoldSubscribableComponent;
+  Subscriber: TBoldPassthroughSubscriber;
+  Text: string;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Comp := TBoldSubscribableComponent.Create(nil);
+    try
+      Comp.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+      Text := Comp.SubscriptionsAsText;
+      Assert.IsNotEmpty(Text, 'SubscriptionsAsText should be non-empty');
+      Assert.Contains(Text, '0:', 'Should contain subscription index');
+    finally
+      Comp.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribablePersistent_SendQuery;
+var
+  Pers: TBoldSubscribablePersistent;
+  Subscriber: TBoldExtendedPassthroughSubscriber;
+  QueryResult: Boolean;
+begin
+  FAnswerResult := True;
+  Subscriber := TBoldExtendedPassthroughSubscriber.CreateWithReceiveAndAnswer(HandleReceive, HandleAnswer);
+  try
+    Pers := TBoldSubscribablePersistent.Create;
+    try
+      Pers.AddSubscription(Subscriber, bqMayModify, bqMayModify);
+      QueryResult := Pers.SendQuery(Pers, bqMayModify, [], nil);
+
+      Assert.IsTrue(QueryResult, 'Query should be approved');
+      Assert.AreEqual(1, FAnswerCallCount, 'Answer should be called');
+    finally
+      Pers.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribablePersistent_SendExtendedEvent;
+var
+  Pers: TBoldSubscribablePersistent;
+  Subscriber: TBoldExtendedPassthroughSubscriber;
+begin
+  Subscriber := TBoldExtendedPassthroughSubscriber.CreateWithExtendedReceive(HandleExtendedReceive);
+  try
+    Pers := TBoldSubscribablePersistent.Create;
+    try
+      Pers.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+      Pers.SendExtendedEvent(Pers, beValueChanged, [42, 'test']);
+
+      Assert.AreEqual(1, FExtendedCallCount, 'Extended receive should be called');
+      Assert.AreEqual(2, FExtendedArgCount, 'Should receive 2 args');
+    finally
+      Pers.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribablePersistent_AddSubscription_BigEvent;
+var
+  Pers: TBoldSubscribablePersistent;
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Pers := TBoldSubscribablePersistent.Create;
+    try
+      Pers.AddSubscription(Subscriber, boeClassChanged, beDefaultRequestedEvent);
+      Pers.SendExtendedEvent(Pers, boeClassChanged, []);
+
+      Assert.AreEqual(1, FReceiveCallCount, 'Should receive the big event');
+    finally
+      Pers.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribablePersistent_SubscriptionsAsText;
+var
+  Pers: TBoldSubscribablePersistent;
+  Subscriber: TBoldPassthroughSubscriber;
+  Text: string;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Pers := TBoldSubscribablePersistent.Create;
+    try
+      Pers.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+      Text := Pers.SubscriptionsAsText;
+      Assert.IsNotEmpty(Text, 'SubscriptionsAsText should be non-empty with subscriptions');
+    finally
+      Pers.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribablePersistent_SubscriptionsAsText_NoPublisher;
+var
+  Pers: TBoldSubscribablePersistent;
+begin
+  Pers := TBoldSubscribablePersistent.Create;
+  try
+    // No publisher allocated yet (lazy), should return empty
+    Assert.AreEqual('', Pers.SubscriptionsAsText,
+      'SubscriptionsAsText should be empty when no publisher exists');
+  finally
+    Pers.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribableNonRefCounted_AddSubscription_BigEvent;
+var
+  Obj: TBoldSubscribableNonRefCountedObject;
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Obj := TBoldSubscribableNonRefCountedObject.Create;
+    try
+      Obj.AddSubscription(Subscriber, boeClassChanged, beDefaultRequestedEvent);
+      Obj.SendExtendedEvent(Obj, boeClassChanged, []);
+
+      Assert.AreEqual(1, FReceiveCallCount, 'Should receive the big event');
+    finally
+      Obj.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribableNonRefCounted_SendExtendedEvent;
+var
+  Obj: TBoldSubscribableNonRefCountedObject;
+  Subscriber: TBoldExtendedPassthroughSubscriber;
+begin
+  Subscriber := TBoldExtendedPassthroughSubscriber.CreateWithExtendedReceive(HandleExtendedReceive);
+  try
+    Obj := TBoldSubscribableNonRefCountedObject.Create;
+    try
+      Obj.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+      Obj.SendExtendedEvent(Obj, beValueChanged, [42, 'test']);
+
+      Assert.AreEqual(1, FExtendedCallCount, 'Extended receive should be called');
+      Assert.AreEqual(2, FExtendedArgCount, 'Should receive 2 args');
+    finally
+      Obj.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribableNonRefCounted_SendQuery;
+var
+  Obj: TBoldSubscribableNonRefCountedObject;
+  Subscriber: TBoldExtendedPassthroughSubscriber;
+  QueryResult: Boolean;
+begin
+  FAnswerResult := True;
+  Subscriber := TBoldExtendedPassthroughSubscriber.CreateWithReceiveAndAnswer(HandleReceive, HandleAnswer);
+  try
+    Obj := TBoldSubscribableNonRefCountedObject.Create;
+    try
+      Obj.AddSubscription(Subscriber, bqMayModify, bqMayModify);
+      // Originator = nil triggers the Self branch (line 1429)
+      QueryResult := Obj.SendQuery(nil, bqMayModify, [], nil);
+
+      Assert.IsTrue(QueryResult, 'Query should be approved');
+      Assert.AreEqual(1, FAnswerCallCount, 'Answer should be called');
+    finally
+      Obj.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribableNonRefCounted_SendQuery_WithOriginator;
+var
+  Obj: TBoldSubscribableNonRefCountedObject;
+  ExternalOriginator: TObject;
+  Subscriber: TBoldExtendedPassthroughSubscriber;
+  QueryResult: Boolean;
+begin
+  FAnswerResult := True;
+  ExternalOriginator := TObject.Create;
+  try
+    Subscriber := TBoldExtendedPassthroughSubscriber.CreateWithReceiveAndAnswer(HandleReceive, HandleAnswer);
+    try
+      Obj := TBoldSubscribableNonRefCountedObject.Create;
+      try
+        Obj.AddSubscription(Subscriber, bqMayModify, bqMayModify);
+        // Explicit Originator triggers line 1427
+        QueryResult := Obj.SendQuery(ExternalOriginator, bqMayModify, [], nil);
+
+        Assert.IsTrue(QueryResult, 'Query should be approved');
+        Assert.AreEqual(1, FAnswerCallCount, 'Answer should be called');
+      finally
+        Obj.Free;
+      end;
+    finally
+      Subscriber.Free;
+    end;
+  finally
+    ExternalOriginator.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestSubscribableNonRefCounted_SubscriptionsAsText;
+var
+  Obj: TBoldSubscribableNonRefCountedObject;
+  Subscriber: TBoldPassthroughSubscriber;
+  Text: string;
+begin
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Obj := TBoldSubscribableNonRefCountedObject.Create;
+    try
+      Obj.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+      Text := Obj.SubscriptionsAsText;
+      Assert.IsNotEmpty(Text, 'SubscriptionsAsText should be non-empty');
+    finally
+      Obj.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+{ Publisher Loop Path Coverage }
+
+procedure TTestBoldSubscription.TestHasMatchingSubscription_PublisherSidePath;
+var
+  Pub1Var, Pub2Var: TBoldPublisher;
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  // To trigger the publisher-side loop (line 655-660) in HasMatchingSubscription,
+  // we need: pub.SubscriptionCount < sub.SubscriptionCount
+  // So subscriber has many publishers, but one publisher has only 1 subscription
+  Pub1Var := nil;
+  Pub2Var := nil;
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    Pub1Var := TBoldPublisher.Create(Pub1Var);
+    try
+      Pub2Var := TBoldPublisher.Create(Pub2Var);
+      try
+        // Subscribe to both publishers — subscriber.SubscriptionCount = 2
+        Pub1Var.AddSmallSubscription(Subscriber, [beValueChanged], 100);
+        Pub2Var.AddSmallSubscription(Subscriber, [beItemAdded], 200);
+
+        // Pub1 has 1 subscription, subscriber has 2 → pub count < sub count → publisher-side loop
+        Assert.IsTrue(Pub1Var.HasMatchingSubscription(Subscriber),
+          'Should find subscription via publisher-side loop');
+      finally
+        Pub2Var.NotifySubscribersAndClearSubscriptions(nil);
+        Pub2Var.Free;
+      end;
+    finally
+      Pub1Var.NotifySubscribersAndClearSubscriptions(nil);
+      Pub1Var.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldSubscription.TestCancelSubscriptionTo_SubscriberSidePath;
+var
+  PublisherVar: TBoldPublisher;
+  Sub1, Sub2, Sub3: TBoldPassthroughSubscriber;
+begin
+  // To trigger subscriber-side cancel loop (lines 685-687):
+  // pub.SubscriptionCount > sub.SubscriptionCount
+  // So publisher has many subscribers, but each subscriber has just 1 subscription
+  PublisherVar := nil;
+  Sub1 := TBoldPassthroughSubscriber.Create(HandleReceive);
+  Sub2 := TBoldPassthroughSubscriber.Create(HandleReceive2);
+  Sub3 := TBoldPassthroughSubscriber.Create(HandleReceive);
+  try
+    PublisherVar := TBoldPublisher.Create(PublisherVar);
+    try
+      // 3 subscribers on one publisher → pub count(3) > sub count(1 each)
+      PublisherVar.AddSmallSubscription(Sub1, [beValueChanged], beDefaultRequestedEvent);
+      PublisherVar.AddSmallSubscription(Sub2, [beValueChanged], beDefaultRequestedEvent);
+      PublisherVar.AddSmallSubscription(Sub3, [beValueChanged], beDefaultRequestedEvent);
+
+      // Cancel Sub2 — triggers subscriber-side loop path
+      PublisherVar.CancelSubscriptionTo(Sub2);
+
+      PublisherVar.SendEvent(beValueChanged);
+      Assert.AreEqual(2, FReceiveCallCount, 'Two remaining subscribers should receive event');
+    finally
+      PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
+      PublisherVar.Free;
+    end;
+  finally
+    Sub1.Free;
+    Sub2.Free;
+    Sub3.Free;
   end;
 end;
 
