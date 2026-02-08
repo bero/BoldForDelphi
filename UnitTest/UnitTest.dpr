@@ -92,6 +92,7 @@ uses
   Test.BoldGlobalId in 'Code\ValueSpace\Test.BoldGlobalId.pas',
   Test.BoldCondition in 'Code\ValueSpace\Test.BoldCondition.pas',
   Test.BoldDefaultId in 'Code\ValueSpace\Test.BoldDefaultId.pas',
+  Test.BoldId in 'Code\ValueSpace\Test.BoldId.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   Test.BoldElements in 'Code\ObjectSpace\Test.BoldElements.pas',
   Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas',
