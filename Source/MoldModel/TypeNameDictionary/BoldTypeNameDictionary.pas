@@ -316,7 +316,7 @@ begin
     ValueInterfaceAccessor  := vTmpList.Values['ValueInterfaceAccessor'];
     ValueInterfaceNativeType  := vTmpList.Values['ValueInterfaceNativeType'];
   finally
-    Free;
+    vTmpList.Free;
   end;
 end;
 
