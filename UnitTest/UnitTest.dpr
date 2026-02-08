@@ -47,6 +47,7 @@ uses
   Test.BoldOclError in 'Code\ObjectSpace\Test.BoldOclError.pas',
   Test.BoldOclClasses in 'Code\ObjectSpace\Test.BoldOclClasses.pas',
   Test.BoldOclLightWeightNodes in 'Code\ObjectSpace\Test.BoldOclLightWeightNodes.pas',
+  Test.BoldOclEvaluation in 'Code\ObjectSpace\Test.BoldOclEvaluation.pas',
   Test.BoldSystem in 'Code\ObjectSpace\Test.BoldSystem.pas',
   Test.BoldLinks in 'Code\ObjectSpace\Test.BoldLinks.pas',
   Test.BoldFreeStandingValueFactories in 'Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas',

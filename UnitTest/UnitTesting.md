@@ -324,19 +324,51 @@ The report shows:
 
 ## Coverage Metrics
 
-Current coverage baseline (as of December 2025):
-- **Total lines:** ~60,000
-- **Covered lines:** ~15,650
-- **Overall coverage:** ~26%
+Current coverage baseline (as of February 2026):
+- **Total lines:** 57,013
+- **Covered lines:** 28,523
+- **Overall coverage:** 50%
+- **Tests:** 1,631 total (1,604 passing, 27 ignored)
 
-Key units:
-| Unit | Coverage |
-|------|----------|
-| BoldSystem.pas | 47.4% |
-| BoldSystemRT.pas | 55.5% |
-| BoldSystemHandle.pas | 59.4% |
-| BoldAttributes.pas | ~50% |
-| BoldElements.pas | ~40% |
+### Top Units by Uncovered Lines (Testable Without Database)
+
+These units have the most untested code and can be tested with in-memory objects only:
+
+| Unit | Total | Covered | Uncovered | Coverage | Notes |
+|------|-------|---------|-----------|----------|-------|
+| BoldUMLModel.pas | 7,199 | 648 | 6,551 | 9% | Very large; needs UML model setup |
+| BoldSystem.pas | 4,797 | 2,632 | 2,165 | 55% | Core object space; partially testable |
+| BoldLinks.pas | 1,652 | 576 | 1,076 | 35% | Association handling; needs test model with links |
+| BoldAttributes.pas | 2,471 | 1,466 | 1,005 | 59% | Attribute types; many edge cases testable |
+| BoldMeta.pas | 1,521 | 960 | 561 | 63% | Runtime metamodel |
+| BoldOclSymbolImplementations.pas | 1,757 | 1,234 | 523 | 70% | OCL operations; testable via OCL expressions |
+| BoldUndoHandler.pas | 700 | 277 | 423 | 40% | Undo/redo; testable with in-memory system |
+| BoldSystemRT.pas | 1,174 | 761 | 413 | 65% | Runtime type info |
+| BoldOclVariables.pas | 388 | 0 | 388 | 0% | OCL variable support; needs variable binding tests |
+| BoldOcl.pas | 637 | 325 | 312 | 51% | OCL parser; testable via expression evaluation |
+| BoldUMLModelValidator.pas | 491 | 201 | 290 | 41% | Model validation rules |
+| BoldOclLightWeightNodes.pas | 586 | 316 | 270 | 54% | OCL lightweight nodes |
+| BoldOclSemantics.pas | 518 | 296 | 222 | 57% | OCL type checking |
+| BoldOclLightWeightNodeMaker.pas | 176 | 0 | 176 | 0% | LW node creation; testable via OCL LW API |
+
+### Top Units Requiring Database
+
+These units require a database connection (FireDAC/InterBase) for testing:
+
+| Unit | Total | Covered | Uncovered | Coverage | Notes |
+|------|-------|---------|-----------|----------|-------|
+| BoldPMappersDefault.pas | 1,942 | 809 | 1,133 | 42% | Default persistence mappers |
+| BoldPMappersAttributeDefault.pas | 692 | 100 | 592 | 14% | Attribute persistence mappers |
+| BoldDBInterfaces.pas | 707 | 181 | 526 | 26% | Database abstraction layer |
+| BoldSQLQuery.pas | 512 | 0 | 512 | 0% | SQL query generation |
+| BoldDbEvolutor.pas | 511 | 0 | 511 | 0% | Database schema evolution |
+| BoldPMappersLinkDefault.pas | 675 | 324 | 351 | 48% | Link persistence mappers |
+| BoldSqlSymbols.pas | 459 | 109 | 350 | 24% | SQL symbol table |
+| BoldFireDACInterfaces.pas | 704 | 470 | 234 | 67% | FireDAC adapter |
+
+### Units at 100% Coverage
+
+These units are fully covered: BoldMemberTypeDictionary, BoldLoggableCriticalSection, BoldDefaultStreamNames, BoldDefs, BoldPMapper, BoldNamedValueList, BoldUMLTypes, BoldPerformanceStub, BoldSSExcept, BoldRev, BoldFreeStandingValueFactories, BoldActionDefs, BoldAbstractObjectUpgraderHandle, BoldHandle, BoldSorter, BoldPMapperLists, BoldSubscribableCollection, BoldTaggedValueList, BoldLogReceiverInterface, BoldThreadSafeQueue, BoldDefaultTaggedValues, BoldIsoDateTime, BoldGUIDUtils, BoldHashIndexes, BoldPSParams, BoldSharedStrings, BoldGuard, BoldCollections, BoldUMLTaggedValues, BoldPersistenceHandleDB, BoldEventQueue.
 
 ## Tips for Improving Coverage
 
