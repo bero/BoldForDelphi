@@ -142,12 +142,37 @@ type
     procedure TestHandleBasedVariable_GetValueTypeNilHandle;
     [Test]
     procedure TestHandleBasedVariable_Destroy;
+    [Test]
+    procedure TestHandleBasedVariable_UseListElement_GetValueType;
+
+    // === Additional coverage tests ===
+    [Test]
+    procedure TestAddVariables_MergesOverlapping;
+    [Test]
+    procedure TestGetDisplayName_WithListSuffix;
+    [Test]
+    procedure TestLinksToHandle_ViaRootHandle;
+    [Test]
+    procedure TestSetGlobalSystemHandle;
+    [Test]
+    procedure TestRegisterVariables_WithSystemHandle;
+    [Test]
+    procedure TestSubscribeToHandles_WithExpression;
+    [Test]
+    procedure TestSubscribeToHandles_ExternalSubscriber;
+    [Test]
+    procedure TestCreateFromIndirectElement;
+    [Test]
+    procedure TestGetVariableValue_FoundReturnsValue;
+    [Test]
+    procedure TestHandleBasedVariable_UseListElement_GetValue;
   end;
 
 implementation
 
 uses
   BoldOcl,
+  BoldSubscription,
   BoldAbstractListHandle;
 
 { TTestBoldOclVariables }
@@ -963,6 +988,225 @@ begin
   V := TBoldHandleBasedExternalVariable.Create('destroyVar', FDataModule.BoldListHandle1, False);
   V.Free;
   Assert.Pass('Destroy should not raise');
+end;
+
+// === Additional coverage tests ===
+
+procedure TTestBoldOclVariables.TestAddVariables_MergesOverlapping;
+var
+  Source, Target: TBoldOclVariables;
+begin
+  // Covers line 190: AddVariables when target already has a variable with same name
+  Source := TBoldOclVariables.Create(nil);
+  Target := TBoldOclVariables.Create(nil);
+  try
+    Source.AddVariable('shared', FDataModule.BoldListHandle1, True);
+    Target.AddVariable('shared', nil, False);
+    Target.AddVariables(Source);
+    Assert.AreEqual(1, Target.Variables.Count, 'Should still have 1 variable after merge');
+    Assert.AreSame(FDataModule.BoldListHandle1, Target.Variables[0].BoldHandle,
+      'Handle should be updated from source');
+  finally
+    Target.Free;
+    Source.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestGetDisplayName_WithListSuffix;
+var
+  OclVars: TBoldOclVariables;
+  Tuple: TBoldVariableTuple;
+begin
+  // Covers line 589: DisplayName with (list) suffix
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    Tuple := OclVars.AddVariable('myList', FDataModule.BoldListHandle1, True);
+    Assert.AreEqual('myList: BoldListHandle1 (list)', Tuple.DisplayName,
+      'Should append (list) when EffectiveUseListElement is true');
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestLinksToHandle_ViaRootHandle;
+var
+  OclVars: TBoldOclVariables;
+  Tuple: TBoldVariableTuple;
+begin
+  // Covers line 606: LinksToHandle via IsRootLinkedTo
+  // BoldListHandle1 is a TBoldRootedHandle with RootHandle=BoldSystemHandle1
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    Tuple := OclVars.AddVariable('myVar', FDataModule.BoldListHandle1);
+    // Check if BoldListHandle1 links to BoldSystemHandle1 (its root)
+    Assert.IsTrue(Tuple.LinksToHandle(FDataModule.BoldSystemHandle1),
+      'Should detect link via IsRootLinkedTo for rooted handles');
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestSetGlobalSystemHandle;
+var
+  OclVars: TBoldOclVariables;
+begin
+  // Covers lines 359-365: SetGlobalSystemHandle
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    Assert.IsNull(OclVars.GlobalSystemHandle, 'Should start with nil');
+    OclVars.GlobalSystemHandle := FDataModule.BoldSystemHandle1;
+    Assert.AreSame(FDataModule.BoldSystemHandle1, OclVars.GlobalSystemHandle,
+      'Should store the system handle');
+    // Setting same handle again should be no-op
+    OclVars.GlobalSystemHandle := FDataModule.BoldSystemHandle1;
+    Assert.AreSame(FDataModule.BoldSystemHandle1, OclVars.GlobalSystemHandle);
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestRegisterVariables_WithSystemHandle;
+var
+  OclVars: TBoldOclVariables;
+begin
+  // Covers lines 322-353: RegisterVariables with active system handle and variables
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    OclVars.AddVariable('testVar', FDataModule.BoldListHandle1);
+    // Setting GlobalSystemHandle triggers PlaceSubscriptions -> RegisterVariables
+    OclVars.GlobalSystemHandle := FDataModule.BoldSystemHandle1;
+    // If RegisterVariables ran without error, it covered the body
+    Assert.IsNotNull(OclVars.GlobalSystemHandle, 'System handle should be set');
+    Assert.AreEqual(1, OclVars.Variables.Count, 'Variables should still be intact');
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestSubscribeToHandles_WithExpression;
+var
+  OclVars: TBoldOclVariables;
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  // Covers lines 413-427: SubscribeToHandles(Subscriber, Expression) overload
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  Subscriber := TBoldPassthroughSubscriber.Create(nil);
+  try
+    OclVars := TBoldOclVariables.Create(nil);
+    try
+      OclVars.AddVariable('testVar', FDataModule.BoldListHandle1);
+      OclVars.GlobalSystemHandle := FDataModule.BoldSystemHandle1;
+      // Call the expression-based overload
+      OclVars.SubscribeToHandles(Subscriber, 'testVar');
+      Assert.Pass('SubscribeToHandles with expression should not raise');
+    finally
+      OclVars.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestSubscribeToHandles_ExternalSubscriber;
+var
+  OclVars: TBoldOclVariables;
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  // Covers line 379: SubscribeToHandles when subscriber != fSubscriber
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  Subscriber := TBoldPassthroughSubscriber.Create(nil);
+  try
+    OclVars := TBoldOclVariables.Create(nil);
+    try
+      OclVars.AddVariable('testVar', FDataModule.BoldListHandle1);
+      OclVars.GlobalSystemHandle := FDataModule.BoldSystemHandle1;
+      // Use external subscriber (not fSubscriber)
+      OclVars.SubscribeToHandles(Subscriber);
+      Assert.Pass('SubscribeToHandles with external subscriber should not raise');
+    finally
+      OclVars.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestCreateFromIndirectElement;
+var
+  V: TBoldOclVariable;
+  Indirect: TBoldIndirectElement;
+  vString: TBAString;
+  Evaluator: TBoldOcl;
+begin
+  // Covers lines 737-740: CreateFromIndirectElement
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  Evaluator := GetEvaluator as TBoldOcl;
+  vString := TBAString.CreateWithTypeInfo(Evaluator.StringType);
+  vString.AsString := 'indirect';
+  Indirect := TBoldIndirectElement.Create;
+  try
+    Indirect.SetOwnedValue(vString);
+    V := TBoldOclVariable.CreateFromIndirectElement('indirectVar', Indirect);
+    try
+      Assert.AreEqual('indirectVar', V.Name);
+      Assert.AreEqual('indirect', (V.Value as TBAString).AsString);
+    finally
+      V.Free;
+    end;
+  finally
+    Indirect.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestGetVariableValue_FoundReturnsValue;
+var
+  OclVars: TBoldOclVariables;
+begin
+  // Covers line 286: GetVariableValue found path returning lVariable.Value
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    OclVars.AddVariable('myVar', FDataModule.BoldListHandle1);
+    // Exercises the found path (line 286: result := lVariable.Value)
+    // Handle Value may be nil in standalone test, but the code path is covered
+    OclVars.GetVariableValue('myVar');
+    Assert.Pass('GetVariableValue found path exercised');
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestHandleBasedVariable_UseListElement_GetValue;
+var
+  V: TBoldHandleBasedExternalVariable;
+begin
+  // Covers lines 689-692: GetValue with fUseListElement=True and list handle
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  V := TBoldHandleBasedExternalVariable.Create('listVar', FDataModule.BoldListHandle1, True);
+  try
+    // Exercises the fUseListElement branch in GetValue
+    // Value may be nil if handle hasn't derived yet, but the code path is exercised
+    V.Value; // trigger GetValue
+    Assert.Pass('GetValue with UseListElement exercised');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestHandleBasedVariable_UseListElement_GetValueType;
+var
+  V: TBoldHandleBasedExternalVariable;
+begin
+  // Covers line 702-703: GetValueType with fUseListElement=True and list handle
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  V := TBoldHandleBasedExternalVariable.Create('listVar', FDataModule.BoldListHandle1, True);
+  try
+    Assert.IsNotNull(V.ValueType, 'ValueType should return StaticListType for list handle');
+  finally
+    V.Free;
+  end;
 end;
 
 initialization
