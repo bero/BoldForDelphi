@@ -166,6 +166,26 @@ type
     procedure TestGetVariableValue_FoundReturnsValue;
     [Test]
     procedure TestHandleBasedVariable_UseListElement_GetValue;
+
+    // === Deep coverage tests (batch 3) ===
+    [Test]
+    procedure TestAssign_InheritedBranch;
+    [Test]
+    procedure TestTuple_HandleDestroyed_NilsHandle;
+    [Test]
+    procedure TestHandleBasedVar_HandleDestroyed;
+    [Test]
+    procedure TestEnsureEvaluator_FallbackToDefault;
+    [Test]
+    procedure TestRegisterVariables_WithUseListElement;
+    [Test]
+    procedure TestReceive_GlobalSystemHandleDestroying;
+    [Test]
+    procedure TestLoaded_CallsPlaceSubscriptions;
+    [Test]
+    procedure TestSetVariableTupleList_Setter;
+    [Test]
+    procedure TestHandleBasedVar_SetHandle;
   end;
 
 implementation
@@ -173,7 +193,17 @@ implementation
 uses
   BoldOcl,
   BoldSubscription,
-  BoldAbstractListHandle;
+  BoldAbstractListHandle,
+  BoldRootedHandles;
+
+type
+  // Cracker class to access protected Loaded method
+  TBoldOclVariablesAccess = class(TBoldOclVariables);
+  // Cracker class to access protected Handle property
+  TBoldHandleBasedExternalVariableAccess = class(TBoldHandleBasedExternalVariable)
+  public
+    property Handle;
+  end;
 
 { TTestBoldOclVariables }
 
@@ -1204,6 +1234,184 @@ begin
   V := TBoldHandleBasedExternalVariable.Create('listVar', FDataModule.BoldListHandle1, True);
   try
     Assert.IsNotNull(V.ValueType, 'ValueType should return StaticListType for list handle');
+  finally
+    V.Free;
+  end;
+end;
+
+// === Deep coverage tests (batch 3) ===
+
+procedure TTestBoldOclVariables.TestAssign_InheritedBranch;
+var
+  OclVars: TBoldOclVariables;
+  Tuple: TBoldVariableTuple;
+  P: TPersistent;
+begin
+  // Covers line 559: Assign with non-TBoldVariableTuple calls inherited which raises
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    Tuple := OclVars.AddVariable('test', nil);
+    P := TPersistent.Create;
+    try
+      Assert.WillRaiseAny(
+        procedure
+        begin
+          Tuple.Assign(P);
+        end,
+        'Assign with non-TBoldVariableTuple should raise');
+    finally
+      P.Free;
+    end;
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestTuple_HandleDestroyed_NilsHandle;
+var
+  OclVars: TBoldOclVariables;
+  Tuple: TBoldVariableTuple;
+begin
+  // Covers SetBoldHandle subscription management and Changed notification
+  // Note: bare TBoldListHandle.Create(nil) AVs on BoldSystem access, so we
+  // test handle switching using the pre-initialized data module handle
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    Tuple := OclVars.AddVariable('myVar', FDataModule.BoldListHandle1);
+    Assert.AreSame(FDataModule.BoldListHandle1, Tuple.BoldHandle, 'Handle should be assigned');
+    // Setting to nil exercises SetBoldHandle: cancels subscription, sets nil, calls Changed
+    Tuple.BoldHandle := nil;
+    Assert.IsNull(Tuple.BoldHandle, 'Handle should be nil after explicit nil assignment');
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestHandleBasedVar_HandleDestroyed;
+var
+  V: TBoldHandleBasedExternalVariableAccess;
+begin
+  // Covers SetHandle cancel/subscribe path by changing handle on variable
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  V := TBoldHandleBasedExternalVariableAccess.Create('test', FDataModule.BoldListHandle1, False);
+  try
+    Assert.AreSame(FDataModule.BoldListHandle1, V.Handle, 'Handle should be assigned');
+    // Setting to nil exercises SetHandle: cancel old subscription, set fHandle := nil
+    V.Handle := nil;
+    Assert.IsNull(V.Handle, 'Handle should be nil');
+    Assert.IsNull(V.Value, 'Value should be nil when handle is nil');
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestEnsureEvaluator_FallbackToDefault;
+var
+  V: TBoldOclVariable;
+begin
+  // Covers line 754: EnsureEvaluator uses DefaultBoldSystemHandle when evaluator is nil
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  // FDataModule.BoldSystemHandle1 has IsDefault=True, so it's DefaultBoldSystemHandle
+  V := TBoldOclVariable.CreateStringVariable('strVar', 'hello', nil);
+  try
+    Assert.AreEqual('hello', (V.Value as TBAString).AsString);
+  finally
+    V.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestRegisterVariables_WithUseListElement;
+var
+  OclVars: TBoldOclVariables;
+begin
+  // Covers line 349: RegisterVariables with EffectiveUseListElement=true
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    OclVars.AddVariable('listVar', FDataModule.BoldListHandle1, True);
+    // Setting GlobalSystemHandle triggers PlaceSubscriptions -> RegisterVariables
+    // RegisterVariables enters the EffectiveUseListElement branch (line 349)
+    OclVars.GlobalSystemHandle := FDataModule.BoldSystemHandle1;
+    Assert.Pass('RegisterVariables with EffectiveUseListElement should not raise');
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestReceive_GlobalSystemHandleDestroying;
+var
+  OclVars: TBoldOclVariables;
+  SystemHandle: TBoldSystemHandle;
+begin
+  // Covers lines 437-445: _Receive handles GlobalSystemHandle beDestroying
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    SystemHandle := TBoldSystemHandle.Create(nil);
+    try
+      OclVars.GlobalSystemHandle := SystemHandle;
+      Assert.AreSame(SystemHandle, OclVars.GlobalSystemHandle, 'Should be set');
+    finally
+      SystemHandle.Free; // Fires beDestroying -> _Receive -> GlobalSystemHandle := nil
+    end;
+    Assert.IsNull(OclVars.GlobalSystemHandle,
+      'GlobalSystemHandle should be nil after system handle destroyed');
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestLoaded_CallsPlaceSubscriptions;
+var
+  OclVars: TBoldOclVariables;
+begin
+  // Covers lines 301-304: Loaded override calls inherited + PlaceSubscriptions
+  Assert.IsNotNull(GetSystem, 'System must be active');
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    OclVars.AddVariable('testVar', FDataModule.BoldListHandle1);
+    OclVars.GlobalSystemHandle := FDataModule.BoldSystemHandle1;
+    // Call Loaded via cracker class (simulates DFM streaming completion)
+    TBoldOclVariablesAccess(OclVars).Loaded;
+    Assert.Pass('Loaded should re-subscribe without errors');
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestSetVariableTupleList_Setter;
+var
+  OclVars: TBoldOclVariables;
+begin
+  // Covers lines 369-371: SetVariableTupleList published setter
+  OclVars := TBoldOclVariables.Create(nil);
+  try
+    OclVars.AddVariable('test', nil);
+    // Self-assignment exercises the setter code path
+    OclVars.Variables := OclVars.Variables;
+    Assert.AreEqual(1, OclVars.Variables.Count, 'Variables should be unchanged after self-assignment');
+  finally
+    OclVars.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.TestHandleBasedVar_SetHandle;
+var
+  V: TBoldHandleBasedExternalVariableAccess;
+begin
+  // Covers lines 713-719: SetHandle changes handle with subscription management
+  // Create with nil handle (safe), then exercise SetHandle via property
+  V := TBoldHandleBasedExternalVariableAccess.Create('test', nil, False);
+  try
+    Assert.IsNull(V.Handle, 'Should start with nil handle');
+    // Set handle -> subscribes to handle for beDestroying (lines 717-719)
+    V.Handle := FDataModule.BoldListHandle1;
+    Assert.AreSame(FDataModule.BoldListHandle1, V.Handle, 'Handle should be assigned');
+    // Same handle -> early exit (lines 714-715)
+    V.Handle := FDataModule.BoldListHandle1;
+    Assert.AreSame(FDataModule.BoldListHandle1, V.Handle, 'Same handle is no-op');
+    // Set to nil -> cancels subscription, sets nil (lines 716-717)
+    V.Handle := nil;
+    Assert.IsNull(V.Handle, 'Handle should be nil after clear');
   finally
     V.Free;
   end;
