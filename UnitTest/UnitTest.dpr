@@ -105,6 +105,7 @@ uses
   Test.BoldListHandle in 'Code\Handles\Test.BoldListHandle.pas',
   Test.BoldSortedHandle in 'Code\Handles\Test.BoldSortedHandle.pas',
   Test.BoldFilteredHandle in 'Code\Handles\Test.BoldFilteredHandle.pas',
+  Test.BoldOclVariables in 'Code\Handles\Test.BoldOclVariables.pas',
   Test.BoldCollections in 'Code\Common\Test.BoldCollections.pas',
   Test.BoldSSExcept in 'Code\ObjectSpace\Test.BoldSSExcept.pas',
   Test.BoldDefs in 'Code\Common\Test.BoldDefs.pas',
