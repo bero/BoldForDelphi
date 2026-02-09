@@ -3,6 +3,7 @@ unit Test.BoldGlobalId;
 interface
 
 uses
+  Classes,
   DUnitX.TestFramework,
   BoldGlobalId,
   BoldDefaultId,
@@ -43,10 +44,29 @@ type
     procedure TestTopSortedIndexExact;
   end;
 
+  [TestFixture]
+  TTestBoldGlobalIdXMLStreaming = class
+  private
+    FDataModule: TDataModule;
+  public
+    [Setup]
+    procedure Setup;
+    [TearDown]
+    procedure TearDown;
+    [Test]
+    procedure TestXMLRoundTrip_GlobalId;
+    [Test]
+    procedure TestXMLWriteObject_GlobalId;
+  end;
+
 implementation
 
 uses
-  SysUtils;
+  SysUtils,
+  Bold_MSXML_TLB,
+  BoldXMLStreaming,
+  BoldDefaultXMLStreaming,
+  Test.BoldAttributes;
 
 { TTestBoldGlobalId }
 
@@ -252,7 +272,104 @@ begin
   end;
 end;
 
+{ TTestBoldGlobalIdXMLStreaming }
+
+procedure TTestBoldGlobalIdXMLStreaming.Setup;
+begin
+  FDataModule := TjehodmBoldTest.Create(nil);
+end;
+
+procedure TTestBoldGlobalIdXMLStreaming.TearDown;
+begin
+  FreeAndNil(FDataModule);
+end;
+
+procedure TTestBoldGlobalIdXMLStreaming.TestXMLWriteObject_GlobalId;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  anId: TBoldGlobalId;
+begin
+  // TopSortedIndex=1 = ClassA in jehoBCBoldTest model
+  anId := TBoldGlobalId.CreateWithInfo('test-global-123', 1, True, 'ClassA');
+  try
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'GlobalIdTest');
+      aNode.WriteSubNodeObject('Id', '', anId);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      Assert.IsTrue(Length(anXML) > 0, 'XML should not be empty');
+      Assert.IsTrue(Pos('test-global-123', anXML) > 0, 'XML should contain the global ID string');
+      aNode.Free;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    anId.Free;
+  end;
+end;
+
+procedure TTestBoldGlobalIdXMLStreaming.TestXMLRoundTrip_GlobalId;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  anId: TBoldGlobalId;
+  ReadId: TBoldGlobalId;
+begin
+  // TopSortedIndex=1 = ClassA in jehoBCBoldTest model
+  anId := TBoldGlobalId.CreateWithInfo('roundtrip-test-id', 1, True, 'ClassA');
+  try
+    // Write to XML
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'GlobalIdRoundTrip');
+      aNode.WriteSubNodeObject('Id', '', anId);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      // Read back from XML
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'GlobalIdRoundTrip');
+      try
+        ReadId := aNode.ReadSubNodeObject('Id', '') as TBoldGlobalId;
+        try
+          Assert.AreEqual('roundtrip-test-id', ReadId.AsString, 'AsString mismatch');
+          Assert.AreEqual(1, ReadId.TopSortedIndex, 'TopSortedIndex mismatch');
+          Assert.IsTrue(ReadId.TopSortedIndexExact, 'TopSortedIndexExact mismatch');
+          // ClassExpressionName is reconstructed from model during ReadObject
+          Assert.AreEqual('ClassA', ReadId.ClassExpressionName, 'ClassExpressionName mismatch');
+          Assert.IsTrue(anId.IsEqual[ReadId], 'IDs should be equal');
+        finally
+          ReadId.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    anId.Free;
+  end;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldGlobalId);
+  TDUnitX.RegisterTestFixture(TTestBoldGlobalIdXMLStreaming);
 
 end.

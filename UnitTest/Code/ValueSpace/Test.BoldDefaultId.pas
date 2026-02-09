@@ -3,6 +3,7 @@ unit Test.BoldDefaultId;
 interface
 
 uses
+  Classes,
   DUnitX.TestFramework,
   BoldDefaultId,
   BoldId,
@@ -67,12 +68,31 @@ type
     procedure TestTimestampedIdCloneWithClassId;
   end;
 
+  [TestFixture]
+  TTestBoldDefaultIdXMLStreaming = class
+  private
+    FDataModule: TDataModule;
+  public
+    [Setup]
+    procedure Setup;
+    [TearDown]
+    procedure TearDown;
+    [Test]
+    procedure TestXMLRoundTrip_DefaultId;
+    [Test]
+    procedure TestXMLRoundTrip_TimestampedDefaultId;
+  end;
+
 implementation
 
 uses
   SysUtils,
   BoldStreams,
-  BoldDefaultStreamNames;
+  BoldDefaultStreamNames,
+  Bold_MSXML_TLB,
+  BoldXMLStreaming,
+  BoldDefaultXMLStreaming,
+  Test.BoldAttributes;
 
 { TTestBoldDefaultId }
 
@@ -475,7 +495,124 @@ begin
   end;
 end;
 
+{ TTestBoldDefaultIdXMLStreaming }
+
+procedure TTestBoldDefaultIdXMLStreaming.Setup;
+begin
+  FDataModule := TjehodmBoldTest.Create(nil);
+end;
+
+procedure TTestBoldDefaultIdXMLStreaming.TearDown;
+begin
+  FreeAndNil(FDataModule);
+end;
+
+procedure TTestBoldDefaultIdXMLStreaming.TestXMLRoundTrip_DefaultId;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  anId, ReadId: TBoldDefaultId;
+begin
+  anId := TBoldDefaultId.CreateWithClassID(1, True);
+  try
+    anId.AsInteger := 42;
+
+    // Write to XML
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'DefaultIdTest');
+      aNode.WriteSubNodeObject('Id', '', anId);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      // Read back from XML
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'DefaultIdTest');
+      try
+        ReadId := aNode.ReadSubNodeObject('Id', '') as TBoldDefaultId;
+        try
+          Assert.AreEqual(42, ReadId.AsInteger, 'AsInteger mismatch');
+          Assert.AreEqual(1, ReadId.TopSortedIndex, 'TopSortedIndex mismatch');
+          Assert.IsTrue(ReadId.TopSortedIndexExact, 'TopSortedIndexExact mismatch');
+          Assert.IsTrue(anId.IsEqual[ReadId], 'IDs should be equal');
+        finally
+          ReadId.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    anId.Free;
+  end;
+end;
+
+procedure TTestBoldDefaultIdXMLStreaming.TestXMLRoundTrip_TimestampedDefaultId;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  anId: TBoldTimestampedDefaultId;
+  ReadId: TBoldTimestampedDefaultId;
+begin
+  anId := TBoldTimestampedDefaultId.CreateWithTimeAndClassId(13, 1, True);
+  try
+    anId.AsInteger := 99;
+
+    // Write to XML
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'TimestampedIdTest');
+      aNode.WriteSubNodeObject('Id', '', anId);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      // Read back from XML
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'TimestampedIdTest');
+      try
+        ReadId := aNode.ReadSubNodeObject('Id', '') as TBoldTimestampedDefaultId;
+        try
+          Assert.AreEqual(99, ReadId.AsInteger, 'AsInteger mismatch');
+          Assert.AreEqual(1, ReadId.TopSortedIndex, 'TopSortedIndex mismatch');
+          Assert.IsTrue(ReadId.TopSortedIndexExact, 'TopSortedIndexExact mismatch');
+          Assert.AreEqual(TBoldTimestampType(13), ReadId.TimeStamp, 'TimeStamp mismatch');
+          Assert.IsTrue(anId.IsEqual[ReadId], 'IDs should be equal');
+        finally
+          ReadId.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    anId.Free;
+  end;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldDefaultId);
+  TDUnitX.RegisterTestFixture(TTestBoldDefaultIdXMLStreaming);
 
 end.

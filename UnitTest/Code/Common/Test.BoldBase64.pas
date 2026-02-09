@@ -59,6 +59,16 @@ type
     procedure TestDecodeData_DataLeftError;
     [Test]
     procedure TestDecodeData_PaddingError;
+
+    { Position-specific decode error tests }
+    [Test]
+    procedure TestDecodeData_InvalidFirstChar;
+    [Test]
+    procedure TestDecodeData_InvalidSecondChar;
+    [Test]
+    procedure TestDecodeData_DataLeftFourthByte;
+    [Test]
+    procedure TestDecodeData_InvalidFourthChar;
   end;
 
 implementation
@@ -282,6 +292,52 @@ begin
   // Padding followed by non-pad character
   ResultCode := FBase64.DecodeData('TW=A', Output);
   Assert.AreEqual(Byte(BASE64_PADDING), ResultCode);
+end;
+
+{ Position-specific decode error tests }
+
+procedure TTestBoldBase64.TestDecodeData_InvalidFirstChar;
+var
+  Output: TBoldAnsiString;
+  ResultCode: Byte;
+begin
+  FBase64.FilterdecodeInput := False;
+  // Invalid char '$' at position 1 (first byte of quartet)
+  ResultCode := FBase64.DecodeData('$BCD', Output);
+  Assert.AreEqual(Byte(BASE64_INVALID), ResultCode);
+end;
+
+procedure TTestBoldBase64.TestDecodeData_InvalidSecondChar;
+var
+  Output: TBoldAnsiString;
+  ResultCode: Byte;
+begin
+  FBase64.FilterdecodeInput := False;
+  // Invalid char '$' at position 2 (second byte of quartet)
+  ResultCode := FBase64.DecodeData('A$CD', Output);
+  Assert.AreEqual(Byte(BASE64_INVALID), ResultCode);
+end;
+
+procedure TTestBoldBase64.TestDecodeData_DataLeftFourthByte;
+var
+  Output: TBoldAnsiString;
+  ResultCode: Byte;
+begin
+  FBase64.FilterdecodeInput := False;
+  // Pad '=' at position 4 but more data follows (i <> InputLength)
+  ResultCode := FBase64.DecodeData('AAA=AAAA', Output);
+  Assert.AreEqual(Byte(BASE64_DATALEFT), ResultCode);
+end;
+
+procedure TTestBoldBase64.TestDecodeData_InvalidFourthChar;
+var
+  Output: TBoldAnsiString;
+  ResultCode: Byte;
+begin
+  FBase64.FilterdecodeInput := False;
+  // Invalid char '$' at position 4 (fourth byte of quartet)
+  ResultCode := FBase64.DecodeData('AAA$', Output);
+  Assert.AreEqual(Byte(BASE64_INVALID), ResultCode);
 end;
 
 initialization
