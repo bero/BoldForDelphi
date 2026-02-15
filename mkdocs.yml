@@ -4,6 +4,7 @@ site_url: https://bero.github.io/BoldForDelphi/
 repo_url: https://github.com/bero/BoldForDelphi
 repo_name: bero/BoldForDelphi
 edit_uri: edit/develop/docs/
+strict: true
 
 theme:
   name: material
@@ -80,14 +81,42 @@ nav:
       - TBoldSystem: classes/TBoldSystem.md
       - TBoldObject: classes/TBoldObject.md
       - TBoldObjectList: classes/TBoldObjectList.md
+      - TBoldObjectId: classes/TBoldObjectId.md
     - Members:
       - TBoldMember: classes/TBoldMember.md
       - TBoldAttribute: classes/TBoldAttribute.md
       - TBoldObjectReference: classes/TBoldObjectReference.md
+    - Attribute Types:
+      - TBAString: classes/TBAString.md
+      - TBAInteger: classes/TBAInteger.md
+      - TBAFloat: classes/TBAFloat.md
+      - TBACurrency: classes/TBACurrency.md
+      - TBAMoment: classes/TBAMoment.md
+      - TBABoolean: classes/TBABoolean.md
+      - TBABlob: classes/TBABlob.md
     - Handles:
       - TBoldSystemHandle: classes/TBoldSystemHandle.md
       - TBoldListHandle: classes/TBoldListHandle.md
       - TBoldExpressionHandle: classes/TBoldExpressionHandle.md
+      - TBoldPersistenceHandle: classes/TBoldPersistenceHandle.md
+    - Subscription & Derivation:
+      - TBoldPublisher: classes/TBoldPublisher.md
+      - TBoldSubscriber: classes/TBoldSubscriber.md
+      - TBoldPassthroughSubscriber: classes/TBoldPassthroughSubscriber.md
+      - TBoldAbstractDeriver: classes/TBoldAbstractDeriver.md
+    - Runtime Type Info:
+      - TBoldSystemTypeInfo: classes/TBoldSystemTypeInfo.md
+      - TBoldClassTypeInfo: classes/TBoldClassTypeInfo.md
+      - TBoldMemberRTInfo: classes/TBoldMemberRTInfo.md
+    - GUI Components:
+      - TBoldGrid: classes/TBoldGrid.md
+      - TBoldEdit: classes/TBoldEdit.md
+      - TBoldLabel: classes/TBoldLabel.md
+      - TBoldComboBox: classes/TBoldComboBox.md
+      - TBoldCheckBox: classes/TBoldCheckBox.md
+      - TBoldNavigator: classes/TBoldNavigator.md
+    - Utilities:
+      - TBoldGuard: classes/TBoldGuard.md
   - Examples:
     - examples/index.md
   - Integrations:
@@ -110,3 +139,4 @@ extra:
 
 extra_javascript:
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid-init.js

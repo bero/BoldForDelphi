@@ -77,6 +77,18 @@ classDiagram
 | [TBoldAttribute](TBoldAttribute.md) | Stores attribute values |
 | [TBoldObjectReference](TBoldObjectReference.md) | Single-valued associations |
 
+## Attribute Types
+
+| Class | Description |
+|-------|-------------|
+| [TBAString](TBAString.md) | String attributes (Unicode, ANSI, trimmed, text) |
+| [TBAInteger](TBAInteger.md) | Integer attributes (Integer, SmallInt, Word, Byte) |
+| [TBAFloat](TBAFloat.md) | Double floating-point attributes |
+| [TBACurrency](TBACurrency.md) | Fixed-point currency attributes |
+| [TBAMoment](TBAMoment.md) | Date/time attributes (DateTime, Date, Time) |
+| [TBABoolean](TBABoolean.md) | Boolean attributes |
+| [TBABlob](TBABlob.md) | Binary large object attributes |
+
 ## Handle Classes
 
 | Class | Description |
@@ -84,6 +96,41 @@ classDiagram
 | [TBoldSystemHandle](TBoldSystemHandle.md) | Manages the Object Space connection |
 | [TBoldListHandle](TBoldListHandle.md) | OCL list expressions with filtering and sorting |
 | [TBoldExpressionHandle](TBoldExpressionHandle.md) | Single value OCL expressions |
+| [TBoldPersistenceHandle](TBoldPersistenceHandle.md) | Connects Object Space to database |
+
+## Subscription & Derivation
+
+| Class | Description |
+|-------|-------------|
+| [TBoldPublisher](TBoldPublisher.md) | Event sender — manages subscriptions |
+| [TBoldSubscriber](TBoldSubscriber.md) | Event receiver — abstract base |
+| [TBoldPassthroughSubscriber](TBoldPassthroughSubscriber.md) | Delegates events to callback methods |
+| [TBoldAbstractDeriver](TBoldAbstractDeriver.md) | Automatic value derivation engine |
+
+## Runtime Type Info
+
+| Class | Description |
+|-------|-------------|
+| [TBoldSystemTypeInfo](TBoldSystemTypeInfo.md) | Model-wide type registry |
+| [TBoldClassTypeInfo](TBoldClassTypeInfo.md) | Per-class metadata (members, hierarchy) |
+| [TBoldMemberRTInfo](TBoldMemberRTInfo.md) | Per-member metadata (type, persistence, derivation) |
+
+## GUI Components
+
+| Class | Description |
+|-------|-------------|
+| [TBoldGrid](TBoldGrid.md) | Data-aware grid for object lists |
+| [TBoldEdit](TBoldEdit.md) | Data-aware text edit |
+| [TBoldLabel](TBoldLabel.md) | Data-aware read-only label |
+| [TBoldComboBox](TBoldComboBox.md) | Data-aware combo box with lookup |
+| [TBoldCheckBox](TBoldCheckBox.md) | Data-aware boolean checkbox |
+
+## Utilities
+
+| Class | Description |
+|-------|-------------|
+| [TBoldGuard](TBoldGuard.md) | Automatic memory management via interface ref counting |
+| [TBoldObjectId](TBoldObjectId.md) | Object identity for persistence |
 
 ## Relationship Between Classes
 

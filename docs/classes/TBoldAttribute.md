@@ -22,19 +22,24 @@ classDiagram
     TBoldAttribute : +AsString
 
     click TBoldMember href "../TBoldMember/" "TBoldMember documentation"
+    click TBAString href "../TBAString/" "TBAString documentation"
+    click TBAInteger href "../TBAInteger/" "TBAInteger documentation"
+    click TBAFloat href "../TBAFloat/" "TBAFloat documentation"
+    click TBABoolean href "../TBABoolean/" "TBABoolean documentation"
+    click TBABlob href "../TBABlob/" "TBABlob documentation"
 ```
 
 ## Attribute Types
 
 | Bold Type | Delphi Type | UML Type |
 |-----------|-------------|----------|
-| `TBAString` | `string` | String |
-| `TBAInteger` | `Integer` | Integer |
-| `TBAFloat` | `Double` | Float, Currency |
-| `TBADateTime` | `TDateTime` | DateTime, Date |
-| `TBABoolean` | `Boolean` | Boolean |
-| `TBABlob` | `TStream` | Blob |
-| `TBACurrency` | `Currency` | Currency |
+| [`TBAString`](TBAString.md) | `string` | String |
+| [`TBAInteger`](TBAInteger.md) | `Integer` | Integer |
+| [`TBAFloat`](TBAFloat.md) | `Double` | Float, Currency |
+| [`TBAMoment`](TBAMoment.md) | `TDateTime` | DateTime, Date |
+| [`TBABoolean`](TBABoolean.md) | `Boolean` | Boolean |
+| [`TBABlob`](TBABlob.md) | `TStream` | Blob |
+| [`TBACurrency`](TBACurrency.md) | `Currency` | Currency |
 
 ## Class Definition
 

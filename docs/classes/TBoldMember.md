@@ -39,6 +39,10 @@ classDiagram
     TBoldMember : +OwningObject
     TBoldMember : +AsString
     TBoldMember : +IsNull
+
+    click TBoldAttribute href "../TBoldAttribute/" "TBoldAttribute documentation"
+    click TBoldObjectReference href "../TBoldObjectReference/" "TBoldObjectReference documentation"
+    click TBoldObjectList href "../TBoldObjectList/" "TBoldObjectList documentation"
 ```
 
 ## Member Types

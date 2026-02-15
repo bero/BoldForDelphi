@@ -40,6 +40,8 @@ classDiagram
     TBoldObjectList : +Count
     TBoldObjectList : +Add()
     TBoldObjectList : +Remove()
+
+    click TBoldMember href "../TBoldMember/" "TBoldMember documentation"
 ```
 
 ## Properties
