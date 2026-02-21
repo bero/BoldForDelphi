@@ -60,7 +60,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - **Delphi 13 Support**: Full support for Delphi 13 (packages in `Delphi30` folder)
 - **MasterDetail Demo**: Comprehensive example with configurable database persistence
-- **Quick Start Guide**: New documentation at `Doc/quickstart.md`
+- **Quick Start Guide**: New documentation at `quickstart.md`
 - **Roadmap**: Project roadmap at `ROADMAP.md`
 - **About Dialog**: Bold history and version info in IDE menu
 - **Model Editor Enhancements**:

@@ -44,7 +44,7 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 
 | Status | Notes |
 |--------|-------|
-| :white_check_mark: | Quick Start Guide (`Doc/quickstart.md`) |
+| :white_check_mark: | Quick Start Guide (`quickstart.md`) |
 | :white_check_mark: | Example documentation in browser |
 | :white_check_mark: | Add about dialog to Bold menu item in IDE |
 | :white_check_mark: | Changelog (`CHANGELOG.md`) |

@@ -15,7 +15,7 @@ Bold for Delphi is best suited for:
 ## Getting Started
 
 - **[Documentation](https://bero.github.io/BoldForDelphi/)** - Full documentation including concepts, class reference, and FAQ.
-- **[Quick Start Guide](Doc/quickstart.md)** - Step-by-step instructions to install Bold, build your first model, and run the MasterDetail example application.
+- **[Quick Start Guide](quickstart.md)** - Step-by-step instructions to install Bold, build your first model, and run the MasterDetail example application.
 - **[Roadmap](ROADMAP.md)** - Development plans, supported features, and future directions for Bold for Delphi.
 - **[Changelog](CHANGELOG.md)** - Version history and release notes.
 
