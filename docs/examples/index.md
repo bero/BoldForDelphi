@@ -10,10 +10,12 @@ Examples are in the `examples/` folder:
 examples/
 ├── Simple/
 │   ├── ObjectSpace/
-│   │   └── MasterDetail/     # Basic CRUD operations
-│   └── LogBridge/            # Logging integration
+│   │   └── MasterDetail/          # Basic CRUD operations (has .dproj)
+│   ├── Tools/
+│   │   └── SaveAndGenerateTest/   # Model save & code generation (has .dproj)
+│   └── LogBridge/                 # Logging integration
 └── Compound/
-    └── Building/             # Associations demo
+    ├── Building/                  # Associations demo (legacy .dpr only)
 ```
 
 ## Simple Examples
@@ -26,12 +28,23 @@ Basic CRUD application demonstrating:
 
 - Creating and editing objects
 - List handles and grids
-- Database persistence
+- Database persistence with SQLite (preconfigured)
 - Navigator controls
 
-```pascal
-// Open the project
+**Note**: Requires the Bold design-time package to be installed first. See the [Quick Start Guide](../../Doc/quickstart.md) Step 2.
+
+```
 examples\Simple\ObjectSpace\MasterDetail\MasterDetail.dproj
+```
+
+### SaveAndGenerateTest
+
+**Location**: `examples/Simple/Tools/SaveAndGenerateTest/`
+
+Tests the Bold model save and code generation workflow. Useful for verifying your Bold installation works correctly.
+
+```
+examples\Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj
 ```
 
 ### LogBridge
@@ -42,16 +55,24 @@ Demonstrates integrating Bold with external logging frameworks.
 
 ## Compound Examples
 
-### Building
+### Building (legacy)
 
 **Location**: `examples/Compound/Building/`
 
-More complex example showing:
+**Note**: This is a legacy Delphi 7 example with only a `.dpr` file (no `.dproj`). Use it as a code reference for learning about associations and derived attributes, but it cannot be opened directly in modern Delphi IDEs without creating a new project.
+
+Demonstrates:
 
 - Multiple related classes
 - Associations between objects
 - Derived attributes
 - OCL queries
+
+### XML
+
+**Location**: `examples/Compound/XML/`
+
+XML dispatcher example demonstrating Bold's XML capabilities.
 
 ## Example Tutorials
 

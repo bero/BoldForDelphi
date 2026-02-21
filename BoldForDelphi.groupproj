@@ -1,0 +1,84 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{DFD5A34D-3F28-461E-9001-16DFEADD40A9}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="examples\Simple\ObjectSpace\MasterDetail\MasterDetail.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="examples\Simple\LogBridge\LogBridgeDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="examples\Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="UnitTest\UnitTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="UnitTest\UnitTestGUI.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="MasterDetail">
+        <MSBuild Projects="examples\Simple\ObjectSpace\MasterDetail\MasterDetail.dproj"/>
+    </Target>
+    <Target Name="MasterDetail:Clean">
+        <MSBuild Projects="examples\Simple\ObjectSpace\MasterDetail\MasterDetail.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MasterDetail:Make">
+        <MSBuild Projects="examples\Simple\ObjectSpace\MasterDetail\MasterDetail.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LogBridgeDemo">
+        <MSBuild Projects="examples\Simple\LogBridge\LogBridgeDemo.dproj"/>
+    </Target>
+    <Target Name="LogBridgeDemo:Clean">
+        <MSBuild Projects="examples\Simple\LogBridge\LogBridgeDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LogBridgeDemo:Make">
+        <MSBuild Projects="examples\Simple\LogBridge\LogBridgeDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TestSaveAndGenerate">
+        <MSBuild Projects="examples\Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj"/>
+    </Target>
+    <Target Name="TestSaveAndGenerate:Clean">
+        <MSBuild Projects="examples\Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestSaveAndGenerate:Make">
+        <MSBuild Projects="examples\Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="UnitTest">
+        <MSBuild Projects="UnitTest\UnitTest.dproj"/>
+    </Target>
+    <Target Name="UnitTest:Clean">
+        <MSBuild Projects="UnitTest\UnitTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="UnitTest:Make">
+        <MSBuild Projects="UnitTest\UnitTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="UnitTestGUI">
+        <MSBuild Projects="UnitTest\UnitTestGUI.dproj"/>
+    </Target>
+    <Target Name="UnitTestGUI:Clean">
+        <MSBuild Projects="UnitTest\UnitTestGUI.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="UnitTestGUI:Make">
+        <MSBuild Projects="UnitTest\UnitTestGUI.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="MasterDetail;LogBridgeDemo;TestSaveAndGenerate;UnitTest;UnitTestGUI"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="MasterDetail:Clean;LogBridgeDemo:Clean;TestSaveAndGenerate:Clean;UnitTest:Clean;UnitTestGUI:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="MasterDetail:Make;LogBridgeDemo:Make;TestSaveAndGenerate:Make;UnitTest:Make;UnitTestGUI:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

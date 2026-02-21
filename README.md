@@ -21,10 +21,10 @@ Bold for Delphi is best suited for:
 
 ## Supported Delphi Versions
 
-- Delphi 13.0 Athens (packages/Delphi30/)
-- Delphi 12.3 Athens (packages/Delphi29.3/)
-- Delphi 12.1 Athens (packages/Delphi29.1/)
-- Delphi 11.x Alexandria (packages/Delphi28/)
+- Delphi 13.0 Athens (packages/Delphi13/)
+- Delphi 12.3 Athens (packages/Delphi12.3/)
+- Delphi 12.1 CE Athens (packages/Delphi12.1_CE/)
+- Delphi 11.3 Alexandria (packages/Delphi11.3/)
 
 ## Dependencies
 
@@ -60,22 +60,6 @@ The unit test project requires these external frameworks (not needed for product
 | [DelphiCodeCoverage](https://github.com/DelphiCodeCoverage/DelphiCodeCoverage) | `C:\Attracs\DelphiCodeCoverage\` | Code coverage reporting |
 
 Environment variables `DUnitX` and `DelphiMocks` are set automatically by `run_coverage.ps1`.
-
-## Building
-
-### Prerequisites
-- Delphi 13.0, 12.3, 12.1 CE or 11.3 installed
-
-### Build the Package
-
-Or manually from PowerShell:
-by using https://github.com/omonien/DelphiStandards/blob/master/DelphiBuildDPROJ.ps1
-
-Adjust -DelphiVersion from what you use.
-
-```powershell
-`DelphiBuildDPROJ.ps1 -Projectfile "C:\BoldForDelphi\packages\Delphi30\dclBold30.dproj" -DelphiVersion "37.0" -VerboseOutPut`
-```
 
 ## Unit Tests and Code Coverage
 

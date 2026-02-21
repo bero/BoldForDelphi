@@ -53,50 +53,45 @@ Then press Add and select your bpl-file
 
 Compiling from source gives you the latest version, or lets you use Bold with unsupported Delphi versions.
 
-Open the package file:
-```
-C:\BoldForDelphi\packages\<Delphi version>\dclBold.dpk
-```
+Open the package project for your Delphi version in the IDE:
 
-Replace `<Delphi version>` with your version:
+| Delphi Version | Open this file |
+|----------------|----------------|
+| Delphi 11.3 Alexandria | `packages\Delphi11.3\dclBold.dproj` |
+| Delphi 12.1 CE Athens | `packages\Delphi12.1_CE\dclBold.dproj` |
+| Delphi 12.3 Athens | `packages\Delphi12.3\dclBold.dproj` |
+| Delphi 13 Athens | `packages\Delphi13\dclBold.dproj` |
 
-| Delphi Version | Folder |
-|----------------|--------|
-| Delphi 11.3 | Delphi28 |
-| Delphi 12.1 | Delphi29.1 |
-| Delphi 12.3 | Delphi29.3 |
-| Delphi 13 | Delphi30 |
+Then:
+
+1. **File → Open Project** and select the `.dproj` from the table above
+2. **Project → Build** (or Shift+F9) to compile the package
+3. In the **Project Manager** panel, right-click the `.bpl` and choose **Install**
+4. Verify via menu **Component → Install Packages...** — you should see "Bold for Delphi" in the list
+
+The compiled BPL is output to `packages\Bin\`.
+
+You should now see Bold components in the Tool Palette. 🎉
 
 **Using an unsupported Delphi version:**
 
-If your Delphi version is not listed above, you can create packages for it:
+If your Delphi version is not listed above:
 
-1. Copy the folder of the closest supported version (e.g., copy `Delphi30` for Delphi 14)
-2. Rename the folder to match the Delphi compiler version (e.g., `Delphi31`)
-3. Open Project options
-4. Update the Lib version in Description to 31.
-5. Project should now be dclBold.31.bpl
-6. When you verified all is working it would be nice if you make a pull request to the author to include the new package in repository
-
-The Bold source code uses standard Delphi/VCL features and typically compiles on newer versions with minimal changes.
-
-1. Build the package
-2. Right-click on the bpl-file in project panel and choose **Install**
-3. The bpl should now be active in `packages\Bin\`
-4. Verify via menu **Component → Install Packages...**
-
-You should now see Bold components in the Tool Palette. 🎉
+1. Copy the folder of the closest supported version (e.g., copy `Delphi13` for Delphi 14)
+2. Rename the folder to match your Delphi version (e.g., `Delphi14`)
+3. Open `dclBold.dproj` in the IDE
+4. Go to **Project → Options → Description** and update the Lib Suffix to match your compiler version
+5. Build and install as described above
+6. If it works, consider submitting a pull request to include the new package folder
 
 ---
 
 ## Your First Bold Application 🏗️
 
-First option is to look at ready small app in
-`C:\BoldForDelphi\examples\Simple\ObjectSpace\MasterDetail\masterDetail.dpr`.
+First option is to look at a ready-made small app:
+`examples\Simple\ObjectSpace\MasterDetail\MasterDetail.dproj`
 
-Just compile it.
-
-Edit the ini-file according to your database. If you don't have a database server installed, try SQLite (easiest) or XML.
+**Important**: This example uses design-time Bold components, so you must install the Bold package first (Step 2 above). Then open and compile MasterDetail. It defaults to SQLite — no database server needed, just press F9.
 
 Second option is to build app from scratch. More fun and more learning 😊
 We'll build a simple app with **Person** and **Building** objects, where persons can own buildings.
@@ -130,7 +125,21 @@ Connect them:
 ### Step 4: Add Database Connection
 
 1. Drop a `TFDConnection` (FireDAC) on the DataModule
-2. Configure it for your database:
+2. Configure it for your database. **SQLite is the easiest to start with** — no server needed:
+
+   ```ini
+   [Database]
+   Persistence=FireDAC
+   Type=SQLite
+
+   [SQLite]
+   Database=BoldDemo.db
+   ```
+
+   The database file is created automatically on first run.
+
+   <details>
+   <summary><strong>Other database configurations (SQL Server, PostgreSQL, Firebird, MariaDB, Oracle)</strong></summary>
 
    **For SQL Server:**
    ```ini
@@ -189,7 +198,7 @@ Connect them:
    VendorLib=C:\Program Files\MariaDB\MariaDB Connector C 64-bit\lib\libmariadb.dll
    ```
 
-   Note: MariaDB requires the MariaDB Connector/C client library. Download it from https://mariadb.com/downloads/connectors/ (select Connector/C for Windows 64-bit). MySQL uses the same configuration - just point VendorLib to `libmysql.dll` instead.
+   Note: MariaDB requires the MariaDB Connector/C client library. Download from https://mariadb.com/downloads/connectors/ (Connector/C, Windows 64-bit). For MySQL, point VendorLib to `libmysql.dll` instead.
 
    **For Oracle:**
    ```ini
@@ -204,19 +213,9 @@ Connect them:
    VendorLib=C:\oracle\instantclient_23_7\oci.dll
    ```
 
-   Note: Oracle requires the Oracle Instant Client. Download from https://www.oracle.com/database/technologies/instant-client/downloads.html (Basic or Basic Light package). The `Database` parameter uses Easy Connect format: `//host:port/service_name`. Oracle treats empty strings as NULL, so Bold uses an EmptyStringMarker internally to preserve empty string values.
+   Note: Oracle requires the [Oracle Instant Client](https://www.oracle.com/database/technologies/instant-client/downloads.html). The `Database` parameter uses Easy Connect format: `//host:port/service_name`.
 
-   **For SQLite:**
-   ```ini
-   [Database]
-   Persistence=FireDAC
-   Type=SQLite
-
-   [SQLite]
-   Database=BoldDemo.db
-   ```
-
-   SQLite is the easiest to get started with - no server installation needed! The database file is created automatically on first run.
+   </details>
 
 3. Drop a `TBoldDatabaseAdapterFireDAC` component
 4. Set `BoldDatabaseAdapterFireDAC1.Connection` → `FDConnection1`
@@ -390,7 +389,7 @@ self.firstName + ' ' + self.lastName     -- Concatenation
 
 ## Next Steps 🚶
 
-1. **Explore the Examples**: See `examples/Compound/Building/` for a complete sample
+1. **Explore the Examples**: See `examples/Compound/Building/` for a more complex sample (note: this is a legacy Delphi 7 project — use it as a code reference, not as a compilable project)
 2. **Read the Tutorials**: Check `Doc/Starting Bfd - Part 1, 2, 3.pdf`
 3. **Learn OCL**: See `Doc/ad970808_UML11_OCL.pdf` for the OCL specification
 4. **Try Derived Attributes**: Computed values that auto-update
