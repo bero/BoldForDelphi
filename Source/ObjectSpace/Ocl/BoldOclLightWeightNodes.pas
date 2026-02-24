@@ -155,7 +155,7 @@ type
   private
     fMemberIndex: Integer;
     fMemberName: string;
-    fmemberOf: TBoldOLWNode;
+    fMemberOf: TBoldOLWNode;
     fQualifier: TBoldOLWNodeList;
     fIsBoolean: Boolean;
   protected
@@ -225,7 +225,6 @@ type
   end;
 
   TBoldOLWDateLiteral = class(TBoldOLWMomentLiteral)
-  private
   protected
     function GetStreamName: string; override;
   public
@@ -234,7 +233,6 @@ type
   end;
 
   TBoldOLWTimeLiteral = class(TBoldOLWMomentLiteral)
-  private
   protected
     function GetStreamName: string; override;
   public
@@ -467,7 +465,7 @@ begin
   v.VisitTBoldOLWOperation(self);
 end;
 
-constructor TBoldOLWOperation.create(Position: integer; const OperationName: String);
+constructor TBoldOLWOperation.Create(Position: integer; const OperationName: String);
 begin
   inherited create(position);
   fOperationName := OperationName;
@@ -530,8 +528,8 @@ end;
 
 destructor TBoldOLWIteration.Destroy;
 begin
+  FreeAndNil(fLoopVar);
   inherited;
-  FreeandNil(fLoopVar);
 end;
 
 function TBoldOLWIteration.GetStreamName: string;
@@ -606,7 +604,7 @@ end;
 
 function TBoldOLWNodeList.GetItem(index: Integer): TBoldOLWNode;
 begin
-  result := TObject(flist[index]) as TBoldOLWNode;
+  result := TBoldOLWNode(flist[index]);
 end;
 
 function TBoldOLWNodeList.GetStreamName: string;
@@ -659,6 +657,7 @@ end;
 
 procedure TBoldOLWStrLiteral.AcceptVisitor(V: TBoldOLWNodeVisitor);
 begin
+  inherited;
   v.VisitTBoldOLWStrLiteral(self);
 end;
 

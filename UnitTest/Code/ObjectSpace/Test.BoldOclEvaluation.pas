@@ -63,7 +63,7 @@ type
     [Test] [Category('Quick')]
     procedure TestMax;
     [Test] [Category('Quick')]
-    procedure TestSafeDivZero;
+    procedure TestSafeDivNonZero;
     [Test] [Category('Quick')]
     procedure TestSimpleRound;
     [Test] [Category('Quick')]
@@ -454,7 +454,7 @@ begin
   Assert.AreEqual(8, Obj.EvaluateExpressionAsInteger('self.aInteger.max(8)'));
 end;
 
-procedure TTestBoldOclEvaluation.TestSafeDivZero;
+procedure TTestBoldOclEvaluation.TestSafeDivNonZero;
 var
   Obj: TClassA;
 begin

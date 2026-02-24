@@ -226,7 +226,6 @@ begin
   if FloatSettingsPushed then
     raise EBold.Create(sCannotNestPushFloat);
   FloatSettingsPushed := true;
-  FloatSettingsPushed := true;
   oldDecimalSeparator := FormatSettings.DecimalSeparator;
   FormatSettings.DecimalSeparator := '.';
   oldThousandSeparator := FormatSettings.ThousandSeparator;

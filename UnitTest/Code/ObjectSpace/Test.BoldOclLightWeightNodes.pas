@@ -468,11 +468,13 @@ begin
     Visitor.Free;
   end;
 
-  // StrLiteral: calls VisitStrLiteral (overrides, no inherited for Literal/Node chain)
+  // StrLiteral: calls inherited chain (Node + Literal) + VisitStrLiteral
   Visitor := TTestOLWTrackingVisitor.Create;
   StrLit := TBoldOLWStrLiteral.Create(0, 's');
   try
     StrLit.AcceptVisitor(Visitor);
+    Assert.IsTrue(Visitor.WasVisited('Node'), 'StrLit should call Node');
+    Assert.IsTrue(Visitor.WasVisited('Literal'), 'StrLit should call Literal');
     Assert.IsTrue(Visitor.WasVisited('StrLiteral'), 'StrLit should call VisitStrLiteral');
   finally
     StrLit.Free;
