@@ -898,8 +898,7 @@ begin
   result := OCLConditionStreamName;
 end;
 
-procedure TBoldXMLOCLConditionStreamer.ReadObject(Obj: TObject;
-  Node: TBoldXMLNode);
+procedure TBoldXMLOCLConditionStreamer.ReadObject(Obj: TObject; Node: TBoldXMLNode);
 var
   Condition: TBoldOclCondition;
   Bindings: TBoldOLWNodeList;
@@ -907,18 +906,20 @@ begin
   inherited;
   Condition := Obj as TBoldOclCondition;
   Bindings := TBoldOLWNodeList.Create;
-  Bindings.OwnsObjects := false;
-  Node.AddStateObject('Bindings', Bindings);
-  Condition.fEnv := Node.ReadSubnodeObject('Env', OLWNodeListStreamName) as TBoldOLWNodeList;
-  Condition.fRootNode := Node.ReadSubnodeObject('RootNode', '') as TBoldOLWNode;
-  Condition.fContext := Node.ReadSubnodeObject('Context', BOLDOBJECTIDLISTNAME) as TBoldObjectidList;
-  Condition.fOclExpr := Node.ReadSubNodeString('OCL');
-  Node.RemoveStateObject('Bindings');
-  Bindings.Free;
+  try
+    Bindings.OwnsObjects := false;
+    Node.AddStateObject('Bindings', Bindings);
+    Condition.fEnv := Node.ReadSubnodeObject('Env', OLWNodeListStreamName) as TBoldOLWNodeList;
+    Condition.fRootNode := Node.ReadSubnodeObject('RootNode', '') as TBoldOLWNode;
+    Condition.fContext := Node.ReadSubnodeObject('Context', BOLDOBJECTIDLISTNAME) as TBoldObjectidList;
+    Condition.fOclExpr := Node.ReadSubNodeString('OCL');
+  finally
+    Node.RemoveStateObject('Bindings');
+    Bindings.Free;
+  end;
 end;
 
-procedure TBoldXMLOCLConditionStreamer.WriteObject(
-  Obj: TBoldInterfacedObject; Node: TBoldXMLNode);
+procedure TBoldXMLOCLConditionStreamer.WriteObject(Obj: TBoldInterfacedObject; Node: TBoldXMLNode);
 var
   Condition: TBoldOclCondition;
   Bindings: TBoldOLWNodeList;
@@ -926,16 +927,17 @@ begin
   inherited;
   Condition := Obj as TBoldOclCondition;
   Bindings := TBoldOLWNodeList.Create;
-  Bindings.OwnsObjects := false;
-  Node.AddStateObject('Bindings', Bindings);
-
-  Node.WriteSubnodeObject('Env', OLWNodeListStreamName, Condition.fEnv);
-  Node.WriteSubNodeObject('RootNode', '', Condition.fRootNode);
-  Node.WriteSubnodeObject('Context', BOLDOBJECTIDLISTNAME, Condition.fContext);
-  Node.WriteSubNodeString('OCL', Condition.fOclExpr);
-
-  Node.RemoveStateObject('Bindings');
-  Bindings.free;
+  try
+    Bindings.OwnsObjects := false;
+    Node.AddStateObject('Bindings', Bindings);
+    Node.WriteSubnodeObject('Env', OLWNodeListStreamName, Condition.fEnv);
+    Node.WriteSubNodeObject('RootNode', '', Condition.fRootNode);
+    Node.WriteSubnodeObject('Context', BOLDOBJECTIDLISTNAME, Condition.fContext);
+    Node.WriteSubNodeString('OCL', Condition.fOclExpr);
+  finally
+    Node.RemoveStateObject('Bindings');
+    Bindings.Free;
+  end;
 end;
 
 
