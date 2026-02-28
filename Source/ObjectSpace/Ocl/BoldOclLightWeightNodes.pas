@@ -467,7 +467,7 @@ end;
 
 constructor TBoldOLWOperation.Create(Position: integer; const OperationName: String);
 begin
-  inherited create(position);
+  inherited Create(Position);
   fOperationName := OperationName;
   fArgs := TBoldOLWNodeList.Create;
 end;
@@ -909,8 +909,10 @@ begin
   try
     Bindings.OwnsObjects := false;
     Node.AddStateObject('Bindings', Bindings);
+    FreeAndNil(Condition.fEnv);
     Condition.fEnv := Node.ReadSubnodeObject('Env', OLWNodeListStreamName) as TBoldOLWNodeList;
     Condition.fRootNode := Node.ReadSubnodeObject('RootNode', '') as TBoldOLWNode;
+    FreeAndNil(Condition.fContext);
     Condition.fContext := Node.ReadSubnodeObject('Context', BOLDOBJECTIDLISTNAME) as TBoldObjectidList;
     Condition.fOclExpr := Node.ReadSubNodeString('OCL');
   finally
@@ -1049,6 +1051,7 @@ var
 begin
   inherited;
   OLWOperation := Obj as TBoldOLWOperation;
+  FreeAndNil(OLWOperation.fArgs);
   OLWOperation.fArgs := Node.readSubNodeObject('Args', '') as TBoldOLWNodeList;
   OLWOperation.fOperationName := Node.ReadSubNodeString('OperationName');
 end;
@@ -1151,6 +1154,7 @@ begin
   OLWMember.fMemberIndex := Node.ReadSubNodeInteger('MemberIndex');
   OLWMember.fMemberName := Node.ReadSubNodeString('MemberName');
   OLWMember.fMemberOf := Node.ReadSubNodeObject('MemberOf', '') as TBoldOLWNode;
+  FreeAndNil(OLWMember.fQualifier);
   OLWMember.fQualifier := Node.ReadSubNodeObject('Qualifier', OLWNodeListStreamName) as TBoldOLWNodeList;
   OLWMember.fIsBoolean := Node.ReadSubNodeBoolean('IsBoolean');
 end;
@@ -1406,9 +1410,12 @@ begin
     begin
       aNode := aNodeEnumerator.Current;
       aSubNode := Node.MakeNodeForElement(aNode);
-      if aSubNode.Accessor = 'Node' then // do not localize
-        OLWList.Add(aSubNode.ReadObject('') as TBoldOLWNode);
-      aSubNode.Free;
+      try
+        if aSubNode.Accessor = 'Node' then // do not localize
+          OLWList.Add(aSubNode.ReadObject('') as TBoldOLWNode);
+      finally
+        aSubNode.Free;
+      end;
     end;
   finally
     aNodeEnumerator.Free;
@@ -1419,9 +1426,12 @@ begin
   while assigned(aNode) do
   begin
     aSubNode := Node.MakeNodeForElement(aNode as IXMLDOMElement);
-    if aSubNode.Accessor = 'Node' then
-      OLWList.Add(aSubNode.ReadObject('') as TBoldOLWNode);
-    aSubNode.Free;
+    try
+      if aSubNode.Accessor = 'Node' then
+        OLWList.Add(aSubNode.ReadObject('') as TBoldOLWNode);
+    finally
+      aSubNode.Free;
+    end;
     aNode := aNodeList.nextNode;
   end;
   {$ENDIF}
@@ -1439,8 +1449,11 @@ begin
   for i := 0 to OLWList.Count-1 do
   begin
     aSubNode := Node.NewSubNode('Node');
-    aSubNode.WriteObject('', OLWList[i]);
-    aSubNode.Free;
+    try
+      aSubNode.WriteObject('', OLWList[i]);
+    finally
+      aSubNode.Free;
+    end;
   end;
 end;
 

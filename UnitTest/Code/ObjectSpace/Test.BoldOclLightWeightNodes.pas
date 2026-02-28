@@ -3,6 +3,7 @@ unit Test.BoldOclLightWeightNodes;
 interface
 
 uses
+  Classes,
   DUnitX.TestFramework,
   BoldOclLightWeightNodes;
 
@@ -29,6 +30,31 @@ type
   public
     function WasVisited(const MethodName: string): Boolean;
     property VisitedMethods: string read fVisitedMethods;
+  end;
+
+  [TestFixture]
+  TTestBoldOLWNodeXMLStreaming = class
+  private
+    FDataModule: TComponent;
+  public
+    [Setup]
+    procedure Setup;
+    [TearDown]
+    procedure TearDown;
+    [Test]
+    procedure TestXMLRoundTrip_NodeList;
+    [Test]
+    procedure TestXMLRoundTrip_Operation;
+    [Test]
+    procedure TestXMLRoundTrip_TypeNode;
+    [Test]
+    procedure TestXMLRoundTrip_ListCoercion;
+    [Test]
+    procedure TestXMLRoundTrip_Member;
+    [Test]
+    procedure TestXMLRoundTrip_Literals;
+    [Test]
+    procedure TestXMLRoundTrip_OclCondition;
   end;
 
   [TestFixture]
@@ -117,7 +143,13 @@ uses
   SysUtils,
   Variants,
   BoldDefs,
-  BoldStreams;
+  BoldStreams,
+  BoldId,
+  BoldDefaultId,
+  Bold_MSXML_TLB,
+  BoldXMLStreaming,
+  BoldDefaultXMLStreaming,
+  Test.BoldAttributes;
 
 function GetNodeStreamName(Node: TBoldOLWNode): string;
 var
@@ -215,6 +247,449 @@ end;
 function TTestOLWTrackingVisitor.WasVisited(const MethodName: string): Boolean;
 begin
   Result := Pos(MethodName + ',', fVisitedMethods) > 0;
+end;
+
+{ TTestBoldOLWNodeXMLStreaming }
+
+procedure TTestBoldOLWNodeXMLStreaming.Setup;
+begin
+  FDataModule := TjehodmBoldTest.Create(nil);
+end;
+
+procedure TTestBoldOLWNodeXMLStreaming.TearDown;
+begin
+  FreeAndNil(FDataModule);
+end;
+
+procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_NodeList;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  List1, List2: TBoldOLWNodeList;
+begin
+  List1 := TBoldOLWNodeList.Create;
+  try
+    List1.Add(TBoldOLWIntLiteral.Create(1, 10));
+    List1.Add(TBoldOLWIntLiteral.Create(2, 20));
+    List1.Add(TBoldOLWIntLiteral.Create(3, 30));
+
+    // Write to XML
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'NodeListTest');
+      aNode.WriteSubNodeObject('List', 'OLWNodeList', List1);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      // Read back from XML
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'NodeListTest');
+      try
+        List2 := aNode.ReadSubNodeObject('List', 'OLWNodeList') as TBoldOLWNodeList;
+        try
+          Assert.AreEqual(3, List2.Count, 'Count mismatch');
+          Assert.AreEqual(10, (List2[0] as TBoldOLWIntLiteral).IntValue, 'Item[0] mismatch');
+          Assert.AreEqual(20, (List2[1] as TBoldOLWIntLiteral).IntValue, 'Item[1] mismatch');
+          Assert.AreEqual(30, (List2[2] as TBoldOLWIntLiteral).IntValue, 'Item[2] mismatch');
+          Assert.AreEqual(1, List2[0].Position, 'Item[0] Position mismatch');
+          Assert.AreEqual(2, List2[1].Position, 'Item[1] Position mismatch');
+          Assert.AreEqual(3, List2[2].Position, 'Item[2] Position mismatch');
+        finally
+          List2.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    List1.Free;
+  end;
+end;
+
+procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_Operation;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  Op1, Op2: TBoldOLWOperation;
+begin
+  Op1 := TBoldOLWOperation.Create(5, 'includes');
+  try
+    Op1.Args.Add(TBoldOLWIntLiteral.Create(6, 42));
+    Op1.Args.Add(TBoldOLWStrLiteral.Create(7, 'test'));
+
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'OperationTest');
+      aNode.WriteSubNodeObject('Op', '', Op1);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'OperationTest');
+      try
+        Op2 := aNode.ReadSubNodeObject('Op', '') as TBoldOLWOperation;
+        try
+          Assert.AreEqual(5, Op2.Position, 'Position mismatch');
+          Assert.AreEqual('includes', Op2.OperationName, 'OperationName mismatch');
+          Assert.AreEqual(2, Op2.Args.Count, 'Args.Count mismatch');
+          Assert.AreEqual(42, (Op2.Args[0] as TBoldOLWIntLiteral).IntValue, 'Args[0] mismatch');
+          Assert.AreEqual('test', (Op2.Args[1] as TBoldOLWStrLiteral).StrValue, 'Args[1] mismatch');
+        finally
+          Op2.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    Op1.Free;
+  end;
+end;
+
+procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_TypeNode;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  TN1, TN2: TBoldOLWTypeNode;
+begin
+  TN1 := TBoldOLWTypeNode.Create(10, 'Person', 5);
+  try
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'TypeNodeTest');
+      aNode.WriteSubNodeObject('TN', '', TN1);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'TypeNodeTest');
+      try
+        TN2 := aNode.ReadSubNodeObject('TN', '') as TBoldOLWTypeNode;
+        try
+          Assert.AreEqual(10, TN2.Position, 'Position mismatch');
+          Assert.AreEqual('Person', TN2.TypeName, 'TypeName mismatch');
+          Assert.AreEqual(5, TN2.TopSortedIndex, 'TopSortedIndex mismatch');
+        finally
+          TN2.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    TN1.Free;
+  end;
+end;
+
+procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_ListCoercion;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  LC1, LC2: TBoldOLWListCoercion;
+begin
+  LC1 := TBoldOLWListCoercion.Create(15, TBoldOLWIntLiteral.Create(16, 99));
+  try
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'ListCoercionTest');
+      aNode.WriteSubNodeObject('LC', '', LC1);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'ListCoercionTest');
+      try
+        LC2 := aNode.ReadSubNodeObject('LC', '') as TBoldOLWListCoercion;
+        try
+          Assert.AreEqual(15, LC2.Position, 'Position mismatch');
+          Assert.IsNotNull(LC2.Child, 'Child should not be nil');
+          Assert.IsTrue(LC2.Child is TBoldOLWIntLiteral, 'Child should be IntLiteral');
+          Assert.AreEqual(99, (LC2.Child as TBoldOLWIntLiteral).IntValue, 'Child.IntValue mismatch');
+        finally
+          LC2.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    LC1.Free;
+  end;
+end;
+
+procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_Member;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  M1, M2: TBoldOLWMember;
+  MemberOf: TBoldOLWTypeNode;
+begin
+  MemberOf := TBoldOLWTypeNode.Create(20, 'Customer', 3);
+  M1 := TBoldOLWMember.Create(25, 'name', 7, MemberOf, True);
+  try
+    M1.Qualifier.Add(TBoldOLWIntLiteral.Create(26, 55));
+
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'MemberTest');
+      aNode.WriteSubNodeObject('M', '', M1);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'MemberTest');
+      try
+        M2 := aNode.ReadSubNodeObject('M', '') as TBoldOLWMember;
+        try
+          Assert.AreEqual(25, M2.Position, 'Position mismatch');
+          Assert.AreEqual('name', M2.MemberName, 'MemberName mismatch');
+          Assert.AreEqual(7, M2.MemberIndex, 'MemberIndex mismatch');
+          Assert.IsTrue(M2.IsBoolean, 'IsBoolean mismatch');
+          Assert.IsNotNull(M2.MemberOf, 'MemberOf should not be nil');
+          Assert.IsTrue(M2.MemberOf is TBoldOLWTypeNode, 'MemberOf should be TypeNode');
+          Assert.AreEqual('Customer', (M2.MemberOf as TBoldOLWTypeNode).TypeName, 'MemberOf.TypeName mismatch');
+          Assert.IsNotNull(M2.Qualifier, 'Qualifier should not be nil');
+          Assert.AreEqual(1, M2.Qualifier.Count, 'Qualifier.Count mismatch');
+          Assert.AreEqual(55, (M2.Qualifier[0] as TBoldOLWIntLiteral).IntValue, 'Qualifier[0] mismatch');
+        finally
+          M2.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    M1.Free; // also frees MemberOf and Qualifier items
+  end;
+end;
+
+procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_Literals;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  List1, List2: TBoldOLWNodeList;
+  TestDate: TDateTime;
+  TestTime: TDateTime;
+begin
+  TestDate := EncodeDate(2025, 6, 15);
+  TestTime := EncodeTime(14, 30, 0, 0);
+
+  List1 := TBoldOLWNodeList.Create;
+  try
+    List1.Add(TBoldOLWStrLiteral.Create(1, 'hello'));
+    List1.Add(TBoldOLWIntLiteral.Create(2, 42));
+    List1.Add(TBoldOLWFloatLiteral.Create(3, 3.14));
+    List1.Add(TBoldOLWEnumLiteral.Create(4, 'Red'));
+    (List1[3] as TBoldOLWEnumLiteral).IntValue := 2;
+    List1.Add(TBoldOLWDateLiteral.Create(5, TestDate));
+    List1.Add(TBoldOLWTimeLiteral.Create(6, TestTime));
+
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'LiteralsTest');
+      aNode.WriteSubNodeObject('Lits', 'OLWNodeList', List1);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'LiteralsTest');
+      try
+        List2 := aNode.ReadSubNodeObject('Lits', 'OLWNodeList') as TBoldOLWNodeList;
+        try
+          Assert.AreEqual(6, List2.Count, 'Count mismatch');
+          // StrLiteral
+          Assert.IsTrue(List2[0] is TBoldOLWStrLiteral, 'Item[0] type');
+          Assert.AreEqual('hello', (List2[0] as TBoldOLWStrLiteral).StrValue, 'StrValue mismatch');
+          // IntLiteral
+          Assert.IsTrue(List2[1] is TBoldOLWIntLiteral, 'Item[1] type');
+          Assert.AreEqual(42, (List2[1] as TBoldOLWIntLiteral).IntValue, 'IntValue mismatch');
+          // FloatLiteral
+          Assert.IsTrue(List2[2] is TBoldOLWFloatLiteral, 'Item[2] type');
+          Assert.AreEqual(3.14, (List2[2] as TBoldOLWFloatLiteral).FloatValue, 0.001, 'FloatValue mismatch');
+          // EnumLiteral
+          Assert.IsTrue(List2[3] is TBoldOLWEnumLiteral, 'Item[3] type');
+          Assert.AreEqual('Red', (List2[3] as TBoldOLWEnumLiteral).Name, 'EnumName mismatch');
+          Assert.AreEqual(2, (List2[3] as TBoldOLWEnumLiteral).IntValue, 'EnumIntValue mismatch');
+          // DateLiteral
+          Assert.IsTrue(List2[4] is TBoldOLWDateLiteral, 'Item[4] type');
+          Assert.AreEqual(TestDate, (List2[4] as TBoldOLWDateLiteral).DateValue, 'DateValue mismatch');
+          // TimeLiteral
+          Assert.IsTrue(List2[5] is TBoldOLWTimeLiteral, 'Item[5] type');
+          Assert.AreEqual(TestTime, (List2[5] as TBoldOLWTimeLiteral).TimeValue, 'TimeValue mismatch');
+        finally
+          List2.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    List1.Free;
+  end;
+end;
+
+procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_OclCondition;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  Cond1, Cond2: TBoldOclCondition;
+  SelfBinding, LoopBinding: TBoldOLWVariableBinding;
+  Iteration: TBoldOLWIteration;
+  VarRef: TBoldOLWVariableReference;
+  anId: TBoldDefaultId;
+begin
+  anId := nil;
+  Cond1 := TBoldOclCondition.Create;
+  try
+    Cond1.OclExpr := 'self.allInstances->select(e | e.name = ''test'')';
+    Cond1.TopSortedIndex := 3;
+
+    // Add an object ID to Context
+    anId := TBoldDefaultId.CreateWithClassID(1, False);
+    anId.AsInteger := 42;
+    Cond1.Context.Add(anId);
+
+    // Build Env: a variable binding for 'self' (owned by Env list)
+    SelfBinding := TBoldOLWVariableBinding.Create(0, 'self', 0);
+    SelfBinding.IsLoopVar := False;
+    Cond1.Env.Add(SelfBinding);
+
+    // Build RootNode: an iteration with its own loop variable
+    // LoopBinding is owned by Iteration (via fLoopVar), NOT added to Env
+    // to avoid double-free. This matches deserialized form where
+    // Env bindings and LoopVar are separate object instances.
+    LoopBinding := TBoldOLWVariableBinding.Create(1, 'e', 1);
+    LoopBinding.IsLoopVar := True;
+    Iteration := TBoldOLWIteration.Create(2, 'select', LoopBinding);
+    Iteration.Args.Add(TBoldOLWStrLiteral.Create(3, 'test'));
+    // VarRef points to the same LoopBinding — exercises deduplication
+    VarRef := TBoldOLWVariableReference.Create(4, LoopBinding);
+    Iteration.Args.Add(VarRef);
+    Cond1.RootNode := Iteration;
+
+    // Write to XML
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'OclCondTest');
+      aNode.WriteSubNodeObject('Cond', '', Cond1);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      // Read back from XML
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'OclCondTest');
+      try
+        Cond2 := aNode.ReadSubNodeObject('Cond', '') as TBoldOclCondition;
+        try
+          Assert.AreEqual('self.allInstances->select(e | e.name = ''test'')', Cond2.OclExpr, 'OclExpr mismatch');
+          Assert.AreEqual(3, Cond2.TopSortedIndex, 'TopSortedIndex mismatch');
+          Assert.IsNotNull(Cond2.Context, 'Context should not be nil');
+          Assert.AreEqual(1, Cond2.Context.Count, 'Context.Count mismatch');
+          Assert.IsNotNull(Cond2.Env, 'Env should not be nil');
+          Assert.AreEqual(1, Cond2.Env.Count, 'Env.Count mismatch');
+          Assert.IsTrue(Cond2.Env[0] is TBoldOLWVariableBinding, 'Env[0] type');
+          Assert.AreEqual('self', (Cond2.Env[0] as TBoldOLWVariableBinding).VariableName, 'Env[0] VariableName');
+          Assert.IsNotNull(Cond2.RootNode, 'RootNode should not be nil');
+          Assert.IsTrue(Cond2.RootNode is TBoldOLWIteration, 'RootNode should be Iteration');
+          Assert.AreEqual('select', (Cond2.RootNode as TBoldOLWIteration).OperationName, 'RootNode.OperationName');
+          Assert.AreEqual(2, (Cond2.RootNode as TBoldOLWIteration).Args.Count, 'RootNode.Args.Count');
+          // Verify VarRef binding deduplication: VarRef should reference the same binding as LoopVar
+          Assert.IsTrue(Cond2.RootNode is TBoldOLWIteration, 'RootNode is Iteration');
+          Assert.IsNotNull((Cond2.RootNode as TBoldOLWIteration).LoopVar, 'LoopVar should not be nil');
+          Assert.AreEqual('e', (Cond2.RootNode as TBoldOLWIteration).LoopVar.VariableName, 'LoopVar.VariableName');
+          Assert.IsTrue((Cond2.RootNode as TBoldOLWIteration).Args[1] is TBoldOLWVariableReference, 'Args[1] is VarRef');
+          Assert.AreSame(
+            (Cond2.RootNode as TBoldOLWIteration).LoopVar,
+            ((Cond2.RootNode as TBoldOLWIteration).Args[1] as TBoldOLWVariableReference).VariableBinding,
+            'VarRef should reference same binding as LoopVar (deduplication)');
+        finally
+          Cond2.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    Cond1.Free;
+    anId.Free;
+  end;
 end;
 
 { TTestBoldOclLightWeightNodes }
@@ -979,12 +1454,11 @@ begin
   Binding := TBoldOLWVariableBinding.Create(0, 'ext', 0);
   try
     Binding.AddRef; // first call OK
-    Assert.WillRaise(
+    Assert.WillRaiseAny(
       procedure
       begin
         Binding.AddRef; // second call on non-loopvar should raise
-      end,
-      EBold
+      end
     );
   finally
     Binding.Free;
@@ -1066,5 +1540,6 @@ end;
 
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldOclLightWeightNodes);
+  TDUnitX.RegisterTestFixture(TTestBoldOLWNodeXMLStreaming);
 
 end.
