@@ -604,7 +604,7 @@ end;
 
 function TBoldOLWNodeList.GetItem(index: Integer): TBoldOLWNode;
 begin
-  result := TBoldOLWNode(flist[index]);
+  result := TBoldOLWNode(fList[index]);
 end;
 
 function TBoldOLWNodeList.GetStreamName: string;
@@ -614,7 +614,7 @@ end;
 
 procedure TBoldOLWNodeList.PutItem(index: Integer; Value: TBoldOLWNode);
 begin
-  flist[index] := value;
+  fList[index] := value;
 end;
 
 procedure TBoldOLWNodeList.TraverseList(V: TBoldOLWNodeVisitor);
