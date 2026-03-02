@@ -164,7 +164,7 @@ type
     constructor Create(Position: integer; const memberName: string; MemberIndex: Integer; MemberOf: TBoldOLWNode; IsBoolean: Boolean);
     destructor Destroy; override;
     procedure AcceptVisitor(V: TBoldOLWNodeVisitor); override;
-    property MemberOf: TBoldOLWNode read fmemberOf;
+    property MemberOf: TBoldOLWNode read fMemberOf;
     property MemberName: string read fMemberName;
     property MemberIndex: Integer read fMemberIndex;
     property Qualifier: TBoldOLWNodeList read fQualifier;
@@ -456,7 +456,7 @@ type
 
 function TBoldOLWOperation.GetStreamName: string;
 begin
-  result := OLWOperationStreamName;
+  Result := OLWOperationStreamName;
 end;
 
 procedure TBoldOLWOperation.AcceptVisitor(V: TBoldOLWNodeVisitor);
@@ -509,7 +509,7 @@ end;
 
 function TBoldOLWTypeNode.GetStreamName: string;
 begin
-  result := OLWTypeNodeStreamName;
+  Result := OLWTypeNodeStreamName;
 end;
 
 { TBoldOLWIteration }
@@ -534,7 +534,7 @@ end;
 
 function TBoldOLWIteration.GetStreamName: string;
 begin
-  result := OLWIterationStreamName;
+  Result := OLWIterationStreamName;
 end;
 
 { TBoldOLWMember }
@@ -564,14 +564,14 @@ end;
 
 function TBoldOLWMember.GetStreamName: string;
 begin
-  result := OLWMemberStreamName;
+  Result := OLWMemberStreamName;
 end;
 
 { TBoldOLWNodeList }
 
 function TBoldOLWNodeList.Add(Item: TBoldOLWNode): Integer;
 begin
-  result := fList.add(item);
+  Result := fList.add(item);
 end;
 
 
@@ -594,22 +594,22 @@ end;
 
 function TBoldOLWNodeList.GetCount: integer;
 begin
-  result := fList.Count;
+  Result := fList.Count;
 end;
 
 function TBoldOLWNodeList.GetIndexOf(Node: TBoldOLWNode): integer;
 begin
-  result := fList.IndexOf(Node);
+  Result := fList.IndexOf(Node);
 end;
 
 function TBoldOLWNodeList.GetItem(index: Integer): TBoldOLWNode;
 begin
-  result := TBoldOLWNode(fList[index]);
+  Result := TBoldOLWNode(fList[index]);
 end;
 
 function TBoldOLWNodeList.GetStreamName: string;
 begin
-  result := OLWNodeListStreamName;
+  Result := OLWNodeListStreamName;
 end;
 
 procedure TBoldOLWNodeList.PutItem(index: Integer; Value: TBoldOLWNode);
@@ -650,7 +650,7 @@ end;
 
 function TBoldOLWVariableBinding.GetStreamName: string;
 begin
-  result := OLWVariableBindingStreamName;
+  Result := OLWVariableBindingStreamName;
 end;
 
 { TBoldOLWStrLiteral }
@@ -671,7 +671,7 @@ end;
 
 function TBoldOLWStrLiteral.GetStreamName: string;
 begin
-  result := OLWStrLiteralStreamName;
+  Result := OLWStrLiteralStreamName;
 end;
 
 { TBoldOLWNodeVisitor }
@@ -770,7 +770,7 @@ end;
 
 function TBoldOLWVariableReference.GetStreamName: string;
 begin
-  result := OLWVariableReferenceStreamName;
+  Result := OLWVariableReferenceStreamName;
 end;
 
 { TBoldOLWEnumLiteral }
@@ -803,7 +803,7 @@ end;
 
 function TBoldOLWListCoercion.GetStreamName: string;
 begin
-  result := OLWListCoercionStreamName;
+  Result := OLWListCoercionStreamName;
 end;
 
 constructor TBoldOLWEnumLiteral.Create(Position: integer; const Name: String);
@@ -814,7 +814,7 @@ end;
 
 function TBoldOLWEnumLiteral.GetStreamName: string;
 begin
-  result := OLWEnumLiteralStreamName;
+  Result := OLWEnumLiteralStreamName;
 end;
 
 { TBoldOLWLiteral }
@@ -842,7 +842,7 @@ end;
 
 function TBoldOLWFloatLiteral.GetStreamName: string;
 begin
-  result := OLWFloatLiteralStreamName;
+  Result := OLWFloatLiteralStreamName;
 end;
 
 { TBoldOLWIntLiteral }
@@ -861,7 +861,7 @@ end;
 
 function TBoldOLWIntLiteral.GetStreamName: string;
 begin
-  result := OLWIntLiteralStreamName;
+  Result := OLWIntLiteralStreamName;
 end;
 
 { TBoldOclCondition }
@@ -883,19 +883,19 @@ end;
 
 function TBoldOclCondition.GetStreamName: string;
 begin
-  result := OCLConditionStreamName;
+  Result := OCLConditionStreamName;
 end;
 
 { TBoldXMLOCLConditionStreamer }
 
 function TBoldXMLOCLConditionStreamer.CreateObject: TObject;
 begin
-  result := TBoldOclCondition.create;
+  Result := TBoldOclCondition.create;
 end;
 
 function TBoldXMLOCLConditionStreamer.GetStreamName: string;
 begin
-  result := OCLConditionStreamName;
+  Result := OCLConditionStreamName;
 end;
 
 procedure TBoldXMLOCLConditionStreamer.ReadObject(Obj: TObject; Node: TBoldXMLNode);
@@ -970,12 +970,12 @@ end;
 
 function TBoldXMLOLWTypeNodeStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWTypeNode.Create(0, '', -1);
+  Result := TBoldOLWTypeNode.Create(0, '', -1);
 end;
 
 function TBoldXMLOLWTypeNodeStreamer.GetStreamName: string;
 begin
-  result := OLWTypeNodeStreamName;
+  Result := OLWTypeNodeStreamName;
 end;
 
 procedure TBoldXMLOLWTypeNodeStreamer.ReadObject(Obj: TObject;
@@ -1004,12 +1004,12 @@ end;
 
 function TBoldXMLOLWListCoercionStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWListCoercion.Create(0, nil);
+  Result := TBoldOLWListCoercion.Create(0, nil);
 end;
 
 function TBoldXMLOLWListCoercionStreamer.GetStreamName: string;
 begin
-  result := OLWListCoercionStreamName;
+  Result := OLWListCoercionStreamName;
 end;
 
 procedure TBoldXMLOLWListCoercionStreamer.ReadObject(Obj: TObject;
@@ -1019,7 +1019,7 @@ var
 begin
   inherited;
   ListCoercion := obj as TBoldOLWListCoercion;
-  LIstCoercion.fChild := Node.readSubNodeObject('Child', '') as TBoldOLWNode;
+  ListCoercion.fChild := Node.ReadSubNodeObject('Child', '') as TBoldOLWNode;
 end;
 
 procedure TBoldXMLOLWListCoercionStreamer.WriteObject(
@@ -1036,12 +1036,12 @@ end;
 
 function TBoldXMLOLWOperationStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWOperation.Create(0, '');
+  Result := TBoldOLWOperation.Create(0, '');
 end;
 
 function TBoldXMLOLWOperationStreamer.GetStreamName: string;
 begin
-  result := OLWOperationStreamName;
+  Result := OLWOperationStreamName;
 end;
 
 procedure TBoldXMLOLWOperationStreamer.ReadObject(Obj: TObject;
@@ -1052,7 +1052,7 @@ begin
   inherited;
   OLWOperation := Obj as TBoldOLWOperation;
   FreeAndNil(OLWOperation.fArgs);
-  OLWOperation.fArgs := Node.readSubNodeObject('Args', '') as TBoldOLWNodeList;
+  OLWOperation.fArgs := Node.ReadSubNodeObject('Args', '') as TBoldOLWNodeList;
   OLWOperation.fOperationName := Node.ReadSubNodeString('OperationName');
 end;
 
@@ -1071,12 +1071,12 @@ end;
 
 function TBoldXMLOLWIterationStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWIteration.Create(0, '', nil);
+  Result := TBoldOLWIteration.Create(0, '', nil);
 end;
 
 function TBoldXMLOLWIterationStreamer.GetStreamName: string;
 begin
-  result := OLWIterationStreamName;
+  Result := OLWIterationStreamName;
 end;
 
 procedure WriteBindingToStream(Binding: TBoldOLWVariableBinding; Node: TBoldXMLNode);
@@ -1108,7 +1108,7 @@ begin
   else
   begin
     Result := Node.ReadSubNodeObject('Binding', OLWVariableBindingStreamName) as TBoldOLWVariableBinding;
-    Bindings.Add(result);
+    Bindings.Add(Result);
   end;
 end;
 
@@ -1136,12 +1136,12 @@ end;
 
 function TBoldXMLOLWMemberStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWMember.Create(0, '', -1, nil, false);
+  Result := TBoldOLWMember.Create(0, '', -1, nil, false);
 end;
 
 function TBoldXMLOLWMemberStreamer.GetStreamName: string;
 begin
-  result := OLWMemberStreamName;
+  Result := OLWMemberStreamName;
 end;
 
 procedure TBoldXMLOLWMemberStreamer.ReadObject(Obj: TObject;
@@ -1177,12 +1177,12 @@ end;
 
 function TBoldXMLOLWVariableBindingStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWVariableBinding.Create(0, '', -1);
+  Result := TBoldOLWVariableBinding.Create(0, '', -1);
 end;
 
 function TBoldXMLOLWVariableBindingStreamer.GetStreamName: string;
 begin
-  result := OLWVariableBindingStreamName;
+  Result := OLWVariableBindingStreamName;
 end;
 
 procedure TBoldXMLOLWVariableBindingStreamer.ReadObject(Obj: TObject;
@@ -1217,12 +1217,12 @@ end;
 
 function TBoldXMLOLWVariableReferenceStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWVariableReference.Create(0, nil);
+  Result := TBoldOLWVariableReference.Create(0, nil);
 end;
 
 function TBoldXMLOLWVariableReferenceStreamer.GetStreamName: string;
 begin
-  result := OLWVariableReferenceStreamName;
+  Result := OLWVariableReferenceStreamName;
 end;
 
 procedure TBoldXMLOLWVariableReferenceStreamer.ReadObject(Obj: TObject;
@@ -1249,12 +1249,12 @@ end;
 
 function TBoldXMLOLWStrLiteralStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWStrLiteral.Create(0, '');
+  Result := TBoldOLWStrLiteral.Create(0, '');
 end;
 
 function TBoldXMLOLWStrLiteralStreamer.GetStreamName: string;
 begin
-  result := OLWStrLiteralStreamName;
+  Result := OLWStrLiteralStreamName;
 end;
 
 procedure TBoldXMLOLWStrLiteralStreamer.ReadObject(Obj: TObject;
@@ -1281,12 +1281,12 @@ end;
 
 function TBoldXMLOLWIntLiteralStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWIntLiteral.Create(0, 0);
+  Result := TBoldOLWIntLiteral.Create(0, 0);
 end;
 
 function TBoldXMLOLWIntLiteralStreamer.GetStreamName: string;
 begin
-  result := OLWIntLiteralStreamName;
+  Result := OLWIntLiteralStreamName;
 end;
 
 procedure TBoldXMLOLWIntLiteralStreamer.ReadObject(Obj: TObject;
@@ -1313,12 +1313,12 @@ end;
 
 function TBoldXMLOLWFloatLiteralStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWFloatLiteral.Create(0, 0);
+  Result := TBoldOLWFloatLiteral.Create(0, 0);
 end;
 
 function TBoldXMLOLWFloatLiteralStreamer.GetStreamName: string;
 begin
-  result := OLWFloatLiteralStreamName;
+  Result := OLWFloatLiteralStreamName;
 end;
 
 procedure TBoldXMLOLWFloatLiteralStreamer.ReadObject(Obj: TObject;
@@ -1346,12 +1346,12 @@ end;
 
 function TBoldXMLOLWEnumLiteralStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWEnumLiteral.Create(0, '');
+  Result := TBoldOLWEnumLiteral.Create(0, '');
 end;
 
 function TBoldXMLOLWEnumLiteralStreamer.GetStreamName: string;
 begin
-  result := OLWEnumLiteralStreamName;
+  Result := OLWEnumLiteralStreamName;
 end;
 
 procedure TBoldXMLOLWEnumLiteralStreamer.ReadObject(Obj: TObject;
@@ -1372,20 +1372,20 @@ var
 begin
   inherited;
   EnumLiteral := obj as TBoldOLWEnumLiteral;
-  Node.WriteSubNodeString('Name', EnumLIteral.fName);
-  Node.WriteSubNodeInteger('IntValue', EnumLIteral.fIntValue);
+  Node.WriteSubNodeString('Name', EnumLiteral.fName);
+  Node.WriteSubNodeInteger('IntValue', EnumLiteral.fIntValue);
 end;
 
 { TBoldXMLOLWNodeListStreamer }
 
 function TBoldXMLOLWNodeListStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWNodeList.Create;
+  Result := TBoldOLWNodeList.Create;
 end;
 
 function TBoldXMLOLWNodeListStreamer.GetStreamName: string;
 begin
-  result := OLWNodeListStreamName;
+  Result := OLWNodeListStreamName;
 end;
 
 procedure TBoldXMLOLWNodeListStreamer.ReadObject(Obj: TObject;
@@ -1461,12 +1461,12 @@ end;
 
 function TBoldXMLOLWDateLiteralStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWDateLiteral.Create(0, 0);
+  Result := TBoldOLWDateLiteral.Create(0, 0);
 end;
 
 function TBoldXMLOLWDateLiteralStreamer.GetStreamName: string;
 begin
-  result := OLWDateLIteralStreamName;
+  Result := OLWDateLiteralStreamName;
 end;
 
 procedure TBoldXMLOLWDateLiteralStreamer.ReadObject(Obj: TObject;
@@ -1487,19 +1487,19 @@ var
 begin
   inherited;
   DateLiteral := obj as TBoldOLWDateLiteral;
-  Node.WriteSubNodeDate('DateValue', DateLIteral.DateValue);
+  Node.WriteSubNodeDate('DateValue', DateLiteral.DateValue);
 end;
 
 { TBoldXMLOLWTimeLiteralStreamer }
 
 function TBoldXMLOLWTimeLiteralStreamer.CreateObject: TObject;
 begin
-  result := TBoldOLWTimeLiteral.Create(0, 0);
+  Result := TBoldOLWTimeLiteral.Create(0, 0);
 end;
 
 function TBoldXMLOLWTimeLiteralStreamer.GetStreamName: string;
 begin
-  result := OLWTimeLIteralStreamName;
+  Result := OLWTimeLiteralStreamName;
 end;
 
 procedure TBoldXMLOLWTimeLiteralStreamer.ReadObject(Obj: TObject;
@@ -1520,7 +1520,7 @@ var
 begin
   inherited;
   TimeLiteral := obj as TBoldOLWTimeLiteral;
-  Node.WriteSubNodeTime('TimeValue', TimeLIteral.TimeValue);
+  Node.WriteSubNodeTime('TimeValue', TimeLiteral.TimeValue);
 end;
 
 { TBoldOLWMomentLiteral }
@@ -1542,7 +1542,7 @@ end;
 
 function TBoldOLWDateLiteral.GetStreamName: string;
 begin
-  result := OLWDateLiteralStreamName;
+  Result := OLWDateLiteralStreamName;
 end;
 
 { TBoldOLWTimeLiteral }
@@ -1555,7 +1555,7 @@ end;
 
 function TBoldOLWTimeLiteral.GetStreamName: string;
 begin
-  result := OLWTimeLiteralStreamName;
+  Result := OLWTimeLiteralStreamName;
 end;
 
 initialization
