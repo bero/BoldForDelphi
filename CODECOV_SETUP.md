@@ -14,8 +14,8 @@ Codecov.io integration is fully working. Coverage data is uploaded in Codecov's 
 # Set token (once per session)
 $env:CODECOV_TOKEN = "your-token-here"
 
-# Run tests with coverage and upload
-powershell -ExecutionPolicy Bypass -File "C:\Attracs\Run_coverage.ps1" -Upload
+# Run tests with coverage and upload (from repo root)
+powershell -ExecutionPolicy Bypass -File "UnitTest\run_coverage.ps1" -Upload
 ```
 
 ### Flags

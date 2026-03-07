@@ -123,7 +123,7 @@ Historical data (before Codecov integration):
 
 | Status | Comment |
 |--------|---------|
-| :calendar: | OCL parser and evaluator |
+| :white_check_mark: | OCL parser and evaluator (78.5% coverage, 117+ evaluation tests) |
 | :calendar: | Persistence layer |
 | :calendar: | SQL generation |
 | :calendar: | Subscription system |

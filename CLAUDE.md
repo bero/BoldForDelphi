@@ -156,11 +156,12 @@ Example: If `BoldFoo.pas` has 97% coverage with only an exception handler uncove
 ```
 BoldForDelphi/
 ├── packages/
-│   ├── Delphi28/                ← Delphi 11.3 Alexandria
-│   ├── Delphi29.1/              ← Delphi 12.1 Athens
-│   ├── Delphi29.3/              ← Delphi 12.3 Athens
+│   ├── Delphi11.3/              ← Delphi 11.3 Alexandria
+│   ├── Delphi12.1_CE/           ← Delphi 12.1 CE Athens
+│   ├── Delphi12.3/              ← Delphi 12.3 Athens
 │   │   ├── dclBold.dpk          (design-time package)
 │   │   └── dclBold.dproj
+│   ├── Delphi13/                ← Delphi 13
 │   └── Bin/                     ← Compiled BPL output
 ├── Source/
 │   ├── Common/

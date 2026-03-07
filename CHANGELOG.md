@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- 7 XML roundtrip tests for OLW node streaming (NodeList, Operation, TypeNode, ListCoercion, Member, Literals, OclCondition)
+- 5 XML roundtrip tests for BoldCondition streaming (28.7% → 99.4% coverage)
+
+### Fixed
+- 4 memory leaks in OLW XML streamer `ReadObject` methods — `CreateObject` allocated internal lists that were orphaned when `ReadObject` overwrote field pointers (#34)
+- Add try-finally blocks for Bindings cleanup in `TBoldXMLOCLConditionStreamer`
+- Standardize Pascal casing and fix method name typo
+- Correct field name casing from `flist` to `fList` in `TBoldOLWNodeList`
+
 ---
 
 ## [26.01.0] - 2026-01-06
