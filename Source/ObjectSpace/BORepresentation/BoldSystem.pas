@@ -1,4 +1,4 @@
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 
 unit BoldSystem;
@@ -2242,6 +2242,13 @@ begin
   PrepareToDestroy;
   IsDefault := False;
   FreeAndNil(fEvaluator);
+
+{ TBoldSystem is destroyed earlier during shutdown (before finalization). It already references fBoldSystemTypeInfo and no
+  longer needs its evaluator. By calling fBoldSystemTypeInfo.ReleaseEvaluator in TBoldSystem.Destroy, the TBoldOcl (and its
+  publisher) are freed while normal object destruction is still happening — before BoldSubscription finalization checks for leaks. }
+  if Assigned(fBoldSystemTypeInfo) then
+    fBoldSystemTypeInfo.ReleaseEvaluator;
+
   FreeAndNil(fClasses);
 
   for i := 0 to length(fSystemProxyCache) -1 do
