@@ -15,14 +15,12 @@ uses
   BoldSubscription,
   BoldModel,
   BoldHandle,
-  BoldUMLModelLink,
-  BoldUMLRose98Link, BoldAbstractModel;
+  BoldAbstractModel;
 
 type
   Tdm_Model1 = class(TDataModule)
     BoldModel1: TBoldModel;
     BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle;
-    BoldUMLRose98Link1: TBoldUMLRoseLink;
   private
     { Private declarations }
   public

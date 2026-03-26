@@ -1091,10 +1091,4 @@ object dm_Model1: Tdm_Model1
     Left = 144
     Top = 32
   end
-  object BoldUMLRose98Link1: TBoldUMLRoseLink
-    FileName = 'D:\Bold\BfD\TestCases\Main\Model1.mdl'
-    BoldModel = BoldModel1
-    Left = 48
-    Top = 96
-  end
 end

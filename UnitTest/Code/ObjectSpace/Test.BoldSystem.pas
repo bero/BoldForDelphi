@@ -20,6 +20,7 @@ uses
   BoldElements,
   BoldValueSpaceInterfaces,
   BoldTypeNameHandle,
+  TestModel1,
   jehoBCBoldTest,
   Test.BoldAttributes;
 
@@ -290,17 +291,6 @@ type
     [Category('Quick')]
     procedure TestObjectSetIsReadOnly;
 
-    // TBoldObjectReference (Single-Link)
-    [Test]
-    [Category('Quick')]
-    procedure TestObjectReferenceInitiallyNil;
-    [Test]
-    [Category('Quick')]
-    procedure TestObjectReferenceAssignment;
-    [Test]
-    [Category('Quick')]
-    procedure TestObjectReferenceClear;
-
     // StringRepresentation
     [Test]
     [Category('Quick')]
@@ -389,11 +379,6 @@ type
     [Category('Quick')]
     procedure TestBoldListIndexOf;
 
-    // IsEqualAs with ObjectReference
-    [Test]
-    [Category('Quick')]
-    procedure TestObjectIsEqualAsWithObjectReference;
-
     // EnsureLocatorByID
     [Test]
     [Category('Quick')]
@@ -447,10 +432,36 @@ type
     procedure TestAttributeOwningObject;
   end;
 
+  [TestFixture]
+  [Category('ObjectSpace')]
+  TTestBoldObjectReference = class
+  private
+    FSystemHandle: TBoldSystemHandle;
+    FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
+    function GetSystem: TBoldSystem;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestIsEqualAs_NilRef_vs_NilRef;
+    [Test]
+    procedure TestIsEqualAs_NilRef_vs_AssignedRef;
+    [Test]
+    procedure TestIsEqualAs_AssignedRef_SameObject;
+    [Test]
+    procedure TestIsEqualAs_AssignedRef_DifferentObject;
+    [Test]
+    procedure TestIsEqualAs_UnknownCompareType_Raises;
+  end;
+
 implementation
 
 uses
-  SysUtils;
+  SysUtils,
+  dmModel1;
 
 { TTestBoldSystem }
 
@@ -1681,46 +1692,6 @@ begin
   Assert.AreEqual('Modified value', Obj.aString, 'Should be able to modify after clearing read-only');
 end;
 
-{ TBoldObjectReference (Single-Link) - Test model has no relationships, so test basic reference mechanics }
-
-procedure TTestBoldSystem.TestObjectReferenceInitiallyNil;
-var
-  Obj: TClassA;
-  i: Integer;
-  Member: TBoldMember;
-  HasReference: Boolean;
-begin
-  Obj := TClassA.Create(GetSystem);
-
-  // Check if any member is an object reference
-  HasReference := False;
-  for i := 0 to Obj.BoldMemberCount - 1 do
-  begin
-    Member := Obj.BoldMembers[i];
-    if Member is TBoldObjectReference then
-    begin
-      HasReference := True;
-      Assert.IsNull(TBoldObjectReference(Member).BoldObject,
-        'Object reference should be nil initially');
-    end;
-  end;
-
-  if not HasReference then
-    Assert.Pass('Test model has no object references defined - test skipped');
-end;
-
-procedure TTestBoldSystem.TestObjectReferenceAssignment;
-begin
-  // Test model has no relationships defined
-  Assert.Pass('Test model has no object references - assignment test skipped');
-end;
-
-procedure TTestBoldSystem.TestObjectReferenceClear;
-begin
-  // Test model has no relationships defined
-  Assert.Pass('Test model has no object references - clear test skipped');
-end;
-
 { StringRepresentation }
 
 procedure TTestBoldSystem.TestObjectStringRepresentation;
@@ -2261,34 +2232,6 @@ begin
   end;
 end;
 
-{ IsEqualAs with ObjectReference }
-
-procedure TTestBoldSystem.TestObjectIsEqualAsWithObjectReference;
-var
-  Obj: TClassA;
-  i: Integer;
-  Member: TBoldMember;
-begin
-  Obj := TClassA.Create(GetSystem);
-  Obj.aString := 'IsEqualAs test';
-
-  // Find an object reference member if any
-  for i := 0 to Obj.BoldMemberCount - 1 do
-  begin
-    Member := Obj.BoldMembers[i];
-    if Member is TBoldObjectReference then
-    begin
-      // Test IsEqualAs with an object reference
-      Assert.IsFalse(Obj.IsEqualAs(ctDefault, Member),
-        'Object should not equal an empty object reference');
-      Exit;
-    end;
-  end;
-
-  // No object reference found - test passes
-  Assert.Pass('No object reference in test model - test skipped');
-end;
-
 { EnsureLocatorByID Tests }
 
 procedure TTestBoldSystem.TestEnsureLocatorByIDCreatesNew;
@@ -2522,7 +2465,107 @@ begin
     'Attribute OwningObject should be the object');
 end;
 
+{ TTestBoldObjectReference }
+
+procedure TTestBoldObjectReference.SetUp;
+begin
+  Ensuredm_Model;
+  FSystemTypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
+  FSystemTypeInfoHandle.BoldModel := dm_Model1.BoldModel1;
+  FSystemHandle := TBoldSystemHandle.Create(nil);
+  FSystemHandle.SystemTypeInfoHandle := FSystemTypeInfoHandle;
+  FSystemHandle.Active := True;
+end;
+
+procedure TTestBoldObjectReference.TearDown;
+begin
+  if Assigned(FSystemHandle) then
+  begin
+    if FSystemHandle.Active then
+    begin
+      FSystemHandle.System.Discard;
+      FSystemHandle.Active := False;
+    end;
+  end;
+  FreeAndNil(FSystemHandle);
+  FreeAndNil(FSystemTypeInfoHandle);
+end;
+
+function TTestBoldObjectReference.GetSystem: TBoldSystem;
+begin
+  Result := FSystemHandle.System;
+end;
+
+procedure TTestBoldObjectReference.TestIsEqualAs_NilRef_vs_NilRef;
+var
+  Obj1, Obj2: TestModel1.TClassA;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  // Both parent references are nil — should be equal
+  Assert.IsTrue(Obj1.M_parent.IsEqualAs(ctDefault, Obj2.M_parent),
+    'Two nil object references should be equal');
+end;
+
+procedure TTestBoldObjectReference.TestIsEqualAs_NilRef_vs_AssignedRef;
+var
+  Obj1, Obj2, Target: TestModel1.TClassA;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  Target := TestModel1.TClassA.Create(GetSystem);
+  Obj2.parent := Target;
+  // Obj1.parent is nil, Obj2.parent is assigned — should not be equal
+  Assert.IsFalse(Obj1.M_parent.IsEqualAs(ctDefault, Obj2.M_parent),
+    'Nil reference should not equal assigned reference');
+end;
+
+procedure TTestBoldObjectReference.TestIsEqualAs_AssignedRef_SameObject;
+var
+  Obj1, Obj2, Target: TestModel1.TClassA;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  Target := TestModel1.TClassA.Create(GetSystem);
+  Obj1.parent := Target;
+  Obj2.parent := Target;
+  // Both point to same object — should be equal
+  Assert.IsTrue(Obj1.M_parent.IsEqualAs(ctDefault, Obj2.M_parent),
+    'References to same object should be equal');
+end;
+
+procedure TTestBoldObjectReference.TestIsEqualAs_AssignedRef_DifferentObject;
+var
+  Obj1, Obj2, Target1, Target2: TestModel1.TClassA;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  Target1 := TestModel1.TClassA.Create(GetSystem);
+  Target2 := TestModel1.TClassA.Create(GetSystem);
+  Obj1.parent := Target1;
+  Obj2.parent := Target2;
+  // Point to different objects — should not be equal
+  Assert.IsFalse(Obj1.M_parent.IsEqualAs(ctDefault, Obj2.M_parent),
+    'References to different objects should not be equal');
+end;
+
+procedure TTestBoldObjectReference.TestIsEqualAs_UnknownCompareType_Raises;
+var
+  Obj, Target: TestModel1.TClassA;
+begin
+  Obj := TestModel1.TClassA.Create(GetSystem);
+  Target := TestModel1.TClassA.Create(GetSystem);
+  Obj.parent := Target;
+  Assert.WillRaiseAny(
+    procedure
+    begin
+      Obj.M_parent.IsEqualAs(ctAsString, Obj.M_parent);
+    end
+  );
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldSystem);
+  TDUnitX.RegisterTestFixture(TTestBoldObjectReference);
 
 end.
