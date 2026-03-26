@@ -20,6 +20,9 @@ uses
   BoldValueInterfaces,
   BoldValueSpaceInterfaces,
   BoldElements,
+  BoldHandles,
+  BoldSystemHandle,
+  BoldModel,
   UndoTestModelClasses;
 
 type
@@ -136,19 +139,6 @@ type
     [TearDown]
     procedure TearDown;
 
-    // Basic undo handler tests
-    [Test]
-    [Category('Quick')]
-    procedure TestUndoHandlerExists;
-
-    [Test]
-    [Category('Quick')]
-    procedure TestUndoHandlerEnabled;
-
-    [Test]
-    [Category('Quick')]
-    procedure TestSetCheckPoint;
-
     // Object creation undo tests
     [Test]
     [Category('Quick')]
@@ -248,10 +238,34 @@ type
     property UndoHandler: TBoldUndoHandler read GetUndoHandler;
   end;
 
+  { Transient tests for TBoldUndoHandler basic API - no database required }
+  [TestFixture]
+  [Category('UndoHandler')]
+  TTestBoldUndoHandlerTransient = class
+  private
+    FSystemHandle: TBoldSystemHandle;
+    FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
+    function GetSystem: TBoldSystem;
+    function GetUndoHandler: TBoldUndoHandler;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestUndoHandlerExists;
+    [Test]
+    procedure TestUndoHandlerEnabled;
+    [Test]
+    procedure TestSetCheckPoint;
+  end;
+
 implementation
 
 uses
   dmBoldTest,
+  dmModel1,
   maan_UndoRedoTestCaseUtils;
 
 type
@@ -823,33 +837,6 @@ begin
     ValueInBlock);
   Assert.IsTrue(Found, Format('%s should be in redo area', [Member.DisplayName]));
   Assert.IsNotNull(ValueInBlock, Format('%s redo value should not be nil', [Member.DisplayName]));
-end;
-
-// Basic undo handler tests
-
-procedure TTestBoldUndoHandler.TestUndoHandlerExists;
-begin
-  Assert.IsNotNull(System.UndoHandler, 'UndoHandler should exist on system');
-  Assert.IsTrue(System.UndoHandler is TBoldUndoHandler, 'UndoHandler should be TBoldUndoHandler');
-end;
-
-procedure TTestBoldUndoHandler.TestUndoHandlerEnabled;
-begin
-  UndoHandler.Enabled := True;
-  Assert.IsTrue(UndoHandler.Enabled, 'UndoHandler should be enabled');
-
-  UndoHandler.Enabled := False;
-  Assert.IsFalse(UndoHandler.Enabled, 'UndoHandler should be disabled');
-
-  UndoHandler.Enabled := True; // Re-enable for other tests
-end;
-
-procedure TTestBoldUndoHandler.TestSetCheckPoint;
-var
-  CheckPointName: string;
-begin
-  CheckPointName := UndoHandler.SetCheckPoint('TestCheckPoint');
-  Assert.IsNotEmpty(CheckPointName, 'CheckPoint name should not be empty');
 end;
 
 // Object creation undo tests
@@ -1487,8 +1474,69 @@ begin
   end;
 end;
 
+{ TTestBoldUndoHandlerTransient }
+
+procedure TTestBoldUndoHandlerTransient.SetUp;
+begin
+  Ensuredm_Model;
+  FSystemTypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
+  FSystemTypeInfoHandle.BoldModel := dm_Model1.BoldModel1;
+  FSystemHandle := TBoldSystemHandle.Create(nil);
+  FSystemHandle.SystemTypeInfoHandle := FSystemTypeInfoHandle;
+  FSystemHandle.Active := True;
+end;
+
+procedure TTestBoldUndoHandlerTransient.TearDown;
+begin
+  if Assigned(FSystemHandle) then
+  begin
+    if FSystemHandle.Active then
+    begin
+      FSystemHandle.System.Discard;
+      FSystemHandle.Active := False;
+    end;
+  end;
+  FreeAndNil(FSystemHandle);
+  FreeAndNil(FSystemTypeInfoHandle);
+end;
+
+function TTestBoldUndoHandlerTransient.GetSystem: TBoldSystem;
+begin
+  Result := FSystemHandle.System;
+end;
+
+function TTestBoldUndoHandlerTransient.GetUndoHandler: TBoldUndoHandler;
+begin
+  Result := GetSystem.UndoHandler as TBoldUndoHandler;
+end;
+
+procedure TTestBoldUndoHandlerTransient.TestUndoHandlerExists;
+begin
+  Assert.IsNotNull(GetSystem.UndoHandler, 'UndoHandler should exist on system');
+  Assert.IsTrue(GetSystem.UndoHandler is TBoldUndoHandler, 'UndoHandler should be TBoldUndoHandler');
+end;
+
+procedure TTestBoldUndoHandlerTransient.TestUndoHandlerEnabled;
+begin
+  GetUndoHandler.Enabled := True;
+  Assert.IsTrue(GetUndoHandler.Enabled, 'UndoHandler should be enabled');
+
+  GetUndoHandler.Enabled := False;
+  Assert.IsFalse(GetUndoHandler.Enabled, 'UndoHandler should be disabled');
+end;
+
+procedure TTestBoldUndoHandlerTransient.TestSetCheckPoint;
+var
+  CheckPointName: string;
+begin
+  GetUndoHandler.Enabled := True;
+  CheckPointName := GetUndoHandler.SetCheckPoint('TestCheckPoint');
+  Assert.IsNotEmpty(CheckPointName, 'CheckPoint name should not be empty');
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldUndoBlockListIsolated);
   TDUnitX.RegisterTestFixture(TTestBoldUndoHandler);
+  TDUnitX.RegisterTestFixture(TTestBoldUndoHandlerTransient);
 
 end.
