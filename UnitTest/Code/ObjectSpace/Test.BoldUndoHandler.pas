@@ -731,7 +731,7 @@ end;
 
 procedure TTestBoldUndoHandler.SetUpFixture;
 begin
-  EnsureBoldTestDM;
+  EnsureBoldTestDMSQLite;
   Assert.IsNotNull(BoldTestDM, 'BoldTestDM should be created');
   Assert.IsNotNull(BoldTestDM.BoldSystemHandle1.System, 'System should be active');
 end;
@@ -1590,7 +1590,7 @@ end;
 
 procedure TTestBoldUndoHandlerIndirectLinks.SetUpFixture;
 begin
-  EnsureBoldTestDM;
+  EnsureBoldTestDMSQLite;
   Assert.IsNotNull(BoldTestDM, 'BoldTestDM should be created');
   Assert.IsNotNull(BoldTestDM.BoldSystemHandle1.System, 'System should be active');
 end;

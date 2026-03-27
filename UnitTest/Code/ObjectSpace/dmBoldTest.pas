@@ -118,22 +118,16 @@ begin
   begin
     BoldTestDM := TBoldTestDM.Create(nil);
 
-    // Configure SQLite file-based database in temp folder.
-    // WAL journal mode and busy timeout prevent deadlocks when Bold creates
-    // internal connections via CreateAnotherDatabaseConnection, especially
-    // under CodeCoverage instrumentation where operations are much slower.
+    // Configure SQLite shared-cache in-memory database.
+    // Named memory URI ensures all Bold internal connections (created via
+    // CreateAnotherDatabaseConnection) share the same in-memory database.
     BoldTestDM.FDConnection1.Close;
     BoldTestDM.FDConnection1.Params.Clear;
     BoldTestDM.FDConnection1.DriverName := 'SQLite';
     BoldTestDM.FDConnection1.Params.Values['Database'] :=
-      IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP')) + 'bold_unittest.db';
-    BoldTestDM.FDConnection1.Params.Values['LockingMode'] := 'Normal';
-    BoldTestDM.FDConnection1.Params.Values['BusyTimeout'] := '10000';
+      'file:memdb1?mode=memory&cache=shared';
     BoldTestDM.FDConnection1.LoginPrompt := False;
     BoldTestDM.FDConnection1.Open;
-    // Enable WAL mode for better concurrent access
-    BoldTestDM.FDConnection1.ExecSQL('PRAGMA journal_mode=WAL');
-    BoldTestDM.FDConnection1.ExecSQL('PRAGMA busy_timeout=10000');
 
     // Adjust SQL config for SQLite compatibility
     BoldTestDM.BoldDatabaseAdapterFireDAC1.DatabaseEngine := dbeGenericANSISQL92;
