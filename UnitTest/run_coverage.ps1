@@ -128,7 +128,7 @@ try {
             "/p:Config=Debug",
             "/p:Platform=Win32",
             "/p:DCC_MapFile=3",
-            "/p:DCC_Define=DEBUG",
+            "/p:DCC_Define=DEBUG%3BAttracs",
             "/v:minimal"
         )
 

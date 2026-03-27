@@ -107,7 +107,6 @@ type
 
   [TestFixture]
   [Category('UndoHandler')]
-  [Ignore('Requires database connection')]
   TTestBoldUndoHandler = class
   private
     FUndoHandler: TBoldUndoHandler;
@@ -146,6 +145,7 @@ type
 
     [Test]
     [Category('Quick')]
+
     procedure TestDeletedObjectRecordedWithCorrectExistenceState;
 
     // Attribute modification tests
@@ -160,6 +160,7 @@ type
     // Undo/Redo cycle tests
     [Test]
     [Category('Quick')]
+
     procedure TestUndoObjectCreation;
 
     [Test]
@@ -182,14 +183,17 @@ type
 
     [Test]
     [Category('Quick')]
+
     procedure TestCreatePersistentObjectRecordsUndoState;
 
     [Test]
     [Category('Quick')]
+
     procedure TestCreateTransientObjectRecordsUndoState;
 
     [Test]
     [Category('Quick')]
+
     procedure TestDeleteTransientObjectRecordsUndoState;
 
     [Test]
@@ -233,6 +237,83 @@ type
     [Test]
     [Category('Quick')]
     procedure TestUndoEmbeddedRoleTransient;
+
+    // Additional modify test
+    [Test]
+    [Category('Quick')]
+    procedure TestModifyEmbeddedRoleModified;
+
+    property System: TBoldSystem read GetSystem;
+    property UndoHandler: TBoldUndoHandler read GetUndoHandler;
+  end;
+
+  { Tests for indirect link associations (many-to-many via link class) }
+  [TestFixture]
+  [Category('UndoHandler')]
+  TTestBoldUndoHandlerIndirectLinks = class
+  private
+    FUndoHandler: TBoldUndoHandler;
+    FSomeClassList: TSomeClassList;
+    FClassWithLinkList: TClassWithLinkList;
+    FFSValueSpace: TBoldFreeStandingValueSpace;
+    function GetSystem: TBoldSystem;
+    function GetUndoHandler: TBoldUndoHandler;
+    procedure RefreshSystem;
+    procedure UpdateDatabase;
+    function IdCompare(Item1, Item2: TBoldElement): Integer;
+    procedure FetchClassSorted(const aSystem: TBoldSystem; const aList: TBoldObjectList; const ObjClass: TBoldObjectClass);
+    procedure SetSimpleConfiguration;
+    procedure SetConfigurationForIndirectSingle;
+    procedure VerifyState(const Element: TBoldDomainElement; const State: TBoldValuePersistenceState);
+    procedure VerifyObjectInBlock(Block: TBoldUndoBlock; aId: TBoldObjectId; State: TBoldExistenceState);
+  public
+    [SetupFixture]
+    procedure SetUpFixture;
+    [TearDownFixture]
+    procedure TearDownFixture;
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    // Indirect multi-link tests (part/partof via Tpartpartof)
+    [Test]
+    [Category('Quick')]
+
+    procedure TestIndirectMultiModifyInsertCurrent;
+
+    [Test]
+    [Category('Quick')]
+    procedure TestIndirectMultiModifyDeleteCurrent;
+
+    [Test]
+    [Category('Quick')]
+
+    procedure TestIndirectMultiUndoInsert;
+
+    [Test]
+    [Category('Quick')]
+    procedure TestIndirectMultiUndoDelete;
+
+    // Indirect single-link tests (one/many via LinkClass)
+    [Test]
+    [Category('Quick')]
+
+    procedure TestIndirectSingleModifySingleRoleCurrent;
+
+    [Test]
+    [Category('Quick')]
+
+    procedure TestIndirectSingleModifyMultiRoleInsertCurrent;
+
+    [Test]
+    [Category('Quick')]
+    procedure TestIndirectSingleModifyMultiRoleDeleteCurrent;
+
+    [Test]
+    [Category('Quick')]
+
+    procedure TestIndirectSingleUndoSingleRoleModified;
 
     property System: TBoldSystem read GetSystem;
     property UndoHandler: TBoldUndoHandler read GetUndoHandler;
@@ -650,7 +731,6 @@ end;
 
 procedure TTestBoldUndoHandler.SetUpFixture;
 begin
-  // Create DataModule and database ONCE for the entire test fixture
   EnsureBoldTestDM;
   Assert.IsNotNull(BoldTestDM, 'BoldTestDM should be created');
   Assert.IsNotNull(BoldTestDM.BoldSystemHandle1.System, 'System should be active');
@@ -664,12 +744,8 @@ end;
 
 procedure TTestBoldUndoHandler.SetUp;
 begin
-  // Ensure system is active for this test
   if not BoldTestDM.BoldSystemHandle1.Active then
     BoldTestDM.BoldSystemHandle1.Active := True;
-
-  // Start database transaction for test isolation - will be rolled back in TearDown
-  BoldTestDM.FDConnection1.StartTransaction;
 
   FUndoHandler := BoldTestDM.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
   FUndoHandler.Enabled := True;
@@ -689,14 +765,9 @@ begin
 
   if Assigned(BoldTestDM) and BoldTestDM.BoldSystemHandle1.Active then
   begin
-    // Discard in-memory changes and rollback database transaction for test isolation
     BoldTestDM.BoldSystemHandle1.System.Discard;
-    if BoldTestDM.FDConnection1.InTransaction then
-      BoldTestDM.FDConnection1.Rollback;
-    // Deactivate system to get a clean state for next test
     BoldTestDM.BoldSystemHandle1.Active := False;
   end;
-  // Note: BoldTestDM is NOT freed here - it's reused across tests
 end;
 
 function TTestBoldUndoHandler.GetSystem: TBoldSystem;
@@ -1474,6 +1545,563 @@ begin
   end;
 end;
 
+procedure TTestBoldUndoHandler.TestModifyEmbeddedRoleModified;
+var
+  ObjA, ObjB, ObjA2, ObjA3: TSomeClass;
+begin
+  SetSimpleConfiguration;
+  RefreshSystem;
+
+  ObjA := FSomeClassList[0];
+  ObjB := FSomeClassList[1];
+  ObjA2 := FSomeClassList[2];
+  ObjA3 := FSomeClassList[3];
+
+  // Verify initial state: ObjB.parent = ObjA (from SetSimpleConfiguration)
+  ObjB.M_parent.EnsureContentsCurrent;
+  Assert.IsTrue(ObjB.parent = ObjA, 'ObjB.parent should be ObjA initially');
+
+  // Put ObjB.parent into Modified state: change to ObjA2
+  ObjB.parent := ObjA2;
+  VerifyState(ObjB.M_parent, bvpsModified);
+
+  UndoHandler.SetCheckPoint('ModifyEmbeddedModified');
+
+  // Now modify again from already-Modified state
+  ObjA.child.EnsureContentsCurrent;
+  ObjA2.child.EnsureContentsCurrent;
+  VerifyState(ObjA.M_child, bvpsCurrent);
+  VerifyState(ObjA2.M_child, bvpsCurrent);
+
+  StoreValue(ObjB.M_parent);
+  Assert.IsTrue(ObjB.parent = ObjA2, 'ObjB.parent should be ObjA2 before second modify');
+  ObjB.parent := ObjA3; // modify from already-modified state
+  VerifyState(ObjB.M_parent, bvpsModified);
+  Assert.IsTrue(ObjB.parent = ObjA3, 'ObjB.parent should be ObjA3 after modify');
+  VerifyIsInUndoArea(UndoHandler.UndoBlocks.CurrentBlock, ObjB.M_parent,
+    GetStoredValueOfMember(ObjB.M_parent));
+  VerifyState(ObjA.M_child, bvpsCurrent);
+  Assert.IsFalse(ObjA.child.Includes(ObjB), 'ObjA.child should not include ObjB');
+  VerifyState(ObjA2.M_child, bvpsCurrent);
+  Assert.IsFalse(ObjA2.child.Includes(ObjB), 'ObjA2.child should not include ObjB');
+end;
+
+{ TTestBoldUndoHandlerIndirectLinks }
+
+procedure TTestBoldUndoHandlerIndirectLinks.SetUpFixture;
+begin
+  EnsureBoldTestDM;
+  Assert.IsNotNull(BoldTestDM, 'BoldTestDM should be created');
+  Assert.IsNotNull(BoldTestDM.BoldSystemHandle1.System, 'System should be active');
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.TearDownFixture;
+begin
+  CloseBoldTestDM;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.SetUp;
+begin
+  // Deactivate to discard all in-memory objects, then reactivate for clean state
+  if BoldTestDM.BoldSystemHandle1.Active then
+  begin
+    BoldTestDM.BoldSystemHandle1.System.Discard;
+    BoldTestDM.BoldSystemHandle1.Active := False;
+  end;
+  BoldTestDM.BoldSystemHandle1.Active := True;
+
+  FUndoHandler := BoldTestDM.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
+  FUndoHandler.Enabled := True;
+
+  FSomeClassList := TSomeClassList.Create;
+  FClassWithLinkList := TClassWithLinkList.Create;
+  FFSValueSpace := TBoldFreeStandingValueSpace.Create;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.TearDown;
+begin
+  FreeAndNil(FSomeClassList);
+  FreeAndNil(FClassWithLinkList);
+  FreeAndNil(FFSValueSpace);
+
+  if Assigned(BoldTestDM) and BoldTestDM.BoldSystemHandle1.Active then
+  begin
+    BoldTestDM.BoldSystemHandle1.System.Discard;
+    BoldTestDM.BoldSystemHandle1.Active := False;
+  end;
+end;
+
+function TTestBoldUndoHandlerIndirectLinks.GetSystem: TBoldSystem;
+begin
+  Result := BoldTestDM.BoldSystemHandle1.System;
+end;
+
+function TTestBoldUndoHandlerIndirectLinks.GetUndoHandler: TBoldUndoHandler;
+begin
+  Result := FUndoHandler;
+end;
+
+function TTestBoldUndoHandlerIndirectLinks.IdCompare(Item1, Item2: TBoldElement): Integer;
+var
+  i1, i2: Integer;
+begin
+  i1 := StrToInt(TBoldObject(Item1).BoldObjectLocator.AsString);
+  i2 := StrToInt(TBoldObject(Item2).BoldObjectLocator.AsString);
+  if i1 = i2 then Result := 0
+  else if i1 < i2 then Result := -1
+  else Result := 1;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.FetchClassSorted(const aSystem: TBoldSystem;
+  const aList: TBoldObjectList; const ObjClass: TBoldObjectClass);
+begin
+  FetchClass(aSystem, aList, ObjClass);
+  aList.Sort(IdCompare);
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.RefreshSystem;
+begin
+  UpdateDatabase;
+  BoldTestDM.BoldSystemHandle1.Active := False;
+  FSomeClassList.Clear;
+  FClassWithLinkList.Clear;
+  BoldTestDM.BoldSystemHandle1.Active := True;
+  FUndoHandler := BoldTestDM.BoldSystemHandle1.System.UndoHandler as TBoldUndoHandler;
+  FUndoHandler.Enabled := True;
+  FetchClassSorted(System, FSomeClassList, TSomeClass);
+  FetchClassSorted(System, FClassWithLinkList, TClassWithLink);
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.UpdateDatabase;
+begin
+  BoldTestDM.BoldSystemHandle1.UpdateDatabase;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.SetSimpleConfiguration;
+begin
+  GenerateObjects(System, 'SomeClass', 4);
+  UpdateDatabase;
+  FetchClassSorted(System, FSomeClassList, TSomeClass);
+  FSomeClassList[1].parent := FSomeClassList[0];
+  FSomeClassList[3].parent := FSomeClassList[2];
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.SetConfigurationForIndirectSingle;
+begin
+  GenerateObjects(System, 'ClassWithLink', 4);
+  UpdateDatabase;
+  FetchClassSorted(System, FClassWithLinkList, TClassWithLink);
+  FClassWithLinkList[1].one := FClassWithLinkList[0];
+  FClassWithLinkList[3].one := FClassWithLinkList[2];
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.VerifyState(
+  const Element: TBoldDomainElement; const State: TBoldValuePersistenceState);
+var
+  CurState: TBoldValuePersistenceState;
+begin
+  if Element is TBoldObject then
+    CurState := (Element as TBoldObject).BoldPersistenceState
+  else if Element is TBoldMember then
+    CurState := (Element as TBoldMember).BoldPersistenceState
+  else
+    raise EBold.Create('VerifyState: unsupported element type');
+  Assert.AreEqual(State, CurState,
+    Format('%s state should be %d but was %d', [Element.DisplayName, Ord(State), Ord(CurState)]));
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.VerifyObjectInBlock(
+  Block: TBoldUndoBlock; aId: TBoldObjectId; State: TBoldExistenceState);
+var
+  fsObjectContents: TBoldFreeStandingObjectContents;
+begin
+  fsObjectContents := Block.FSValueSpace.GetFSObjectContentsByObjectId(aId);
+  Assert.IsNotNull(fsObjectContents,
+    Format('Object %s should be in undo block', [aId.AsString]));
+  Assert.AreEqual(State, fsObjectContents.BoldExistenceState,
+    Format('Object %s existence state should be %d but was %d',
+      [aId.AsString, Ord(State), Ord(fsObjectContents.BoldExistenceState)]));
+end;
+
+// Indirect multi-link tests (part/partof via Tpartpartof link class)
+
+procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectMultiModifyInsertCurrent;
+var
+  ObjA, ObjB, ObjA2, ObjB2: TSomeClass;
+  aLinkObjectLocator: TBoldObjectLocator;
+  aLinkObjectId: TBoldObjectId;
+begin
+  // Create objects with part/partof links: ObjB.part has ObjA but NOT ObjA2
+  GenerateObjects(System, 'SomeClass', 4);
+  UpdateDatabase;
+  FetchClassSorted(System, FSomeClassList, TSomeClass);
+  FSomeClassList[1].part.Add(FSomeClassList[0]);
+  FSomeClassList[3].part.Add(FSomeClassList[0]);
+  FSomeClassList[3].part.Add(FSomeClassList[2]);
+  UpdateDatabase;
+  RefreshSystem;
+
+  ObjA := FSomeClassList[0];
+  ObjB := FSomeClassList[1];
+  ObjA2 := FSomeClassList[2];
+  ObjB2 := FSomeClassList[3];
+
+  ObjB.M_part.EnsureContentsCurrent;
+  VerifyState(ObjB.M_part, bvpsCurrent);
+
+  Assert.IsFalse(ObjB.part.Includes(ObjA2), 'ObjB.part should not include ObjA2 initially');
+  ObjB.part.Add(ObjA2); // modify-insert
+  aLinkObjectLocator := ObjB.partpartpartof.Locators[ObjB.part.IndexOf(ObjA2)];
+  aLinkObjectId := aLinkObjectLocator.BoldObjectId.Clone;
+  try
+    // The new link object should be recorded as besNotCreated in undo block
+    VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, aLinkObjectId, besNotCreated);
+    Assert.IsTrue(ObjB.part.Includes(ObjA2), 'ObjB.part should include ObjA2 after insert');
+    Assert.IsTrue(Assigned(System.Locators.ObjectById[aLinkObjectId]),
+      'Link object should exist');
+  finally
+    aLinkObjectId.Free;
+  end;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectMultiModifyDeleteCurrent;
+var
+  ObjA, ObjB, ObjA2, ObjB2: TSomeClass;
+  aLinkObjectLocator: TBoldObjectLocator;
+  aLinkObjectId: TBoldObjectId;
+begin
+  // Create objects with part/partof links: ObjB.part has both ObjA and ObjA2
+  GenerateObjects(System, 'SomeClass', 4);
+  UpdateDatabase;
+  FetchClassSorted(System, FSomeClassList, TSomeClass);
+  FSomeClassList[1].part.Add(FSomeClassList[0]);
+  FSomeClassList[1].part.Add(FSomeClassList[2]);
+  FSomeClassList[3].part.Add(FSomeClassList[0]);
+  FSomeClassList[3].part.Add(FSomeClassList[2]);
+  UpdateDatabase;
+  RefreshSystem;
+
+  ObjA := FSomeClassList[0];
+  ObjB := FSomeClassList[1];
+  ObjA2 := FSomeClassList[2];
+  ObjB2 := FSomeClassList[3];
+
+  ObjB.M_part.EnsureContentsCurrent;
+  VerifyState(ObjB.M_part, bvpsCurrent);
+  Assert.IsTrue(ObjB.part.Includes(ObjA2), 'ObjB.part should include ObjA2 initially');
+
+  aLinkObjectLocator := ObjB.M_partpartpartof.Locators[ObjB.part.IndexOf(ObjA2)];
+  aLinkObjectId := aLinkObjectLocator.BoldObjectId.Clone;
+  try
+    ObjB.part.RemoveByIndex(ObjB.part.IndexOf(ObjA2)); // modify-delete
+    Assert.IsFalse(ObjB.part.Includes(ObjA2), 'ObjB.part should not include ObjA2 after delete');
+    // The deleted link object should be recorded as besExisting in undo block
+    VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, aLinkObjectId, besExisting);
+    Assert.IsTrue(
+      (not Assigned(System.Locators.ObjectById[aLinkObjectId])) or
+      (System.Locators.ObjectById[aLinkObjectId].BoldExistenceState = besDeleted),
+      'Link object should be deleted or nil');
+  finally
+    aLinkObjectId.Free;
+  end;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectMultiUndoInsert;
+var
+  ObjA, ObjB, ObjA2: TSomeClass;
+  ObjAId, ObjBId, ObjA2Id: TBoldObjectId;
+  ALinkObject: Tpartpartof;
+  ALinkObjectId: TBoldObjectId;
+begin
+  // Create 4 objects, save IDs before RefreshSystem
+  ObjA := CreateSomeClass(System, nil, True);
+  ObjB := CreateSomeClass(System, nil, True);
+  ObjA2 := CreateSomeClass(System, nil, True);
+  CreateSomeClass(System, nil, True); // ObjB2 - not used directly
+  UpdateDatabase;
+  // Set part links: ObjB.part has ObjA only (not ObjA2)
+  ObjB.part.Add(ObjA);
+  UpdateDatabase;
+  ObjAId := ObjA.BoldObjectLocator.BoldObjectId.Clone;
+  ObjBId := ObjB.BoldObjectLocator.BoldObjectId.Clone;
+  ObjA2Id := ObjA2.BoldObjectLocator.BoldObjectId.Clone;
+  try
+    // Discard and re-fetch by ID to simulate RefreshSystem
+    System.DiscardPersistent;
+    ObjA := System.EnsuredLocatorByID[ObjAId].EnsuredBoldObject as TSomeClass;
+    ObjB := System.EnsuredLocatorByID[ObjBId].EnsuredBoldObject as TSomeClass;
+    ObjA2 := System.EnsuredLocatorByID[ObjA2Id].EnsuredBoldObject as TSomeClass;
+    FUndoHandler := System.UndoHandler as TBoldUndoHandler;
+    FUndoHandler.Enabled := True;
+
+    ObjB.M_part.EnsureContentsCurrent;
+    ObjA2.M_partof.EnsureContentsCurrent;
+    VerifyState(ObjB.M_part, bvpsCurrent);
+
+    Assert.IsTrue(ObjB.part.Includes(ObjA), 'ObjB.part should include ObjA');
+    Assert.IsFalse(ObjB.part.Includes(ObjA2), 'ObjB.part should not include ObjA2');
+
+    UndoHandler.SetCheckPoint('UndoIndirectMulti');
+    ObjB.part.Add(ObjA2); // modify-insert
+    Assert.IsTrue(ObjB.part.Includes(ObjA2), 'ObjB.part should include ObjA2 after insert');
+    ALinkObject := ObjB.partpartpartof.BoldObjects[ObjB.part.IndexOf(ObjA2)];
+    ALinkObjectId := ALinkObject.BoldObjectLocator.BoldObjectId.Clone;
+    try
+      VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, ALinkObjectId, besNotCreated);
+      System.AssertLinkIntegrity;
+
+      // Undo the insert
+      UndoHandler.UndoLatest;
+      System.AssertLinkIntegrity;
+      ObjB := System.Locators.ObjectById[ObjBId] as TSomeClass;
+      ObjA2 := System.Locators.ObjectById[ObjA2Id] as TSomeClass;
+      Assert.IsFalse(ObjB.part.Includes(ObjA2), 'ObjB.part should not include ObjA2 after undo');
+      Assert.IsFalse(ObjA2.partof.Includes(ObjB), 'ObjA2.partof should not include ObjB after undo');
+
+      // Redo the insert
+      UndoHandler.RedoLatest;
+      ObjB := System.Locators.ObjectById[ObjBId] as TSomeClass;
+      ObjA2 := System.Locators.ObjectById[ObjA2Id] as TSomeClass;
+      Assert.IsTrue(ObjA2.partof.Includes(ObjB), 'ObjA2.partof should include ObjB after redo');
+      Assert.IsTrue(ObjB.part.Includes(ObjA2), 'ObjB.part should include ObjA2 after redo');
+    finally
+      ALinkObjectId.Free;
+    end;
+  finally
+    ObjAId.Free;
+    ObjBId.Free;
+    ObjA2Id.Free;
+  end;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectMultiUndoDelete;
+var
+  ObjA, ObjB, ObjA2: TSomeClass;
+  ObjAId, ObjBId, ObjA2Id: TBoldObjectId;
+  ALinkObjectId: TBoldObjectId;
+begin
+  // Create objects with part/partof links: ObjB.part has both ObjA and ObjA2
+  GenerateObjects(System, 'SomeClass', 4);
+  UpdateDatabase;
+  FetchClassSorted(System, FSomeClassList, TSomeClass);
+  FSomeClassList[1].part.Add(FSomeClassList[0]);
+  FSomeClassList[1].part.Add(FSomeClassList[2]);
+  FSomeClassList[3].part.Add(FSomeClassList[0]);
+  FSomeClassList[3].part.Add(FSomeClassList[2]);
+  UpdateDatabase;
+  RefreshSystem;
+
+  ObjA := FSomeClassList[0];
+  ObjAId := ObjA.BoldObjectLocator.BoldObjectId.Clone;
+  ObjB := FSomeClassList[1];
+  ObjBId := ObjB.BoldObjectLocator.BoldObjectId.Clone;
+  ObjA2 := FSomeClassList[2];
+  ObjA2Id := ObjA2.BoldObjectLocator.BoldObjectId.Clone;
+  try
+    ObjB.M_part.EnsureContentsCurrent;
+    VerifyState(ObjB.M_part, bvpsCurrent);
+
+    UndoHandler.SetCheckPoint('UndoIndirectMultiDel');
+    ALinkObjectId := ObjB.M_partpartpartof.Locators[ObjB.part.IndexOf(ObjA2)].BoldObjectId.Clone;
+    try
+      ObjB.part.RemoveByIndex(ObjB.part.IndexOf(ObjA2)); // modify-delete
+      Assert.IsFalse(ObjB.part.Includes(ObjA2), 'ObjB.part should not include ObjA2 after delete');
+      VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, ALinkObjectId, besExisting);
+
+      // Undo the delete
+      UndoHandler.UndoLatest;
+      System.AssertLinkIntegrity;
+      ObjB := System.Locators.ObjectById[ObjBId] as TSomeClass;
+      ObjA2 := System.Locators.ObjectById[ObjA2Id] as TSomeClass;
+      Assert.IsTrue(ObjA2.partof.Includes(ObjB), 'ObjA2.partof should include ObjB after undo');
+      Assert.IsTrue(ObjB.part.Includes(ObjA2), 'ObjB.part should include ObjA2 after undo');
+
+      // Redo the delete
+      UndoHandler.RedoLatest;
+      System.AssertLinkIntegrity;
+      ObjB := System.Locators.ObjectById[ObjBId] as TSomeClass;
+      ObjA2 := System.Locators.ObjectById[ObjA2Id] as TSomeClass;
+      Assert.IsFalse(ObjA2.partof.Includes(ObjB), 'ObjA2.partof should not include ObjB after redo');
+      Assert.IsFalse(ObjB.part.Includes(ObjA2), 'ObjB.part should not include ObjA2 after redo');
+    finally
+      ALinkObjectId.Free;
+    end;
+  finally
+    ObjAId.Free;
+    ObjBId.Free;
+    ObjA2Id.Free;
+  end;
+end;
+
+// Indirect single-link tests (one/many via LinkClass)
+
+procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectSingleModifySingleRoleCurrent;
+var
+  ObjA, ObjB, ObjA2: TClassWithLink;
+  aLinkObjectId, newLinkObjectId: TBoldObjectId;
+begin
+  SetConfigurationForIndirectSingle;
+  RefreshSystem;
+
+  ObjA := FClassWithLinkList[0];
+  ObjB := FClassWithLinkList[1];
+  ObjA2 := FClassWithLinkList[2];
+
+  ObjB.M_one.EnsureContentsCurrent;
+  VerifyState(ObjB.M_one, bvpsCurrent);
+  ObjA.many.EnsureContentsCurrent;
+  VerifyState(ObjA.M_many, bvpsCurrent);
+
+  Assert.IsTrue(ObjB.one = ObjA, 'ObjB.one should be ObjA before modify');
+
+  aLinkObjectId := ObjB.oneLinkClass.BoldObjectLocator.BoldObjectId.Clone;
+  try
+    ObjB.one := ObjA2; // modify single role
+    Assert.IsTrue(ObjB.one = ObjA2, 'ObjB.one should be ObjA2 after modify');
+
+    newLinkObjectId := ObjB.oneLinkClass.BoldObjectLocator.BoldObjectId.Clone;
+    try
+      // Old link object should be deleted and recorded as besExisting
+      VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, aLinkObjectId, besExisting);
+      Assert.IsTrue(
+        (not Assigned(System.Locators.ObjectById[aLinkObjectId])) or
+        (System.Locators.ObjectById[aLinkObjectId].BoldExistenceState = besDeleted),
+        'Old link object should be deleted');
+      // New link object recorded as besNotCreated
+      VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, newLinkObjectId, besNotCreated);
+    finally
+      newLinkObjectId.Free;
+    end;
+  finally
+    aLinkObjectId.Free;
+  end;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectSingleModifyMultiRoleInsertCurrent;
+var
+  ObjA, ObjB: TClassWithLink;
+  aLinkObjectLocator: TBoldObjectLocator;
+  aLinkObjectId: TBoldObjectId;
+begin
+  SetConfigurationForIndirectSingle;
+  // ObjB.one = nil (remove link from setup)
+  FClassWithLinkList[1].one := nil;
+  RefreshSystem;
+
+  ObjA := FClassWithLinkList[0];
+  ObjB := FClassWithLinkList[1];
+
+  ObjA.many.EnsureContentsCurrent;
+  VerifyState(ObjA.M_many, bvpsCurrent);
+
+  ObjB.M_one.EnsureContentsCurrent;
+  VerifyState(ObjB.M_one, bvpsCurrent);
+
+  ObjA.many.Add(ObjB); // modify-insert via multi role
+  Assert.IsTrue(ObjB.one = ObjA, 'ObjB.one should be ObjA after insert');
+
+  aLinkObjectLocator := ObjA.manyLinkClass.Locators[ObjA.many.IndexOfLocator(ObjB.BoldObjectLocator)];
+  aLinkObjectId := aLinkObjectLocator.BoldObjectId.Clone;
+  try
+    VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, aLinkObjectId, besNotCreated);
+    Assert.IsTrue(ObjA.many.Includes(ObjB), 'ObjA.many should include ObjB');
+  finally
+    aLinkObjectId.Free;
+  end;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectSingleModifyMultiRoleDeleteCurrent;
+var
+  ObjA, ObjB: TClassWithLink;
+  aLinkObjectLocator: TBoldObjectLocator;
+  aLinkObjectId: TBoldObjectId;
+begin
+  SetConfigurationForIndirectSingle;
+  RefreshSystem;
+
+  ObjA := FClassWithLinkList[0];
+  ObjB := FClassWithLinkList[1];
+
+  ObjA.many.EnsureContentsCurrent;
+  VerifyState(ObjA.M_many, bvpsCurrent);
+  Assert.IsTrue(ObjA.many.Includes(ObjB), 'ObjA.many should include ObjB initially');
+
+  aLinkObjectLocator := ObjA.manyLinkClass.Locators[ObjA.many.IndexOfLocator(ObjB.BoldObjectLocator)];
+  aLinkObjectId := aLinkObjectLocator.BoldObjectId.Clone;
+  try
+    ObjA.many.RemoveByIndex(ObjA.many.IndexOfLocator(ObjB.BoldObjectLocator)); // modify-delete
+    Assert.IsFalse(ObjA.many.Includes(ObjB), 'ObjA.many should not include ObjB after delete');
+    Assert.IsTrue(ObjB.one = nil, 'ObjB.one should be nil after delete');
+    VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, aLinkObjectId, besExisting);
+    Assert.IsTrue(
+      (not Assigned(System.Locators.ObjectById[aLinkObjectId])) or
+      (System.Locators.ObjectById[aLinkObjectId].BoldExistenceState = besDeleted),
+      'Link object should be deleted');
+  finally
+    aLinkObjectId.Free;
+  end;
+end;
+
+procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectSingleUndoSingleRoleModified;
+var
+  ObjA1, ObjA2, ObjB1: TClassWithLink;
+  ObjA1Id, ObjA2Id, ObjB1Id: TBoldObjectId;
+  aLinkClassId, newLinkClassId: TBoldObjectId;
+begin
+  SetConfigurationForIndirectSingle;
+  RefreshSystem;
+
+  ObjA1 := FClassWithLinkList[0];
+  ObjA1Id := ObjA1.BoldObjectLocator.BoldObjectId.Clone;
+  ObjB1 := FClassWithLinkList[1];
+  ObjB1Id := ObjB1.BoldObjectLocator.BoldObjectId.Clone;
+  ObjA2 := FClassWithLinkList[2];
+  ObjA2Id := ObjA2.BoldObjectLocator.BoldObjectId.Clone;
+  try
+    Assert.IsTrue(ObjB1.one = ObjA1, 'ObjB1.one should be ObjA1 initially');
+    aLinkClassId := ObjB1.oneLinkClass.BoldObjectLocator.BoldObjectId.Clone;
+    try
+      UndoHandler.SetCheckPoint;
+      ObjB1.one := ObjA2; // modify
+      Assert.IsTrue(
+        (not Assigned(System.Locators.ObjectById[aLinkClassId])) or
+        (System.Locators.ObjectById[aLinkClassId].BoldExistenceState = besDeleted),
+        'Old link should be deleted after modify');
+      VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, aLinkClassId, besExisting);
+
+      newLinkClassId := ObjB1.oneLinkClass.BoldObjectLocator.BoldObjectId.Clone;
+      try
+        VerifyObjectInBlock(UndoHandler.UndoBlocks.CurrentBlock, newLinkClassId, besNotCreated);
+
+        // Undo
+        UndoHandler.UndoLatest;
+        ObjA1 := System.Locators.ObjectById[ObjA1Id] as TClassWithLink;
+        ObjB1 := System.Locators.ObjectById[ObjB1Id] as TClassWithLink;
+        ObjA2 := System.Locators.ObjectById[ObjA2Id] as TClassWithLink;
+        Assert.IsTrue(Assigned(System.Locators.ObjectById[aLinkClassId]),
+          'Old link should be restored after undo');
+        Assert.IsTrue(not Assigned(System.Locators.ObjectById[newLinkClassId]),
+          'New link should be removed after undo');
+        Assert.IsTrue(ObjB1.one = ObjA1, 'ObjB1.one should be ObjA1 after undo');
+
+        // Redo
+        UndoHandler.RedoLatest;
+        ObjB1 := System.Locators.ObjectById[ObjB1Id] as TClassWithLink;
+        ObjA2 := System.Locators.ObjectById[ObjA2Id] as TClassWithLink;
+        Assert.IsTrue(ObjB1.one = ObjA2, 'ObjB1.one should be ObjA2 after redo');
+      finally
+        newLinkClassId.Free;
+      end;
+    finally
+      aLinkClassId.Free;
+    end;
+  finally
+    ObjA1Id.Free;
+    ObjA2Id.Free;
+    ObjB1Id.Free;
+  end;
+end;
+
 { TTestBoldUndoHandlerTransient }
 
 procedure TTestBoldUndoHandlerTransient.SetUp;
@@ -1537,6 +2165,7 @@ end;
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldUndoBlockListIsolated);
   TDUnitX.RegisterTestFixture(TTestBoldUndoHandler);
+  TDUnitX.RegisterTestFixture(TTestBoldUndoHandlerIndirectLinks);
   TDUnitX.RegisterTestFixture(TTestBoldUndoHandlerTransient);
 
 end.

@@ -46,15 +46,18 @@ var
   BoldTestDM: TBoldTestDM;
 
 procedure EnsureBoldTestDM;
+procedure EnsureBoldTestDMSQLite;
 procedure CloseBoldTestDM;
-procedure ClearAllTables;
 
 implementation
 
 {$R *.dfm}
 
 uses
-  BoldTestDatabaseConfig;
+  BoldTestDatabaseConfig,
+  BoldSQLDatabaseConfig,
+  FireDAC.Phys.SQLite,
+  FireDAC.Phys.SQLiteDef;
 
 destructor TBoldTestDM.Destroy;
 begin
@@ -63,19 +66,19 @@ begin
   inherited;
 end;
 
-function SchemaExists(Connection: TFDConnection): Boolean;
-var
-  TableCount: Integer;
+procedure DropAndRecreateSchema;
 begin
-  // Check if Bold_ID table exists (core Bold table)
-  TableCount := Connection.ExecSQLScalar(
-    'SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ''BOLD_ID''');
-  Result := TableCount > 0;
+  // Drop existing database and recreate from scratch.
+  // This is simpler and more reliable than ClearAllTables which requires
+  // knowing all table names and their dependency order.
+  DropTestDatabase;
+  CreateTestDatabase;
+  BoldTestDM.FDConnection1.Close;
+  BoldTestDM.FDConnection1.Open;
+  BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema;
 end;
 
 procedure EnsureBoldTestDM;
-var
-  NeedSchema: Boolean;
 begin
   if not Assigned(BoldTestDM) then
   begin
@@ -99,17 +102,52 @@ begin
     if not BoldTestDM.FDConnection1.Connected then
       raise Exception.Create('FDConnection1 failed to open');
 
-    // Only create schema if it doesn't exist (much faster on subsequent runs)
-    NeedSchema := not SchemaExists(BoldTestDM.FDConnection1);
-    if NeedSchema then
-      BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema
-    else
-      ClearAllTables; // Clear existing data instead
+    // Create schema (Bold skips tables that already exist)
+    BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema;
 
     // Activate system
     BoldTestDM.BoldSystemHandle1.Active := True;
     if not Assigned(BoldTestDM.BoldSystemHandle1.System) then
       raise Exception.Create('BoldSystem failed to activate');
+  end;
+end;
+
+procedure EnsureBoldTestDMSQLite;
+begin
+  if not Assigned(BoldTestDM) then
+  begin
+    BoldTestDM := TBoldTestDM.Create(nil);
+
+    // Configure SQLite file-based database in temp folder.
+    // WAL journal mode and busy timeout prevent deadlocks when Bold creates
+    // internal connections via CreateAnotherDatabaseConnection, especially
+    // under CodeCoverage instrumentation where operations are much slower.
+    BoldTestDM.FDConnection1.Close;
+    BoldTestDM.FDConnection1.Params.Clear;
+    BoldTestDM.FDConnection1.DriverName := 'SQLite';
+    BoldTestDM.FDConnection1.Params.Values['Database'] :=
+      IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP')) + 'bold_unittest.db';
+    BoldTestDM.FDConnection1.Params.Values['LockingMode'] := 'Normal';
+    BoldTestDM.FDConnection1.Params.Values['BusyTimeout'] := '10000';
+    BoldTestDM.FDConnection1.LoginPrompt := False;
+    BoldTestDM.FDConnection1.Open;
+    // Enable WAL mode for better concurrent access
+    BoldTestDM.FDConnection1.ExecSQL('PRAGMA journal_mode=WAL');
+    BoldTestDM.FDConnection1.ExecSQL('PRAGMA busy_timeout=10000');
+
+    // Adjust SQL config for SQLite compatibility
+    BoldTestDM.BoldDatabaseAdapterFireDAC1.DatabaseEngine := dbeGenericANSISQL92;
+    with BoldTestDM.BoldDatabaseAdapterFireDAC1.SQLDatabaseConfig do
+    begin
+      ColumnTypeForText := 'TEXT';
+      ColumnTypeForUnicodeText := 'TEXT';
+      ColumnTypeForAnsiText := 'TEXT';
+      ColumnTypeForInt64 := 'INTEGER';
+    end;
+
+    // Create schema and activate
+    BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema;
+    BoldTestDM.BoldSystemHandle1.Active := True;
   end;
 end;
 
@@ -121,27 +159,6 @@ begin
       BoldTestDM.BoldSystemHandle1.Active := False;
     FreeAndNil(BoldTestDM);
   end;
-end;
-
-procedure ClearAllTables;
-const
-  // Clear tables in order that respects foreign key dependencies
-  // Child tables first, then parent tables, BOLD_ID last
-  ClearSQL =
-    'DELETE FROM TOPICBOOK;' +
-    'DELETE FROM PARTPARTOF;' +
-    'DELETE FROM LINKCLASS;' +
-    'DELETE FROM CLASSWITHLINK;' +
-    'DELETE FROM BOOK;' +
-    'DELETE FROM TOPIC;' +
-    'DELETE FROM ATRANSIENTCLASS;' +
-    'DELETE FROM APERSISTENTCLASS;' +
-    'DELETE FROM SOMECLASS;' +
-    'DELETE FROM TESTMODELCLASSESROOT;' +
-    'DELETE FROM BOLD_ID;';
-begin
-  if Assigned(BoldTestDM) and BoldTestDM.FDConnection1.Connected then
-    BoldTestDM.FDConnection1.ExecSQL(ClearSQL);
 end;
 
 end.
