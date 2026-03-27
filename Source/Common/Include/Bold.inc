@@ -207,7 +207,6 @@ Illegal symbol combination
   {$DEFINE NoAutoSubscription}
   {$UNDEF SpanFetch}
   {$UNDEF CompareToOldValues}
-  {$DEFINE NoObjectSpaceTransactions}
   {$DEFINE NoMayUpdate}
   {$UNDEF IDServer}
   {$UNDEF NoNegativeDates}

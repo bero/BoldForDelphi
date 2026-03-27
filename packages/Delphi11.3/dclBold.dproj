@@ -12,6 +12,7 @@
         <ProjectName Condition="'$(ProjectName)'==''">dclBold</ProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+        <DCC_Define>NoObjectSpaceTransactions;$(DCC_Define)</DCC_Define>
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
