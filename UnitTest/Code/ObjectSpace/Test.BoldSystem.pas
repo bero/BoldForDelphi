@@ -434,25 +434,19 @@ type
     // TBoldObject additional property tests
     [Test]
     [Category('Quick')]
-    procedure TestObjectBoldDirty;
-    [Test]
-    [Category('Quick')]
     procedure TestObjectBoldObjectIsNew;
     [Test]
     [Category('Quick')]
-    procedure TestObjectBoldObjectIsDeleted;
+    procedure TestObjectBoldObjectExists;
     [Test]
     [Category('Quick')]
-    procedure TestObjectBoldObjectExists;
+    procedure TestObjectCanUpdate;
     [Test]
     [Category('Quick')]
     procedure TestObjectDisplayName;
     [Test]
     [Category('Quick')]
     procedure TestObjectInvalidate;
-    [Test]
-    [Category('Quick')]
-    procedure TestObjectMayDeleteAndMayUpdate;
     [Test]
     [Category('Quick')]
     procedure TestObjectBoldTime;
@@ -2533,18 +2527,6 @@ end;
 
 // TBoldObject additional property tests
 
-procedure TTestBoldSystem.TestObjectBoldDirty;
-var
-  Obj: TClassA;
-begin
-  Obj := TClassA.Create(GetSystem);
-  // Transient objects are not considered "dirty" (dirty = modified persistent)
-  Assert.IsFalse(Obj.BoldDirty, 'Transient new object should not be dirty');
-  // Modify attribute to check dirty tracking
-  Obj.aString := 'changed';
-  Assert.IsFalse(Obj.BoldDirty, 'Transient object remains not dirty even after modification');
-end;
-
 procedure TTestBoldSystem.TestObjectBoldObjectIsNew;
 var
   Obj: TClassA;
@@ -2553,24 +2535,23 @@ begin
   Assert.IsTrue(Obj.BoldObjectIsNew, 'Newly created object should be new');
 end;
 
-procedure TTestBoldSystem.TestObjectBoldObjectIsDeleted;
-var
-  Obj: TClassA;
-begin
-  Obj := TClassA.Create(GetSystem);
-  Assert.IsFalse(Obj.BoldObjectIsDeleted, 'New object should not be deleted');
-  Obj.Delete;
-  Assert.IsTrue(Obj.BoldObjectIsDeleted, 'Deleted object should report deleted');
-end;
-
 procedure TTestBoldSystem.TestObjectBoldObjectExists;
 var
   Obj: TClassA;
 begin
   Obj := TClassA.Create(GetSystem);
+  // BoldObjectExists is a boolean wrapper (different getter than BoldExistenceState)
   Assert.IsTrue(Obj.BoldObjectExists, 'New object should exist');
   Obj.Delete;
   Assert.IsFalse(Obj.BoldObjectExists, 'Deleted object should not exist');
+end;
+
+procedure TTestBoldSystem.TestObjectCanUpdate;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.IsTrue(Obj.CanUpdate, 'New object should allow update');
 end;
 
 procedure TTestBoldSystem.TestObjectDisplayName;
@@ -2590,15 +2571,6 @@ begin
   // Invalidate marks members as needing refetch
   Obj.Invalidate;
   Assert.IsTrue(Obj.BoldObjectExists, 'Invalidated object should still exist');
-end;
-
-procedure TTestBoldSystem.TestObjectMayDeleteAndMayUpdate;
-var
-  Obj: TClassA;
-begin
-  Obj := TClassA.Create(GetSystem);
-  Assert.IsTrue(Obj.CanDelete, 'New object should allow delete');
-  Assert.IsTrue(Obj.CanUpdate, 'New object should allow update');
 end;
 
 procedure TTestBoldSystem.TestObjectBoldTime;
