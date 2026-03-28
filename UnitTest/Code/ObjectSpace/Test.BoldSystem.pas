@@ -18,6 +18,7 @@ uses
   BoldDefaultId,
   BoldAttributes,
   BoldElements,
+  BoldSubscription,
   BoldValueSpaceInterfaces,
   BoldTypeNameHandle,
   TestModel1,
@@ -490,6 +491,56 @@ type
     [Test]
     [Category('Quick')]
     procedure TestMemberBoldDirty;
+
+    // TBoldObject lifecycle and properties
+    [Test]
+    [Category('Quick')]
+    procedure TestObjectSubscribeToStringRepresentation;
+
+    // TBoldList additional operations
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldListCapacity;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldListGetEnumerator;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldListCanOperations;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldListRemoveList;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldListIntersect;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldListAsDebugCommaText;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldListSetElement;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldListDuplicateModeAllow;
+
+    // TBoldObjectList additional
+    [Test]
+    [Category('Quick')]
+    procedure TestObjectListGetEnumerator;
+    [Test]
+    [Category('Quick')]
+    procedure TestObjectListEnsureObjects;
+    [Test]
+    [Category('Quick')]
+    procedure TestObjectListIncludesAny;
+
+    // TBoldMember additional
+    [Test]
+    [Category('Quick')]
+    procedure TestMemberOwnerAndSystem;
+    [Test]
+    [Category('Quick')]
+    procedure TestMemberDisplayName;
   end;
 
   [TestFixture]
@@ -2812,6 +2863,274 @@ begin
   // Transient members are never "dirty" (dirty = modified persistent member)
   Obj.aString := 'changed';
   Assert.IsFalse(Obj.M_aString.BoldDirty, 'Transient member should not be dirty');
+end;
+
+// TBoldObject lifecycle and properties
+
+procedure TTestBoldSystem.TestObjectSubscribeToStringRepresentation;
+var
+  Obj: TClassA;
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Subscriber := TBoldPassthroughSubscriber.Create(nil);
+  try
+    Obj.SubscribeToStringRepresentation(brDefault, Subscriber, 0);
+    Assert.Pass('SubscribeToStringRepresentation should not raise');
+  finally
+    Subscriber.Free;
+  end;
+end;
+
+// TBoldList additional operations
+
+procedure TTestBoldSystem.TestBoldListCapacity;
+var
+  List: TBoldObjectList;
+begin
+  List := TBoldObjectList.Create;
+  try
+    List.Capacity := 100;
+    Assert.IsTrue(List.Capacity >= 100, 'Capacity should be at least 100');
+    Assert.AreEqual(0, List.Count, 'Count should still be 0');
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestBoldListGetEnumerator;
+var
+  Obj1, Obj2: TClassA;
+  List: TBoldObjectList;
+  Count: Integer;
+  Item: TBoldObject;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  List := TBoldObjectList.Create;
+  try
+    List.Add(Obj1);
+    List.Add(Obj2);
+    Count := 0;
+    for Item in List do
+      Inc(Count);
+    Assert.AreEqual(2, Count, 'Enumerator should iterate 2 items');
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestBoldListCanOperations;
+var
+  Obj1: TClassA;
+  List: TBoldObjectList;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  List := TBoldObjectList.Create;
+  try
+    Assert.IsTrue(List.CanInsert(0, Obj1, nil), 'CanInsert should be True for empty list');
+    List.Add(Obj1);
+    Assert.IsTrue(List.CanRemove(0, nil), 'CanRemove should be True');
+    Assert.IsTrue(List.CanMove(0, 0, nil), 'CanMove same index should be True');
+    Assert.IsTrue(List.CanSet(0, Obj1, nil), 'CanSet should be True');
+    Assert.IsTrue(List.CanClear(nil), 'CanClear should be True');
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestBoldListRemoveList;
+var
+  Obj1, Obj2, Obj3: TClassA;
+  List1, List2: TBoldObjectList;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj3 := TClassA.Create(GetSystem);
+  List1 := TBoldObjectList.Create;
+  List2 := TBoldObjectList.Create;
+  try
+    List1.Add(Obj1);
+    List1.Add(Obj2);
+    List1.Add(Obj3);
+    List2.Add(Obj1);
+    List2.Add(Obj3);
+    List1.RemoveList(List2);
+    Assert.AreEqual(1, List1.Count, 'Should have 1 item after RemoveList');
+    Assert.AreSame(TObject(Obj2), TObject(List1[0]), 'Remaining item should be Obj2');
+  finally
+    List1.Free;
+    List2.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestBoldListIntersect;
+var
+  Obj1, Obj2, Obj3: TClassA;
+  List1, List2: TBoldObjectList;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj3 := TClassA.Create(GetSystem);
+  List1 := TBoldObjectList.Create;
+  List2 := TBoldObjectList.Create;
+  try
+    List1.Add(Obj1);
+    List1.Add(Obj2);
+    List1.Add(Obj3);
+    List2.Add(Obj2);
+    List2.Add(Obj3);
+    List1.IntersectList(List2);
+    Assert.AreEqual(2, List1.Count, 'Intersection should have 2 items');
+    Assert.IsTrue(List1.Includes(Obj2), 'Should include Obj2');
+    Assert.IsTrue(List1.Includes(Obj3), 'Should include Obj3');
+    Assert.IsFalse(List1.Includes(Obj1), 'Should not include Obj1');
+  finally
+    List1.Free;
+    List2.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestBoldListAsDebugCommaText;
+var
+  Obj1: TClassA;
+  List: TBoldObjectList;
+  Text: string;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj1.aString := 'Debug';
+  List := TBoldObjectList.Create;
+  try
+    List.Add(Obj1);
+    Text := List.AsDebugCommaText;
+    Assert.IsNotEmpty(Text, 'AsDebugCommaText should not be empty');
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestBoldListSetElement;
+var
+  Obj1, Obj2: TClassA;
+  List: TBoldObjectList;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  List := TBoldObjectList.Create;
+  try
+    List.Add(Obj1);
+    List[0] := Obj2;
+    Assert.AreSame(TObject(Obj2), TObject(List[0]), 'Element should be Obj2 after set');
+    Assert.AreEqual(1, List.Count, 'Count should still be 1');
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestBoldListDuplicateModeAllow;
+var
+  Obj1: TClassA;
+  List: TBoldObjectList;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  List := TBoldObjectList.Create;
+  try
+    List.DuplicateMode := bldmAllow;
+    List.Add(Obj1);
+    List.Add(Obj1);
+    Assert.AreEqual(2, List.Count, 'Allow mode should permit duplicates');
+    Assert.IsTrue(List.HasDuplicates, 'HasDuplicates should be True');
+  finally
+    List.Free;
+  end;
+end;
+
+// TBoldObjectList additional
+
+procedure TTestBoldSystem.TestObjectListGetEnumerator;
+var
+  Obj1, Obj2: TClassA;
+  List: TBoldObjectList;
+  Count: Integer;
+  Obj: TBoldObject;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  List := TBoldObjectList.Create;
+  try
+    List.Add(Obj1);
+    List.Add(Obj2);
+    Count := 0;
+    for Obj in List do
+      Inc(Count);
+    Assert.AreEqual(2, Count, 'Should enumerate 2 objects');
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestObjectListEnsureObjects;
+var
+  List: TBoldObjectList;
+begin
+  TClassA.Create(GetSystem);
+  TClassA.Create(GetSystem);
+  List := TBoldObjectList.Create;
+  try
+    GetSystem.GetAllInClass(List, TClassA);
+    List.EnsureObjects;
+    Assert.IsTrue(List.Count >= 2, 'Should have at least 2 objects after EnsureObjects');
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TTestBoldSystem.TestObjectListIncludesAny;
+var
+  Obj1, Obj2, Obj3: TClassA;
+  List1, List2: TBoldObjectList;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj3 := TClassA.Create(GetSystem);
+  List1 := TBoldObjectList.Create;
+  List2 := TBoldObjectList.Create;
+  try
+    List1.Add(Obj1);
+    List1.Add(Obj2);
+    List2.Add(Obj2);
+    List2.Add(Obj3);
+    Assert.IsTrue(List1.IncludesAny(List2), 'Should include Obj2 from List2');
+    List2.Clear;
+    List2.Add(Obj3);
+    Assert.IsFalse(List1.IncludesAny(List2), 'Should not include only Obj3');
+  finally
+    List1.Free;
+    List2.Free;
+  end;
+end;
+
+// TBoldMember additional
+
+procedure TTestBoldSystem.TestMemberOwnerAndSystem;
+var
+  Obj: TClassA;
+  Member: TBoldMember;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Member := Obj.M_aString;
+  Assert.AreSame(TObject(Obj), TObject(Member.OwningObject), 'OwningObject should be the object');
+  Assert.AreSame(TObject(GetSystem), TObject(Member.BoldSystem), 'BoldSystem should match');
+end;
+
+procedure TTestBoldSystem.TestMemberDisplayName;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.IsNotEmpty(Obj.M_aString.DisplayName, 'Member DisplayName should not be empty');
+  Assert.IsTrue(Pos('aString', Obj.M_aString.DisplayName) > 0,
+    'DisplayName should contain member name');
 end;
 
 { TTestBoldObjectReference }
