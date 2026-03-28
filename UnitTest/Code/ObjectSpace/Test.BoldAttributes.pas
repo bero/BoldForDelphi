@@ -159,6 +159,72 @@ type
     [Test]
     [Category('Quick')]
     procedure TestBooleanCreateWithValue;
+
+    // TBAMoment / TBADateTime / TBADate / TBATime coverage
+    [Test]
+    [Category('Quick')]
+    procedure TestMomentGetParts;
+    [Test]
+    [Category('Quick')]
+    procedure TestMomentAsVariant;
+    [Test]
+    [Category('Quick')]
+    procedure TestMomentAsFloat;
+    [Test]
+    [Category('Quick')]
+    procedure TestDateTimeAsDate;
+    [Test]
+    [Category('Quick')]
+    procedure TestDateTimeAsTime;
+
+    // TBAString coverage
+    [Test]
+    [Category('Quick')]
+    procedure TestStringAsAnsiAndUnicode;
+    [Test]
+    [Category('Quick')]
+    procedure TestStringAssignValue;
+
+    // TBABlob coverage
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobLoadSaveFile;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobLoadSaveStream;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobAssign;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobSize;
+
+    // TBACurrency coverage
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyAsCurrency;
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyAsVariant;
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyAssign;
+
+    // TBAFloat coverage
+    [Test]
+    [Category('Quick')]
+    procedure TestFloatAsVariant;
+    [Test]
+    [Category('Quick')]
+    procedure TestFloatAssign;
+
+    // TBAInteger coverage
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerAsVariant;
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerAssign;
   end;
 
 var
@@ -167,7 +233,8 @@ var
 implementation
 
 uses
-  SysUtils;
+  SysUtils,
+  Variants;
 
 {$R dmjehoBoldTest.dfm}
 
@@ -1499,6 +1566,263 @@ begin
   finally
     BoolAttr.Free;
   end;
+end;
+
+// TBAMoment / TBADateTime / TBADate / TBATime coverage
+
+procedure TTestBoldAttributes.TestMomentGetParts;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aDateTime := EncodeDate(2026, 3, 15) + EncodeTime(14, 30, 45, 0);
+  Assert.AreEqual(2026, Obj.M_aDateTime.Years, 'Years should be 2026');
+  Assert.AreEqual(3, Obj.M_aDateTime.Months, 'Months should be 3');
+  Assert.AreEqual(15, Obj.M_aDateTime.Days, 'Days should be 15');
+  Assert.AreEqual(14, Obj.M_aDateTime.Hours, 'Hours should be 14');
+  Assert.AreEqual(30, Obj.M_aDateTime.Minutes, 'Minutes should be 30');
+  Assert.AreEqual(45, Obj.M_aDateTime.Seconds, 'Seconds should be 45');
+end;
+
+procedure TTestBoldAttributes.TestMomentAsVariant;
+var
+  Obj: TClassA;
+  V: Variant;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aDateTime := EncodeDate(2026, 6, 1);
+  V := Obj.M_aDateTime.AsVariant;
+  Assert.IsFalse(VarIsNull(V), 'AsVariant should not be null');
+  Obj.M_aDateTime.SetToNull;
+  V := Obj.M_aDateTime.AsVariant;
+  Assert.IsTrue(VarIsNull(V), 'AsVariant should be null after SetToNull');
+end;
+
+procedure TTestBoldAttributes.TestMomentAsFloat;
+var
+  Obj: TClassA;
+  F: Double;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aDateTime := EncodeDate(2026, 1, 1);
+  F := Obj.M_aDateTime.AsFloat;
+  Assert.IsTrue(F > 0, 'AsFloat should be positive for a valid date');
+end;
+
+procedure TTestBoldAttributes.TestDateTimeAsDate;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aDateTime := EncodeDate(2026, 7, 4) + EncodeTime(10, 0, 0, 0);
+  Assert.AreEqual(EncodeDate(2026, 7, 4), Obj.M_aDateTime.AsDate, 'AsDate should strip time part');
+end;
+
+procedure TTestBoldAttributes.TestDateTimeAsTime;
+var
+  Obj: TClassA;
+  TimeVal: TDateTime;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aDateTime := EncodeDate(2026, 7, 4) + EncodeTime(10, 30, 0, 0);
+  TimeVal := Obj.M_aDateTime.AsTime;
+  Assert.IsTrue(TimeVal > 0, 'AsTime should return a positive time value');
+end;
+
+// TBAString coverage
+
+procedure TTestBoldAttributes.TestStringAsAnsiAndUnicode;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aString.AsUnicodeString := 'Unicode test';
+  Assert.AreEqual('Unicode test', Obj.M_aString.AsUnicodeString, 'AsUnicodeString should match');
+  Assert.AreEqual(AnsiString('Unicode test'), Obj.M_aString.AsAnsiString, 'AsAnsiString should match');
+end;
+
+procedure TTestBoldAttributes.TestStringAssignValue;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  Obj1.aString := 'Source';
+  Obj2.M_aString.Assign(Obj1.M_aString);
+  Assert.AreEqual('Source', Obj2.aString, 'Assign should copy value');
+end;
+
+// TBABlob coverage
+
+procedure TTestBoldAttributes.TestBlobLoadSaveFile;
+var
+  Obj: TClassA;
+  TempFile: string;
+  InStream: TStringStream;
+begin
+  TempFile := GetEnvironmentVariable('TEMP') + '\bold_blob_test.dat';
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  try
+    InStream := TStringStream.Create('Hello Blob');
+    try
+      Obj.M_aBlob.LoadFromStream(InStream);
+    finally
+      InStream.Free;
+    end;
+    Obj.M_aBlob.SaveToFile(TempFile);
+    Obj.M_aBlob.SetToNull;
+    Obj.M_aBlob.LoadFromFile(TempFile);
+    Assert.IsTrue(Obj.M_aBlob.BlobSize > 0, 'Blob should have content after LoadFromFile');
+  finally
+    SysUtils.DeleteFile(TempFile);
+  end;
+end;
+
+procedure TTestBoldAttributes.TestBlobLoadSaveStream;
+var
+  Obj: TClassA;
+  InStream, OutStream: TStringStream;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  InStream := TStringStream.Create('Stream test');
+  try
+    Obj.M_aBlob.LoadFromStream(InStream);
+  finally
+    InStream.Free;
+  end;
+
+  OutStream := TStringStream.Create;
+  try
+    Obj.M_aBlob.SaveToStream(OutStream);
+    Assert.IsTrue(OutStream.Size > 0, 'SaveToStream should write data');
+  finally
+    OutStream.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestBlobAssign;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+  InStream: TStringStream;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  InStream := TStringStream.Create('Assign test');
+  try
+    Obj1.M_aBlob.LoadFromStream(InStream);
+  finally
+    InStream.Free;
+  end;
+  Obj2.M_aBlob.Assign(Obj1.M_aBlob);
+  Assert.IsTrue(Obj2.M_aBlob.BlobSize > 0, 'Assign should copy blob content');
+end;
+
+procedure TTestBoldAttributes.TestBlobSize;
+var
+  Obj: TClassA;
+  InStream: TStringStream;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Assert.AreEqual(Int64(0), Obj.M_aBlob.BlobSize, 'Empty blob should have size 0');
+  InStream := TStringStream.Create('12345');
+  try
+    Obj.M_aBlob.LoadFromStream(InStream);
+  finally
+    InStream.Free;
+  end;
+  Assert.IsTrue(Obj.M_aBlob.BlobSize > 0, 'Blob should have positive size after load');
+end;
+
+// TBACurrency coverage
+
+procedure TTestBoldAttributes.TestCurrencyAsCurrency;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aCurrency.AsCurrency := 123.45;
+  Assert.AreEqual(Double(123.45), Double(Obj.M_aCurrency.AsCurrency), 0.001, 'AsCurrency should match');
+end;
+
+procedure TTestBoldAttributes.TestCurrencyAsVariant;
+var
+  Obj: TClassA;
+  V: Variant;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aCurrency.AsCurrency := 99.99;
+  V := Obj.M_aCurrency.AsVariant;
+  Assert.IsFalse(VarIsNull(V), 'Currency AsVariant should not be null');
+end;
+
+procedure TTestBoldAttributes.TestCurrencyAssign;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  Obj1.M_aCurrency.AsCurrency := 42.50;
+  Obj2.M_aCurrency.Assign(Obj1.M_aCurrency);
+  Assert.AreEqual(Double(42.50), Double(Obj2.M_aCurrency.AsCurrency), 0.001, 'Assign should copy currency');
+end;
+
+// TBAFloat coverage
+
+procedure TTestBoldAttributes.TestFloatAsVariant;
+var
+  Obj: TClassA;
+  V: Variant;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aFloat := 3.14;
+  V := Obj.M_aFloat.AsVariant;
+  Assert.IsFalse(VarIsNull(V), 'Float AsVariant should not be null');
+end;
+
+procedure TTestBoldAttributes.TestFloatAssign;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  Obj1.aFloat := 2.718;
+  Obj2.M_aFloat.Assign(Obj1.M_aFloat);
+  Assert.AreEqual(Double(2.718), Obj2.aFloat, 0.001, 'Assign should copy float');
+end;
+
+// TBAInteger coverage
+
+procedure TTestBoldAttributes.TestIntegerAsVariant;
+var
+  Obj: TClassA;
+  V: Variant;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aInteger := 42;
+  V := Obj.M_aInteger.AsVariant;
+  Assert.IsFalse(VarIsNull(V), 'Integer AsVariant should not be null');
+  Assert.AreEqual(42, Integer(V), 'Variant value should be 42');
+end;
+
+procedure TTestBoldAttributes.TestIntegerAssign;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  Obj1.aInteger := 99;
+  Obj2.M_aInteger.Assign(Obj1.M_aInteger);
+  Assert.AreEqual(99, Obj2.aInteger, 'Assign should copy integer');
 end;
 
 initialization
