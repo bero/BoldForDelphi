@@ -114,13 +114,12 @@ begin
 
   if SameText(Engine, 'SQLite') then
   begin
+    WriteLn('BoldTestDM: Using SQLite in-memory (from ' + AIniPath + ')');
     ConfigureSQLiteInMemory;
   end
   else
   begin
-    // SQL Server, PostgreSQL, Firebird, etc. — use BoldTestDatabaseConfig
-    // which reads full connection details from the INI file.
-    // Import here to avoid requiring BoldTestDatabaseConfig when using SQLite.
+    WriteLn('BoldTestDM: Using ' + Engine + ' (from ' + AIniPath + ')');
     BoldTestDatabaseConfig.CreateTestDatabase;
     BoldTestDatabaseConfig.ConfigureConnection(BoldTestDM.FDConnection1,
       BoldTestDM.BoldDatabaseAdapterFireDAC1);
@@ -143,7 +142,10 @@ begin
     if TryGetIniFilePath(IniPath) then
       ConfigureFromIni(IniPath)
     else
+    begin
+      WriteLn('BoldTestDM: Using SQLite in-memory (no UnitTest.ini found)');
       ConfigureSQLiteInMemory;
+    end;
 
     BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema;
     BoldTestDM.BoldSystemHandle1.Active := True;
