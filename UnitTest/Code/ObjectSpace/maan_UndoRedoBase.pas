@@ -471,6 +471,12 @@ initialization
 
 finalization
   try
+    if Assigned(dmUndoRedo) then
+    begin
+      if dmUndoRedo.BoldSystemHandle1.Active then
+        dmUndoRedo.BoldSystemHandle1.Active := False;
+      FreeAndNil(dmUndoRedo);
+    end;
     DropTestDatabase;
   except
     // Ignore errors during cleanup

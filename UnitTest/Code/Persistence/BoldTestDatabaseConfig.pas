@@ -101,10 +101,17 @@ begin
     end
     else if SameText(Engine, 'SQLite') then
     begin
-      Database := Ini.ReadString('SQLite', 'Database', 'unittest.db');
+      Database := Ini.ReadString('SQLite', 'Database', 'file:memdb1?mode=memory&cache=shared');
       Connection.DriverName := 'SQLite';
       Connection.Params.Values['Database'] := Database;
       Adapter.DatabaseEngine := dbeGenericANSISQL92;
+      with Adapter.SQLDatabaseConfig do
+      begin
+        ColumnTypeForText := 'TEXT';
+        ColumnTypeForUnicodeText := 'TEXT';
+        ColumnTypeForAnsiText := 'TEXT';
+        ColumnTypeForInt64 := 'INTEGER';
+      end;
     end
     else if SameText(Engine, 'Interbase') then
     begin

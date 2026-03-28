@@ -248,19 +248,16 @@ var
   Connection: TFDConnection;
   Adapter: TBoldDatabaseAdapterFireDAC;
 begin
-  // Create fresh connection and adapter to avoid any state issues
+  if SameText(GetTestDatabaseEngine, 'SQLite') then
+  begin
+    Assert.Pass('DatabaseExists not applicable for SQLite');
+    Exit;
+  end;
   Connection := TFDConnection.Create(nil);
   Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
   try
     Adapter.Connection := Connection;
-    // Configure connection from INI - this also sets DatabaseEngine
     ConfigureConnection(Connection, Adapter);
-
-    // Verify adapter is properly configured
-    Assert.AreEqual(Integer(dbeSQLServer), Integer(Adapter.DatabaseEngine),
-      'Adapter should be configured for SQL Server');
-
-    // The BoldUnitTest database should exist (created by EnsureDM/CreateTestDatabase)
     Assert.IsTrue(Adapter.DatabaseExists, 'DatabaseExists should return True for existing database');
   finally
     Adapter.Free;
@@ -273,22 +270,17 @@ var
   Connection: TFDConnection;
   Adapter: TBoldDatabaseAdapterFireDAC;
 begin
-  // Create fresh connection and adapter
+  if SameText(GetTestDatabaseEngine, 'SQLite') then
+  begin
+    Assert.Pass('DatabaseExists not applicable for SQLite');
+    Exit;
+  end;
   Connection := TFDConnection.Create(nil);
   Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
   try
     Adapter.Connection := Connection;
-    // Configure connection from INI - this also sets DatabaseEngine
     ConfigureConnection(Connection, Adapter);
-
-    // Change to a non-existent database name
     Connection.Params.Database := 'NonExistentDatabase_XYZ_12345';
-
-    // Verify adapter is properly configured
-    Assert.AreEqual(Integer(dbeSQLServer), Integer(Adapter.DatabaseEngine),
-      'Adapter should be configured for SQL Server');
-
-    // Should return False for non-existent database
     Assert.IsFalse(Adapter.DatabaseExists, 'DatabaseExists should return False for non-existent database');
   finally
     Adapter.Free;
@@ -303,6 +295,11 @@ var
   Connection: TFDConnection;
   Adapter: TBoldDatabaseAdapterFireDAC;
 begin
+  if SameText(GetTestDatabaseEngine, 'SQLite') then
+  begin
+    Assert.Pass('DropDatabase not applicable for SQLite');
+    Exit;
+  end;
   Connection := TFDConnection.Create(nil);
   Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
   try
@@ -343,6 +340,11 @@ var
   Connection: TFDConnection;
   Adapter: TBoldDatabaseAdapterFireDAC;
 begin
+  if SameText(GetTestDatabaseEngine, 'SQLite') then
+  begin
+    Assert.Pass('CreateDatabase not applicable for SQLite');
+    Exit;
+  end;
   Connection := TFDConnection.Create(nil);
   Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
   try
@@ -641,15 +643,16 @@ begin
     ExecQuery := DbInterface.GetExecQuery;
     try
       // Create a temp table, insert rows, check RowsAffected
-      ExecQuery.AssignSQLText('CREATE TABLE #TempTest (ID INT)');
+      Connection.ExecSQL('DROP TABLE IF EXISTS Bold_TempTest');
+      ExecQuery.AssignSQLText('CREATE TABLE Bold_TempTest (ID INT)');
       ExecQuery.ExecSQL;
 
-      ExecQuery.AssignSQLText('INSERT INTO #TempTest VALUES (1), (2), (3)');
+      ExecQuery.AssignSQLText('INSERT INTO Bold_TempTest VALUES (1), (2), (3)');
       ExecQuery.ExecSQL;
       Assert.AreEqual(3, ExecQuery.RowsAffected, 'RowsAffected should be 3 after insert');
 
-      ExecQuery.AssignSQLText('DROP TABLE #TempTest');
-      ExecQuery.ExecSQL;
+      // Drop via raw connection to avoid Bold's table deletion dialog
+      Connection.ExecSQL('DROP TABLE Bold_TempTest');
     finally
       DbInterface.ReleaseExecQuery(ExecQuery);
     end;
@@ -857,7 +860,8 @@ begin
     // First create a temp table for our test
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('CREATE TABLE #TestExec (ID INT, Val VARCHAR(50))');
+      Connection.ExecSQL('DROP TABLE IF EXISTS Bold_TestExec');
+      ExecQuery.AssignSQLText('CREATE TABLE Bold_TestExec (ID INT, Val VARCHAR(50))');
       ExecQuery.ExecSQL;
     finally
       DbInterface.ReleaseExecQuery(ExecQuery);
@@ -867,8 +871,8 @@ begin
     ExecQuery := DbInterface.GetExecQuery;
     try
       // Test SQLText property
-      ExecQuery.AssignSQLText('INSERT INTO #TestExec (ID, Val) VALUES (:ID, :Val)');
-      Assert.AreEqual('INSERT INTO #TestExec (ID, Val) VALUES (:ID, :Val)', ExecQuery.SQLText, 'SQLText should match');
+      ExecQuery.AssignSQLText('INSERT INTO Bold_TestExec (ID, Val) VALUES (:ID, :Val)');
+      Assert.AreEqual('INSERT INTO Bold_TestExec (ID, Val) VALUES (:ID, :Val)', ExecQuery.SQLText, 'SQLText should match');
 
       // Test ParamCount
       Assert.AreEqual(2, ExecQuery.ParamCount, 'ParamCount should be 2');
@@ -896,8 +900,7 @@ begin
     // Cleanup temp table
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('DROP TABLE #TestExec');
-      ExecQuery.ExecSQL;
+      Connection.ExecSQL('DROP TABLE Bold_TestExec');
     finally
       DbInterface.ReleaseExecQuery(ExecQuery);
     end;
@@ -1547,14 +1550,18 @@ begin
 
     ExecQuery := DbInterface.GetExecQuery;
     try
-      // Use a non-returning SQL statement (SET NOCOUNT is safe and doesn't return results)
-      ExecQuery.AssignSQLText('SET NOCOUNT ON');
+      // Use a non-returning DML statement that works on all engines
+      Connection.ExecSQL('DROP TABLE IF EXISTS Bold_PrepareTest');
+      ExecQuery.AssignSQLText('CREATE TABLE Bold_PrepareTest (ID INT)');
 
       // Prepare should not raise
       ExecQuery.Prepare;
 
-      // Execute after prepare - SET statements don't return result sets
+      // Execute after prepare
       ExecQuery.ExecSQL;
+
+      // Cleanup
+      Connection.ExecSQL('DROP TABLE Bold_PrepareTest');
       Assert.Pass('Prepare and ExecSQL completed without error');
     finally
       DbInterface.ReleaseExecQuery(ExecQuery);
@@ -1634,9 +1641,13 @@ begin
       ExecQuery.UseReadTransactions := False;
       Assert.IsFalse(ExecQuery.UseReadTransactions, 'UseReadTransactions should be False');
 
-      // Execute with read transactions disabled - use non-returning statement
-      ExecQuery.AssignSQLText('SET NOCOUNT ON');
+      // Execute with read transactions disabled - use non-returning DML
+      Connection.ExecSQL('DROP TABLE IF EXISTS Bold_ReadTxTest');
+      ExecQuery.AssignSQLText('CREATE TABLE Bold_ReadTxTest (ID INT)');
       ExecQuery.ExecSQL;
+
+      // Cleanup
+      Connection.ExecSQL('DROP TABLE Bold_ReadTxTest');
       Assert.Pass('ExecSQL completed with UseReadTransactions=False');
     finally
       DbInterface.ReleaseExecQuery(ExecQuery);
@@ -1667,7 +1678,8 @@ begin
     // Create a test table
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('CREATE TABLE #BatchTest (ID INT, Val VARCHAR(50))');
+      Connection.ExecSQL('DROP TABLE IF EXISTS Bold_BatchTest');
+      ExecQuery.AssignSQLText('CREATE TABLE Bold_BatchTest (ID INT, Val VARCHAR(50))');
       ExecQuery.ExecSQL;
     finally
       DbInterface.ReleaseExecQuery(ExecQuery);
@@ -1680,13 +1692,13 @@ begin
       ExecQuery.StartSQLBatch;
 
       // Queue multiple statements
-      ExecQuery.AssignSQLText('INSERT INTO #BatchTest (ID, Val) VALUES (1, ''One'')');
+      ExecQuery.AssignSQLText('INSERT INTO Bold_BatchTest (ID, Val) VALUES (1, ''One'')');
       ExecQuery.ExecSQL;
 
-      ExecQuery.AssignSQLText('INSERT INTO #BatchTest (ID, Val) VALUES (2, ''Two'')');
+      ExecQuery.AssignSQLText('INSERT INTO Bold_BatchTest (ID, Val) VALUES (2, ''Two'')');
       ExecQuery.ExecSQL;
 
-      ExecQuery.AssignSQLText('INSERT INTO #BatchTest (ID, Val) VALUES (3, ''Three'')');
+      ExecQuery.AssignSQLText('INSERT INTO Bold_BatchTest (ID, Val) VALUES (3, ''Three'')');
       ExecQuery.ExecSQL;
 
       // End batch - executes all queued statements
@@ -1698,7 +1710,7 @@ begin
     // Verify batch executed correctly
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('SELECT COUNT(*) FROM #BatchTest');
+      ExecQuery.AssignSQLText('SELECT COUNT(*) FROM Bold_BatchTest');
       // Note: ExecQuery doesn't return result sets, but we can verify no error occurred
       Assert.Pass('Batch operations completed without error');
     finally
@@ -1708,8 +1720,7 @@ begin
     // Cleanup
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('DROP TABLE #BatchTest');
-      ExecQuery.ExecSQL;
+      Connection.ExecSQL('DROP TABLE Bold_BatchTest');
     finally
       DbInterface.ReleaseExecQuery(ExecQuery);
     end;
@@ -2042,7 +2053,8 @@ begin
     // Create temp table
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('CREATE TABLE #RowsTest (ID INT)');
+      Connection.ExecSQL('DROP TABLE IF EXISTS Bold_RowsTest');
+      ExecQuery.AssignSQLText('CREATE TABLE Bold_RowsTest (ID INT)');
       ExecQuery.ExecSQL;
     finally
       DbInterface.ReleaseExecQuery(ExecQuery);
@@ -2051,7 +2063,7 @@ begin
     // Insert multiple rows
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('INSERT INTO #RowsTest (ID) VALUES (1), (2), (3)');
+      ExecQuery.AssignSQLText('INSERT INTO Bold_RowsTest (ID) VALUES (1), (2), (3)');
       ExecQuery.ExecSQL;
       Assert.AreEqual(3, ExecQuery.RowsAffected, 'RowsAffected should be 3 for INSERT');
     finally
@@ -2061,7 +2073,7 @@ begin
     // Update rows
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('UPDATE #RowsTest SET ID = ID + 10 WHERE ID <= 2');
+      ExecQuery.AssignSQLText('UPDATE Bold_RowsTest SET ID = ID + 10 WHERE ID <= 2');
       ExecQuery.ExecSQL;
       Assert.AreEqual(2, ExecQuery.RowsAffected, 'RowsAffected should be 2 for UPDATE');
     finally
@@ -2071,7 +2083,7 @@ begin
     // Delete rows
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('DELETE FROM #RowsTest WHERE ID > 10');
+      ExecQuery.AssignSQLText('DELETE FROM Bold_RowsTest WHERE ID > 10');
       ExecQuery.ExecSQL;
       Assert.AreEqual(2, ExecQuery.RowsAffected, 'RowsAffected should be 2 for DELETE');
     finally
@@ -2081,8 +2093,7 @@ begin
     // Cleanup
     ExecQuery := DbInterface.GetExecQuery;
     try
-      ExecQuery.AssignSQLText('DROP TABLE #RowsTest');
-      ExecQuery.ExecSQL;
+      Connection.ExecSQL('DROP TABLE Bold_RowsTest');
     finally
       DbInterface.ReleaseExecQuery(ExecQuery);
     end;

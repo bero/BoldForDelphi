@@ -397,10 +397,11 @@ var
     IsBoldTable := Knowntables.IndexOf(TableNameList[i]) <> -1 ;
 
     if not IsBoldTable and (not PSParams.IgnoreUnknownTables) and
+      not BoldCleanDatabaseForced and
       not (Query in [qrYesAll, qrNoAll]) then
         Query := QueryUser(sDeleteTable, Format(sDeleteNonBoldTable, [TableNameList[i]]));
 
-    MayDelete := (Query in [qrYes, qrYesAll]) and (not PSParams.IgnoreUnknownTables);
+    MayDelete := ((Query in [qrYes, qrYesAll]) or BoldCleanDatabaseForced) and (not PSParams.IgnoreUnknownTables);
 
     if IsBoldTable or MayDelete then
     begin
