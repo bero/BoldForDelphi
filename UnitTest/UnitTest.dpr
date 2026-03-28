@@ -115,7 +115,8 @@ uses
   Test.BoldDBInterfacesMock in 'Code\Mocks\Test.BoldDBInterfacesMock.pas',
   { Integration tests with transaction rollback }
   BoldTestPersistence in 'Code\Integration\BoldTestPersistence.pas',
-  Test.BoldPersistence in 'Code\Integration\Test.BoldPersistence.pas';
+  Test.BoldPersistence in 'Code\Integration\Test.BoldPersistence.pas',
+  Test.BoldMeta in 'Code\MoldModel\Test.BoldMeta.pas';
 
 {$R *.res}
 
