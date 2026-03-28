@@ -235,13 +235,11 @@ begin
       Item.AddSmallSubscription(Subscriber, [beDestroying], beDefaultRequestedEvent);
 
       // Destroying collection destroys items, which should notify subscribers
-      Coll.Free;
+      FreeAndNil(Coll);
     except
-      // Ensure Coll.Free doesn't double-free in finally
-      Coll := nil;
+      FreeAndNil(Coll);
       raise;
     end;
-    Coll := nil;
 
     Assert.IsTrue(FDestroyEventReceived, 'Destroying collection item should send beDestroying');
     Assert.AreEqual(0, Subscriber.SubscriptionCount, 'Subscriber should have no subscriptions after item destroyed');
