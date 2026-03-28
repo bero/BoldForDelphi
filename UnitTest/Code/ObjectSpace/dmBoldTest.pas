@@ -1,6 +1,8 @@
 unit dmBoldTest;
 
-{ Generic DataModule for Bold unit tests }
+{ Generic DataModule for Bold unit tests.
+  Uses SQLite shared-cache in-memory by default.
+  Override via UnitTest.ini to use SQL Server or other engines. }
 
 interface
 
@@ -46,7 +48,6 @@ var
   BoldTestDM: TBoldTestDM;
 
 procedure EnsureBoldTestDM;
-procedure EnsureBoldTestDMSQLite;
 procedure CloseBoldTestDM;
 
 implementation
@@ -54,6 +55,7 @@ implementation
 {$R *.dfm}
 
 uses
+  System.IniFiles,
   BoldTestDatabaseConfig,
   BoldSQLDatabaseConfig,
   FireDAC.Phys.SQLite,
@@ -66,80 +68,83 @@ begin
   inherited;
 end;
 
-procedure DropAndRecreateSchema;
+function TryGetIniFilePath(out APath: string): Boolean;
 begin
-  // Drop existing database and recreate from scratch.
-  // This is simpler and more reliable than ClearAllTables which requires
-  // knowing all table names and their dependency order.
-  DropTestDatabase;
-  CreateTestDatabase;
+  APath := ExtractFilePath(ParamStr(0)) + 'UnitTest.ini';
+  if FileExists(APath) then
+    Exit(True);
+  APath := ExtractFilePath(ParamStr(0)) + '..\UnitTest.ini';
+  Result := FileExists(APath);
+end;
+
+procedure ConfigureSQLiteInMemory;
+begin
+  // SQLite shared-cache in-memory: fast, no setup required.
+  // Named memory URI ensures all Bold internal connections (created via
+  // CreateAnotherDatabaseConnection) share the same in-memory database.
   BoldTestDM.FDConnection1.Close;
+  BoldTestDM.FDConnection1.Params.Clear;
+  BoldTestDM.FDConnection1.DriverName := 'SQLite';
+  BoldTestDM.FDConnection1.Params.Values['Database'] :=
+    'file:memdb1?mode=memory&cache=shared';
+  BoldTestDM.FDConnection1.LoginPrompt := False;
   BoldTestDM.FDConnection1.Open;
-  BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema;
+
+  BoldTestDM.BoldDatabaseAdapterFireDAC1.DatabaseEngine := dbeGenericANSISQL92;
+  with BoldTestDM.BoldDatabaseAdapterFireDAC1.SQLDatabaseConfig do
+  begin
+    ColumnTypeForText := 'TEXT';
+    ColumnTypeForUnicodeText := 'TEXT';
+    ColumnTypeForAnsiText := 'TEXT';
+    ColumnTypeForInt64 := 'INTEGER';
+  end;
+end;
+
+procedure ConfigureFromIni(const AIniPath: string);
+var
+  Ini: TIniFile;
+  Engine: string;
+begin
+  Ini := TIniFile.Create(AIniPath);
+  try
+    Engine := Ini.ReadString('Database', 'Engine', 'SQLite');
+  finally
+    Ini.Free;
+  end;
+
+  if SameText(Engine, 'SQLite') then
+  begin
+    ConfigureSQLiteInMemory;
+  end
+  else
+  begin
+    // SQL Server, PostgreSQL, Firebird, etc. — use BoldTestDatabaseConfig
+    // which reads full connection details from the INI file.
+    // Import here to avoid requiring BoldTestDatabaseConfig when using SQLite.
+    BoldTestDatabaseConfig.CreateTestDatabase;
+    BoldTestDatabaseConfig.ConfigureConnection(BoldTestDM.FDConnection1,
+      BoldTestDM.BoldDatabaseAdapterFireDAC1);
+    BoldTestDM.FDConnection1.Open;
+  end;
 end;
 
 procedure EnsureBoldTestDM;
+var
+  IniPath: string;
 begin
   if not Assigned(BoldTestDM) then
   begin
     if not Assigned(Application) then
-      raise Exception.Create('Application is nil');
-    Application.Initialize;
+      Application.Initialize;
 
-    // Create the test database first (IF NOT EXISTS)
-    CreateTestDatabase;
-
-    BoldTestDM := TBoldTestDM.Create(Application);
-    if not Assigned(BoldTestDM) then
-      raise Exception.Create('Failed to create BoldTestDM');
-
-    // Configure database connection from INI file
-    ConfigureConnection(BoldTestDM.FDConnection1,
-                        BoldTestDM.BoldDatabaseAdapterFireDAC1);
-
-    // Open connection
-    BoldTestDM.FDConnection1.Open;
-    if not BoldTestDM.FDConnection1.Connected then
-      raise Exception.Create('FDConnection1 failed to open');
-
-    // Create schema (Bold skips tables that already exist)
-    BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema;
-
-    // Activate system
-    BoldTestDM.BoldSystemHandle1.Active := True;
-    if not Assigned(BoldTestDM.BoldSystemHandle1.System) then
-      raise Exception.Create('BoldSystem failed to activate');
-  end;
-end;
-
-procedure EnsureBoldTestDMSQLite;
-begin
-  if not Assigned(BoldTestDM) then
-  begin
     BoldTestDM := TBoldTestDM.Create(nil);
 
-    // Configure SQLite shared-cache in-memory database.
-    // Named memory URI ensures all Bold internal connections (created via
-    // CreateAnotherDatabaseConnection) share the same in-memory database.
-    BoldTestDM.FDConnection1.Close;
-    BoldTestDM.FDConnection1.Params.Clear;
-    BoldTestDM.FDConnection1.DriverName := 'SQLite';
-    BoldTestDM.FDConnection1.Params.Values['Database'] :=
-      'file:memdb1?mode=memory&cache=shared';
-    BoldTestDM.FDConnection1.LoginPrompt := False;
-    BoldTestDM.FDConnection1.Open;
+    // Use UnitTest.ini if available, otherwise default to SQLite in-memory
+    if TryGetIniFilePath(IniPath) then
+      ConfigureFromIni(IniPath)
+    else
+      ConfigureSQLiteInMemory;
 
-    // Adjust SQL config for SQLite compatibility
-    BoldTestDM.BoldDatabaseAdapterFireDAC1.DatabaseEngine := dbeGenericANSISQL92;
-    with BoldTestDM.BoldDatabaseAdapterFireDAC1.SQLDatabaseConfig do
-    begin
-      ColumnTypeForText := 'TEXT';
-      ColumnTypeForUnicodeText := 'TEXT';
-      ColumnTypeForAnsiText := 'TEXT';
-      ColumnTypeForInt64 := 'INTEGER';
-    end;
-
-    // Create schema and activate
     BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema;
     BoldTestDM.BoldSystemHandle1.Active := True;
   end;

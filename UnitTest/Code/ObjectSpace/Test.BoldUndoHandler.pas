@@ -262,7 +262,6 @@ type
     procedure UpdateDatabase;
     function IdCompare(Item1, Item2: TBoldElement): Integer;
     procedure FetchClassSorted(const aSystem: TBoldSystem; const aList: TBoldObjectList; const ObjClass: TBoldObjectClass);
-    procedure SetSimpleConfiguration;
     procedure SetConfigurationForIndirectSingle;
     procedure VerifyState(const Element: TBoldDomainElement; const State: TBoldValuePersistenceState);
     procedure VerifyObjectInBlock(Block: TBoldUndoBlock; aId: TBoldObjectId; State: TBoldExistenceState);
@@ -731,7 +730,7 @@ end;
 
 procedure TTestBoldUndoHandler.SetUpFixture;
 begin
-  EnsureBoldTestDMSQLite;
+  EnsureBoldTestDM;
   Assert.IsNotNull(BoldTestDM, 'BoldTestDM should be created');
   Assert.IsNotNull(BoldTestDM.BoldSystemHandle1.System, 'System should be active');
 end;
@@ -1590,7 +1589,7 @@ end;
 
 procedure TTestBoldUndoHandlerIndirectLinks.SetUpFixture;
 begin
-  EnsureBoldTestDMSQLite;
+  EnsureBoldTestDM;
   Assert.IsNotNull(BoldTestDM, 'BoldTestDM should be created');
   Assert.IsNotNull(BoldTestDM.BoldSystemHandle1.System, 'System should be active');
 end;
@@ -1677,15 +1676,6 @@ begin
   BoldTestDM.BoldSystemHandle1.UpdateDatabase;
 end;
 
-procedure TTestBoldUndoHandlerIndirectLinks.SetSimpleConfiguration;
-begin
-  GenerateObjects(System, 'SomeClass', 4);
-  UpdateDatabase;
-  FetchClassSorted(System, FSomeClassList, TSomeClass);
-  FSomeClassList[1].parent := FSomeClassList[0];
-  FSomeClassList[3].parent := FSomeClassList[2];
-end;
-
 procedure TTestBoldUndoHandlerIndirectLinks.SetConfigurationForIndirectSingle;
 begin
   GenerateObjects(System, 'ClassWithLink', 4);
@@ -1727,7 +1717,7 @@ end;
 
 procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectMultiModifyInsertCurrent;
 var
-  ObjA, ObjB, ObjA2, ObjB2: TSomeClass;
+  ObjB, ObjA2: TSomeClass;
   aLinkObjectLocator: TBoldObjectLocator;
   aLinkObjectId: TBoldObjectId;
 begin
@@ -1741,10 +1731,8 @@ begin
   UpdateDatabase;
   RefreshSystem;
 
-  ObjA := FSomeClassList[0];
   ObjB := FSomeClassList[1];
   ObjA2 := FSomeClassList[2];
-  ObjB2 := FSomeClassList[3];
 
   ObjB.M_part.EnsureContentsCurrent;
   VerifyState(ObjB.M_part, bvpsCurrent);
@@ -1766,7 +1754,7 @@ end;
 
 procedure TTestBoldUndoHandlerIndirectLinks.TestIndirectMultiModifyDeleteCurrent;
 var
-  ObjA, ObjB, ObjA2, ObjB2: TSomeClass;
+  ObjB, ObjA2: TSomeClass;
   aLinkObjectLocator: TBoldObjectLocator;
   aLinkObjectId: TBoldObjectId;
 begin
@@ -1781,10 +1769,8 @@ begin
   UpdateDatabase;
   RefreshSystem;
 
-  ObjA := FSomeClassList[0];
   ObjB := FSomeClassList[1];
   ObjA2 := FSomeClassList[2];
-  ObjB2 := FSomeClassList[3];
 
   ObjB.M_part.EnsureContentsCurrent;
   VerifyState(ObjB.M_part, bvpsCurrent);
@@ -2077,7 +2063,6 @@ begin
         UndoHandler.UndoLatest;
         ObjA1 := System.Locators.ObjectById[ObjA1Id] as TClassWithLink;
         ObjB1 := System.Locators.ObjectById[ObjB1Id] as TClassWithLink;
-        ObjA2 := System.Locators.ObjectById[ObjA2Id] as TClassWithLink;
         Assert.IsTrue(Assigned(System.Locators.ObjectById[aLinkClassId]),
           'Old link should be restored after undo');
         Assert.IsTrue(not Assigned(System.Locators.ObjectById[newLinkClassId]),
