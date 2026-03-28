@@ -974,10 +974,14 @@ end;
 procedure TTestBoldOclEvaluation.TestReverseCollection;
 var
   C1, C2: TClassA;
+  Normal, Reversed: string;
 begin
   C1 := TClassA.Create(GetSystem); C1.aString := 'First';
   C2 := TClassA.Create(GetSystem); C2.aString := 'Last';
-  Assert.AreEqual('Last', GetSystem.EvaluateExpressionAsString('ClassA.allInstances->reverseCollection->first.aString'));
+  // allInstances order is not guaranteed, so verify reverse flips whatever the order is
+  Normal := GetSystem.EvaluateExpressionAsString('ClassA.allInstances->first.aString');
+  Reversed := GetSystem.EvaluateExpressionAsString('ClassA.allInstances->reverseCollection->last.aString');
+  Assert.AreEqual(Normal, Reversed, 'reverseCollection->last should equal allInstances->first');
 end;
 
 procedure TTestBoldOclEvaluation.TestAsSequence;
