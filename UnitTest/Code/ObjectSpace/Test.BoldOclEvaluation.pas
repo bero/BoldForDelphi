@@ -514,6 +514,26 @@ type
     procedure TestExpressionTypeFloat;
     [Test] [Category('Quick')]
     procedure TestRTInfoInteger;
+
+    // --- More OCL for coverage ---
+    [Test] [Category('Quick')]
+    procedure TestAllLoadedObjectsVsAllInstances;
+    [Test] [Category('Quick')]
+    procedure TestFilterOnTypeReturnsSubset;
+    [Test] [Category('Quick')]
+    procedure TestOclTypeReturnsTypeName;
+    [Test] [Category('Quick')]
+    procedure TestAsStringOnInteger;
+    [Test] [Category('Quick')]
+    procedure TestAsFloatOnInteger;
+    [Test] [Category('Quick')]
+    procedure TestAtExpression;
+    [Test] [Category('Quick')]
+    procedure TestIndexOfExpression;
+    [Test] [Category('Quick')]
+    procedure TestOrderByExpression;
+    [Test] [Category('Quick')]
+    procedure TestOrderDescendingExpression;
   end;
 
 implementation
@@ -2553,6 +2573,113 @@ begin
   RTI := (GetSystem.Evaluator as TBoldRTEvaluator).RTInfo('self.aInteger', CTI, True);
   Assert.IsNotNull(RTI, 'RTInfo for aInteger should not be nil');
   Assert.IsTrue(RTI.IsAttribute, 'aInteger RTInfo should be attribute');
+end;
+
+// === More OCL for coverage ===
+
+procedure TTestBoldOclEvaluation.TestAllLoadedObjectsVsAllInstances;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Loaded';
+  Assert.AreEqual(
+    Obj.EvaluateExpressionAsInteger('ClassA.allInstances->size'),
+    Obj.EvaluateExpressionAsInteger('ClassA.allLoadedObjects->size'),
+    'allLoadedObjects should equal allInstances for in-memory system');
+end;
+
+procedure TTestBoldOclEvaluation.TestFilterOnTypeReturnsSubset;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.AreEqual(1, Obj.EvaluateExpressionAsInteger(
+    'ClassA.allInstances->filterOnType(ClassA)->size'),
+    'filterOnType ClassA should return all ClassA instances');
+end;
+
+procedure TTestBoldOclEvaluation.TestOclTypeReturnsTypeName;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.AreEqual('ClassA', Obj.EvaluateExpressionAsString('self.oclType.asString'),
+    'oclType should return class name');
+end;
+
+procedure TTestBoldOclEvaluation.TestAsStringOnInteger;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aInteger := 42;
+  Assert.AreEqual('42', Obj.EvaluateExpressionAsString('self.aInteger.asString'),
+    'Integer asString should return string representation');
+end;
+
+procedure TTestBoldOclEvaluation.TestAsFloatOnInteger;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aInteger := 7;
+  Assert.AreEqual(7.0, Obj.EvaluateExpressionAsFloat('self.aInteger.asFloat'), 0.01,
+    'Integer asFloat should return float value');
+end;
+
+procedure TTestBoldOclEvaluation.TestAtExpression;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aString := 'First';
+  Obj2.aString := 'Second';
+  // OCL at() is 1-based
+  Assert.IsTrue(Length(Obj1.EvaluateExpressionAsString('ClassA.allInstances->at(1).aString')) > 0,
+    'at(1) should return first element');
+end;
+
+procedure TTestBoldOclEvaluation.TestIndexOfExpression;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  // indexOf returns 1-based position (0 = not found)
+  Assert.IsTrue(Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->indexOf(self)') >= 0,
+    'indexOf should return non-negative index');
+end;
+
+procedure TTestBoldOclEvaluation.TestOrderByExpression;
+var
+  Obj1, Obj2, Obj3: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj3 := TClassA.Create(GetSystem);
+  Obj1.aString := 'C';
+  Obj2.aString := 'A';
+  Obj3.aString := 'B';
+  Assert.AreEqual('A', Obj1.EvaluateExpressionAsString(
+    'ClassA.allInstances->orderby(aString)->first.aString'),
+    'orderby should sort ascending');
+end;
+
+procedure TTestBoldOclEvaluation.TestOrderDescendingExpression;
+var
+  Obj1, Obj2, Obj3: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj3 := TClassA.Create(GetSystem);
+  Obj1.aString := 'C';
+  Obj2.aString := 'A';
+  Obj3.aString := 'B';
+  Assert.AreEqual('C', Obj1.EvaluateExpressionAsString(
+    'ClassA.allInstances->orderDescending(aString)->first.aString'),
+    'orderDescending should sort descending');
 end;
 
 initialization

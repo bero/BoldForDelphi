@@ -15,7 +15,12 @@ uses
   BoldValueSpaceInterfaces,
   BoldDefaultXMLStreaming,
   BoldXMLStreaming,
+  BoldSystemHandle,
+  BoldHandles,
+  BoldModel,
+  BoldTypeNameHandle,
   jehoBCBoldTest,
+  TestModel1,
   Test.BoldAttributes;
 
 type
@@ -49,6 +54,30 @@ type
     procedure TestClassStreamerByNameNotFound;
   end;
 
+  // Tests with TestModel1 (has associations — exercises IdRef/IdListRef streamers)
+  [TestFixture]
+  [Category('XMLStreaming')]
+  TTestXMLStreamingWithLinks = class
+  private
+    FSystemHandle: TBoldSystemHandle;
+    FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
+    function GetSystem: TBoldSystem;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestWriteReadWithSingleLink;
+    [Test]
+    procedure TestWriteReadWithMultiLink;
+    [Test]
+    procedure TestWriteReadWithParentChild;
+    [Test]
+    procedure TestWriteReadMultipleLinkedObjects;
+  end;
+
 implementation
 
 uses
@@ -57,7 +86,8 @@ uses
   BoldId,
   BoldDefaultId,
   BoldDomainElement,
-  Bold_MSXML_TLB;
+  Bold_MSXML_TLB,
+  dmModel1;
 
 procedure TTestBoldDefaultXMLStreaming.SetUp;
 begin
@@ -413,7 +443,270 @@ begin
   end;
 end;
 
+{ TTestXMLStreamingWithLinks }
+
+procedure TTestXMLStreamingWithLinks.SetUp;
+begin
+  Ensuredm_Model;
+  FSystemTypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
+  FSystemTypeInfoHandle.BoldModel := dm_Model1.BoldModel1;
+  FSystemHandle := TBoldSystemHandle.Create(nil);
+  FSystemHandle.SystemTypeInfoHandle := FSystemTypeInfoHandle;
+  FSystemHandle.Active := True;
+end;
+
+procedure TTestXMLStreamingWithLinks.TearDown;
+begin
+  if Assigned(FSystemHandle) and FSystemHandle.Active then
+  begin
+    FSystemHandle.System.Discard;
+    FSystemHandle.Active := False;
+  end;
+  FreeAndNil(FSystemHandle);
+  FreeAndNil(FSystemTypeInfoHandle);
+end;
+
+function TTestXMLStreamingWithLinks.GetSystem: TBoldSystem;
+begin
+  Result := FSystemHandle.System;
+end;
+
+procedure TTestXMLStreamingWithLinks.TestWriteReadWithSingleLink;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  ParseError: IXMLDOMParseError;
+  Parent, Child: TestModel1.TClassA;
+  anIdList: TBoldObjectIdList;
+  FSValueSpace: TBoldFreeStandingValueSpace;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  Child := TestModel1.TClassA.Create(GetSystem);
+  Parent.aString := 'Parent';
+  Child.aString := 'Child';
+  Child.parent := Parent;
+
+  // Write
+  aDoc := TDOMDocument.Create(nil);
+  aMgr := TBoldDefaultXMLStreamManager.Create(
+    TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+    dm_Model1.BoldModel1.MoldModel);
+  try
+    aMgr.IgnorePersistenceState := True;
+    aNode := aMgr.NewRootNode(aDoc, 'LinkTest');
+    anIdList := TBoldObjectIdList.Create;
+    try
+      anIdList.Add(Parent.BoldObjectLocator.BoldObjectID);
+      anIdList.Add(Child.BoldObjectLocator.BoldObjectID);
+      aMgr.WriteValueSpace(GetSystem.AsIBoldvalueSpace[bdepContents], anIdList, nil, aNode);
+    finally
+      anIdList.Free;
+    end;
+    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    Assert.IsTrue(Length(anXML) > 200, 'XML with links should be substantial');
+    aNode.Free;
+  finally
+    aMgr.Free;
+    aDoc.Free;
+  end;
+
+  // Read back
+  aDoc := TDOMDocument.Create(nil);
+  try
+    aDoc.async := False;
+    aDoc.loadXML(anXML);
+    ParseError := aDoc.parseError;
+    Assert.IsTrue((not Assigned(ParseError)) or (ParseError.errorCode = 0), 'Should parse');
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      dm_Model1.BoldModel1.MoldModel);
+    try
+      aMgr.IgnorePersistenceState := True;
+      aNode := aMgr.GetRootNode(aDoc, 'LinkTest');
+      FSValueSpace := TBoldFreeStandingValueSpace.Create;
+      try
+        aMgr.ReadValueSpace(FSValueSpace, aNode);
+        Assert.IsTrue(FSValueSpace.GetHasContentsForId(Parent.BoldObjectLocator.BoldObjectID), 'Should have Parent');
+        Assert.IsTrue(FSValueSpace.GetHasContentsForId(Child.BoldObjectLocator.BoldObjectID), 'Should have Child');
+      finally
+        FSValueSpace.Free;
+      end;
+      aNode.Free;
+    finally
+      aMgr.Free;
+    end;
+  finally
+    aDoc.Free;
+  end;
+end;
+
+procedure TTestXMLStreamingWithLinks.TestWriteReadWithMultiLink;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  Parent, C1, C2: TestModel1.TClassA;
+  anIdList: TBoldObjectIdList;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  C1 := TestModel1.TClassA.Create(GetSystem);
+  C2 := TestModel1.TClassA.Create(GetSystem);
+  Parent.aString := 'P';
+  C1.parent := Parent;
+  C2.parent := Parent;
+
+  aDoc := TDOMDocument.Create(nil);
+  aMgr := TBoldDefaultXMLStreamManager.Create(
+    TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+    dm_Model1.BoldModel1.MoldModel);
+  try
+    aMgr.IgnorePersistenceState := True;
+    aNode := aMgr.NewRootNode(aDoc, 'MultiLinkTest');
+    anIdList := TBoldObjectIdList.Create;
+    try
+      anIdList.Add(Parent.BoldObjectLocator.BoldObjectID);
+      anIdList.Add(C1.BoldObjectLocator.BoldObjectID);
+      anIdList.Add(C2.BoldObjectLocator.BoldObjectID);
+      aMgr.WriteValueSpace(GetSystem.AsIBoldvalueSpace[bdepContents], anIdList, nil, aNode);
+    finally
+      anIdList.Free;
+    end;
+    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    Assert.IsTrue(Length(anXML) > 300, 'XML with multi-link should be large');
+    aNode.Free;
+  finally
+    aMgr.Free;
+    aDoc.Free;
+  end;
+end;
+
+procedure TTestXMLStreamingWithLinks.TestWriteReadWithParentChild;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  ParseError: IXMLDOMParseError;
+  Root, L1, L2: TestModel1.TClassA;
+  anIdList: TBoldObjectIdList;
+  FSValueSpace: TBoldFreeStandingValueSpace;
+begin
+  Root := TestModel1.TClassA.Create(GetSystem);
+  L1 := TestModel1.TClassA.Create(GetSystem);
+  L2 := TestModel1.TClassA.Create(GetSystem);
+  Root.aString := 'Root';
+  Root.aInteger := 1;
+  L1.aString := 'L1';
+  L1.aInteger := 2;
+  L2.aString := 'L2';
+  L2.aInteger := 3;
+  L1.parent := Root;
+  L2.parent := L1;
+
+  // Write
+  aDoc := TDOMDocument.Create(nil);
+  aMgr := TBoldDefaultXMLStreamManager.Create(
+    TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+    dm_Model1.BoldModel1.MoldModel);
+  try
+    aMgr.IgnorePersistenceState := True;
+    aNode := aMgr.NewRootNode(aDoc, 'HierarchyTest');
+    anIdList := TBoldObjectIdList.Create;
+    try
+      anIdList.Add(Root.BoldObjectLocator.BoldObjectID);
+      anIdList.Add(L1.BoldObjectLocator.BoldObjectID);
+      anIdList.Add(L2.BoldObjectLocator.BoldObjectID);
+      aMgr.WriteValueSpace(GetSystem.AsIBoldvalueSpace[bdepContents], anIdList, nil, aNode);
+    finally
+      anIdList.Free;
+    end;
+    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    aNode.Free;
+  finally
+    aMgr.Free;
+    aDoc.Free;
+  end;
+
+  // Read back
+  aDoc := TDOMDocument.Create(nil);
+  try
+    aDoc.async := False;
+    aDoc.loadXML(anXML);
+    ParseError := aDoc.parseError;
+    Assert.IsTrue((not Assigned(ParseError)) or (ParseError.errorCode = 0), 'Should parse');
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      dm_Model1.BoldModel1.MoldModel);
+    try
+      aMgr.IgnorePersistenceState := True;
+      aNode := aMgr.GetRootNode(aDoc, 'HierarchyTest');
+      FSValueSpace := TBoldFreeStandingValueSpace.Create;
+      try
+        aMgr.ReadValueSpace(FSValueSpace, aNode);
+        Assert.IsTrue(FSValueSpace.GetHasContentsForId(Root.BoldObjectLocator.BoldObjectID), 'Should have Root');
+        Assert.IsTrue(FSValueSpace.GetHasContentsForId(L1.BoldObjectLocator.BoldObjectID), 'Should have L1');
+        Assert.IsTrue(FSValueSpace.GetHasContentsForId(L2.BoldObjectLocator.BoldObjectID), 'Should have L2');
+      finally
+        FSValueSpace.Free;
+      end;
+      aNode.Free;
+    finally
+      aMgr.Free;
+    end;
+  finally
+    aDoc.Free;
+  end;
+end;
+
+procedure TTestXMLStreamingWithLinks.TestWriteReadMultipleLinkedObjects;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  Obj1, Obj2: TestModel1.TClassA;
+  anIdList: TBoldObjectIdList;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  Obj1.aString := 'A';
+  Obj2.aString := 'B';
+  Obj1.next := Obj2;
+  // Also add part relationship
+  Obj1.part.Add(Obj2);
+
+  aDoc := TDOMDocument.Create(nil);
+  aMgr := TBoldDefaultXMLStreamManager.Create(
+    TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+    dm_Model1.BoldModel1.MoldModel);
+  try
+    aMgr.IgnorePersistenceState := True;
+    aNode := aMgr.NewRootNode(aDoc, 'ComplexLinkTest');
+    anIdList := TBoldObjectIdList.Create;
+    try
+      anIdList.Add(Obj1.BoldObjectLocator.BoldObjectID);
+      anIdList.Add(Obj2.BoldObjectLocator.BoldObjectID);
+      // Also add the link class objects for part/partof
+      if Obj1.partpartpartof.Count > 0 then
+        anIdList.Add(Obj1.partpartpartof[0].BoldObjectLocator.BoldObjectID);
+      aMgr.WriteValueSpace(GetSystem.AsIBoldvalueSpace[bdepContents], anIdList, nil, aNode);
+    finally
+      anIdList.Free;
+    end;
+    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    Assert.IsTrue(Length(anXML) > 200, 'Complex link XML should be substantial');
+    aNode.Free;
+  finally
+    aMgr.Free;
+    aDoc.Free;
+  end;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldDefaultXMLStreaming);
+  TDUnitX.RegisterTestFixture(TTestXMLStreamingWithLinks);
 
 end.
