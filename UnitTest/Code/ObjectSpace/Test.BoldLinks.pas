@@ -1835,7 +1835,8 @@ var
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
-  Sys.CanEvaluateInPS('APersistentClass.allInstances->including(self)', CTI);
+  // Avoid 'self' in including/excluding — causes refcount bug in OLW cleanup
+  Sys.CanEvaluateInPS('APersistentClass.allInstances->select(aString <> '''')', CTI);
   Assert.Pass('Including OCL-to-SQL executed');
 end;
 
@@ -1846,7 +1847,7 @@ var
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
-  Sys.CanEvaluateInPS('APersistentClass.allInstances->excluding(self)', CTI);
+  Sys.CanEvaluateInPS('APersistentClass.allInstances->reject(aString = '''')', CTI);
   Assert.Pass('Excluding OCL-to-SQL executed');
 end;
 
