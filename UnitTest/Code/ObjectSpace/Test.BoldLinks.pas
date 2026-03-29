@@ -50,6 +50,46 @@ type
     [Test]
     [Category('Quick')]
     procedure TestIndirectMultiLinkAddMultiple;
+
+    // Indirect multi-link remove
+    [Test]
+    [Category('Quick')]
+    procedure TestIndirectMultiLinkRemove;
+
+    // Link class attribute access
+    [Test]
+    [Category('Quick')]
+    procedure TestLinkClassAttribute;
+
+    // Self-referencing associations (TSomeClass parent/child)
+    [Test]
+    [Category('Quick')]
+    procedure TestSelfRefParentChild;
+    [Test]
+    [Category('Quick')]
+    procedure TestSelfRefNextPrevious;
+    [Test]
+    [Category('Quick')]
+    procedure TestSelfRefPartPartOf;
+
+    // Persistence: save and reload
+    [Test]
+    [Category('Quick')]
+    procedure TestSaveAndReloadLinks;
+    [Test]
+    [Category('Quick')]
+    procedure TestSaveAndReloadIndirectLinks;
+    [Test]
+    [Category('Quick')]
+    procedure TestSaveAndReloadSelfRefLinks;
+
+    // Link operations with UpdateDatabase
+    [Test]
+    [Category('Quick')]
+    procedure TestUpdateDatabaseWithNewObjects;
+    [Test]
+    [Category('Quick')]
+    procedure TestUpdateDatabaseModifyAttributes;
   end;
 
 implementation
@@ -213,6 +253,200 @@ begin
   Assert.AreEqual(1, Topic1.Book.Count, 'Topic1.Book should have 1 item');
   Assert.AreEqual(1, Topic2.Book.Count, 'Topic2.Book should have 1 item');
   Assert.AreEqual(1, Topic3.Book.Count, 'Topic3.Book should have 1 item');
+end;
+
+procedure TTestBoldLinks.TestIndirectMultiLinkRemove;
+var
+  Book: TBook;
+  Topic1, Topic2: TTopic;
+begin
+  Book := CreateBook(dmUndoRedo.BoldSystemHandle1.System, FSubscriber);
+  Topic1 := CreateTopic(dmUndoRedo.BoldSystemHandle1.System, FSubscriber);
+  Topic2 := CreateTopic(dmUndoRedo.BoldSystemHandle1.System, FSubscriber);
+
+  Book.Topic.Add(Topic1);
+  Book.Topic.Add(Topic2);
+  Assert.AreEqual(2, Book.Topic.Count, 'Should have 2 topics');
+
+  Book.Topic.Remove(Topic1);
+  Assert.AreEqual(1, Book.Topic.Count, 'Should have 1 topic after remove');
+  Assert.IsFalse(Book.Topic.Includes(Topic1), 'Should not contain removed topic');
+  Assert.IsTrue(Book.Topic.Includes(Topic2), 'Should still contain Topic2');
+  Assert.AreEqual(0, Topic1.Book.Count, 'Removed topic should have 0 books');
+end;
+
+procedure TTestBoldLinks.TestLinkClassAttribute;
+var
+  Sys: TBoldSystem;
+  CWL1, CWL2: TClassWithLink;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CWL1 := TClassWithLink.Create(Sys);
+  CWL2 := TClassWithLink.Create(Sys);
+  CWL1.aString := 'One';
+  CWL2.aString := 'Two';
+
+  // Set single link
+  CWL1.one := CWL2;
+  Assert.AreSame(TObject(CWL2), TObject(CWL1.one), 'Single link should point to CWL2');
+
+  // Access link class attribute
+  Assert.IsNotNull(CWL1.M_oneLinkClass, 'Link class should exist');
+  CWL1.oneLinkClass.Attribute1 := 'LinkAttr';
+  Assert.AreEqual('LinkAttr', CWL1.oneLinkClass.Attribute1, 'Link class attribute should be set');
+end;
+
+procedure TTestBoldLinks.TestSelfRefParentChild;
+var
+  Sys: TBoldSystem;
+  Parent, Child1, Child2: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  Child1 := TSomeClass.Create(Sys);
+  Child2 := TSomeClass.Create(Sys);
+  Parent.aString := 'Parent';
+  Child1.aString := 'Child1';
+  Child2.aString := 'Child2';
+
+  Child1.parent := Parent;
+  Child2.parent := Parent;
+  Assert.AreEqual(2, Parent.child.Count, 'Parent should have 2 children');
+  Assert.AreSame(TObject(Parent), TObject(Child1.parent), 'Child1 parent should be Parent');
+end;
+
+procedure TTestBoldLinks.TestSelfRefNextPrevious;
+var
+  Sys: TBoldSystem;
+  Obj1, Obj2, Obj3: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj1 := TSomeClass.Create(Sys);
+  Obj2 := TSomeClass.Create(Sys);
+  Obj3 := TSomeClass.Create(Sys);
+
+  Obj1.next := Obj2;
+  Obj2.next := Obj3;
+  Assert.AreSame(TObject(Obj2), TObject(Obj1.next), 'Obj1.next should be Obj2');
+  Assert.AreSame(TObject(Obj1), TObject(Obj2.previous), 'Obj2.previous should be Obj1');
+  Assert.AreSame(TObject(Obj3), TObject(Obj2.next), 'Obj2.next should be Obj3');
+end;
+
+procedure TTestBoldLinks.TestSelfRefPartPartOf;
+var
+  Sys: TBoldSystem;
+  Container, Part1, Part2: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Container := TSomeClass.Create(Sys);
+  Part1 := TSomeClass.Create(Sys);
+  Part2 := TSomeClass.Create(Sys);
+
+  Container.part.Add(Part1);
+  Container.part.Add(Part2);
+  Assert.AreEqual(2, Container.part.Count, 'Container should have 2 parts');
+  Assert.IsTrue(Part1.partof.Includes(Container), 'Part1 partof should include Container');
+end;
+
+procedure TTestBoldLinks.TestSaveAndReloadLinks;
+var
+  Sys: TBoldSystem;
+  TransientObj: TATransientClass;
+  PersistentObj: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  TransientObj := CreateATransientClass(Sys, FSubscriber);
+  PersistentObj := CreateAPersistentClass(Sys, FSubscriber);
+  PersistentObj.aString := 'Saved';
+  PersistentObj.one := TransientObj;
+
+  // Save to DB
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Fetch and verify
+  Assert.IsTrue(Sys.DirtyObjects.Count = 0, 'System should be clean after reload');
+end;
+
+procedure TTestBoldLinks.TestSaveAndReloadIndirectLinks;
+var
+  Sys: TBoldSystem;
+  Book: TBook;
+  Topic: TTopic;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Book := CreateBook(Sys, FSubscriber);
+  Topic := CreateTopic(Sys, FSubscriber);
+  Book.Title := 'TestBook';
+  Topic.name := 'TestTopic';
+  Book.Topic.Add(Topic);
+
+  // Save to DB
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+
+  Assert.IsTrue(dmUndoRedo.BoldSystemHandle1.System.DirtyObjects.Count = 0, 'Clean after reload');
+end;
+
+procedure TTestBoldLinks.TestSaveAndReloadSelfRefLinks;
+var
+  Sys: TBoldSystem;
+  Parent, Child: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  Child := TSomeClass.Create(Sys);
+  Parent.aString := 'Parent';
+  Child.aString := 'Child';
+  Child.parent := Parent;
+
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+
+  Assert.IsTrue(dmUndoRedo.BoldSystemHandle1.System.DirtyObjects.Count = 0, 'Clean after reload');
+end;
+
+procedure TTestBoldLinks.TestUpdateDatabaseWithNewObjects;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'NewObject';
+
+  Assert.IsTrue(Sys.DirtyObjects.Count > 0, 'System should be dirty');
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'System should be clean after update');
+end;
+
+procedure TTestBoldLinks.TestUpdateDatabaseModifyAttributes;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'Initial';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Modify and save again
+  Obj.aString := 'Modified';
+  Assert.IsTrue(Sys.DirtyObjects.Count > 0, 'Should be dirty after modify');
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Should be clean after second update');
 end;
 
 initialization
