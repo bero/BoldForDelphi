@@ -97,6 +97,7 @@ uses
   Test.BoldTypeNameDictionary in 'Code\Common\Test.BoldTypeNameDictionary.pas',
   Test.BoldGlobalId in 'Code\ValueSpace\Test.BoldGlobalId.pas',
   Test.BoldCondition in 'Code\ValueSpace\Test.BoldCondition.pas',
+  Test.BoldDefaultXMLStreaming in 'Code\ValueSpace\Test.BoldDefaultXMLStreaming.pas',
   Test.BoldDefaultId in 'Code\ValueSpace\Test.BoldDefaultId.pas',
   Test.BoldId in 'Code\ValueSpace\Test.BoldId.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
