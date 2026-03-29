@@ -490,6 +490,22 @@ type
     procedure TestExpressionTypeInvalid;
     [Test] [Category('Quick')]
     procedure TestExpressionTypeEmpty;
+
+    // --- RTInfo ---
+    [Test] [Category('Quick')]
+    procedure TestRTInfoAttribute;
+    [Test] [Category('Quick')]
+    procedure TestRTInfoInvalid;
+    [Test] [Category('Quick')]
+    procedure TestRTInfoEmpty;
+
+    // --- OCL dictionary caching ---
+    [Test] [Category('Quick')]
+    procedure TestOclDictionaryCacheHit;
+
+    // --- Evaluate with guillemets (error path) ---
+    [Test] [Category('Quick')]
+    procedure TestGuillemetInExpressionRaises;
   end;
 
 implementation
@@ -497,7 +513,8 @@ implementation
 uses
   DateUtils,
   Math,
-  BoldOclError;
+  BoldOclError,
+  BoldSystemRT;
 
 { TTestBoldOclEvaluation }
 
@@ -2440,6 +2457,67 @@ begin
   // Empty expression should return context type
   Result := GetSystem.Evaluator.ExpressionType('', CTI, True);
   Assert.AreSame(TObject(CTI), TObject(Result), 'Empty expression should return context type');
+end;
+
+// === RTInfo ===
+
+procedure TTestBoldOclEvaluation.TestRTInfoAttribute;
+var
+  CTI: TBoldElementTypeInfo;
+  RTI: TBoldMemberRTInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  RTI := (GetSystem.Evaluator as TBoldRTEvaluator).RTInfo('self.aString', CTI, True);
+  Assert.IsNotNull(RTI, 'RTInfo for aString should not be nil');
+  Assert.AreEqual('aString', RTI.ExpressionName, 'RTInfo should have correct name');
+end;
+
+procedure TTestBoldOclEvaluation.TestRTInfoInvalid;
+var
+  CTI: TBoldElementTypeInfo;
+  RTI: TBoldMemberRTInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  RTI := (GetSystem.Evaluator as TBoldRTEvaluator).RTInfo('self.nonExistent', CTI, False);
+  Assert.IsNull(RTI, 'RTInfo for invalid expression should return nil when not re-raising');
+end;
+
+procedure TTestBoldOclEvaluation.TestRTInfoEmpty;
+var
+  CTI: TBoldElementTypeInfo;
+  RTI: TBoldMemberRTInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  RTI := (GetSystem.Evaluator as TBoldRTEvaluator).RTInfo('', CTI, True);
+  Assert.IsNull(RTI, 'RTInfo for empty expression should return nil');
+end;
+
+// === OCL dictionary caching ===
+
+procedure TTestBoldOclEvaluation.TestOclDictionaryCacheHit;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aInteger := 10;
+  // Evaluate same expression twice — second should hit dictionary cache
+  Assert.AreEqual(10, Obj.EvaluateExpressionAsInteger('self.aInteger'));
+  Assert.AreEqual(10, Obj.EvaluateExpressionAsInteger('self.aInteger'));
+end;
+
+// === Guillemet error ===
+
+procedure TTestBoldOclEvaluation.TestGuillemetInExpressionRaises;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.WillRaiseAny(
+    procedure
+    begin
+      Obj.EvaluateExpressionAsString('self.aString' + #$AB); // « character
+    end
+  );
 end;
 
 initialization
