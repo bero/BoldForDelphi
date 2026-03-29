@@ -568,6 +568,83 @@ type
     procedure TestIsEqualAs_UnknownCompareType_Raises;
   end;
 
+  [TestFixture]
+  [Category('ObjectSpace')]
+  TTestBoldSystemTransactions = class
+  private
+    FDataModule: TjehodmBoldTest;
+    function GetSystem: TBoldSystem;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestTransactionRollbackRevertsAttributeChange;
+    [Test]
+    procedure TestTransactionCommitKeepsChanges;
+    [Test]
+    procedure TestTryCommitTransactionSuccess;
+    [Test]
+    procedure TestNestedTransactionCommit;
+    [Test]
+    procedure TestNestedTransactionRollback;
+    [Test]
+    procedure TestRollbackWithoutTransactionRaises;
+    [Test]
+    procedure TestCommitWithoutTransactionRaises;
+    [Test]
+    procedure TestTransactionRollbackRevertsObjectCreation;
+  end;
+
+  [TestFixture]
+  [Category('ObjectSpace')]
+  TTestBoldDirtyObjectTracker = class
+  private
+    FDataModule: TjehodmBoldTest;
+    function GetSystem: TBoldSystem;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestTrackerCreateAndDestroy;
+    [Test]
+    procedure TestTrackerStopTracking;
+  end;
+
+  [TestFixture]
+  [Category('ObjectSpace')]
+  TTestBoldObjectLifecycle = class
+  private
+    FSystemHandle: TBoldSystemHandle;
+    FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
+    function GetSystem: TBoldSystem;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestCheckLinksNoLinks;
+    [Test]
+    procedure TestCheckLinksWithLinks;
+    [Test]
+    procedure TestObjectDebugInfo;
+    [Test]
+    procedure TestLocatorDebugInfo;
+    [Test]
+    procedure TestObjectUnlinkAll;
+    [Test]
+    procedure TestObjectCanDeleteWithLinks;
+    [Test]
+    procedure TestObjectDiscardResetsAttribute;
+  end;
+
 implementation
 
 uses
@@ -3232,8 +3309,307 @@ begin
   );
 end;
 
+{ TTestBoldSystemTransactions }
+
+procedure TTestBoldSystemTransactions.SetUp;
+begin
+  FDataModule := TjehodmBoldTest.Create(nil);
+  FDataModule.BoldSystemHandle1.Active := True;
+end;
+
+procedure TTestBoldSystemTransactions.TearDown;
+begin
+  FreeAndNil(FDataModule);
+end;
+
+function TTestBoldSystemTransactions.GetSystem: TBoldSystem;
+begin
+  Result := FDataModule.BoldSystemHandle1.System;
+end;
+
+procedure TTestBoldSystemTransactions.TestTransactionRollbackRevertsAttributeChange;
+var
+  Obj: jehoBCBoldTest.TClassA;
+begin
+  Obj := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj.aString := 'Original';
+
+  GetSystem.StartTransaction;
+  Obj.aString := 'Modified';
+  Assert.AreEqual('Modified', Obj.aString, 'Should be modified during transaction');
+  GetSystem.RollbackTransaction;
+
+  Assert.AreEqual('Original', Obj.aString, 'Rollback should revert to original');
+end;
+
+procedure TTestBoldSystemTransactions.TestTransactionCommitKeepsChanges;
+var
+  Obj: jehoBCBoldTest.TClassA;
+begin
+  Obj := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj.aString := 'Before';
+
+  GetSystem.StartTransaction;
+  Obj.aString := 'After';
+  GetSystem.CommitTransaction;
+
+  Assert.AreEqual('After', Obj.aString, 'Commit should keep changes');
+end;
+
+procedure TTestBoldSystemTransactions.TestTryCommitTransactionSuccess;
+var
+  Obj: jehoBCBoldTest.TClassA;
+  CommitResult: Boolean;
+begin
+  Obj := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj.aString := 'Before';
+
+  GetSystem.StartTransaction;
+  Obj.aString := 'After';
+  CommitResult := GetSystem.TryCommitTransaction;
+
+  Assert.IsTrue(CommitResult, 'TryCommitTransaction should return True on success');
+  Assert.AreEqual('After', Obj.aString, 'Changes should be kept');
+end;
+
+procedure TTestBoldSystemTransactions.TestNestedTransactionCommit;
+var
+  Obj: jehoBCBoldTest.TClassA;
+begin
+  Obj := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj.aString := 'Start';
+
+  GetSystem.StartTransaction;
+  Obj.aString := 'Level1';
+  GetSystem.StartTransaction;
+  Obj.aString := 'Level2';
+  GetSystem.CommitTransaction; // inner commit
+  Assert.AreEqual('Level2', Obj.aString, 'Inner commit should keep changes');
+  GetSystem.CommitTransaction; // outer commit
+  Assert.AreEqual('Level2', Obj.aString, 'Outer commit should keep changes');
+end;
+
+procedure TTestBoldSystemTransactions.TestNestedTransactionRollback;
+var
+  Obj: jehoBCBoldTest.TClassA;
+begin
+  Obj := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj.aString := 'Start';
+
+  GetSystem.StartTransaction;
+  Obj.aString := 'Level1';
+  GetSystem.StartTransaction;
+  Obj.aString := 'Level2';
+  GetSystem.CommitTransaction; // inner commit
+  Assert.AreEqual('Level2', Obj.aString, 'After inner commit');
+  GetSystem.RollbackTransaction; // outer rollback reverts everything
+  Assert.AreEqual('Start', Obj.aString, 'Outer rollback should revert all changes');
+end;
+
+procedure TTestBoldSystemTransactions.TestRollbackWithoutTransactionRaises;
+begin
+  Assert.WillRaiseAny(
+    procedure
+    begin
+      GetSystem.RollbackTransaction;
+    end
+  );
+end;
+
+procedure TTestBoldSystemTransactions.TestCommitWithoutTransactionRaises;
+begin
+  Assert.WillRaiseAny(
+    procedure
+    begin
+      GetSystem.CommitTransaction;
+    end
+  );
+end;
+
+procedure TTestBoldSystemTransactions.TestTransactionRollbackRevertsObjectCreation;
+var
+  CountBefore: Integer;
+begin
+  CountBefore := GetSystem.Classes[GetSystem.BoldSystemTypeInfo.TopSortedClasses.IndexOf(
+    GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'])].Count;
+
+  GetSystem.StartTransaction;
+  jehoBCBoldTest.TClassA.Create(GetSystem);
+  Assert.AreEqual(CountBefore + 1,
+    GetSystem.Classes[GetSystem.BoldSystemTypeInfo.TopSortedClasses.IndexOf(
+      GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'])].Count,
+    'Object should exist during transaction');
+  GetSystem.RollbackTransaction;
+
+  Assert.AreEqual(CountBefore,
+    GetSystem.Classes[GetSystem.BoldSystemTypeInfo.TopSortedClasses.IndexOf(
+      GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'])].Count,
+    'Object should be gone after rollback');
+end;
+
+{ TTestBoldDirtyObjectTracker }
+
+procedure TTestBoldDirtyObjectTracker.SetUp;
+begin
+  FDataModule := TjehodmBoldTest.Create(nil);
+  FDataModule.BoldSystemHandle1.Active := True;
+end;
+
+procedure TTestBoldDirtyObjectTracker.TearDown;
+begin
+  FreeAndNil(FDataModule);
+end;
+
+function TTestBoldDirtyObjectTracker.GetSystem: TBoldSystem;
+begin
+  Result := FDataModule.BoldSystemHandle1.System;
+end;
+
+procedure TTestBoldDirtyObjectTracker.TestTrackerCreateAndDestroy;
+var
+  Tracker: IBoldDirtyObjectTracker;
+begin
+  Tracker := GetSystem.CreateDirtyObjectTracker;
+  Assert.IsNotNull(Tracker.DirtyObjects, 'DirtyObjects should be assigned');
+  Assert.AreEqual(0, Tracker.DirtyObjects.Count, 'Tracker should start with no dirty objects');
+  Tracker := nil; // release
+end;
+
+procedure TTestBoldDirtyObjectTracker.TestTrackerStopTracking;
+var
+  Tracker: IBoldDirtyObjectTracker;
+  Obj: jehoBCBoldTest.TClassA;
+  CountBefore: Integer;
+begin
+  Tracker := GetSystem.CreateDirtyObjectTracker;
+  Obj := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj.aString := 'Before';
+  CountBefore := Tracker.DirtyObjects.Count;
+  Tracker.StopTracking;
+  // Create another object — tracker should NOT pick it up
+  jehoBCBoldTest.TClassA.Create(GetSystem);
+  Assert.AreEqual(CountBefore, Tracker.DirtyObjects.Count, 'Should not track new objects after StopTracking');
+  Tracker := nil;
+end;
+
+{ TTestBoldObjectLifecycle }
+
+procedure TTestBoldObjectLifecycle.SetUp;
+begin
+  Ensuredm_Model;
+  FSystemTypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
+  FSystemTypeInfoHandle.BoldModel := dm_Model1.BoldModel1;
+  FSystemHandle := TBoldSystemHandle.Create(nil);
+  FSystemHandle.SystemTypeInfoHandle := FSystemTypeInfoHandle;
+  FSystemHandle.Active := True;
+end;
+
+procedure TTestBoldObjectLifecycle.TearDown;
+begin
+  if Assigned(FSystemHandle) then
+  begin
+    if FSystemHandle.Active then
+    begin
+      FSystemHandle.System.Discard;
+      FSystemHandle.Active := False;
+    end;
+  end;
+  FreeAndNil(FSystemHandle);
+  FreeAndNil(FSystemTypeInfoHandle);
+end;
+
+function TTestBoldObjectLifecycle.GetSystem: TBoldSystem;
+begin
+  Result := FSystemHandle.System;
+end;
+
+procedure TTestBoldObjectLifecycle.TestCheckLinksNoLinks;
+var
+  Obj: TestModel1.TClassA;
+begin
+  Obj := TestModel1.TClassA.Create(GetSystem);
+  // Object with no links — CheckLinks should return True
+  Assert.IsTrue(Obj.CheckLinks(-1), 'Object with no links should pass CheckLinks');
+end;
+
+procedure TTestBoldObjectLifecycle.TestCheckLinksWithLinks;
+var
+  Parent, Child: TestModel1.TClassA;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  Child := TestModel1.TClassA.Create(GetSystem);
+  Child.parent := Parent;
+  // Parent has a child link — CheckLinks(-1) should return False
+  Assert.IsFalse(Parent.CheckLinks(-1), 'Object with links should fail CheckLinks');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectDebugInfo;
+var
+  Obj: TestModel1.TClassA;
+  Info: string;
+begin
+  Obj := TestModel1.TClassA.Create(GetSystem);
+  Info := Obj.DebugInfo;
+  Assert.IsTrue(Length(Info) > 0, 'DebugInfo should return non-empty string');
+end;
+
+procedure TTestBoldObjectLifecycle.TestLocatorDebugInfo;
+var
+  Obj: TestModel1.TClassA;
+  Info: string;
+begin
+  Obj := TestModel1.TClassA.Create(GetSystem);
+  Info := Obj.BoldObjectLocator.DebugInfo;
+  Assert.IsTrue(Length(Info) > 0, 'Locator DebugInfo should return non-empty string');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectUnlinkAll;
+var
+  Parent, Child1, Child2: TestModel1.TClassA;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  Child1 := TestModel1.TClassA.Create(GetSystem);
+  Child2 := TestModel1.TClassA.Create(GetSystem);
+  Child1.parent := Parent;
+  Child2.parent := Parent;
+  Assert.AreEqual(2, Parent.child.Count, 'Parent should have 2 children');
+
+  Parent.UnlinkAll;
+  Assert.AreEqual(0, Parent.child.Count, 'UnlinkAll should remove all children');
+  Assert.IsNull(Child1.parent, 'Child1 parent should be nil after UnlinkAll');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectCanDeleteWithLinks;
+var
+  Parent, Child: TestModel1.TClassA;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  Child := TestModel1.TClassA.Create(GetSystem);
+  Child.parent := Parent;
+  // CanDelete should check link constraints
+  // Result depends on delete action of the association
+  // At minimum, calling it should not raise an exception
+  Parent.CanDelete;
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectDiscardResetsAttribute;
+var
+  Obj: TestModel1.TClassA;
+begin
+  Obj := TestModel1.TClassA.Create(GetSystem);
+  Obj.aString := 'Initial';
+  Obj.aInteger := 42;
+
+  // Discard should reset the new object
+  Obj.Discard;
+  Assert.IsTrue(Obj.BoldExistenceState = besDeleted, 'New object should be deleted after Discard');
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldSystem);
   TDUnitX.RegisterTestFixture(TTestBoldObjectReference);
+  TDUnitX.RegisterTestFixture(TTestBoldSystemTransactions);
+  TDUnitX.RegisterTestFixture(TTestBoldDirtyObjectTracker);
+  TDUnitX.RegisterTestFixture(TTestBoldObjectLifecycle);
 
 end.
