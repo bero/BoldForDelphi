@@ -102,7 +102,11 @@ begin
   n.args[0].AcceptVisitor(self);
 
   n.Symbol := FindSymbolByName(n.OperationName);
+  if not Assigned(n.Symbol) then
+    exit;
   n.ObjectMapper := n.Symbol.ResolveObjectMapper(n);
+  if not Assigned(n.ObjectMapper) then
+    exit;
 
   n.LoopVar.ObjectMapper := n.ObjectMapper;
   n.LoopVar.AcceptVisitor(self);

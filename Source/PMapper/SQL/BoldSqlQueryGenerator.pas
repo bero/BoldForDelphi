@@ -79,6 +79,9 @@ procedure TBoldSqlQueryGenerator.VisitTBoldSqlIteration(N: TBoldSqlIteration);
 var
   i: integer;
 begin
+  if not Assigned(n.Symbol) or not Assigned(n.ObjectMapper) then
+    exit;
+
   n.Args[0].AcceptVisitor(self);
   n.LoopVar.Acceptvisitor(self);
 

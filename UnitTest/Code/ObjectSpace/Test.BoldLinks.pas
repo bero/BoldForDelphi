@@ -1701,6 +1701,8 @@ begin
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
   // Multi-hop navigation
   Sys.CanEvaluateInPS('self.parent.parent.aString', CTI);
+  Sys.CanEvaluateInPS('self.child->collect(aString)', CTI);
+  // collect(role) can't be translated to SQL — should return False, not crash
   Sys.CanEvaluateInPS('self.child->collect(parent)', CTI);
   Assert.Pass('Multi-navigation OCL-to-SQL executed');
 end;
