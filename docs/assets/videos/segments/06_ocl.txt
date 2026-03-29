@@ -1,0 +1,1 @@
+In the Derivation OCL field, enter the OCL expression. This expression checks if either date is null, and if so, returns nil. Otherwise, it subtracts the start date from the end date and rounds the result to get the number of days.

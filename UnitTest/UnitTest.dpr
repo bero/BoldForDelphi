@@ -38,7 +38,7 @@ uses
   jehoBCBoldTest in 'Code\ObjectSpace\jehoBCBoldTest.pas',
   Test.FetchInvalidAttribute in 'Code\ObjectSpace\Test.FetchInvalidAttribute.pas',
   TestModel1 in 'Code\Main\TestModel1.pas',
-  UndoTestModelClasses in 'Code\ObjectSpace\UndoTestModelClasses.pas',
+  BoldTestModel in 'Code\ObjectSpace\BoldTestModel.pas',
   maan_UndoRedoTestCaseUtils in 'Code\ObjectSpace\maan_UndoRedoTestCaseUtils.pas',
   maan_UndoRedoBase in 'Code\ObjectSpace\maan_UndoRedoBase.pas',
   maan_FetchRefetch in 'Code\ObjectSpace\maan_FetchRefetch.pas',

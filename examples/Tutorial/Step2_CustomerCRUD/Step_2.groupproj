@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{6CE61766-4D7E-4D59-9769-769F3B60EAC6}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Step2.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Step2User.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="Step2">
+        <MSBuild Projects="Step2.dproj"/>
+    </Target>
+    <Target Name="Step2:Clean">
+        <MSBuild Projects="Step2.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Step2:Make">
+        <MSBuild Projects="Step2.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Step2User">
+        <MSBuild Projects="Step2User.dproj"/>
+    </Target>
+    <Target Name="Step2User:Clean">
+        <MSBuild Projects="Step2User.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Step2User:Make">
+        <MSBuild Projects="Step2User.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="Step2;Step2User"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="Step2:Clean;Step2User:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="Step2:Make;Step2User:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

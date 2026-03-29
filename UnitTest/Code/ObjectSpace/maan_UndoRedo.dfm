@@ -27,7 +27,7 @@ object dmUndoRedo: TdmUndoRedo
         #9'"_BoldInternal.toolId=3B8E3A170145,_BoldInternal.flattened=True' +
         ',_Boldify.boldified=True,_BoldInternal.ModelErrors=,Bold.DelphiN' +
         'ame=<Name>,Bold.InterfaceUses=BoldValueInterfaces,Bold.UnitName=' +
-        'UndoTestModelClasses,Bold.RootClass=TestModelClassesRoot,Bold.Ge' +
+        'BoldTestModel,Bold.RootClass=TestModelClassesRoot,Bold.Ge' +
         'nerateDefaultRegions=True"'
       #9'(Classes'
       #9#9'(Class'

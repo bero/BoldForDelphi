@@ -11,7 +11,7 @@ uses
   BoldSystem,
   BoldId,
   BoldSubscription,
-  UndoTestModelClasses,
+  BoldTestModel,
   BoldValueInterfaces,
   maan_UndoRedoBase,
   maan_UndoRedoTestCaseUtils;

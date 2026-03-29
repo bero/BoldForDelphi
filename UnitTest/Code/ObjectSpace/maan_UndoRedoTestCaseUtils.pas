@@ -13,7 +13,7 @@ uses
   BoldFreeStandingValues,
   Boldsubscription,
   Classes,
-  UndoTestModelClasses,
+  BoldTestModel,
   sysUtils,
   BoldUndoHandler;
 

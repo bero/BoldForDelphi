@@ -33,7 +33,7 @@ uses
   BoldUMLModelLink,
   BoldUMLRose98Link,
   BoldUndoHandler,
-  UndoTestModelClasses,
+  BoldTestModel,
   BoldFreeStandingValues,
   BoldValueInterfaces,
   BoldValueSpaceInterfaces,

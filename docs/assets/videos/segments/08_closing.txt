@@ -1,0 +1,1 @@
+When you change the start date or end date, the Project Duration will automatically recalculate.

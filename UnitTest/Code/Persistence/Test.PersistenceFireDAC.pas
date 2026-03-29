@@ -179,7 +179,7 @@ uses
   BoldTestDatabaseConfig,
   FireDAC.Comp.Client,
   maan_UndoRedoBase,
-  UndoTestModelClasses;
+  BoldTestModel;
 
 { TTestPersistenceFireDAC }
 

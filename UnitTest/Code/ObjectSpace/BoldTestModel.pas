@@ -12,10 +12,10 @@
 (*                                       *)
 (*****************************************)
 
-unit UndoTestModelClasses;
+unit BoldTestModel;
 
-{$DEFINE UndoTestModelClasses_unitheader}
-{$INCLUDE UndoTestModelClasses_Interface.inc}
+{$DEFINE BoldTestModel_unitheader}
+{$INCLUDE BoldTestModel_Interface.inc}
 
 { Includefile for methodimplementations }
 

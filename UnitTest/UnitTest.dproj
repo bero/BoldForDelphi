@@ -85,7 +85,7 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
-        <Debugger_RunParams>--exit:pause</Debugger_RunParams>
+        <Debugger_RunParams>--exit:pause --run:Test.PersistenceFireDAC</Debugger_RunParams>
         <DCC_Inlining>off</DCC_Inlining>
         <DCC_ConsoleTarget>true</DCC_ConsoleTarget>
     </PropertyGroup>
@@ -108,8 +108,7 @@
         <DCCReference Include="Code\ObjectSpace\jehoBCBoldTest.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.FetchInvalidAttribute.pas"/>
         <DCCReference Include="Code\Main\TestModel1.pas"/>
-        <DCCReference Include="Code\Main\dmModel1.pas"/>
-        <DCCReference Include="Code\ObjectSpace\UndoTestModelClasses.pas"/>
+        <DCCReference Include="Code\ObjectSpace\BoldTestModel.pas"/>
         <DCCReference Include="Code\ObjectSpace\maan_UndoRedoTestCaseUtils.pas"/>
         <DCCReference Include="Code\ObjectSpace\maan_UndoRedoBase.pas"/>
         <DCCReference Include="Code\ObjectSpace\maan_FetchRefetch.pas"/>

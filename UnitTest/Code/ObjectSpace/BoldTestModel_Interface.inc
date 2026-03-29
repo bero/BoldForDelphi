@@ -12,11 +12,11 @@
 (*                                       *)
 (*****************************************)
 
-{$IFNDEF UndoTestModelClasses_Interface.inc}
-{$DEFINE UndoTestModelClasses_Interface.inc}
+{$IFNDEF BoldTestModel_Interface.inc}
+{$DEFINE BoldTestModel_Interface.inc}
 
-{$IFNDEF UndoTestModelClasses_unitheader}
-unit UndoTestModelClasses;
+{$IFNDEF BoldTestModel_unitheader}
+unit BoldTestModel;
 {$ENDIF}
 
 interface

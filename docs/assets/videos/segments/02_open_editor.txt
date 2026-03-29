@@ -1,0 +1,1 @@
+First, double-click on the Bold Model component to open the Model Editor.

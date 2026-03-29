@@ -15,7 +15,7 @@ uses
   BoldElements,
   BoldLinks,
   BoldCondition,
-  UndoTestModelClasses,
+  BoldTestModel,
   maan_UndoRedoBase,
   maan_UndoRedoTestCaseUtils;
 

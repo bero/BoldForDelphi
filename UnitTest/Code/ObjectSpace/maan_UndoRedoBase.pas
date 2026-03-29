@@ -31,7 +31,7 @@ uses
   BoldAbstractModel,
   BoldModel,
   BoldUndoHandler,
-  UndoTestModelClasses,
+  BoldTestModel,
   BoldFreeStandingValues,
   BoldValueInterfaces,
   BoldValueSpaceInterfaces,

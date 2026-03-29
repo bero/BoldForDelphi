@@ -23,7 +23,7 @@ uses
   BoldHandles,
   BoldSystemHandle,
   BoldModel,
-  UndoTestModelClasses;
+  BoldTestModel;
 
 type
   { Isolated tests for TBoldUndoBlockList and TBoldUndoBlock - no database required }

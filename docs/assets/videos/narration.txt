@@ -1,0 +1,15 @@
+In this tutorial, we'll add a derived attribute called Project Duration that calculates the number of days between a start date and an end date.
+
+First, double-click on the Bold Model component to open the Model Editor.
+
+In the class tree, find and select the Process class.
+
+Right-click on the attributes section and select Add Attribute.
+
+Now configure the attribute properties. Set the name to Project Duration. Set the type to Integer. Set Derived to True. Set Persistent to False since we don't need to store this in the database. And set Delayed Derive to False so it recalculates immediately.
+
+In the Derivation OCL field, enter the OCL expression. This expression checks if either date is null, and if so, returns nil. Otherwise, it subtracts the start date from the end date and rounds the result to get the number of days.
+
+Save the model and regenerate your business classes. The derived attribute is now ready to use.
+
+When you change the start date or end date, the Project Duration will automatically recalculate.

@@ -7,7 +7,7 @@
    {**********************************************************}
 
 // 
-{$INCLUDE UndoTestModelClasses_Interface.inc}
+{$INCLUDE BoldTestModel_Interface.inc}
 
 function TAPersistentClass.ValuesAreEqual(Value1: IBoldValue; Value2: IBoldValue; MemberExpressionName: string): Boolean;
 begin

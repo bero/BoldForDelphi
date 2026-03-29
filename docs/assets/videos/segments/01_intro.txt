@@ -1,0 +1,1 @@
+In this tutorial, we'll add a derived attribute called Project Duration that calculates the number of days between a start date and an end date.

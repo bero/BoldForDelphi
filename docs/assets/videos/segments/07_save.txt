@@ -1,0 +1,1 @@
+Save the model and regenerate your business classes. The derived attribute is now ready to use.

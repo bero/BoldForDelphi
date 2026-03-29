@@ -1089,7 +1089,7 @@
 		    (object Attribute
 			tool       	"Bold"
 			name       	"UnitName"
-			value      	"UndoTestModelClasses")
+			value      	"BoldTestModel")
 		    (object Attribute
 			tool       	"Bold"
 			name       	"RootClass"

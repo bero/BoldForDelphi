@@ -50,7 +50,7 @@ uses
   BoldValueInterfaces,
   BoldValueSpaceInterfaces,
   BoldUndoHandler,
-  UndoTestModelClasses;
+  BoldTestModel;
 
 
 { Tmaan_IndirectMultiLinksFetchRefetchTestCase }

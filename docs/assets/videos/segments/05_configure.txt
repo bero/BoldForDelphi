@@ -1,0 +1,1 @@
+Now configure the attribute properties. Set the name to Project Duration. Set the type to Integer. Set Derived to True. Set Persistent to False since we don't need to store this in the database. And set Delayed Derive to False so it recalculates immediately.
