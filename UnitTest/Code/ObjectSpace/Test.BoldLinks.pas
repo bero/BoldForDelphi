@@ -90,6 +90,29 @@ type
     [Test]
     [Category('Quick')]
     procedure TestUpdateDatabaseModifyAttributes;
+
+    // Persistence: delete and verify
+    [Test]
+    [Category('Quick')]
+    procedure TestDeleteObjectAndSave;
+    [Test]
+    [Category('Quick')]
+    procedure TestDeleteLinkedObjectAndSave;
+
+    // Multi-link with link class: add/remove via many
+    [Test]
+    [Category('Quick')]
+    procedure TestManyToManyViaLinkClass;
+
+    // Move operations on ordered links
+    [Test]
+    [Category('Quick')]
+    procedure TestMultiLinkMoveIndex;
+
+    // Fetch after discard
+    [Test]
+    [Category('Quick')]
+    procedure TestFetchAfterDiscard;
   end;
 
 implementation
@@ -447,6 +470,115 @@ begin
   Assert.IsTrue(Sys.DirtyObjects.Count > 0, 'Should be dirty after modify');
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
   Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Should be clean after second update');
+end;
+
+procedure TTestBoldLinks.TestDeleteObjectAndSave;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'ToDelete';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  Obj.Delete;
+  Assert.IsTrue(Sys.DirtyObjects.Count > 0, 'Should be dirty after delete');
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Should be clean after saving delete');
+end;
+
+procedure TTestBoldLinks.TestDeleteLinkedObjectAndSave;
+var
+  Sys: TBoldSystem;
+  TransientObj: TATransientClass;
+  PersistentObj: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  TransientObj := CreateATransientClass(Sys, FSubscriber);
+  PersistentObj := CreateAPersistentClass(Sys, FSubscriber);
+  PersistentObj.one := TransientObj;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Delete the persistent object that has a link
+  PersistentObj.Delete;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, TransientObj.many.Count, 'Link should be removed after delete');
+end;
+
+procedure TTestBoldLinks.TestManyToManyViaLinkClass;
+var
+  Sys: TBoldSystem;
+  Book1, Book2: TBook;
+  Topic1, Topic2: TTopic;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Book1 := CreateBook(Sys, FSubscriber);
+  Book2 := CreateBook(Sys, FSubscriber);
+  Topic1 := CreateTopic(Sys, FSubscriber);
+  Topic2 := CreateTopic(Sys, FSubscriber);
+  Book1.Title := 'Book1';
+  Book2.Title := 'Book2';
+  Topic1.name := 'Topic1';
+  Topic2.name := 'Topic2';
+
+  // Create many-to-many relationships
+  Book1.Topic.Add(Topic1);
+  Book1.Topic.Add(Topic2);
+  Book2.Topic.Add(Topic1);
+
+  Assert.AreEqual(2, Book1.Topic.Count, 'Book1 should have 2 topics');
+  Assert.AreEqual(1, Book2.Topic.Count, 'Book2 should have 1 topic');
+  Assert.AreEqual(2, Topic1.Book.Count, 'Topic1 should have 2 books');
+  Assert.AreEqual(1, Topic2.Book.Count, 'Topic2 should have 1 book');
+
+  // Save and verify
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after save');
+end;
+
+procedure TTestBoldLinks.TestMultiLinkMoveIndex;
+var
+  Sys: TBoldSystem;
+  Parent: TSomeClass;
+  C1, C2, C3: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  C1 := TSomeClass.Create(Sys);
+  C2 := TSomeClass.Create(Sys);
+  C3 := TSomeClass.Create(Sys);
+  C1.aString := 'First';
+  C2.aString := 'Second';
+  C3.aString := 'Third';
+  C1.parent := Parent;
+  C2.parent := Parent;
+  C3.parent := Parent;
+
+  Assert.AreEqual(3, Parent.child.Count, 'Should have 3 children');
+  // Move should not raise and count should be preserved
+  Parent.child.Move(2, 0);
+  Assert.AreEqual(3, Parent.child.Count, 'Should still have 3 children after move');
+end;
+
+procedure TTestBoldLinks.TestFetchAfterDiscard;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'SavedValue';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Discard and re-activate to force fetch
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // System should be clean, objects fetchable
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Should be clean after re-open');
 end;
 
 initialization
