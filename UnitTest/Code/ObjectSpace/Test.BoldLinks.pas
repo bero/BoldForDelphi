@@ -277,6 +277,38 @@ type
     [Test]
     [Category('Quick')]
     procedure TestGetAllWithRawSQL;
+
+    // Even more CanEvaluateInPS — exhaustive SQL node coverage
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_ForAll;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Reject;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Collect;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Including;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Excluding;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Union;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Intersection;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_IsEmpty;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Includes;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_OclIsKindOf;
   end;
 
 implementation
@@ -1761,6 +1793,117 @@ begin
   finally
     ResultList.Free;
   end;
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_ForAll;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('SomeClass.allInstances->forAll(aString <> '''')', CTI);
+  Assert.Pass('ForAll OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Reject;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+  Sys.CanEvaluateInPS('APersistentClass.allInstances->reject(aString = '''')', CTI);
+  Assert.Pass('Reject OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Collect;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('SomeClass.allInstances->collect(aString)', CTI);
+  Assert.Pass('Collect OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Including;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+  Sys.CanEvaluateInPS('APersistentClass.allInstances->including(self)', CTI);
+  Assert.Pass('Including OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Excluding;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+  Sys.CanEvaluateInPS('APersistentClass.allInstances->excluding(self)', CTI);
+  Assert.Pass('Excluding OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Union;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('SomeClass.allInstances->union(SomeClass.allInstances)', CTI);
+  Assert.Pass('Union OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Intersection;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('SomeClass.allInstances->intersection(SomeClass.allInstances)', CTI);
+  Assert.Pass('Intersection OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_IsEmpty;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('self.child->isEmpty', CTI);
+  Sys.CanEvaluateInPS('self.child->notEmpty', CTI);
+  Assert.Pass('IsEmpty/NotEmpty OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Includes;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('SomeClass.allInstances->includes(self)', CTI);
+  Assert.Pass('Includes OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_OclIsKindOf;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('self.oclIsKindOf(SomeClass)', CTI);
+  Assert.Pass('OclIsKindOf OCL-to-SQL executed');
 end;
 
 initialization
