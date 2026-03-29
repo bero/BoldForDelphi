@@ -48,6 +48,24 @@ type
     [Test]
     [Category('Quick')]
     procedure TestListHandleNavigation;
+    [Test]
+    [Category('Quick')]
+    procedure TestListHandleExpression;
+    [Test]
+    [Category('Quick')]
+    procedure TestListHandleCurrentElement;
+    [Test]
+    [Category('Quick')]
+    procedure TestListHandleHandleValue;
+    [Test]
+    [Category('Quick')]
+    procedure TestListHandleBoldType;
+    [Test]
+    [Category('Quick')]
+    procedure TestListHandleEnabled;
+    [Test]
+    [Category('Quick')]
+    procedure TestListHandleCurrentBoldObject;
   end;
 
 implementation
@@ -167,6 +185,50 @@ begin
 
   GetListHandle.Prior;
   Assert.AreEqual(0, GetListHandle.CurrentIndex, 'Prior should move back to index 0');
+end;
+
+procedure TTestBoldListHandle.TestListHandleExpression;
+begin
+  // Expression is set in DFM to 'ClassA.allInstances'
+  Assert.AreEqual('ClassA.allInstances', GetListHandle.Expression, 'Expression should be set');
+end;
+
+procedure TTestBoldListHandle.TestListHandleCurrentElement;
+begin
+  TClassA.Create(GetSystem);
+  GetListHandle.First;
+  Assert.IsTrue(GetListHandle.CurrentIndex >= 0, 'CurrentIndex should be valid after First');
+end;
+
+procedure TTestBoldListHandle.TestListHandleHandleValue;
+begin
+  TClassA.Create(GetSystem);
+  // Value property returns the current list element
+  Assert.IsNotNull(GetListHandle.Value, 'Value should not be nil when list has elements');
+end;
+
+procedure TTestBoldListHandle.TestListHandleBoldType;
+begin
+  Assert.IsNotNull(GetListHandle.BoldType, 'BoldType should not be nil');
+end;
+
+procedure TTestBoldListHandle.TestListHandleEnabled;
+begin
+  Assert.IsTrue(GetListHandle.Enabled, 'Handle should be enabled by default');
+  GetListHandle.Enabled := False;
+  Assert.IsFalse(GetListHandle.Enabled, 'Handle should be disabled');
+  GetListHandle.Enabled := True;
+  Assert.IsTrue(GetListHandle.Enabled, 'Handle should be re-enabled');
+end;
+
+procedure TTestBoldListHandle.TestListHandleCurrentBoldObject;
+begin
+  TClassA.Create(GetSystem);
+  TClassA.Create(GetSystem);
+  GetListHandle.First;
+  Assert.AreEqual(0, GetListHandle.CurrentIndex, 'Should be at first');
+  GetListHandle.Last;
+  Assert.AreEqual(1, GetListHandle.CurrentIndex, 'Should be at last');
 end;
 
 initialization
