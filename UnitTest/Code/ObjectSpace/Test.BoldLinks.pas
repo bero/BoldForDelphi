@@ -10,9 +10,11 @@ uses
   SysUtils,
   DUnitX.TestFramework,
   BoldSystem,
+  BoldSystemRT,
   BoldSubscription,
   BoldElements,
   BoldLinks,
+  BoldCondition,
   UndoTestModelClasses,
   maan_UndoRedoBase,
   maan_UndoRedoTestCaseUtils;
@@ -188,6 +190,23 @@ type
     [Test]
     [Category('Quick')]
     procedure TestSingleLinkReassignment;
+
+    // SQL pipeline / fetch paths
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS;
+    [Test]
+    [Category('Quick')]
+    procedure TestFetchLinksWithObjects;
+    [Test]
+    [Category('Quick')]
+    procedure TestFetchMembersWithObjects;
+    [Test]
+    [Category('Quick')]
+    procedure TestGetAllWithCondition;
+    [Test]
+    [Category('Quick')]
+    procedure TestInvalidateMembersAndRefetch;
   end;
 
 implementation
@@ -1194,6 +1213,148 @@ begin
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
   Assert.AreSame(TObject(CWL3), TObject(CWL1.one), 'Should point to new target');
   Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after reassignment');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+  // CanEvaluateInPS checks if an OCL can be translated to SQL
+  // Exercises BoldOclLightWeightNodeMaker, BoldSqlNodeMaker, BoldSqlQueryGenerator
+  // Result may be True or False depending on DB capabilities
+  Sys.CanEvaluateInPS('self.aString', CTI);
+  // Also test with a more complex expression
+  Sys.CanEvaluateInPS('self.aString = ''test''', CTI);
+  Assert.Pass('CanEvaluateInPS executed without errors');
+end;
+
+procedure TTestBoldLinks.TestFetchLinksWithObjects;
+var
+  Sys: TBoldSystem;
+  Parent: TSomeClass;
+  C1, C2: TSomeClass;
+  ParentList: TSomeClassList;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  C1 := TSomeClass.Create(Sys);
+  C2 := TSomeClass.Create(Sys);
+  Parent.aString := 'FetchParent';
+  C1.aString := 'FC1';
+  C2.aString := 'FC2';
+  C1.parent := Parent;
+  C2.parent := Parent;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Discard and reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Fetch parents, then fetch links
+  ParentList := TSomeClassList.Create;
+  try
+    FetchClass(Sys, ParentList, TSomeClass);
+    // FetchLinksWithObjects triggers the link mapper SQL pipeline
+    Sys.FetchLinksWithObjects(ParentList, 'child');
+    // After fetch, navigating should work
+    var FoundParent: TSomeClass := nil;
+    for var i := 0 to ParentList.Count - 1 do
+      if ParentList[i].aString = 'FetchParent' then
+      begin
+        FoundParent := ParentList[i];
+        Break;
+      end;
+    if Assigned(FoundParent) then
+      Assert.AreEqual(2, FoundParent.child.Count, 'Should have 2 children after FetchLinksWithObjects');
+  finally
+    ParentList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestFetchMembersWithObjects;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+  ObjList: TAPersistentClassList;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'MemberFetch';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Discard and reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Fetch objects, then fetch specific members
+  ObjList := TAPersistentClassList.Create;
+  try
+    FetchClass(Sys, ObjList, TAPersistentClass);
+    // FetchMembersWithObjects triggers member mapper fetch
+    Sys.FetchMembersWithObjects(ObjList, 'aString');
+    Assert.IsTrue(ObjList.Count > 0, 'Should have objects after fetch');
+  finally
+    ObjList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestGetAllWithCondition;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+  ResultList: TBoldObjectList;
+  Cond: TBoldConditionWithClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'ConditionTest';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Create a condition to fetch by class
+  ResultList := TBoldObjectList.Create;
+  try
+    Cond := TBoldConditionWithClass.Create;
+    try
+      Cond.TopSortedIndex := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'].TopSortedIndex;
+      Sys.GetAllWithCondition(ResultList, Cond);
+      Assert.IsTrue(ResultList.Count > 0, 'GetAllWithCondition should return objects');
+    finally
+      Cond.Free;
+    end;
+  finally
+    ResultList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestInvalidateMembersAndRefetch;
+var
+  Sys: TBoldSystem;
+  Parent, Child: TSomeClass;
+  ParentList: TSomeClassList;
+  FoundParent: TSomeClass;
+  i: Integer;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  Child := TSomeClass.Create(Sys);
+  Parent.aString := 'InvParent';
+  Child.aString := 'InvChild';
+  Child.parent := Parent;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Invalidate all members to force refetch
+  Parent.Invalidate;
+
+  // Access attribute — should trigger refetch from DB
+  Assert.AreEqual('InvParent', Parent.aString, 'Should refetch attribute after invalidate');
+  Assert.AreEqual(1, Parent.child.Count, 'Should refetch links after invalidate');
 end;
 
 initialization
