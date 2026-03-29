@@ -22,6 +22,7 @@ uses
   BoldValueSpaceInterfaces,
   BoldTypeNameHandle,
   BoldElementList,
+  BoldTypeList,
   TestModel1,
   jehoBCBoldTest,
   Test.BoldAttributes;
@@ -696,6 +697,16 @@ type
     procedure TestAssign;
     [Test]
     procedure TestSetElement;
+    [Test]
+    procedure TestTypeListCreateAndAdd;
+    [Test]
+    procedure TestTypeListRemoveAndClear;
+    [Test]
+    procedure TestTypeListStringRepresentation;
+    [Test]
+    procedure TestTypeListMove;
+    [Test]
+    procedure TestTypeListIncludes;
   end;
 
 implementation
@@ -3966,6 +3977,94 @@ begin
     Assert.AreSame(TObject(Obj3), TObject(EList.Elements[1]), 'SetElement should replace');
   finally
     EList.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestTypeListCreateAndAdd;
+var
+  TL: TBoldTypeList;
+  CTI: TBoldClassTypeInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  TL := TBoldTypeListFactory.CreateList(CTI);
+  try
+    Assert.AreEqual(0, TL.Count, 'New type list should be empty');
+    TL.Add(CTI);
+    Assert.AreEqual(1, TL.Count, 'Should have 1 after add');
+  finally
+    TL.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestTypeListRemoveAndClear;
+var
+  TL: TBoldTypeList;
+  CTI1, CTI2: TBoldClassTypeInfo;
+begin
+  CTI1 := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  CTI2 := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassB'];
+  TL := TBoldTypeListFactory.CreateList(CTI1);
+  try
+    TL.Add(CTI1);
+    TL.Add(CTI2);
+    Assert.AreEqual(2, TL.Count, 'Should have 2');
+    TL.RemoveByIndex(0);
+    Assert.AreEqual(1, TL.Count, 'Should have 1 after remove');
+    TL.Clear;
+    Assert.AreEqual(0, TL.Count, 'Should be empty after clear');
+  finally
+    TL.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestTypeListStringRepresentation;
+var
+  TL: TBoldTypeList;
+  CTI: TBoldClassTypeInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  TL := TBoldTypeListFactory.CreateList(CTI);
+  try
+    TL.Add(CTI);
+    TL.Add(CTI);
+    Assert.AreEqual('2', TL.AsString, 'StringRepresentation should be count as string');
+  finally
+    TL.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestTypeListMove;
+var
+  TL: TBoldTypeList;
+  CTI1, CTI2: TBoldClassTypeInfo;
+begin
+  CTI1 := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  CTI2 := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassB'];
+  TL := TBoldTypeListFactory.CreateList(CTI1);
+  try
+    TL.Add(CTI1);
+    TL.Add(CTI2);
+    TL.Move(1, 0);
+    Assert.AreSame(TObject(CTI2), TObject(TL.Elements[0]), 'CTI2 should be first after move');
+  finally
+    TL.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestTypeListIncludes;
+var
+  TL: TBoldTypeList;
+  CTI1, CTI2: TBoldClassTypeInfo;
+begin
+  CTI1 := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  CTI2 := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassB'];
+  TL := TBoldTypeListFactory.CreateList(CTI1);
+  try
+    TL.Add(CTI1);
+    Assert.IsTrue(TL.Includes(CTI1), 'Should include CTI1');
+    Assert.IsFalse(TL.Includes(CTI2), 'Should not include CTI2');
+  finally
+    TL.Free;
   end;
 end;
 
