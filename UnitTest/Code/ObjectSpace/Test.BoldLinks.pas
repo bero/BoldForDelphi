@@ -113,6 +113,23 @@ type
     [Test]
     [Category('Quick')]
     procedure TestFetchAfterDiscard;
+
+    // Modify link and save
+    [Test]
+    [Category('Quick')]
+    procedure TestModifyLinkAndSave;
+    [Test]
+    [Category('Quick')]
+    procedure TestReassignSingleLinkAndSave;
+    [Test]
+    [Category('Quick')]
+    procedure TestClearMultiLinkAndSave;
+    [Test]
+    [Category('Quick')]
+    procedure TestDeleteWithManyToManyAndSave;
+    [Test]
+    [Category('Quick')]
+    procedure TestMultipleUpdateDatabaseCycles;
   end;
 
 implementation
@@ -579,6 +596,109 @@ begin
 
   // System should be clean, objects fetchable
   Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Should be clean after re-open');
+end;
+
+procedure TTestBoldLinks.TestModifyLinkAndSave;
+var
+  Sys: TBoldSystem;
+  TransientObj1, TransientObj2: TATransientClass;
+  PersistentObj: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  TransientObj1 := CreateATransientClass(Sys, FSubscriber);
+  TransientObj2 := CreateATransientClass(Sys, FSubscriber);
+  PersistentObj := CreateAPersistentClass(Sys, FSubscriber);
+  PersistentObj.one := TransientObj1;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reassign link
+  PersistentObj.one := TransientObj2;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreSame(TObject(TransientObj2), TObject(PersistentObj.one), 'Link should point to new target');
+  Assert.AreEqual(0, TransientObj1.many.Count, 'Old target should have 0 links');
+end;
+
+procedure TTestBoldLinks.TestReassignSingleLinkAndSave;
+var
+  Sys: TBoldSystem;
+  Parent1, Parent2, Child: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent1 := TSomeClass.Create(Sys);
+  Parent2 := TSomeClass.Create(Sys);
+  Child := TSomeClass.Create(Sys);
+  Parent1.aString := 'P1';
+  Parent2.aString := 'P2';
+  Child.aString := 'C';
+  Child.parent := Parent1;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Move child to different parent
+  Child.parent := Parent2;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  Assert.AreEqual(0, Parent1.child.Count, 'Old parent should have 0 children');
+  Assert.AreEqual(1, Parent2.child.Count, 'New parent should have 1 child');
+end;
+
+procedure TTestBoldLinks.TestClearMultiLinkAndSave;
+var
+  Sys: TBoldSystem;
+  Book: TBook;
+  Topic1, Topic2: TTopic;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Book := CreateBook(Sys, FSubscriber);
+  Topic1 := CreateTopic(Sys, FSubscriber);
+  Topic2 := CreateTopic(Sys, FSubscriber);
+  Book.Topic.Add(Topic1);
+  Book.Topic.Add(Topic2);
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Clear and save
+  Book.Topic.Clear;
+  Assert.AreEqual(0, Book.Topic.Count, 'Topics should be cleared');
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after saving clear');
+end;
+
+procedure TTestBoldLinks.TestDeleteWithManyToManyAndSave;
+var
+  Sys: TBoldSystem;
+  Book: TBook;
+  Topic: TTopic;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Book := CreateBook(Sys, FSubscriber);
+  Topic := CreateTopic(Sys, FSubscriber);
+  Book.Title := 'ToDelete';
+  Topic.name := 'Stays';
+  Book.Topic.Add(Topic);
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Delete the book — link class entries should also be deleted
+  Book.Delete;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Topic.Book.Count, 'Topic should have 0 books after book deleted');
+end;
+
+procedure TTestBoldLinks.TestMultipleUpdateDatabaseCycles;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+  i: Integer;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+
+  // Multiple save cycles with modifications
+  for i := 1 to 5 do
+  begin
+    Obj.aString := 'Iteration' + IntToStr(i);
+    dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+    Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after iteration ' + IntToStr(i));
+  end;
+  Assert.AreEqual('Iteration5', Obj.aString, 'Final value should be Iteration5');
 end;
 
 initialization
