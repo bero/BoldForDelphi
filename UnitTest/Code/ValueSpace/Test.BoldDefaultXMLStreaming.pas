@@ -76,6 +76,10 @@ type
     procedure TestWriteReadWithParentChild;
     [Test]
     procedure TestWriteReadMultipleLinkedObjects;
+    [Test]
+    procedure TestJsonWithSingleAndMultiLinks;
+    [Test]
+    procedure TestJsonWithPartPartOf;
   end;
 
 implementation
@@ -83,10 +87,12 @@ implementation
 uses
   SysUtils,
   Classes,
+  System.JSON,
   BoldId,
   BoldDefaultId,
   BoldDomainElement,
   Bold_MSXML_TLB,
+  BoldObjectRepresentationJson,
   dmModel1;
 
 procedure TTestBoldDefaultXMLStreaming.SetUp;
@@ -703,6 +709,50 @@ begin
     aMgr.Free;
     aDoc.Free;
   end;
+end;
+
+procedure TTestXMLStreamingWithLinks.TestJsonWithSingleAndMultiLinks;
+var
+  Parent, C1, C2: TestModel1.TClassA;
+  Json: string;
+  JsonValue: TJSONValue;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  C1 := TestModel1.TClassA.Create(GetSystem);
+  C2 := TestModel1.TClassA.Create(GetSystem);
+  Parent.aString := 'JP';
+  Parent.aInteger := 100;
+  C1.aString := 'JC1';
+  C2.aString := 'JC2';
+  C1.parent := Parent;
+  C2.parent := Parent;
+  Parent.next := C1;
+
+  // Serialize — should exercise CreateJsonForBoldSingleLink and CreateJsonForBoldMultiLink
+  JsonValue := BoldElementToJson(Parent);
+  try
+    Assert.IsNotNull(JsonValue, 'JSON value should not be nil');
+    Json := JsonValue.ToString;
+    Assert.IsTrue(Length(Json) > 50, 'JSON with links should be substantial');
+    Assert.IsTrue(Pos('JP', Json) > 0, 'Should contain parent string');
+  finally
+    JsonValue.Free;
+  end;
+end;
+
+procedure TTestXMLStreamingWithLinks.TestJsonWithPartPartOf;
+var
+  Obj1, Obj2: TestModel1.TClassA;
+  Json: string;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  Obj1.aString := 'Container';
+  Obj2.aString := 'Part';
+  Obj1.part.Add(Obj2);
+
+  Json := BoldElementToJsonString(Obj1);
+  Assert.IsTrue(Length(Json) > 20, 'JSON with part/partof should have content');
 end;
 
 initialization
