@@ -69,7 +69,7 @@ Unit tests are located in `UnitTest/` and use the DUnitX framework. Code coverag
 
 **Current Statistics** (as of 2026-03-29):
 - **Tests**: 2097 total (2094 passing, 2 ignored, 0 failed)
-- **Code Coverage**: 56.8% (32,412 / 57,151 lines covered)
+- **Code Coverage**: 58.4% (33,327 / 57,151 lines covered)
 
 ### Running Tests with Code Coverage
 
