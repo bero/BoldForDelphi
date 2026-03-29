@@ -669,6 +669,8 @@ type
     procedure TestObjectEvaluateExpressionNavigation;
     [Test]
     procedure TestObjectEvaluateExpressionCollect;
+    [Test]
+    procedure TestObjectToJsonWithLinks;
   end;
 
   [TestFixture]
@@ -713,7 +715,8 @@ implementation
 
 uses
   SysUtils,
-  dmModel1;
+  dmModel1,
+  BoldObjectRepresentationJson;
 
 { TTestBoldSystem }
 
@@ -3816,6 +3819,24 @@ begin
   C2.aString := 'B';
   Assert.AreEqual(2, Parent.EvaluateExpressionAsInteger('self.child->collect(aString)->size'),
     'collect aString from 2 children should return 2');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectToJsonWithLinks;
+var
+  Parent, Child: TestModel1.TClassA;
+  Json: string;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  Child := TestModel1.TClassA.Create(GetSystem);
+  Parent.aString := 'JsonParent';
+  Parent.aInteger := 1;
+  Child.aString := 'JsonChild';
+  Child.parent := Parent;
+
+  // Serialize parent with links to JSON
+  Json := BoldElementToJsonString(Parent);
+  Assert.IsTrue(Length(Json) > 20, 'JSON with links should have content');
+  Assert.IsTrue(Pos('JsonParent', Json) > 0, 'Should contain parent string');
 end;
 
 { TTestBoldElementList }

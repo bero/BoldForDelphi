@@ -382,6 +382,12 @@ type
     [Test]
     [Category('Quick')]
     procedure TestBoldObjectStringRepresentation;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldElementToJsonWithNulls;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldElementToJsonWithBlob;
   end;
 
 var
@@ -2807,6 +2813,37 @@ begin
   Obj.aString := 'ReprTest';
   Repr := BoldObjectStringRepresentation(Obj);
   Assert.IsTrue(Length(Repr) > 0, 'String representation should be non-empty');
+end;
+
+procedure TTestBoldAttributes.TestBoldElementToJsonWithNulls;
+var
+  Obj: TClassA;
+  Json: string;
+begin
+  // Object with all null attributes
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Json := BoldElementToJsonString(Obj);
+  Assert.IsTrue(Length(Json) > 5, 'JSON with nulls should have content');
+end;
+
+procedure TTestBoldAttributes.TestBoldElementToJsonWithBlob;
+var
+  Obj: TClassA;
+  Json: string;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aBlob := 'BinaryBlobDataForJson';
+  Obj.aBlobContent := 'TypedBlob';
+  Obj.M_aBlobContent.ContentType := 'application/octet-stream';
+  Obj.aTime := EncodeTime(15, 45, 30, 0);
+  Obj.aDate := EncodeDate(2026, 12, 25);
+  Obj.aWord := 65535;
+  Obj.aByte := 255;
+  Obj.aShortInt := -128;
+  Obj.aSmallInt := -32768;
+
+  Json := BoldElementToJsonString(Obj);
+  Assert.IsTrue(Length(Json) > 50, 'JSON with blob should have content');
 end;
 
 initialization
