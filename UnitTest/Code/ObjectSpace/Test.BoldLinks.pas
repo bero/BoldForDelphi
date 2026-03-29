@@ -130,6 +130,15 @@ type
     [Test]
     [Category('Quick')]
     procedure TestMultipleUpdateDatabaseCycles;
+    [Test]
+    [Category('Quick')]
+    procedure TestSaveReloadVerifyAttributes;
+    [Test]
+    [Category('Quick')]
+    procedure TestSaveReloadVerifyLinks;
+    [Test]
+    [Category('Quick')]
+    procedure TestSaveDeleteReloadVerifyGone;
   end;
 
 implementation
@@ -699,6 +708,105 @@ begin
     Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after iteration ' + IntToStr(i));
   end;
   Assert.AreEqual('Iteration5', Obj.aString, 'Final value should be Iteration5');
+end;
+
+procedure TTestBoldLinks.TestSaveReloadVerifyAttributes;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+  ObjList: TAPersistentClassList;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'PersistMe';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Fetch and verify attribute persisted
+  ObjList := TAPersistentClassList.Create;
+  try
+    FetchClass(Sys, ObjList, TAPersistentClass);
+    Assert.IsTrue(ObjList.Count > 0, 'Should find persisted objects');
+    Assert.AreEqual('PersistMe', ObjList[0].aString, 'Attribute should be persisted');
+  finally
+    ObjList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestSaveReloadVerifyLinks;
+var
+  Sys: TBoldSystem;
+  Parent, Child: TSomeClass;
+  ParentList: TSomeClassList;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  Child := TSomeClass.Create(Sys);
+  Parent.aString := 'Parent';
+  Child.aString := 'Child';
+  Child.parent := Parent;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Fetch and verify link persisted
+  ParentList := TSomeClassList.Create;
+  try
+    FetchClass(Sys, ParentList, TSomeClass);
+    Assert.IsTrue(ParentList.Count >= 2, 'Should find at least 2 SomeClass objects');
+  finally
+    ParentList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestSaveDeleteReloadVerifyGone;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+  ObjList: TAPersistentClassList;
+  CountBefore: Integer;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Create and save
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'WillBeDeleted';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Count, then delete and save
+  ObjList := TAPersistentClassList.Create;
+  try
+    FetchClass(Sys, ObjList, TAPersistentClass);
+    CountBefore := ObjList.Count;
+  finally
+    ObjList.Free;
+  end;
+
+  Obj.Delete;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reload and verify deleted
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  ObjList := TAPersistentClassList.Create;
+  try
+    FetchClass(Sys, ObjList, TAPersistentClass);
+    Assert.AreEqual(CountBefore - 1, ObjList.Count, 'Deleted object should be gone after reload');
+  finally
+    ObjList.Free;
+  end;
 end;
 
 initialization
