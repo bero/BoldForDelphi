@@ -638,17 +638,14 @@ var
   CTI: TBoldClassTypeInfo;
   i: Integer;
   MRI: TBoldMemberRTInfo;
-  FoundRole: Boolean;
 begin
   CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
   // Find any role in ClassA's members
-  FoundRole := False;
   for i := 0 to CTI.AllMembers.Count - 1 do
   begin
     MRI := CTI.AllMembers[i];
     if MRI.IsRole then
     begin
-      FoundRole := True;
       Assert.IsFalse(MRI.IsAttribute, 'Role should not be an attribute');
       Break;
     end;

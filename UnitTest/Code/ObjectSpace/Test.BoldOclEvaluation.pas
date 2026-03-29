@@ -1909,12 +1909,11 @@ end;
 
 procedure TTestBoldOclEvaluation.TestSumWithNullElements;
 var
-  Obj1, Obj2: TClassA;
+  Obj1: TClassA;
 begin
   Obj1 := TClassA.Create(GetSystem);
-  Obj2 := TClassA.Create(GetSystem);
+  TClassA.Create(GetSystem); // Obj2 with null aInteger
   Obj1.aInteger := 10;
-  // Obj2.aInteger is null
   Assert.AreEqual(10, Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->collect(aInteger)->sum'),
     'Sum with null elements should skip nulls');
 end;
@@ -2053,12 +2052,11 @@ end;
 
 procedure TTestBoldOclEvaluation.TestCollectWithNulls;
 var
-  Obj1, Obj2: TClassA;
+  Obj1: TClassA;
 begin
   Obj1 := TClassA.Create(GetSystem);
-  Obj2 := TClassA.Create(GetSystem);
+  TClassA.Create(GetSystem); // Obj2 with null aString
   Obj1.aString := 'Hello';
-  // Obj2.aString is null
   // collect should include both values
   Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->collect(aString)->size'),
     'collect should include null elements');
@@ -2260,11 +2258,11 @@ end;
 
 procedure TTestBoldOclEvaluation.TestExcludingSelf;
 var
-  Obj1, Obj2, Obj3: TClassA;
+  Obj1: TClassA;
 begin
   Obj1 := TClassA.Create(GetSystem);
-  Obj2 := TClassA.Create(GetSystem);
-  Obj3 := TClassA.Create(GetSystem);
+  TClassA.Create(GetSystem);
+  TClassA.Create(GetSystem);
   Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger(
     'ClassA.allInstances->excluding(self)->size'),
     'excluding self should return count - 1');

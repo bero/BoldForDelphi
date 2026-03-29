@@ -3711,10 +3711,10 @@ end;
 
 procedure TTestBoldObjectLifecycle.TestObjectListAsSet;
 var
-  Obj1, Obj2: TestModel1.TClassA;
+  Obj1: TestModel1.TClassA;
 begin
   Obj1 := TestModel1.TClassA.Create(GetSystem);
-  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  TestModel1.TClassA.Create(GetSystem);
   Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->asSet->size'),
     'asSet should return unique elements');
 end;
