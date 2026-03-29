@@ -2643,10 +2643,10 @@ end;
 
 procedure TTestBoldOclEvaluation.TestIndexOfExpression;
 var
-  Obj1, Obj2: TClassA;
+  Obj1: TClassA;
 begin
   Obj1 := TClassA.Create(GetSystem);
-  Obj2 := TClassA.Create(GetSystem);
+  TClassA.Create(GetSystem);
   // indexOf returns 1-based position (0 = not found)
   Assert.IsTrue(Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->indexOf(self)') >= 0,
     'indexOf should return non-negative index');

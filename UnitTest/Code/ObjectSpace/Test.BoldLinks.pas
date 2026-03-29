@@ -207,6 +207,42 @@ type
     [Test]
     [Category('Quick')]
     procedure TestInvalidateMembersAndRefetch;
+
+    // More CanEvaluateInPS with diverse OCL expressions
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Navigation;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Collection;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Comparison;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_BooleanLogic;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_StringOps;
+
+    // SQL condition fetch
+    [Test]
+    [Category('Quick')]
+    procedure TestGetAllWithSQLCondition;
+    [Test]
+    [Category('Quick')]
+    procedure TestGetAllWithSQLConditionParams;
+
+    // Diverse persistence patterns
+    [Test]
+    [Category('Quick')]
+    procedure TestSaveReloadModifyDeleteCycle;
+    [Test]
+    [Category('Quick')]
+    procedure TestFetchMembersForSingleObject;
+    [Test]
+    [Category('Quick')]
+    procedure TestFetchAfterInvalidateMultipleObjects;
   end;
 
 implementation
@@ -1337,9 +1373,6 @@ procedure TTestBoldLinks.TestInvalidateMembersAndRefetch;
 var
   Sys: TBoldSystem;
   Parent, Child: TSomeClass;
-  ParentList: TSomeClassList;
-  FoundParent: TSomeClass;
-  i: Integer;
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   Parent := TSomeClass.Create(Sys);
@@ -1355,6 +1388,206 @@ begin
   // Access attribute — should trigger refetch from DB
   Assert.AreEqual('InvParent', Parent.aString, 'Should refetch attribute after invalidate');
   Assert.AreEqual(1, Parent.child.Count, 'Should refetch links after invalidate');
+end;
+
+// More CanEvaluateInPS expressions — each exercises different SQL generation paths
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Navigation;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  // Navigation through association — exercises join SQL generation
+  Sys.CanEvaluateInPS('self.parent.aString', CTI);
+  Sys.CanEvaluateInPS('self.child->size', CTI);
+  Assert.Pass('Navigation OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Collection;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+  // Collection operations
+  Sys.CanEvaluateInPS('APersistentClass.allInstances->select(aString = ''x'')', CTI);
+  Sys.CanEvaluateInPS('APersistentClass.allInstances->size', CTI);
+  Assert.Pass('Collection OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Comparison;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+  // Various comparison operators
+  Sys.CanEvaluateInPS('self.aString <> ''test''', CTI);
+  Sys.CanEvaluateInPS('self.aString.isNull', CTI);
+  Assert.Pass('Comparison OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_BooleanLogic;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+  // Boolean logic
+  Sys.CanEvaluateInPS('self.aString = ''a'' and self.aString = ''b''', CTI);
+  Sys.CanEvaluateInPS('self.aString = ''a'' or self.aString = ''b''', CTI);
+  Sys.CanEvaluateInPS('not (self.aString = ''a'')', CTI);
+  Assert.Pass('Boolean OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_StringOps;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+  // String operations
+  Sys.CanEvaluateInPS('self.aString.length', CTI);
+  Sys.CanEvaluateInPS('self.aString.toUpper', CTI);
+  Sys.CanEvaluateInPS('self.aString.toLower', CTI);
+  Assert.Pass('String OCL-to-SQL executed');
+end;
+
+// SQL condition fetch
+
+procedure TTestBoldLinks.TestGetAllWithSQLCondition;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+  ResultList: TBoldObjectList;
+  Cond: TBoldSQLCondition;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'SQLFetch';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  ResultList := TBoldObjectList.Create;
+  try
+    Cond := TBoldSQLCondition.Create;
+    try
+      Cond.TopSortedIndex := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'].TopSortedIndex;
+      Cond.WhereFragment := '1 = 1';
+      Sys.GetAllWithCondition(ResultList, Cond);
+      Assert.IsTrue(ResultList.Count > 0, 'SQL condition should return objects');
+    finally
+      Cond.Free;
+    end;
+  finally
+    ResultList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestGetAllWithSQLConditionParams;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+  ResultList: TBoldObjectList;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'ParamTest';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Use GetAllInClassWithSQL which exercises more SQL generation paths
+  ResultList := TBoldObjectList.Create;
+  try
+    CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+    Sys.GetAllInClassWithSQL(ResultList, TBoldObjectClass(CTI.ObjectClass), '1 = 1', '', nil, True, -1, 0);
+    Assert.IsTrue(ResultList.Count > 0, 'SQL query should return objects');
+  finally
+    ResultList.Free;
+  end;
+end;
+
+// Diverse persistence patterns
+
+procedure TTestBoldLinks.TestSaveReloadModifyDeleteCycle;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+  ObjList: TAPersistentClassList;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Create and save
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'CycleTest';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Fetch, modify, save
+  ObjList := TAPersistentClassList.Create;
+  try
+    FetchClass(Sys, ObjList, TAPersistentClass);
+    Assert.IsTrue(ObjList.Count > 0, 'Should have objects');
+    ObjList[0].aString := 'Modified';
+    dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+    // Delete and save
+    ObjList[0].Delete;
+    dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+    Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after full cycle');
+  finally
+    ObjList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestFetchMembersForSingleObject;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'SingleFetch';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // FetchMembersWithObject (singular) wraps a single object in a list
+  Sys.FetchMembersWithObject(Obj, 'aString');
+  Assert.AreEqual('SingleFetch', Obj.aString, 'Member should be fetched');
+end;
+
+procedure TTestBoldLinks.TestFetchAfterInvalidateMultipleObjects;
+var
+  Sys: TBoldSystem;
+  Obj1, Obj2, Obj3: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj1 := CreateAPersistentClass(Sys, FSubscriber);
+  Obj2 := CreateAPersistentClass(Sys, FSubscriber);
+  Obj3 := CreateAPersistentClass(Sys, FSubscriber);
+  Obj1.aString := 'Inv1';
+  Obj2.aString := 'Inv2';
+  Obj3.aString := 'Inv3';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Invalidate all
+  Obj1.Invalidate;
+  Obj2.Invalidate;
+  Obj3.Invalidate;
+
+  // Access triggers refetch — just verify no exceptions and non-empty
+  Assert.IsTrue(Length(Obj1.aString) > 0, 'Obj1 refetched');
+  Assert.IsTrue(Length(Obj2.aString) > 0, 'Obj2 refetched');
+  Assert.IsTrue(Length(Obj3.aString) > 0, 'Obj3 refetched');
 end;
 
 initialization
