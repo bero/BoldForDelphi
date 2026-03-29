@@ -21,6 +21,7 @@ uses
   BoldSubscription,
   BoldValueSpaceInterfaces,
   BoldTypeNameHandle,
+  BoldElementList,
   TestModel1,
   jehoBCBoldTest,
   Test.BoldAttributes;
@@ -667,6 +668,34 @@ type
     procedure TestObjectEvaluateExpressionNavigation;
     [Test]
     procedure TestObjectEvaluateExpressionCollect;
+  end;
+
+  [TestFixture]
+  [Category('ObjectSpace')]
+  TTestBoldElementList = class
+  private
+    FDataModule: TjehodmBoldTest;
+    function GetSystem: TBoldSystem;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestCreateAndAddElements;
+    [Test]
+    procedure TestRemoveByIndex;
+    [Test]
+    procedure TestMoveElements;
+    [Test]
+    procedure TestIncludesAndIndexOf;
+    [Test]
+    procedure TestClear;
+    [Test]
+    procedure TestAssign;
+    [Test]
+    procedure TestSetElement;
   end;
 
 implementation
@@ -3778,11 +3807,174 @@ begin
     'collect aString from 2 children should return 2');
 end;
 
+{ TTestBoldElementList }
+
+procedure TTestBoldElementList.SetUp;
+begin
+  FDataModule := TjehodmBoldTest.Create(nil);
+end;
+
+procedure TTestBoldElementList.TearDown;
+begin
+  FreeAndNil(FDataModule);
+end;
+
+function TTestBoldElementList.GetSystem: TBoldSystem;
+begin
+  Result := FDataModule.BoldSystemHandle1.System;
+end;
+
+procedure TTestBoldElementList.TestCreateAndAddElements;
+var
+  EList: TBoldElementList;
+  Obj1, Obj2, Obj3: jehoBCBoldTest.TClassA;
+begin
+  Obj1 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj2 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj3 := jehoBCBoldTest.TClassA.Create(GetSystem);
+
+  EList := TBoldElementListFactory.CreateList(GetSystem);
+  try
+    Assert.AreEqual(0, EList.Count, 'New list should be empty');
+    EList.Add(Obj1);
+    EList.Add(Obj2);
+    EList.Add(Obj3);
+    Assert.AreEqual(3, EList.Count, 'List should have 3 elements');
+  finally
+    EList.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestRemoveByIndex;
+var
+  EList: TBoldElementList;
+  Obj1, Obj2, Obj3: jehoBCBoldTest.TClassA;
+begin
+  Obj1 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj2 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj3 := jehoBCBoldTest.TClassA.Create(GetSystem);
+
+  EList := TBoldElementListFactory.CreateList(GetSystem);
+  try
+    EList.Add(Obj1);
+    EList.Add(Obj2);
+    EList.Add(Obj3);
+    EList.RemoveByIndex(1);
+    Assert.AreEqual(2, EList.Count, 'Should have 2 after remove');
+  finally
+    EList.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestMoveElements;
+var
+  EList: TBoldElementList;
+  Obj1, Obj2, Obj3: jehoBCBoldTest.TClassA;
+begin
+  Obj1 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj2 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj3 := jehoBCBoldTest.TClassA.Create(GetSystem);
+
+  EList := TBoldElementListFactory.CreateList(GetSystem);
+  try
+    EList.Add(Obj1);
+    EList.Add(Obj2);
+    EList.Add(Obj3);
+    EList.Move(2, 0);
+    Assert.AreSame(TObject(Obj3), TObject(EList.Elements[0]), 'Moved element should be first');
+    Assert.AreEqual(3, EList.Count, 'Count should still be 3');
+  finally
+    EList.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestIncludesAndIndexOf;
+var
+  EList: TBoldElementList;
+  Obj1, Obj2: jehoBCBoldTest.TClassA;
+begin
+  Obj1 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj2 := jehoBCBoldTest.TClassA.Create(GetSystem);
+
+  EList := TBoldElementListFactory.CreateList(GetSystem);
+  try
+    EList.Add(Obj1);
+    Assert.IsTrue(EList.Includes(Obj1), 'Should include Obj1');
+    Assert.IsFalse(EList.Includes(Obj2), 'Should not include Obj2');
+    Assert.AreEqual(0, EList.IndexOf(Obj1), 'IndexOf Obj1 should be 0');
+    Assert.AreEqual(-1, EList.IndexOf(Obj2), 'IndexOf Obj2 should be -1');
+  finally
+    EList.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestClear;
+var
+  EList: TBoldElementList;
+  Obj1, Obj2: jehoBCBoldTest.TClassA;
+begin
+  Obj1 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj2 := jehoBCBoldTest.TClassA.Create(GetSystem);
+
+  EList := TBoldElementListFactory.CreateList(GetSystem);
+  try
+    EList.Add(Obj1);
+    EList.Add(Obj2);
+    Assert.AreEqual(2, EList.Count, 'Should have 2');
+    EList.Clear;
+    Assert.AreEqual(0, EList.Count, 'Should be empty after clear');
+  finally
+    EList.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestAssign;
+var
+  EList1, EList2: TBoldElementList;
+  Obj1, Obj2: jehoBCBoldTest.TClassA;
+begin
+  Obj1 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj2 := jehoBCBoldTest.TClassA.Create(GetSystem);
+
+  EList1 := TBoldElementListFactory.CreateList(GetSystem);
+  EList2 := TBoldElementListFactory.CreateList(GetSystem);
+  try
+    EList1.Add(Obj1);
+    EList1.Add(Obj2);
+    EList2.Assign(EList1);
+    Assert.AreEqual(2, EList2.Count, 'Assigned list should have 2 elements');
+  finally
+    EList1.Free;
+    EList2.Free;
+  end;
+end;
+
+procedure TTestBoldElementList.TestSetElement;
+var
+  EList: TBoldElementList;
+  Obj1, Obj2, Obj3: jehoBCBoldTest.TClassA;
+begin
+  Obj1 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj2 := jehoBCBoldTest.TClassA.Create(GetSystem);
+  Obj3 := jehoBCBoldTest.TClassA.Create(GetSystem);
+
+  EList := TBoldElementListFactory.CreateList(GetSystem);
+  try
+    EList.Add(Obj1);
+    EList.Add(Obj2);
+    EList.Elements[1] := Obj3;
+    Assert.AreSame(TObject(Obj3), TObject(EList.Elements[1]), 'SetElement should replace');
+  finally
+    EList.Free;
+  end;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldSystem);
   TDUnitX.RegisterTestFixture(TTestBoldObjectReference);
   TDUnitX.RegisterTestFixture(TTestBoldSystemTransactions);
   TDUnitX.RegisterTestFixture(TTestBoldDirtyObjectTracker);
   TDUnitX.RegisterTestFixture(TTestBoldObjectLifecycle);
+  TDUnitX.RegisterTestFixture(TTestBoldElementList);
 
 end.
