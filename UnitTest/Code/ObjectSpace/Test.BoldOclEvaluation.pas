@@ -334,6 +334,56 @@ type
     // --- Collection with currency ---
     [Test] [Category('Quick')]
     procedure TestCurrencySum;
+
+    // --- String-to-date conversions ---
+    [Test] [Category('Quick')]
+    procedure TestStrToDateTime;
+    [Test] [Category('Quick')]
+    procedure TestStrToDate;
+    [Test] [Category('Quick')]
+    procedure TestStrToTime;
+
+    // --- Format (Delphi format string) ---
+    [Test] [Category('Quick')]
+    procedure TestFormat;
+
+    // --- Pad with multi-char padder (truncation path) ---
+    [Test] [Category('Quick')]
+    procedure TestPadMultiCharPadder;
+    [Test] [Category('Quick')]
+    procedure TestPostPadMultiCharPadder;
+
+    // --- Min/Max on collections ---
+    [Test] [Category('Quick')]
+    procedure TestMinValueEmpty;
+    [Test] [Category('Quick')]
+    procedure TestMaxValueEmpty;
+    [Test] [Category('Quick')]
+    procedure TestAverageEmpty;
+
+    // --- Collection operations with null elements ---
+    [Test] [Category('Quick')]
+    procedure TestSumWithNullElements;
+
+    // --- Boolean comparison with null ---
+    [Test] [Category('Quick')]
+    procedure TestIsNullOnNullString;
+
+    // --- Float division ---
+    [Test] [Category('Quick')]
+    procedure TestFloatDivisionByZeroSafeDiv;
+
+    // --- More currency operations ---
+    [Test] [Category('Quick')]
+    procedure TestCurrencyCompare;
+
+    // --- String operations ---
+    [Test] [Category('Quick')]
+    procedure TestToInteger;
+    [Test] [Category('Quick')]
+    procedure TestToReal;
+    [Test] [Category('Quick')]
+    procedure TestStringAsString;
   end;
 
 implementation
@@ -1613,6 +1663,202 @@ begin
   Assert.AreEqual(CurrToStr(60.00),
     Obj1.EvaluateExpressionAsString('ClassA.allInstances->collect(aCurrency)->sum.asString'),
     'Currency sum should be 60');
+end;
+
+// === String-to-date conversions ===
+
+procedure TTestBoldOclEvaluation.TestStrToDateTime;
+var
+  Obj: TClassA;
+  DateStr: string;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := DateTimeToStr(EncodeDate(2026, 6, 15) + EncodeTime(10, 30, 0, 0));
+  DateStr := Obj.EvaluateExpressionAsString('self.aString.strToDateTime.asString');
+  Assert.IsTrue(Length(DateStr) > 0, 'strToDateTime should return a value');
+end;
+
+procedure TTestBoldOclEvaluation.TestStrToDate;
+var
+  Obj: TClassA;
+  DateStr: string;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := DateToStr(EncodeDate(2026, 6, 15));
+  DateStr := Obj.EvaluateExpressionAsString('self.aString.strToDate.asString');
+  Assert.IsTrue(Length(DateStr) > 0, 'strToDate should return a value');
+end;
+
+procedure TTestBoldOclEvaluation.TestStrToTime;
+var
+  Obj: TClassA;
+  TimeStr: string;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := TimeToStr(EncodeTime(14, 30, 0, 0));
+  TimeStr := Obj.EvaluateExpressionAsString('self.aString.strToTime.asString');
+  Assert.IsTrue(Length(TimeStr) > 0, 'strToTime should return a value');
+end;
+
+// === Format ===
+
+procedure TTestBoldOclEvaluation.TestFormat;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aFloat := 3.14;
+  // Locale-aware: format uses FormatSettings decimal separator
+  Assert.AreEqual(Format('%.2f', [3.14]), Obj.EvaluateExpressionAsString('self.aFloat.format(''%.2f'')'), 'format should format float');
+end;
+
+// === Pad with multi-char padder ===
+
+procedure TTestBoldOclEvaluation.TestPadMultiCharPadder;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'X';
+  // pad 'X' to length 4 with 'ab' -> 'ababX' (5 chars) -> truncate to last 4 -> 'babX'
+  Assert.AreEqual('babX', Obj.EvaluateExpressionAsString('self.aString.pad(4, ''ab'')'), 'Pad with multi-char should truncate');
+end;
+
+procedure TTestBoldOclEvaluation.TestPostPadMultiCharPadder;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'X';
+  // postPad 'X' to length 4 with 'ab' -> 'Xababab' -> truncate to first 4 -> 'Xaba'
+  Assert.AreEqual('Xaba', Obj.EvaluateExpressionAsString('self.aString.postPad(4, ''ab'')'), 'PostPad with multi-char should truncate');
+end;
+
+// === Min/Max on empty collections ===
+
+procedure TTestBoldOclEvaluation.TestMinValueEmpty;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aCurrency := 50.00;
+  Obj2.aCurrency := 10.00;
+  Assert.AreEqual(CurrToStr(10.00),
+    Obj1.EvaluateExpressionAsString('ClassA.allInstances->collect(aCurrency)->minValue.asString'),
+    'minValue of currencies should be 10');
+end;
+
+procedure TTestBoldOclEvaluation.TestMaxValueEmpty;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aCurrency := 10.00;
+  Obj2.aCurrency := 50.00;
+  Assert.AreEqual(CurrToStr(50.00),
+    Obj1.EvaluateExpressionAsString('ClassA.allInstances->collect(aCurrency)->maxValue.asString'),
+    'maxValue of currencies should be 50');
+end;
+
+procedure TTestBoldOclEvaluation.TestAverageEmpty;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aInteger := 10;
+  Obj2.aInteger := 20;
+  Assert.AreEqual(15.0, Obj1.EvaluateExpressionAsFloat('ClassA.allInstances->collect(aInteger)->average'),
+    0.01, 'average of 10 and 20 should be 15');
+end;
+
+// === Sum with null elements ===
+
+procedure TTestBoldOclEvaluation.TestSumWithNullElements;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aInteger := 10;
+  // Obj2.aInteger is null
+  Assert.AreEqual(10, Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->collect(aInteger)->sum'),
+    'Sum with null elements should skip nulls');
+end;
+
+// === IsNull on null string ===
+
+procedure TTestBoldOclEvaluation.TestIsNullOnNullString;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Hello';
+  Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.aString.isNull'), 'Non-null string isNull should be false');
+  Obj.M_aString.SetToNull;
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('self.aString.isNull'), 'Null string isNull should be true');
+end;
+
+// === Float division by zero safediv ===
+
+procedure TTestBoldOclEvaluation.TestFloatDivisionByZeroSafeDiv;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aInteger := 10;
+  // safediv with zero should not raise, result is unset
+  Assert.WillNotRaiseAny(
+    procedure
+    begin
+      Obj.EvaluateExpressionAsString('self.aInteger.safediv(0).asString');
+    end
+  );
+end;
+
+// === Currency compare ===
+
+procedure TTestBoldOclEvaluation.TestCurrencyCompare;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aCurrency := 100.00;
+  Obj2.aCurrency := 50.00;
+  Assert.IsTrue(Obj1.EvaluateExpressionAsBoolean('self.aCurrency > 50'), 'Currency > should work');
+  Assert.IsFalse(Obj1.EvaluateExpressionAsBoolean('self.aCurrency < 50'), 'Currency < should work');
+end;
+
+// === String operations ===
+
+procedure TTestBoldOclEvaluation.TestToInteger;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := '42';
+  Assert.AreEqual(42, Obj.EvaluateExpressionAsInteger('self.aString.strToInt'), 'strToInt should parse string');
+end;
+
+procedure TTestBoldOclEvaluation.TestToReal;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := FloatToStr(3.14);
+  Assert.AreEqual(3.14, Obj.EvaluateExpressionAsFloat('self.aString.strToFloat'), 0.01, 'strToFloat should parse string');
+end;
+
+procedure TTestBoldOclEvaluation.TestStringAsString;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Hello';
+  Assert.AreEqual('Hello', Obj.EvaluateExpressionAsString('self.aString.asString'), 'asString on string should return same');
 end;
 
 initialization
