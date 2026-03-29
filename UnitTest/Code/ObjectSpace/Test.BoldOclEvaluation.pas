@@ -282,6 +282,58 @@ type
     procedure TestSyntaxError_Raises;
     [Test] [Category('Quick')]
     procedure TestDivisionByZero_SafeDiv;
+
+    // --- Currency Arithmetic ---
+    [Test] [Category('Quick')]
+    procedure TestCurrencyAdd;
+    [Test] [Category('Quick')]
+    procedure TestCurrencySubtract;
+    [Test] [Category('Quick')]
+    procedure TestCurrencyMultiply;
+    [Test] [Category('Quick')]
+    procedure TestCurrencyNegate;
+    [Test] [Category('Quick')]
+    procedure TestCurrencyAbs;
+
+    // --- DateTime Arithmetic ---
+    [Test] [Category('Quick')]
+    procedure TestDateTimeAdd;
+    [Test] [Category('Quick')]
+    procedure TestDateTimeSubtract;
+
+    // --- FormatDateTime ---
+    [Test] [Category('Quick')]
+    procedure TestFormatDateTime;
+    [Test] [Category('Quick')]
+    procedure TestFormatDateTimeNull;
+
+    // --- Null handling ---
+    [Test] [Category('Quick')]
+    procedure TestNullComparison_Less;
+    [Test] [Category('Quick')]
+    procedure TestNullComparison_Greater;
+    [Test] [Category('Quick')]
+    procedure TestNullComparison_LessEQ;
+    [Test] [Category('Quick')]
+    procedure TestNullComparison_GreaterEQ;
+
+    // --- Division by zero ---
+    [Test] [Category('Quick')]
+    procedure TestDivisionByZero_Raises;
+
+    // --- Pad edge cases ---
+    [Test] [Category('Quick')]
+    procedure TestPadLongerThanTarget;
+    [Test] [Category('Quick')]
+    procedure TestPostPadLongerThanTarget;
+
+    // --- AsTime ---
+    [Test] [Category('Quick')]
+    procedure TestAsTime;
+
+    // --- Collection with currency ---
+    [Test] [Category('Quick')]
+    procedure TestCurrencySum;
   end;
 
 implementation
@@ -1366,6 +1418,201 @@ begin
       Obj.EvaluateExpressionAsFloat('self.aFloat.safediv(0.0)');
     end
   );
+end;
+
+// === Currency Arithmetic ===
+
+procedure TTestBoldOclEvaluation.TestCurrencyAdd;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aCurrency := 10.50;
+  Assert.AreEqual(Double(20.50), Obj.EvaluateExpressionAsFloat('self.aCurrency + 10.00'), 0.01, 'Currency add');
+end;
+
+procedure TTestBoldOclEvaluation.TestCurrencySubtract;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aCurrency := 100.00;
+  Assert.AreEqual(Double(75.00), Obj.EvaluateExpressionAsFloat('self.aCurrency - 25.00'), 0.01, 'Currency subtract');
+end;
+
+procedure TTestBoldOclEvaluation.TestCurrencyMultiply;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aCurrency := 10.00;
+  Assert.AreEqual(Double(30.00), Obj.EvaluateExpressionAsFloat('self.aCurrency * 3'), 0.01, 'Currency multiply');
+end;
+
+procedure TTestBoldOclEvaluation.TestCurrencyNegate;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aCurrency := 42.50;
+  Assert.AreEqual(CurrToStr(-42.50), Obj.EvaluateExpressionAsString('(-self.aCurrency).asString'), 'Currency negate');
+end;
+
+procedure TTestBoldOclEvaluation.TestCurrencyAbs;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aCurrency := -99.95;
+  Assert.AreEqual(CurrToStr(99.95), Obj.EvaluateExpressionAsString('self.aCurrency.abs.asString'), 'Currency abs');
+end;
+
+// === DateTime Arithmetic ===
+
+procedure TTestBoldOclEvaluation.TestDateTimeAdd;
+var
+  Obj: TClassA;
+  Expected: TDateTime;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aDateTime := EncodeDate(2026, 1, 1);
+  Expected := EncodeDate(2026, 1, 1) + 1;
+  Assert.AreEqual(Double(Expected), Obj.EvaluateExpressionAsFloat('self.aDateTime + 1'), 0.01, 'DateTime add 1 day');
+end;
+
+procedure TTestBoldOclEvaluation.TestDateTimeSubtract;
+var
+  Obj: TClassA;
+  Expected: TDateTime;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aDateTime := EncodeDate(2026, 1, 10);
+  Expected := EncodeDate(2026, 1, 10) - 5;
+  Assert.AreEqual(Double(Expected), Obj.EvaluateExpressionAsFloat('self.aDateTime - 5'), 0.01, 'DateTime subtract 5 days');
+end;
+
+// === FormatDateTime ===
+
+procedure TTestBoldOclEvaluation.TestFormatDateTime;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aDateTime := EncodeDate(2026, 3, 15);
+  Assert.AreEqual('2026', Obj.EvaluateExpressionAsString('self.aDateTime.formatDateTime(''yyyy'')'), 'formatDateTime yyyy');
+end;
+
+procedure TTestBoldOclEvaluation.TestFormatDateTimeNull;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // aDateTime is null by default
+  Assert.AreEqual('', Obj.EvaluateExpressionAsString('self.aDateTime.formatDateTime(''yyyy'')'), 'formatDateTime on null should return empty');
+end;
+
+// === Null comparison ===
+
+procedure TTestBoldOclEvaluation.TestNullComparison_Less;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // Null integer compared - should return false
+  // Bold treats null as smallest value, so null < 5 = true
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('self.aInteger < 5'), 'Null < 5 should be true (null is smallest)');
+end;
+
+procedure TTestBoldOclEvaluation.TestNullComparison_Greater;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.aInteger > 5'), 'Null > 5 should be false');
+end;
+
+procedure TTestBoldOclEvaluation.TestNullComparison_LessEQ;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('self.aInteger <= 5'), 'Null <= 5 should be true (null is smallest)');
+end;
+
+procedure TTestBoldOclEvaluation.TestNullComparison_GreaterEQ;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.aInteger >= 5'), 'Null >= 5 should be false');
+end;
+
+// === Division by zero ===
+
+procedure TTestBoldOclEvaluation.TestDivisionByZero_Raises;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aInteger := 10;
+  // Integer div by zero should raise
+  Assert.WillRaiseAny(
+    procedure
+    begin
+      Obj.EvaluateExpressionAsInteger('self.aInteger.div(0)');
+    end
+  );
+end;
+
+// === Pad edge cases ===
+
+procedure TTestBoldOclEvaluation.TestPadLongerThanTarget;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'AB';
+  // pad to 5 with 'x' — prepads with 'x' to reach length 5
+  Assert.AreEqual('xxxAB', Obj.EvaluateExpressionAsString('self.aString.pad(5, ''x'')'), 'Pad should prepend x');
+end;
+
+procedure TTestBoldOclEvaluation.TestPostPadLongerThanTarget;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'AB';
+  // postPad to 5 with 'y' — appends with 'y' to reach length 5
+  Assert.AreEqual('AByyy', Obj.EvaluateExpressionAsString('self.aString.postPad(5, ''y'')'), 'PostPad should append y');
+end;
+
+// === AsTime ===
+
+procedure TTestBoldOclEvaluation.TestAsTime;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aTime := EncodeTime(14, 30, 0, 0);
+  // aTime returns TBATime, verify it's accessible as string
+  Assert.IsTrue(Length(Obj.EvaluateExpressionAsString('self.aTime.asString')) > 0, 'Time should be non-empty string');
+end;
+
+// === Collection with currency ===
+
+procedure TTestBoldOclEvaluation.TestCurrencySum;
+var
+  Obj1, Obj2, Obj3: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj3 := TClassA.Create(GetSystem);
+  Obj1.aCurrency := 10.00;
+  Obj2.aCurrency := 20.00;
+  Obj3.aCurrency := 30.00;
+  Assert.AreEqual(CurrToStr(60.00),
+    Obj1.EvaluateExpressionAsString('ClassA.allInstances->collect(aCurrency)->sum.asString'),
+    'Currency sum should be 60');
 end;
 
 initialization
