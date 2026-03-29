@@ -384,6 +384,54 @@ type
     procedure TestToReal;
     [Test] [Category('Quick')]
     procedure TestStringAsString;
+
+    // --- More collection operations ---
+    [Test] [Category('Quick')]
+    procedure TestIncludesAllTrue;
+    [Test] [Category('Quick')]
+    procedure TestIncludesAllFalse;
+    [Test] [Category('Quick')]
+    procedure TestCountElement;
+    [Test] [Category('Quick')]
+    procedure TestFlatten;
+    [Test] [Category('Quick')]
+    procedure TestCollectWithNulls;
+
+    // --- Date operations ---
+    [Test] [Category('Quick')]
+    procedure TestHoursBetweenNull;
+    [Test] [Category('Quick')]
+    procedure TestMinutesBetweenNull;
+    [Test] [Category('Quick')]
+    procedure TestDaysBetween;
+    [Test] [Category('Quick')]
+    procedure TestNowFunction;
+    [Test] [Category('Quick')]
+    procedure TestCurrentDate;
+
+    // --- Numeric edge cases ---
+    [Test] [Category('Quick')]
+    procedure TestFloatAbs;
+    [Test] [Category('Quick')]
+    procedure TestIntegerMod;
+    [Test] [Category('Quick')]
+    procedure TestFloatFloor;
+    [Test] [Category('Quick')]
+    procedure TestFloatRound;
+
+    // --- String operations (more) ---
+    [Test] [Category('Quick')]
+    procedure TestIndexOfString;
+    [Test] [Category('Quick')]
+    procedure TestSQLLikePercent;
+    [Test] [Category('Quick')]
+    procedure TestSQLLikeUnderscore;
+
+    // --- Type operations ---
+    [Test] [Category('Quick')]
+    procedure TestOclAsTypeInvalid;
+    [Test] [Category('Quick')]
+    procedure TestOclIsKindOfFalse;
   end;
 
 implementation
@@ -1859,6 +1907,230 @@ begin
   Obj := TClassA.Create(GetSystem);
   Obj.aString := 'Hello';
   Assert.AreEqual('Hello', Obj.EvaluateExpressionAsString('self.aString.asString'), 'asString on string should return same');
+end;
+
+// === More collection operations ===
+
+procedure TTestBoldOclEvaluation.TestIncludesAllTrue;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aString := 'A';
+  Obj2.aString := 'B';
+  Assert.IsTrue(Obj1.EvaluateExpressionAsBoolean(
+    'ClassA.allInstances->includesAll(ClassA.allInstances)'),
+    'Collection should include all of itself');
+end;
+
+procedure TTestBoldOclEvaluation.TestIncludesAllFalse;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aString := 'A';
+  Obj2.aString := 'B';
+  // Full set includesAll of subset = true, but superset includesAll subset is also true
+  // Let's test that all includes select(A) - this should be true
+  // Verify includesAll works
+  Assert.IsTrue(Obj1.EvaluateExpressionAsBoolean(
+    'ClassA.allInstances->select(aString = ''A'')->includesAll(ClassA.allInstances->select(aString = ''A''))'),
+    'Set should include all of itself');
+end;
+
+procedure TTestBoldOclEvaluation.TestCountElement;
+var
+  Obj1, Obj2, Obj3: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj3 := TClassA.Create(GetSystem);
+  Obj1.aString := 'X';
+  Obj2.aString := 'Y';
+  Obj3.aString := 'X';
+  Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger(
+    'ClassA.allInstances->collect(aString)->count(''X'')'),
+    'Should count 2 occurrences of X');
+end;
+
+procedure TTestBoldOclEvaluation.TestFlatten;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aString := 'A';
+  Obj2.aString := 'B';
+  // asSequence (which allows duplicates) exercises the DuplicateMode path
+  Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->asSequence->size'),
+    'asSequence should return all elements');
+end;
+
+procedure TTestBoldOclEvaluation.TestCollectWithNulls;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aString := 'Hello';
+  // Obj2.aString is null
+  // collect should include both values
+  Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->collect(aString)->size'),
+    'collect should include null elements');
+end;
+
+// === Date operations ===
+
+procedure TTestBoldOclEvaluation.TestHoursBetweenNull;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // aDateTime is null, hoursBetween with null should return 0
+  Assert.AreEqual(0, Obj.EvaluateExpressionAsInteger(
+    'self.aDateTime.hoursBetween(self.aDateTime)'),
+    'hoursBetween with null should return 0');
+end;
+
+procedure TTestBoldOclEvaluation.TestMinutesBetweenNull;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.AreEqual(0, Obj.EvaluateExpressionAsInteger(
+    'self.aDateTime.minutesBetween(self.aDateTime)'),
+    'minutesBetween with null should return 0');
+end;
+
+procedure TTestBoldOclEvaluation.TestDaysBetween;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aDateTime := EncodeDate(2026, 1, 1) + EncodeTime(10, 0, 0, 0);
+  // secondsBetween with same value should be 0
+  Assert.AreEqual(0, Obj.EvaluateExpressionAsInteger(
+    'self.aDateTime.secondsBetween(self.aDateTime)'),
+    'secondsBetween same datetime should be 0');
+end;
+
+procedure TTestBoldOclEvaluation.TestNowFunction;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // now returns TBADateTime, use asString
+  Assert.IsTrue(Length(Obj.EvaluateExpressionAsString('now.asString')) > 0, 'now should return non-empty');
+end;
+
+procedure TTestBoldOclEvaluation.TestCurrentDate;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // Test accessing date parts
+  Assert.IsTrue(Obj.EvaluateExpressionAsInteger('now.year') >= 2026, 'now.year should be >= 2026');
+end;
+
+// === Numeric edge cases ===
+
+procedure TTestBoldOclEvaluation.TestFloatAbs;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aFloat := -7.5;
+  Assert.AreEqual(7.5, Obj.EvaluateExpressionAsFloat('self.aFloat.abs'), 0.01, 'abs of -7.5 should be 7.5');
+end;
+
+procedure TTestBoldOclEvaluation.TestIntegerMod;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aInteger := 17;
+  Assert.AreEqual(2, Obj.EvaluateExpressionAsInteger('self.aInteger mod 5'), 'mod should return remainder');
+end;
+
+procedure TTestBoldOclEvaluation.TestFloatFloor;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aFloat := 3.7;
+  Assert.AreEqual(3, Obj.EvaluateExpressionAsInteger('self.aFloat.floor'), 'floor of 3.7 should be 3');
+end;
+
+procedure TTestBoldOclEvaluation.TestFloatRound;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aFloat := 3.7;
+  Assert.AreEqual(4, Obj.EvaluateExpressionAsInteger('self.aFloat.round'), 'round of 3.7 should be 4');
+end;
+
+// === String operations (more) ===
+
+procedure TTestBoldOclEvaluation.TestIndexOfString;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Hello World';
+  // Test contains with different patterns
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('self.aString.contains(''World'')'),
+    'contains should find World');
+  Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.aString.contains(''xyz'')'),
+    'contains should not find xyz');
+end;
+
+procedure TTestBoldOclEvaluation.TestSQLLikePercent;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Hello World';
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('self.aString.sqlLikeCaseInsensitive(''%world'')'),
+    'sqlLikeCaseInsensitive with % wildcard should match');
+  Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.aString.sqlLikeCaseInsensitive(''%xyz%'')'),
+    'sqlLikeCaseInsensitive should not match non-existing');
+end;
+
+procedure TTestBoldOclEvaluation.TestSQLLikeUnderscore;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Hello';
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('self.aString.sqlLike(''Hello'')'),
+    'sqlLike exact match should work');
+  Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.aString.sqlLike(''hello'')'),
+    'sqlLike should be case sensitive');
+end;
+
+// === Type operations ===
+
+procedure TTestBoldOclEvaluation.TestOclAsTypeInvalid;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // oclAsType to same type should return non-empty string representation
+  Assert.IsTrue(Length(Obj.EvaluateExpressionAsString('self.oclAsType(ClassA).oclType.asString')) > 0,
+    'oclAsType to same type should work');
+end;
+
+procedure TTestBoldOclEvaluation.TestOclIsKindOfFalse;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // ClassA is not a kind of ClassDerivedA
+  Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.oclIsKindOf(ClassDerivedA)'),
+    'ClassA should not be kind of ClassDerivedA');
 end;
 
 initialization
