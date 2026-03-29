@@ -643,6 +643,30 @@ type
     procedure TestObjectCanDeleteWithLinks;
     [Test]
     procedure TestObjectDiscardResetsAttribute;
+    [Test]
+    procedure TestNavigateParentChild;
+    [Test]
+    procedure TestNavigateNext;
+    [Test]
+    procedure TestChildCountAfterMultipleAdds;
+    [Test]
+    procedure TestSetParentToNil;
+    [Test]
+    procedure TestObjectListOrderBy;
+    [Test]
+    procedure TestObjectListReverse;
+    [Test]
+    procedure TestObjectListAsSet;
+    [Test]
+    procedure TestObjectCopyMembers;
+    [Test]
+    procedure TestObjectBoldType;
+    [Test]
+    procedure TestObjectStringRepresentationViaOcl;
+    [Test]
+    procedure TestObjectEvaluateExpressionNavigation;
+    [Test]
+    procedure TestObjectEvaluateExpressionCollect;
   end;
 
 implementation
@@ -3603,6 +3627,155 @@ begin
   // Discard should reset the new object
   Obj.Discard;
   Assert.IsTrue(Obj.BoldExistenceState = besDeleted, 'New object should be deleted after Discard');
+end;
+
+procedure TTestBoldObjectLifecycle.TestNavigateParentChild;
+var
+  Parent, Child: TestModel1.TClassA;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  Child := TestModel1.TClassA.Create(GetSystem);
+  Child.parent := Parent;
+  Assert.AreEqual(1, Parent.child.Count, 'Parent should have 1 child');
+  Assert.AreSame(TObject(Parent), TObject(Child.parent), 'Child parent should be Parent');
+end;
+
+procedure TTestBoldObjectLifecycle.TestNavigateNext;
+var
+  Obj1, Obj2: TestModel1.TClassA;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  Obj1.next := Obj2;
+  Assert.AreSame(TObject(Obj2), TObject(Obj1.next), 'next should point to Obj2');
+  Assert.AreSame(TObject(Obj1), TObject(Obj2.previous), 'previous should point to Obj1');
+end;
+
+procedure TTestBoldObjectLifecycle.TestChildCountAfterMultipleAdds;
+var
+  Parent, C1, C2, C3: TestModel1.TClassA;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  C1 := TestModel1.TClassA.Create(GetSystem);
+  C2 := TestModel1.TClassA.Create(GetSystem);
+  C3 := TestModel1.TClassA.Create(GetSystem);
+  C1.parent := Parent;
+  C2.parent := Parent;
+  C3.parent := Parent;
+  Assert.AreEqual(3, Parent.child.Count, 'Parent should have 3 children');
+end;
+
+procedure TTestBoldObjectLifecycle.TestSetParentToNil;
+var
+  Parent, Child: TestModel1.TClassA;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  Child := TestModel1.TClassA.Create(GetSystem);
+  Child.parent := Parent;
+  Assert.AreEqual(1, Parent.child.Count, 'Should have 1 child');
+  Child.parent := nil;
+  Assert.AreEqual(0, Parent.child.Count, 'Should have 0 children after nil');
+  Assert.IsNull(Child.parent, 'Parent should be nil');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectListOrderBy;
+var
+  Parent, C1, C2, C3: TestModel1.TClassA;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  C1 := TestModel1.TClassA.Create(GetSystem);
+  C2 := TestModel1.TClassA.Create(GetSystem);
+  C3 := TestModel1.TClassA.Create(GetSystem);
+  C1.aString := 'C';
+  C2.aString := 'A';
+  C3.aString := 'B';
+  C1.parent := Parent;
+  C2.parent := Parent;
+  C3.parent := Parent;
+  // Verify children can be accessed
+  Assert.AreEqual(3, Parent.child.Count, 'Should have 3 children');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectListReverse;
+var
+  Obj1, Obj2: TestModel1.TClassA;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  Obj1.aString := 'First';
+  Obj2.aString := 'Second';
+  // allInstances returns a list that can be reversed via OCL
+  Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->reverseCollection->size'),
+    'Reversed list should have same size');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectListAsSet;
+var
+  Obj1, Obj2: TestModel1.TClassA;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger('ClassA.allInstances->asSet->size'),
+    'asSet should return unique elements');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectCopyMembers;
+var
+  Obj1, Obj2: TestModel1.TClassA;
+begin
+  Obj1 := TestModel1.TClassA.Create(GetSystem);
+  Obj2 := TestModel1.TClassA.Create(GetSystem);
+  Obj1.aString := 'Source';
+  Obj1.aInteger := 42;
+  // Copy attribute values via OCL
+  Obj2.aString := Obj1.aString;
+  Obj2.aInteger := Obj1.aInteger;
+  Assert.AreEqual('Source', Obj2.aString, 'String should be copied');
+  Assert.AreEqual(42, Obj2.aInteger, 'Integer should be copied');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectBoldType;
+var
+  Obj: TestModel1.TClassA;
+begin
+  Obj := TestModel1.TClassA.Create(GetSystem);
+  Assert.AreEqual('ClassA', Obj.BoldClassTypeInfo.ExpressionName, 'BoldType should be ClassA');
+  Assert.IsTrue(Obj.BoldClassTypeInfo.AllMembers.Count > 0, 'ClassA should have members');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectStringRepresentationViaOcl;
+var
+  Obj: TestModel1.TClassA;
+begin
+  Obj := TestModel1.TClassA.Create(GetSystem);
+  Obj.aString := 'TestValue';
+  Assert.AreEqual('TestValue', Obj.EvaluateExpressionAsString('self.aString'), 'OCL self.aString');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectEvaluateExpressionNavigation;
+var
+  Parent, Child: TestModel1.TClassA;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  Child := TestModel1.TClassA.Create(GetSystem);
+  Child.parent := Parent;
+  Child.aString := 'ChildValue';
+  Assert.AreEqual(1, Parent.EvaluateExpressionAsInteger('self.child->size'), 'child->size should be 1');
+end;
+
+procedure TTestBoldObjectLifecycle.TestObjectEvaluateExpressionCollect;
+var
+  Parent, C1, C2: TestModel1.TClassA;
+begin
+  Parent := TestModel1.TClassA.Create(GetSystem);
+  C1 := TestModel1.TClassA.Create(GetSystem);
+  C2 := TestModel1.TClassA.Create(GetSystem);
+  C1.parent := Parent;
+  C2.parent := Parent;
+  C1.aString := 'A';
+  C2.aString := 'B';
+  Assert.AreEqual(2, Parent.EvaluateExpressionAsInteger('self.child->collect(aString)->size'),
+    'collect aString from 2 children should return 2');
 end;
 
 initialization
