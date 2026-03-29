@@ -313,6 +313,64 @@ type
     [Test]
     [Category('Quick')]
     procedure TestBlobIsEqualToValue;
+
+    // Assign/Clone paths
+    [Test]
+    [Category('Quick')]
+    procedure TestStringAssignNull;
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerAssignNull;
+    [Test]
+    [Category('Quick')]
+    procedure TestFloatAssignNull;
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyAssignNull;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobAssignNull;
+
+    // CompareToAs with non-matching types
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerCompareToAsWithString;
+    [Test]
+    [Category('Quick')]
+    procedure TestStringCompareToAsWithInteger;
+
+    // SetEmptyValue paths
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerSetEmptyValue;
+    [Test]
+    [Category('Quick')]
+    procedure TestStringSetEmptyValue;
+
+    // Variant round-trips
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerAsVariantNull;
+    [Test]
+    [Category('Quick')]
+    procedure TestFloatAsVariantNull;
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyAsVariantNull;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobAsVariantNull;
+    [Test]
+    [Category('Quick')]
+    procedure TestDateTimeAsVariantRoundTrip;
+
+    // Blob operations
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobSetToNullClearsStream;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobCompareToAs;
   end;
 
 var
@@ -2450,6 +2508,242 @@ begin
     Blob1.Free;
     Blob2.Free;
   end;
+end;
+
+// Assign null paths
+
+procedure TTestBoldAttributes.TestStringAssignNull;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  Obj1.aString := 'Hello';
+  Obj2.M_aString.SetToNull;
+  Obj1.M_aString.Assign(Obj2.M_aString);
+  Assert.IsTrue(Obj1.M_aString.IsNull, 'Assign from null should make target null');
+end;
+
+procedure TTestBoldAttributes.TestIntegerAssignNull;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  Obj1.aInteger := 42;
+  Obj2.M_aInteger.SetToNull;
+  Obj1.M_aInteger.Assign(Obj2.M_aInteger);
+  Assert.IsTrue(Obj1.M_aInteger.IsNull, 'Assign from null integer should make target null');
+end;
+
+procedure TTestBoldAttributes.TestFloatAssignNull;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  Obj1.aFloat := 3.14;
+  Obj2.M_aFloat.SetToNull;
+  Obj1.M_aFloat.Assign(Obj2.M_aFloat);
+  Assert.IsTrue(Obj1.M_aFloat.IsNull, 'Assign from null float should make target null');
+end;
+
+procedure TTestBoldAttributes.TestCurrencyAssignNull;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  Obj1.aCurrency := 99.95;
+  Obj2.M_aCurrency.SetToNull;
+  Obj1.M_aCurrency.Assign(Obj2.M_aCurrency);
+  Assert.IsTrue(Obj1.M_aCurrency.IsNull, 'Assign from null currency should make target null');
+end;
+
+procedure TTestBoldAttributes.TestBlobAssignNull;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+  InStream: TStringStream;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  InStream := TStringStream.Create('Data');
+  try
+    Obj1.M_aBlob.LoadFromStream(InStream);
+  finally
+    InStream.Free;
+  end;
+  Obj2.M_aBlob.SetToNull;
+  Obj1.M_aBlob.Assign(Obj2.M_aBlob);
+  Assert.IsTrue(Obj1.M_aBlob.IsNull, 'Assign from null blob should make target null');
+end;
+
+// CompareToAs with non-matching types
+
+procedure TTestBoldAttributes.TestIntegerCompareToAsWithString;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aInteger := 42;
+  Obj.aString := 'Hello';
+  // Compare integer to string — should use inherited which raises
+  Assert.WillRaiseAny(
+    procedure
+    begin
+      Obj.M_aInteger.CompareToAs(ctDefault, Obj.M_aString);
+    end
+  );
+end;
+
+procedure TTestBoldAttributes.TestStringCompareToAsWithInteger;
+var
+  Obj: TClassA;
+  CompResult: Integer;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aString := 'Hello';
+  Obj.aInteger := 42;
+  // String CompareToAs with non-string uses AsString comparison via BoldElement.AsString
+  CompResult := Obj.M_aString.CompareToAs(ctDefault, Obj.M_aInteger);
+  // 'Hello' > '42' alphabetically
+  Assert.AreEqual(1, CompResult, 'String "Hello" > "42" alphabetically');
+end;
+
+// SetEmptyValue paths
+
+procedure TTestBoldAttributes.TestIntegerSetEmptyValue;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aInteger := 0;
+  // SetEmptyValue on integer with value 0 should be no-op (already empty)
+  Assert.AreEqual(0, Obj.aInteger, 'Integer 0 is empty value');
+end;
+
+procedure TTestBoldAttributes.TestStringSetEmptyValue;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aString := '';
+  Assert.AreEqual('', Obj.aString, 'Empty string is empty value');
+end;
+
+// Variant null round-trips
+
+procedure TTestBoldAttributes.TestIntegerAsVariantNull;
+var
+  Obj: TClassA;
+  V: Variant;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aInteger.SetToNull;
+  V := Obj.M_aInteger.AsVariant;
+  Assert.IsTrue(VarIsNull(V), 'Null integer AsVariant should be Null');
+end;
+
+procedure TTestBoldAttributes.TestFloatAsVariantNull;
+var
+  Obj: TClassA;
+  V: Variant;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aFloat.SetToNull;
+  V := Obj.M_aFloat.AsVariant;
+  Assert.IsTrue(VarIsNull(V), 'Null float AsVariant should be Null');
+end;
+
+procedure TTestBoldAttributes.TestCurrencyAsVariantNull;
+var
+  Obj: TClassA;
+  V: Variant;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aCurrency.SetToNull;
+  V := Obj.M_aCurrency.AsVariant;
+  Assert.IsTrue(VarIsNull(V), 'Null currency AsVariant should be Null');
+end;
+
+procedure TTestBoldAttributes.TestBlobAsVariantNull;
+var
+  Obj: TClassA;
+  V: Variant;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  // Blob is null by default
+  V := Obj.M_aBlob.AsVariant;
+  Assert.IsTrue(VarIsNull(V), 'Null blob AsVariant should be Null');
+end;
+
+procedure TTestBoldAttributes.TestDateTimeAsVariantRoundTrip;
+var
+  Obj: TClassA;
+  V: Variant;
+  DT: TDateTime;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  DT := EncodeDate(2026, 6, 15) + EncodeTime(10, 30, 0, 0);
+  Obj.aDateTime := DT;
+  V := Obj.M_aDateTime.AsVariant;
+  Assert.IsFalse(VarIsNull(V), 'Non-null datetime variant should not be null');
+  Obj.M_aDateTime.AsVariant := V;
+  Assert.AreEqual(DT, Obj.aDateTime, 'Variant round-trip should preserve value');
+end;
+
+// Blob operations
+
+procedure TTestBoldAttributes.TestBlobSetToNullClearsStream;
+var
+  Obj: TClassA;
+  InStream: TStringStream;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  InStream := TStringStream.Create('StreamData');
+  try
+    Obj.M_aBlob.LoadFromStream(InStream);
+  finally
+    InStream.Free;
+  end;
+  Assert.IsTrue(Obj.M_aBlob.BlobSize > 0, 'Blob should have data');
+  Obj.M_aBlob.SetToNull;
+  Assert.IsTrue(Obj.M_aBlob.IsNull, 'Blob should be null after SetToNull');
+  Assert.AreEqual(Int64(0), Obj.M_aBlob.BlobSize, 'Blob stream should be cleared after SetToNull');
+end;
+
+procedure TTestBoldAttributes.TestBlobCompareToAs;
+var
+  Obj1, Obj2: TClassA;
+  Sys: TBoldSystem;
+  InStream: TStringStream;
+begin
+  Sys := FDataModule.BoldSystemHandle1.System;
+  Obj1 := TClassA.Create(Sys);
+  Obj2 := TClassA.Create(Sys);
+  InStream := TStringStream.Create('SameData');
+  try
+    Obj1.M_aBlob.LoadFromStream(InStream);
+    InStream.Position := 0;
+    Obj2.M_aBlob.LoadFromStream(InStream);
+  finally
+    InStream.Free;
+  end;
+  Assert.AreEqual(0, Obj1.M_aBlob.CompareToAs(ctDefault, Obj2.M_aBlob), 'Same blob should compare equal');
+
+  // Null vs non-null
+  Obj2.M_aBlob.SetToNull;
+  Assert.AreEqual(1, Obj1.M_aBlob.CompareToAs(ctDefault, Obj2.M_aBlob), 'Non-null > null blob');
 end;
 
 initialization
