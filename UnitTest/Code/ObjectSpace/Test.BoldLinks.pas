@@ -145,6 +145,49 @@ type
     [Test]
     [Category('Quick')]
     procedure TestModifyAttributeAfterFetch;
+
+    // Link class CRUD
+    [Test]
+    [Category('Quick')]
+    procedure TestLinkClassCreateSaveReload;
+    [Test]
+    [Category('Quick')]
+    procedure TestLinkClassModifyAndSave;
+    [Test]
+    [Category('Quick')]
+    procedure TestLinkClassDeleteAndSave;
+
+    // Multi-link operations with persistence
+    [Test]
+    [Category('Quick')]
+    procedure TestMultiLinkRemoveByIndex;
+    [Test]
+    [Category('Quick')]
+    procedure TestMultiLinkInsertAtIndex;
+
+    // Complex relationship graphs
+    [Test]
+    [Category('Quick')]
+    procedure TestDeepParentChildHierarchy;
+    [Test]
+    [Category('Quick')]
+    procedure TestCircularNextPrevious;
+
+    // Batch operations
+    [Test]
+    [Category('Quick')]
+    procedure TestBatchCreateAndSave;
+    [Test]
+    [Category('Quick')]
+    procedure TestBatchDeleteAndSave;
+
+    // Object reference operations
+    [Test]
+    [Category('Quick')]
+    procedure TestSingleLinkSetAndClear;
+    [Test]
+    [Category('Quick')]
+    procedure TestSingleLinkReassignment;
   end;
 
 implementation
@@ -886,6 +929,271 @@ begin
   finally
     ObjList.Free;
   end;
+end;
+
+// Link class CRUD
+
+procedure TTestBoldLinks.TestLinkClassCreateSaveReload;
+var
+  Sys: TBoldSystem;
+  CWL1, CWL2: TClassWithLink;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CWL1 := TClassWithLink.Create(Sys);
+  CWL2 := TClassWithLink.Create(Sys);
+  CWL1.aString := 'Source';
+  CWL2.aString := 'Target';
+  CWL1.many.Add(CWL2);
+  // Set link class attribute
+  Assert.AreEqual(1, CWL1.manyLinkClass.Count, 'Should have 1 link class');
+  CWL1.manyLinkClass[0].Attribute1 := 'LinkData';
+
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Fetch and verify
+  var CWLList := TClassWithLinkList.Create;
+  try
+    FetchClass(Sys, CWLList, TClassWithLink);
+    Assert.IsTrue(CWLList.Count >= 2, 'Should have at least 2 ClassWithLink objects');
+  finally
+    CWLList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestLinkClassModifyAndSave;
+var
+  Sys: TBoldSystem;
+  CWL1, CWL2: TClassWithLink;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CWL1 := TClassWithLink.Create(Sys);
+  CWL2 := TClassWithLink.Create(Sys);
+  CWL1.aString := 'A';
+  CWL2.aString := 'B';
+  CWL1.one := CWL2;
+  CWL1.oneLinkClass.Attribute1 := 'Initial';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Modify link class attribute
+  CWL1.oneLinkClass.Attribute1 := 'Modified';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after link class modify');
+  Assert.AreEqual('Modified', CWL1.oneLinkClass.Attribute1, 'Link attr should be modified');
+end;
+
+procedure TTestBoldLinks.TestLinkClassDeleteAndSave;
+var
+  Sys: TBoldSystem;
+  CWL1, CWL2: TClassWithLink;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CWL1 := TClassWithLink.Create(Sys);
+  CWL2 := TClassWithLink.Create(Sys);
+  CWL1.aString := 'X';
+  CWL2.aString := 'Y';
+  CWL1.many.Add(CWL2);
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Remove the link — link class entry should be deleted
+  CWL1.many.Remove(CWL2);
+  Assert.AreEqual(0, CWL1.many.Count, 'many should be empty');
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after link removal');
+end;
+
+// Multi-link operations with persistence
+
+procedure TTestBoldLinks.TestMultiLinkRemoveByIndex;
+var
+  Sys: TBoldSystem;
+  Parent: TSomeClass;
+  C1, C2, C3: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  C1 := TSomeClass.Create(Sys);
+  C2 := TSomeClass.Create(Sys);
+  C3 := TSomeClass.Create(Sys);
+  C1.aString := 'A';
+  C2.aString := 'B';
+  C3.aString := 'C';
+  C1.parent := Parent;
+  C2.parent := Parent;
+  C3.parent := Parent;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  Parent.child.RemoveByIndex(1);
+  Assert.AreEqual(2, Parent.child.Count, 'Should have 2 children after RemoveByIndex');
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after RemoveByIndex+save');
+end;
+
+procedure TTestBoldLinks.TestMultiLinkInsertAtIndex;
+var
+  Sys: TBoldSystem;
+  Parent, C1, C2, CNew: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  C1 := TSomeClass.Create(Sys);
+  C2 := TSomeClass.Create(Sys);
+  CNew := TSomeClass.Create(Sys);
+  C1.aString := 'First';
+  C2.aString := 'Second';
+  CNew.aString := 'Inserted';
+  C1.parent := Parent;
+  C2.parent := Parent;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Insert new child
+  CNew.parent := Parent;
+  Assert.AreEqual(3, Parent.child.Count, 'Should have 3 children after insert');
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after insert+save');
+end;
+
+// Complex relationship graphs
+
+procedure TTestBoldLinks.TestDeepParentChildHierarchy;
+var
+  Sys: TBoldSystem;
+  Root, L1, L2, L3: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Root := TSomeClass.Create(Sys);
+  L1 := TSomeClass.Create(Sys);
+  L2 := TSomeClass.Create(Sys);
+  L3 := TSomeClass.Create(Sys);
+  Root.aString := 'Root';
+  L1.aString := 'Level1';
+  L2.aString := 'Level2';
+  L3.aString := 'Level3';
+  L1.parent := Root;
+  L2.parent := L1;
+  L3.parent := L2;
+
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after saving deep hierarchy');
+  Assert.AreEqual(1, Root.child.Count, 'Root should have 1 child');
+  Assert.AreEqual(1, L1.child.Count, 'L1 should have 1 child');
+  Assert.AreEqual(1, L2.child.Count, 'L2 should have 1 child');
+  Assert.AreEqual(0, L3.child.Count, 'L3 should have 0 children');
+end;
+
+procedure TTestBoldLinks.TestCircularNextPrevious;
+var
+  Sys: TBoldSystem;
+  A, B, C: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  A := TSomeClass.Create(Sys);
+  B := TSomeClass.Create(Sys);
+  C := TSomeClass.Create(Sys);
+  A.aString := 'A';
+  B.aString := 'B';
+  C.aString := 'C';
+  A.next := B;
+  B.next := C;
+
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreSame(TObject(B), TObject(A.next), 'A.next should be B');
+  Assert.AreSame(TObject(C), TObject(B.next), 'B.next should be C');
+  Assert.AreSame(TObject(A), TObject(B.previous), 'B.previous should be A');
+end;
+
+// Batch operations
+
+procedure TTestBoldLinks.TestBatchCreateAndSave;
+var
+  Sys: TBoldSystem;
+  i: Integer;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  for i := 1 to 20 do
+  begin
+    var Obj := TAPersistentClass.Create(Sys);
+    Obj.aString := 'Batch' + IntToStr(i);
+  end;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after batch create');
+end;
+
+procedure TTestBoldLinks.TestBatchDeleteAndSave;
+var
+  Sys: TBoldSystem;
+  ObjList: TAPersistentClassList;
+  i: Integer;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  // Create batch
+  for i := 1 to 10 do
+  begin
+    var Obj := TAPersistentClass.Create(Sys);
+    Obj.aString := 'Del' + IntToStr(i);
+  end;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Fetch and delete all
+  ObjList := TAPersistentClassList.Create;
+  try
+    FetchClass(Sys, ObjList, TAPersistentClass);
+    for i := ObjList.Count - 1 downto 0 do
+      ObjList[i].Delete;
+  finally
+    ObjList.Free;
+  end;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after batch delete');
+end;
+
+// Object reference operations
+
+procedure TTestBoldLinks.TestSingleLinkSetAndClear;
+var
+  Sys: TBoldSystem;
+  CWL1, CWL2: TClassWithLink;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CWL1 := TClassWithLink.Create(Sys);
+  CWL2 := TClassWithLink.Create(Sys);
+  CWL1.aString := 'Has';
+  CWL2.aString := 'Target';
+  CWL1.one := CWL2;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Clear single link
+  CWL1.one := nil;
+  Assert.IsNull(CWL1.one, 'Link should be nil after clear');
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after clear single link');
+end;
+
+procedure TTestBoldLinks.TestSingleLinkReassignment;
+var
+  Sys: TBoldSystem;
+  CWL1, CWL2, CWL3: TClassWithLink;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CWL1 := TClassWithLink.Create(Sys);
+  CWL2 := TClassWithLink.Create(Sys);
+  CWL3 := TClassWithLink.Create(Sys);
+  CWL1.aString := 'Src';
+  CWL2.aString := 'OldTarget';
+  CWL3.aString := 'NewTarget';
+  CWL1.one := CWL2;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reassign
+  CWL1.one := CWL3;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Assert.AreSame(TObject(CWL3), TObject(CWL1.one), 'Should point to new target');
+  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after reassignment');
 end;
 
 initialization
