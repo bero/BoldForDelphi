@@ -432,6 +432,52 @@ type
     procedure TestOclAsTypeInvalid;
     [Test] [Category('Quick')]
     procedure TestOclIsKindOfFalse;
+
+    // --- More numeric operations ---
+    [Test] [Category('Quick')]
+    procedure TestSqrtFloat;
+    [Test] [Category('Quick')]
+    procedure TestPowerFloat;
+    [Test] [Category('Quick')]
+    procedure TestMaxTwoValues;
+    [Test] [Category('Quick')]
+    procedure TestMinTwoValues;
+
+    // --- More collection operations ---
+    [Test] [Category('Quick')]
+    procedure TestExcludingSelf;
+    [Test] [Category('Quick')]
+    procedure TestIncludingSelf;
+    [Test] [Category('Quick')]
+    procedure TestUnionCollections;
+    [Test] [Category('Quick')]
+    procedure TestDifferenceCollections;
+    [Test] [Category('Quick')]
+    procedure TestIntersectionCollections;
+    [Test] [Category('Quick')]
+    procedure TestSymmetricDifferenceCollections;
+
+    // --- String operations ---
+    [Test] [Category('Quick')]
+    procedure TestToUpperCase;
+    [Test] [Category('Quick')]
+    procedure TestToLowerCase;
+    [Test] [Category('Quick')]
+    procedure TestTrimString;
+    [Test] [Category('Quick')]
+    procedure TestSubStringOcl;
+
+    // --- Boolean operations ---
+    [Test] [Category('Quick')]
+    procedure TestXorOperation;
+    [Test] [Category('Quick')]
+    procedure TestImpliesTrueTrue;
+
+    // --- Null arithmetic ---
+    [Test] [Category('Quick')]
+    procedure TestNullIntegerAdd;
+    [Test] [Category('Quick')]
+    procedure TestNullFloatMultiply;
   end;
 
 implementation
@@ -2131,6 +2177,206 @@ begin
   // ClassA is not a kind of ClassDerivedA
   Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.oclIsKindOf(ClassDerivedA)'),
     'ClassA should not be kind of ClassDerivedA');
+end;
+
+// === More numeric operations ===
+
+procedure TTestBoldOclEvaluation.TestSqrtFloat;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aFloat := 16.0;
+  Assert.AreEqual(4.0, Obj.EvaluateExpressionAsFloat('self.aFloat.sqrt'), 0.01, 'sqrt(16) = 4');
+end;
+
+procedure TTestBoldOclEvaluation.TestPowerFloat;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aFloat := 2.0;
+  Assert.AreEqual(8.0, Obj.EvaluateExpressionAsFloat('self.aFloat.power(3)'), 0.01, '2^3 = 8');
+end;
+
+procedure TTestBoldOclEvaluation.TestMaxTwoValues;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aInteger := 5;
+  Assert.AreEqual(10, Obj.EvaluateExpressionAsInteger('self.aInteger.max(10)'), 'max(5,10) = 10');
+  Assert.AreEqual(5, Obj.EvaluateExpressionAsInteger('self.aInteger.max(3)'), 'max(5,3) = 5');
+end;
+
+procedure TTestBoldOclEvaluation.TestMinTwoValues;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aInteger := 5;
+  Assert.AreEqual(3, Obj.EvaluateExpressionAsInteger('self.aInteger.min(3)'), 'min(5,3) = 3');
+  Assert.AreEqual(5, Obj.EvaluateExpressionAsInteger('self.aInteger.min(10)'), 'min(5,10) = 5');
+end;
+
+// === More collection operations ===
+
+procedure TTestBoldOclEvaluation.TestExcludingSelf;
+var
+  Obj1, Obj2, Obj3: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj3 := TClassA.Create(GetSystem);
+  Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger(
+    'ClassA.allInstances->excluding(self)->size'),
+    'excluding self should return count - 1');
+end;
+
+procedure TTestBoldOclEvaluation.TestIncludingSelf;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // including self to a filtered set
+  Assert.AreEqual(1, Obj.EvaluateExpressionAsInteger(
+    'ClassA.allInstances->select(aString = ''X'')->including(self)->size'),
+    'including self in empty set should give 1');
+end;
+
+procedure TTestBoldOclEvaluation.TestUnionCollections;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aString := 'A';
+  Obj2.aString := 'B';
+  Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger(
+    'ClassA.allInstances->select(aString = ''A'')->union(ClassA.allInstances->select(aString = ''B''))->size'),
+    'union of disjoint sets should have combined size');
+end;
+
+procedure TTestBoldOclEvaluation.TestDifferenceCollections;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aString := 'A';
+  Obj2.aString := 'B';
+  Assert.AreEqual(1, Obj1.EvaluateExpressionAsInteger(
+    'ClassA.allInstances->difference(ClassA.allInstances->select(aString = ''B''))->size'),
+    'difference should remove matching elements');
+end;
+
+procedure TTestBoldOclEvaluation.TestIntersectionCollections;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aString := 'A';
+  Obj2.aString := 'B';
+  Assert.AreEqual(2, Obj1.EvaluateExpressionAsInteger(
+    'ClassA.allInstances->intersection(ClassA.allInstances)->size'),
+    'intersection with self should be same size');
+end;
+
+procedure TTestBoldOclEvaluation.TestSymmetricDifferenceCollections;
+var
+  Obj1, Obj2: TClassA;
+begin
+  Obj1 := TClassA.Create(GetSystem);
+  Obj2 := TClassA.Create(GetSystem);
+  Obj1.aString := 'A';
+  Obj2.aString := 'B';
+  Assert.AreEqual(0, Obj1.EvaluateExpressionAsInteger(
+    'ClassA.allInstances->symmetricDifference(ClassA.allInstances)->size'),
+    'symmetric difference with self should be empty');
+end;
+
+// === String operations ===
+
+procedure TTestBoldOclEvaluation.TestToUpperCase;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'hello';
+  Assert.AreEqual('HELLO', Obj.EvaluateExpressionAsString('self.aString.toUpper'), 'toUpper');
+end;
+
+procedure TTestBoldOclEvaluation.TestToLowerCase;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'HELLO';
+  Assert.AreEqual('hello', Obj.EvaluateExpressionAsString('self.aString.toLower'), 'toLower');
+end;
+
+procedure TTestBoldOclEvaluation.TestTrimString;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := '  Hello  ';
+  Assert.AreEqual('Hello', Obj.EvaluateExpressionAsString('self.aString.trim'), 'trim');
+end;
+
+procedure TTestBoldOclEvaluation.TestSubStringOcl;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := 'Hello World';
+  // OCL subString is 1-based: subString(1, 5)
+  Assert.AreEqual('Hello', Obj.EvaluateExpressionAsString('self.aString.subString(1, 5)'), 'subString 1-based');
+end;
+
+// === Boolean operations ===
+
+procedure TTestBoldOclEvaluation.TestXorOperation;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aBoolean := True;
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('true xor false'), 'true xor false = true');
+  Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('true xor true'), 'true xor true = false');
+end;
+
+procedure TTestBoldOclEvaluation.TestImpliesTrueTrue;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('true implies true'), 'true implies true = true');
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('false implies false'), 'false implies false = true');
+end;
+
+// === Null arithmetic ===
+
+procedure TTestBoldOclEvaluation.TestNullIntegerAdd;
+var
+  Obj: TClassA;
+  S: string;
+begin
+  Obj := TClassA.Create(GetSystem);
+  // null integer + 5 — should handle null gracefully (no exception)
+  S := Obj.EvaluateExpressionAsString('(self.aInteger + 5).asString');
+  Assert.Pass('Null integer add completed: ' + S);
+end;
+
+procedure TTestBoldOclEvaluation.TestNullFloatMultiply;
+var
+  Obj: TClassA;
+  S: string;
+begin
+  Obj := TClassA.Create(GetSystem);
+  S := Obj.EvaluateExpressionAsString('(self.aFloat * 2).asString');
+  Assert.Pass('Null float multiply completed: ' + S);
 end;
 
 initialization
