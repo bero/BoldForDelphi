@@ -67,8 +67,8 @@ Environment variables `DUnitX` and `DelphiMocks` are set automatically by `run_c
 
 Unit tests are located in `UnitTest/` and use the DUnitX framework. Code coverage is tracked on [Codecov.io](https://codecov.io/gh/bero/BoldForDelphi).
 
-**Current Statistics** (as of 2026-03-27):
-- **Tests**: 1732 total (1730 passing, 2 ignored)
+**Current Statistics** (as of 2026-03-29):
+- **Tests**: 1834 total (1832 passing, 2 ignored, 0 failed)
 - **Code Coverage**: 54% (31,114 / 57,196 lines covered)
 
 ### Running Tests with Code Coverage

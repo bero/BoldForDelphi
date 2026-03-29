@@ -225,6 +225,94 @@ type
     [Test]
     [Category('Quick')]
     procedure TestIntegerAssign;
+
+    // Integer subtype range checks
+    [Test]
+    [Category('Quick')]
+    procedure TestByteRangeCheck;
+    [Test]
+    [Category('Quick')]
+    procedure TestShortIntRangeCheck;
+    [Test]
+    [Category('Quick')]
+    procedure TestSmallIntRangeCheck;
+    [Test]
+    [Category('Quick')]
+    procedure TestWordRangeCheck;
+    [Test]
+    [Category('Quick')]
+    procedure TestByteGetSetAs;
+    [Test]
+    [Category('Quick')]
+    procedure TestShortIntGetSetAs;
+    [Test]
+    [Category('Quick')]
+    procedure TestSmallIntGetSetAs;
+    [Test]
+    [Category('Quick')]
+    procedure TestWordGetSetAs;
+
+    // AnsiString coverage
+    [Test]
+    [Category('Quick')]
+    procedure TestAnsiStringSetGetDataValue;
+    [Test]
+    [Category('Quick')]
+    procedure TestAnsiStringFreeContent;
+
+    // IsEqualToValue coverage
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerIsEqualToValue;
+    [Test]
+    [Category('Quick')]
+    procedure TestFloatIsEqualToValue;
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyIsEqualToValue;
+    [Test]
+    [Category('Quick')]
+    procedure TestStringIsEqualToValue;
+
+    // Blob byte array variant
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobSetAsVariantByteArray;
+
+    // Currency CompareToAs with float operand
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyCompareToAsWithFloat;
+
+    // Currency Assign from float/integer
+    [Test]
+    [Category('Quick')]
+    procedure TestCurrencyAssignFromNumericTypes;
+
+    // Integer ValidateString with range
+    [Test]
+    [Category('Quick')]
+    procedure TestIntegerValidateStringRange;
+
+    // Moment IsNullOrZero
+    [Test]
+    [Category('Quick')]
+    procedure TestMomentIsNullOrZero;
+
+    // Moment IsEqualToValue
+    [Test]
+    [Category('Quick')]
+    procedure TestMomentIsEqualToValue;
+
+    // Float SetAsCurrency
+    [Test]
+    [Category('Quick')]
+    procedure TestFloatSetAsCurrency;
+
+    // Blob IsEqualToValue
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobIsEqualToValue;
   end;
 
 var
@@ -234,7 +322,9 @@ implementation
 
 uses
   SysUtils,
-  Variants;
+  Variants,
+  BoldDomainElement,
+  BoldValueInterfaces;
 
 {$R dmjehoBoldTest.dfm}
 
@@ -1823,6 +1913,543 @@ begin
   Obj1.aInteger := 99;
   Obj2.M_aInteger.Assign(Obj1.M_aInteger);
   Assert.AreEqual(99, Obj2.aInteger, 'Assign should copy integer');
+end;
+
+// Integer subtype range checks
+
+procedure TTestBoldAttributes.TestByteRangeCheck;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  // Valid range: 0..255
+  Obj.aByte := 0;
+  Assert.AreEqual(Byte(0), Obj.aByte, 'Byte min should be 0');
+  Obj.aByte := 255;
+  Assert.AreEqual(Byte(255), Obj.aByte, 'Byte max should be 255');
+
+  // Out of range should fail validation
+  Assert.IsFalse(Obj.M_aByte.ValidateString('-1', brDefault), 'Byte -1 should fail');
+  Assert.IsFalse(Obj.M_aByte.ValidateString('256', brDefault), 'Byte 256 should fail');
+  Assert.IsTrue(Obj.M_aByte.ValidateString('128', brDefault), 'Byte 128 should pass');
+end;
+
+procedure TTestBoldAttributes.TestShortIntRangeCheck;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  // Valid range: -128..127
+  Obj.aShortInt := -128;
+  Assert.AreEqual(ShortInt(-128), Obj.aShortInt, 'ShortInt min should be -128');
+  Obj.aShortInt := 127;
+  Assert.AreEqual(ShortInt(127), Obj.aShortInt, 'ShortInt max should be 127');
+
+  Assert.IsFalse(Obj.M_aShortInt.ValidateString('-129', brDefault), 'ShortInt -129 should fail');
+  Assert.IsFalse(Obj.M_aShortInt.ValidateString('128', brDefault), 'ShortInt 128 should fail');
+  Assert.IsTrue(Obj.M_aShortInt.ValidateString('0', brDefault), 'ShortInt 0 should pass');
+end;
+
+procedure TTestBoldAttributes.TestSmallIntRangeCheck;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  // Valid range: -32768..32767
+  Obj.aSmallInt := -32768;
+  Assert.AreEqual(SmallInt(-32768), Obj.aSmallInt, 'SmallInt min should be -32768');
+  Obj.aSmallInt := 32767;
+  Assert.AreEqual(SmallInt(32767), Obj.aSmallInt, 'SmallInt max should be 32767');
+
+  Assert.IsFalse(Obj.M_aSmallInt.ValidateString('-32769', brDefault), 'SmallInt -32769 should fail');
+  Assert.IsFalse(Obj.M_aSmallInt.ValidateString('32768', brDefault), 'SmallInt 32768 should fail');
+  Assert.IsTrue(Obj.M_aSmallInt.ValidateString('1000', brDefault), 'SmallInt 1000 should pass');
+end;
+
+procedure TTestBoldAttributes.TestWordRangeCheck;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  // Valid range: 0..65535
+  Obj.aWord := 0;
+  Assert.AreEqual(Word(0), Obj.aWord, 'Word min should be 0');
+  Obj.aWord := 65535;
+  Assert.AreEqual(Word(65535), Obj.aWord, 'Word max should be 65535');
+
+  Assert.IsFalse(Obj.M_aWord.ValidateString('-1', brDefault), 'Word -1 should fail');
+  Assert.IsFalse(Obj.M_aWord.ValidateString('65536', brDefault), 'Word 65536 should fail');
+  Assert.IsTrue(Obj.M_aWord.ValidateString('30000', brDefault), 'Word 30000 should pass');
+end;
+
+procedure TTestBoldAttributes.TestByteGetSetAs;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aByte.AsByte := 42;
+  Assert.AreEqual(Byte(42), Obj.M_aByte.AsByte, 'GetAsByte should return 42');
+  Obj.M_aByte.AsByte := 0;
+  Assert.AreEqual(Byte(0), Obj.M_aByte.AsByte, 'GetAsByte should return 0');
+end;
+
+procedure TTestBoldAttributes.TestShortIntGetSetAs;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aShortInt.AsShortInt := -50;
+  Assert.AreEqual(ShortInt(-50), Obj.M_aShortInt.AsShortInt, 'GetAsShortInt should return -50');
+  Obj.M_aShortInt.AsShortInt := 100;
+  Assert.AreEqual(ShortInt(100), Obj.M_aShortInt.AsShortInt, 'GetAsShortInt should return 100');
+end;
+
+procedure TTestBoldAttributes.TestSmallIntGetSetAs;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aSmallInt.AsSmallInt := -1000;
+  Assert.AreEqual(SmallInt(-1000), Obj.M_aSmallInt.AsSmallInt, 'GetAsSmallInt should return -1000');
+  Obj.M_aSmallInt.AsSmallInt := 20000;
+  Assert.AreEqual(SmallInt(20000), Obj.M_aSmallInt.AsSmallInt, 'GetAsSmallInt should return 20000');
+end;
+
+procedure TTestBoldAttributes.TestWordGetSetAs;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aWord.AsWord := 50000;
+  Assert.AreEqual(Word(50000), Obj.M_aWord.AsWord, 'GetAsWord should return 50000');
+  Obj.M_aWord.AsWord := 0;
+  Assert.AreEqual(Word(0), Obj.M_aWord.AsWord, 'GetAsWord should return 0');
+end;
+
+// AnsiString coverage
+
+procedure TTestBoldAttributes.TestAnsiStringSetGetDataValue;
+var
+  AnsiAttr: TBAAnsiString;
+begin
+  AnsiAttr := TBAAnsiString.Create;
+  try
+    // Test set and get
+    AnsiAttr.AsAnsiString := AnsiString('Hello');
+    Assert.AreEqual(AnsiString('Hello'), AnsiAttr.AsAnsiString, 'AsAnsiString should match');
+
+    // Test null returns empty
+    AnsiAttr.SetToNull;
+    Assert.AreEqual(AnsiString(''), AnsiAttr.AsAnsiString, 'Null AnsiString should be empty');
+
+    // Test overwrite with new value
+    AnsiAttr.AsAnsiString := AnsiString('World');
+    Assert.AreEqual(AnsiString('World'), AnsiAttr.AsAnsiString, 'Overwritten AnsiString should match');
+  finally
+    AnsiAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestAnsiStringFreeContent;
+var
+  AnsiAttr: TBAAnsiString;
+begin
+  AnsiAttr := TBAAnsiString.Create;
+  try
+    AnsiAttr.AsAnsiString := AnsiString('Data');
+    Assert.IsFalse(AnsiAttr.IsNull, 'Should not be null after set');
+
+    // SetToNull triggers FreeContent internally
+    AnsiAttr.SetToNull;
+    Assert.IsTrue(AnsiAttr.IsNull, 'Should be null after SetToNull');
+    Assert.AreEqual(AnsiString(''), AnsiAttr.AsAnsiString, 'FreeContent should clear value');
+  finally
+    AnsiAttr.Free;
+  end;
+end;
+
+// IsEqualToValue coverage
+
+procedure TTestBoldAttributes.TestIntegerIsEqualToValue;
+var
+  Int1, Int2: TBAInteger;
+begin
+  Int1 := TBAInteger.Create;
+  Int2 := TBAInteger.Create;
+  try
+    // Both have same value
+    Int1.AsInteger := 42;
+    Int2.AsInteger := 42;
+    Assert.IsTrue(Int1.IsEqualToValue(Int2.AsIBoldValue[bdepContents]), 'Same integer values should be equal');
+
+    // Different values
+    Int2.AsInteger := 99;
+    Assert.IsFalse(Int1.IsEqualToValue(Int2.AsIBoldValue[bdepContents]), 'Different integer values should not be equal');
+
+    // Both null
+    Int1.SetToNull;
+    Int2.SetToNull;
+    Assert.IsTrue(Int1.IsEqualToValue(Int2.AsIBoldValue[bdepContents]), 'Both null should be equal');
+
+    // One null, one not
+    Int1.AsInteger := 1;
+    Assert.IsFalse(Int1.IsEqualToValue(Int2.AsIBoldValue[bdepContents]), 'Non-null vs null should not be equal');
+
+    // Reverse: null vs non-null
+    Int1.SetToNull;
+    Int2.AsInteger := 1;
+    Assert.IsFalse(Int1.IsEqualToValue(Int2.AsIBoldValue[bdepContents]), 'Null vs non-null should not be equal');
+  finally
+    Int1.Free;
+    Int2.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestFloatIsEqualToValue;
+var
+  Float1, Float2: TBAFloat;
+begin
+  Float1 := TBAFloat.Create;
+  Float2 := TBAFloat.Create;
+  try
+    // Same value
+    Float1.AsFloat := 3.14;
+    Float2.AsFloat := 3.14;
+    Assert.IsTrue(Float1.IsEqualToValue(Float2.AsIBoldValue[bdepContents]), 'Same float values should be equal');
+
+    // Different values
+    Float2.AsFloat := 2.71;
+    Assert.IsFalse(Float1.IsEqualToValue(Float2.AsIBoldValue[bdepContents]), 'Different float values should not be equal');
+
+    // Both null
+    Float1.SetToNull;
+    Float2.SetToNull;
+    Assert.IsTrue(Float1.IsEqualToValue(Float2.AsIBoldValue[bdepContents]), 'Both null floats should be equal');
+
+    // One null
+    Float1.AsFloat := 1.0;
+    Assert.IsFalse(Float1.IsEqualToValue(Float2.AsIBoldValue[bdepContents]), 'Non-null vs null float should not be equal');
+  finally
+    Float1.Free;
+    Float2.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestCurrencyIsEqualToValue;
+var
+  Curr1, Curr2: TBACurrency;
+begin
+  Curr1 := TBACurrency.Create;
+  Curr2 := TBACurrency.Create;
+  try
+    // Same value
+    Curr1.AsCurrency := 99.95;
+    Curr2.AsCurrency := 99.95;
+    Assert.IsTrue(Curr1.IsEqualToValue(Curr2.AsIBoldValue[bdepContents]), 'Same currency values should be equal');
+
+    // Different values
+    Curr2.AsCurrency := 50.00;
+    Assert.IsFalse(Curr1.IsEqualToValue(Curr2.AsIBoldValue[bdepContents]), 'Different currency values should not be equal');
+
+    // Both null
+    Curr1.SetToNull;
+    Curr2.SetToNull;
+    Assert.IsTrue(Curr1.IsEqualToValue(Curr2.AsIBoldValue[bdepContents]), 'Both null currencies should be equal');
+
+    // One null
+    Curr1.AsCurrency := 10.0;
+    Assert.IsFalse(Curr1.IsEqualToValue(Curr2.AsIBoldValue[bdepContents]), 'Non-null vs null currency should not be equal');
+  finally
+    Curr1.Free;
+    Curr2.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestStringIsEqualToValue;
+var
+  Str1, Str2: TBAString;
+begin
+  Str1 := TBAString.Create;
+  Str2 := TBAString.Create;
+  try
+    // Same value
+    Str1.AsString := 'Hello';
+    Str2.AsString := 'Hello';
+    Assert.IsTrue(Str1.IsEqualToValue(Str2.AsIBoldValue[bdepContents]), 'Same string values should be equal');
+
+    // Different values
+    Str2.AsString := 'World';
+    Assert.IsFalse(Str1.IsEqualToValue(Str2.AsIBoldValue[bdepContents]), 'Different string values should not be equal');
+
+    // Both null
+    Str1.SetToNull;
+    Str2.SetToNull;
+    Assert.IsTrue(Str1.IsEqualToValue(Str2.AsIBoldValue[bdepContents]), 'Both null strings should be equal');
+
+    // One null
+    Str1.AsString := 'X';
+    Assert.IsFalse(Str1.IsEqualToValue(Str2.AsIBoldValue[bdepContents]), 'Non-null vs null string should not be equal');
+  finally
+    Str1.Free;
+    Str2.Free;
+  end;
+end;
+
+// Blob byte array variant
+
+procedure TTestBoldAttributes.TestBlobSetAsVariantByteArray;
+var
+  Blob: TBABlob;
+  V: Variant;
+  Data: TBytes;
+begin
+  Blob := TBABlob.Create;
+  try
+    // Create a byte array variant
+    Data := TEncoding.UTF8.GetBytes('VariantTest');
+    V := VarArrayCreate([0, Length(Data) - 1], varByte);
+    Move(Data[0], VarArrayLock(V)^, Length(Data));
+    VarArrayUnlock(V);
+
+    Blob.AsVariant := V;
+    Assert.IsTrue(Blob.BlobSize > 0, 'Blob should have content after SetAsVariant byte array');
+    Assert.AreEqual(Int64(Length(Data)), Blob.BlobSize, 'Blob size should match data length');
+  finally
+    Blob.Free;
+  end;
+end;
+
+// Currency CompareToAs with float operand
+
+procedure TTestBoldAttributes.TestCurrencyCompareToAsWithFloat;
+var
+  CurrAttr: TBACurrency;
+  FloatAttr: TBAFloat;
+begin
+  CurrAttr := TBACurrency.Create;
+  FloatAttr := TBAFloat.Create;
+  try
+    // Currency vs Float comparison (exercises the non-TBACurrency branch in CompareToAs)
+    CurrAttr.AsCurrency := 100.00;
+    FloatAttr.AsFloat := 50.0;
+    Assert.AreEqual(1, CurrAttr.CompareToAs(ctDefault, FloatAttr), 'Currency 100 > Float 50');
+
+    FloatAttr.AsFloat := 100.0;
+    Assert.AreEqual(0, CurrAttr.CompareToAs(ctDefault, FloatAttr), 'Currency 100 = Float 100');
+
+    FloatAttr.AsFloat := 200.0;
+    Assert.AreEqual(-1, CurrAttr.CompareToAs(ctDefault, FloatAttr), 'Currency 100 < Float 200');
+
+    // Null handling
+    CurrAttr.SetToNull;
+    FloatAttr.AsFloat := 1.0;
+    Assert.AreEqual(-1, CurrAttr.CompareToAs(ctDefault, FloatAttr), 'Null currency < non-null float');
+  finally
+    CurrAttr.Free;
+    FloatAttr.Free;
+  end;
+end;
+
+// Currency Assign from float/integer
+
+procedure TTestBoldAttributes.TestCurrencyAssignFromNumericTypes;
+var
+  CurrAttr: TBACurrency;
+  FloatAttr: TBAFloat;
+  IntAttr: TBAInteger;
+begin
+  CurrAttr := TBACurrency.Create;
+  FloatAttr := TBAFloat.Create;
+  IntAttr := TBAInteger.Create;
+  try
+    // Assign from TBAFloat
+    FloatAttr.AsFloat := 99.5;
+    CurrAttr.Assign(FloatAttr);
+    Assert.AreEqual(Double(99.5), Double(CurrAttr.AsCurrency), 0.001, 'Currency should match assigned float');
+
+    // Assign from TBAInteger
+    IntAttr.AsInteger := 42;
+    CurrAttr.Assign(IntAttr);
+    Assert.AreEqual(Double(42.0), Double(CurrAttr.AsCurrency), 0.001, 'Currency should match assigned integer');
+
+    // Assign null from numeric
+    FloatAttr.SetToNull;
+    CurrAttr.Assign(FloatAttr);
+    Assert.IsTrue(CurrAttr.IsNull, 'Currency should be null after assigning null float');
+  finally
+    CurrAttr.Free;
+    FloatAttr.Free;
+    IntAttr.Free;
+  end;
+end;
+
+// Integer ValidateString with range
+
+procedure TTestBoldAttributes.TestIntegerValidateStringRange;
+var
+  ByteAttr: TBAByte;
+  WordAttr: TBAWord;
+begin
+  // Test ValidateString which calls CheckRange internally
+  ByteAttr := TBAByte.Create;
+  try
+    Assert.IsTrue(ByteAttr.ValidateString('0', brDefault), 'Byte 0 should validate');
+    Assert.IsTrue(ByteAttr.ValidateString('255', brDefault), 'Byte 255 should validate');
+    Assert.IsFalse(ByteAttr.ValidateString('256', brDefault), 'Byte 256 should not validate');
+    Assert.IsFalse(ByteAttr.ValidateString('-1', brDefault), 'Byte -1 should not validate');
+    Assert.IsTrue(ByteAttr.ValidateString('', brDefault), 'Empty string should validate as null');
+  finally
+    ByteAttr.Free;
+  end;
+
+  WordAttr := TBAWord.Create;
+  try
+    Assert.IsTrue(WordAttr.ValidateString('0', brDefault), 'Word 0 should validate');
+    Assert.IsTrue(WordAttr.ValidateString('65535', brDefault), 'Word 65535 should validate');
+    Assert.IsFalse(WordAttr.ValidateString('65536', brDefault), 'Word 65536 should not validate');
+    Assert.IsFalse(WordAttr.ValidateString('-1', brDefault), 'Word -1 should not validate');
+  finally
+    WordAttr.Free;
+  end;
+end;
+
+// Moment IsNullOrZero
+
+procedure TTestBoldAttributes.TestMomentIsNullOrZero;
+var
+  DT: TBADateTime;
+begin
+  DT := TBADateTime.Create;
+  try
+    // Null should be NullOrZero
+    Assert.IsTrue(DT.IsNullOrZero, 'Null datetime should be NullOrZero');
+
+    // Zero datetime should be NullOrZero
+    DT.AsDateTime := 0;
+    Assert.IsTrue(DT.IsNullOrZero, 'Zero datetime should be NullOrZero');
+
+    // Non-zero should not be NullOrZero
+    DT.AsDateTime := EncodeDate(2026, 1, 1);
+    Assert.IsFalse(DT.IsNullOrZero, 'Non-zero datetime should not be NullOrZero');
+  finally
+    DT.Free;
+  end;
+end;
+
+// Moment IsEqualToValue
+
+procedure TTestBoldAttributes.TestMomentIsEqualToValue;
+var
+  DT1, DT2: TBADateTime;
+  Date1: TBADate;
+  Time1: TBATime;
+  TestDT: TDateTime;
+begin
+  TestDT := EncodeDate(2026, 6, 15) + EncodeTime(10, 30, 0, 0);
+
+  DT1 := TBADateTime.Create;
+  DT2 := TBADateTime.Create;
+  Date1 := TBADate.Create;
+  Time1 := TBATime.Create;
+  try
+    // DateTime vs DateTime - equal
+    DT1.AsDateTime := TestDT;
+    DT2.AsDateTime := TestDT;
+    Assert.IsTrue(DT1.IsEqualToValue(DT2.AsIBoldValue[bdepContents]), 'Same datetimes should be equal');
+
+    // DateTime vs DateTime - not equal
+    DT2.AsDateTime := TestDT + 1;
+    Assert.IsFalse(DT1.IsEqualToValue(DT2.AsIBoldValue[bdepContents]), 'Different datetimes should not be equal');
+
+    // Both null
+    DT1.SetToNull;
+    DT2.SetToNull;
+    Assert.IsTrue(DT1.IsEqualToValue(DT2.AsIBoldValue[bdepContents]), 'Both null datetimes should be equal');
+
+    // One null
+    DT1.AsDateTime := TestDT;
+    Assert.IsFalse(DT1.IsEqualToValue(DT2.AsIBoldValue[bdepContents]), 'Non-null vs null datetime should not be equal');
+
+    // DateTime vs Date (exercises IBoldDateContent branch)
+    DT1.AsDateTime := EncodeDate(2026, 6, 15);
+    Date1.AsDateTime := EncodeDate(2026, 6, 15);
+    Assert.IsTrue(DT1.IsEqualToValue(Date1.AsIBoldValue[bdepContents]), 'DateTime date-only should equal Date');
+
+    // DateTime vs Time (exercises IBoldTimeContent branch)
+    DT1.AsDateTime := EncodeTime(10, 30, 0, 0);
+    Time1.AsDateTime := EncodeTime(10, 30, 0, 0);
+    Assert.IsTrue(DT1.IsEqualToValue(Time1.AsIBoldValue[bdepContents]), 'DateTime time-only should equal Time');
+
+    // DateTime vs Date null handling
+    DT1.SetToNull;
+    Date1.SetToNull;
+    Assert.IsTrue(DT1.IsEqualToValue(Date1.AsIBoldValue[bdepContents]), 'Both null should be equal (Date path)');
+
+    DT1.AsDateTime := TestDT;
+    Assert.IsFalse(DT1.IsEqualToValue(Date1.AsIBoldValue[bdepContents]), 'Non-null vs null Date should not be equal');
+
+    // DateTime vs Time null handling
+    DT1.SetToNull;
+    Time1.SetToNull;
+    Assert.IsTrue(DT1.IsEqualToValue(Time1.AsIBoldValue[bdepContents]), 'Both null should be equal (Time path)');
+
+    DT1.AsDateTime := TestDT;
+    Assert.IsFalse(DT1.IsEqualToValue(Time1.AsIBoldValue[bdepContents]), 'Non-null vs null Time should not be equal');
+  finally
+    DT1.Free;
+    DT2.Free;
+    Date1.Free;
+    Time1.Free;
+  end;
+end;
+
+// Float SetAsCurrency
+
+procedure TTestBoldAttributes.TestFloatSetAsCurrency;
+var
+  FloatAttr: TBAFloat;
+begin
+  // TBAFloat.SetAsInteger is uncovered - it calls SetAsFloat internally
+  FloatAttr := TBAFloat.Create;
+  try
+    FloatAttr.AsInteger := 42;
+    Assert.AreEqual(42.0, FloatAttr.AsFloat, 0.001, 'SetAsInteger should set float value');
+  finally
+    FloatAttr.Free;
+  end;
+end;
+
+// Blob IsEqualToValue
+
+procedure TTestBoldAttributes.TestBlobIsEqualToValue;
+var
+  Blob1, Blob2: TBABlob;
+  Data: TBytes;
+begin
+  Blob1 := TBABlob.Create;
+  Blob2 := TBABlob.Create;
+  try
+    // Both null should be equal
+    Assert.IsTrue(Blob1.IsEqualToValue(Blob2.AsIBoldValue[bdepContents]), 'Both null blobs should be equal');
+
+    // One null, one not
+    Data := TEncoding.UTF8.GetBytes('Test');
+    Blob1.AsStream.Write(Data, Length(Data));
+    Assert.IsFalse(Blob1.IsEqualToValue(Blob2.AsIBoldValue[bdepContents]), 'Non-null vs null blob should not be equal');
+
+    // Both with same content
+    Blob2.AsStream.Write(Data, Length(Data));
+    Assert.IsTrue(Blob1.IsEqualToValue(Blob2.AsIBoldValue[bdepContents]), 'Blobs with same content should be equal');
+
+    // Different content
+    Blob2.SetToNull;
+    Data := TEncoding.UTF8.GetBytes('Other');
+    Blob2.AsStream.Write(Data, Length(Data));
+    Assert.IsFalse(Blob1.IsEqualToValue(Blob2.AsIBoldValue[bdepContents]), 'Blobs with different content should not be equal');
+  finally
+    Blob1.Free;
+    Blob2.Free;
+  end;
 end;
 
 initialization
