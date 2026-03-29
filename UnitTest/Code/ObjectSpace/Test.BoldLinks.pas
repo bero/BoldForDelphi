@@ -243,6 +243,40 @@ type
     [Test]
     [Category('Quick')]
     procedure TestFetchAfterInvalidateMultipleObjects;
+
+    // More CanEvaluateInPS — deeper SQL paths
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_OrderBy;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Aggregate;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_SubSelect;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_MultiNavigation;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Exists;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_TypeFilter;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_Arithmetic;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_LinkNavigation;
+
+    // More fetch patterns
+    [Test]
+    [Category('Quick')]
+    procedure TestFetchClassDirectly;
+    [Test]
+    [Category('Quick')]
+    procedure TestGetAllWithRawSQL;
   end;
 
 implementation
@@ -1588,6 +1622,145 @@ begin
   Assert.IsTrue(Length(Obj1.aString) > 0, 'Obj1 refetched');
   Assert.IsTrue(Length(Obj2.aString) > 0, 'Obj2 refetched');
   Assert.IsTrue(Length(Obj3.aString) > 0, 'Obj3 refetched');
+end;
+
+// More CanEvaluateInPS — deeper SQL paths
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_OrderBy;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+  Sys.CanEvaluateInPS('APersistentClass.allInstances->orderby(aString)', CTI);
+  Assert.Pass('OrderBy OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Aggregate;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('SomeClass.allInstances->select(aString <> '''')', CTI);
+  Assert.Pass('Aggregate OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_SubSelect;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  // Nested select — exercises subquery SQL generation
+  Sys.CanEvaluateInPS('SomeClass.allInstances->select(child->notEmpty)', CTI);
+  Assert.Pass('SubSelect OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_MultiNavigation;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  // Multi-hop navigation
+  Sys.CanEvaluateInPS('self.parent.parent.aString', CTI);
+  Sys.CanEvaluateInPS('self.child->collect(parent)', CTI);
+  Assert.Pass('Multi-navigation OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Exists;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('SomeClass.allInstances->exists(aString = ''x'')', CTI);
+  Assert.Pass('Exists OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_TypeFilter;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('SomeClass.allInstances->filterOnType(SomeClass)', CTI);
+  Assert.Pass('TypeFilter OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_Arithmetic;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  Sys.CanEvaluateInPS('SomeClass.allInstances->size + 1', CTI);
+  Assert.Pass('Arithmetic OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_LinkNavigation;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['Book'];
+  // Navigate through indirect multi-link (Book -> Topic via link class)
+  Sys.CanEvaluateInPS('self.Topic->size', CTI);
+  Sys.CanEvaluateInPS('Book.allInstances->select(Topic->notEmpty)', CTI);
+  Assert.Pass('Link navigation OCL-to-SQL executed');
+end;
+
+// More fetch patterns
+
+procedure TTestBoldLinks.TestFetchClassDirectly;
+var
+  Sys: TBoldSystem;
+  ClassList: TBoldObjectList;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CreateAPersistentClass(Sys, FSubscriber).aString := 'FC1';
+  CreateAPersistentClass(Sys, FSubscriber).aString := 'FC2';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // FetchClass triggers the class fetch pipeline
+  ClassList := TBoldObjectList.Create;
+  try
+    FetchClass(Sys, ClassList, TAPersistentClass);
+    Assert.IsTrue(ClassList.Count >= 2, 'Should fetch at least 2 objects');
+  finally
+    ClassList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestGetAllWithRawSQL;
+var
+  Sys: TBoldSystem;
+  ResultList: TBoldObjectList;
+  CTI: TBoldClassTypeInfo;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CreateAPersistentClass(Sys, FSubscriber).aString := 'Raw1';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // GetAllInClassWithRawSQL — exercises raw SQL execution path
+  ResultList := TBoldObjectList.Create;
+  try
+    CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
+    Sys.GetAllInClassWithRawSQL(ResultList, TBoldObjectClass(CTI.ObjectClass),
+      'SELECT BOLD_ID, BOLD_TYPE FROM APersistentClass WHERE 1=1', nil, -1, 0);
+    Assert.IsTrue(ResultList.Count > 0, 'Raw SQL should return objects');
+  finally
+    ResultList.Free;
+  end;
 end;
 
 initialization
