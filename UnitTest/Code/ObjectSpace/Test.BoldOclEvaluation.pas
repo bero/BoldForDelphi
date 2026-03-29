@@ -506,6 +506,14 @@ type
     // --- Evaluate with guillemets (error path) ---
     [Test] [Category('Quick')]
     procedure TestGuillemetInExpressionRaises;
+
+    // --- Final push ---
+    [Test] [Category('Quick')]
+    procedure TestExpressionTypeBoolean;
+    [Test] [Category('Quick')]
+    procedure TestExpressionTypeFloat;
+    [Test] [Category('Quick')]
+    procedure TestRTInfoInteger;
   end;
 
 implementation
@@ -2518,6 +2526,35 @@ begin
       Obj.EvaluateExpressionAsString('self.aString' + #$AB); // « character
     end
   );
+end;
+
+procedure TTestBoldOclEvaluation.TestExpressionTypeBoolean;
+var
+  CTI: TBoldElementTypeInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  Assert.IsNotNull(GetSystem.Evaluator.ExpressionType('self.aBoolean', CTI, True),
+    'ExpressionType for aBoolean should not be nil');
+end;
+
+procedure TTestBoldOclEvaluation.TestExpressionTypeFloat;
+var
+  CTI: TBoldElementTypeInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  Assert.IsNotNull(GetSystem.Evaluator.ExpressionType('self.aFloat + 1.0', CTI, True),
+    'ExpressionType for float expression should not be nil');
+end;
+
+procedure TTestBoldOclEvaluation.TestRTInfoInteger;
+var
+  CTI: TBoldElementTypeInfo;
+  RTI: TBoldMemberRTInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  RTI := (GetSystem.Evaluator as TBoldRTEvaluator).RTInfo('self.aInteger', CTI, True);
+  Assert.IsNotNull(RTI, 'RTInfo for aInteger should not be nil');
+  Assert.IsTrue(RTI.IsAttribute, 'aInteger RTInfo should be attribute');
 end;
 
 initialization
