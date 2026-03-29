@@ -478,6 +478,18 @@ type
     procedure TestNullIntegerAdd;
     [Test] [Category('Quick')]
     procedure TestNullFloatMultiply;
+
+    // --- ExpressionType ---
+    [Test] [Category('Quick')]
+    procedure TestExpressionTypeInteger;
+    [Test] [Category('Quick')]
+    procedure TestExpressionTypeString;
+    [Test] [Category('Quick')]
+    procedure TestExpressionTypeCollection;
+    [Test] [Category('Quick')]
+    procedure TestExpressionTypeInvalid;
+    [Test] [Category('Quick')]
+    procedure TestExpressionTypeEmpty;
   end;
 
 implementation
@@ -2377,6 +2389,57 @@ begin
   Obj := TClassA.Create(GetSystem);
   S := Obj.EvaluateExpressionAsString('(self.aFloat * 2).asString');
   Assert.Pass('Null float multiply completed: ' + S);
+end;
+
+// === ExpressionType ===
+
+procedure TTestBoldOclEvaluation.TestExpressionTypeInteger;
+var
+  CTI: TBoldElementTypeInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  Assert.IsNotNull(GetSystem.Evaluator.ExpressionType('self.aInteger', CTI, True),
+    'ExpressionType for aInteger should not be nil');
+end;
+
+procedure TTestBoldOclEvaluation.TestExpressionTypeString;
+var
+  CTI: TBoldElementTypeInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  Assert.IsNotNull(GetSystem.Evaluator.ExpressionType('self.aString', CTI, True),
+    'ExpressionType for aString should not be nil');
+end;
+
+procedure TTestBoldOclEvaluation.TestExpressionTypeCollection;
+var
+  CTI: TBoldElementTypeInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  Assert.IsNotNull(GetSystem.Evaluator.ExpressionType('ClassA.allInstances', CTI, True),
+    'ExpressionType for allInstances should not be nil');
+end;
+
+procedure TTestBoldOclEvaluation.TestExpressionTypeInvalid;
+var
+  CTI: TBoldElementTypeInfo;
+  Result: TBoldElementTypeInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  // Invalid expression with ReRaise=False should return nil
+  Result := GetSystem.Evaluator.ExpressionType('self.nonExistent', CTI, False);
+  Assert.IsNull(Result, 'Invalid expression type should return nil when not re-raising');
+end;
+
+procedure TTestBoldOclEvaluation.TestExpressionTypeEmpty;
+var
+  CTI: TBoldElementTypeInfo;
+  Result: TBoldElementTypeInfo;
+begin
+  CTI := GetSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['ClassA'];
+  // Empty expression should return context type
+  Result := GetSystem.Evaluator.ExpressionType('', CTI, True);
+  Assert.AreSame(TObject(CTI), TObject(Result), 'Empty expression should return context type');
 end;
 
 initialization
