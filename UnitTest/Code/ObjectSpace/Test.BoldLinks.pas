@@ -139,6 +139,12 @@ type
     [Test]
     [Category('Quick')]
     procedure TestSaveDeleteReloadVerifyGone;
+    [Test]
+    [Category('Quick')]
+    procedure TestSaveReloadNavigateLinks;
+    [Test]
+    [Category('Quick')]
+    procedure TestModifyAttributeAfterFetch;
   end;
 
 implementation
@@ -804,6 +810,79 @@ begin
   try
     FetchClass(Sys, ObjList, TAPersistentClass);
     Assert.AreEqual(CountBefore - 1, ObjList.Count, 'Deleted object should be gone after reload');
+  finally
+    ObjList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestSaveReloadNavigateLinks;
+var
+  Sys: TBoldSystem;
+  Parent, Child: TSomeClass;
+  ParentList: TSomeClassList;
+  LoadedParent: TSomeClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  Child := TSomeClass.Create(Sys);
+  Parent.aString := 'NavParent';
+  Child.aString := 'NavChild';
+  Child.parent := Parent;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Full reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Fetch all SomeClass objects and navigate links
+  ParentList := TSomeClassList.Create;
+  try
+    FetchClass(Sys, ParentList, TSomeClass);
+    // Find the parent by attribute
+    LoadedParent := nil;
+    for var i := 0 to ParentList.Count - 1 do
+      if ParentList[i].aString = 'NavParent' then
+      begin
+        LoadedParent := ParentList[i];
+        Break;
+      end;
+    Assert.IsNotNull(TObject(LoadedParent), 'Should find NavParent after reload');
+    // Navigate the link — this triggers fetch of child list from DB
+    Assert.AreEqual(1, LoadedParent.child.Count, 'Parent should have 1 child after reload');
+    Assert.AreEqual('NavChild', LoadedParent.child[0].aString, 'Child attribute should be persisted');
+  finally
+    ParentList.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestModifyAttributeAfterFetch;
+var
+  Sys: TBoldSystem;
+  Obj: TAPersistentClass;
+  ObjList: TAPersistentClassList;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Obj := CreateAPersistentClass(Sys, FSubscriber);
+  Obj.aString := 'Original';
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  // Reload
+  Sys.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+
+  // Fetch, modify, and save again
+  ObjList := TAPersistentClassList.Create;
+  try
+    FetchClass(Sys, ObjList, TAPersistentClass);
+    Assert.IsTrue(ObjList.Count > 0, 'Should find objects');
+    ObjList[0].aString := 'Modified';
+    dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+    Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after modify+save');
+    Assert.AreEqual('Modified', ObjList[0].aString, 'Value should be modified');
   finally
     ObjList.Free;
   end;
