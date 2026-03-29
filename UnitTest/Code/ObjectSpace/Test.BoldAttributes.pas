@@ -371,6 +371,17 @@ type
     [Test]
     [Category('Quick')]
     procedure TestBlobCompareToAs;
+
+    // JSON serialization (BoldObjectRepresentationJson)
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldElementToJsonString;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldElementToJsonAndBack;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldObjectStringRepresentation;
   end;
 
 var
@@ -382,7 +393,8 @@ uses
   SysUtils,
   Variants,
   BoldDomainElement,
-  BoldValueInterfaces;
+  BoldValueInterfaces,
+  BoldObjectRepresentationJson;
 
 {$R dmjehoBoldTest.dfm}
 
@@ -2744,6 +2756,57 @@ begin
   // Null vs non-null
   Obj2.M_aBlob.SetToNull;
   Assert.AreEqual(1, Obj1.M_aBlob.CompareToAs(ctDefault, Obj2.M_aBlob), 'Non-null > null blob');
+end;
+
+// JSON serialization (BoldObjectRepresentationJson)
+
+procedure TTestBoldAttributes.TestBoldElementToJsonString;
+var
+  Obj: TClassA;
+  Json: string;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aString := 'JsonTest';
+  Obj.aInteger := 42;
+  Obj.aFloat := 3.14;
+  Obj.aBoolean := True;
+  Obj.aCurrency := 99.95;
+  Obj.aDateTime := EncodeDate(2026, 3, 15);
+
+  Json := BoldElementToJsonString(Obj);
+  Assert.IsTrue(Length(Json) > 10, 'JSON should be non-empty');
+  Assert.IsTrue(Pos('JsonTest', Json) > 0, 'JSON should contain string value');
+  Assert.IsTrue(Pos('42', Json) > 0, 'JSON should contain integer value');
+end;
+
+procedure TTestBoldAttributes.TestBoldElementToJsonAndBack;
+var
+  Obj: TClassA;
+  Json: string;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aString := 'RoundTrip';
+  Obj.aInteger := 100;
+  Obj.aBoolean := True;
+  Obj.aCurrency := 50.0;
+  Obj.aFloat := 1.5;
+  Obj.aDate := EncodeDate(2026, 1, 1);
+
+  Json := BoldElementToJsonString(Obj);
+  Assert.IsTrue(Length(Json) > 50, 'Should produce substantial JSON');
+  Assert.IsTrue(Pos('RoundTrip', Json) > 0, 'Should contain string attr');
+  Assert.IsTrue(Pos('100', Json) > 0, 'Should contain integer attr');
+end;
+
+procedure TTestBoldAttributes.TestBoldObjectStringRepresentation;
+var
+  Obj: TClassA;
+  Repr: string;
+begin
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aString := 'ReprTest';
+  Repr := BoldObjectStringRepresentation(Obj);
+  Assert.IsTrue(Length(Repr) > 0, 'String representation should be non-empty');
 end;
 
 initialization
