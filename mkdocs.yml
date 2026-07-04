@@ -64,6 +64,7 @@ nav:
   - Home: index.md
   - Getting Started:
     - getting-started/index.md
+    - Quick Start: quickstart.md
     - Installation: getting-started/installation.md
     - First Application: getting-started/first-app.md
   - Core Concepts:

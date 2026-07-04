@@ -31,7 +31,7 @@ Basic CRUD application demonstrating:
 - Database persistence with SQLite (preconfigured)
 - Navigator controls
 
-**Note**: Requires the Bold design-time package to be installed first. See the [Quick Start Guide](../../quickstart.md) Step 2.
+**Note**: Requires the Bold design-time package to be installed first. See the [Quick Start Guide](../quickstart.md) Step 2.
 
 ```
 examples\Simple\ObjectSpace\MasterDetail\MasterDetail.dproj
