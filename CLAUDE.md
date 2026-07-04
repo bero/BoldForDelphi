@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Delphi/Bold Framework Conventions
+- This is a Delphi codebase using the Bold for Delphi framework. When editing Delphi code, always check that accessed properties/methods are public or published (not protected/private). Verify correct unit imports (e.g., System.SysUtils) before finishing edits.
+- Bold OCL expressions have specific syntax — do not guess OCL chains. Ask the user or search the model files for the correct OCL path before making changes.
+
 ## Project Overview
 
 Bold for Delphi is a Model-Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool. It enables UML-based model development with OCL (Object Constraint Language) queries, automatic code generation, and sophisticated database persistence. Originally released by Boldsoft in 2004, it was open-sourced by Embarcadero in 2020 under MIT license.

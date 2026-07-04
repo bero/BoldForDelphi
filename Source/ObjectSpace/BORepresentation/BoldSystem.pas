@@ -3170,7 +3170,12 @@ begin
       end;
     end
     else
+    begin
+      // No savepoints exist, so a nested rollback cannot revert partially;
+      // mark the whole nest rollback-only so the outermost commit refuses.
+      fTransactionRollbackOnly := True;
       dec(fTransactionNesting);
+    end;
   end;
 {$ENDIF}
 end;

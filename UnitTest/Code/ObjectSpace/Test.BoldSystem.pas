@@ -103,6 +103,9 @@ type
     [Test]
     [Category('Quick')]
     procedure TestRollbackTransaction;
+    [Test]
+    [Category('Quick')]
+    procedure TestNestedRollbackPreventsOuterCommit;
 
     // System Clean/Dirty State
     [Test]
@@ -1011,6 +1014,46 @@ begin
   // Just verify the system can be queried for transaction state
   Assert.IsFalse(GetSystem.InTransaction, 'Should not be in transaction');
   Assert.Pass('Transaction rollback tests require persistence handler');
+end;
+
+procedure TTestBoldSystem.TestNestedRollbackPreventsOuterCommit;
+var
+  Sys: TBoldSystem;
+  Obj: TClassA;
+  OuterCommitSucceeded: Boolean;
+begin
+  // A nested RollbackTransaction cannot partially revert (there is one rollback
+  // area for the whole nest, no savepoints). Its contract is to poison the nest
+  // via fTransactionRollbackOnly so the outermost CommitTransaction raises and
+  // the caller rolls everything back.
+  Sys := GetSystem;
+  Obj := TClassA.Create(Sys);
+  Obj.aString := 'before';
+
+  Sys.StartTransaction;                        // T1 (outermost, nesting 1)
+  Sys.StartTransaction;                        // T2 (nesting 2)
+  Sys.StartTransaction;                        // T3 (nesting 3)
+  Obj.aString := 'changed inside T3';
+  Sys.RollbackTransaction;                     // T3 aborts (nesting 3 -> 2)
+  Sys.CommitTransaction;                       // T2 (nesting 2 -> 1)
+
+  OuterCommitSucceeded := True;
+  try
+    Sys.CommitTransaction;                     // T1 must refuse (sCommitNotAllowed)
+  except
+    on E: EBold do
+      OuterCommitSucceeded := False;
+  end;
+
+  // With correct rollback-only semantics the outer commit raised, the nest is
+  // still open and the caller completes the abort with a real rollback.
+  if Sys.InTransaction then
+    Sys.RollbackTransaction;
+
+  Assert.IsFalse(OuterCommitSucceeded,
+    'Outer CommitTransaction must raise EBold after a nested RollbackTransaction');
+  Assert.AreEqual('before', Obj.aString,
+    'Change made inside the rolled-back nested transaction must not survive');
 end;
 
 { System State Tests }

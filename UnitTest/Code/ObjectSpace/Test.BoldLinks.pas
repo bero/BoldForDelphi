@@ -15,6 +15,11 @@ uses
   BoldElements,
   BoldLinks,
   BoldCondition,
+  BoldPMappers,
+  BoldPMappersDefault,
+  BoldPMappersLinkDefault,
+  BoldPersistenceHandle,
+  BoldPersistenceHandleDB,
   BoldTestModel,
   maan_UndoRedoBase,
   maan_UndoRedoTestCaseUtils;
@@ -243,6 +248,12 @@ type
     [Test]
     [Category('Quick')]
     procedure TestFetchAfterInvalidateMultipleObjects;
+
+    // Regression guard: link member mapper wiring (root cause of the
+    // CanEvaluateInPS collect(role) AV is a nil OtherEndObjectMapper)
+    [Test]
+    [Category('Quick')]
+    procedure TestChildLinkMapperWiring;
 
     // More CanEvaluateInPS — deeper SQL paths
     [Test]
@@ -1454,6 +1465,39 @@ begin
   // Access attribute — should trigger refetch from DB
   Assert.AreEqual('InvParent', Parent.aString, 'Should refetch attribute after invalidate');
   Assert.AreEqual(1, Parent.child.Count, 'Should refetch links after invalidate');
+end;
+
+procedure TTestBoldLinks.TestChildLinkMapperWiring;
+var
+  Sys: TBoldSystem;
+  PersHandle: TBoldPersistenceHandleDB;
+  SysMapper: TBoldSystemDefaultMapper;
+  CTI: TBoldClassTypeInfo;
+  ObjMapper: TBoldObjectPersistenceMapper;
+  MemberRTInfo: TBoldMemberRTInfo;
+  MapperIdx, MemberIdx: Integer;
+  Mapper: TBoldMemberPersistenceMapper;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  PersHandle := dmUndoRedo.BoldSystemHandle1.PersistenceHandle as TBoldPersistenceHandleDB;
+  SysMapper := PersHandle.PersistenceControllerDefault.PersistenceMapper as TBoldSystemDefaultMapper;
+
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  ObjMapper := SysMapper.ObjectPersistenceMappers[CTI.TopSortedIndex];
+  Assert.IsNotNull(ObjMapper, 'SomeClass must have an object persistence mapper');
+
+  MemberRTInfo := CTI.MemberRTInfoByExpressionName['child'];
+  Assert.IsNotNull(MemberRTInfo, 'SomeClass must have a child member');
+  MemberIdx := MemberRTInfo.Index;
+  MapperIdx := ObjMapper.MemberMapperIndexByMemberIndex[MemberIdx];
+  Assert.IsTrue(MapperIdx >= 0, 'child member must have a persistence mapper (MapperIndex was -1)');
+
+  Mapper := ObjMapper.MemberPersistenceMappers[MapperIdx];
+  Assert.IsNotNull(Mapper, 'child member mapper must be assigned');
+  Assert.IsTrue(Mapper is TBoldLinkDefaultMapper,
+    'child mapper must be a link mapper, got ' + Mapper.ClassName);
+  Assert.IsNotNull(TBoldLinkDefaultMapper(Mapper).OtherEndObjectMapper,
+    'OtherEndObjectMapper must be assigned - a nil here is the root cause of the CanEvaluateInPS collect(role) AV');
 end;
 
 // More CanEvaluateInPS expressions — each exercises different SQL generation paths
