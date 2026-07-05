@@ -1586,10 +1586,12 @@ begin
   except
     on E: Exception do
     begin
-      if assigned(Controller) and not Controller.HandleDisplayException(E, Element) then
-      else
+      // Ask the exception handler (if present) whether it wants to handle this exception.
+      // HandleDisplayException returns True if the handler consumed the exception.
+      // If NOT handled, decorate the message with the component path and re-raise.
+      if not (Assigned(Controller) and Controller.HandleDisplayException(E, Element)) then
       begin
-        if assigned(Controller) then
+        if Assigned(Controller) then
           E.message := Format('%s' + BOLDCRLF + 'occured when displaying component %s', [E.message, Controller.GetNamePath]);
         raise;
       end;

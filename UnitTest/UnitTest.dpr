@@ -77,6 +77,7 @@ uses
   Test.BoldGuard in 'Code\Common\Test.BoldGuard.pas',
   Test.BoldQueue in 'Code\Common\Test.BoldQueue.pas',
   Test.BoldContainers in 'Code\Common\Test.BoldContainers.pas',
+  Test.BoldControlPack in 'Code\Common\Test.BoldControlPack.pas',
   Test.BoldExternalizedReferences in 'Code\Common\Test.BoldExternalizedReferences.pas',
   Test.BoldStubs in 'Code\Common\Test.BoldStubs.pas',
   Test.BoldUMLTaggedValues in 'Code\Common\Test.BoldUMLTaggedValues.pas',
