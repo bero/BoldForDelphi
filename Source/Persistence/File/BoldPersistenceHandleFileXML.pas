@@ -48,14 +48,16 @@ uses
   BoldId,
   BoldXMLStreaming,
   BoldDefaultXMLStreaming,
-  BoldGuard;
+  BoldGuard,
+  BoldCoreConsts;
 
 { TBoldPersistenceHandleFileXML }
 
 function TBoldPersistenceHandleFileXML.CreatePersistenceController: TBoldPersistenceController;
 begin
   if not assigned(BoldModel) then
-    Raise EBold.CreateFmt('%s.CreatePersistenceController: Unable to create, model is missing.', [ClassName]);
+    Raise EBold.CreateFmt(sModelRequired, [ClassName]);
+
   Result := TBoldPersistenceControllerFileXML.Create(FileName, CacheData, BoldModel.MoldModel);
 end;
 
@@ -80,7 +82,8 @@ begin
   anXMLDoc.LoadFromFile(FileName);
   ParseError := anXMLDoc.parseError;
   if Assigned(ParseError) and (ParseError.ErrorCode <> 0) then
-    raise EBold.Create('Error reading/parsing XML file');
+    raise EBold.Create(sXMLParseError);
+
   aNode := aMgr.GetRootNode(anXMLDoc, 'ValueSpace'); //do not localize
   aMgr.ReadValueSpace(LocalValueSpace, aNode);
 end;
@@ -106,7 +109,8 @@ begin
 
   ParseError := anXMLDoc.parseError;
   if Assigned(ParseError) and (ParseError.errorCode <> 0) then
-    raise EBold.Create('Error reading/parsing XML file');
+    raise EBold.Create(sXMLParseError);
+
   aNode := aMgr.GetRootNode(anXMLDoc, 'ValueSpace');
   aMgr.ReadValueSpace(LocalValueSpace, aNode);
 end;

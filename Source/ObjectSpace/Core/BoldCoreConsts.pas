@@ -473,9 +473,6 @@ const
   sObjectListNotExact = '%s.UpgradeObjectIdList: ObjectIdlist not Exact';
   sObjectListNotHomogenous = '%s.UpgradeObjectIdList: ObjectIdlist not homogenous';
 
-// BoldFreeStandingValues
-  sAbstractError = '%s.%s: Abstract error';
-
 // BoldUtils
   sCannotCreateDirectory = 'Cannot create directory';
 
@@ -1141,6 +1138,38 @@ const
 
 // BoldConstraintValidator
   sConstraints = 'Constraints';
+
+// BoldPersistenceHandles
+  sXMLParseError = 'Error reading/parsing XML file';
+  sModelRequired = '%s.CreatePersistenceController: Unable to create, model is missing.';
+  sObjectNotInFile = '%s.PMFetch: Trying to fetch an object that does not exist in file (%s)';
+  sSQLNotSpokenHere = 'This filehandler does not understand SQL, ignoring condition and orderby...';
+  sPreconditionsNotSupported = '%s.PMUpdate: Preconditions (%s) not supported in this component';
+  sCannotActivateWithoutDBAdapter = '%s.SetActive: Can not set persistence handle to active since it is not connected to a database adapter';
+  sNotActive = '%s.%s: Not Active';
+  sPMTimeForTimeStampNotSupported = 'PMTimeForTimestamp not supported by %s';
+  sPMTimeStampForTimeNotSupported = 'PMTimestampForTime not supported by %s';
+  sOptimisticLockingFailedForNObjects = 'Optimistic locking failed for %d objects';
+
+// BoldPersistenceNotifier
+  sFetchingObjects = 'Fetching objects';
+  sRetrievingIDs = 'Retrieving object IDs';
+  sUpdatingDB = 'Updating database';
+
+// BoldSnooper
+  sEnqueuerNotEnabled = 'Call to %s failed. Propagator Enqueuer not enabled';
+  sClientNotRegistered = 'Call to %s failed. Client not registered with propagator';
+  sInvalidParameter = 'Call to %s failed. Invalid parameter';
+  sClientNotReceivingEvents = 'Call to %s OK, but client is currently not receiving events';
+  sCallFailed = 'Call to %s failed. Error: %s';
+  sCannotAcquireLock = '%s.%s: Cannot acquire Database Lock';
+  sLockManagerNotAssigned = '%s.GetLockManager: LockManager not assigned';
+
+// BoldSystem
+  sCannotFetchModifiedMember = 'Cannot fetch modified member. Call discard first.';
+
+// BoldUMLModel
+  sConstraintCannotBeRemoved = 'Constraint cannot be removed.';
 
 implementation
 

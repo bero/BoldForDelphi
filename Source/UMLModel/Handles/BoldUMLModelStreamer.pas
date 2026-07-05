@@ -27,7 +27,8 @@ uses
   BoldGuard,
   BoldDefs,
   BoldValueSpaceInterfaces,
-  BoldID;
+  BoldID,
+  BoldCoreConsts;
 
 { TUMLModelStreamer }
 
@@ -51,7 +52,8 @@ begin
 
   ParseError := anXMLDoc.ParseError;
   if Assigned(ParseError) and (ParseError.ErrorCode <> 0) then
-    raise EBold.Create('Error reading/parsing XML file');
+    raise EBold.Create(sXMLParseError);
+
   aNode := aMgr.GetRootNode(anXMLDoc, 'ValueSpace'); // do not localize
   aMgr.ReadValueSpace(BoldSystem.AsIBoldvalueSpace[bdepPMIn], aNode);
 end;
@@ -74,7 +76,8 @@ begin
 
   ParseError := anXMLDoc.parseError;
   if Assigned(ParseError) and (ParseError.errorCode <> 0) then
-    raise EBold.Create('Error reading/parsing XML file');
+    raise EBold.Create(sXMLParseError);
+
   aNode := aMgr.GetRootNode(anXMLDoc, 'ValueSpace');
   aMgr.ReadValueSpace(BoldSystem.AsIBoldvalueSpace[bdepPMIn], aNode);
 end;

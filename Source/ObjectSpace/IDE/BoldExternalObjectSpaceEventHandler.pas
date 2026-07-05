@@ -24,7 +24,8 @@ uses
   BoldElementList,
   BoldDomainElement,
   BoldId,
-  BoldDefs;
+  BoldDefs,
+  BoldCoreConsts;
 
 type
   TBoldClassChangedEvent = procedure (TheClass: TBoldObjectList) of object;
@@ -252,7 +253,8 @@ var
 begin
   ClassTypeInfo := BoldSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName[AClassName];
   if not Assigned(ClassTypeInfo) then
-    raise EOSS.CreateFmt('Cannot find the class %s in the system.', [AClassName]);
+    raise EOSS.CreateFmt(sClassNotInSystem, [AClassName]);
+
   if Assigned(fOnClassChangedEvent) then
   begin
     ClassList := BoldSystem.Classes[ClassTypeInfo.TopSortedIndex];
@@ -549,7 +551,8 @@ var
 begin
   ClassTypeInfo := BoldSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName[AClassName];
   if not Assigned(ClassTypeInfo) then
-    raise EOSS.CreateFmt('Cannot find the class %s in the system.', [AClassName]);
+    raise EOSS.CreateFmt(sClassNotInSystem, [AClassName]);
+
   BoldObject := nil;
   Handled := false;
   repeat
@@ -580,7 +583,8 @@ var
 begin
   ClassTypeInfo := BoldSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName[AClassName];
   if not Assigned(ClassTypeInfo) then
-    raise EOSS.CreateFmt('Cannot find the class %s in the system.', [AClassName]);
+    raise EOSS.CreateFmt(sClassNotInSystem, [AClassName]);
+
   CurrObj := GetObjectByID(AObjectID);
   if Assigned(CurrObj) then
   begin

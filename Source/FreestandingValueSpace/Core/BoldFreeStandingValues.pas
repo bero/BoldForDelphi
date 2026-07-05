@@ -12,7 +12,8 @@ uses
   BoldId,
   BoldIndexableList,
   BoldValueSpaceInterfaces,
-  BoldValueInterfaces;
+  BoldValueInterfaces,
+  FreeStandingValuesConst;
 
 type
   { forward declarations }

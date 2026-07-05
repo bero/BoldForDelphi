@@ -26,7 +26,9 @@ uses
   BoldListHandle,
   BoldReferenceHandle,
   BoldUMLModel,
-  BoldPropertiesController, System.ImageList;
+  BoldPropertiesController,
+  System.ImageList,
+  BoldCoreConsts;
 
 type
   TfrmBoldUMLConstraintEditor = class(TForm)
@@ -121,7 +123,7 @@ begin
     if CurrConstr.CanDelete then
       CurrConstr.Delete
     else
-      raise EBold.Create('Constraint cannot be removed.');
+      raise EBold.Create(sConstraintCannotBeRemoved);
   end;
 end;
 

@@ -26,13 +26,37 @@ uses
   BoldListHandle,
   BoldReferenceHandle,
   BoldUMLModel,
-  BoldPropertiesController, System.ImageList, cxGraphics, cxControls,
-  cxLookAndFeels, cxLookAndFeelPainters, cxStyles, cxCustomData, cxFilter,
-  cxData, cxDataStorage, cxEdit, cxNavigator, dxDateRanges,
-  dxScrollbarAnnotations, Data.DB, cxDBData, cxTextEdit, cxGridCustomTableView,
-  cxGridTableView, cxGridBoldSupportUnit, cxGridLevel, cxClasses,
-  cxGridCustomView, cxGridDBTableView, cxGrid, cxButtonEdit, System.Actions,
-  Vcl.ActnList, BoldEditOCLAction;
+  BoldPropertiesController,
+  System.ImageList,
+  cxGraphics,
+  cxControls,
+  cxLookAndFeels,
+  cxLookAndFeelPainters,
+  cxStyles,
+  cxCustomData,
+  cxFilter,
+  cxData,
+  cxDataStorage,
+  cxEdit,
+  cxNavigator,
+  dxDateRanges,
+  dxScrollbarAnnotations,
+  Data.DB,
+  cxDBData,
+  cxTextEdit,
+  cxGridCustomTableView,
+  cxGridTableView,
+  cxGridBoldSupportUnit,
+  cxGridLevel,
+  cxClasses,
+  cxGridCustomView,
+  cxGridDBTableView,
+  cxGrid,
+  cxButtonEdit,
+  System.Actions,
+  Vcl.ActnList,
+  BoldEditOCLAction,
+  BoldCoreConsts;
 
 type
   TfrmBoldUMLConstraintEditorCx = class(TForm)
@@ -152,7 +176,7 @@ begin
     if CurrConstr.CanDelete then
       CurrConstr.Delete
     else
-      raise EBold.Create('Constraint cannot be removed.');
+      raise EBold.Create(sConstraintCannotBeRemoved);
   end;
 end;
 

@@ -4727,7 +4727,7 @@ end;
     and ((Member.BoldPersistenceState = bvpsInvalid)) then
     begin
       if Member.BoldPersistenceState = bvpsModified then
-        raise EBold.Create('Cannot fetch modified member. Call discard first.');
+        raise EBold.Create(sCannotFetchModifiedMember);
     end;
   end;
 

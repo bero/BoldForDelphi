@@ -500,7 +500,7 @@ begin
                                 SB.Append(Format('%s = :%0:s', [Column.SQLName]));
                               end;
                 else
-                  raise EBold.Create('unimplememnted');
+                  raise EBold.Create(sUnimplemented);
               end
             end
             else
@@ -515,7 +515,7 @@ begin
                              SB.Append(Column.SQLName);
                            end;
                 else
-                  raise EBold.Create('unimplememnted');
+                  raise EBold.Create(sUnimplemented);
               end;
             end;
           end;
