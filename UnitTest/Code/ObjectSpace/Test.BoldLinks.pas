@@ -13,6 +13,7 @@ uses
   BoldSystemRT,
   BoldSubscription,
   BoldElements,
+  BoldDomainElement,
   BoldLinks,
   BoldCondition,
   BoldPMappers,
@@ -63,6 +64,15 @@ type
     [Test]
     [Category('Quick')]
     procedure TestIndirectMultiLinkRemove;
+
+    // Transaction rollback must restore multilinks modified via content
+    // assignment (SetFromIdList/SetFromIDLists)
+    [Test]
+    [Category('Quick')]
+    procedure TestRollbackRestoresDirectMultiLinkAfterContentAssign;
+    [Test]
+    [Category('Quick')]
+    procedure TestRollbackRestoresIndirectMultiLinkAfterContentAssign;
 
     // Link class attribute access
     [Test]
@@ -516,6 +526,70 @@ begin
   Assert.IsFalse(Book.Topic.Includes(Topic1), 'Should not contain removed topic');
   Assert.IsTrue(Book.Topic.Includes(Topic2), 'Should still contain Topic2');
   Assert.AreEqual(0, Topic1.Book.Count, 'Removed topic should have 0 books');
+end;
+
+procedure TTestBoldLinks.TestRollbackRestoresDirectMultiLinkAfterContentAssign;
+var
+  Sys: TBoldSystem;
+  TransientObj, EmptyObj: TATransientClass;
+  PersistentObj: TAPersistentClass;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  TransientObj := CreateATransientClass(Sys, FSubscriber);
+  EmptyObj := CreateATransientClass(Sys, FSubscriber);
+  PersistentObj := CreateAPersistentClass(Sys, FSubscriber);
+  PersistentObj.one := TransientObj;
+  Assert.AreEqual(1, TransientObj.many.Count, 'precondition: one linked object');
+
+  Sys.StartTransaction;
+  try
+    // Content assignment routes through the bdepContents proxy to
+    // TBoldDirectMultiLinkController.SetFromIdList, whose PreChangeCalled
+    // flag was initialized to True - so the pre-change rollback snapshot
+    // never happened and RollbackTransaction could not restore the list.
+    TransientObj.many.AsIBoldValue[bdepContents].AssignContent(
+      EmptyObj.many.AsIBoldValue[bdepContents]);
+    Assert.AreEqual(0, TransientObj.many.Count, 'content assign should empty the list');
+  finally
+    Sys.RollbackTransaction;
+  end;
+
+  Assert.AreEqual(1, TransientObj.many.Count,
+    'rollback must restore the direct multilink');
+  Assert.IsTrue(TransientObj.many.Includes(PersistentObj),
+    'restored list must contain the originally linked object');
+end;
+
+procedure TTestBoldLinks.TestRollbackRestoresIndirectMultiLinkAfterContentAssign;
+var
+  Sys: TBoldSystem;
+  Book, EmptyBook: TBook;
+  Topic: TTopic;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  Book := CreateBook(Sys, FSubscriber);
+  EmptyBook := CreateBook(Sys, FSubscriber);
+  Topic := CreateTopic(Sys, FSubscriber);
+  Book.Topic.Add(Topic);
+  Assert.AreEqual(1, Book.Topic.Count, 'precondition: one linked topic');
+
+  Sys.StartTransaction;
+  try
+    // Content assignment routes through the bdepContents proxy to
+    // TBoldIndirectMultiLinkController.SetFromIDLists, whose PreChangeCalled
+    // flag was read uninitialized - whether the pre-change rollback snapshot
+    // happened depended on stack garbage.
+    Book.Topic.AsIBoldValue[bdepContents].AssignContent(
+      EmptyBook.Topic.AsIBoldValue[bdepContents]);
+    Assert.AreEqual(0, Book.Topic.Count, 'content assign should empty the list');
+  finally
+    Sys.RollbackTransaction;
+  end;
+
+  Assert.AreEqual(1, Book.Topic.Count,
+    'rollback must restore the indirect multilink');
+  Assert.IsTrue(Book.Topic.Includes(Topic),
+    'restored list must contain the originally linked topic');
 end;
 
 procedure TTestBoldLinks.TestLinkClassAttribute;

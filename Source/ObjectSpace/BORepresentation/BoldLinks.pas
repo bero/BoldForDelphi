@@ -1009,7 +1009,10 @@ var
   G: IBoldGuard;
 begin
   G := TBoldGuard.Create(NewListOfOtherEnd);
-  PreChangeCalled := True;
+  // False arms DoPreChangeIfNeeded: PreChange fires once before the first
+  // mutation so transaction rollback can restore the list. PreChange itself
+  // no-ops during fetch/update/rollback and outside transactions.
+  PreChangeCalled := False;
   if (mode = bdepPMIn) and (OwningList.OwningObject.IsHistoricVersion) then
     mode := bdepContents;
   if assigned(ListOfOtherEnd) then
@@ -2566,6 +2569,9 @@ var
   G: IBoldGuard;
 begin
   G := TBoldGuard.Create(NewListOfLinkObjects, NewListOfOtherEnd);
+  // False arms DoPreChangeIfNeeded (the variable was previously read
+  // uninitialized); see the direct-link sibling SetFromIdList.
+  PreChangeCalled := False;
   if (mode = bdepPMIn) and (OwningObjectList.OwningObject.IsHistoricVersion) then
     mode := bdepContents;
   if assigned(ListOfLinkObjects) then
