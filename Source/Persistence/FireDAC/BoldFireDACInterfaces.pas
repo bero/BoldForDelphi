@@ -262,6 +262,7 @@ uses
   Masks,
 
   FireDAC.Stan.Option,
+  FireDAC.Stan.Error,
   FireDAC.Comp.Script,
   FireDAC.Comp.ScriptCommands,
   FireDAC.Phys.Intf,
@@ -905,9 +906,13 @@ function TBoldFireDACConnection.GetDatabaseError(const E: Exception;
   const sSQL: string): EBoldDatabaseError;
 var
   vConnectionString: string;
+  sErrorDetail: string;
 begin
+  sErrorDetail := '';
+  if E is EFDDBEngineException then
+    sErrorDetail := Format('%s %d: %s', [E.ClassName, EFDDBEngineException(E).ErrorCode, E.Message]);
   vConnectionString := FDConnection.ConnectionString;
-  Result := InternalGetDatabaseError(bdetError, E, vConnectionString, '', '', '', false);
+  Result := InternalGetDatabaseError(bdetError, E, vConnectionString, '', '', '', false, sErrorDetail);
 end;
 
 function TBoldFireDACConnection.GetExecQuery: IBoldExecQuery;

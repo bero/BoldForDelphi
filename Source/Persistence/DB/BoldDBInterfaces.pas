@@ -508,7 +508,7 @@ type
     function GetSQLDatabaseConfig: TBoldSQLDatabaseConfig;
     function InternalGetDatabaseError(const aErrorType: TBoldDatabaseErrorType;
         const E: Exception; sSQL, sServer, sDatabase, sUserName: string;
-        bUseWindowsAuth: Boolean): EBoldDatabaseError;
+        bUseWindowsAuth: Boolean; const sErrorDetail: string = ''): EBoldDatabaseError;
   public
     constructor Create(SQLDataBaseConfig: TBoldSQLDatabaseConfig);
     destructor Destroy; override;
@@ -1540,14 +1540,20 @@ end;
 
 function TBoldDatabaseWrapper.InternalGetDatabaseError(const aErrorType:
     TBoldDatabaseErrorType; const E: Exception; sSQL, sServer, sDatabase,
-    sUserName: string; bUseWindowsAuth: Boolean): EBoldDatabaseError;
+    sUserName: string; bUseWindowsAuth: Boolean;
+    const sErrorDetail: string): EBoldDatabaseError;
 var
   sMsg,
-  sWindowsAuth: string;
+  sWindowsAuth,
+  sDetail: string;
 begin
+  if sErrorDetail <> '' then
+    sDetail := sErrorDetail
+  else
+    sDetail := Format('%s: %s', [E.ClassName, E.Message]);
   case aErrorType of
     bdetConnection: begin
-      sMsg := Format(BOLD_DATABASE_ERROR_CONNECTION, [sServer]);
+      sMsg := Format(BOLD_DATABASE_ERROR_CONNECTION, [sServer]) + '(' + sDetail + ')';
       Result := EBoldDatabaseConnectionError.Create(sMsg);
     end;
     bdetSQL: begin
@@ -1573,7 +1579,7 @@ begin
     end;
 //    bdetError: begin
     else begin
-      sMsg := Format(BOLD_DATABASE_ERROR_UNKNOWN, [E.Message]);
+      sMsg := Format(BOLD_DATABASE_ERROR_UNKNOWN, [sDetail]);
       Result := EBoldDatabaseError.Create(sMsg);
     end;
   end;

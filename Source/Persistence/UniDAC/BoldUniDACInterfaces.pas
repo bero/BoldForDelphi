@@ -1008,7 +1008,8 @@ var
   aErrorType: TBoldDatabaseErrorType;
   sServer,
   sDatabase,
-  sUsername: string;
+  sUsername,
+  sErrorDetail: string;
   bUseWindowsAuth: Boolean;
 const
   // Provider names copied here to avoid dependancy
@@ -1019,12 +1020,14 @@ const
   cMSSQLDeadLock = 1205;
 begin
   aErrorType := bdetError;
+  sErrorDetail := '';
   sServer := UniConnection.Server;
   sDatabase := UniConnection.Database;
   sUsername := UniConnection.Username;
   bUseWindowsAuth := Pos('Authentication=Windows', UniConnection.ConnectString) > 0;
   if (E is EUniError) then
   begin
+    sErrorDetail := Format('%s %d: %s', [E.ClassName, EUniError(E).ErrorCode, E.Message]);
     if UniConnection.ProviderName = cMSSQLProvider then
       case EUniError(E).ErrorCode of
         -2147467259, 2, 233: aErrorType := bdetConnection; // only set bdetConnection for cases where retry might work.
@@ -1048,7 +1051,7 @@ begin
       raise Exception.Create('Error codes not implemented for ' + UniConnection.ProviderName);
   end;
   Result := InternalGetDatabaseError(aErrorType, E, sSQL, sServer, sDatabase,
-      sUsername, bUseWindowsAuth);
+      sUsername, bUseWindowsAuth, sErrorDetail);
 end;
 
 function TBoldUniDACConnection.GetExecQuery: IBoldExecQuery;
