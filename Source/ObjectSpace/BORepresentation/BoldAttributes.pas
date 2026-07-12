@@ -4053,7 +4053,11 @@ end;
 
 function TBADateTime.IsSameValue(Value: TDateTime): boolean;
 begin
-  result := SameValue(Value, fValue);
+  // Exact comparison: Math.SameValue's default epsilon is ~4 ms at current
+  // date magnitudes (Min(|A|,|B|) * DoubleResolution, and growing with the
+  // calendar) - timestamp updates below it were treated as unchanged and
+  // silently never persisted.
+  result := Value = fValue;
 end;
 
 function TBADateTime.GetAttributeTypeInfoForType: TBoldElementTypeInfo;
@@ -5115,7 +5119,11 @@ end;
 
 function TBADate.IsSameValue(Value: TDateTime): boolean;
 begin
-  result := Trunc(Value) = fValue;
+  // Compare days with days: fValue can hold a fraction when assigned via
+  // AsDateTime (SetAsDate truncates, SetAsDateTime stores raw), and comparing
+  // Trunc(Value) against a fractional fValue was false for every input -
+  // a permanently 'changed' attribute.
+  result := Trunc(Value) = Trunc(fValue);
 end;
 
 function TBADate.GetAttributeTypeInfoForType: TBoldElementTypeInfo;

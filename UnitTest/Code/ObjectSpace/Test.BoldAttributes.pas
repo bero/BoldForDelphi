@@ -191,6 +191,12 @@ type
     [Test]
     [Category('Quick')]
     procedure TestTimeSetAsDatePreservesTime;
+    [Test]
+    [Category('Quick')]
+    procedure TestDateTimeSubEpsilonUpdatePersists;
+    [Test]
+    [Category('Quick')]
+    procedure TestDateComparesByDayAfterFractionalStore;
 
     // TBAString coverage
     [Test]
@@ -1015,6 +1021,24 @@ begin
   end;
 end;
 
+procedure TTestBoldAttributes.TestDateTimeSubEpsilonUpdatePersists;
+var
+  Obj: TClassA;
+  V1, V2: TDateTime;
+begin
+  // IsSameValue used Math.SameValue's default epsilon, ~4 ms at current date
+  // magnitudes - a timestamp update smaller than that was treated as
+  // unchanged and silently never stored. Comparison must be exact.
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  V1 := EncodeDate(2026, 7, 12) + EncodeTime(12, 0, 0, 0);
+  V2 := V1 + (1 / MSecsPerDay);  // +1 ms, inside the old 4 ms tolerance
+  Obj.aDateTime := V1;
+  Obj.aDateTime := V2;
+  // deliberate raw '=': Assert.AreEqual with a 0 tolerance falls back to the
+  // same fuzzy SameValue and would mask exactly this bug
+  Assert.IsTrue(Obj.aDateTime = V2, 'a 1 ms timestamp update must persist');
+end;
+
 procedure TTestBoldAttributes.TestMLStringBlobContentProxy;
 var
   MLString: TBAMLString;
@@ -1141,6 +1165,23 @@ type
   TBADateTimeAccess = class(TBADateTime);
   TBADateAccess = class(TBADate);
   TBATimeAccess = class(TBATime);
+
+procedure TTestBoldAttributes.TestDateComparesByDayAfterFractionalStore;
+var
+  Obj: TClassA;
+  D: TDateTime;
+begin
+  // TBADate.SetAsDate truncates, but AsDateTime stores the raw value - once a
+  // fraction is in fValue, 'Trunc(Value) = fValue' was false for EVERY input,
+  // leaving the attribute permanently 'changed'. Days must compare as days.
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  D := EncodeDate(2026, 7, 12) + EncodeTime(12, 0, 0, 0);  // fractional
+  Obj.M_aDate.AsDateTime := D;
+  Assert.IsTrue(TBADateAccess(Obj.M_aDate).IsSameValue(D),
+    'the identical stored value must compare equal');
+  Assert.IsTrue(TBADateAccess(Obj.M_aDate).IsSameValue(EncodeDate(2026, 7, 12)),
+    'any value on the same day must compare equal to a date attribute');
+end;
 
 procedure TTestBoldAttributes.TestDateTimeGetStringRepresentationNonDefault;
 var
