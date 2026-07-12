@@ -4039,7 +4039,12 @@ end;
 
 procedure TBADateTime.SetAsDate(Value: TDateTime);
 begin
-  SetDataValue(Value);
+  // AsDate changes the calendar day only - the stored time-of-day survives
+  // (pre-4d8f323 TBAMoment behavior; raw SetDataValue wiped it to midnight).
+  if IsNull then
+    SetAsDateTime(Int(Value))
+  else
+    SetAsDateTime(Int(Value) + AsTime);
 end;
 
 function TBADateTime.IsSameValue(Value: TDateTime): boolean;
@@ -5172,7 +5177,13 @@ end;
 
 procedure TBATime.SetAsDate(Value: TDateTime);
 begin
-  SetDataValue(Frac(Value));
+  // A time-only attribute has no date part to set: keep the stored time
+  // (storing Frac(Value) here reset the time to the argument's fraction -
+  // midnight for any pure date).
+  if IsNull then
+    SetDataValue(0)
+  else
+    SetDataValue(AsTime);
 end;
 
 function TBATime.IsSameValue(Value: TDateTime): boolean;

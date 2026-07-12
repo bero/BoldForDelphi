@@ -176,6 +176,12 @@ type
     [Test]
     [Category('Quick')]
     procedure TestDateTimeAsTime;
+    [Test]
+    [Category('Quick')]
+    procedure TestDateTimeSetAsDatePreservesTime;
+    [Test]
+    [Category('Quick')]
+    procedure TestTimeSetAsDatePreservesTime;
 
     // TBAString coverage
     [Test]
@@ -1793,6 +1799,34 @@ begin
   Obj.aDateTime := EncodeDate(2026, 7, 4) + EncodeTime(10, 30, 0, 0);
   TimeVal := Obj.M_aDateTime.AsTime;
   Assert.IsTrue(TimeVal > 0, 'AsTime should return a positive time value');
+end;
+
+procedure TTestBoldAttributes.TestDateTimeSetAsDatePreservesTime;
+var
+  Obj: TClassA;
+begin
+  // Regression for H5 (4d8f323): TBADateTime.SetAsDate stored the raw value,
+  // wiping the time-of-day. Contract: AsDate changes the calendar day only.
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.aDateTime := EncodeDate(2026, 7, 4) + EncodeTime(9, 0, 0, 0);
+  Obj.M_aDateTime.AsDate := EncodeDate(2026, 12, 24);
+  Assert.AreEqual(Extended(EncodeDate(2026, 12, 24)), Extended(Obj.M_aDateTime.AsDate), 1E-9,
+    'SetAsDate should set the date part');
+  Assert.AreEqual(Extended(EncodeTime(9, 0, 0, 0)), Extended(Obj.M_aDateTime.AsTime), 1E-9,
+    'SetAsDate must preserve the time-of-day');
+end;
+
+procedure TTestBoldAttributes.TestTimeSetAsDatePreservesTime;
+var
+  Obj: TClassA;
+begin
+  // Mirror of H5 for TBATime: SetAsDate stored Frac(Value) - a pure date
+  // argument (Frac = 0) silently reset the stored time to midnight.
+  Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
+  Obj.M_aTime.AsTime := EncodeTime(10, 30, 0, 0);
+  TBATimeAccess(Obj.M_aTime).AsDate := EncodeDate(2026, 12, 24);
+  Assert.AreEqual(Extended(EncodeTime(10, 30, 0, 0)), Extended(Obj.M_aTime.AsTime), 1E-9,
+    'Setting the date of a time-only attribute must not change its time');
 end;
 
 // TBAString coverage
