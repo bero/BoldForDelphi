@@ -109,9 +109,13 @@ type
   { TBAMLString_Proxy }
   TBAMLString_Proxy = class(TBAString_Proxy, IBoldBlobContent)
   private
+    class var fLastUsed: array[TBoldDomainElementProxyMode] of TBoldMember_Proxy;
+    class var fLastUsedAsInterface: array[TBoldDomainElementProxyMode] of IBoldValue;
     function GetProxedMLString: TBAMLString;
   protected
     property ProxedMLString: TBAMLString read GetProxedMLString implements IBoldBlobContent;
+  public
+    class function MakeProxy(ProxedMember: TBoldMember; Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
   end;
 
   { TBAMLSubString }
@@ -711,11 +715,34 @@ begin
   result := ProxedMember as TBAMLString;
 end;
 
+// Same per-class proxy cache pattern as TBAString_Proxy/TBAUnicodeString_Proxy:
+// the inherited MakeProxy uses the PARENT's class-var cache and would hand out
+// a recycled TBAString_Proxy, which does not implement IBoldBlobContent.
+class function TBAMLString_Proxy.MakeProxy(ProxedMember: TBoldMember;
+  Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy;
+begin
+  Result := fLastUsed[Mode];
+  // Reuse proxy if we hold the only reference
+  if Assigned(Result) and (Result.RefCount = 1) then
+  begin
+    Result.Retarget(ProxedMember, Mode);
+  end
+  else
+  begin
+    Result := Create(ProxedMember, Mode);
+    fLastUsed[Mode] := Result;
+    fLastUsedAsInterface[Mode] := Result;  // Inc refcount
+  end;
+end;
+
 function TBAMLString.ProxyInterface(const IId: TGUID; Mode: TBoldDomainElementProxyMode; out Obj): Boolean;
 begin
   if IsEqualGuid(IID, IBoldBlobContent) then
   begin
-    result := TBAString_Proxy.MakeProxy(self, Mode).GetInterface(IID, obj);
+    // Merge 92196d9 hardcoded TBAString_Proxy here, which does not implement
+    // IBoldBlobContent - the request then ALWAYS raised. TBAMLString_Proxy
+    // delegates the interface to the proxied ML string.
+    result := TBAMLString_Proxy.MakeProxy(self, Mode).GetInterface(IID, obj);
     if not result then
       raise EBoldInternal.CreateFmt(sProxyClassDidntImplementInterface, [ClassName]);
   end

@@ -101,6 +101,9 @@ type
     procedure TestBlobContentTypeOnPlainBlobIgnored;
     [Test]
     [Category('Quick')]
+    procedure TestMLStringBlobContentProxy;
+    [Test]
+    [Category('Quick')]
     procedure TestValueSetValueListFindByText;
     [Test]
     [Category('Quick')]
@@ -412,6 +415,7 @@ uses
   Variants,
   BoldDomainElement,
   BoldValueInterfaces,
+  BoldMLAttributes,
   BoldObjectRepresentationJson;
 
 {$R dmjehoBoldTest.dfm}
@@ -1008,6 +1012,26 @@ begin
       'content type assigned to a plain Blob is silently dropped');
   finally
     Blob.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestMLStringBlobContentProxy;
+var
+  MLString: TBAMLString;
+  BlobContent: IBoldBlobContent;
+begin
+  // Regression for H7 (merge 92196d9): ProxyInterface built the blob-content
+  // proxy from TBAString_Proxy, which does not implement IBoldBlobContent, so
+  // requesting it always raised EBoldInternal. The correct TBAMLString_Proxy
+  // existed in the unit but was never instantiated.
+  MLString := TBAMLString.Create;
+  try
+    Assert.IsTrue(MLString.ProxyInterface(IBoldBlobContent, bdepContents, BlobContent),
+      'a multi-language string must provide its blob-content proxy');
+    Assert.IsNotNull(BlobContent, 'the proxy interface must be assigned');
+    BlobContent := nil;  // release the proxy before freeing the attribute
+  finally
+    MLString.Free;
   end;
 end;
 
