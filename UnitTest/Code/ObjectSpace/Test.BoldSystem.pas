@@ -999,21 +999,32 @@ begin
 end;
 
 procedure TTestBoldSystem.TestStartTransaction;
+var
+  Sys: TBoldSystem;
 begin
-  // Note: Transaction support requires persistence handler
-  // In transient mode, transactions may not be fully supported
-  Assert.IsFalse(GetSystem.InTransaction, 'Should not be in transaction initially');
-  // Skip transaction test in transient mode - just verify InTransaction property works
-  Assert.Pass('Transaction tests require persistence handler');
+  Sys := GetSystem;
+  Assert.IsFalse(Sys.InTransaction, 'Should not be in transaction initially');
+  Sys.StartTransaction;
+  Assert.IsTrue(Sys.InTransaction, 'Should be in transaction after StartTransaction');
+  Sys.RollbackTransaction;
+  Assert.IsFalse(Sys.InTransaction, 'Should not be in transaction after RollbackTransaction');
 end;
 
 procedure TTestBoldSystem.TestRollbackTransaction;
+var
+  Sys: TBoldSystem;
+  Obj: TClassA;
 begin
-  // Note: Transaction support requires persistence handler
-  // In transient mode, transactions may not be fully supported
-  // Just verify the system can be queried for transaction state
-  Assert.IsFalse(GetSystem.InTransaction, 'Should not be in transaction');
-  Assert.Pass('Transaction rollback tests require persistence handler');
+  Sys := GetSystem;
+  Obj := TClassA.Create(Sys);
+  Obj.aString := 'original';
+  Assert.AreEqual('original', Obj.aString, 'Object should have original value');
+
+  Sys.StartTransaction;
+  Obj.aString := 'changed';
+  Assert.AreEqual('changed', Obj.aString, 'Object should have changed value');
+  Sys.RollbackTransaction;
+  Assert.AreEqual('original', Obj.aString, 'Object should revert to original value after RollbackTransaction');
 end;
 
 procedure TTestBoldSystem.TestNestedRollbackPreventsOuterCommit;
@@ -1639,21 +1650,23 @@ begin
 
   Locator := Obj.BoldObjectLocator;
 
-  // LocatorByIdString expects an integer ID string
-  // In transient mode, the ID might not be a TBoldDefaultId
+  // IdString lookups only work with TBoldDefaultId
   if Locator.BoldObjectID is TBoldDefaultId then
   begin
     DefaultId := Locator.BoldObjectID as TBoldDefaultId;
     IdString := IntToStr(DefaultId.AsInteger);
-
-    // Look up by ID string
     FoundLocator := GetSystem.Locators.LocatorByIdString[IdString];
-    Assert.IsNotNull(FoundLocator, 'LocatorByIdString should find the locator');
+    Assert.IsNotNull(FoundLocator, 'LocatorByIdString should find the locator with TBoldDefaultId');
     Assert.AreSame(TObject(Locator), TObject(FoundLocator),
       'LocatorByIdString should return the same locator');
   end
   else
-    Assert.Pass('LocatorByIdString test skipped - ID is not TBoldDefaultId in transient mode');
+  begin
+    // In transient mode, ID is not TBoldDefaultId, so IdString lookups use a different mechanism
+    IdString := '999999';
+    FoundLocator := GetSystem.Locators.LocatorByIdString[IdString];
+    Assert.IsNull(FoundLocator, 'LocatorByIdString should return nil for non-existent ID');
+  end;
 end;
 
 procedure TTestBoldSystem.TestObjectByIdString;
@@ -1666,21 +1679,23 @@ begin
   Obj := TClassA.Create(GetSystem);
   Obj.aString := 'ObjectByIdString Test';
 
-  // ObjectByIdString expects an integer ID string
-  // In transient mode, the ID might not be a TBoldDefaultId
+  // IdString lookups only work with TBoldDefaultId
   if Obj.BoldObjectLocator.BoldObjectID is TBoldDefaultId then
   begin
     DefaultId := Obj.BoldObjectLocator.BoldObjectID as TBoldDefaultId;
     IdString := IntToStr(DefaultId.AsInteger);
-
-    // Look up object by ID string
     FoundObject := GetSystem.Locators.ObjectByIdString[IdString];
-    Assert.IsNotNull(FoundObject, 'ObjectByIdString should find the object');
+    Assert.IsNotNull(FoundObject, 'ObjectByIdString should find the object with TBoldDefaultId');
     Assert.AreSame(TObject(Obj), TObject(FoundObject),
       'ObjectByIdString should return the same object');
   end
   else
-    Assert.Pass('ObjectByIdString test skipped - ID is not TBoldDefaultId in transient mode');
+  begin
+    // In transient mode, ID is not TBoldDefaultId, so IdString lookups use a different mechanism
+    IdString := '999999';
+    FoundObject := GetSystem.Locators.ObjectByIdString[IdString];
+    Assert.IsNull(FoundObject, 'ObjectByIdString should return nil for non-existent ID');
+  end;
 end;
 
 procedure TTestBoldSystem.TestLocatorByIdNotFound;
@@ -2610,11 +2625,11 @@ begin
 
   Locator := Obj.BoldObjectLocator;
   Assert.IsNotNull(Locator.BoldObject, 'Locator should have object before unload');
+  Assert.AreSame(TObject(Obj), TObject(Locator.BoldObject),
+    'Locator.BoldObject should reference the created object');
 
-  // In transient mode, UnloadBoldObject may behave differently
-  // Just test that the method can be called without error
-  // (actual unload behavior depends on persistence state)
-  Assert.Pass('UnloadBoldObject test - behavior depends on persistence mode');
+  Locator.UnloadBoldObject;
+  Assert.IsNull(Locator.BoldObject, 'Locator.BoldObject should be nil after UnloadBoldObject');
 end;
 
 { TBoldObject BoldType }
@@ -2639,15 +2654,18 @@ procedure TTestBoldSystem.TestBoldObjectProxyInterface;
 var
   Obj: TClassA;
   ValueSpace: IBoldValueSpace;
+  Success: Boolean;
 begin
   Obj := TClassA.Create(GetSystem);
   Obj.aString := 'Proxy test';
 
-  // Test ProxyInterface - should be able to get value space interface
-  if Obj.ProxyInterface(IBoldValueSpace, bdepContents, ValueSpace) then
-    Assert.IsNotNull(ValueSpace, 'ProxyInterface should return a value space')
+  ValueSpace := nil;
+  Success := Obj.ProxyInterface(IBoldValueSpace, bdepContents, ValueSpace);
+
+  if Success then
+    Assert.IsNotNull(ValueSpace, 'ProxyInterface should return a non-nil value space when successful')
   else
-    Assert.Pass('ProxyInterface not available for bdepContents mode');
+    Assert.IsNull(ValueSpace, 'ValueSpace should be nil when ProxyInterface returns false');
 end;
 
 { TBoldObjectList operations }
