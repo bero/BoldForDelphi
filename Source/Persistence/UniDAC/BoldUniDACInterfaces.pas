@@ -189,6 +189,10 @@ type
     fCachedQuery2: IBoldQuery;
     fCachedExecQuery1: IBoldExecQuery;
     fExecuteQueryCount: integer;
+    // True between StartTransaction and Commit/RollBack. Detects a transaction
+    // silently destroyed by a connection reset (the server rolls it back and
+    // every later statement would autocommit -> partial commit corruption).
+    fExpectedTransaction: Boolean;
     function GetUniConnection: TUniConnection;
     property UniConnection: TUniConnection read GetUniConnection;
     function GetConnected: Boolean;
@@ -205,6 +209,7 @@ type
     procedure Open;
     procedure Close;
     procedure Reconnect;
+    procedure EnsureTransactionIntact;
     function SupportsTableCreation: Boolean;
     procedure ReleaseCachedObjects;
     function GetIsExecutingQuery: Boolean;
@@ -433,6 +438,7 @@ begin
   BeginExecuteQuery;
   try
     BoldLogSQLWithParams(Query.SQL, self);
+    (DatabaseWrapper as TBoldUniDACConnection).EnsureTransactionIntact;
     Retries := 0;
     Done := false;
     while not Done do
@@ -508,6 +514,7 @@ begin
   BeginExecuteQuery;
   try
   BoldLogSQLWithParams(Query.SQL, self);
+  (DatabaseWrapper as TBoldUniDACConnection).EnsureTransactionIntact;
   Retries := 0;
   Done := false;
   while not Done do
@@ -533,11 +540,20 @@ begin
       begin
         EDatabase := TBoldUniDACConnection(DatabaseWrapper).
             GetDatabaseError(E, Query.SQL.Text);
-        if (EDatabase is EBoldDatabaseConnectionError) {and
-           (not Assigned(ReconnectAppExists) or ReconnectAppExists)} then
+        if (EDatabase is EBoldDatabaseConnectionError) and
+           not (DatabaseWrapper as TBoldUniDACConnection).fExpectedTransaction then
         begin
+          // Reconnect+retry is only safe for plain reads. Inside an explicit
+          // (write) transaction the reconnect silently destroys the
+          // transaction and every later statement autocommits -> partial
+          // commit corruption (dangling BOLD_IDs). Raise instead; the server
+          // has already rolled the whole transaction back, so the save
+          // aborts consistently.
           EDatabase.free;
-//          ReconnectDatabase(Query.SQL.Text);
+{$IFDEF ATTRACS}
+          if TraceLogAssigned then
+            TraceLog.Trace('TBoldUniDACQuery.Open: connection error, reconnecting and retrying (no write transaction active): ' + E.Message);
+{$ENDIF}
           Reconnect;
         end else
         begin
@@ -775,7 +791,17 @@ end;
 
 procedure TBoldUniDACConnection.Commit;
 begin
+  fExpectedTransaction := false;
   UniConnection.Commit;
+end;
+
+procedure TBoldUniDACConnection.EnsureTransactionIntact;
+begin
+  if fExpectedTransaction and not UniConnection.InTransaction then
+  begin
+    fExpectedTransaction := false;
+    raise EBoldDatabaseConnectionError.Create(BOLD_DATABASE_ERROR_TRANSACTION_LOST);
+  end;
 end;
 
 function TBoldUniDACConnection.GetImplementor: TObject;
@@ -811,7 +837,11 @@ end;
 
 procedure TBoldUniDACConnection.RollBack;
 begin
-  UniConnection.RollBack;
+  fExpectedTransaction := false;
+  // Tolerate a transaction that vanished with a connection reset: the server
+  // has already rolled it back, there is nothing left to roll back here.
+  if UniConnection.InTransaction then
+    UniConnection.RollBack;
 end;
 
 procedure TBoldUniDACConnection.SetKeepConnection(NewValue: Boolean);
@@ -834,6 +864,7 @@ procedure TBoldUniDACConnection.StartTransaction;
 begin
   UniConnection.DefaultTransaction.IsolationLevel := ilRepeatableRead;
   UniConnection.StartTransaction;
+  fExpectedTransaction := true;
 end;
 
 function TBoldUniDACConnection.DatabaseExists: boolean;
@@ -935,6 +966,7 @@ end;
 
 procedure TBoldUniDACConnection.Close;
 begin
+  fExpectedTransaction := false;
   UniConnection.Close;
 end;
 
@@ -1521,6 +1553,7 @@ begin
   BeginExecuteQuery;
   try
   BoldLogSQLWithParams(ExecQuery.SQL, self);
+  (DatabaseWrapper as TBoldUniDACConnection).EnsureTransactionIntact;
   Retries := 0;
   Done := false;
   while not Done do

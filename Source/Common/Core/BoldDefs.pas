@@ -103,6 +103,13 @@ const
   BOLD_DATABASE_ERROR_SQL = 'Syntax of SQL "%s" is not correct. (%s)';
   BOLD_DATABASE_ERROR_UPDATE = 'Failed to update database';
   BOLD_DATABASE_ERROR_DEADLOCK = 'Deadlock occured. (%s)';
+  // Load-bearing log-scan anchors: production log analysis greps for these
+  // texts when hunting partial-commit corruption. Do not reword casually.
+  BOLD_DATABASE_ERROR_TRANSACTION_LOST =
+    'Database transaction was lost mid-operation (connection reset). ' +
+    'Aborting before any statement autocommits outside the transaction.';
+  BOLD_DATABASE_ERROR_TRANSACTION_LOST_AT_COMMIT =
+    '%s.Commit: transaction was lost during the update - aborting to surface a possible partial commit';
 type
   // TListIndex: Delphi 12+ uses NativeInt for TList.Items index, older versions use Integer
   {$IF CompilerVersion >= 36.0}  // Delphi 12+

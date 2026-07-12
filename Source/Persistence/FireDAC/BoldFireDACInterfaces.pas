@@ -196,6 +196,10 @@ type
     fCachedQuery2: TBoldFireDACQuery;
     fCachedExecQuery1: TBoldFireDACQuery;
     fExecuteQueryCount: integer;
+    // True between StartTransaction and Commit/RollBack. Detects a transaction
+    // silently destroyed by a connection reset (the server rolls it back and
+    // every later statement would autocommit -> partial commit corruption).
+    fExpectedTransaction: Boolean;
     function GetFDConnection: TFDConnection;
     property FDConnection: TFDConnection read GetFDConnection;
     function GetConnected: Boolean;
@@ -212,6 +216,7 @@ type
     procedure Open;
     procedure Close;
     procedure Reconnect;
+    procedure EnsureTransactionIntact;
     function SupportsTableCreation: Boolean;
     procedure ReleaseCachedObjects;
     function GetIsExecutingQuery: Boolean;
@@ -431,6 +436,7 @@ begin
   BeginExecuteQuery;
   try
     BoldLogSQLWithParams(Query.SQL, self);
+    (DatabaseWrapper as TBoldFireDACConnection).EnsureTransactionIntact;
     try
       if (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
         fReadTransactionStarted := false
@@ -474,6 +480,7 @@ begin
   BeginExecuteQuery;
   try
     BoldLogSQLWithParams(Query.SQL, self);
+    (DatabaseWrapper as TBoldFireDACConnection).EnsureTransactionIntact;
     try
       if (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
         fReadTransactionStarted := false
@@ -694,7 +701,17 @@ end;
 
 procedure TBoldFireDACConnection.Commit;
 begin
+  fExpectedTransaction := false;
   FDConnection.Commit;
+end;
+
+procedure TBoldFireDACConnection.EnsureTransactionIntact;
+begin
+  if fExpectedTransaction and not FDConnection.InTransaction then
+  begin
+    fExpectedTransaction := false;
+    raise EBoldDatabaseConnectionError.Create(BOLD_DATABASE_ERROR_TRANSACTION_LOST);
+  end;
 end;
 
 function TBoldFireDACConnection.GetImplementor: TObject;
@@ -730,7 +747,11 @@ end;
 
 procedure TBoldFireDACConnection.RollBack;
 begin
-  FDConnection.RollBack;
+  fExpectedTransaction := false;
+  // Tolerate a transaction that vanished with a connection reset: the server
+  // has already rolled it back, there is nothing left to roll back here.
+  if FDConnection.InTransaction then
+    FDConnection.RollBack;
 end;
 
 procedure TBoldFireDACConnection.SetKeepConnection(NewValue: Boolean);
@@ -764,6 +785,7 @@ procedure TBoldFireDACConnection.StartTransaction;
 begin
   Transaction.Options.Isolation := xiRepeatableRead;
   FDConnection.StartTransaction;
+  fExpectedTransaction := true;
 end;
 
 function TBoldFireDACConnection.DatabaseExists: boolean;
@@ -846,6 +868,7 @@ end;
 
 procedure TBoldFireDACConnection.Close;
 begin
+  fExpectedTransaction := false;
   FDConnection.Close;
 end;
 
@@ -1386,6 +1409,7 @@ begin
   BeginExecuteQuery;
   try
     BoldLogSQLWithParams(ExecQuery.SQL, self);
+    (DatabaseWrapper as TBoldFireDACConnection).EnsureTransactionIntact;
     try
       if (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
         fReadTransactionStarted := false

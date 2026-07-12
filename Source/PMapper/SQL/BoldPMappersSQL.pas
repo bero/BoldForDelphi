@@ -301,8 +301,19 @@ procedure TBoldSystemSQLMapper.Commit(const ValueSpace: IBoldValueSpace);
 begin
   if fTransactionStartedByMe then
     with Database do
-      if IsSqlBased and InTransaction then
+      if IsSqlBased then
+      begin
+        if not InTransaction then
+        begin
+          // The transaction we started is gone (e.g. the connection was reset
+          // and the server rolled it back). Committing silently here would
+          // hide that any statements executed after the loss autocommitted
+          // individually - the partial-commit corruption. Fail the save.
+          fTransactionStartedByMe := false;
+          raise EBold.CreateFmt(BOLD_DATABASE_ERROR_TRANSACTION_LOST_AT_COMMIT, [ClassName]);
+        end;
         Commit;
+      end;
   fTransactionStartedByMe := false;
 end;
 
