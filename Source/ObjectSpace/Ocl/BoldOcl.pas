@@ -1097,7 +1097,18 @@ begin
     else
       vRoot := 'nil';
     if Assigned(aResult) and Assigned(aResult.Value) then
-      vResult := QuotedStr(aResult.value.AsString)
+    begin
+      // The tracer must never evaluate OCL: AsString on a TBoldObject runs its
+      // DefaultStringRepresentation expression, which can re-enter evaluation
+      // (and this log) without bound while derived members are mid-derivation.
+      if aResult.Value is TBoldObject then
+        vResult := TBoldObject(aResult.Value).DebugInfo
+      else if aResult.Value is TBoldList then
+        vResult := Format('%s(count=%d)', [aResult.Value.ClassName,
+          TBoldList(aResult.Value).Count])
+      else
+        vResult := QuotedStr(aResult.value.AsString);
+    end
     else
       vResult := 'nil';
     vLog := formatDateTime('c: ', now)+
