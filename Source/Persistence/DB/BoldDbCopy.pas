@@ -37,6 +37,7 @@ type
   protected
     procedure DoOnProgress(AProcessedRecords: Integer);
   public
+    class function StripControlChars(const s: string): string;
     procedure Run;
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
@@ -62,9 +63,21 @@ uses
   Data.DB,
   System.DateUtils,
   System.Character,
-  Winapi.ActiveX, BoldLogHandler, System.Math, Uni;
+  Winapi.ActiveX, BoldLogHandler, System.Math
+  {$IFDEF UniDAC}, Uni{$ENDIF};
 
 { TBoldDbCopy }
+
+class function TBoldDbCopy.StripControlChars(const s: string): string;
+begin
+  Result := s;
+  // Delphi strings are 1-based: the last character is at Length(Result).
+  // Starting at Length-1 left a trailing control char (e.g. #0) in place -
+  // the exact byte PostgreSQL rejects with 'invalid byte sequence'.
+  for var x := Length(Result) downto 1 do
+    if Result[x].IsControl then
+      Delete(Result, x, 1);
+end;
 
 procedure TBoldDbCopy.AfterConstruction;
 begin
@@ -130,7 +143,10 @@ var
         break;
       end;
     end;
-    (SourceQuery.AsDataSet as TUniQuery).FetchRows := result;
+    {$IFDEF UniDAC}
+    if SourceQuery.AsDataSet is TUniQuery then
+      TUniQuery(SourceQuery.AsDataSet).FetchRows := result;
+    {$ENDIF}
     sl2.QuoteChar := ' ';
     sl2.StrictDelimiter := false;
     var Values := sl2.DelimitedText;
@@ -149,14 +165,25 @@ begin
   var Values: string;
   var Field: IBoldField;
   var SourceDatabaseInterface := SourcePersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
-  (SourceDatabaseInterface.Implementor as TUniConnection).SpecificOptions.Values['ApplicationIntent'] := 'aiReadOnly';
+  {$IFDEF UniDAC}
+  if SourceDatabaseInterface.Implementor is TUniConnection then
+    TUniConnection(SourceDatabaseInterface.Implementor).SpecificOptions.Values['ApplicationIntent'] := 'aiReadOnly';
+  {$ENDIF}
   SourceDatabaseInterface.Open;
-  SourceQuery := SourcePersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection.GetQuery;
+  // Get the query from the connection tuned above - it was fetched from a
+  // separate anonymous connection before, making the read-only tuning dead
+  // and mismatching the ReleaseQuery in the finally block.
+  SourceQuery := SourceDatabaseInterface.GetQuery;
   SourceQuery.UseReadTransactions := false;
-  (SourceQuery.AsDataSet as TUniQuery).SpecificOptions.Values['FetchAll'] := 'false';
-  (SourceQuery.AsDataSet as TUniQuery).SpecificOptions.Values['SQL Server.FetchAll'] := 'false';
-  (SourceQuery.AsDataSet as TUniQuery).UniDirectional := true;
-  (SourceQuery.AsDataSet as TUniQuery).ReadOnly := true;
+  {$IFDEF UniDAC}
+  if SourceQuery.AsDataSet is TUniQuery then
+  begin
+    TUniQuery(SourceQuery.AsDataSet).SpecificOptions.Values['FetchAll'] := 'false';
+    TUniQuery(SourceQuery.AsDataSet).SpecificOptions.Values['SQL Server.FetchAll'] := 'false';
+    TUniQuery(SourceQuery.AsDataSet).UniDirectional := true;
+    TUniQuery(SourceQuery.AsDataSet).ReadOnly := true;
+  end;
+  {$ENDIF}
   var DatabaseInterface := DestinationPersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
   DatabaseInterface.Open;
   DestinationQuery := DatabaseInterface.GetExecQuery;
@@ -178,7 +205,10 @@ begin
 //      MultiRowInsertLimit := 20;
 //      MaxBatchQueryParams := 10;
       BoldLog.LogHeader := Format('Loading from %s', [SourceTableName]);
-      (SourceQuery.AsDataSet as TUniQuery).FetchRows := MultiRowInsertLimit;
+      {$IFDEF UniDAC}
+      if SourceQuery.AsDataSet is TUniQuery then
+        TUniQuery(SourceQuery.AsDataSet).FetchRows := MultiRowInsertLimit;
+      {$ENDIF}
       SourceQuery.SQLText := SelectSql;
       SourceQuery.Open;
       var i,j: integer;
@@ -226,10 +256,7 @@ begin
               Param.AssignFieldValue(SourceQuery.Fields[i]);
               if Param.DataType = ftWideMemo then
               begin
-                s := Trim(SourceQuery.Fields[i].AsString);
-                for var x := Length(s)-1 downto 1 do
-                  if s[x].IsControl then
-                    Delete(s, x, 1);
+                s := StripControlChars(Trim(SourceQuery.Fields[i].AsString));
                 Bytes := TEncoding.UTF8.GetBytes(s);
                 Param.AsString := TEncoding.UTF8.GetString(Bytes);
               end;
@@ -253,16 +280,16 @@ begin
             BoldLog.Progress := ProcessedRecords;
             BoldLog.LogHeader := Format('%d/%d records processed in table %s', [ProcessedRecords,j, DestinationTable.SQLName]);
           except
-            on e:Exception {EBoldDatabaseError} do
-            begin
-              if pos('invalid byte sequence for encoding', e.Message) > 0 then
-                continue
-              else
-              begin
-                DatabaseInterface.RollBack;
-                raise;
-              end;
-            end;
+            // The old 'invalid byte sequence for encoding' skip stems from the
+            // row-by-row era and could never work for batches: 'continue'
+            // neither reset ParamIndex nor advanced the source, so the same
+            // statement re-executed forever (and PostgreSQL aborts the
+            // transaction on error, failing everything after it). The stray
+            // control characters that caused it are stripped correctly now;
+            // any remaining batch failure must surface, not silently skip
+            // rows the closing record-count assertion would flag anyway.
+            DatabaseInterface.RollBack;
+            raise;
           end;
         end;
       until RemainingRecords = 0;
@@ -281,7 +308,9 @@ begin
     sl2.Free;
     SourceDatabaseInterface.ReleaseQuery(SourceQuery);
     DatabaseInterface.ReleaseExecQuery(DestinationQuery);
-    SourceDatabaseInterface.ReleaseQuery(TestQuery);
+    // TestQuery was obtained from the destination connection - releasing it
+    // to the source put a destination-bound query into the source's cache.
+    DatabaseInterface.ReleaseQuery(TestQuery);
     SourceDatabaseInterface.Close;
     DatabaseInterface.Close;
     BoldLog.Log(Format('Thread %d completed', [TThread.CurrentThread.ThreadID]));

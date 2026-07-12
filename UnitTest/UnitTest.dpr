@@ -59,6 +59,7 @@ uses
   Test.BoldUpdatePrecondition in 'Code\Persistence\Test.BoldUpdatePrecondition.pas',
   Test.BoldPersistenceController in 'Code\Persistence\Test.BoldPersistenceController.pas',
   Test.BoldDbValidator in 'Code\Persistence\Test.BoldDbValidator.pas',
+  Test.BoldDbCopy in 'Code\Persistence\Test.BoldDbCopy.pas',
   Test.BoldAbstractObjectUpgraderHandle in 'Code\Persistence\Test.BoldAbstractObjectUpgraderHandle.pas',
   Test.BoldPMapperLists in 'Code\PMapper\Test.BoldPMapperLists.pas',
   Test.BoldSQLMappingInfo in 'Code\PMapper\Test.BoldSQLMappingInfo.pas',
