@@ -42,6 +42,8 @@ type
       RequestedEvent: TBoldRequestedEvent; const Args: array of const;
       Subscriber: TBoldSubscriber): Boolean;
     procedure HandleDelayedAction(Sender: TObject);
+    procedure HandleReceiveAndRaise(Originator: TObject; OriginalEvent: TBoldEvent;
+      RequestedEvent: TBoldRequestedEvent);
 
     procedure RecordEvent(Originator: TObject; OriginalEvent: TBoldEvent;
       RequestedEvent: TBoldRequestedEvent);
@@ -52,6 +54,8 @@ type
     procedure TearDown;
 
     { Core Pub/Sub: TBoldPublisher + TBoldPassthroughSubscriber }
+    [Test]
+    procedure TestRaisingSubscriberLeavesNotificationBalanced;
     [Test]
     procedure TestSubscribeAndReceiveSmallEvent;
     [Test]
@@ -376,6 +380,57 @@ end;
 procedure TTestBoldSubscription.HandleDelayedAction(Sender: TObject);
 begin
   Inc(FDelayedActionCallCount);
+end;
+
+procedure TTestBoldSubscription.HandleReceiveAndRaise(Originator: TObject;
+  OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
+begin
+  if OriginalEvent = beValueChanged then  // stay quiet for cleanup notifications
+    raise Exception.Create('subscriber failure');
+end;
+
+procedure TTestBoldSubscription.TestRaisingSubscriberLeavesNotificationBalanced;
+var
+  PublisherVar: TBoldPublisher;
+  Subscriber: TBoldPassthroughSubscriber;
+  ProbeExecuted: Integer;
+begin
+  // Regression for M1: SendExtendedEvent (which SendEvent delegates to) had
+  // no try/finally around StartNotify/EndNotify - one raising subscriber left
+  // the global notification-nesting counter permanently > 0, after which
+  // DelayTillAfterNotification queued forever and the post-notify queue was
+  // never drained again for the process lifetime. Sibling SendQuery got the
+  // try/finally in 0bd8628; this is the missed twin.
+  PublisherVar := nil;
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleReceiveAndRaise);
+  try
+    PublisherVar := TBoldPublisher.Create(PublisherVar);
+    try
+      PublisherVar.AddSmallSubscription(Subscriber, [beValueChanged], beDefaultRequestedEvent);
+      try
+        PublisherVar.SendEvent(beValueChanged);
+        Assert.Fail('the subscriber exception must propagate to the sender');
+      except
+        on E: Exception do
+          if E.Message <> 'subscriber failure' then
+            raise;
+      end;
+      // Probe: with balanced nesting this executes IMMEDIATELY.
+      FDelayedActionCallCount := 0;
+      BoldAddEventToPostNotifyQueue(HandleDelayedAction, nil, Self);
+      ProbeExecuted := FDelayedActionCallCount;
+      if ProbeExecuted = 0 then
+        TBoldPublisher.EndNotify;  // heal the poisoned counter (and drain the
+                                   // stale probe) so later tests are unaffected
+      Assert.AreEqual(1, ProbeExecuted,
+        'notification nesting must be balanced after a raising subscriber');
+    finally
+      PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
+      PublisherVar.Free;
+    end;
+  finally
+    Subscriber.Free;
+  end;
 end;
 
 { Core Pub/Sub Tests }

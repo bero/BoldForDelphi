@@ -868,19 +868,25 @@ begin
     Exit;
   Inc(_SendExtendedEvent);
   StartNotify;
-  for I := fSubscriptionCount - 1 downto 0 do
-  begin
-    Subscriber := fSubscriptionArray[I].Subscriber;
-    if Assigned(Subscriber) and fSubscriptionArray[I].IsMatchingEvent(OriginalEvent) then
+  try
+    for I := fSubscriptionCount - 1 downto 0 do
     begin
-      if Subscriber.HandlesExtendedEvents then
-        Subscriber.ReceiveExtended(Originator, OriginalEvent, fSubscriptionArray[I].RequestedEvent, Args)
-      else
-        Subscriber.Receive(Originator, OriginalEvent, fSubscriptionArray[I].RequestedEvent);
-      Inc(_SendEventMatch);
+      Subscriber := fSubscriptionArray[I].Subscriber;
+      if Assigned(Subscriber) and fSubscriptionArray[I].IsMatchingEvent(OriginalEvent) then
+      begin
+        if Subscriber.HandlesExtendedEvents then
+          Subscriber.ReceiveExtended(Originator, OriginalEvent, fSubscriptionArray[I].RequestedEvent, Args)
+        else
+          Subscriber.Receive(Originator, OriginalEvent, fSubscriptionArray[I].RequestedEvent);
+        Inc(_SendEventMatch);
+      end;
     end;
+  finally
+    // A raising subscriber must not skip EndNotify: the notification-nesting
+    // counter would stay > 0 forever and the post-notify queue would never be
+    // drained again. Sibling SendQuery got the same guard in 0bd8628.
+    EndNotify;
   end;
-  EndNotify;
 end;
 
 function TBoldPublisher.SendQuery(Originator: TObject; OriginalEvent: TBoldEvent; const Args: array of const; Subscriber: TBoldSubscriber): Boolean;
