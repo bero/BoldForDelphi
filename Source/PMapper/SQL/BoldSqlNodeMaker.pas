@@ -70,9 +70,14 @@ begin
   begin
     if TBoldSqlVariableBinding(fSQLVarBindings[i]).IsExternal then
     begin
-      TBoldSqlVariableBinding(fSQLVarBindings[i]).DecRef;
-        if TBoldSqlVariableBinding(fSQLVarBindings[i]).RefCount = 0 then
-      TBoldSqlVariableBinding(fSQLVarBindings[i]).Free;
+      // A binding whose reference was never resolved (failed or aborted
+      // resolution) still has RefCount 0 here. DecRef would raise EBold, and
+      // this destructor runs in CanEvaluateInPS's finally block - the raise
+      // would mask the original failure and leak everything below.
+      if TBoldSqlVariableBinding(fSQLVarBindings[i]).RefCount > 0 then
+        TBoldSqlVariableBinding(fSQLVarBindings[i]).DecRef;
+      if TBoldSqlVariableBinding(fSQLVarBindings[i]).RefCount = 0 then
+        TBoldSqlVariableBinding(fSQLVarBindings[i]).Free;
     end;
     fSQLVarBindings[i] := nil;
   end;

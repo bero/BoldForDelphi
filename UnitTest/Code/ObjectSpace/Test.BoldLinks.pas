@@ -1906,9 +1906,15 @@ var
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
-  // Avoid 'self' in including/excluding — causes refcount bug in OLW cleanup
-  Sys.CanEvaluateInPS('APersistentClass.allInstances->select(aString <> '''')', CTI);
-  Assert.Pass('Including OCL-to-SQL executed');
+  // Regression for H4 (19019df avoided this instead of fixing it): 'self' in
+  // including leaves an external SQL variable binding with refcount 0;
+  // TBoldSqlNodeMaker.destroy DecRefs it unconditionally and the EBold escapes
+  // CanEvaluateInPS through its finally block, masking the real answer.
+  Assert.WillNotRaise(
+    procedure
+    begin
+      Sys.CanEvaluateInPS('APersistentClass.allInstances->including(self)', CTI);
+    end, nil, 'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_Excluding;
@@ -1918,8 +1924,12 @@ var
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
-  Sys.CanEvaluateInPS('APersistentClass.allInstances->reject(aString = '''')', CTI);
-  Assert.Pass('Excluding OCL-to-SQL executed');
+  // Regression for H4 — see TestCanEvaluateInPS_Including.
+  Assert.WillNotRaise(
+    procedure
+    begin
+      Sys.CanEvaluateInPS('APersistentClass.allInstances->excluding(self)', CTI);
+    end, nil, 'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_Union;
