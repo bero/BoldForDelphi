@@ -210,24 +210,30 @@ procedure TBoldArray.Sort(CompareFunc: TBoldArraySortCompare; FirstIndex,
     T: Pointer;
   begin
     GetMem(T, ItemSize);
-    for I := L + 1 to R do begin
-      if SCompare(@FArray^[I * ItemSize],
-                  @FArray^[(I - 1) * ItemSize]) < 0 then
-      begin
-        J := I;
-        Get(J, T^);
-        while (J > L) and
-              (SCompare(T, @FArray^[(J - 1) * ItemSize]) < 0) do
+    try
+      for I := L + 1 to R do begin
+        if SCompare(@FArray^[I * ItemSize],
+                    @FArray^[(I - 1) * ItemSize]) < 0 then
         begin
-          System.Move(FArray^[(J - 1) * ItemSize],
-                      FArray^[J * ItemSize],
-                      ItemSize);
-          Dec(J);
+          J := I;
+          Get(J, T^);
+          while (J > L) and
+                (SCompare(T, @FArray^[(J - 1) * ItemSize]) < 0) do
+          begin
+            System.Move(FArray^[(J - 1) * ItemSize],
+                        FArray^[J * ItemSize],
+                        ItemSize);
+            Dec(J);
+          end;
+          // Raw placement, NOT Put: the shifting above duplicated a live
+          // element into slot J, and Put would Dispose it (bcoDataOwner) -
+          // freeing an element still referenced by the neighbouring slot.
+          System.Move(T^, FArray^[J * ItemSize], ItemSize);
         end;
-        Put(J, T^);
       end;
+    finally
+      FreeMem(T, ItemSize);
     end;
-    FreeMem(T, ItemSize);
   end;
 
   //////////////////////////////////////////////////////////////////////////////
@@ -271,146 +277,7 @@ procedure TBoldArray.Sort(CompareFunc: TBoldArraySortCompare; FirstIndex,
       FreeMem(P);
     end;
   end;
-{
-  //////////////////////////////////////////////////////////////////////////////
-  // Merge Sort - Inplace Variant:                                            //
-  // http://thomas.baudel.name/Visualisation/VisuTri/inplacestablesort.html   //
-  // stable, inplace, but slower than Quicksort and normal Mergesort          //
-  //////////////////////////////////////////////////////////////////////////////
-  function Lower(Left, Right, Val: Integer; SCompare: TBoldElementCompare):
-      Integer;
-  var
-    iLen: Integer;
-    iHalf: Integer;
-    iMid: Integer;
-  begin
-    iLen := Right - Left;
-    while iLen > 0 do begin
-      iHalf := iLen div 2;
-      iMid := Left + iHalf;
-      if SCompare(Elements[iMid], Elements[Val]) < 0 then begin
-        Left := iMid + 1;
-        iLen := iLen - iHalf - 1;
-      end else begin
-        iLen := iHalf;
-      end;
-    end;
-    Result := Left;
-  end;
 
-  function Upper(Left, Right, Val: Integer; SCompare: TBoldElementCompare):
-      Integer;
-  var
-    iLen: Integer;
-    iHalf: Integer;
-    iMid: Integer;
-  begin
-    iLen := Right - Left;
-    while iLen > 0 do begin
-      iHalf := iLen div 2;
-      iMid := Left + iHalf;
-      if SCompare(Elements[Val], Elements[iMid]) < 0 then begin
-        iLen := iHalf;
-      end else begin
-        Left := iMid + 1;
-        iLen := iLen - iHalf - 1;
-      end;
-    end;
-    Result := Left;
-  end;
-
-  function GCD(M, N: Integer): Integer;
-  var
-    T: Integer;
-  begin
-    while (N <> 0) do begin
-      T := M mod N;
-      M := N; N := T;
-    end;
-    Result := M;
-  end;
-
-  procedure Rotate(Left, Middle, Right: Integer; SCompare: TBoldElementCompare);
-  var
-    N: Integer;
-    SavedElement: TBoldElement;
-    Shift: Integer;
-    P1, P2: Integer;
-  begin
-    if (Left <> Middle) and (Right <> Middle) then begin
-      N := GCD(Right - Left, Middle - Left);
-      while N <> 0 do begin
-        Dec(N);
-        SavedElement := Elements[Left + N];
-        Shift := Middle - Left;
-        P1 := Left + N;
-        P2 := Left + N + Shift;
-        while (P2 <> Left + N)  do begin
-          Elements[P1] := Elements[P2];
-          P1 := P2;
-          if Right - P2 > Shift then begin
-            Inc(P2, Shift);
-          end else begin
-            P2 := Left + (Shift - (Right - P2));
-          end;
-        end;
-        Elements[P1] := SavedElement;
-      end;
-    end;
-  end;
-
-  procedure MergeInplace(Left, Pivot, Right, Len1, Len2: Integer; SCompare:
-      TBoldElementCompare);
-  var
-    iFirstCut, iSecondCut: Integer;
-    iLen11, iLen22: Integer;
-    iNewMid: Integer;
-  begin
-    if (Len1 <> 0) and (Len2 <> 0) then begin
-      if Len1 + Len2 = 2 then begin
-        if SCompare(Elements[Pivot], Elements[Left]) < 0 then begin
-          if Pivot < Left then begin
-            Move(Pivot, Left);
-            Move(Left - 1, Pivot);
-          end else begin
-            Move(Left, Pivot);
-            Move(Pivot - 1, Left);
-          end;
-        end;
-      end else begin
-        if Len1 > Len2 then begin
-          iLen11 := Len1 div 2;
-          iFirstCut := Left + iLen11;
-          iSecondCut := Lower(Pivot, Right, iFirstCut, SCompare);
-          iLen22 := iSecondCut - Pivot;
-        end else begin
-          iLen22 := Len2 div 2;
-          iSecondCut := Pivot + iLen22;
-          iFirstCut := Upper(Left, Pivot, iSecondCut, SCompare);
-          iLen11 := iFirstCut - Left;
-        end;
-        Rotate(iFirstCut, Pivot, iSecondCut, SCompare);
-        iNewMid := iFirstCut + iLen22;
-        MergeInplace(Left, iFirstCut, iNewMid, iLen11, iLen22, SCompare);
-        MergeInplace(iNewMid, iSecondCut, Right, Len1 - iLen11, Len2 - iLen22, SCompare);
-      end;
-    end;
-  end;
-
-  procedure MergeSortInplace(Left, Right: Integer; SCompare: TBoldElementCompare);
-  var
-    Middle: Integer;
-  begin
-    if Right - Left < 8 then begin
-      InsertSort(Left, Right, SCompare);
-    end else begin
-      Middle := (Left + Right) div 2;
-      MergeSortInplace(Left, Middle, SCompare);
-      MergeSortInplace(Middle, Right, SCompare);
-      MergeInplace(Left, Middle, Right, Middle - Left, Right - Middle, SCompare);
-    end;
-  end;
-}
   //////////////////////////////////////////////////////////////////////////////
   // Merge Sort:                                                              //
   // http://www.iti.fh-flensburg.de/lang/algorithmen/sortieren/merge/merge.htm//

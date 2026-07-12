@@ -13,6 +13,8 @@ type
   public
     // TBoldObjectArray tests
     [Test]
+    procedure TestSortDataOwningArrayKeepsElementsAlive;
+    [Test]
     procedure TestObjectArrayCreate;
     [Test]
     procedure TestObjectArrayAdd;
@@ -149,6 +151,32 @@ begin
 end;
 
 { TTestBoldContainers }
+
+procedure TTestBoldContainers.TestSortDataOwningArrayKeepsElementsAlive;
+var
+  Arr: TBoldObjectArray;
+  A, B: TTestItem;
+begin
+  // Regression for H13: InsertSort (the default smMergeSort path for short
+  // runs) shifts slots with raw Move and then calls Put, which Disposes the
+  // slot's current occupant when bcoDataOwner is set - freeing an object the
+  // shift had just duplicated into the neighbouring slot. Use-after-free
+  // immediately, double-free when the array is destroyed.
+  Arr := TBoldObjectArray.Create(2, [bcoDataOwner]);
+  try
+    B := TTestItem.Create(2);
+    A := TTestItem.Create(1);
+    Arr.Add(B);  // descending pair forces one insertion shift
+    Arr.Add(A);
+    Arr.Sort(CompareTestItems);
+    Assert.AreEqual(2, Arr.Count, 'count unchanged by sort');
+    Assert.AreSame(TObject(A), TObject(Arr[0]), 'ascending order after sort');
+    Assert.AreSame(TObject(B), TObject(Arr[1]), 'ascending order after sort');
+    Assert.AreEqual(2, TTestItem(Arr[1]).Value, 'element must still be alive after sort');
+  finally
+    Arr.Free;  // with the bug: double-free of the duplicated element here
+  end;
+end;
 
 procedure TTestBoldContainers.TestObjectArrayCreate;
 var
