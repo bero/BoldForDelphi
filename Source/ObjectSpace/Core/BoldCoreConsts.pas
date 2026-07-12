@@ -431,6 +431,7 @@ const
   sIllegalInitialValue = 'Illegal InitialValue (%s) for attribute %s. ErrorMessage: %s%s';
   sUnknownObjectType = '%s.CompareToAs: unknown type of object (%s)';
   sCannotSetSuchReference = 'Can not set a %s in a %s-reference';
+  sCannotLinkAcrossSystems = 'Can not link to an object that belongs to another BoldSystem';
   sItemNotInList = '%s.Remove: Item not in list';
   sCannotCreateNewElement = 'Can''t create new element';
   sDuplicateInList = '%s.DuplicateControl: Duplicate value in list';

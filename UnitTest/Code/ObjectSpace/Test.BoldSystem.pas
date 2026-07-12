@@ -571,6 +571,8 @@ type
     procedure TestIsEqualAs_AssignedRef_DifferentObject;
     [Test]
     procedure TestIsEqualAs_UnknownCompareType_Raises;
+    [Test]
+    procedure TestSetLocatorRejectsCrossSystemObject;
   end;
 
   [TestFixture]
@@ -3362,6 +3364,37 @@ begin
   end;
   FreeAndNil(FSystemHandle);
   FreeAndNil(FSystemTypeInfoHandle);
+end;
+
+procedure TTestBoldObjectReference.TestSetLocatorRejectsCrossSystemObject;
+var
+  SystemHandle2: TBoldSystemHandle;
+  A1, A2: TestModel1.TClassA;
+begin
+  // Regression for M2: TBoldObjectList.CheckAdd/CheckReplace reject a locator
+  // from another TBoldSystem, but the single-reference side never did - a
+  // cross-system assignment stores a locator whose ID belongs to the other
+  // system's database (foreign-ID link corruption when persisted).
+  SystemHandle2 := TBoldSystemHandle.Create(nil);
+  try
+    SystemHandle2.SystemTypeInfoHandle := FSystemTypeInfoHandle;
+    SystemHandle2.Active := True;
+    try
+      A1 := TestModel1.TClassA.Create(FSystemHandle.System);
+      A2 := TestModel1.TClassA.Create(SystemHandle2.System);
+      Assert.WillRaiseAny(
+        procedure
+        begin
+          A1.next := A2;
+        end);
+      Assert.IsTrue(A1.next = nil, 'the cross-system link must not be stored');
+    finally
+      SystemHandle2.System.Discard;
+      SystemHandle2.Active := False;
+    end;
+  finally
+    SystemHandle2.Free;
+  end;
 end;
 
 function TTestBoldObjectReference.GetSystem: TBoldSystem;

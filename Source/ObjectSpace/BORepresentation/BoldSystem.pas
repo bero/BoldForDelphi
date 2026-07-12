@@ -6686,6 +6686,16 @@ end;
 function TBoldObjectReference.CanSetLocator(NewLocator: TBoldObjectLocator; Subscriber: TBoldSubscriber): Boolean;
 begin
   result := VerifyClass(NewLocator);
+  // Mirror TBoldObjectList.CheckAdd/CheckReplace: an object-owned reference
+  // must not link to an object in another TBoldSystem - the foreign locator's
+  // ID belongs to the other system's database, so persisting the link writes
+  // a foreign ID (dangling-link corruption).
+  if result and Assigned(NewLocator) and OwnedByObject and
+     (BoldSystem <> NewLocator.BoldSystem) then
+  begin
+    SetBoldLastFailureReason(TBoldFailureReason.Create(sCannotLinkAcrossSystems, self));
+    result := false;
+  end;
 {$IFNDEF BOLD_NO_QUERIES}
    result := result and SendQuery(bqMaySetValue, [NewLocator], Subscriber)
 {$ENDIF}
