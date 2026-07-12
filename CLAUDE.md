@@ -96,15 +96,7 @@ powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\run_
 - Changed code is now covered in the coverage report
 
 #### 7. Upload Coverage to Codecov.io (optional)
-```powershell
-# Convert coverage to Codecov JSON format
-powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\Convert-ToCodecovJson.ps1"
-
-# Upload (requires codecov.exe in repo root and CODECOV_TOKEN env var)
-./codecov.exe -f "UnitTest/codecov.json"
-```
-
-See `CODECOV_SETUP.md` for full details.
+Use the `/coverage-cycle` skill — it covers conversion, upload, and the README statistics update.
 
 **Summary**: Test-first for bugfixes (test fails then passes), test-first for refactoring (test passes before and after).
 
@@ -135,71 +127,9 @@ Example: If `BoldFoo.pas` has 97% coverage with only an exception handler uncove
 
 ### Keeping README.md Updated
 
-**IMPORTANT**: When adding or modifying unit tests, always update README.md with current statistics:
-
-1. **After adding tests**, update the README.md with:
-   - Current number of unit tests (from test runner output: "Tests Found: XXX")
-   - Current code coverage percentage (from coverage report summary)
-
-2. **Location in README.md**: Look for the testing/coverage section and update the numbers.
-
-3. **How to get current values**:
-   ```powershell
-   # Run tests to get count
-   powershell -Command "& '.\UnitTest\UnitTest.exe' --consolemode:Quiet 2>&1" | Select-String "Tests Found"
-
-   # Run coverage to get percentage
-   powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\run_coverage.ps1"
-   # Check the summary output for "Covered %"
-   ```
-
-4. **Keep it accurate**: The README.md is the public face of the project. Outdated test counts or coverage numbers mislead users about project quality.
+When adding or modifying unit tests, update README.md's test count and coverage statistics — the `/coverage-cycle` skill includes the full procedure.
 
 ## Project Structure
-
-```
-BoldForDelphi/
-├── packages/
-│   ├── Delphi11.3/              ← Delphi 11.3 Alexandria
-│   ├── Delphi12.1_CE/           ← Delphi 12.1 CE Athens
-│   ├── Delphi12.3/              ← Delphi 12.3 Athens
-│   │   ├── dclBold.dpk          (design-time package)
-│   │   └── dclBold.dproj
-│   ├── Delphi13/                ← Delphi 13
-│   └── Bin/                     ← Compiled BPL output
-├── Source/
-│   ├── Common/
-│   │   ├── Core/                ← Base classes: BoldBase, BoldContainers, BoldDefs
-│   │   ├── Subscription/        ← Observer pattern: BoldSubscription, BoldDeriver
-│   │   ├── Support/             ← Utilities: BoldUtils, BoldGuard, BoldIndex
-│   │   └── Include/             ← Compiler directives: Bold.inc
-│   ├── ObjectSpace/
-│   │   ├── Core/                ← TBoldSystem, BoldElements
-│   │   ├── BORepresentation/    ← BoldAttributes, BoldSystem
-│   │   ├── Ocl/                 ← OCL parser and evaluator
-│   │   ├── RTModel/             ← Runtime type information (BoldSystemRT)
-│   │   └── Undo/                ← Undo/redo mechanism
-│   ├── Persistence/
-│   │   ├── Core/                ← Persistence controllers and handles
-│   │   ├── DB/                  ← Database persistence base
-│   │   └── FireDAC/             ← FireDAC adapter (recommended)
-│   ├── PMapper/
-│   │   ├── SQL/                 ← SQL generation: BoldSqlNodes, BoldSqlQueryGenerator
-│   │   └── DbEvolutor/          ← Database schema evolution
-│   ├── BoldAwareGUI/
-│   │   ├── BoldControls/        ← Data-aware VCL: BoldGrid, BoldEdit, BoldComboBox
-│   │   ├── ControlPacks/        ← Renderer/follower pattern for UI binding
-│   │   └── Core/                ← BoldGUI base functionality
-│   ├── Handles/                 ← TBoldSystemHandle, TBoldListHandle, TBoldExpressionHandle
-│   ├── MoldModel/
-│   │   ├── Core/                ← Model representation (Mold = Model of Objects)
-│   │   └── CodeGenerator/       ← Delphi code generation
-│   └── UMLModel/
-│       ├── Core/                ← UML metamodel (BoldUMLModel.pas)
-│       ├── Editor/              ← Model editor UI
-│       └── ModelLinks/          ← XMI, Rose98 integration
-└── UnitTest/                    ← DUnitX tests
-```
 
 ### Folders to Ignore
 
@@ -226,44 +156,6 @@ Core Bold packages use **relative paths** and require no environment variable se
 
 **Optional**: For UniDAC support, set the `UniDAC` environment variable in Delphi (Tools > Options > Environment Variables) pointing to the UniDAC installation root.
 
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    UML Model Editor                             │
-│         (BoldUMLModel, XMI/Rose import/export)                 │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                Code Generator (MoldModel)                       │
-│    Generates BusinessClasses.pas from UML model                │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│              ObjectSpace (Runtime Object Model)                 │
-│  TBoldSystem, TBoldObject, TBoldAttribute, TBoldObjectList     │
-│         OCL Query Engine (BoldOcl, BoldOclEvaluator)           │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│           Persistence Layer (PMapper, Persistence)             │
-│     Object-Relational Mapping, SQL Generation, DB Evolution    │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│              Database Adapters (FireDAC, UniDAC, etc.)         │
-│         SQL Server, PostgreSQL, InterBase, Oracle, etc.        │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Key Packages
-
-| Package | Type | Purpose |
-|---------|------|---------|
-| `dclBold.dpk` | Design-time | Main Bold components for IDE integration |
-| `dclBoldUniDAC.dpk` | Design-time | UniDAC database adapter components |
-| `dclBoldDevEx.dpk` | Design-time | DevExpress integration components |
-
 ## Compiler Directives (Bold.inc)
 
 The `{$DEFINE Attracs}` block at end of Bold.inc enables optimizations used by Attracs. When `Attracs` is NOT defined, several features are disabled for broader compatibility.
@@ -284,14 +176,6 @@ Other notable defines:
 ```
 
 ## Key Concepts
-
-### Object Constraint Language (OCL)
-OCL is used for queries and constraints:
-```
-self.allInstances                    // All instances of a class
-self.customers->select(age > 30)     // Filter collection
-self.orders->collect(total)->sum     // Aggregate
-```
 
 ### Subscription Pattern
 Bold uses a sophisticated subscription system for automatic UI updates when objects change. Components subscribe to objects/attributes and receive notifications on changes.
