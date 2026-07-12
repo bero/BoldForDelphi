@@ -189,7 +189,10 @@ begin
     raise EBold.CreateFmt(sPropagatorHandleNotAssigned, [ClassName]);
   if not ListenerThread.Registered then
   begin
-    ListenerThread.Start;
+    // Suspended := False rather than Start: after a registration failure or
+    // DeactivateListener the thread is started-but-suspended, and Start
+    // raises EThread in that state.
+    ListenerThread.Suspended := False;
     ListenerThread.WaitUntilInitialized;
     if not (fPropagatorHandle.Connected) then
       raise EBold.CreateFmt('%s.StartListenerThread: PropagatorHandle not connected', [ClassName]);

@@ -116,7 +116,10 @@ begin
   TimeOut := 0;
   if Suspended then
   begin
-    Start;
+    // Not Start: InternalStart raises EThread once FCreateSuspended has been
+    // cleared by the first start - Suspended := False resumes in every state
+    // (the pre-5dfe274 Resume semantics).
+    Suspended := False;
     WaitUntilReady(TIMEOUT);
     SwitchToThread;
   end;

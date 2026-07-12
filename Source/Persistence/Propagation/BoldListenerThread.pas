@@ -270,7 +270,7 @@ begin
   begin
     if Suspended then
     begin
-      Start;
+      Suspended := False;  // Start raises EThread on a started-then-suspended thread
       WaitUntilInitialized;
     end;
     UnRegister;

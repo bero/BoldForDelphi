@@ -73,6 +73,7 @@ uses
   Test.BoldIsoDateTime in 'Code\Common\Test.BoldIsoDateTime.pas',
   Test.BoldMD5 in 'Code\ProductControl\Test.BoldMD5.pas',
   Test.BoldThreadSafeQueue in 'Code\Propagator\Test.BoldThreadSafeQueue.pas',
+  Test.BoldThread in 'Code\Common\Test.BoldThread.pas',
   Test.BoldThreadSafeLog in 'Code\Common\Test.BoldThreadSafeLog.pas',
   Test.BoldLogInterfaces in 'Code\Common\Test.BoldLogInterfaces.pas',
   Test.BoldLogHandler in 'Code\Common\Test.BoldLogHandler.pas',

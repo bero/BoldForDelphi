@@ -440,7 +440,9 @@ begin
   begin
     FSenderThread.Terminate;
     FSenderThread.FOwner := nil;
-    FSenderThread.Start;
+    // The sender self-suspends after each queue drain; Start raises EThread
+    // on a started-then-suspended thread. Resume it so it can terminate.
+    FSenderThread.Suspended := False;
   end;
   if Assigned(FClientInterface) and BoldAsynchronousClientCallbackOnServerEvent then
   begin
@@ -547,7 +549,9 @@ begin
   begin
     if BoldAsynchronousClientCallbackOnServerEvent then
     begin
-      SenderThread.Start;
+      // Wake the self-suspended sender; Start raises EThread once the thread
+      // has run and suspended itself after a queue drain.
+      SenderThread.Suspended := False;
     end
     else
     begin
