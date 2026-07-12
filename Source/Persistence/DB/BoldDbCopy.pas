@@ -6,6 +6,7 @@ uses
   Classes,
   System.SysUtils,
   BoldAbstractPersistenceHandleDB,
+  BoldDBInterfaces,
   BoldThreadSafeQueue,
   System.TimeSpan;
 
@@ -38,6 +39,12 @@ type
     procedure DoOnProgress(AProcessedRecords: Integer);
   public
     class function StripControlChars(const s: string): string;
+    // Provider-specific read tuning for the bulk-copy source: streaming
+    // (no full-result buffering), forward-only, read-only, batch-sized
+    // fetches. Public so the tuning is unit-testable per adapter.
+    class procedure TuneSourceConnection(const ADatabase: IBoldDatabase);
+    class procedure TuneSourceQuery(const AQuery: IBoldQuery);
+    class procedure SetSourceFetchRows(const AQuery: IBoldQuery; ARows: Integer);
     procedure Run;
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
@@ -58,15 +65,58 @@ implementation
 uses
   BoldPMappersDefault,
   BoldPSDescriptionsSQL,
-  BoldDBInterfaces,
   BoldDefs,
   Data.DB,
   System.DateUtils,
   System.Character,
+  FireDAC.Comp.Client,
+  FireDAC.Stan.Option,
   Winapi.ActiveX, BoldLogHandler, System.Math
   {$IFDEF UniDAC}, Uni{$ENDIF};
 
 { TBoldDbCopy }
+
+class procedure TBoldDbCopy.TuneSourceConnection(const ADatabase: IBoldDatabase);
+begin
+  {$IFDEF UniDAC}
+  if ADatabase.Implementor is TUniConnection then
+    TUniConnection(ADatabase.Implementor).SpecificOptions.Values['ApplicationIntent'] := 'aiReadOnly';
+  {$ENDIF}
+  // FireDAC understands ApplicationIntent for the MSSQL driver only - an
+  // unknown parameter would fail the connect on other drivers.
+  if (ADatabase.Implementor is TFDConnection) and
+     SameText(TFDConnection(ADatabase.Implementor).DriverName, 'MSSQL') then
+    TFDConnection(ADatabase.Implementor).Params.Values['ApplicationIntent'] := 'ReadOnly';
+end;
+
+class procedure TBoldDbCopy.TuneSourceQuery(const AQuery: IBoldQuery);
+begin
+  {$IFDEF UniDAC}
+  if AQuery.AsDataSet is TUniQuery then
+  begin
+    TUniQuery(AQuery.AsDataSet).SpecificOptions.Values['FetchAll'] := 'false';
+    TUniQuery(AQuery.AsDataSet).SpecificOptions.Values['SQL Server.FetchAll'] := 'false';
+    TUniQuery(AQuery.AsDataSet).UniDirectional := true;
+    TUniQuery(AQuery.AsDataSet).ReadOnly := true;
+  end;
+  {$ENDIF}
+  if AQuery.AsDataSet is TFDQuery then
+  begin
+    TFDQuery(AQuery.AsDataSet).FetchOptions.Mode := fmOnDemand;
+    TFDQuery(AQuery.AsDataSet).FetchOptions.Unidirectional := True;
+    TFDQuery(AQuery.AsDataSet).UpdateOptions.ReadOnly := True;
+  end;
+end;
+
+class procedure TBoldDbCopy.SetSourceFetchRows(const AQuery: IBoldQuery; ARows: Integer);
+begin
+  {$IFDEF UniDAC}
+  if AQuery.AsDataSet is TUniQuery then
+    TUniQuery(AQuery.AsDataSet).FetchRows := ARows;
+  {$ENDIF}
+  if AQuery.AsDataSet is TFDQuery then
+    TFDQuery(AQuery.AsDataSet).FetchOptions.RowsetSize := ARows;
+end;
 
 class function TBoldDbCopy.StripControlChars(const s: string): string;
 begin
@@ -143,10 +193,7 @@ var
         break;
       end;
     end;
-    {$IFDEF UniDAC}
-    if SourceQuery.AsDataSet is TUniQuery then
-      TUniQuery(SourceQuery.AsDataSet).FetchRows := result;
-    {$ENDIF}
+    SetSourceFetchRows(SourceQuery, result);
     sl2.QuoteChar := ' ';
     sl2.StrictDelimiter := false;
     var Values := sl2.DelimitedText;
@@ -165,25 +212,14 @@ begin
   var Values: string;
   var Field: IBoldField;
   var SourceDatabaseInterface := SourcePersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
-  {$IFDEF UniDAC}
-  if SourceDatabaseInterface.Implementor is TUniConnection then
-    TUniConnection(SourceDatabaseInterface.Implementor).SpecificOptions.Values['ApplicationIntent'] := 'aiReadOnly';
-  {$ENDIF}
+  TuneSourceConnection(SourceDatabaseInterface);
   SourceDatabaseInterface.Open;
   // Get the query from the connection tuned above - it was fetched from a
   // separate anonymous connection before, making the read-only tuning dead
   // and mismatching the ReleaseQuery in the finally block.
   SourceQuery := SourceDatabaseInterface.GetQuery;
   SourceQuery.UseReadTransactions := false;
-  {$IFDEF UniDAC}
-  if SourceQuery.AsDataSet is TUniQuery then
-  begin
-    TUniQuery(SourceQuery.AsDataSet).SpecificOptions.Values['FetchAll'] := 'false';
-    TUniQuery(SourceQuery.AsDataSet).SpecificOptions.Values['SQL Server.FetchAll'] := 'false';
-    TUniQuery(SourceQuery.AsDataSet).UniDirectional := true;
-    TUniQuery(SourceQuery.AsDataSet).ReadOnly := true;
-  end;
-  {$ENDIF}
+  TuneSourceQuery(SourceQuery);
   var DatabaseInterface := DestinationPersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
   DatabaseInterface.Open;
   DestinationQuery := DatabaseInterface.GetExecQuery;
@@ -205,10 +241,7 @@ begin
 //      MultiRowInsertLimit := 20;
 //      MaxBatchQueryParams := 10;
       BoldLog.LogHeader := Format('Loading from %s', [SourceTableName]);
-      {$IFDEF UniDAC}
-      if SourceQuery.AsDataSet is TUniQuery then
-        TUniQuery(SourceQuery.AsDataSet).FetchRows := MultiRowInsertLimit;
-      {$ENDIF}
+      SetSourceFetchRows(SourceQuery, MultiRowInsertLimit);
       SourceQuery.SQLText := SelectSql;
       SourceQuery.Open;
       var i,j: integer;
