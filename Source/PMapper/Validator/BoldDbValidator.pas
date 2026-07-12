@@ -64,6 +64,7 @@ type
     procedure Activate;
     procedure Validate; virtual;
     procedure Execute;
+    procedure AddRemedy(const s: string);
     property Remedy: TStringList read GetRemedy;
     property TableQueue: TBoldThreadSafeObjectQueue read fTableQueue;
   published
@@ -80,7 +81,6 @@ type
     fValidator: TBoldDbValidator;
     fBoldDatabase: IBoldDatabase;
     fSystemSQLMapper: TBoldSystemSQLMapper;
-    fRemedyList: TList<String>;
     fPersistenceHandle: TBoldAbstractPersistenceHandleDB;
   protected
     procedure Validate; virtual; abstract;
@@ -148,6 +148,7 @@ begin
   DeActivate;
   if Assigned(FOnComplete) then
     FOnComplete(self);
+  BoldLog.EndLog;  // pairs with StartLog in Execute
 end;
 
 procedure TBoldDbValidator.DoOnLog(const AStatus: string);
@@ -156,15 +157,30 @@ begin
     fOnLog(self, AStatus);
 end;
 
+procedure TBoldDbValidator.AddRemedy(const s: string);
+begin
+  // Called concurrently by up to ThreadCount validator threads - TList<String>
+  // is not thread-safe (racing Adds lose entries and leak the overwritten
+  // string references).
+  TMonitor.Enter(fRemedyList);
+  try
+    fRemedyList.Add(s);
+  finally
+    TMonitor.Exit(fRemedyList);
+  end;
+end;
+
 function TBoldDbValidator.GetRemedy: TStringList;
 begin
   result := fRemedyStrings;
   fRemedyStrings.BeginUpdate;
+  TMonitor.Enter(fRemedyList);  // Remedy may be read while worker threads add
   try
     fRemedyStrings.Clear;
     for var i := 0 to fRemedyList.Count-1 do
       fRemedyStrings.Add(fRemedyList[i]);
   finally
+    TMonitor.Exit(fRemedyList);
     fRemedyStrings.EndUpdate;
   end;
 end;
@@ -337,14 +353,29 @@ end;
 
 procedure TBoldDbValidator.Execute;
 begin
+  // On success the log session is closed by DoOnComplete (validation is
+  // asynchronous); the error paths below must close it themselves - the
+  // pre-threading Execute always paired StartLog with EndLog.
   BoldLog.StartLog(sDBValidation);
   if assigned(PersistenceHandle) then
   begin
-    Activate;
-    Validate;
+    try
+      Activate;
+      Validate;
+    except
+      on e: Exception do
+      begin
+        BoldLog.LogFmt(sDBValidationFailed, [e.message], ltError);
+        BoldLog.EndLog;
+        raise;
+      end;
+    end;
   end
   else
+  begin
     BoldLog.Log(sMissingPSHandle, ltError);
+    BoldLog.EndLog;
+  end;
 end;
 
 function TBoldDbValidator.GetDataBase: IBoldDataBase;
@@ -370,7 +401,7 @@ end;
 
 procedure TBoldDbValidatorThread.AddRemedy(const s: string);
 begin
-  fRemedyList.Add(s);
+  fValidator.AddRemedy(s);
 end;
 
 constructor TBoldDbValidatorThread.Create(AValidator: TBoldDbValidator);
@@ -380,7 +411,6 @@ begin
   Assert(Assigned(AValidator.PersistenceHandle));
   Assert(Assigned(AValidator.PersistenceHandle.DatabaseInterface));
   fValidator := AValidator;
-  fRemedyList := AValidator.fRemedyList;
   fPersistenceHandle := AValidator.PersistenceHandle;
   fSystemSQLMapper := AValidator.SystemSQLMapper;
   Suspended := False;
