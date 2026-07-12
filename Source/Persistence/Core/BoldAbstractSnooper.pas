@@ -370,14 +370,20 @@ var
 begin
   if fEventClassFlags[TopSortedIndex] then
     exit;
+  // Emit bsClassChanged for the class AND every superclass: clients watching
+  // a superclass list contain the changed subclass instances too. The flag is
+  // only set together with an emitted event - marking without emitting made
+  // superclass watchers miss the change and dropped a later direct superclass
+  // change in the same batch via the early-exit above.
   MoldClass := MoldModel.Classes[TopSortedIndex];
-  if not fEventClassFlags[MoldClass.TopSortedIndex] then
-    AddEvent(TBoldObjectSpaceExternalEvent.EncodeExternalEvent(bsClassChanged, MoldClass.ExpandedExpressionName, '', '', nil));
   while assigned(MoldClass) do
   begin
-     if not fEventClassFlags[MoldClass.TopSortedIndex] then
-       fEventClassFlags[MoldClass.TopSortedIndex] := true;
-     MoldClass := MoldClass.SuperClass;
+    if not fEventClassFlags[MoldClass.TopSortedIndex] then
+    begin
+      AddEvent(TBoldObjectSpaceExternalEvent.EncodeExternalEvent(bsClassChanged, MoldClass.ExpandedExpressionName, '', '', nil));
+      fEventClassFlags[MoldClass.TopSortedIndex] := true;
+    end;
+    MoldClass := MoldClass.SuperClass;
   end;
 end;
 
