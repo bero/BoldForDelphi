@@ -2741,8 +2741,12 @@ begin
   case Representation of
     brDefault: SetDataValue(TBoldAnsiString(Value));
     brShort:
-      // Validate content type for typed blobs (JPEG, BMP, etc.)
-      if (Value <> '') and (Value <> ContentType) then
+      // Blobs with a fixed content type (JPEG, BMP, ...) reject mismatches.
+      // A plain TBABlob has no inherent type (ContentType = '') and silently
+      // drops the assignment - the pre-bcadc56 contract ('Content type is
+      // lost when assigned to a Blob'), which Assign relies on when copying
+      // a typed blob into a plain one.
+      if (Value <> '') and (ContentType <> '') and (Value <> ContentType) then
         raise EBold.CreateFmt(sCannotAssignXtoY, [ClassName, Value, ContentType]);
   else
     inherited SetStringRepresentation(Representation, Value);

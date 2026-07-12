@@ -95,6 +95,12 @@ type
     procedure TestBlobContentTypeValidation;
     [Test]
     [Category('Quick')]
+    procedure TestBlobAssignTypedToPlainBlob;
+    [Test]
+    [Category('Quick')]
+    procedure TestBlobContentTypeOnPlainBlobIgnored;
+    [Test]
+    [Category('Quick')]
     procedure TestValueSetValueListFindByText;
     [Test]
     [Category('Quick')]
@@ -957,6 +963,51 @@ begin
     Assert.AreEqual('text/plain', TypedBlob.ContentType, 'TypedBlob content type should be changed');
   finally
     TypedBlob.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestBlobAssignTypedToPlainBlob;
+var
+  Source: TBABlobImageJPEG;
+  Target: TBABlob;
+  DataIn, DataOut: TStringStream;
+begin
+  // Regression for H6 (bcadc56): the content-type validation hoisted into
+  // TBABlob.SetStringRepresentation raises for ANY non-empty type on a plain
+  // blob (its own ContentType is ''), so Assign from a typed blob failed
+  // mid-copy, after LoadFromStream had already run.
+  Source := TBABlobImageJPEG.Create;
+  Target := TBABlob.Create;
+  DataIn := TStringStream.Create('JPEGDATA');
+  DataOut := TStringStream.Create('');
+  try
+    Source.LoadFromStream(DataIn);
+    Target.Assign(Source);
+    Target.SaveToStream(DataOut);
+    Assert.AreEqual('JPEGDATA', DataOut.DataString,
+      'Assign should copy the blob data');
+    Assert.AreEqual('', Target.ContentType,
+      'a plain TBABlob has no inherent content type');
+  finally
+    Source.Free;
+    Target.Free;
+    DataIn.Free;
+    DataOut.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestBlobContentTypeOnPlainBlobIgnored;
+var
+  Blob: TBABlob;
+begin
+  // Pre-bcadc56 contract: 'Content type is lost when assigned to a Blob'.
+  Blob := TBABlob.Create;
+  try
+    Blob.ContentType := 'application/pdf';  // must not raise
+    Assert.AreEqual('', Blob.ContentType,
+      'content type assigned to a plain Blob is silently dropped');
+  finally
+    Blob.Free;
   end;
 end;
 
