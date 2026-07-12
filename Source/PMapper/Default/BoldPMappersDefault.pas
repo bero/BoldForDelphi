@@ -501,6 +501,7 @@ begin
         aOLWNodeMaker.ExternalVarBindings.Clear;
 
         aOCLCondition.RootNode := aOLWNodeMaker.RootNode;
+        aOLWNodeMaker.TransferRootNodeOwnership;
 
         aResultType := aResultEntry.Ocl.BoldType;
         if aResultType is TBoldListTypeInfo then begin

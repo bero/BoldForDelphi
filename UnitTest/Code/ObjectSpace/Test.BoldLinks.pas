@@ -299,6 +299,12 @@ type
     // Even more CanEvaluateInPS — exhaustive SQL node coverage
     [Test]
     [Category('Quick')]
+    procedure TestCanEvaluateInPS_FailedConversionDoesNotLeak;
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_MidExpressionFailureDoesNotLeak;
+    [Test]
+    [Category('Quick')]
     procedure TestCanEvaluateInPS_ForAll;
     [Test]
     [Category('Quick')]
@@ -1864,6 +1870,73 @@ begin
   finally
     ResultList.Free;
   end;
+end;
+
+function CurrentAllocatedBytes: Int64;
+var
+  st: TMemoryManagerState;
+  i: Integer;
+begin
+  GetMemoryManagerState(st);
+  Result := Int64(st.TotalAllocatedMediumBlockSize) + Int64(st.TotalAllocatedLargeBlockSize);
+  for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
+    Result := Result + Int64(st.SmallBlockTypeStates[i].UseableBlockSize) *
+                       Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_FailedConversionDoesNotLeak;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+  i: Integer;
+  BytesBefore, BytesAfter: Int64;
+  CanEvaluate: Boolean;
+const
+  cExpr = 'SomeClass.allInstances->exists(aString = ''x'')';
+begin
+  // Regression for H12: a Boolean-result OCL fails already in
+  // TBoldOLWNodeMaker.create (result must be an object list), yet the visitor
+  // still built the whole OLW tree and nobody freed it - one tree leaked per
+  // CanEvaluateInPS call with untranslatable OCL.
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  CanEvaluate := Sys.CanEvaluateInPS(cExpr, CTI);
+  Assert.IsFalse(CanEvaluate, 'Boolean-result OCL is not PS-evaluatable');
+  for i := 1 to 5 do  // warm up caches (OCL dictionary etc.)
+    Sys.CanEvaluateInPS(cExpr, CTI);
+  BytesBefore := CurrentAllocatedBytes;
+  for i := 1 to 50 do
+    Sys.CanEvaluateInPS(cExpr, CTI);
+  BytesAfter := CurrentAllocatedBytes;
+  Assert.IsTrue(BytesAfter - BytesBefore < 16384,
+    Format('50 failed CanEvaluateInPS calls grew heap by %d bytes - OLW tree leak', [BytesAfter - BytesBefore]));
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_MidExpressionFailureDoesNotLeak;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+  i: Integer;
+  BytesBefore, BytesAfter: Int64;
+  CanEvaluate: Boolean;
+const
+  // oclIsKindOf(String): the String type node fails OLW conversion MID-tree
+  // (inside the operation's argument loop) - the hazardous case where a stale
+  // fRootNode used to be added twice to the same owning list.
+  cExpr = 'SomeClass.allInstances->select(oclIsKindOf(String))';
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  CanEvaluate := Sys.CanEvaluateInPS(cExpr, CTI);
+  Assert.IsFalse(CanEvaluate, 'oclIsKindOf(type) is not PS-evaluatable');
+  for i := 1 to 5 do
+    Sys.CanEvaluateInPS(cExpr, CTI);
+  BytesBefore := CurrentAllocatedBytes;
+  for i := 1 to 50 do
+    Sys.CanEvaluateInPS(cExpr, CTI);
+  BytesAfter := CurrentAllocatedBytes;
+  Assert.IsTrue(BytesAfter - BytesBefore < 16384,
+    Format('50 mid-tree-failure calls grew heap by %d bytes - OLW tree leak', [BytesAfter - BytesBefore]));
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_ForAll;

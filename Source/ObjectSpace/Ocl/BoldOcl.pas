@@ -1158,6 +1158,7 @@ var
     Result := False;
     if Assigned(CurrentOclCondition) then begin
       CurrentOclCondition.RootNode := OLWNodeMaker.RootNode;
+      OLWNodeMaker.TransferRootNodeOwnership;
       ClassTypeInfo := (aResultType as TBoldListTypeInfo).ListElementTypeInfo as TBoldClassTypeInfo;
       CurrentOclCondition.TopSortedIndex := ClassTypeInfo.TopSortedIndex;
       if bNoBlockPSEvaluation then begin

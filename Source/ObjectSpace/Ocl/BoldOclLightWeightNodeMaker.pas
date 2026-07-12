@@ -21,6 +21,7 @@ type
     fFailurePosition: Integer;
     fFailureReason: String;
     fRootNode: TBoldOLWNode;
+    fOwnsRootNode: Boolean;
     fOLWVarBindings: TList;
     fVarBindings: TList;
     fExternalVarBindings: TList;
@@ -51,6 +52,10 @@ type
     procedure VisitTBoldOclVariableReference(N: TBoldOclVariableReference); override;
     procedure VisitTBoldOclTypeNode(N: TBoldOclTypeNode); override;
     function OLWBindingForVarBinding(VarBinding: TBoldOclVariableBinding): TBoldOLWVariableBinding;
+    // Call when a TBoldOclCondition has taken over RootNode - otherwise the
+    // node maker frees the tree in its destructor (it is the only owner on
+    // every failure path).
+    procedure TransferRootNodeOwnership;
     property RootNode: TBoldOLWNode read fRootNode;
     property Failed: Boolean read fFailed;
     property FailureReason: String read fFailureReason;
@@ -80,6 +85,7 @@ begin
   fOclRootNode := OclRootNode;
   fExternalVarBindings := TList.Create;
   fEnv := Env;
+  fOwnsRootNode := True;
   if not (OclRootNode.BoldType is TBoldListTypeInfo) or
      not OclRootNode.BoldType.ConformsTo(SystemTypeInfo.RootClassTypeInfo.ListTypeInfo) then
     begin
@@ -101,7 +107,17 @@ begin
     TObject(fExternalvarBindings[i]).Free;
   FreeAndNil(fExternalvarBindings);
 
+  // On any failure path no condition took the tree over - free it here
+  // (references do not own their bindings, so the order is irrelevant).
+  if fOwnsRootNode then
+    FreeAndNil(fRootNode);
+
   inherited;
+end;
+
+procedure TBoldOLWNodeMaker.TransferRootNodeOwnership;
+begin
+  fOwnsRootNode := False;
 end;
 
 procedure TBoldOLWNodeMaker.SetFailure(Position: integer; const Message: String);
@@ -126,16 +142,22 @@ end;
 
 procedure TBoldOLWNodeMaker.VisitTBoldOclCollectionLIteral(N: TBoldOclCollectionLIteral);
 begin
+  if Failed then
+    exit;
   SetFailure(n.Position, sCollectionLiteralsNotSupported);
 end;
 
 procedure TBoldOLWNodeMaker.VisitTBoldOclEnumLiteral(N: TBoldOclEnumLiteral);
 begin
+  if Failed then
+    exit;
   fRootNode := TBoldOLWEnumLiteral.create(n.Position, n.name);
 end;
 
 procedure TBoldOLWNodeMaker.VisitTBoldOclIntLiteral(N: TBoldOclIntLiteral);
 begin
+  if Failed then
+    exit;
   fRootNode := TBoldOLWIntLiteral.Create(n.Position, n.IntValue);
 end;
 
@@ -144,13 +166,30 @@ var
   OLWIteration: TBoldOLWIteration;
   i: integer;
 begin
+  if Failed then
+    exit;
+  fRootNode := nil;
   n.LoopVar.AcceptVisitor(self);
+  if Failed then
+  begin
+    FreeAndNil(fRootNode);
+    exit;
+  end;
   OLWIteration := TBoldOLWIteration.create(n.Position,
                                            n.OperationName,
                                            RootNode as TBoldOLWVariableBinding);
   for i := 0 to Length(n.Args)-1 do
   begin
+    fRootNode := nil;
     n.Args[i].AcceptVisitor(self);
+    if Failed then
+    begin
+      // The failing child may have left a fresh orphan in fRootNode; earlier
+      // args and the loop var are owned by OLWIteration. Free both exactly once.
+      FreeAndNil(fRootNode);
+      FreeAndNil(OLWIteration);
+      exit;
+    end;
     OLWIteration.Args.Add(RootNode);
   end;
   fRootNode := OLWIteration;
@@ -158,7 +197,15 @@ end;
 
 procedure TBoldOLWNodeMaker.VisitTBoldOclListCoercion(N: TBoldOclListCoercion);
 begin
+  if Failed then
+    exit;
+  fRootNode := nil;
   n.Child.AcceptVisitor(self);
+  if Failed then
+  begin
+    FreeAndNil(fRootNode);
+    exit;
+  end;
   fRootNode := TBoldOLWListCoercion.Create(n.Position, RootNode);
 end;
 
@@ -175,8 +222,16 @@ var
   MainRole, RoleRTInfo: TBoldRoleRTinfo;
   EffectivePersistent: Boolean;
 begin
+  if Failed then
+    exit;
   inherited;
+  fRootNode := nil;
   n.MemberOf.AcceptVisitor(self);
+  if Failed then
+  begin
+    FreeAndNil(fRootNode);
+    exit;
+  end;
   IsBoolean := n.BoldType.ConformsTo(TBoldOCL(n.BoldType.evaluator).BooleanType);
   OLWMember := TBoldOLWMember.Create(n.Position, n.MemberName, n.MemberIndex, RootNode, IsBoolean);
 
@@ -193,13 +248,25 @@ begin
       end;
     end;
     if not EffectivePersistent then
+    begin
       SetFailure(n.Position, Format(sTransientMembersCannoteUsed, [n.RTInfo.ExpressionName]));
+      fRootNode := nil;  // the MemberOf subtree is owned by OLWMember now
+      FreeAndNil(OLWMember);
+      exit;
+    end;
   end;
 
   if assigned(n.Qualifier) then
     for i := 0 to Length(n.Qualifier)-1 do
     begin
+      fRootNode := nil;
       n.Qualifier[i].AcceptVisitor(self);
+      if Failed then
+      begin
+        FreeAndNil(fRootNode);
+        FreeAndNil(OLWMember);
+        exit;
+      end;
       OLWMember.Qualifier.Add(RootNode);
     end;
   fRootNode := OLWMember;
@@ -207,6 +274,8 @@ end;
 
 procedure TBoldOLWNodeMaker.VisitTBoldOclMethod(N: TBoldOclMethod);
 begin
+  if Failed then
+    exit;
   SetFailure(n.Position, sMethodsNotSupported);
 end;
 
@@ -216,6 +285,8 @@ end;
 
 procedure TBoldOLWNodeMaker.VisitTBoldOclNumericLiteral(N: TBoldOclNumericLiteral);
 begin
+  if Failed then
+    exit;
   if n.ClassType = TBoldOclNumericLiteral then
     fRootNode := TBoldOLWFloatLiteral.Create(n.Position, n.FloatValue);
 end;
@@ -231,12 +302,21 @@ var
   ValueSet: TBAValueSet;
   ValueSetValue: TBAValueSetValue;
 begin
+  if Failed then
+    exit;
   if n.ClassType = TBoldOclOperation then
   begin
     OLWOperation := TBoldOLWOperation.create(n.Position, n.OperationName);
     for i := 0 to Length(n.Args)-1 do
     begin
+      fRootNode := nil;
       n.Args[i].AcceptVisitor(self);
+      if Failed then
+      begin
+        FreeAndNil(fRootNode);
+        FreeAndNil(OLWOperation);
+        exit;
+      end;
       OLWOperation.Args.Add(RootNode);
     end;
     fRootNode := OLWOperation;
@@ -304,12 +384,16 @@ end;
 
 procedure TBoldOLWNodeMaker.VisitTBoldOclStrLiteral(N: TBoldOclStrLiteral);
 begin
+  if Failed then
+    exit;
   inherited;
   fRootNode := TBoldOLWStrLiteral.Create(n.Position, n.StrValue);
 end;
 
 procedure TBoldOLWNodeMaker.VisitTBoldOclTypeNode(N: TBoldOclTypeNode);
 begin
+  if Failed then
+    exit;
   if n.Value is TBoldClassTypeInfo then
     fRootNode := TBoldOLWTypeNode.Create(n.Position, N.typeName, (n.Value as TBoldClassTypeInfo).TopSortedIndex)
   else
@@ -322,6 +406,8 @@ var
   VarBind: TBoldOLWVariableBinding;
   Obj: TBoldObject;
 begin
+  if Failed then
+    exit;
   if not assigned(n.Value) and (n.BoldType is TBoldAttributeTypeInfo) then
   begin
     VarBind := TBoldOLWVariableBinding.Create(N.Position, n.VariableName, -1);
@@ -374,11 +460,19 @@ procedure TBoldOLWNodeMaker.VisitTBoldOclVariableReference(N: TBoldOclVariableRe
 var
   VarBind: TBoldOLWVariableBinding;
 begin
+  if Failed then
+    exit;
   VarBind := OLWBindingForVarBinding(n.VariableBinding);
 
   if not assigned(VarBind) then
   begin
+    fRootNode := nil;
     n.VariableBinding.AcceptVisitor(self);
+    if Failed then
+    begin
+      FreeAndNil(fRootNode);  // binding created on the failure branch is not in any list
+      exit;
+    end;
     VarBind := RootNode as TBoldOLWVariableBinding;
     ExternalVarBindings.Add(VarBind);
   end;
@@ -389,12 +483,16 @@ end;
 procedure TBoldOLWNodeMaker.VisitTBoldOclDateLiteral(
   N: TBoldOclDateLiteral);
 begin
+  if Failed then
+    exit;
   fRootNode := TBoldOLWDateLiteral.Create(n.Position, n.DateValue);
 end;
 
 procedure TBoldOLWNodeMaker.VisitTBoldOclTimeLiteral(
   N: TBoldOclTimeLiteral);
 begin
+  if Failed then
+    exit;
   fRootNode := TBoldOLWTimeLiteral.Create(n.Position, n.TimeValue);
 end;
 
