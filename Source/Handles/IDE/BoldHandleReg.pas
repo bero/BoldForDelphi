@@ -88,6 +88,7 @@ begin
     TBoldSQLHandle,
     TBoldRawSQLHandle,
     TBoldCursorHandle,
+    TBoldFilteredHandle,
     TBoldReferenceHandle,
     TBoldOclVariables,
     TBoldUnloaderHandle

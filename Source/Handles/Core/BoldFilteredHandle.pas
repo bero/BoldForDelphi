@@ -42,6 +42,7 @@ type
   end;
 
   { TBoldFilteredHandle }
+  [ComponentPlatforms(pidWin32 or pidWin64)]
   TBoldFilteredHandle = class(TBoldRootedHandle)
   private
     FBoldFilter: TBoldFilter;
@@ -49,7 +50,8 @@ type
   protected
     procedure DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber); override;
     function GetStaticBoldType: TBoldElementTypeInfo; override;
-  public
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  published
     property BoldFilter: TBoldFilter read FBoldFilter write SetBoldFilter;
   end;
 
@@ -200,11 +202,20 @@ begin
     Result := TBoldSystemTypeInfo(SRType.SystemTypeInfo).ListTypeInfoByElement[SRType];
 end;
 
+procedure TBoldFilteredHandle.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = fBoldFilter) then
+    fBoldFilter := nil;
+end;
+
 procedure TBoldFilteredHandle.SetBoldFilter(NewValue: TBoldFilter);
 begin
   if NewValue <> fBoldFilter then
   begin
     FBoldFilter := NewValue;
+    if Assigned(FBoldFilter) then
+      FBoldFilter.FreeNotification(Self);
     MarkSubscriptionOutOfdate;
   end;
 end;
