@@ -623,6 +623,24 @@ type
     procedure TestTrackerStopTracking;
   end;
 
+  // Uses the SQLite-backed BoldTestDM: the dirty list is only maintained on a
+  // persistent system (MarkObjectDirty is a no-op without a persistence
+  // controller), so these tests cannot run on TjehodmBoldTest.
+  [TestFixture]
+  [Category('ObjectSpace')]
+  TTestBoldSystemDirtyObjectsPersistent = class
+  private
+    function GetSystem: TBoldSystem;
+  public
+    [SetupFixture]
+    procedure SetUpFixture;
+    [TearDownFixture]
+    procedure TearDownFixture;
+
+    [Test]
+    procedure TestDirtyObjectsByClassTypeInfoIncludesSubclasses;
+  end;
+
   [TestFixture]
   [Category('ObjectSpace')]
   TTestBoldObjectLifecycle = class
@@ -721,6 +739,8 @@ implementation
 uses
   SysUtils,
   dmModel1,
+  dmBoldTest,
+  BoldTestModel,
   BoldObjectRepresentationJson;
 
 { TTestBoldSystem }
@@ -3371,10 +3391,10 @@ var
   SystemHandle2: TBoldSystemHandle;
   A1, A2: TestModel1.TClassA;
 begin
-  // Regression for M2: TBoldObjectList.CheckAdd/CheckReplace reject a locator
-  // from another TBoldSystem, but the single-reference side never did - a
-  // cross-system assignment stores a locator whose ID belongs to the other
-  // system's database (foreign-ID link corruption when persisted).
+  // TBoldObjectList.CheckAdd/CheckReplace reject a locator from another
+  // TBoldSystem, but the single-reference side never did - a cross-system
+  // assignment stores a locator whose ID belongs to the other system's
+  // database (foreign-ID link corruption when persisted).
   SystemHandle2 := TBoldSystemHandle.Create(nil);
   try
     SystemHandle2.SystemTypeInfoHandle := FSystemTypeInfoHandle;
@@ -4183,8 +4203,55 @@ begin
   end;
 end;
 
+{ TTestBoldSystemDirtyObjectsPersistent }
+
+procedure TTestBoldSystemDirtyObjectsPersistent.SetUpFixture;
+begin
+  EnsureBoldTestDM;
+end;
+
+procedure TTestBoldSystemDirtyObjectsPersistent.TearDownFixture;
+begin
+  CloseBoldTestDM;
+end;
+
+function TTestBoldSystemDirtyObjectsPersistent.GetSystem: TBoldSystem;
+begin
+  Result := BoldTestDM.BoldSystemHandle1.System;
+end;
+
+procedure TTestBoldSystemDirtyObjectsPersistent.TestDirtyObjectsByClassTypeInfoIncludesSubclasses;
+var
+  Book: TBook;
+  DirtyList: TBoldObjectList;
+  RootTypeInfo: TBoldClassTypeInfo;
+begin
+  GetSystem.Discard;
+  try
+    // A new object is dirty. Querying the dirty list by a superclass type
+    // info must include instances of subclasses - the TBoldClassTypeInfo
+    // overload of GetDirtyObjectsAsBoldList compared BoldType with '='
+    // (exact class only), so dirty subclass instances were omitted, while
+    // the TBoldObjectClass overload uses 'is' and includes them.
+    Book := TBook.Create(GetSystem);
+
+    RootTypeInfo := GetSystem.BoldSystemTypeInfo.RootClassTypeInfo;
+    DirtyList := GetSystem.DirtyObjectsAsBoldListByClassTypeInfo[RootTypeInfo];
+    try
+      Assert.IsTrue(DirtyList.Includes(Book),
+        'dirty subclass instance must be included when querying by a superclass type info');
+      Assert.AreEqual(1, DirtyList.Count, 'exactly the one dirty object expected');
+    finally
+      DirtyList.Free;
+    end;
+  finally
+    GetSystem.Discard;
+  end;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldSystem);
+  TDUnitX.RegisterTestFixture(TTestBoldSystemDirtyObjectsPersistent);
   TDUnitX.RegisterTestFixture(TTestBoldObjectReference);
   TDUnitX.RegisterTestFixture(TTestBoldSystemTransactions);
   TDUnitX.RegisterTestFixture(TTestBoldDirtyObjectTracker);

@@ -2703,7 +2703,7 @@ begin
   result.SubscribeToObjectsInList := false;
   with result.ObjectListController, GetDirtyObjects do
     for I := 0 to Count - 1 do
-      if TBoldObject(Items[i]).BoldType = AClassType then
+      if TBoldObject(Items[i]).BoldClassTypeInfo.BoldIsA(AClassType) then
         AddLocator(TBoldObject(Items[i]).BoldObjectLocator);
   result.DuplicateMode := bldmMerge;
 end;
