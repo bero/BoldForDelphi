@@ -21,6 +21,7 @@ uses
   BoldPersistenceHandle,
   BoldPersistenceHandleDB,
   BoldTestModel,
+  BoldTestDatabaseConfig,
   maan_UndoRedoBase,
   maan_UndoRedoTestCaseUtils;
 
@@ -268,6 +269,12 @@ type
     [Test]
     [Category('Quick')]
     procedure TestCanEvaluateInPS_MultiNavigation;
+    // Regression for silent-exit nil guards (b3ef672): when the SQL node
+    // pipeline cannot resolve the iteration's Symbol/ObjectMapper,
+    // CanEvaluateInPS must return False - not a false True
+    [Test]
+    [Category('Quick')]
+    procedure TestCanEvaluateInPS_CollectRole_NoFalsePositive;
     [Test]
     [Category('Quick')]
     procedure TestCanEvaluateInPS_Exists;
@@ -1749,6 +1756,24 @@ begin
   // collect(role) can't be translated to SQL — should return False, not crash
   Sys.CanEvaluateInPS('self.child->collect(parent)', CTI);
   Assert.Pass('Multi-navigation OCL-to-SQL executed');
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_CollectRole_NoFalsePositive;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+  CanEvaluate: Boolean;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  CanEvaluate := Sys.CanEvaluateInPS('self.child->collect(parent)', CTI);
+  if SameText(GetTestDatabaseEngine, 'SQLite') then
+    // On SQLite the iteration's ObjectMapper never resolves. A True answer
+    // here means the generator silently skipped the collect node - the same
+    // silent skip on the fetch path produces SQL missing the constraint.
+    Assert.IsFalse(CanEvaluate, 'collect(parent) is not translatable to SQL on SQLite - True is a false positive')
+  else
+    Assert.IsTrue(CanEvaluate, 'collect(parent) should be translatable on ' + GetTestDatabaseEngine);
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_Exists;

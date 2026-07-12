@@ -80,7 +80,7 @@ var
   i: integer;
 begin
   if not Assigned(n.Symbol) or not Assigned(n.ObjectMapper) then
-    exit;
+    raise EBold.CreateFmt('InPs iteration ''%s'' is unresolved (missing Symbol or ObjectMapper), cannot generate SQL.', [n.OperationName]);
 
   n.Args[0].AcceptVisitor(self);
   n.LoopVar.Acceptvisitor(self);

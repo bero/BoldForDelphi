@@ -103,10 +103,11 @@ begin
 
   n.Symbol := FindSymbolByName(n.OperationName);
   if not Assigned(n.Symbol) then
-    exit;
+    raise EBold.CreateFmt('InPs SQLSymbol ''%s'' not found, possibly not available for InPs evaluation.', [n.OperationName]);
+
   n.ObjectMapper := n.Symbol.ResolveObjectMapper(n);
   if not Assigned(n.ObjectMapper) then
-    exit;
+    raise EBold.CreateFmt('InPs iteration ''%s'': ObjectMapper could not be resolved, possibly not available for InPs evaluation.', [n.OperationName]);
 
   n.LoopVar.ObjectMapper := n.ObjectMapper;
   n.LoopVar.AcceptVisitor(self);
