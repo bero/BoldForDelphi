@@ -2297,6 +2297,9 @@ begin
   FreeAndNil(fMembersReadDuringDerivation);
 {$ENDIF}
   BoldSystemDeActivated(self);
+  // A subscriber reacting to teardown events above may have evaluated OCL,
+  // which recreates fEvaluator through GetEvaluator; free it again or it leaks.
+  FreeAndNil(fEvaluator);
   inherited Destroy;
 end;
 
@@ -2979,7 +2982,15 @@ end;
 function TBoldSystem.GetEvaluator: TBoldEvaluator;
 begin
   if not assigned(fEvaluator) then
+  begin
+{$IFDEF DEBUG}
+    // Evaluating OCL against a system under destruction is a subscriber bug;
+    // the assert names the culprit via its call stack. Release builds recover:
+    // Destroy frees a recreated evaluator again at the end.
+    Assert(not IsDestroying, 'TBoldSystem.GetEvaluator: evaluator recreated while system is being destroyed');
+{$ENDIF}
     fEvaluator := TBoldOcl.Create(BoldSystemTypeINfo, self);
+  end;
   result := fEvaluator;
 end;
 
