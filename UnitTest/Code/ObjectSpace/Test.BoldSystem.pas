@@ -33,7 +33,13 @@ type
   TTestBoldSystem = class
   private
     FDataModule: TjehodmBoldTest;
+    FSystemBeingDestroyed: TBoldSystem;
+    FTeardownEventReceived: Boolean;
+    FDebugAssertFired: Boolean;
+    FEvaluatorRecreatedDuringDestroy: Boolean;
     function GetSystem: TBoldSystem;
+    procedure HandleEvaluatorDuringTeardown(Originator: TObject;
+      OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
   public
     [Setup]
     procedure SetUp;
@@ -546,6 +552,11 @@ type
     [Test]
     [Category('Quick')]
     procedure TestMemberDisplayName;
+
+    // Evaluator requested by a subscriber during system teardown
+    [Test]
+    [Category('Quick')]
+    procedure TestEvaluatorRequestDuringTeardownDoesNotLeak;
   end;
 
   [TestFixture]
@@ -3358,6 +3369,72 @@ begin
   Assert.IsNotEmpty(Obj.M_aString.DisplayName, 'Member DisplayName should not be empty');
   Assert.IsTrue(Pos('aString', Obj.M_aString.DisplayName) > 0,
     'DisplayName should contain member name');
+end;
+
+procedure TTestBoldSystem.HandleEvaluatorDuringTeardown(Originator: TObject;
+  OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
+var
+  Evaluator: TBoldEvaluator;
+begin
+  // beDestroying arrives when the object's publisher is freed. Only the
+  // delivery that happens inside TBoldSystem.Destroy (IsDestroying = True)
+  // reproduces the shutdown scenario; ignore any earlier deliveries.
+  if (OriginalEvent = beDestroying) and Assigned(FSystemBeingDestroyed) and
+     FSystemBeingDestroyed.IsDestroying then
+  begin
+    FTeardownEventReceived := True;
+    try
+      // A subscriber evaluating OCL against the dying system boils down to
+      // this property read: it reaches TBoldSystem.GetEvaluator, which used
+      // to silently recreate fEvaluator after Destroy had already freed it,
+      // leaking the new TBoldOcl at shutdown.
+      Evaluator := FSystemBeingDestroyed.Evaluator;
+      FEvaluatorRecreatedDuringDestroy := Assigned(Evaluator);
+    except
+      on EAssertionFailed do
+        // DEBUG builds guard the recreation with an assert that names the
+        // culprit subscriber via its call stack.
+        FDebugAssertFired := True;
+    end;
+  end;
+end;
+
+procedure TTestBoldSystem.TestEvaluatorRequestDuringTeardownDoesNotLeak;
+var
+  Obj: TClassA;
+  Subscriber: TBoldPassthroughSubscriber;
+begin
+  FSystemBeingDestroyed := GetSystem;
+  FTeardownEventReceived := False;
+  FDebugAssertFired := False;
+  FEvaluatorRecreatedDuringDestroy := False;
+
+  Obj := TClassA.Create(GetSystem);
+  Subscriber := TBoldPassthroughSubscriber.Create(HandleEvaluatorDuringTeardown);
+  try
+    // The publisher of Obj is freed by UnloadBoldObject inside
+    // TBoldSystem.Destroy, delivering beDestroying while IsDestroying = True.
+    Obj.AddSmallSubscription(Subscriber, [beDestroying], beDestroying);
+
+    FDataModule.BoldSystemHandle1.Active := False; // destroys the TBoldSystem
+
+    Assert.IsTrue(FTeardownEventReceived,
+      'Subscriber should receive beDestroying while the system is being destroyed');
+{$IFDEF DEBUG}
+    Assert.IsTrue(FDebugAssertFired,
+      'DEBUG builds must assert when the evaluator is requested during teardown, ' +
+      'so the culprit subscriber is named by its call stack');
+    Assert.IsFalse(FEvaluatorRecreatedDuringDestroy,
+      'The assert should fire before the evaluator is recreated');
+{$ELSE}
+    Assert.IsTrue(FEvaluatorRecreatedDuringDestroy,
+      'Release builds recreate the evaluator; TBoldSystem.Destroy frees it ' +
+      'again at the end so it must not leak (verified by FastMM at shutdown)');
+{$ENDIF}
+  finally
+    Subscriber.Free;
+    FSystemBeingDestroyed := nil;
+  end;
 end;
 
 { TTestBoldObjectReference }
