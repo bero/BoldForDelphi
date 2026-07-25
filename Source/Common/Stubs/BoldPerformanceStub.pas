@@ -1,4 +1,4 @@
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldPerformanceStub;
 
@@ -34,7 +34,9 @@ end;
 
 function TPerformanceMeasurement.AcceptableTimeForSmallComputation: Boolean;
 begin
-  Result := False; // Never log
+  // Callers ask this as "if not Acceptable then <log>", so True is the answer
+  // that keeps the stub silent.
+  Result := True;
 end;
 
 procedure TPerformanceMeasurement.Trace;

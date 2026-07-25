@@ -66,6 +66,13 @@ type
     [Test]
     [Category('Quick')]
     procedure TestListHandleCurrentBoldObject;
+
+    // The tests above all use the handle streamed from the DFM, which starts
+    // out disabled and therefore never derives while it is being constructed.
+    // A handle constructed in code starts enabled, so its constructor derives.
+    [Test]
+    [Category('Quick')]
+    procedure TestListHandleCreatedInCode;
   end;
 
 implementation
@@ -229,6 +236,19 @@ begin
   Assert.AreEqual(0, GetListHandle.CurrentIndex, 'Should be at first');
   GetListHandle.Last;
   Assert.AreEqual(1, GetListHandle.CurrentIndex, 'Should be at last');
+end;
+
+procedure TTestBoldListHandle.TestListHandleCreatedInCode;
+var
+  Handle: TBoldListHandle;
+begin
+  Handle := TBoldListHandle.Create(nil);
+  try
+    Assert.IsNotNull(Handle, 'A list handle must be constructible in code');
+    Assert.AreEqual(0, Handle.Count, 'A handle without a root handle holds no elements');
+  finally
+    Handle.Free;
+  end;
 end;
 
 initialization

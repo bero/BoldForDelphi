@@ -1273,8 +1273,6 @@ var
   Tuple: TBoldVariableTuple;
 begin
   // Covers SetBoldHandle subscription management and Changed notification
-  // Note: bare TBoldListHandle.Create(nil) AVs on BoldSystem access, so we
-  // test handle switching using the pre-initialized data module handle
   OclVars := TBoldOclVariables.Create(nil);
   try
     Tuple := OclVars.AddVariable('myVar', FDataModule.BoldListHandle1);
