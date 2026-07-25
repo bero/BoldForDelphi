@@ -60,7 +60,9 @@ begin
   fListElement := TBoldIndirectElement.Create;
   fListSubscriber := TBoldPassThroughSubscriber.Create(_ReceiveFromList);
   fCurrentIndex := -1;
-  AutoFirst := True;
+  // Set the field rather than the property: the setter would derive the list,
+  // and a handle under construction has no root handle to derive from yet.
+  fAutoFirst := True;
 end;
 
 procedure TBoldCursorhandle.DeriveAndSubscribe(DerivedObject: TObject;

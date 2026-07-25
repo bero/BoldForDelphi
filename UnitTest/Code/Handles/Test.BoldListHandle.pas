@@ -73,13 +73,37 @@ type
     [Test]
     [Category('Quick')]
     procedure TestListHandleCreatedInCode;
+    [Test]
+    [Category('Quick')]
+    procedure TestListHandleConstructionDoesNotDerive;
   end;
 
 implementation
 
 uses
   SysUtils,
+  BoldSubscription,
   BoldDefs;
+
+type
+  // Counts derivations so a test can show whether a handle derives while it
+  // is still being constructed.
+  TDeriveCountingListHandle = class(TBoldListHandle)
+  private
+    fDeriveCount: Integer;
+  protected
+    procedure DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber); override;
+  public
+    property DeriveCount: Integer read fDeriveCount;
+  end;
+
+{ TDeriveCountingListHandle }
+
+procedure TDeriveCountingListHandle.DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+begin
+  Inc(fDeriveCount);
+  inherited;
+end;
 
 { TTestBoldListHandle }
 
@@ -246,6 +270,21 @@ begin
   try
     Assert.IsNotNull(Handle, 'A list handle must be constructible in code');
     Assert.AreEqual(0, Handle.Count, 'A handle without a root handle holds no elements');
+  finally
+    Handle.Free;
+  end;
+end;
+
+procedure TTestBoldListHandle.TestListHandleConstructionDoesNotDerive;
+var
+  Handle: TDeriveCountingListHandle;
+begin
+  // A handle has no root handle yet while it is being constructed, so a
+  // derivation started from the constructor can only produce an empty list.
+  Handle := TDeriveCountingListHandle.Create(nil);
+  try
+    Assert.AreEqual(0, Handle.DeriveCount,
+      'Construction must not derive before the handle is fully built');
   finally
     Handle.Free;
   end;
