@@ -652,6 +652,28 @@ type
     procedure TestDirtyObjectsByClassTypeInfoIncludesSubclasses;
   end;
 
+  // Uses the SQLite-backed BoldTestDM: UpdateDatabase fires PreUpdate
+  // subscribers before object destruction is delayed, so a subscriber that
+  // deletes a never-persisted object from the batch frees it immediately,
+  // leaving a locator with a nil BoldObject in the already-filtered update
+  // list.
+  [TestFixture]
+  [Category('ObjectSpace')]
+  TTestBoldSystemPreUpdatePersistent = class
+  private
+    fObjectToDelete: TBoldObject;
+    function GetSystem: TBoldSystem;
+    procedure DeletePendingObjectOnPreUpdate(Sender: TObject);
+  public
+    [SetupFixture]
+    procedure SetUpFixture;
+    [TearDownFixture]
+    procedure TearDownFixture;
+
+    [Test]
+    procedure TestPreUpdateSubscriberDeletesNewObjectInBatch;
+  end;
+
   [TestFixture]
   [Category('ObjectSpace')]
   TTestBoldObjectLifecycle = class
@@ -4326,9 +4348,64 @@ begin
   end;
 end;
 
+{ TTestBoldSystemPreUpdatePersistent }
+
+procedure TTestBoldSystemPreUpdatePersistent.SetUpFixture;
+begin
+  EnsureBoldTestDM;
+end;
+
+procedure TTestBoldSystemPreUpdatePersistent.TearDownFixture;
+begin
+  CloseBoldTestDM;
+end;
+
+function TTestBoldSystemPreUpdatePersistent.GetSystem: TBoldSystem;
+begin
+  Result := BoldTestDM.BoldSystemHandle1.System;
+end;
+
+procedure TTestBoldSystemPreUpdatePersistent.DeletePendingObjectOnPreUpdate(Sender: TObject);
+begin
+  if Assigned(fObjectToDelete) then
+  begin
+    fObjectToDelete.Delete;
+    fObjectToDelete := nil;
+  end;
+end;
+
+procedure TTestBoldSystemPreUpdatePersistent.TestPreUpdateSubscriberDeletesNewObjectInBatch;
+var
+  SavedBook: TBook;
+begin
+  GetSystem.Discard;
+  SavedBook := TBook.Create(GetSystem);
+  fObjectToDelete := TBook.Create(GetSystem);
+  GetSystem.OnPreUpdate := DeletePendingObjectOnPreUpdate;
+  try
+    // Deleting a never-persisted object frees it on the spot, so the update
+    // batch holds a locator whose BoldObject is nil from this point on. The
+    // update must still complete and save the surviving object.
+    GetSystem.UpdateDatabase;
+    Assert.IsFalse(SavedBook.BoldDirty,
+      'surviving object must be saved when a PreUpdate subscriber deletes a batch sibling');
+  finally
+    GetSystem.OnPreUpdate := nil;
+    fObjectToDelete := nil;
+    if SavedBook.BoldObjectIsNew then
+      GetSystem.Discard
+    else
+    begin
+      SavedBook.Delete;
+      GetSystem.UpdateDatabase;
+    end;
+  end;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldSystem);
   TDUnitX.RegisterTestFixture(TTestBoldSystemDirtyObjectsPersistent);
+  TDUnitX.RegisterTestFixture(TTestBoldSystemPreUpdatePersistent);
   TDUnitX.RegisterTestFixture(TTestBoldObjectReference);
   TDUnitX.RegisterTestFixture(TTestBoldSystemTransactions);
   TDUnitX.RegisterTestFixture(TTestBoldDirtyObjectTracker);
