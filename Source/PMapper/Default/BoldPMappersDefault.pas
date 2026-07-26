@@ -1126,10 +1126,18 @@ var
     aQuery.Params.EndUpdate;
     aQuery.SQLStrings.EndUpdate;
 //    aQuery.ParamCheck := true;
-    aQuery.ExecSQL;
-    aQuery.Params.BeginUpdate;
-    aQuery.SQLStrings.BeginUpdate;
+    try
+      aQuery.ExecSQL;
+    finally
+      // Restore update mode even when ExecSQL raises: the caller's finally
+      // calls EndUpdate unconditionally, and an unbalanced (negative) update
+      // count on the pooled query suppresses the TStrings change notifications
+      // the DB layer needs - later UpdateDatabase calls would then execute
+      // stale SQL and report success without writing anything.
+      aQuery.Params.BeginUpdate;
+      aQuery.SQLStrings.BeginUpdate;
 //    aQuery.ParamCheck := false;
+    end;
     aQuery.Params.Clear;
     aQuery.AssignSQL(SQL);
     Row := 0;

@@ -51,6 +51,9 @@ type
 
     [Test]
     procedure TestFailedInsertDoesNotLeakPerTableLists;
+
+    [Test]
+    procedure TestRepeatedFailedUpdateNeverReportsSilentSuccess;
   end;
 
 implementation
@@ -181,10 +184,7 @@ begin
   dmUndoRedo.FDConnection1.ExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
 
   // Warm-up: two failing attempts get the query pool and FireDAC error
-  // machinery allocated. NOTE: only the first 4 attempts raise at all - after
-  // that the broken error path leaves the pooled exec query corrupted and
-  // UpdateDatabase reports success without writing anything, so the
-  // measurement window below must stay inside the first 4 attempts.
+  // machinery allocated.
   Assert.WillRaiseAny(
     procedure
     begin
@@ -212,6 +212,43 @@ begin
   Assert.IsTrue(BytesAfter - BytesBefore < 400,
     Format('2 failed PMCreate calls grew heap by %d bytes - per-table MemberPMList/SQL leak on the error path',
       [BytesAfter - BytesBefore]));
+end;
+
+procedure TTestBoldPMCreateErrorPath.TestRepeatedFailedUpdateNeverReportsSilentSuccess;
+var
+  Sys: TBoldSystem;
+  ObjectMapper: TBoldObjectSQLMapper;
+  Attempt: Integer;
+  Raised: Boolean;
+begin
+  // When PMCreate's INSERT fails, the exception path leaves the pooled exec
+  // query with a negative TStrings update count, so FireDAC stops receiving
+  // SQL change notifications. After enough failed attempts UpdateDatabase
+  // executes a stale/empty command, reports success and marks the dirty
+  // objects clean - without writing anything. Every attempt while the table
+  // is missing must keep raising and keep the system dirty.
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  ObjectMapper := dmUndoRedo.BoldPersistenceHandleDB1.PersistenceControllerDefault.PersistenceMapper.
+    ObjectPersistenceMappers[Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'].TopSortedIndex]
+    as TBoldObjectSQLMapper;
+
+  TSomeClass.Create(Sys);
+  // Sabotage the schema so PMCreate's INSERT fails
+  dmUndoRedo.FDConnection1.ExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
+
+  for Attempt := 1 to 6 do
+  begin
+    Raised := False;
+    try
+      dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+    except
+      Raised := True;
+    end;
+    Assert.IsTrue(Raised,
+      Format('attempt %d: UpdateDatabase must keep raising while the table is missing', [Attempt]));
+    Assert.IsTrue(Sys.BoldDirty,
+      Format('attempt %d: system must stay dirty after a failed UpdateDatabase', [Attempt]));
+  end;
 end;
 
 initialization
