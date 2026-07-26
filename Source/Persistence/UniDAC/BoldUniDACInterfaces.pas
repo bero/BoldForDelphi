@@ -1137,6 +1137,13 @@ begin
     lBoldUniDACQuery.SQLStrings.EndUpdate;
   while TCollectionAccess(lBoldUniDACQuery.Params).UpdateCount > 0 do
     lBoldUniDACQuery.Params.EndUpdate;
+  // Repair negative update counts too: below zero no change notification
+  // ever fires again, so the cached query would silently execute stale SQL
+  // for its next user.
+  while TStringsAccess(lBoldUniDACQuery.SQLStrings).UpdateCount < 0 do
+    lBoldUniDACQuery.SQLStrings.BeginUpdate;
+  while TCollectionAccess(lBoldUniDACQuery.Params).UpdateCount < 0 do
+    lBoldUniDACQuery.Params.BeginUpdate;
   Query := nil;
   if not Assigned(fCachedQuery1) and not (csDestroying in UniConnection.ComponentState) then
     fCachedQuery1 := lBoldUniDACQuery
@@ -1162,6 +1169,13 @@ begin
     lBoldUniDACExecQuery.SQLStrings.EndUpdate;
   while TCollectionAccess(lBoldUniDACExecQuery.Params).UpdateCount > 0 do
     lBoldUniDACExecQuery.Params.EndUpdate;
+  // Repair negative update counts too: below zero no change notification
+  // ever fires again, so the cached query would silently execute stale SQL
+  // for its next user.
+  while TStringsAccess(lBoldUniDACExecQuery.SQLStrings).UpdateCount < 0 do
+    lBoldUniDACExecQuery.SQLStrings.BeginUpdate;
+  while TCollectionAccess(lBoldUniDACExecQuery.Params).UpdateCount < 0 do
+    lBoldUniDACExecQuery.Params.BeginUpdate;
   Query := nil;
   if not Assigned(fCachedExecQuery1) and not (csDestroying in UniConnection.ComponentState) then
     fCachedExecQuery1 := lBoldUniDACExecQuery

@@ -1,4 +1,4 @@
-unit Test.PersistenceFireDAC;
+﻿unit Test.PersistenceFireDAC;
 
 {******************************************************************************}
 {                                                                              }
@@ -161,6 +161,9 @@ type
     [Test]
     [Category('DB')]
     procedure TestQueryRowsAffected;
+    [Test]
+    [Category('DB')]
+    procedure TestReleaseExecQueryNormalizesBrokenUpdateCount;
   end;
 
 implementation
@@ -2098,6 +2101,74 @@ begin
       DbInterface.ReleaseExecQuery(ExecQuery);
     end;
 
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestReleaseExecQueryNormalizesBrokenUpdateCount;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  ExecQuery: IBoldExecQuery;
+  Query: IBoldQuery;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+    Connection.ExecSQL('DROP TABLE IF EXISTS Bold_PoolTest');
+    Connection.ExecSQL('DROP TABLE IF EXISTS Bold_PoolWarm');
+    Connection.ExecSQL('CREATE TABLE Bold_PoolWarm (ID INT)');
+
+    // Simulate a caller whose exception path called EndUpdate more often than
+    // BeginUpdate before releasing the query. Below zero the TStrings update
+    // count never crosses zero again, so the change notifications FireDAC
+    // needs to sync SQL into its prepared command stop firing - the query
+    // keeps executing whatever it ran last. The pool must repair this instead
+    // of handing the corrupted query to the next user.
+    ExecQuery := DbInterface.GetExecQuery;
+    // Warm the query: a successful execute leaves a prepared command behind
+    ExecQuery.AssignSQLText('DELETE FROM Bold_PoolWarm');
+    ExecQuery.ExecSQL;
+    ExecQuery.SQLStrings.EndUpdate;
+    ExecQuery.SQLStrings.EndUpdate;
+    ExecQuery.SQLStrings.EndUpdate;
+    ExecQuery.SQLStrings.EndUpdate;
+    ExecQuery.Params.EndUpdate;
+    ExecQuery.Params.EndUpdate;
+    ExecQuery.Params.EndUpdate;
+    ExecQuery.Params.EndUpdate;
+    DbInterface.ReleaseExecQuery(ExecQuery);
+
+    // The single-slot cache of this fresh connection returns the same instance
+    ExecQuery := DbInterface.GetExecQuery;
+    try
+      ExecQuery.AssignSQLText('CREATE TABLE Bold_PoolTest (ID INT)');
+      ExecQuery.ExecSQL;
+    finally
+      DbInterface.ReleaseExecQuery(ExecQuery);
+    end;
+
+    Query := DbInterface.GetQuery;
+    try
+      Query.SQLText := 'SELECT COUNT(*) FROM Bold_PoolTest';
+      Query.Open;
+      Assert.AreEqual(0, Query.Fields[0].AsInteger,
+        'CREATE TABLE from the re-acquired pooled query must have reached the database');
+      Query.Close;
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    Connection.ExecSQL('DROP TABLE Bold_PoolTest');
+    Connection.ExecSQL('DROP TABLE Bold_PoolWarm');
     DbInterface.Close;
   finally
     Adapter.Free;

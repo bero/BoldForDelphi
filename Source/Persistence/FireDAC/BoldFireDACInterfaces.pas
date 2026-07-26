@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldFireDACInterfaces;
@@ -1014,6 +1014,13 @@ begin
       lBoldFireDACQuery.SQLStrings.EndUpdate;
     while TCollectionAccess(lBoldFireDACQuery.Params).UpdateCount > 0 do
       lBoldFireDACQuery.Params.EndUpdate;
+    // Repair negative update counts too: below zero no change notification
+    // ever fires again, so the cached query would silently execute stale SQL
+    // for its next user.
+    while TStringsAccess(lBoldFireDACQuery.SQLStrings).UpdateCount < 0 do
+      lBoldFireDACQuery.SQLStrings.BeginUpdate;
+    while TCollectionAccess(lBoldFireDACQuery.Params).UpdateCount < 0 do
+      lBoldFireDACQuery.Params.BeginUpdate;
     Query := nil;
     if not Assigned(fCachedQuery1) then
       fCachedQuery1 := lBoldFireDACQuery
@@ -1042,6 +1049,13 @@ begin
       lBoldFireDACQuery.SQLStrings.EndUpdate;
     while TCollectionAccess(lBoldFireDACQuery.Params).UpdateCount > 0 do
       lBoldFireDACQuery.Params.EndUpdate;
+    // Repair negative update counts too: below zero no change notification
+    // ever fires again, so the cached query would silently execute stale SQL
+    // for its next user.
+    while TStringsAccess(lBoldFireDACQuery.SQLStrings).UpdateCount < 0 do
+      lBoldFireDACQuery.SQLStrings.BeginUpdate;
+    while TCollectionAccess(lBoldFireDACQuery.Params).UpdateCount < 0 do
+      lBoldFireDACQuery.Params.BeginUpdate;
     Query := nil;
     if not Assigned(fCachedExecQuery1) then
       fCachedExecQuery1 := lBoldFireDACQuery
