@@ -1196,159 +1196,168 @@ begin
     for T := 0 to AllTables.Count - 1 do
     begin
       StoreInCache := false;
-      if not FoundInCache then
-      begin
-        MemberPMList := TBoldMemberPersistenceMapperList.Create;
-        MemberPMList.OwnsEntries := False;
-        aQuery.ClearParams;
-        for A := 0 to MemberPersistenceMappers.Count - 1 do
+      MemberPMList := nil;
+      SQL := nil;
+      try
+        if not FoundInCache then
         begin
-          MemberPMapper := MemberPersistenceMappers[A] as TBoldMemberDefaultMapper;
-          if assigned(MemberPMapper) and
-            MemberPMapper.IsStoredInObject and not MemberPMapper.CustomCreateUpDate and
-            ((MemberPMapper.ColumnDescriptions[0] as TBoldSQLColumnDescription).TableDescription = AllTables[T]) then
-            MemberPMList.Add(MemberPMapper);
-        end;
-        SQL := TStringList.Create;
-        TempList.clear;
-        SQLForMembers(AllTables[T], TempList, MemberPMList, ssColumns, True, False, False);
+          MemberPMList := TBoldMemberPersistenceMapperList.Create;
+          MemberPMList.OwnsEntries := False;
+          aQuery.ClearParams;
+          for A := 0 to MemberPersistenceMappers.Count - 1 do
+          begin
+            MemberPMapper := MemberPersistenceMappers[A] as TBoldMemberDefaultMapper;
+            if assigned(MemberPMapper) and
+              MemberPMapper.IsStoredInObject and not MemberPMapper.CustomCreateUpDate and
+              ((MemberPMapper.ColumnDescriptions[0] as TBoldSQLColumnDescription).TableDescription = AllTables[T]) then
+              MemberPMList.Add(MemberPMapper);
+          end;
+          SQL := TStringList.Create;
+          TempList.clear;
+          SQLForMembers(AllTables[T], TempList, MemberPMList, ssColumns, True, False, False);
 
-        if Alltables[T].Versioned then
-        begin
-          TempList.Add(TIMESTAMPSTARTCOLUMNNAME);
-          if allTables[T].ContainsStopTimeStamp then
-            TempList.Add(TIMESTAMPSTOPCOLUMNNAME);
-        end;
+          if Alltables[T].Versioned then
+          begin
+            TempList.Add(TIMESTAMPSTARTCOLUMNNAME);
+            if allTables[T].ContainsStopTimeStamp then
+              TempList.Add(TIMESTAMPSTOPCOLUMNNAME);
+          end;
 
-        {$IFDEF RIL}
-        //BoldAppendToStrings(SQL, Format('INSERT INTO %s (%s) ', [AllTables[T].SQLName, BoldSeparateStringList(TempLIst, ', ', '', '')]), True);
+          {$IFDEF RIL}
+          //BoldAppendToStrings(SQL, Format('INSERT INTO %s (%s) ', [AllTables[T].SQLName, BoldSeparateStringList(TempLIst, ', ', '', '')]), True);
+            SB.Clear;
+            SB.Append('INSERT INTO ');
+            SB.Append(AllTables[T].SQLName);
+            SB.Append(' (');
+            SB.Append(BoldSeparateStringList(TempLIst, ', ', '', ''));
+            SB.Append(') ');
+          BoldAppendToStrings(SQL, SB.ToString, True);
+          {$ELSE}
+          BoldAppendToStrings(SQL, Format('INSERT INTO %s (%s) ', [AllTables[T].SQLName,
+                                                                   BoldSeparateStringList(TempList, ', ', '', '')]), True);
+          {$ENDIF}
+
+          if UseParams then
+          begin
+            TempList.Clear;
+            SQLForMembers(AllTables[T], TempList, MemberPMList, ssParameters, True, False, False);
+          end;
+
+          if Alltables[T].Versioned then
+          begin
+            TempList.Add(':' + TIMESTAMPSTARTCOLUMNNAME);
+            if allTables[T].ContainsStopTimeStamp then
+              TempList.Add(':' + TIMESTAMPSTOPCOLUMNNAME);
+          end;
+
+          {$IFDEF RIL}
           SB.Clear;
-          SB.Append('INSERT INTO ');
-          SB.Append(AllTables[T].SQLName);
-          SB.Append(' (');
-          SB.Append(BoldSeparateStringList(TempLIst, ', ', '', ''));
-          SB.Append(') ');
-        BoldAppendToStrings(SQL, SB.ToString, True);
-        {$ELSE}
-        BoldAppendToStrings(SQL, Format('INSERT INTO %s (%s) ', [AllTables[T].SQLName,
-                                                                 BoldSeparateStringList(TempList, ', ', '', '')]), True);
-        {$ENDIF}
+          SB.Append('VALUES ');
+          if UseParams then
+          begin
+            SB.Append('(');
+            SB.Append(BoldSeparateStringList(TempLIst, ', ', '', ''));
+            SB.Append(') ');
+          end;
+          BoldAppendToStrings(SQL, SB.ToString, True);
 
-        if UseParams then
-        begin
-          TempList.Clear;
-          SQLForMembers(AllTables[T], TempList, MemberPMList, ssParameters, True, False, False);
-        end;
-
-        if Alltables[T].Versioned then
-        begin
-          TempList.Add(':' + TIMESTAMPSTARTCOLUMNNAME);
-          if allTables[T].ContainsStopTimeStamp then
-            TempList.Add(':' + TIMESTAMPSTOPCOLUMNNAME);
-        end;
-
-        {$IFDEF RIL}
-        SB.Clear;
-        SB.Append('VALUES ');
-        if UseParams then
-        begin
-          SB.Append('(');
-          SB.Append(BoldSeparateStringList(TempLIst, ', ', '', ''));
-          SB.Append(') ');
-        end;
-        BoldAppendToStrings(SQL, SB.ToString, True);
-
-        {$ELSE}
-        BoldAppendToStrings(SQL, Format('VALUES (%s) ', [BoldSeparateStringList(TempLIst, ', ', '', '')]), True);
-        {$ENDIF}
-        // store in cache
-        StoreInCache := UseParams and (Limit = 1);
-        if StoreInCache then
-        begin
-          i := Length(fPMCreateCache);
-          SetLength(fPMCreateCache, i+1);
-          fPMCreateCache[i].SqlStrings := Sql;
-          fPMCreateCache[i].MemberPMList := MemberPMList;
-        end;
-      end
-      else
-      begin
-        SQL := fPMCreateCache[T].SqlStrings;
-        MemberPMList := fPMCreateCache[T].MemberPMList;
-      end;
-      aQuery.ClearParams;
-      aQuery.AssignSQL(SQL);
-      Row := 0;
-      SB.Clear;
-      for I := 0 to ObjectIDList.Count-1 do
-      begin
-        NewID := ObjectIDList[I];
-        if TranslationList.count > 0 then
-        begin
-          if (i<TranslationList.count) and TranslationList.OldIds[i].IsEqual[ObjectIDList[I]] then
-            NewID := TranslationList.NewIds[i]
-          else
-            NewID := TranslationList.TranslateToNewID[ObjectIDList[I]];
-        end;
-        if UseParams then
-        begin
-          IdColumnParam := aQuery.CreateParam(ftInteger, IDCOLUMN_NAME);
-          TypeColumnParam := aQuery.CreateParam(ftSmallInt, TYPECOLUMN_NAME);
-          IdColumnParam.AsInteger := (NewId as TBoldDefaultId).AsInteger;
-          TypeColumnParam.AsSmallInt := SystemPersistenceMapper.BoldDbTypeForTopSortedIndex(NewId.topSortedIndex)
+          {$ELSE}
+          BoldAppendToStrings(SQL, Format('VALUES (%s) ', [BoldSeparateStringList(TempLIst, ', ', '', '')]), True);
+          {$ENDIF}
+          // store in cache
+          StoreInCache := UseParams and (Limit = 1);
+          if StoreInCache then
+          begin
+            i := Length(fPMCreateCache);
+            SetLength(fPMCreateCache, i+1);
+            fPMCreateCache[i].SqlStrings := Sql;
+            fPMCreateCache[i].MemberPMList := MemberPMList;
+          end;
         end
         else
         begin
-          SB.Append( Format('(%s,%d', [NewId.AsString, SystemPersistenceMapper.BoldDbTypeForTopSortedIndex(NewId.topSortedIndex)]) );
+          SQL := fPMCreateCache[T].SqlStrings;
+          MemberPMList := fPMCreateCache[T].MemberPMList;
         end;
-        TempList.Clear;
-        ValuesToQueryByMemberList(ObjectIDList[I], ValueSpace, aQuery, TempList, MemberPMList, TranslationList, dsmCreate);
-        SB.Append(TempList.text);
-        SB.Replace(#13#10, '');
-        if Alltables[T].Versioned then
+        aQuery.ClearParams;
+        aQuery.AssignSQL(SQL);
+        Row := 0;
+        SB.Clear;
+        for I := 0 to ObjectIDList.Count-1 do
         begin
-          if versioned then
+          NewID := ObjectIDList[I];
+          if TranslationList.count > 0 then
           begin
-            aQuery.EnsureParamByName(TIMESTAMPSTARTCOLUMNNAME).AsInteger := SystemPersistenceMapper.CurrentTimeStamp;
-            SB.Append(',:'+TIMESTAMPSTARTCOLUMNNAME);
+            if (i<TranslationList.count) and TranslationList.OldIds[i].IsEqual[ObjectIDList[I]] then
+              NewID := TranslationList.NewIds[i]
+            else
+              NewID := TranslationList.TranslateToNewID[ObjectIDList[I]];
+          end;
+          if UseParams then
+          begin
+            IdColumnParam := aQuery.CreateParam(ftInteger, IDCOLUMN_NAME);
+            TypeColumnParam := aQuery.CreateParam(ftSmallInt, TYPECOLUMN_NAME);
+            IdColumnParam.AsInteger := (NewId as TBoldDefaultId).AsInteger;
+            TypeColumnParam.AsSmallInt := SystemPersistenceMapper.BoldDbTypeForTopSortedIndex(NewId.topSortedIndex)
           end
           else
           begin
-            aQuery.EnsureParamByName(TIMESTAMPSTARTCOLUMNNAME).AsInteger := 0;
-            SB.Append(',:'+TIMESTAMPSTARTCOLUMNNAME);
+            SB.Append( Format('(%s,%d', [NewId.AsString, SystemPersistenceMapper.BoldDbTypeForTopSortedIndex(NewId.topSortedIndex)]) );
           end;
-
-          if allTables[T].ContainsStopTimeStamp then
+          TempList.Clear;
+          ValuesToQueryByMemberList(ObjectIDList[I], ValueSpace, aQuery, TempList, MemberPMList, TranslationList, dsmCreate);
+          SB.Append(TempList.text);
+          SB.Replace(#13#10, '');
+          if Alltables[T].Versioned then
           begin
-            aQuery.EnsureParamByName(TIMESTAMPSTOPCOLUMNNAME).AsInteger := BOLDMAXTIMESTAMP;
-            SB.Append(',:'+TIMESTAMPSTOPCOLUMNNAME);
+            if versioned then
+            begin
+              aQuery.EnsureParamByName(TIMESTAMPSTARTCOLUMNNAME).AsInteger := SystemPersistenceMapper.CurrentTimeStamp;
+              SB.Append(',:'+TIMESTAMPSTARTCOLUMNNAME);
+            end
+            else
+            begin
+              aQuery.EnsureParamByName(TIMESTAMPSTARTCOLUMNNAME).AsInteger := 0;
+              SB.Append(',:'+TIMESTAMPSTARTCOLUMNNAME);
+            end;
+
+            if allTables[T].ContainsStopTimeStamp then
+            begin
+              aQuery.EnsureParamByName(TIMESTAMPSTOPCOLUMNNAME).AsInteger := BOLDMAXTIMESTAMP;
+              SB.Append(',:'+TIMESTAMPSTOPCOLUMNNAME);
+            end;
+          end;
+          Inc(TickCounter);
+          if (TickCounter MOD AllTables.Count) = 0 then
+          begin
+            SystemPersistenceMapper.SendExtendedEvent(bpeCreateObject, [ObjectIdList[i], ValueSpace]);
+            TickCounter := 0;
+          end;
+          inc(Row);
+          if UseParams or (i = ObjectIDList.Count-1) or (Row = Limit) or (aQuery.Params.Count + aQuery.BatchQueryParamCount >= SystemPersistenceMapper.SQLDataBaseConfig.MaxBatchQueryParams) then
+          begin
+            if not UseParams then
+              SB.Append(')');
+            aQuery.SQLStrings.Add(SB.ToString);
+            SB.Clear;
+            ExecuteQuery;
+          end
+          else
+          if not UseParams then
+          begin
+            SB.Append('),');
           end;
         end;
-        Inc(TickCounter);
-        if (TickCounter MOD AllTables.Count) = 0 then
+      finally
+        // Free the per-table list and SQL even when ExecSQL raises - they
+        // used to leak once per failed update attempt. Entries stored in
+        // (StoreInCache) or borrowed from (FoundInCache) fPMCreateCache are
+        // owned by the cache and must not be freed here.
+        if not FoundInCache and not StoreInCache then
         begin
-          SystemPersistenceMapper.SendExtendedEvent(bpeCreateObject, [ObjectIdList[i], ValueSpace]);
-          TickCounter := 0;
+          MemberPMList.Free;
+          SQL.Free;
         end;
-        inc(Row);
-        if UseParams or (i = ObjectIDList.Count-1) or (Row = Limit) or (aQuery.Params.Count + aQuery.BatchQueryParamCount >= SystemPersistenceMapper.SQLDataBaseConfig.MaxBatchQueryParams) then
-        begin
-          if not UseParams then
-            SB.Append(')');
-          aQuery.SQLStrings.Add(SB.ToString);
-          SB.Clear;
-          ExecuteQuery;
-        end
-        else
-        if not UseParams then
-        begin
-          SB.Append('),');
-        end;
-      end;
-      if not StoreInCache then
-      begin
-        MemberPMList.free;
-        SQl.free;
       end;
     end;
   finally

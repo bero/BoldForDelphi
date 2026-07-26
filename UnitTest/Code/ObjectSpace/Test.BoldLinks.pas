@@ -1,4 +1,4 @@
-unit Test.BoldLinks;
+﻿unit Test.BoldLinks;
 
 { DUnitX tests for BoldLinks - Multi-link controller functionality }
 { Tests multi-link operations which exercise DoPreChangeIfNeeded internally }
@@ -1944,18 +1944,6 @@ begin
   finally
     ResultList.Free;
   end;
-end;
-
-function CurrentAllocatedBytes: Int64;
-var
-  st: TMemoryManagerState;
-  i: Integer;
-begin
-  GetMemoryManagerState(st);
-  Result := Int64(st.TotalAllocatedMediumBlockSize) + Int64(st.TotalAllocatedLargeBlockSize);
-  for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
-    Result := Result + Int64(st.SmallBlockTypeStates[i].UseableBlockSize) *
-                       Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_FailedConversionDoesNotLeak;

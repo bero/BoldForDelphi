@@ -1,4 +1,4 @@
-unit Test.BoldPMappersDefault;
+﻿unit Test.BoldPMappersDefault;
 
 { Unit tests for BoldPMappersDefault using Delphi-Mocks framework.
 
@@ -36,10 +36,34 @@ type
     procedure TestBoldMaxTimestampConstant;
   end;
 
+  { Regression fixture for the PMCreate error-path leak (issue #64).
+    Needs a real SQLite-backed system: the leak sits inside
+    TBoldObjectDefaultMapper.PMCreate, which only runs against a fully built
+    persistence mapper graph, so mocks cannot reach it. }
+  [TestFixture]
+  [Category('PMapper')]
+  TTestBoldPMCreateErrorPath = class
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestFailedInsertDoesNotLeakPerTableLists;
+  end;
+
 implementation
 
 uses
-  System.Rtti;
+  System.SysUtils,
+  System.Classes,
+  System.Rtti,
+  BoldSystem,
+  BoldPMappersSQL,
+  BoldTestModel,
+  maan_UndoRedoBase,
+  maan_UndoRedoTestCaseUtils;
 
 { TTestBoldPMappersDefault }
 
@@ -112,7 +136,86 @@ begin
   Assert.AreEqual(High(Integer), BOLDMAXTIMESTAMP, 'BoldMaxTimestamp should be MaxInt');
 end;
 
+{ TTestBoldPMCreateErrorPath }
+
+procedure TTestBoldPMCreateErrorPath.SetUp;
+begin
+  EnsureDM;
+  if not dmUndoRedo.BoldSystemHandle1.Active then
+    dmUndoRedo.BoldSystemHandle1.Active := True;
+end;
+
+procedure TTestBoldPMCreateErrorPath.TearDown;
+begin
+  if Assigned(dmUndoRedo) then
+  begin
+    if dmUndoRedo.BoldSystemHandle1.Active then
+    begin
+      dmUndoRedo.BoldSystemHandle1.System.Discard;
+      dmUndoRedo.BoldSystemHandle1.Active := False;
+    end;
+    // The test dropped a table behind Bold's back - free the datamodule so
+    // the next EnsureDM recreates the database schema from scratch.
+    FreeAndNil(dmUndoRedo);
+  end;
+end;
+
+procedure TTestBoldPMCreateErrorPath.TestFailedInsertDoesNotLeakPerTableLists;
+var
+  Sys: TBoldSystem;
+  ObjectMapper: TBoldObjectSQLMapper;
+  i: Integer;
+  FailCount: Integer;
+  BytesBefore, BytesAfter: Int64;
+begin
+  // PMCreate builds a TBoldMemberPersistenceMapperList and a TStringList per
+  // table and frees them only at the bottom of the loop body; when ExecSQL
+  // raises, both leak - once per failed UpdateDatabase attempt.
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  ObjectMapper := dmUndoRedo.BoldPersistenceHandleDB1.PersistenceControllerDefault.PersistenceMapper.
+    ObjectPersistenceMappers[Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'].TopSortedIndex]
+    as TBoldObjectSQLMapper;
+
+  TSomeClass.Create(Sys);
+  // Sabotage the schema so PMCreate's INSERT fails
+  dmUndoRedo.FDConnection1.ExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
+
+  // Warm-up: two failing attempts get the query pool and FireDAC error
+  // machinery allocated. NOTE: only the first 4 attempts raise at all - after
+  // that the broken error path leaves the pooled exec query corrupted and
+  // UpdateDatabase reports success without writing anything, so the
+  // measurement window below must stay inside the first 4 attempts.
+  Assert.WillRaiseAny(
+    procedure
+    begin
+      dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+    end, 'UpdateDatabase must fail once the class table is gone');
+  Assert.WillRaiseAny(
+    procedure
+    begin
+      dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+    end, 'second UpdateDatabase attempt must fail too');
+
+  // Measure attempts 3 and 4 - each failing PMCreate leaks one
+  // TBoldMemberPersistenceMapperList (plus indexes) and one TStringList.
+  FailCount := 0;
+  BytesBefore := CurrentAllocatedBytes;
+  for i := 1 to 2 do
+    try
+      dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+    except
+      Inc(FailCount);  // expected - table is gone
+    end;
+  BytesAfter := CurrentAllocatedBytes;
+
+  Assert.AreEqual(2, FailCount, 'both measured UpdateDatabase attempts must reach the failing INSERT');
+  Assert.IsTrue(BytesAfter - BytesBefore < 400,
+    Format('2 failed PMCreate calls grew heap by %d bytes - per-table MemberPMList/SQL leak on the error path',
+      [BytesAfter - BytesBefore]));
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldPMappersDefault);
+  TDUnitX.RegisterTestFixture(TTestBoldPMCreateErrorPath);
 
 end.
