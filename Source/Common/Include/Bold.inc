@@ -158,9 +158,6 @@ Illegal symbol combination
 // Extrenal IDServer used instead of BoldID/Timestamp tables, improves write performance and avoids deadlocks
 {$DEFINE IDServer}
 
-// Uses StringBuilder for constructing SQL statements
-{$DEFINE RIL}
-
 // All attributes will return emptyValue instead of exception reading nil.
 {.$DEFINE NoNilAttributeExceptions}
 

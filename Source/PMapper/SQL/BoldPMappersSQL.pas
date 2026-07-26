@@ -461,7 +461,6 @@ begin
 end;
 
 procedure TBoldObjectSQLMapper.SQLForMembers(Table: TBoldSQLTableDescription; SQL: TStrings; const MemberList: TBoldMemberPersistenceMapperList; const SQLStyle: TBoldSQLStyle; const IncludeKey: Boolean; const StoredInObjectOnly, UseAlias: Boolean);
-{$IFDEF RIL}
 var
   SB: TStringBuilder;
   c, m: integer;
@@ -539,49 +538,8 @@ begin
     FreeAndNil(SB);
   end;
 end;
-{$ELSE}
-var
-  c,
-  m: integer;
-  Column: TBoldSQLColumnDescription;
-begin
-  if (SQLStyle in [ssColumns, ssParameters]) and IncludeKey  then
-  begin
-    if assigned(Table) then
-      SQLForKey(Table, SQL, SQLStyle, UseAlias)
-    else
-      SQLForKey(MainTable, SQL, SQLStyle, UseAlias)
-  end;
-
-  for m := 0 to MemberList.Count - 1 do
-    if Assigned(MemberList[m]) and
-       (not StoredInObjectOnly or MemberList[m].IsStoredInObject) then
-      for c := 0 to (MemberList[m] as TBoldMemberSQLMapper).ColumnDescriptions.Count - 1 do
-      begin
-        Column := (MemberList[m] as TBoldMemberSQLMapper).ColumnDescriptions[c] as TBoldSQLColumnDescription;
-        if not assigned(Table) or (Column.TableDescription = table) then
-        begin
-          if assigned(Table) then
-            case SQLStyle of
-              ssColumns: SQL.Append(Column.SQLName);
-              ssParameters: SQL.Append(Format(':%s', [Column.SQLName])); // do not localize
-              ssValues: SQL.Append(Format('%s = :%0:s', [Column.SQLName])); // do not localize
-              else
-                raise EBold.Create(sUnimplemented);
-            end
-          else
-            case SQLStyle of
-              ssColumns: SQL.Append(Format('%s.%s', [TableAlias(Column.TableDescription, useAlias), Column.SQLName])) // do not localize
-              else
-                raise EBold.Create(sUnimplemented);
-            end;
-        end;
-      end;
-end;
-{$ENDIF}
 
 procedure TBoldObjectSQLMapper.RetrieveSelectStatement(s: TStrings; MemberMapperList: TBoldMemberPersistenceMapperList; FetchMode: Integer; ForceRootTable: Boolean);
-{$IFDEF RIL}
 var
   T: Integer;
   SelectList: TStringList;
@@ -701,97 +659,6 @@ begin
     FreeAndNil(SB);
   end;
 end;
-{$ELSE}
-var
-  T: Integer;
-  SelectList: TStringList;
-  FromList: TStringList;
-  WhereList: TStringList;
-  JoinList: TStringList;
-  Join: String;
-  MapperIx, ColumnIx: integer;
-  TableList: TBoldSQLtableDescriptionList;
-  Table: TBoldSQLtableDescription;
-  Mapper: TBoldMemberSQLMapper;
-  
-begin
-  SelectList := TStringList.Create;
-  FromList := TStringList.Create;
-  WhereList := TStringList.Create;
-  JoinLIst :=  TStringList.Create;
-  TableList := TBoldSQLtableDescriptionList.Create(SystemPersistenceMapper.PSSystemDescription);
-  tableList.OwnsEntries := false;
-  try
-
-    if ForceRootTable then
-      TableList.Add(SystemPersistenceMapper.RootClassObjectPersistenceMapper.MainTable);
-
-    for MapperIx := 0 to MemberMapperList.count - 1 do
-    begin
-      Mapper := MemberMapperList[MapperIx] as TBoldMemberSQLMapper;
-      for ColumnIx := 0 to Mapper.ColumnDescriptions.Count - 1 do
-      begin
-        Table := (Mapper.ColumnDescriptions[ColumnIx] as TBoldSQLColumnDescription).TableDescription;
-        if TableList.IndexOf(Table) = -1 then
-          TableList.Add(Table);
-      end;
-    end;
-
-    SQLForMembers(nil, SelectList,  MemberMapperList,  ssColumns, true, false, true);
-
-    FromList.Append(Format('%s %s', [MainTable.SQLName, TableAlias(MainTable, true)]));
-    if SystemPersistenceMapper.SQLDataBaseConfig.UseSQL92Joins and (FetchMode = fmNormal) then
-    begin
-      for T := 0 to TableList.COunt - 1 do
-        if (TableList[T].ColumnsList.Count > 2) and (TableList[T] <> MainTable) then
-        begin
-          Join := format('left join %s %s on ', [TableList[T].SQLName, TableAlias(TableList[T], true)]);
-          JoinList.Clear;
-          JoinSQLTableByKey(JoinList, MainTable, TableList[T]);
-          Join := Join + BoldSeparateStringList(JoinList, ' and ', '(', ')');
-          FromList.Add(Join);
-        end;
-    end
-    else
-    begin
-      for T := 0 to TableList.Count - 1 do
-        if (TableList[T].ColumnsList.Count > 2) and (TableList[T] <> MainTable) then
-          FromList.Append(Format('%s %s',[TableList[T].SQLName, TableAlias(TableList[t], true)]));
-
-      for T := 0 to TableList.Count - 1 do
-      begin
-        if (TableList[T].ColumnsList.Count > 2) and (TableList[T] <> MainTable) then
-          JoinSQLTableByKey(WhereList, MainTable, TableList[T]);
-      end;
-
-{      if FetchMode = fmDistributable then
-      begin
-        SQLForDistributed(SelectList, ssColumns);
-        FromList.Append(Format('%s %s', [DistributableTable.SQLName,
-                                          TableAlias(DistributableTable, true)]));
-        JoinSQLTableByKey(WhereList, MainTable, DistributableTable);
-      end;}
-    end;
-
-    SQLForID(Maintable, WhereList, True);
-
-    BoldAppendToStrings(S, Format('SELECT %s ', [BoldSeparateStringList(SelectList, ', ', '', '')]), true);
-
-    if SystemPersistenceMapper.SQLDataBaseConfig.UseSQL92Joins and (FetchMode = fmNormal) then
-      BoldAppendToStrings(S, Format('FROM %s ', [BoldSeparateStringList(FromList, ' ', '', '')]), true)
-    else
-      BoldAppendToStrings(S, Format('FROM %s ', [BoldSeparateStringList(FromList, ', ', '', '')]), true);
-
-    BoldAppendToStrings(S, Format('WHERE %s ', [BoldSeparateStringList(WhereList, ' AND ', '', '')]), true);
-  finally
-    SelectList.Free;
-    FromList.Free;
-    WhereList.Free;
-    JoinList.Free;
-    TableList.Free;
-  end;
-end;
-{$ENDIF}
 
 
 procedure TBoldObjectSQLMapper.ValuesFromFieldsByMemberList(ObjectID: TBoldObjectId; const ValueSpace: IBoldValueSpace; TranslationList: TBoldIdTranslationList; const DataSet: IBoldDataSet; memberList: TBoldMemberPersistenceMapperList);

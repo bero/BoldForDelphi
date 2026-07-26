@@ -286,7 +286,6 @@ begin
 end;
 
 procedure TBoldNonEmbeddedLinkDefaultMapper.ProcessSQL(const Query: IBoldQuery; WhereFragment: String; resultList: TList; TimeStamp: TBoldTimeStampType);
-{$IFDEF RIL}
 var
   Cnt: integer;
 
@@ -546,124 +545,6 @@ begin
     SQL.free;
     SB.Free;
   end;
-{$ELSE}
-var
-  i, j: integer;
-  ClassIdRequired: Boolean;
-  NextColumnIndex: integer;
-  LinkData: TTempLinkValues;
-  MappingInfo: TBoldMemberMappingArray;
-  AIMappingInfo: TBoldAllInstancesMappingArray;
-  EmbeddingColumnName, EmbeddingOrderColumnName: String;
-  WhereClause, SelectClause: String;
-  Selectlist: TStringList;
-  sql: TStringList;
-  OperatingOnRootTable: Boolean;
-  RootTableJoin: string;
-const
-  LinkTableAlias: String = 'LinkTable_Alias';
-  RootTableAlias: String = 'RootTable_Alias';
-begin
-  AIMappingInfo := nil;
-  SelectList := TStringList.Create;
-  sql := TStringList.Create;
-  MappingInfo := SystemPersistenceMapper.MappingInfo.GetMemberMappings(ClosestOtherEndObjectMapper.ExpressionName, EmbeddingMapper.ExpressionName);
-  try
-    for i := 0 to length(MappingInfo) - 1 do
-    begin
-      EmbeddingColumnName := MappingInfo[i].ColumnByIndex[0];
-      if Ordered then
-        EmbeddingOrderColumnName := MappingInfo[i].ColumnByIndex[ORDERCOLUMN_INDEX]
-      else
-        EmbeddingOrderColumnName := '';
-
-      SelectList.Clear;
-      {ID, TYPE, ClosstId, [OderColumn], [RemoteColumn]}
-      SelectList.Add(LinkTableAlias + '.' + IDCOLUMN_NAME);
-      SelectList.Add(LinkTableAlias + '.' + TYPECOLUMN_NAME);
-      SelectList.Append(LinkTableAlias + '.' + EmbeddingColumnName);
-      if ordered then
-        SelectList.Append(EmbeddingOrderColumnName);
-      if IsIndirect then
-        SelectList.Append(Format('%s', [RemoteInnerLinkMapper.MainColumnName]));
-      SelectClause := Format('SELECT %s', [BoldSeparateStringList(SelectList, ', ', '', '')]);
-
-      WhereClause := Format('WHERE (%s.%s) %s', [LinkTableAlias, EmbeddingColumnName, WhereFragment]);
-
-      SQL.Clear;
-      SQL.Add(SelectClause);
-      SQL.Add('FROM '+ MappingInfo[i].TableName + ' ' + LinkTableAlias);
-
-      OperatingOnRootTable := SameText(MappingInfo[i].TableName, SystemPersistenceMapper.RootClassObjectPersistenceMapper.Maintable.SQLName);
-
-      RootTableJoin := format('((%s.%s = %s.%s) and (%s.%s = %s.%s))', [
-            LinkTableAlias, TIMESTAMPSTARTCOLUMNNAME,
-            RootTableAlias, TIMESTAMPSTARTCOLUMNNAME,
-            LinkTableAlias, IDCOLUMN_NAME,
-            RootTableAlias, IDCOLUMN_NAME]);
-
-      if ClosestOtherEndObjectMapper.Versioned and not OperatingOnRootTable then
-      begin
-        if SystemPersistenceMapper.SQLDataBaseConfig.UseSQL92Joins then
-          SQL.append(format(' left join %s %s on %s', [
-            SystemPersistenceMapper.RootClassObjectPersistenceMapper.MainTable.SQLName,
-            RootTableAlias,
-            RootTableJoin] ))
-        else
-          SQL.Append(format(', %s %s', [
-            SystemPersistenceMapper.RootClassObjectPersistenceMapper.MainTable.SQLName,
-            RootTableAlias] ));
-      end;
-
-      SQL.Add(WhereClause);
-
-      ClassIDRequired := true;
-      AIMappingInfo := SystemPersistenceMapper.MappingInfo.GetAllInstancesMapping(ClosestOtherEndObjectMapper.ExpressionName);
-      for j := 0 to length(AIMappingInfo) - 1 do
-        if SameText(AIMappingInfo[j].TableName, MappingInfo[i].TableName) and
-           not AIMappingInfo[j].ClassIdRequired then
-          ClassIdRequired := false;
-
-      if ClassIdRequired then
-        SQL.Add(format('AND (%s in (%s))', [TYPECOLUMN_NAME, ClosestOtherEndObjectMapper.SubClassesID]));
-      if ClosestOtherEndObjectMapper.Versioned then
-      begin
-        if OperatingOnRootTable then
-          ClosestOtherEndObjectMapper.RetrieveTimeStampCondition(SQL, TimeStamp, false, 'AND', True, LinkTableAlias, LinkTableAlias)
-        else
-          ClosestOtherEndObjectMapper.RetrieveTimeStampCondition(SQL, TimeStamp, false, 'AND', True, LinkTableAlias, RootTableAlias);
-        if not OperatingOnRootTable and not SystemPersistenceMapper.SQLDataBaseConfig.UseSQL92Joins then
-          SQL.Append(format('and %s', [RootTableJoin]));
-      end;
-
-      Query.AssignSQL(SQL);
-      Query.Open;
-      while not Query.Eof do
-      begin
-        LinkData := TTempLinkValues.Create;
-        LinkData.ClosestId := Query.Fields[0].AsInteger;
-        LinkData.ClosestClassid := Query.Fields[1].AsInteger;
-        LinkData.ObjectId := Query.Fields[2].AsInteger;
-        NextColumnIndex := 3;
-        if ordered then
-        begin
-          LinkData.Ordervalue := Query.Fields[NextColumnIndex].AsInteger;
-          INC(NextColumnIndex);
-        end
-        else
-          LinkData.OrderValue := 0;
-
-        if isIndirect then
-          LinkData.RemoteId := Query.Fields[NextColumnIndex].AsInteger;
-        resultList.Add(LinkData);
-        Query.Next;
-      end;
-    end;
-  finally
-    SelectList.Free;
-    sql.free;
-  end;
-{$ENDIF} 
 end; { TBoldNonEmbeddedLinkDefaultMapper.ProcessSQL }
 
 

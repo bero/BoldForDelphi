@@ -1056,7 +1056,6 @@ begin
 end;
 
 procedure TBoldObjectDefaultMapper.JoinSQLTableByKey(SQL: TStringList; MainTable, JoinTable: TBoldSQLTableDescription);
-{$IFDEF RIL}
 var
   SB: TStringBuilder;
 begin
@@ -1085,13 +1084,6 @@ begin
   end;
   FreeAndNil(SB);
 end;
-{$ELSE}
-begin
-  SQL.Append(Format('%s.%s = %s.%s', [TableAlias(JoinTable, True), IDCOLUMN_NAME, TableAlias(MainTable, True), IDCOLUMN_NAME]));
-  if Versioned then
-    SQL.Append(Format('%s.%s = %s.%s', [TableAlias(JoinTable, True), TIMESTAMPSTARTCOLUMNNAME, TableAlias(MainTable, True), TIMESTAMPSTARTCOLUMNNAME]));
-end;
-{$ENDIF}
 
 procedure TBoldObjectDefaultMapper.PMUpdateStopTime(ObjectIDList: TBoldObjectIdList);
 var
@@ -1143,9 +1135,7 @@ var
     Row := 0;
   end;
 var
-{$IFDEF RIL}
   SB: TStringBuilder;
-{$ENDIF}
   I, T, A: Integer;
   TickCounter: integer;
   TempList: TStringList;
@@ -1161,10 +1151,8 @@ var
   UseParams: boolean;
   Limit: integer;
 begin
-  BoldGuard := TBoldGuard.Create({MemberPMList}{$IFDEF RIL}SB{$ENDIF},TempList);
-  {$IFDEF RIL}
+  BoldGuard := TBoldGuard.Create({MemberPMList}SB,TempList);
   SB := TStringBuilder.Create;
-  {$ENDIF}
   Tickcounter := 0;
   if IsLinkClass and (not Versioned) then
   begin
@@ -1223,7 +1211,6 @@ begin
               TempList.Add(TIMESTAMPSTOPCOLUMNNAME);
           end;
 
-          {$IFDEF RIL}
           //BoldAppendToStrings(SQL, Format('INSERT INTO %s (%s) ', [AllTables[T].SQLName, BoldSeparateStringList(TempLIst, ', ', '', '')]), True);
             SB.Clear;
             SB.Append('INSERT INTO ');
@@ -1232,10 +1219,6 @@ begin
             SB.Append(BoldSeparateStringList(TempLIst, ', ', '', ''));
             SB.Append(') ');
           BoldAppendToStrings(SQL, SB.ToString, True);
-          {$ELSE}
-          BoldAppendToStrings(SQL, Format('INSERT INTO %s (%s) ', [AllTables[T].SQLName,
-                                                                   BoldSeparateStringList(TempList, ', ', '', '')]), True);
-          {$ENDIF}
 
           if UseParams then
           begin
@@ -1250,7 +1233,6 @@ begin
               TempList.Add(':' + TIMESTAMPSTOPCOLUMNNAME);
           end;
 
-          {$IFDEF RIL}
           SB.Clear;
           SB.Append('VALUES ');
           if UseParams then
@@ -1260,10 +1242,6 @@ begin
             SB.Append(') ');
           end;
           BoldAppendToStrings(SQL, SB.ToString, True);
-
-          {$ELSE}
-          BoldAppendToStrings(SQL, Format('VALUES (%s) ', [BoldSeparateStringList(TempLIst, ', ', '', '')]), True);
-          {$ENDIF}
           // store in cache
           StoreInCache := UseParams and (Limit = 1);
           if StoreInCache then
@@ -2061,9 +2039,7 @@ var
   MappingInfo: TBoldAllInstancesMappingArray;
   SQL: TStringList;
   SQLCondition: TBoldSQLCondition;
-{$IFDEF RIL}
   SB: TStringBuilder;
-{$ENDIF}
 begin
   if not assigned(BoldCondition) or (BoldCondition is TBoldConditionWithClass) then
   begin
@@ -2080,9 +2056,7 @@ begin
     MappingInfo := SystemPersistenceMapper.MappingInfo.GetAllInstancesMapping(ExpressionName);
     aQuery := SystemPersistenceMapper.GetQuery;
     sql := TStringList.Create;
-    {$IFDEF RIL}
     SB := TStringBuilder.Create;
-    {$ENDIF}
     try
       for i := 0 to length(MappingInfo) - 1 do
       begin
@@ -2105,7 +2079,6 @@ begin
         end
         else
         begin
-          {$IFDEF RIL}
           SB.Clear;
             SB.Append('SELECT ');
             SB.Append(sCurrentMappingInfo);
@@ -2118,10 +2091,6 @@ begin
           SQL.Append(SB.ToString);
 
           FromLine := 'FROM '+sCurrentMappingInfo;
-          {$ELSE}
-          SQL.Append(Format('SELECT %s.%s, %s.%s', [MappingInfo[i].TableName, IDCOLUMN_NAME, MappingInfo[i].TableName, TYPECOLUMN_NAME]));
-          FromLine := Format('FROM %s', [MappingInfo[i].TableName]);
-          {$ENDIF}
 
           JoinLine := '';
           RootTableName := SystemPersistenceMapper.RootClassObjectPersistenceMapper.MainTable.SQLName;
@@ -2196,7 +2165,6 @@ begin
             SystemPersistenceMapper.OnPsEvaluate(aQuery);
          end;
         BoldCondition.AvailableAnswers := (SystemPersistenceMapper as TBoldSystemDefaultMapper).GetListUsingQuery(ObjectIDList, ValueSpace, aQuery, NO_CLASS ,1, 0, FetchMode, TranslationList, TimeStamp, BoldCondition.MaxAnswers, BoldCondition.Offset);
-        {$IFDEF RIL}
         //BoldPMLogFmt('Fetched %d IDs in class %s from table %s', [ObjectIdList.Count, ExpressionName, MappingInfo[i].tableName]);
         if BoldPMLogHandler<>nil then { skip formating if the string is not used anyway... //ril }
         begin
@@ -2209,16 +2177,11 @@ begin
             SB.Append(sCurrentMappingInfo);
           BoldPMLogFmt(SB.ToSTring, []);
         end;
-        {$ELSE}
-        BoldPMLogFmt(sLogFetchedXObjectsOfYFromTableZ, [ObjectIdList.Count, ExpressionName, MappingInfo[i].tableName]);
-        {$ENDIF}
       end;
     finally
       SystemPersistenceMapper.ReleaseQuery(aQuery);
       sql.Free;
-      {$IFDEF RIL}
       FreeAndNil(SB);
-      {$ENDIF}
     end;
   end
   else
@@ -2315,7 +2278,6 @@ procedure TBoldObjectDefaultMapper.MakeIDsExactUsingTable(
   ObjectIDList: TBoldObjectIdList; TranslationList: TBoldIdTranslationList;
   Table: TBoldSQLTableDescription; EnsureAll: Boolean;
   HandleNonExisting: Boolean);
-{$IFDEF RIL}
 var
   Block,
   ObjectCount: Longint;
@@ -2419,76 +2381,6 @@ begin
     FreeAndNil(SB);
     Ids.free;
   end;
-{$ELSE}
-var
-  Block,
-  ObjectCount: Longint;
-  topSortedIndex, I, j: Integer;
-  tempId: TBoldObjectId;
-  aQuery: IBoldQuery;
-  lst: TStringList;
-  Start, Stop: integer;
-  WhereFragment: string;
-  LittleObject: TLittleClass;
-  Ids: TList;
-  FetchBlockSize: integer;
-begin
-  if ObjectIDList.Count = 0 then
-    exit;
-  aQuery := SystemPersistenceMapper.GetQuery;
-  FetchBlockSize := SystemPersistenceMapper.SQLDataBaseConfig.FetchBlockSize;
-  Ids := TList.Create;
-  lst := TStringList.Create;
-  try
-    ObjectCount := ObjectIDList.Count - 1;
-    for Block := 0 to (ObjectCount div FetchBlockSize) do
-    begin
-      lst.Clear;
-      Table.RetrieveSelectIdAndTypeStatement(lst);
-      Start := Block * FetchBlockSize;
-      Stop := MinIntValue([Pred(Succ(Block) * FetchBlockSize), ObjectCount]);
-
-      WhereFragment := IdListSegmentToWhereFragment(ObjectIDList, start, stop, true, aquery);
-      BoldAppendToStrings(lst, Format(' WHERE %s %s', [IDCOLUMN_NAME, WhereFragment]), True);
-      aQuery.AssignSQL(lst);
-      aQuery.Open;
-      Ids.Count := 0;
-      if Stop - Start >= Ids.Capacity then
-        Ids.Capacity := Stop - Start +1;
-      try
-        while not aQuery.EOF do
-        begin
-          LittleObject := TLittleClass.Create;
-          LittleObject.Id := aQuery.Fields[0].AsInteger;
-          LittleObject.DbType := aQuery.Fields[1].AsInteger;
-          Ids.Add(LittleObject);
-          aQuery.next;
-        end;
-        for i := 0 to ObjectIdList.Count - 1 do
-        begin
-          for j := 0 to Ids.Count - 1 do
-          begin
-            if TBoldDefaultId(ObjectIdList[i]).AsInteger = TLittleClass(Ids[j]).Id then
-            begin
-              TopSortedIndex := SystemPersistenceMapper.topSortedIndexForBoldDbType(TLittleClass(Ids[j]).dbType);
-              tempId := ObjectIdList[i].CloneWithClassId(TopSortedIndex, true);
-              TranslationList.AddTranslation(ObjectIdList[i], tempId);
-              TempId.Free;
-            end;
-          end;
-        end;
-      finally
-        aQuery.close;
-        for j := 0 to Ids.Count - 1 do
-          tObject(Ids[j]).Free;
-      end;
-    end;
-  finally
-    SystemPersistenceMapper.ReleaseQuery(aQuery);
-    lst.Free;
-    Ids.Free;
-  end;
-{$ENDIF}
 end;
 
 function TBoldObjectDefaultMapper.InternalIdListSegmentToWhereFragment(
@@ -2506,7 +2398,6 @@ function TBoldObjectDefaultMapper.InternalIdListSegmentToWhereFragment(
     else
       result := IdList[Idindex].asString
   end;
-{$IFDEF RIL}
 var
   i: integer;
   ParamCount: integer;
@@ -2540,27 +2431,6 @@ begin
     finally
       FreeAndNil(SB);
     end;
-{$ELSE}
-var
-  TempList: TStringList;
-  i: integer;
-  Guard: IBoldGuard;
-  ParamCount: integer;
-  UseParams: Boolean;
-begin
-  Guard := TBoldGuard.Create(TempList);
-  ParamCount := stop-start + 1;
-  UseParams := ParamCount <= SystemPersistenceMapper.SQLDataBaseConfig.MaxParamsInIdList;
-  if ParamCount = 1 then
-    result := ' = '+GetParamStr(start, 1, UseParams)
-  else
-  begin
-    TempList := TStringList.Create;
-    for i := start to stop do
-      TempList.Add(GetParamStr(i, i-start+1, Useparams));
-    result := BoldSeparateStringList(TempLIst, ', ', 'in (', ')');
-  end;
-{$ENDIF}
 end;
 
 function TBoldObjectDefaultMapper.IdListSegmentToWhereFragment(
@@ -2588,7 +2458,6 @@ begin
 end;
 
 procedure TBoldMemberDefaultMapper.GenerateMappingInfo(MoldClass: TMoldClass; MoldMember: TMoldMember);
-{$IFDEF RIL}
   procedure GenerateLocal(const ClassExpressionName, MemberExpressionName: String; var ColumnNames: String; const LocalMoldClass: TMoldClass);
   var
     i: integer;
@@ -2649,61 +2518,6 @@ begin
       GenerateForClassName(MoldClass.AllPossibleNames[i], ColumnNames);
     FreeAndNil(SB);
   end;
-{$ELSE}
-var
-  ColumnNames: String;
-
-  procedure GenerateLocal(ClassExpressionName, MemberExpressionName: String; LocalMoldClass: TMoldClass);
-  var
-    i: integer;
-  begin
-    if LocalMoldClass.TableMapping in [tmOwn, tmParent] then
-      (SystemPersistenceMapper as TBoldSystemDefaultMapper).MappingInfo.AddMemberMapping(
-        ClassExpressionName,
-        MemberExpressionName,
-        FindDefiningTable(LocalMoldClass, MoldMember),
-        ColumnNames,
-        ClassName,
-        FColumnIndex);
-    if LocalMoldClass.TableMapping = tmChildren then
-      for i := 0 to LocalMoldClass.SubClasses.Count - 1 do
-        if LocalMoldClass.SubClasses[i].EffectivePersistent then
-          GenerateLocal(ClassExpressionName, MemberExpressionName, LocalMoldClass.SubClasses[i]);
-  end;
-
-  procedure GenerateForClassName(ClassExpressionName: String);
-  var
-    i: integer;
-    s: TStringList;
-    BoldGuard: IBoldGuard;
-  begin
-    GenerateLocal(ClassExpressionName, ExpressionName, moldclass);
-    if assigned(MoldMember) then
-    begin
-      BoldGuard := TBoldGuard.Create(s);
-      s := TStringlist.Create;
-      s.CommaText := MoldMember.FormerNames;
-      for i := 0 to s.count - 1 do
-        GenerateLocal(ClassExpressionName, s[i], moldclass);
-    end;
-  end;
-
-var
-  i: integer;
-begin
-  if requiresMemberMapping then
-  begin
-    ColumnNames := '';
-    for i := 0 to ColumnCount - 1 do
-    begin
-      if ColumnNames <> '' then
-        ColumnNames := ColumnNames + ', ';
-      ColumnNames := ColumnNames + BoldExpandName(InitialColumnName[i], '', xtSQL, SystemPersistenceMapper.SQLDataBaseConfig.MaxDBIdentifierLength, SystemPersistenceMapper.NationalCharConversion);
-    end;
-    for i := 0 to MoldClass.AllPossibleNames.count - 1 do
-      GenerateForClassName(MoldClass.AllPossibleNames[i]);
-  end;
-{$ENDIF}
 end;
 
 constructor TBoldMemberDefaultMapper.CreateFromMold(moldMember: TMoldMember; moldClass: TMoldClass; Owner: TBoldObjectPersistenceMapper; const MemberIndex: Integer; TypeNameDictionary: TBoldTypeNameDictionary);

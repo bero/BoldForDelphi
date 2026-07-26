@@ -174,8 +174,6 @@ var
   begin
     var sl := TStringList.Create;
     var sl2 := TStringList.Create;
-    var ProcessedRecords := 0;
-    var vRecNo := 0;
     var ParamCount:= 0;
     Result := Min(RemainingRecords, MultiRowInsertLimit);
     for var _j := 0 to Result-1 do
@@ -272,8 +270,6 @@ begin
       var vRecNo := 0;
       var s: string;
       var Bytes: TBytes;
-      var bc: Integer;
-      bc := 0;
       var Batch := CalcBatchSize;
       repeat
         begin
@@ -294,7 +290,6 @@ begin
                 Param.AsString := TEncoding.UTF8.GetString(Bytes);
               end;
             end;
-            inc(bc);
             SourceQuery.Next;
             inc(vRecNo);
             inc(ProcessedRecords);
@@ -303,13 +298,11 @@ begin
           Assert(ParamIndex = DestinationQuery.ParamCount);
           try
             DestinationQuery.ExecSQL;
-            bc := 0;
             ParamIndex := 0;
             DatabaseInterface.Commit;
             DatabaseInterface.StartTransaction;
             DoOnProgress(vRecNo);
             vRecNo := 0;
-            var Estimate := IncSecond(fStartTime, Round(SecondsBetween(fStartTime, now) * (j / ProcessedRecords)));
             BoldLog.Progress := ProcessedRecords;
             BoldLog.LogHeader := Format('%d/%d records processed in table %s', [ProcessedRecords,j, DestinationTable.SQLName]);
           except
