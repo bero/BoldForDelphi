@@ -342,6 +342,13 @@ begin
     MemberCount := Object_Content.MemberCount
   else if Assigned(NewObject_Content) then
     MemberCount := NewObject_Content.MemberCount;
+  // The contents can carry more member slots than the model class declares
+  // (e.g. stale old values kept for an id that was re-issued to a class with
+  // fewer members). Indexing AllBoldMembers past its end would raise after
+  // the update has already committed: the caller then sees a failed save for
+  // committed data and the whole batch of OSS events is lost.
+  if MemberCount > MoldClass.AllBoldMembers.Count then
+    MemberCount := MoldClass.AllBoldMembers.Count;
   for j:= 0 to MemberCount - 1 do
     if MemberIsEmbeddedSingleLink(MoldClass.AllBoldMembers[j], NonEmbeddedLink) then
     begin;

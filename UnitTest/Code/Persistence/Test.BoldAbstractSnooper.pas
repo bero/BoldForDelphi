@@ -28,11 +28,19 @@ type
     [Test]
     [Category('Quick')]
     procedure TestClassEventsCoverSuperclassChain;
+    [Test]
+    [Category('Quick')]
+    procedure TestExcessMemberSlotsAreNotIndexedIntoModelMembers;
   end;
 
 implementation
 
 uses
+  BoldId,
+  BoldValueInterfaces,
+  BoldValueSpaceInterfaces,
+  BoldFreeStandingValues,
+  BoldDefaultStreamNames,
   BoldObjectSpaceExternalEvents;
 
 type
@@ -48,6 +56,7 @@ type
     destructor Destroy; override;
     procedure TransmitEvents(const ClientID: TBoldClientID); override;
     procedure CallAddClassEvents(TopSortedIndex: integer);
+    procedure CallNonEmbeddedStateOfObjectChanged(const Object_Content, NewObject_Content: IBoldObjectContents; MoldClass: TMoldClass);
     property Collected: TStringList read fCollected;
   end;
 
@@ -76,6 +85,11 @@ end;
 procedure TEventCollectingSnooper.CallAddClassEvents(TopSortedIndex: integer);
 begin
   AddClassEvents(TopSortedIndex);
+end;
+
+procedure TEventCollectingSnooper.CallNonEmbeddedStateOfObjectChanged(const Object_Content, NewObject_Content: IBoldObjectContents; MoldClass: TMoldClass);
+begin
+  NonEmbeddedStateOfObjectChanged(Object_Content, NewObject_Content, MoldClass);
 end;
 
 { TTestBoldAbstractSnooper }
@@ -145,6 +159,65 @@ begin
     Assert.AreEqual(1, CountOf(EventA), 'superclass event neither dropped nor duplicated');
   finally
     Snooper.Free;
+  end;
+end;
+
+procedure TTestBoldAbstractSnooper.TestExcessMemberSlotsAreNotIndexedIntoModelMembers;
+var
+  Snooper: TEventCollectingSnooper;
+  MoldModel: TMoldModel;
+  ClassA: TMoldClass;
+  ValueSpace: TBoldFreeStandingValueSpace;
+  Contents: IBoldObjectContents;
+  ExcessValue: IBoldValue;
+  Id: TBoldObjectId;
+  ModelMemberCount: integer;
+begin
+  // Object contents can carry more member slots than the model class declares -
+  // e.g. old values kept for an id that was re-issued to a class with fewer
+  // members. The member loop sized itself from the contents but indexed
+  // AllBoldMembers, so the surplus slot read past the end of the member list.
+  // In production that raised only AFTER the update had committed: the caller
+  // saw a failed save for data that was already written, and the whole batch of
+  // OSS events was lost.
+  MoldModel := FDataModule.BoldModel1.MoldModel;
+  ClassA := FindClass(MoldModel, 'ClassA');
+  ModelMemberCount := ClassA.AllBoldMembers.Count;
+
+  ValueSpace := TBoldFreeStandingValueSpace.Create;
+  try
+    Id := TBoldInternalObjectId.CreateWithClassIDandInternalId(1, ClassA.TopSortedIndex, true);
+    try
+      Contents := ValueSpace.GetEnsuredObjectContentsByObjectId(Id);
+      Assert.IsNotNull(Contents, 'contents for the test id must exist');
+
+      // One slot beyond what the model class knows about.
+      ExcessValue := Contents.EnsureMemberAndGetValueByIndex(ModelMemberCount, BoldContentName_Integer);
+      Assert.IsNotNull(ExcessValue, 'excess member slot must be materialised');
+      Assert.AreEqual(ModelMemberCount + 1, Contents.MemberCount, 'contents must carry one slot more than the model class');
+
+      Snooper := TEventCollectingSnooper.Create(MoldModel);
+      try
+        try
+          Snooper.CallNonEmbeddedStateOfObjectChanged(Contents, nil, ClassA);
+        except
+          on E: Exception do
+            Assert.Fail(Format('surplus member slot must be ignored, not indexed into AllBoldMembers - got %s: %s',
+              [E.ClassName, E.Message]));
+        end;
+        // ClassA is attribute-only (the model has no associations), so there is
+        // no embedded single link to report on any of the real member slots.
+        Assert.AreEqual(0, Snooper.Collected.Count, 'no link events expected for an attribute-only class');
+      finally
+        Snooper.Free;
+      end;
+    finally
+      ExcessValue := nil;
+      Contents := nil;
+      Id.Free;
+    end;
+  finally
+    ValueSpace.Free;
   end;
 end;
 
