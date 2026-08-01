@@ -121,6 +121,12 @@ type
     [Test] [Category('Quick')]
     procedure TestObjectIdList_HasNonExistingIds;
     [Test] [Category('Quick')]
+    procedure TestObjectIdList_RemoveNonExistingIds_KeepsExistingIds;
+    [Test] [Category('Quick')]
+    procedure TestObjectIdList_RemoveNonExistingIds_RemovesAdjacent;
+    [Test] [Category('Quick')]
+    procedure TestObjectIdList_RemoveNonExistingIds_RemovesAll;
+    [Test] [Category('Quick')]
     procedure TestObjectIdList_StreamName;
 
     // TBoldMemberIdList tests
@@ -1048,6 +1054,77 @@ begin
 
     List.AddAndAdopt(TBoldNonExistingObjectId.CreateWithClassID(0, True));
     Assert.IsTrue(List.HasNonExistingIds);
+  finally
+    List.Free;
+  end;
+end;
+
+// A non-existing id anywhere but the last slot must not disturb the ids that stay.
+procedure TTestBoldId.TestObjectIdList_RemoveNonExistingIds_KeepsExistingIds;
+var
+  List: TBoldObjectIdList;
+  ExistingId: TBoldInternalObjectId;
+begin
+  List := TBoldObjectIdList.Create;
+  ExistingId := CreateInternalId(10, 0, True);
+  try
+    List.AddAndAdopt(TBoldNonExistingObjectId.CreateWithClassID(0, True));
+    List.Add(ExistingId);
+
+    List.RemoveNonExistingIds;
+
+    Assert.AreEqual(1, List.Count);
+    Assert.IsFalse(List.HasNonExistingIds);
+    Assert.IsTrue(ExistingId.IsEqual[List[0]]);
+  finally
+    List.Free;
+    ExistingId.Free;
+  end;
+end;
+
+// Consecutive non-existing ids must all go: a removal must not shift the next
+// candidate past the scan position.
+procedure TTestBoldId.TestObjectIdList_RemoveNonExistingIds_RemovesAdjacent;
+var
+  List: TBoldObjectIdList;
+  FirstId, LastId: TBoldInternalObjectId;
+begin
+  List := TBoldObjectIdList.Create;
+  FirstId := CreateInternalId(10, 0, True);
+  LastId := CreateInternalId(20, 0, True);
+  try
+    List.Add(FirstId);
+    List.AddAndAdopt(TBoldNonExistingObjectId.CreateWithClassID(0, True));
+    List.AddAndAdopt(TBoldNonExistingObjectId.CreateWithClassID(0, True));
+    List.Add(LastId);
+
+    List.RemoveNonExistingIds;
+
+    Assert.AreEqual(2, List.Count);
+    Assert.IsFalse(List.HasNonExistingIds);
+    Assert.IsTrue(FirstId.IsEqual[List[0]]);
+    Assert.IsTrue(LastId.IsEqual[List[1]]);
+  finally
+    List.Free;
+    FirstId.Free;
+    LastId.Free;
+  end;
+end;
+
+// An all-non-existing list empties out instead of overrunning the scan.
+procedure TTestBoldId.TestObjectIdList_RemoveNonExistingIds_RemovesAll;
+var
+  List: TBoldObjectIdList;
+begin
+  List := TBoldObjectIdList.Create;
+  try
+    List.AddAndAdopt(TBoldNonExistingObjectId.CreateWithClassID(0, True));
+    List.AddAndAdopt(TBoldNonExistingObjectId.CreateWithClassID(0, True));
+
+    List.RemoveNonExistingIds;
+
+    Assert.AreEqual(0, List.Count);
+    Assert.IsFalse(List.HasNonExistingIds);
   finally
     List.Free;
   end;

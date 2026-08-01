@@ -1264,7 +1264,9 @@ procedure TBoldObjectIdList.RemoveNonExistingIds;
 var
   i: integer;
 begin
-  for i := 0 to Count - 1 do
+  // Backwards: removal shifts later items down, so a forward loop would skip
+  // the item after each removal and run past the shrinking Count.
+  for i := Count - 1 downto 0 do
     if TBoldObjectId(Items[i]).NonExisting then
       RemoveByIndex(i);
 end;
