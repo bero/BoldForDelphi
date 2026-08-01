@@ -198,8 +198,10 @@ begin
   // Create Bold database adapter (adapter-specific)
   FDatabaseAdapter := CreateDatabaseAdapter(FConnection);
 
-  // Create system type info handle
+  // Create system type info handle. Models loaded from strings have no
+  // generated Delphi classes, so the framework must not require them.
   FSystemTypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
+  FSystemTypeInfoHandle.UseGeneratedCode := False;
 
   // Create and configure model
   FModel := TBoldModel.Create(nil);
