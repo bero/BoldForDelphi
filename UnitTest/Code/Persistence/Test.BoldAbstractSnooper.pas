@@ -31,19 +31,41 @@ type
     [Test]
     [Category('Quick')]
     procedure TestExcessMemberSlotsAreNotIndexedIntoModelMembers;
+    [Test]
+    [Category('Quick')]
+    procedure TestNonEmbeddedEventNamesConcreteClassForInexactId;
   end;
 
 implementation
 
 uses
   BoldId,
+  BoldCondition,
+  BoldUpdatePrecondition,
   BoldValueInterfaces,
   BoldValueSpaceInterfaces,
+  BoldPersistenceControllerPassthrough,
   BoldFreeStandingValues,
   BoldDefaultStreamNames,
-  BoldObjectSpaceExternalEvents;
+  BoldObjectSpaceExternalEvents,
+  dmModel1;  // TestModel1: classes with embedded single links and subclasses
 
 type
+  // Stands in for the rest of the persistence chain: PMUpdate/ReserveNewIds
+  // are absorbed, and PMExactifyIds resolves every inexact id to a configured
+  // concrete class - the way the real chain resolves via BOLD_TYPE in the DB.
+  TFakeExactifyingController = class(TBoldPersistenceControllerPassthrough)
+  private
+    fResolveToTopSortedIndex: integer;
+    fExactifyCalls: integer;
+  public
+    procedure PMExactifyIds(ObjectIdList: TBoldObjectIdList; TranslationList: TBoldIdTranslationList; HandleNonExisting: Boolean); override;
+    procedure PMUpdate(ObjectIdList: TBoldObjectIdList; ValueSpace: IBoldValueSpace; Old_Values: IBoldValueSpace; Precondition: TBoldUpdatePrecondition; TranslationList: TBoldIdTranslationList; var TimeStamp: TBoldTimeStampType; var TimeOfLatestUpdate: TDateTime; BoldClientID: TBoldClientID); override;
+    procedure ReserveNewIds(ValueSpace: IBoldValueSpace; ObjectIdList: TBoldObjectIdList; TranslationList: TBoldIdTranslationList); override;
+    property ResolveToTopSortedIndex: integer read fResolveToTopSortedIndex write fResolveToTopSortedIndex;
+    property ExactifyCalls: integer read fExactifyCalls;
+  end;
+
   // AddEvent/AddClassEvents are protected; this collector exposes them for
   // the test without touching production visibility.
   TEventCollectingSnooper = class(TBoldAbstractSnooper)
@@ -90,6 +112,29 @@ end;
 procedure TEventCollectingSnooper.CallNonEmbeddedStateOfObjectChanged(const Object_Content, NewObject_Content: IBoldObjectContents; MoldClass: TMoldClass);
 begin
   NonEmbeddedStateOfObjectChanged(Object_Content, NewObject_Content, MoldClass);
+end;
+
+{ TFakeExactifyingController }
+
+procedure TFakeExactifyingController.PMExactifyIds(ObjectIdList: TBoldObjectIdList; TranslationList: TBoldIdTranslationList; HandleNonExisting: Boolean);
+var
+  i: integer;
+begin
+  inc(fExactifyCalls);
+  for i := 0 to ObjectIdList.Count - 1 do
+    if not ObjectIdList[i].TopSortedIndexExact then
+      TranslationList.AddTranslationAdoptNew(ObjectIdList[i],
+        ObjectIdList[i].CloneWithClassId(fResolveToTopSortedIndex, true));
+end;
+
+procedure TFakeExactifyingController.PMUpdate(ObjectIdList: TBoldObjectIdList; ValueSpace: IBoldValueSpace; Old_Values: IBoldValueSpace; Precondition: TBoldUpdatePrecondition; TranslationList: TBoldIdTranslationList; var TimeStamp: TBoldTimeStampType; var TimeOfLatestUpdate: TDateTime; BoldClientID: TBoldClientID);
+begin
+  // the DB layer is out of scope for these tests
+end;
+
+procedure TFakeExactifyingController.ReserveNewIds(ValueSpace: IBoldValueSpace; ObjectIdList: TBoldObjectIdList; TranslationList: TBoldIdTranslationList);
+begin
+  // no new objects in these tests
 end;
 
 { TTestBoldAbstractSnooper }
@@ -218,6 +263,119 @@ begin
     end;
   finally
     ValueSpace.Free;
+  end;
+end;
+
+procedure TTestBoldAbstractSnooper.TestNonEmbeddedEventNamesConcreteClassForInexactId;
+var
+  Snooper: TEventCollectingSnooper;
+  Fake: TFakeExactifyingController;
+  MoldModel: TMoldModel;
+  ClassA, ItemClass, CompositeItem: TMoldClass;
+  Role, OtherRole: TMoldRole;
+  LinkIndex, j: integer;
+  LinkName: string;
+  OwnerId, LinkTargetId: TBoldObjectId;
+  NewValues, OldValues: TBoldFreeStandingValueSpace;
+  NewValuesIntf, OldValuesIntf: IBoldValueSpace;
+  OwnerOldContents: IBoldObjectContents;
+  LinkValue: IBoldValue;
+  IdRef: IBoldObjectIdRef;
+  IdList: TBoldObjectIdList;
+  TimeStamp: TBoldTimeStampType;
+  TimeOfLatestUpdate: TDateTime;
+  ExpectedEvent, WrongEvent: string;
+begin
+  // An id read out of an embedded single-link value carries only the link's
+  // declared class when that class has subclasses (inexact id). The OSS event
+  // must name the object's concrete class - the receiver rebuilds an id from
+  // the name and treats it as exact - so the snooper has to resolve inexact
+  // ids through the persistence chain before naming, not echo the superclass.
+  Ensuredm_Model;
+  MoldModel := dm_Model1.BoldModel1.MoldModel;
+  // production reaches the snooper only after BoldSystemRT has top-sorted the
+  // model; without this, TopSortedIndex does not address MoldModel.Classes
+  MoldModel.EnsureTopSorted;
+  ClassA := FindClass(MoldModel, 'ClassA');
+  ItemClass := FindClass(MoldModel, 'Item');
+  CompositeItem := FindClass(MoldModel, 'CompositeItem');
+  Assert.AreSame(TObject(ItemClass), TObject(CompositeItem.SuperClass), 'model sanity: CompositeItem inherits Item');
+
+  // locate an embedded single link on ClassA and the link name the snooper
+  // will report (the non-embedded other end)
+  LinkIndex := -1;
+  Role := nil;
+  for j := 0 to ClassA.AllBoldMembers.Count - 1 do
+    if (ClassA.AllBoldMembers[j] is TMoldRole) and
+       TMoldRole(ClassA.AllBoldMembers[j]).EffectiveEmbedded and
+       TMoldRole(ClassA.AllBoldMembers[j]).EffectivePersistent then
+    begin
+      LinkIndex := j;
+      Role := TMoldRole(ClassA.AllBoldMembers[j]);
+      break;
+    end;
+  Assert.IsTrue(LinkIndex >= 0, 'model sanity: ClassA must have an embedded single link');
+  OtherRole := Role.OtherEnd;
+  if OtherRole.RoleType = rtLinkRole then
+    OtherRole := OtherRole.MainRole;
+  LinkName := OtherRole.ExpandedExpressionName;
+
+  NewValues := TBoldFreeStandingValueSpace.Create;
+  OldValues := TBoldFreeStandingValueSpace.Create;
+  IdList := TBoldObjectIdList.Create;
+  OwnerId := TBoldInternalObjectId.CreateWithClassIDandInternalId(1, ClassA.TopSortedIndex, true);
+  LinkTargetId := TBoldInternalObjectId.CreateWithClassIDandInternalId(42, ItemClass.TopSortedIndex, false);
+  Snooper := nil;
+  Fake := nil;
+  try
+    // old values: the link member held an id that is really a CompositeItem
+    // but is only known as "some Item" (inexact - the declared class has
+    // subclasses, so the FK column alone cannot say which one)
+    OwnerOldContents := OldValues.GetEnsuredObjectContentsByObjectId(OwnerId);
+    LinkValue := OwnerOldContents.EnsureMemberAndGetValueByIndex(LinkIndex, BoldContentName_ObjectIdRef);
+    Assert.IsTrue(Supports(LinkValue, IBoldObjectIdRef, IdRef), 'link value must expose IBoldObjectIdRef');
+    IdRef.SetFromId(LinkTargetId, false);
+
+    // new values: the link is gone (cleared), so exactly one event is due
+    NewValues.GetEnsuredObjectContentsByObjectId(OwnerId);
+
+    IdList.Add(OwnerId);
+    NewValues.GetInterface(IBoldValueSpace, NewValuesIntf);
+    OldValues.GetInterface(IBoldValueSpace, OldValuesIntf);
+
+    Snooper := TEventCollectingSnooper.Create(MoldModel);
+    Fake := TFakeExactifyingController.Create;
+    Fake.ResolveToTopSortedIndex := CompositeItem.TopSortedIndex;
+    Snooper.NextPersistenceController := Fake;
+
+    TimeStamp := 0;
+    TimeOfLatestUpdate := 0;
+    Snooper.PMUpdate(IdList, NewValuesIntf, OldValuesIntf, nil, nil, TimeStamp, TimeOfLatestUpdate, 0);
+
+    ExpectedEvent := TBoldObjectSpaceExternalEvent.EncodeExternalEvent(
+      bsNonEmbeddedStateOfObjectChanged, CompositeItem.ExpandedExpressionName, LinkName, '', LinkTargetId);
+    WrongEvent := TBoldObjectSpaceExternalEvent.EncodeExternalEvent(
+      bsNonEmbeddedStateOfObjectChanged, ItemClass.ExpandedExpressionName, LinkName, '', LinkTargetId);
+
+    Assert.IsTrue(Snooper.Collected.IndexOf(ExpectedEvent) >= 0,
+      Format('event must name the concrete class (want "%s", events: %s)',
+        [ExpectedEvent, Snooper.Collected.CommaText]));
+    Assert.IsTrue(Snooper.Collected.IndexOf(WrongEvent) < 0,
+      'event must not name the declared superclass');
+    Assert.IsTrue(Fake.ExactifyCalls > 0, 'snooper must resolve inexact ids through the chain');
+  finally
+    IdRef := nil;
+    LinkValue := nil;
+    OwnerOldContents := nil;
+    NewValuesIntf := nil;
+    OldValuesIntf := nil;
+    Snooper.Free;
+    Fake.Free;
+    IdList.Free;
+    OwnerId.Free;
+    LinkTargetId.Free;
+    NewValues.Free;
+    OldValues.Free;
   end;
 end;
 

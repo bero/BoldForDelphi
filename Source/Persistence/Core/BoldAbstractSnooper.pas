@@ -30,9 +30,13 @@ type
     fArrayOfClassesToIgnore: TBooleanArray;
     fUseClassEvents: boolean;
     fUseMemberLevelOSS: boolean;
+    fLinkEventTranslations: TBoldIdTranslationList;
     procedure SetClassesToIgnore(const Value: string);
   protected
     procedure GenerateNonEmbeddedStateChangedEvent(OldID, NewID: TBoldObjectId; MoldClass: TMoldClass; const NonEmbeddedLinkName: string);
+    function EventMemberCount(const Object_Content, NewObject_Content: IBoldObjectContents; MoldClass: TMoldClass): integer;
+    procedure ExactifyLinkEventIds(ObjectIdList: TBoldObjectIdList; const ValueSpace, Old_Values: IBoldValueSpace);
+    function ResolveEventId(Id: TBoldObjectId): TBoldObjectId;
     function ObjectIdByMemberIndex(Object_Content: IBoldObjectContents; MemberIndex: integer): TBoldObjectID;
     function MemberIsEmbeddedSingleLink(MoldMember: TMoldMember; var NonEmbeddedLink: TMoldRole): Boolean;
     function MemberIsNonEmbeddedLink(MoldMember: TMoldMember; var MemberName: string): Boolean;
@@ -80,6 +84,7 @@ end;
 
 destructor TBoldAbstractSnooper.Destroy;
 begin
+  FreeAndNil(fLinkEventTranslations);
   inherited;
 end;
 
@@ -132,6 +137,10 @@ begin
     ReserveNewIds(ValueSpace, LocalObjectIdList, TranslationList);
     ValueSpace.ApplytranslationList(TranslationList);
     LocalObjectIdList.ApplyTranslationList(TranslationList);
+
+    // Resolve inexact embedded-link target ids to their concrete class BEFORE
+    // the write: targets deleted by this very update can still be looked up.
+    ExactifyLinkEventIds(LocalObjectIdList, ValueSpace, Old_Values);
 
     EnsureDataBaseLock(BoldClientID);
     try
@@ -223,6 +232,7 @@ begin
       TransmitEvents(BoldClientID);
     end;
   finally
+    FreeAndNil(fLinkEventTranslations);
     Object_Content := nil;
     NewObject_Content := nil;
     if assigned(LocalOld_Values) then
@@ -237,6 +247,12 @@ end;
 
 procedure TBoldAbstractSnooper.GenerateNonEmbeddedStateChangedEvent(OldID, NewID: TBoldObjectId; MoldClass: TMoldClass; const NonEmbeddedLinkName: string);
 begin
+  // The receiver rebuilds an id from the event's class name and treats it as
+  // exact, so inexact ids must be named by their concrete class, not the
+  // link's declared class. Resolution does not affect IsEqual (ids compare by
+  // identifier, not class).
+  OldID := ResolveEventId(OldID);
+  NewID := ResolveEventId(NewID);
   if (Assigned(OldID) and Assigned(NewID) and not(OldID.IsEqual[NewID])) then
   begin
     AddEvent(TBoldObjectSpaceExternalEvent.EncodeExternalEvent(bsNonEmbeddedStateOfObjectChanged, ClassNameFromObjectID(OldId), NonEmbeddedLinkName, '', OldID));
@@ -328,28 +344,90 @@ begin
   end;
 end;
 
-procedure TBoldAbstractSnooper.NonEmbeddedStateOfObjectChanged(const Object_Content, NewObject_Content: IBoldObjectContents; MoldClass: TMoldClass);
-var
-  j: integer;
-  MemberCount: integer;
-  Id: TBoldObjectID;
-  NewId: TBoldObjectID;
-  NonEmbeddedLinkName: string;
-  NonEmbeddedLink: TMoldRole;
+function TBoldAbstractSnooper.EventMemberCount(const Object_Content, NewObject_Content: IBoldObjectContents; MoldClass: TMoldClass): integer;
 begin
-  MemberCount := 0;
+  Result := 0;
   if Assigned(Object_Content) then
-    MemberCount := Object_Content.MemberCount
+    Result := Object_Content.MemberCount
   else if Assigned(NewObject_Content) then
-    MemberCount := NewObject_Content.MemberCount;
+    Result := NewObject_Content.MemberCount;
   // The contents can carry more member slots than the model class declares
   // (e.g. stale old values kept for an id that was re-issued to a class with
   // fewer members). Indexing AllBoldMembers past its end would raise after
   // the update has already committed: the caller then sees a failed save for
   // committed data and the whole batch of OSS events is lost.
-  if MemberCount > MoldClass.AllBoldMembers.Count then
-    MemberCount := MoldClass.AllBoldMembers.Count;
-  for j:= 0 to MemberCount - 1 do
+  if Result > MoldClass.AllBoldMembers.Count then
+    Result := MoldClass.AllBoldMembers.Count;
+end;
+
+procedure TBoldAbstractSnooper.ExactifyLinkEventIds(ObjectIdList: TBoldObjectIdList; const ValueSpace, Old_Values: IBoldValueSpace);
+var
+  i, j: integer;
+  ObjectId, Id, NewId: TBoldObjectId;
+  TopSortedIndex: integer;
+  MoldClass: TMoldClass;
+  OldContent, NewContent: IBoldObjectContents;
+  NonEmbeddedLink: TMoldRole;
+  ExactifyList: TBoldObjectIdList;
+
+  procedure CollectIfInexact(AId: TBoldObjectId);
+  begin
+    if Assigned(AId) and not AId.TopSortedIndexExact and not ExactifyList.IdInList[AId] then
+      ExactifyList.Add(AId);
+  end;
+
+begin
+  ExactifyList := TBoldObjectIdList.Create;
+  try
+    for i := 0 to ObjectIdList.Count - 1 do
+    begin
+      ObjectId := ObjectIdList[i];
+      TopSortedIndex := ObjectId.TopSortedIndex;
+      if fArrayOfClassesToIgnore[TopSortedIndex] then
+        continue;
+      MoldClass := MoldModel.Classes[TopSortedIndex];
+      OldContent := Old_Values.ObjectContentsByObjectId[ObjectId];
+      NewContent := ValueSpace.ObjectContentsByObjectId[ObjectId];
+      for j := 0 to EventMemberCount(OldContent, NewContent, MoldClass) - 1 do
+        if MemberIsEmbeddedSingleLink(MoldClass.AllBoldMembers[j], NonEmbeddedLink) and
+          not fArrayOfClassesToIgnore[NonEmbeddedLink.OtherEnd.MoldClass.TopSortedIndex] then
+        begin
+          Id := ObjectIdByMemberIndex(OldContent, j);
+          NewId := ObjectIdByMemberIndex(NewContent, j);
+          // only ids that GenerateNonEmbeddedStateChangedEvent will name
+          if not (Assigned(Id) and Assigned(NewId) and Id.IsEqual[NewId]) then
+          begin
+            CollectIfInexact(Id);
+            CollectIfInexact(NewId);
+          end;
+        end;
+    end;
+    if ExactifyList.Count > 0 then
+    begin
+      fLinkEventTranslations := TBoldIdTranslationList.Create;
+      PMExactifyIds(ExactifyList, fLinkEventTranslations, false);
+    end;
+  finally
+    ExactifyList.Free;
+  end;
+end;
+
+function TBoldAbstractSnooper.ResolveEventId(Id: TBoldObjectId): TBoldObjectId;
+begin
+  Result := Id;
+  if Assigned(fLinkEventTranslations) and Assigned(Id) and not Id.TopSortedIndexExact then
+    Result := fLinkEventTranslations.TranslateToNewId[Id];
+end;
+
+procedure TBoldAbstractSnooper.NonEmbeddedStateOfObjectChanged(const Object_Content, NewObject_Content: IBoldObjectContents; MoldClass: TMoldClass);
+var
+  j: integer;
+  Id: TBoldObjectID;
+  NewId: TBoldObjectID;
+  NonEmbeddedLinkName: string;
+  NonEmbeddedLink: TMoldRole;
+begin
+  for j:= 0 to EventMemberCount(Object_Content, NewObject_Content, MoldClass) - 1 do
     if MemberIsEmbeddedSingleLink(MoldClass.AllBoldMembers[j], NonEmbeddedLink) then
     begin;
       Id := ObjectIdByMemberIndex(Object_Content, j);
