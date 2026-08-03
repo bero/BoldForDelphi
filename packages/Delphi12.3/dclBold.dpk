@@ -185,6 +185,7 @@ contains
   BoldFormSaverActions in '..\..\Source\BoldAwareGUI\Core\BoldFormSaverActions.pas',
   BoldFreeStandingValueFactories in '..\..\Source\FreestandingValueSpace\Core\BoldFreeStandingValueFactories.pas',
   BoldFreeStandingValues in '..\..\Source\FreestandingValueSpace\Core\BoldFreeStandingValues.pas',
+  FreeStandingValuesConst in '..\..\Source\FreestandingValueSpace\Core\FreeStandingValuesConst.pas',
   BoldGUI in '..\..\Source\BoldAwareGUI\Core\BoldGUI.pas',
   BoldGUIDUtils in '..\..\Source\Common\Support\BoldGUIDUtils.pas',
   BoldGen in '..\..\Source\MoldModel\CodeGenerator\BoldGen.pas',

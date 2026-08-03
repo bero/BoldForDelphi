@@ -275,6 +275,7 @@
         <DCCReference Include="..\..\Source\BoldAwareGUI\Core\BoldFormSaverActions.pas"/>
         <DCCReference Include="..\..\Source\FreestandingValueSpace\Core\BoldFreeStandingValueFactories.pas"/>
         <DCCReference Include="..\..\Source\FreestandingValueSpace\Core\BoldFreeStandingValues.pas"/>
+        <DCCReference Include="..\..\Source\FreestandingValueSpace\Core\FreeStandingValuesConst.pas"/>
         <DCCReference Include="..\..\Source\BoldAwareGUI\Core\BoldGUI.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldGUIDUtils.pas"/>
         <DCCReference Include="..\..\Source\MoldModel\CodeGenerator\BoldGen.pas"/>

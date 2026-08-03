@@ -12,7 +12,6 @@
         <ProjectName Condition="'$(ProjectName)'==''">dclBold</ProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
-        <DCC_Define>NoObjectSpaceTransactions;$(DCC_Define)</DCC_Define>
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
@@ -275,6 +274,7 @@
         <DCCReference Include="..\..\Source\BoldAwareGUI\Core\BoldFormSaverActions.pas"/>
         <DCCReference Include="..\..\Source\FreestandingValueSpace\Core\BoldFreeStandingValueFactories.pas"/>
         <DCCReference Include="..\..\Source\FreestandingValueSpace\Core\BoldFreeStandingValues.pas"/>
+        <DCCReference Include="..\..\Source\FreestandingValueSpace\Core\FreeStandingValuesConst.pas"/>
         <DCCReference Include="..\..\Source\BoldAwareGUI\Core\BoldGUI.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldGUIDUtils.pas"/>
         <DCCReference Include="..\..\Source\MoldModel\CodeGenerator\BoldGen.pas"/>
