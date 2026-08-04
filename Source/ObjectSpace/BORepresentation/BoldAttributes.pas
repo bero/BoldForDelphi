@@ -1293,7 +1293,9 @@ end;
 
 procedure TBAString.SetEmptyValue;
 begin
-  if FValue <> '' then
+  // Also repair a null attribute (e.g. a NULL fetched from the database into
+  // a non-nullable column) - the empty value must always end up non-null.
+  if IsNull or (FValue <> '') then
     asString := '';
 end;
 
@@ -1517,7 +1519,9 @@ end;
 
 procedure TBANumeric.SetEmptyValue;
 begin
-  if AsFloat <> 0 then
+  // Test IsNull first: reading AsFloat on a null attribute raises, and a null
+  // non-nullable attribute must be repaired to the empty value, not left null.
+  if IsNull or (AsFloat <> 0) then
     AsInteger := 0;
 end;
 
@@ -1573,7 +1577,7 @@ end;
 
 procedure TBAInteger.SetEmptyValue;
 begin
-  if fValue <> 0 then
+  if IsNull or (fValue <> 0) then
     inherited;
 end;
 
@@ -1983,7 +1987,7 @@ end;
 
 procedure TBAFloat.SetEmptyValue;
 begin
-  if FValue <> 0 then
+  if IsNull or (FValue <> 0) then
     inherited;
 end;
 
@@ -2259,7 +2263,7 @@ end;
 
 procedure TBACurrency.SetEmptyValue;
 begin
-  if fValue <> 0 then
+  if IsNull or (fValue <> 0) then
     inherited;
 end;
 
@@ -4436,7 +4440,9 @@ procedure TBAValueSet.SetEmptyValue;
 begin
   if Values.Count > 0 then
   begin
-    if AsInteger <> Values.GetFirstValue.AsInteger then
+    // Test IsNull first: reading AsInteger on a null attribute raises, and a
+    // null attribute must be repaired to the first legal value, not left null.
+    if IsNull or (AsInteger <> Values.GetFirstValue.AsInteger) then
       AsInteger := Values.GetFirstValue.AsInteger
   end
   else if not assigned(BoldAttributeRTInfo) or BoldAttributeRTInfo.AllowNull then

@@ -8,6 +8,10 @@ uses
   Classes,
   Forms,
   DUnitX.TestFramework,
+  // TestModel1 is listed before jehoBCBoldTest on purpose: both declare
+  // TClassA with the same attribute names, and unqualified TClassA in this
+  // unit must keep resolving to jehoBCBoldTest.TClassA (later unit wins).
+  TestModel1,
   jehoBCBoldTest,
   BoldSystem,
   BoldHandle,
@@ -411,6 +415,41 @@ type
     procedure TestBoldElementToJsonWithBlob;
   end;
 
+  // SetEmptyValue must give a non-nullable attribute its empty value even when
+  // the attribute is currently null (e.g. a NULL fetched from the database into
+  // a non-nullable column, or a model that changed from nullable to
+  // non-nullable). The scalar overrides guard on the data field instead of the
+  // null flag, so a null attribute silently stays null; TBAValueSet reads
+  // AsInteger before assigning and raises on a null attribute.
+  // Uses TestModel1 because its attributes are non-nullable (no AllowNULL tag,
+  // model default is False) - the jeho model above is all AllowNULL=True.
+  [TestFixture]
+  [Category('ObjectSpace')]
+  TTestSetEmptyValue = class
+  private
+    FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
+    FSystemHandle: TBoldSystemHandle;
+    function CreateClassA: TestModel1.TClassA;
+    procedure MakeContentNull(Attribute: TBoldAttribute);
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+    [Test]
+    procedure TestSetEmptyValueRepairsNullString;
+    [Test]
+    procedure TestSetEmptyValueRepairsNullInteger;
+    [Test]
+    procedure TestSetEmptyValueRepairsNullFloat;
+    [Test]
+    procedure TestSetEmptyValueRepairsNullCurrency;
+    [Test]
+    procedure TestSetEmptyValueRepairsNullValueSet;
+    [Test]
+    procedure TestAssignNilRepairsNullNonNullableAttribute;
+  end;
+
 var
   jehodmBoldTest: TjehodmBoldTest;
 
@@ -422,7 +461,8 @@ uses
   BoldDomainElement,
   BoldValueInterfaces,
   BoldMLAttributes,
-  BoldObjectRepresentationJson;
+  BoldObjectRepresentationJson,
+  dmModel1;
 
 {$R dmjehoBoldTest.dfm}
 
@@ -2996,7 +3036,126 @@ begin
   Assert.IsTrue(Length(Json) > 50, 'JSON with blob should have content');
 end;
 
+{ TTestSetEmptyValue }
+
+procedure TTestSetEmptyValue.SetUp;
+begin
+  Ensuredm_Model;
+  FSystemTypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
+  FSystemTypeInfoHandle.BoldModel := dm_Model1.BoldModel1;
+  FSystemHandle := TBoldSystemHandle.Create(nil);
+  FSystemHandle.SystemTypeInfoHandle := FSystemTypeInfoHandle;
+  FSystemHandle.Active := True;
+end;
+
+procedure TTestSetEmptyValue.TearDown;
+begin
+  if Assigned(FSystemHandle) and FSystemHandle.Active then
+  begin
+    FSystemHandle.System.Discard;
+    FSystemHandle.Active := False;
+  end;
+  FreeAndNil(FSystemHandle);
+  FreeAndNil(FSystemTypeInfoHandle);
+end;
+
+function TTestSetEmptyValue.CreateClassA: TestModel1.TClassA;
+begin
+  Result := TestModel1.TClassA.Create(FSystemHandle.System);
+end;
+
+procedure TTestSetEmptyValue.MakeContentNull(Attribute: TBoldAttribute);
+var
+  Nullable: IBoldNullableValue;
+begin
+  // SetToNull is refused for non-nullable attributes, so go through the
+  // content proxy - the same route a database fetch of NULL takes.
+  Assert.IsTrue(Attribute.ProxyInterface(IBoldNullableValue, bdepContents, Nullable),
+    Attribute.DisplayName + ': expected an IBoldNullableValue content proxy');
+  Nullable.SetContentToNull;
+  Assert.IsTrue(Attribute.IsNull,
+    Attribute.DisplayName + ': attribute should be null after SetContentToNull');
+end;
+
+procedure TTestSetEmptyValue.TestSetEmptyValueRepairsNullString;
+var
+  Obj: TestModel1.TClassA;
+begin
+  Obj := CreateClassA;
+  MakeContentNull(Obj.M_aString);
+  Obj.M_aString.SetEmptyValue;
+  Assert.IsFalse(Obj.M_aString.IsNull,
+    'non-nullable string must be non-null after SetEmptyValue');
+  Assert.AreEqual('', Obj.aString);
+end;
+
+procedure TTestSetEmptyValue.TestSetEmptyValueRepairsNullInteger;
+var
+  Obj: TestModel1.TClassA;
+begin
+  Obj := CreateClassA;
+  MakeContentNull(Obj.M_aInteger);
+  Obj.M_aInteger.SetEmptyValue;
+  Assert.IsFalse(Obj.M_aInteger.IsNull,
+    'non-nullable integer must be non-null after SetEmptyValue');
+  Assert.AreEqual(0, Obj.aInteger);
+end;
+
+procedure TTestSetEmptyValue.TestSetEmptyValueRepairsNullFloat;
+var
+  Obj: TestModel1.TClassA;
+begin
+  Obj := CreateClassA;
+  MakeContentNull(Obj.M_aFloat);
+  Obj.M_aFloat.SetEmptyValue;
+  Assert.IsFalse(Obj.M_aFloat.IsNull,
+    'non-nullable float must be non-null after SetEmptyValue');
+  Assert.AreEqual(Double(0.0), Double(Obj.aFloat));
+end;
+
+procedure TTestSetEmptyValue.TestSetEmptyValueRepairsNullCurrency;
+var
+  Obj: TestModel1.TClassA;
+begin
+  Obj := CreateClassA;
+  MakeContentNull(Obj.M_aCurrency);
+  Obj.M_aCurrency.SetEmptyValue;
+  Assert.IsFalse(Obj.M_aCurrency.IsNull,
+    'non-nullable currency must be non-null after SetEmptyValue');
+  Assert.AreEqual(Currency(0), Obj.aCurrency);
+end;
+
+procedure TTestSetEmptyValue.TestSetEmptyValueRepairsNullValueSet;
+var
+  Obj: TestModel1.TClassA;
+begin
+  // TBAValueSet.SetEmptyValue reads AsInteger before assigning, which raises
+  // EBoldAccessNullValue on a null attribute instead of repairing it.
+  Obj := CreateClassA;
+  MakeContentNull(Obj.M_aBoolean);
+  Obj.M_aBoolean.SetEmptyValue;
+  Assert.IsFalse(Obj.M_aBoolean.IsNull,
+    'non-nullable valueset must be non-null after SetEmptyValue');
+  Assert.IsFalse(Obj.aBoolean,
+    'valueset should hold its first value after SetEmptyValue');
+end;
+
+procedure TTestSetEmptyValue.TestAssignNilRepairsNullNonNullableAttribute;
+var
+  Obj: TestModel1.TClassA;
+begin
+  // Assign(nil) routes non-nullable attributes to SetEmptyValue - the
+  // production path that is supposed to clear a null into an empty value.
+  Obj := CreateClassA;
+  MakeContentNull(Obj.M_aString);
+  Obj.M_aString.Assign(nil);
+  Assert.IsFalse(Obj.M_aString.IsNull,
+    'Assign(nil) on a null non-nullable attribute must yield the empty value, not null');
+  Assert.AreEqual('', Obj.aString);
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldAttributes);
+  TDUnitX.RegisterTestFixture(TTestSetEmptyValue);
 
 end.
