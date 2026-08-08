@@ -6,6 +6,7 @@ uses
   Classes,
   SysUtils,
   DUnitX.TestFramework,
+  BoldSubscription,
   BoldSystem,
   BoldElements,
   BoldHandles,
@@ -23,8 +24,12 @@ type
   TTestBoldOclVariables = class
   private
     FDataModule: TjehodmBoldTest;
+    FSystemBeingDestroyed: TBoldSystem;
+    FHandleEventDuringTeardown: Boolean;
     function GetSystem: TBoldSystem;
     function GetEvaluator: TBoldEvaluator;
+    procedure HandleListHandleEventDuringTeardown(Originator: TObject;
+      OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
   public
     [Setup]
     procedure SetUp;
@@ -186,13 +191,14 @@ type
     procedure TestSetVariableTupleList_Setter;
     [Test]
     procedure TestHandleBasedVar_SetHandle;
+    [Test]
+    procedure TestSubscribeToHandle_DuringSystemTeardown;
   end;
 
 implementation
 
 uses
   BoldOcl,
-  BoldSubscription,
   BoldAbstractListHandle,
   BoldRootedHandles;
 
@@ -1412,6 +1418,57 @@ begin
     Assert.IsNull(V.Handle, 'Handle should be nil after clear');
   finally
     V.Free;
+  end;
+end;
+
+procedure TTestBoldOclVariables.HandleListHandleEventDuringTeardown(
+  Originator: TObject; OriginalEvent: TBoldEvent;
+  RequestedEvent: TBoldRequestedEvent);
+begin
+  // Mirrors the component's internal handle subscription: proves the list
+  // handle really fires while the system is mid-destruction, so the test
+  // cannot pass vacuously if the teardown event never happens.
+  if (OriginalEvent = beValueIdentityChanged) and
+     Assigned(FSystemBeingDestroyed) and FSystemBeingDestroyed.IsDestroying then
+    FHandleEventDuringTeardown := True;
+end;
+
+procedure TTestBoldOclVariables.TestSubscribeToHandle_DuringSystemTeardown;
+var
+  OclVars: TBoldOclVariables;
+  Observer: TBoldPassthroughSubscriber;
+begin
+  // When the system is destroyed, unloading objects invalidates list handles,
+  // which deliver beValueIdentityChanged to TBoldOclVariables while
+  // System.IsDestroying is True. SubscribeToHandle must not react by reading
+  // VariableList: its getter rebuilds the variable list (already cleared by
+  // the system's beDestroying) and recreates handle variables against
+  // System.Evaluator, resurrecting the evaluator the system just freed.
+  OclVars := TBoldOclVariables.Create(nil);
+  Observer := TBoldPassthroughSubscriber.Create(HandleListHandleEventDuringTeardown);
+  try
+    OclVars.AddVariable('teardownVar', FDataModule.BoldListHandle1);
+    OclVars.GlobalSystemHandle := FDataModule.BoldSystemHandle1;
+
+    TClassA.Create(GetSystem);
+    FDataModule.BoldListHandle1.List; // derive now so unload fires an event later
+
+    FSystemBeingDestroyed := GetSystem;
+    FHandleEventDuringTeardown := False;
+    FDataModule.BoldListHandle1.AddSubscription(Observer, beValueIdentityChanged, breReSubscribe);
+
+    FDataModule.BoldSystemHandle1.Active := False; // destroys the TBoldSystem
+
+    Assert.IsTrue(FHandleEventDuringTeardown,
+      'List handle must deliver beValueIdentityChanged during system teardown ' +
+      '(scenario precondition - without it this test proves nothing)');
+    // Surviving Active := False without EAssertionFailed (DEBUG guard in
+    // TBoldSystem.GetEvaluator) proves SubscribeToHandle left the cleared
+    // variable list alone instead of rebuilding it against the dying system.
+  finally
+    Observer.Free;
+    OclVars.Free;
+    FSystemBeingDestroyed := nil;
   end;
 end;
 

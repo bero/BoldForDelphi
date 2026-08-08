@@ -392,8 +392,15 @@ procedure TBoldOclVariables.SubscribeToHandle(AHandle: TBoldElementHandle);
 var
   vVariable: TBoldExternalVariable;
 begin
+  // System checks must run BEFORE VariableList: its getter rebuilds the list,
+  // recreating handle variables against System.Evaluator - during system
+  // teardown that resurrects the just-freed evaluator (handle events arrive
+  // here from UnloadBoldObject; the list was already cleared by the system's
+  // beDestroying and must stay gone).
   if (not (csDestroying in ComponentState) and ((Owner = nil) or not (csDestroying in TComponent(Owner).ComponentState)))
-     and (VariableList.Count > 0) and Assigned(GlobalSystemHandle) and GlobalSystemHandle.Active then // Assigned(GlobalSystemHandle.SystemTypeInfoHandle) and GlobalSystemHandle.SystemTypeInfoHandle.IsSystemTypeInfoAvailable then
+     and Assigned(GlobalSystemHandle) and GlobalSystemHandle.Active
+     and not GlobalSystemHandle.System.IsDestroying
+     and (VariableList.Count > 0) then
   begin
     GlobalSystemHandle.System.AddSmallSubscription(fSubscriber, [beDestroying], beDestroying);
     vVariable := GetVariableFromHandle(AHandle);
