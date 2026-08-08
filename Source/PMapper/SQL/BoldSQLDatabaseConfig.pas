@@ -1116,6 +1116,11 @@ begin
       fMaxBatchQueryLength := 65536 * 1024; // Length of a string containing SQL statements (batch size) 65,536 * Network packet size Default packet size is 4096 bytes
       fMaxBatchQueryParams := 2000;
       fMultiRowInsertLimit := 1000;
+      // SQL Server compiles a plan per distinct statement text; keeping id
+      // lists above FetchBlockSize (250) on the parameterized path makes
+      // fetch SQL byte-identical and plans reusable. Well below the 2100
+      // params/statement engine limit.
+      fMaxParamsInIdList := 500;
       fSqlScriptStartTransaction := 'BEGIN TRANSACTION';
       fDropColumnTemplate :=
           'DECLARE @CONSTRAINTNAME NVARCHAR(200)' 

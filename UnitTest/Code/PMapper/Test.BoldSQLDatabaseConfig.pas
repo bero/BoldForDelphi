@@ -22,6 +22,8 @@ type
     [Test] [Category('Quick')]
     procedure TestInitialize_SQLServer;
     [Test] [Category('Quick')]
+    procedure TestInitialize_SQLServer_MaxParamsInIdList;
+    [Test] [Category('Quick')]
     procedure TestInitialize_Postgres;
     [Test] [Category('Quick')]
     procedure TestInitialize_MySQL;
@@ -249,6 +251,22 @@ begin
     Assert.IsTrue(Cfg.IndexExistsTemplate <> '');
     Assert.IsTrue(Cfg.IndexInfoTemplate <> '');
     Assert.AreEqual('BEGIN TRANSACTION', Cfg.SqlScriptStartTransaction);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestInitialize_SQLServer_MaxParamsInIdList;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    Cfg.InitializeDbEngineSettings(dbeSQLServer);
+    // SQL Server compiles a new plan for every distinct IN-list text; raising the
+    // param ceiling above FetchBlockSize (250) keeps full fetch blocks on the
+    // parameterized path so statements stay byte-identical and plans reusable.
+    Assert.AreEqual(500, Cfg.MaxParamsInIdList);
   finally
     Cfg.Free;
   end;
