@@ -701,6 +701,7 @@ var
   WhereFragment: String;
   TopSortedIndex: Integer;
   aQuery: IBoldQuery;
+  vParameterized: IBoldParameterized;
 begin
   if ObjectIDList.Count = 0 then
     Exit;
@@ -727,6 +728,15 @@ begin
 
   ResultList := TList.Create;
   aQuery := SystemPersistenceMapper.GetQuery;
+  // A pooled query can arrive with ParamCheck leaked false (the OCL-to-SQL
+  // path disables it without restoring). The id-list parameters created
+  // below require it, and it must be set before the SQL is assigned -
+  // FireDAC ignores ParamCheck changes made afterwards.
+  if Supports(aQuery, IBoldParameterized, vParameterized) then
+  begin
+    vParameterized.ParamCheck := true;
+    vParameterized := nil;
+  end;
 
   try
     ObjectCount := ObjectIDList.Count - 1;
@@ -741,7 +751,7 @@ begin
       aQuery.ClearParams;
       Start := Block * FetchBlockSize;
       Stop := MinIntValue([Pred(Succ(Block) * FetchBlockSize), ObjectCount]);
-      WhereFragment := ObjectPersistenceMapper.IdListSegmentToWhereFragment(ObjectIdList, Start, Stop, false, aQuery);
+      WhereFragment := ObjectPersistenceMapper.IdListSegmentToWhereFragment(ObjectIdList, Start, Stop, true, aQuery);
       ProcessSQL(aQuery, WhereFragment, resultList, TimeStamp);
     end;
     if ResultList.Count > 1 then

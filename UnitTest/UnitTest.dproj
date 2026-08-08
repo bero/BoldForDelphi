@@ -134,6 +134,7 @@
         <DCCReference Include="Code\Persistence\Test.BoldAbstractObjectUpgraderHandle.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMapperLists.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSQLMappingInfo.pas"/>
+        <DCCReference Include="Code\PMapper\Test.BoldSqlParameterization.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSqlNodes.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMappersDefault.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldAbstractObjectUpgrader.pas"/>

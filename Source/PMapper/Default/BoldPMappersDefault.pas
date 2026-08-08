@@ -1634,20 +1634,23 @@ begin
   lst := TStringList.Create;
   FetchBlockSize := SystemPersistenceMapper.SQLDataBaseConfig.FetchBlockSize;
   aQuery := SystemPersistenceMapper.GetExecQuery;
-  aQuery.ParamCheck := false;
+  // ParamCheck must be true (and set before the SQL is assigned - FireDAC
+  // ignores later changes) so the id-list parameters created per block bind.
+  aQuery.ParamCheck := true;
   aQuery.ClearParams;
   try
     ObjectCount := ObjectIDList.Count - 1;
     for Block := 0 to (ObjectCount div FetchBlockSize) do
     begin
       lst.clear;
+      aQuery.ClearParams;
       Start := Block * FetchBlockSize;
       Stop := MinIntValue([Pred(Succ(Block) * FetchBlockSize), ObjectCount]);
 
       for i := start to stop do
         SystemPersistenceMapper.SendExtendedEvent(bpeDeleteObject, [ObjectIDList[I], ValueSpace]);
       BoldAppendToStrings(lst, 'DELETE FROM %s ', false);
-      IdListString := IdListSegmentToWhereFragment(ObjectIdList, start, stop, false, aQuery);
+      IdListString := IdListSegmentToWhereFragment(ObjectIdList, start, stop, true, aQuery);
 
       BoldAppendToStrings(lst, Format(' WHERE %%s %s', [IdListString]), false);
       for T := 0 to AllTables.Count - 1 do
@@ -1731,6 +1734,7 @@ var
   RefetchIdList: TBoldObjectIdList;
   Guard: IBoldGuard;
   FoundInCache: boolean;
+  vParameterized: IBoldParameterized;
 begin
   Guard := TBoldGuard.Create(TempList, RefetchIdList);
   FoundInCache := FindInCache(MemberIdList, FetchMode, MemberPMList, CustomMembers, sql);
@@ -1747,6 +1751,14 @@ begin
   RefetchIdList := TBoldObjectIdList.Create;
   FetchBlockSize := SystemPersistenceMapper.SQLDataBaseConfig.FetchBlockSize;
   aQuery := SystemPersistenceMapper.GetQuery;
+  // A pooled query can arrive with ParamCheck leaked false (the OCL-to-SQL
+  // path disables it without restoring). The id-list parameters require it,
+  // and FireDAC ignores ParamCheck changes made after the SQL is assigned.
+  if aQuery.QueryInterface(IBoldParameterized, vParameterized) = S_OK then
+  begin
+    vParameterized.ParamCheck := true;
+    vParameterized := nil;
+  end;
   try
     try
       if SystemPersistenceMapper.SupportsObjectUpgrading then
