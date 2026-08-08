@@ -37,6 +37,11 @@ type
     { All captured statements (first line + continuation/param lines) that
       contain SubText, concatenated. Empty if no statement matched. }
     function StatementsContaining(const SubText: string): string;
+    { Number of DISTINCT executed statement texts containing SubText.
+      Timestamps, statement counters and parameter-value dump lines are
+      stripped, so only the SQL text itself decides distinctness - the same
+      criterion a server-side plan cache keys on. }
+    function DistinctStatementCount(const SubText: string): Integer;
   end;
 
   [TestFixture]
@@ -157,6 +162,51 @@ begin
     Statement := Statement + fLines[i] + sLineBreak;
   end;
   FlushIfMatching;
+end;
+
+function TSQLCaptureLogHandler.DistinctStatementCount(const SubText: string): Integer;
+var
+  i, p: Integer;
+  Line, Statement: string;
+  Distinct: TStringList;
+
+  procedure FlushStatement;
+  begin
+    if (Statement <> '') and (Pos(SubText, Statement) > 0) then
+      Distinct.Add(Statement);
+    Statement := '';
+  end;
+
+begin
+  Distinct := TStringList.Create;
+  try
+    Distinct.Sorted := True;
+    Distinct.Duplicates := dupIgnore;
+    Statement := '';
+    for i := 0 to fLines.Count - 1 do
+    begin
+      Line := fLines[i];
+      p := Pos(':SQL ', Line);
+      if p > 0 then
+      begin
+        FlushStatement;
+        // Strip '<timestamp>:SQL <counter>- ' so only the SQL text remains;
+        // the counter area holds only digits and spaces, so the first '- '
+        // after the marker delimits it.
+        Line := Copy(Line, p + Length(':SQL '), MaxInt);
+        p := Pos('- ', Line);
+        if p > 0 then
+          Line := Copy(Line, p + 2, MaxInt);
+        Statement := Line;
+      end
+      else if Copy(TrimLeft(Line), 1, 1) <> '[' then // skip param value dumps
+        Statement := Statement + sLineBreak + TrimLeft(Line);
+    end;
+    FlushStatement;
+    result := Distinct.Count;
+  finally
+    Distinct.Free;
+  end;
 end;
 
 { TTestBoldSqlParameterization }

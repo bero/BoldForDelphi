@@ -72,6 +72,7 @@ uses
   Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas',
   Test.PersistenceFireDAC in 'Code\Persistence\Test.PersistenceFireDAC.pas',
   Benchmark.BoldFetch in 'Code\Persistence\Benchmark.BoldFetch.pas',
+  Benchmark.BoldIdListSql in 'Code\Persistence\Benchmark.BoldIdListSql.pas',
   Test.BoldGUIDUtils in 'Code\Common\Test.BoldGUIDUtils.pas',
   Test.BoldIsoDateTime in 'Code\Common\Test.BoldIsoDateTime.pas',
   Test.BoldMD5 in 'Code\ProductControl\Test.BoldMD5.pas',
