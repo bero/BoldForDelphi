@@ -2418,9 +2418,13 @@ function TBoldObjectDefaultMapper.InternalIdListSegmentToWhereFragment(
     else
       result := IdList[Idindex].asString
   end;
+const
+  cIdListParamBuckets: array[0..4] of integer = (10, 50, 100, 250, 500);
 var
   i: integer;
   ParamCount: integer;
+  PaddedCount: integer;
+  IdIndex: integer;
   UseParams: Boolean;
   SB: TStringBuilder;
 begin
@@ -2432,18 +2436,36 @@ begin
     Result := ' = ' + GetParamStr(start, 1, UseParams);
   end
   else
+  begin
+    // Pad parameterized IN-lists up to fixed bucket sizes by repeating the
+    // last id (duplicates in an IN-list are harmless), so all lists within
+    // a bucket share one SQL text and the server reuses a cached plan
+    // instead of compiling per distinct list length. Skipped when the
+    // bucket would exceed MaxParamsInIdList.
+    PaddedCount := ParamCount;
+    if UseParams then
+      for i := Low(cIdListParamBuckets) to High(cIdListParamBuckets) do
+        if cIdListParamBuckets[i] >= ParamCount then
+        begin
+          if cIdListParamBuckets[i] <= SystemPersistenceMapper.SQLDataBaseConfig.MaxParamsInIdList then
+            PaddedCount := cIdListParamBuckets[i];
+          break;
+        end;
     try
       if UseParams then
-        i := ParamCount * 12
+        i := PaddedCount * 12
       else
         i := ParamCount * 8;
       SB := TStringBuilder.Create(i+5);
       SB.Append('in (');
-      for i := start to stop do
+      for i := 1 to PaddedCount do
       begin
-        if i > start then
+        if i > 1 then
           SB.Append(', ');
-        SB.Append(GetParamStr(i, i-start+1, Useparams));
+        IdIndex := start + i - 1;
+        if IdIndex > stop then
+          IdIndex := stop;
+        SB.Append(GetParamStr(IdIndex, i, Useparams));
       end;
       SB.Append(')');
       {</*>}
@@ -2451,6 +2473,7 @@ begin
     finally
       FreeAndNil(SB);
     end;
+  end;
 end;
 
 function TBoldObjectDefaultMapper.IdListSegmentToWhereFragment(

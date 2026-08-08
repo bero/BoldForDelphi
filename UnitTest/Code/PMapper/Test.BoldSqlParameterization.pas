@@ -14,6 +14,10 @@ uses
   BoldDefs,
   BoldLogHandler,
   BoldSystem,
+  BoldId,
+  BoldDBInterfaces,
+  BoldSQLDatabaseConfig,
+  BoldPMappersDefault,
   BoldTestModel,
   maan_UndoRedoBase;
 
@@ -54,10 +58,46 @@ type
     procedure TestDeleteUsesParams;
   end;
 
+  { Fragment-level tests for the IN-list bucket padding: id lists are padded
+    up to fixed sizes (10, 50, 100, 250, 500) by repeating the last id, so
+    fetches of different list sizes produce identical SQL text and SQL Server
+    can reuse a handful of cached plans instead of compiling per fetch. }
+  [TestFixture]
+  [Category('PMapper')]
+  TTestBoldIdListWhereFragment = class
+  private
+    FMapper: TBoldObjectDefaultMapper;
+    FQuery: IBoldExecQuery;
+    FSavedMaxParams: Integer;
+    function SystemMapper: TBoldSystemDefaultMapper;
+    function Config: TBoldSQLDataBaseConfig;
+    function MakeIdList(Count: Integer): TBoldObjectIdList;
+    function BuildFragment(IdList: TBoldObjectIdList): string;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestSingleIdNotPadded;
+    [Test]
+    procedure TestTwelveIdsPaddedToBucket50;
+    [Test]
+    procedure TestPaddedTailRepeatsLastId;
+    [Test]
+    procedure Test250IdsFillBucketExactly;
+    [Test]
+    procedure TestNoPaddingWhenBucketExceedsMaxParams;
+    [Test]
+    procedure TestLegacyLargeListStaysLiteral;
+  end;
+
 implementation
 
 uses
-  BoldDBInterfaces;
+  BoldDefaultId,
+  BoldPersistenceControllerDefault;
 
 { TSQLCaptureLogHandler }
 
@@ -203,7 +243,182 @@ begin
     'every delete unique SQL text: ' + DeleteStatements);
 end;
 
+{ TTestBoldIdListWhereFragment }
+
+function TTestBoldIdListWhereFragment.SystemMapper: TBoldSystemDefaultMapper;
+begin
+  result := (dmUndoRedo.BoldSystemHandle1.System.PersistenceController
+    as TBoldPersistenceControllerDefault).PersistenceMapper;
+end;
+
+function TTestBoldIdListWhereFragment.Config: TBoldSQLDataBaseConfig;
+begin
+  result := SystemMapper.SQLDataBaseConfig;
+end;
+
+procedure TTestBoldIdListWhereFragment.SetUp;
+var
+  TopSortedIndex: Integer;
+begin
+  EnsureDM;
+  if not dmUndoRedo.BoldSystemHandle1.Active then
+    dmUndoRedo.BoldSystemHandle1.Active := True;
+  TopSortedIndex := dmUndoRedo.BoldSystemHandle1.System.BoldSystemTypeInfo.
+    ClassTypeInfoByExpressionName['SomeClass'].TopSortedIndex;
+  FMapper := SystemMapper.ObjectPersistenceMappers[TopSortedIndex]
+    as TBoldObjectDefaultMapper;
+  FQuery := SystemMapper.GetExecQuery;
+  FQuery.ParamCheck := true;
+  FSavedMaxParams := Config.MaxParamsInIdList;
+end;
+
+procedure TTestBoldIdListWhereFragment.TearDown;
+begin
+  Config.MaxParamsInIdList := FSavedMaxParams;
+  SystemMapper.ReleaseExecQuery(FQuery);
+  // The pooled wrapper dies with the datamodule below; the interface field
+  // must not keep a reference or the next Setup releases freed memory.
+  FQuery := nil;
+  if Assigned(dmUndoRedo) and dmUndoRedo.BoldSystemHandle1.Active then
+  begin
+    dmUndoRedo.BoldSystemHandle1.System.Discard;
+    dmUndoRedo.BoldSystemHandle1.Active := False;
+  end;
+  FreeAndNil(dmUndoRedo);
+end;
+
+function TTestBoldIdListWhereFragment.MakeIdList(Count: Integer): TBoldObjectIdList;
+var
+  i: Integer;
+  Id: TBoldDefaultId;
+begin
+  result := TBoldObjectIdList.Create;
+  for i := 1 to Count do
+  begin
+    Id := TBoldDefaultId.CreateWithClassId(FMapper.TopSortedIndex, True);
+    Id.AsInteger := i;
+    result.AddAndAdopt(Id);
+  end;
+end;
+
+function TTestBoldIdListWhereFragment.BuildFragment(IdList: TBoldObjectIdList): string;
+begin
+  FQuery.ClearParams;
+  result := FMapper.IdListSegmentToWhereFragment(IdList, 0, IdList.Count - 1, true, FQuery);
+end;
+
+procedure TTestBoldIdListWhereFragment.TestSingleIdNotPadded;
+var
+  IdList: TBoldObjectIdList;
+begin
+  Config.MaxParamsInIdList := 500;
+  IdList := MakeIdList(1);
+  try
+    Assert.AreEqual(' = :ID1', BuildFragment(IdList),
+      'Single id must keep the equality form without padding');
+    Assert.AreEqual(1, FQuery.ParamCount);
+  finally
+    IdList.Free;
+  end;
+end;
+
+procedure TTestBoldIdListWhereFragment.TestTwelveIdsPaddedToBucket50;
+var
+  IdList: TBoldObjectIdList;
+  Fragment: string;
+begin
+  Config.MaxParamsInIdList := 500;
+  IdList := MakeIdList(12);
+  try
+    Fragment := BuildFragment(IdList);
+    Assert.AreEqual(50, FQuery.ParamCount,
+      'A 12-id list must be padded to the 50 bucket so all lists of ' +
+      '11..50 ids produce identical SQL text: ' + Fragment);
+    Assert.IsTrue(Pos(':ID50', Fragment) > 0,
+      'Fragment must reference the padded params: ' + Fragment);
+  finally
+    IdList.Free;
+  end;
+end;
+
+procedure TTestBoldIdListWhereFragment.TestPaddedTailRepeatsLastId;
+var
+  IdList: TBoldObjectIdList;
+begin
+  Config.MaxParamsInIdList := 500;
+  IdList := MakeIdList(12);
+  try
+    BuildFragment(IdList);
+    Assert.AreEqual(50, FQuery.ParamCount);
+    // Params 13..50 must repeat the last real id (12) - duplicates inside
+    // an IN list are semantically harmless.
+    Assert.AreEqual(12, FQuery.Param[12].AsInteger, 'Param ID13 must repeat the last id');
+    Assert.AreEqual(12, FQuery.Param[49].AsInteger, 'Param ID50 must repeat the last id');
+    Assert.AreEqual(12, FQuery.Param[11].AsInteger, 'Param ID12 is the last real id');
+    Assert.AreEqual(1, FQuery.Param[0].AsInteger, 'Param ID1 must keep its real value');
+  finally
+    IdList.Free;
+  end;
+end;
+
+procedure TTestBoldIdListWhereFragment.Test250IdsFillBucketExactly;
+var
+  IdList: TBoldObjectIdList;
+  Fragment: string;
+begin
+  Config.MaxParamsInIdList := 500;
+  IdList := MakeIdList(250);
+  try
+    Fragment := BuildFragment(IdList);
+    Assert.AreEqual(250, FQuery.ParamCount,
+      'A 250-id list hits the 250 bucket exactly - no padding');
+    Assert.IsTrue(Pos(':ID250', Fragment) > 0, Fragment);
+    Assert.IsTrue(Pos('in (:ID1,', Fragment) > 0,
+      'Fragment must be fully parameterized: ' + Copy(Fragment, 1, 60));
+  finally
+    IdList.Free;
+  end;
+end;
+
+procedure TTestBoldIdListWhereFragment.TestNoPaddingWhenBucketExceedsMaxParams;
+var
+  IdList: TBoldObjectIdList;
+begin
+  // Legacy default config: MaxParamsInIdList = 20. 15 ids would pad to the
+  // 50 bucket, which exceeds the limit - so the list stays unpadded rather
+  // than growing beyond what the engine config allows.
+  Config.MaxParamsInIdList := 20;
+  IdList := MakeIdList(15);
+  try
+    BuildFragment(IdList);
+    Assert.AreEqual(15, FQuery.ParamCount,
+      'Padding must never push the param count beyond MaxParamsInIdList');
+  finally
+    IdList.Free;
+  end;
+end;
+
+procedure TTestBoldIdListWhereFragment.TestLegacyLargeListStaysLiteral;
+var
+  IdList: TBoldObjectIdList;
+  Fragment: string;
+begin
+  Config.MaxParamsInIdList := 20;
+  IdList := MakeIdList(250);
+  try
+    Fragment := BuildFragment(IdList);
+    Assert.AreEqual(0, FQuery.ParamCount,
+      'A list above MaxParamsInIdList must keep the literal path');
+    Assert.IsTrue(Pos(':ID', Fragment) = 0, 'No params expected: ' + Copy(Fragment, 1, 60));
+    Assert.IsTrue(Pos('in (1, 2,', Fragment) > 0,
+      'Literal ids expected: ' + Copy(Fragment, 1, 60));
+  finally
+    IdList.Free;
+  end;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldSqlParameterization);
+  TDUnitX.RegisterTestFixture(TTestBoldIdListWhereFragment);
 
 end.
