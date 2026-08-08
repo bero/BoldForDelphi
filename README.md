@@ -51,15 +51,15 @@ Bold for Delphi has **no external runtime dependencies**. All required functiona
 
 ### Unit Test Dependencies
 
-The unit test project requires these external frameworks (not needed for production use):
+The unit test projects (`UnitTest/`) require these external frameworks (not needed for production use):
 
-| Dependency | Path | Purpose |
-|------------|------|---------|
-| [DUnitX](https://github.com/VSoftTechnologies/DUnitX) | `C:\Attracs\DUnitX\Source` | Unit testing framework |
-| [Delphi-Mocks](https://github.com/VSoftTechnologies/Delphi-Mocks) | `C:\Attracs\Delphi-Mocks\Source` | Mocking framework for interface testing |
-| [DelphiCodeCoverage](https://github.com/DelphiCodeCoverage/DelphiCodeCoverage) | `C:\Attracs\DelphiCodeCoverage\` | Code coverage reporting |
+| Dependency | Environment variable | Purpose |
+|------------|---------------------|---------|
+| [DUnitX](https://github.com/VSoftTechnologies/DUnitX) | `DUnitX` | Unit testing framework |
+| [Delphi-Mocks](https://github.com/VSoftTechnologies/Delphi-Mocks) | `DelphiMocks` | Mocking framework for interface testing |
+| [DelphiCodeCoverage](https://github.com/DelphiCodeCoverage/DelphiCodeCoverage) | (expected at `C:\Attracs\DelphiCodeCoverage\`) | Code coverage reporting (optional) |
 
-Environment variables `DUnitX` and `DelphiMocks` are set automatically by `run_coverage.ps1`.
+Run `UnitTest\setup-tests.ps1` to clone DUnitX and Delphi-Mocks and set the environment variables automatically — see [UnitTest/README.md](UnitTest/README.md) for details.
 
 ## Unit Tests and Code Coverage
 

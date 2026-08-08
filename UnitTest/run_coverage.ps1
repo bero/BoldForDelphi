@@ -113,12 +113,13 @@ try {
         }
         Remove-Item $tempFile
 
-        # Set DUnitX environment variable (must be after rsvars.bat capture)
-        $env:DUnitX = "C:\Attracs\DUnitX\Source"
+        # Set DUnitX environment variable (must be after rsvars.bat capture).
+        # Respect a variable that is already set (e.g. by setup-tests.ps1).
+        if (-not $env:DUnitX) { $env:DUnitX = "C:\Attracs\DUnitX\Source" }
         Write-Host "  DUnitX: $env:DUnitX" -ForegroundColor Gray
 
         # Set Delphi-Mocks environment variable
-        $env:DelphiMocks = "C:\Attracs\Delphi-Mocks\Source"
+        if (-not $env:DelphiMocks) { $env:DelphiMocks = "C:\Attracs\Delphi-Mocks\Source" }
         Write-Host "  DelphiMocks: $env:DelphiMocks" -ForegroundColor Gray
 
         # Build with MAP file generation (DCC_MapFile=3 for detailed MAP)

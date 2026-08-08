@@ -12,12 +12,6 @@
         <Projects Include="examples\Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="UnitTest\UnitTest.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="UnitTest\UnitTestGUI.dproj">
-            <Dependencies/>
-        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -53,32 +47,14 @@
     <Target Name="TestSaveAndGenerate:Make">
         <MSBuild Projects="examples\Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj" Targets="Make"/>
     </Target>
-    <Target Name="UnitTest">
-        <MSBuild Projects="UnitTest\UnitTest.dproj"/>
-    </Target>
-    <Target Name="UnitTest:Clean">
-        <MSBuild Projects="UnitTest\UnitTest.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="UnitTest:Make">
-        <MSBuild Projects="UnitTest\UnitTest.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="UnitTestGUI">
-        <MSBuild Projects="UnitTest\UnitTestGUI.dproj"/>
-    </Target>
-    <Target Name="UnitTestGUI:Clean">
-        <MSBuild Projects="UnitTest\UnitTestGUI.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="UnitTestGUI:Make">
-        <MSBuild Projects="UnitTest\UnitTestGUI.dproj" Targets="Make"/>
-    </Target>
     <Target Name="Build">
-        <CallTarget Targets="MasterDetail;LogBridgeDemo;TestSaveAndGenerate;UnitTest;UnitTestGUI"/>
+        <CallTarget Targets="MasterDetail;LogBridgeDemo;TestSaveAndGenerate"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="MasterDetail:Clean;LogBridgeDemo:Clean;TestSaveAndGenerate:Clean;UnitTest:Clean;UnitTestGUI:Clean"/>
+        <CallTarget Targets="MasterDetail:Clean;LogBridgeDemo:Clean;TestSaveAndGenerate:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="MasterDetail:Make;LogBridgeDemo:Make;TestSaveAndGenerate:Make;UnitTest:Make;UnitTestGUI:Make"/>
+        <CallTarget Targets="MasterDetail:Make;LogBridgeDemo:Make;TestSaveAndGenerate:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

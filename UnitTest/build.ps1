@@ -22,11 +22,19 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Set DUnitX environment variable (required for console test runner)
-$env:DUnitX = "C:\Attracs\DUnitX\Source"
+# DUnitX and Delphi-Mocks are required by the test projects.
+# Respect variables that are already set (e.g. by setup-tests.ps1);
+# fall back to the historical default location otherwise.
+if (-not $env:DUnitX)      { $env:DUnitX      = "C:\Attracs\DUnitX\Source" }
+if (-not $env:DelphiMocks) { $env:DelphiMocks = "C:\Attracs\Delphi-Mocks\Source" }
 
-# Set Delphi-Mocks environment variable (required for mock framework)
-$env:DelphiMocks = "C:\Attracs\Delphi-Mocks\Source"
+if (-not (Test-Path $env:DUnitX) -or -not (Test-Path $env:DelphiMocks)) {
+    Write-Host "ERROR: Unit test dependencies not found:" -ForegroundColor Red
+    Write-Host "  DUnitX      = $env:DUnitX (exists: $(Test-Path $env:DUnitX))" -ForegroundColor Gray
+    Write-Host "  DelphiMocks = $env:DelphiMocks (exists: $(Test-Path $env:DelphiMocks))" -ForegroundColor Gray
+    Write-Host "Run .\setup-tests.ps1 to clone them and set the environment variables." -ForegroundColor Yellow
+    exit 1
+}
 
 # Determine which project to build
 if ($GUI) {
