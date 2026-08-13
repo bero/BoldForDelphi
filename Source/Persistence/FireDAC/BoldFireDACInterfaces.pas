@@ -377,6 +377,11 @@ end;
 
 procedure TBoldFireDACQuery.Clear;
 begin
+  { Close (not just the dataset side effect of AssignSQLText) so a read
+    transaction this query started gets committed. ReleaseQuery caches the
+    wrapper via Clear; without this the transaction is left open on the
+    shared connection and the next Open orphans it permanently. }
+  Close;
   AssignSQLText('');
   ClearParams;
 end;
@@ -439,14 +444,15 @@ begin
     BoldLogSQLWithParams(Query.SQL, self);
     (DatabaseWrapper as TBoldFireDACConnection).EnsureTransactionIntact;
     try
-      if (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
-        fReadTransactionStarted := false
-      else
+      if not (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
       begin
         if fUseReadTransactions then
           (DatabaseWrapper as TBoldFireDACConnection).StartReadTransaction;
         fReadTransactionStarted := fUseReadTransactions;
       end;
+      { When already in a transaction, fReadTransactionStarted is left as-is
+        so a read transaction this query started stays owned and gets
+        committed below instead of being orphaned. }
       Query.Execute;
       if fReadTransactionStarted and (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
       begin
@@ -483,14 +489,16 @@ begin
     BoldLogSQLWithParams(Query.SQL, self);
     (DatabaseWrapper as TBoldFireDACConnection).EnsureTransactionIntact;
     try
-      if (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
-        fReadTransactionStarted := false
-      else
+      if not (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
       begin
         if fUseReadTransactions then
           (DatabaseWrapper as TBoldFireDACConnection).StartReadTransaction;
         fReadTransactionStarted := fUseReadTransactions;
       end;
+      { When already in a transaction, fReadTransactionStarted is left as-is:
+        if this query started it (reopen without Close) it must keep
+        ownership so Close commits it; clearing the flag here orphans the
+        transaction on the shared connection. }
       Query.UpdateOptions.ReadOnly := true;
       inherited;
     except
@@ -1430,14 +1438,15 @@ begin
     BoldLogSQLWithParams(ExecQuery.SQL, self);
     (DatabaseWrapper as TBoldFireDACConnection).EnsureTransactionIntact;
     try
-      if (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
-        fReadTransactionStarted := false
-      else
+      if not (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
       begin
         if fUseReadTransactions then
           (DatabaseWrapper as TBoldFireDACConnection).StartReadTransaction;
         fReadTransactionStarted := fUseReadTransactions;
       end;
+      { When already in a transaction, fReadTransactionStarted is left as-is
+        so a read transaction this query started stays owned and gets
+        committed below instead of being orphaned. }
       ExecQuery.Execute;
       if fReadTransactionStarted and (DatabaseWrapper as TBoldFireDACConnection).GetInTransaction then
       begin

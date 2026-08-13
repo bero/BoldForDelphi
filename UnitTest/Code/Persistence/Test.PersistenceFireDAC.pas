@@ -164,6 +164,15 @@ type
     [Test]
     [Category('DB')]
     procedure TestReleaseExecQueryNormalizesBrokenUpdateCount;
+    [Test]
+    [Category('DB')]
+    procedure TestReleaseQueryCommitsStartedReadTransaction;
+    [Test]
+    [Category('DB')]
+    procedure TestExecSQLKeepsOwnershipOfOwnReadTransaction;
+    [Test]
+    [Category('DB')]
+    procedure TestReopenKeepsOwnershipOfOwnReadTransaction;
   end;
 
 implementation
@@ -2169,6 +2178,148 @@ begin
 
     Connection.ExecSQL('DROP TABLE Bold_PoolTest');
     Connection.ExecSQL('DROP TABLE Bold_PoolWarm');
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestReleaseQueryCommitsStartedReadTransaction;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+    Connection.ExecSQL('DROP TABLE IF EXISTS Bold_TxRelease');
+    Connection.ExecSQL('CREATE TABLE Bold_TxRelease (ID INT)');
+
+    // A caller that releases a query back to the cache without closing it
+    // first must not leave the read transaction the query started behind:
+    // its row locks stay on the shared connection until it is recycled.
+    Query := DbInterface.GetQuery;
+    Query.UseReadTransactions := True;
+    Query.SQLText := 'SELECT ID FROM Bold_TxRelease';
+    Query.Open;
+    Assert.IsTrue(DbInterface.InTransaction,
+      'Opening with UseReadTransactions should have started a read transaction');
+
+    DbInterface.ReleaseQuery(Query);
+    Assert.IsFalse(DbInterface.InTransaction,
+      'Releasing the query must commit the read transaction it started');
+
+    Connection.ExecSQL('DROP TABLE Bold_TxRelease');
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestExecSQLKeepsOwnershipOfOwnReadTransaction;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+  ExecIntf: IBoldExecQuery;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+    Connection.ExecSQL('DROP TABLE IF EXISTS Bold_TxExec');
+    Connection.ExecSQL('CREATE TABLE Bold_TxExec (ID INT)');
+
+    Query := DbInterface.GetQuery;
+    try
+      Query.UseReadTransactions := True;
+      Query.SQLText := 'SELECT ID FROM Bold_TxExec';
+      Query.Open;
+      Assert.IsTrue(DbInterface.InTransaction,
+        'Opening with UseReadTransactions should have started a read transaction');
+
+      // Assigning new SQL closes the dataset behind the wrapper, so the read
+      // transaction is still open and still owned by this query when ExecSQL
+      // runs. ExecSQL must keep that ownership and commit at the end instead
+      // of dropping the flag because the connection is "already in a
+      // transaction" - that is exactly how the transaction gets orphaned.
+      Query.SQLText := 'DELETE FROM Bold_TxExec';
+      Assert.IsTrue(DbInterface.InTransaction,
+        'Read transaction should still be open after reassigning the SQL');
+
+      // The very same wrapper also implements IBoldExecQuery, so this is the
+      // ExecSQL path of the query that owns the open transaction.
+      ExecIntf := Query as IBoldExecQuery;
+      try
+        ExecIntf.ExecSQL;
+      finally
+        ExecIntf := nil;
+      end;
+      Assert.IsFalse(DbInterface.InTransaction,
+        'ExecSQL must commit the read transaction this query started');
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    Connection.ExecSQL('DROP TABLE Bold_TxExec');
+    DbInterface.Close;
+  finally
+    Adapter.Free;
+    Connection.Free;
+  end;
+end;
+
+procedure TTestPersistenceFireDAC.TestReopenKeepsOwnershipOfOwnReadTransaction;
+var
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Query: IBoldQuery;
+begin
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Adapter.Connection := Connection;
+    ConfigureConnection(Connection, Adapter);
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+    Connection.ExecSQL('DROP TABLE IF EXISTS Bold_TxReopen');
+    Connection.ExecSQL('CREATE TABLE Bold_TxReopen (ID INT)');
+
+    Query := DbInterface.GetQuery;
+    try
+      Query.UseReadTransactions := True;
+      Query.SQLText := 'SELECT ID FROM Bold_TxReopen';
+      Query.Open;
+      Assert.IsTrue(DbInterface.InTransaction,
+        'Opening with UseReadTransactions should have started a read transaction');
+
+      // Reopen without closing: the connection is already in the transaction
+      // this very query started, so Open must not hand ownership away - Close
+      // below is the only thing that can commit it.
+      Query.SQLText := 'SELECT ID FROM Bold_TxReopen';
+      Query.Open;
+
+      Query.Close;
+      Assert.IsFalse(DbInterface.InTransaction,
+        'Close must commit the read transaction this query started');
+    finally
+      DbInterface.ReleaseQuery(Query);
+    end;
+
+    Connection.ExecSQL('DROP TABLE Bold_TxReopen');
     DbInterface.Close;
   finally
     Adapter.Free;
