@@ -34,6 +34,9 @@ type
   end;
 
 function CharCount(c: char; const s: string): integer;
+function BoldNamesEqual(const name1, name2: string): Boolean;
+function BoldStrAnsiEqual(P1, P2: PChar; Len: integer): Boolean;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
+function BoldAnsiEqual(const S1, S2: string): Boolean;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
 procedure BoldAppendToStrings(strings: TStrings; const aString: string; const ForceNewLine: Boolean);
 function BoldSeparateStringList(strings: TStringList; const Separator, PreString, PostString: String; AIndex: integer = -1): String;
 function BoldCaseIndependentPos(const Substr, S: string): Integer;
@@ -89,6 +92,27 @@ const
   Nr100nsPerDay = 3600.0*24.0*10000000.0;
 begin
   Result := Ticks/Nr100nsPerDay;
+end;
+
+function BoldNamesEqual(const name1, name2: string): Boolean;
+begin
+  Result := (AnsiCompareText(name1, name2) = 0);
+end;
+
+function BoldStrAnsiEqual(P1, P2: PChar; Len: integer): Boolean;
+begin
+  Result := CompareMem(P1, P2, Len * SizeOf(Char)) or (AnsiStrLIComp(P1, P2, Len) = 0);
+end;
+
+function BoldAnsiEqual(const S1, S2: string): Boolean;
+var
+  Len: integer;
+begin
+  Len := Length(S1);
+  if Len <> Length(S2) then
+    Result := False
+  else
+    Result := BoldStrAnsiEqual(PChar(S1), PChar(S2), Len);
 end;
 
 function BoldCaseIndependentPos(const Substr, S: string): Integer;

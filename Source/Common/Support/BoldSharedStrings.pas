@@ -81,6 +81,9 @@ type
 
 function BoldSharedStringManager: TBoldSharedStringManager;
 
+function GetSharedString(const AString: string): string;
+function GetSharedAnsiString(const AString: AnsiString): AnsiString;
+
 implementation
 
 uses
@@ -116,6 +119,24 @@ begin
   if not assigned(G_BoldSharedStringManager) then
     G_BoldSharedStringManager := TBoldSharedStringManager.Create;
   result := G_BoldSharedStringManager;
+end;
+
+function GetSharedString(const AString: string): string;
+begin
+{$IFDEF BOLD_DISABLESHAREDSTRINGS}
+  Result := AString;
+{$ELSE}
+  Result := BoldSharedStringManager.GetSharedString(AString);
+{$ENDIF}
+end;
+
+function GetSharedAnsiString(const AString: AnsiString): AnsiString;
+begin
+{$IFDEF BOLD_DISABLESHAREDSTRINGS}
+  Result := AString;
+{$ELSE}
+  Result := BoldSharedStringManager.GetSharedAnsiString(AString);
+{$ENDIF}
 end;
 
 {$IFNDEF BOLD_DISABLESHAREDSTRINGS}

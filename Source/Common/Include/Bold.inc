@@ -198,6 +198,14 @@ Illegal symbol combination
   {$ENDIF}
 {$ENDIF}
 
+{$DEFINE BOLD_LegacyLog}
+
+{$IFDEF UnitLog}
+  {$DEFINE BOLD_UnitLog}
+{$ELSE}
+  {$UNDEF BOLD_UnitLog}
+{$ENDIF}
+
 // settings for design package
 
 {$IFNDEF Attracs}

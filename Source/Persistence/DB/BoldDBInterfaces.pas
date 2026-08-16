@@ -13,6 +13,9 @@ uses
   BoldSQLDatabaseConfig,
   WideStrings,
   BoldLogHandler,
+{$IFDEF BOLD_UnitLog}
+  UnitLog,
+{$ENDIF}
   BoldDefs,
   Variants;
 
@@ -264,11 +267,15 @@ type
     procedure SetUseReadTransactions(value: boolean);
     function GetRecNo: integer;
     procedure Prepare;
+    function GetParam(i:integer): IBoldParameter;
+    function GetParamCount: integer;
     property RequestLiveQuery: Boolean read GetRequestLiveQuery write SetRequestLiveQuery;
     property RecordCount: integer read GetRecordCount;
     property SQLText: String read GetSQLText write AssignSQLText;
     property UseReadTransactions: boolean read GetUseReadTransactions write SetUseReadTransactions;
     property RecNo: integer read GetRecNo;
+    property ParamCount: integer read GetParamCount;
+    property Param[i: integer]: IBoldParameter read GetParam;
   end;
 
   IBoldTable = interface(IBoldDataSet)
@@ -561,12 +568,20 @@ type
     property FieldName: String read GetFieldName;
   end;
 
-procedure BoldLogSQL(const sql: TStrings);
+procedure BoldLogSQL(const sql: TStrings); overload;
+procedure BoldLogSQL(const AQuery: IBoldQuery); overload;
+procedure BoldLogSQL(const AQuery: IBoldExecQuery); overload;
 procedure BoldLogSQLWide(const sql: TWideStrings; const Params: IBoldParameterized);
 procedure BoldLogSQLWithParams(const sql: TStrings; const Params: IBoldParameterized);
+function BoldParamsAsLogString(const AQuery: IBoldQuery): string; overload;
+function BoldParamsAsLogString(const AParams: IBoldParameterized): string; overload;
 function BoldQueryAsString(const sql: TStrings; const Params: IBoldParameterized): string;
 procedure kiCLogSQL(const s: String);
 procedure kiCLogSQLException(const s: String);
+
+{$IFDEF BOLD_UnitLog}
+function BoldDBUnitLog: IUnitLog;
+{$ENDIF}
 
 var
   BoldSQLLogHandler: TBoldLogHandler = nil;
@@ -582,8 +597,81 @@ uses
 
   BoldCoreConsts,
   BoldSharedStrings,
+{$IFDEF BOLD_UnitLog}
+  BoldUnitLog,
+{$ENDIF}
   BoldUtils,
   BoldIsoDateTime;
+
+const
+  BlobFieldTypes = [{$IFDEF BOLD_DELPHI15_OR_LATER}db.ftStream,{$ENDIF} db.ftBlob, db.ftGraphic..db.ftTypedBinary, db.ftOraBlob, db.ftOraClob];
+  cBlobParamLogText = '<blob>';
+
+{$IFDEF BOLD_UnitLog}
+var
+  UL: IBoldSQLUnitLog;
+
+function BoldDBUnitLog: IUnitLog;
+begin
+  Result := UL;
+end;
+{$ENDIF}
+
+function BoldParamAsLogString(const AParam: IBoldParameter): string;
+begin
+  if not Assigned(AParam) then
+    Result := ''
+  else if AParam.IsNull then
+    Result := Format('  [%s]:NULL', [AParam.Name])
+  else if AParam.DataType in BlobFieldTypes then
+    Result := Format('  [%s]:%s', [AParam.Name, cBlobParamLogText])
+  else
+    Result := Format('  [%s]:%s', [AParam.Name, AParam.AsString]);
+end;
+
+function BoldParamsAsLogString(const AQuery: IBoldQuery): string;
+var
+  i: integer;
+begin
+  Result := '';
+  if not Assigned(AQuery) then
+    Exit;
+  for i := 0 to AQuery.ParamCount - 1 do
+    Result := Result + BoldParamAsLogString(AQuery.Param[i]);
+end;
+
+function BoldParamsAsLogString(const AParams: IBoldParameterized): string;
+var
+  i: integer;
+begin
+  Result := '';
+  if not Assigned(AParams) then
+    Exit;
+  for i := 0 to AParams.ParamCount - 1 do
+    Result := Result + BoldParamAsLogString(AParams.Param[i]);
+end;
+
+procedure BoldLogSQL(const AQuery: IBoldQuery);
+begin
+  {$IFDEF BOLD_LegacyLog}
+    if Assigned(BoldSQLLogHandler) then
+      BoldSQLLogHandler.Log(AQuery.SQLText + BoldParamsAsLogString(AQuery));
+  {$ENDIF}
+  {$IFDEF BOLD_UnitLog}
+    UL.LogSQL(AQuery);
+  {$ENDIF}
+end;
+
+procedure BoldLogSQL(const AQuery: IBoldExecQuery);
+begin
+  {$IFDEF BOLD_LegacyLog}
+    if Assigned(BoldSQLLogHandler) then
+      BoldSQLLogHandler.Log(AQuery.SQLText + BoldParamsAsLogString(AQuery));
+  {$ENDIF}
+  {$IFDEF BOLD_UnitLog}
+    UL.LogSQL(AQuery);
+  {$ENDIF}
+end;
 
 procedure BoldLogSQL(const sql: TStrings);
 var
@@ -1647,8 +1735,6 @@ end;
 function TBoldBatchDataSetWrapper.ParamsContainBlob: Boolean;
 var
   i: integer;
-const
-  BlobFieldTypes = [{$IFDEF BOLD_DELPHI15_OR_LATER}db.ftStream,{$ENDIF} db.ftBlob, db.ftGraphic..db.ftTypedBinary, db.ftOraBlob, db.ftOraClob];
 begin
   result := false;
   for i := 0 to self.Params.Count-1 do
@@ -1917,5 +2003,13 @@ begin
     end;
   end;
 end;
+
+{$IFDEF BOLD_UnitLog}
+type
+  TBoldDBInterfacesUnitLog = class(TBoldBaseSqlUnitLog) end;
+
+initialization
+  UL := TBoldDBInterfacesUnitLog.Create;
+{$ENDIF}
 
 end.

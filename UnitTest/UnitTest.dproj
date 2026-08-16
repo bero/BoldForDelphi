@@ -131,6 +131,9 @@
         <DCCReference Include="Code\Persistence\Test.BoldPersistenceHandleDB.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldUpdatePrecondition.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldPersistenceController.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldDbValidator.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldDbCopy.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldAbstractSnooper.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldAbstractObjectUpgraderHandle.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMapperLists.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSQLMappingInfo.pas"/>
@@ -143,10 +146,12 @@
         <DCCReference Include="Code\Persistence\Test.PersistenceFireDAC.pas"/>
         <DCCReference Include="Code\Persistence\Benchmark.BoldFetch.pas"/>
         <DCCReference Include="Code\Persistence\Benchmark.BoldIdListSql.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldDBInterfacesLogging.pas"/>
         <DCCReference Include="Code\Common\Test.BoldGUIDUtils.pas"/>
         <DCCReference Include="Code\Common\Test.BoldIsoDateTime.pas"/>
         <DCCReference Include="Code\ProductControl\Test.BoldMD5.pas"/>
         <DCCReference Include="Code\Propagator\Test.BoldThreadSafeQueue.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldThread.pas"/>
         <DCCReference Include="Code\Common\Test.BoldThreadSafeLog.pas"/>
         <DCCReference Include="Code\Common\Test.BoldLogInterfaces.pas"/>
         <DCCReference Include="Code\Common\Test.BoldLogHandler.pas"/>
