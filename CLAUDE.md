@@ -35,6 +35,7 @@ Before making changes, check if the method(s) you're modifying have 100% test co
 Create a unit test that covers the code you're about to change:
 - For **refactoring**: Write a test that passes with current code
 - For **bugfix**: Write a test that FAILS with current code (demonstrates the bug)
+- For bugfixes, confirm the RED baseline with the user before editing production code
 
 #### 3. Building Unit Tests (MANDATORY - USE EXACTLY)
 
@@ -148,7 +149,7 @@ Example: Build MasterDetail project With latest Delphi (Delphi 13) and when Curr
 
 Example: Build Bold package for Delphi 12.3
 
-`C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "packages\Delphi29.3\dclBold.dproj" -DelphiVersion "23.0" -VerboseOutPut`
+`C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "packages\Delphi12.3\dclBold.dproj" -DelphiVersion "23.0" -VerboseOutPut`
 
 ## Environment Setup
 
