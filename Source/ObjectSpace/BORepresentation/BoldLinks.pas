@@ -752,10 +752,13 @@ procedure TBoldDirectMultiLinkController.MakeDbCurrent;
       end;
     end;
 
-    // TODO: Change bdepContents to bdepPMIn to fix EmbeddedSingleLinks not being set.
-    // Test: TestFetchEmbeddedRoleInvalid in maan_FetchRefetch.pas
-    // The root cause is that FetchFromClassList uses bdepContents mode which skips SingleLinkLinkTo calls, so
-    // EmbeddedSingleLinks aren't populated when fetching a multi-link from an already-loaded class list.
+    // NOTE: EmbeddedSingleLinks stamping cannot happen on this path regardless of
+    // proxy mode: the ClassList[i] loop above loads every other-end object before
+    // SetFromIdList runs, and SingleLinkLinkTo only stamps locators whose object
+    // is NOT loaded (loaded ones go through LinkTo). Changing bdepContents to
+    // bdepPMIn was tried 2026-08-16 and does not fix the ignored maan_FetchRefetch
+    // tests. Stamping still works on the DbFetchOwningMember path, which delivers
+    // ids without loading objects.
     SetFromIdList(lBoldObjectIdList, bdepContents);
     OwningObjectList.BoldPersistenceState := bvpsCurrent;
   end;

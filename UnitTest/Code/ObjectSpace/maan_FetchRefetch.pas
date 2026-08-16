@@ -1,4 +1,4 @@
-unit maan_FetchRefetch;
+﻿unit maan_FetchRefetch;
 
 interface
 
@@ -32,7 +32,7 @@ type
     procedure TestFetchModifiedAttribute;
     [Test]
     [Category('DB')]
-    [Ignore('EmbeddedSingleLinks not populated when FetchFromClassList uses bdepContents - needs investigation')]
+    [Ignore('Premise unreachable: FetchFromClassList loads every other-end object, so EmbeddedSingleLinks is nil by design (stamps only exist for UNLOADED locators). Verified 2026-08-16: bdepPMIn does not fix this. Passes only via DbFetchOwningMember, i.e. with a non-current class extent.')]
     procedure TestFetchEmbeddedRoleInvalid;
     [Test]
     [Category('DB')]
@@ -42,8 +42,11 @@ type
     procedure TestFetchEmbeddedRoleCurrent;
     [Test]
     [Category('DB')]
-    [Ignore('Complex multi-system test - needs investigation')]
+    [Ignore('Same root cause as TestFetchEmbeddedRoleInvalid: first scenario asserts EmbeddedSingleLinks on a locator that FetchFromClassList has already loaded, so the stamp cannot exist. Fails at Assigned(ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex]) with or without the bdepPMIn change.')]
     procedure TestFetchNonEmbeddedRoleInvalid;
+    [Test]
+    [Category('DB')]
+    procedure TestDbFetchStampsEmbeddedSingleLinks;
   end;
 
 implementation
@@ -528,6 +531,55 @@ begin
   VerifyListAdjustedEx(ObjA2.M_child, ObjB2, true);
   FSubscriber.VerifySendEvent(beItemDeleted, ObjA2.M_child);
 
+end;
+
+procedure Tmaan_FetchRefetchTestCase.TestDbFetchStampsEmbeddedSingleLinks;
+var
+  ObjA, ObjB: TSomeClass;
+  ObjBLocator: TBoldObjectLocator;
+  StampedLocator: TBoldObjectLocator;
+  EmbeddedIndex: integer;
+begin
+  { Fetching a multilink from the database delivers ids without loading the
+    member objects, so the reverse embedded single link must be parked on each
+    unloaded locator (EmbeddedSingleLinks) and moved into the object when it
+    is loaded later. The FetchFromClassList shortcut cannot exercise this -
+    it loads every other-end object first - so the class extent is
+    invalidated here to force the DbFetchOwningMember path. }
+  SetSimpleConfiguration;
+  RefreshSystem; // starts with UpdateDatabase, so the parent links are persisted
+
+  ObjA := FSomeClassList[0];
+  ObjBLocator := FSomeClassList.Locators[1];
+  EmbeddedIndex := ObjA.M_parent.BoldMemberRTInfo.EmbeddedLinkIndex;
+
+  { The extent fetch in RefreshSystem loads the objects, so unload ObjB again
+    and clear the stamp the unload parks from the object's in-memory value -
+    the point is to observe the DB fetch creating the stamp. }
+  ObjBLocator.UnloadBoldObject;
+  ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex] := nil;
+  Assert.IsFalse(Assigned(ObjBLocator.BoldObject), 'Precondition: ObjB must not be loaded');
+
+  System.Classes[ObjA.BoldClassTypeInfo.TopSortedIndex].Invalidate;
+
+  ObjA.child.EnsureContentsCurrent;
+
+  Assert.IsFalse(Assigned(ObjBLocator.BoldObject),
+    'DB fetch of the multilink must deliver ids without loading the members');
+  StampedLocator := ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex];
+  Assert.IsTrue(Assigned(StampedLocator),
+    'DB fetch must stamp the reverse embedded link on the unloaded locator');
+  Assert.AreEqual(ObjA.BoldObjectLocator.BoldObjectID.AsString,
+    StampedLocator.BoldObjectID.AsString, 'Stamp must point back at the owner');
+
+  { Loading ObjB moves the stamp into the member (invalid + old values) and
+    frees the locator storage; the default-member fetch that the load performs
+    then delivers the real row, leaving the member current. }
+  ObjB := ObjBLocator.EnsuredBoldObject as TSomeClass;
+  Assert.IsFalse(Assigned(ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex]),
+    'Stamp storage must be freed once the object is loaded');
+  VerifyState(ObjB.M_parent, bvpsCurrent);
+  Assert.IsTrue(ObjB.parent = ObjA, 'Navigation must resolve to the owner');
 end;
 
 initialization
