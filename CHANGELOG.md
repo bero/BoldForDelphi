@@ -8,6 +8,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [26.8.1] - 2026-08-16
+
+### Added
+- **Parameterized ID-list SQL for SQL Server**: `MaxParamsInIdList` raised to 500 (#75), multilink fetch and `PMDelete` use parameterized lists with explicit `ParamCheck` (#76), and IN-lists are padded to fixed bucket sizes so the plan cache is reused (#77)
+- Bound parameter values are now written with the SQL log, rendering NULL as `NULL` and blob payloads as a placeholder; an optional UnitLog-backed sink is selected by the new `BOLD_LegacyLog` / `BOLD_UnitLog` defines in `Bold.inc` (#82)
+- `IBoldQuery` gains `ParamCount` and `Param[]` (#82)
+- Unit-level helpers `GetSharedString` / `GetSharedAnsiString` in `BoldSharedStrings`, and `BoldNamesEqual` / `BoldAnsiEqual` / `BoldStrAnsiEqual` in `BoldUtils` (#82)
+- Benchmarks for id-list SQL covering bucket collapse and the plan-cache bound (#79)
+- First test coverage for `EmbeddedSingleLinks` stamping on the `DbFetchOwningMember` path (#83)
+- `setup-tests.ps1` and `UnitTest/README.md` to make first-time setup work without hunting for dependencies
+
+### Fixed
+- **Orphaned read transactions on the shared connection**: `Clear` did not close, so releasing a query to the cache left its transaction open, and `ExecSQL` / `Open` discarded ownership of a transaction the query itself had started. Row locks then blocked other work until the connection was recycled. Fixed for both UniDAC and FireDAC (#81)
+- `SetEmptyValue` left null non-nullable attributes null and raised on valuesets (#74)
+- `SubscribeToHandle` no longer dereferences a variable list rebuilt during teardown (#61)
+- The Delphi 12.3 design-time package had lost `NoObjectSpaceTransactions`, compiling a different `TBoldSystem` interface than the other three packages (#85)
+- `UnitTestGUI` project could not build: missing `Code\Main` in the unit search path (#84)
+- Documentation named Delphi 13 as Athens instead of Florence, pointed at package folders that never existed (`packages/Delphi30/`), and advertised a seven-month-old release as current
+
+### Changed
+- Release tags follow Year.Month.build with no zero padding, so they parse as semantic versions for dependency managers such as Boss
+- Both test runners compile the default configuration; the `Attracs` define was removed from `UnitTestGUI.dproj` so console and GUI runs test the same code (#84)
+- Version information normalized to 26.8.1.0 across all four design-time package projects, which had drifted to four different values
+- Test suite at 2165 tests (2163 passing, 2 ignored)
+
+---
+
+## [26.8.0] - 2026-08-03
+
 ### Added
 - 7 XML roundtrip tests for OLW node streaming (NodeList, Operation, TypeNode, ListCoercion, Member, Literals, OclCondition)
 - 5 XML roundtrip tests for BoldCondition streaming (28.7% → 99.4% coverage)
