@@ -3866,10 +3866,16 @@ begin
   Parent := TestModel1.TClassA.Create(GetSystem);
   Child := TestModel1.TClassA.Create(GetSystem);
   Child.parent := Parent;
-  // CanDelete should check link constraints
-  // Result depends on delete action of the association
-  // At minimum, calling it should not raise an exception
-  Parent.CanDelete;
+  // What the outcome of CanDelete should be depends on the delete action of
+  // the association, which this test does not pin down. What it does pin down
+  // is that evaluating the link constraints of an object that still has links
+  // completes instead of raising.
+  Assert.WillNotRaiseAny(
+    procedure
+    begin
+      Parent.CanDelete;
+    end,
+    'CanDelete must not raise while the object still has links');
 end;
 
 procedure TTestBoldObjectLifecycle.TestObjectDiscardResetsAttribute;
