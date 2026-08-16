@@ -35,10 +35,10 @@ Building from source gives you the latest version or lets you use Bold with unsu
 
 | Delphi Version | Package Path |
 |----------------|--------------|
-| Delphi 11.3 | `packages\Delphi28\dclBold.dpk` |
-| Delphi 12.1 | `packages\Delphi29.1\dclBold.dpk` |
-| Delphi 12.3 | `packages\Delphi29.3\dclBold.dpk` |
-| Delphi 13 | `packages\Delphi30\dclBold.dpk` |
+| Delphi 11.3 Alexandria | `packages\Delphi11.3\dclBold.dpk` |
+| Delphi 12.1 CE Athens | `packages\Delphi12.1_CE\dclBold.dpk` |
+| Delphi 12.3 Athens | `packages\Delphi12.3\dclBold.dpk` |
+| Delphi 13 Florence | `packages\Delphi13\dclBold.dpk` |
 
 2. Build the package (Shift+F9)
 

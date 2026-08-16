@@ -60,7 +60,7 @@ Open the package project for your Delphi version in the IDE:
 | Delphi 11.3 Alexandria | `packages\Delphi11.3\dclBold.dproj` |
 | Delphi 12.1 CE Athens | `packages\Delphi12.1_CE\dclBold.dproj` |
 | Delphi 12.3 Athens | `packages\Delphi12.3\dclBold.dproj` |
-| Delphi 13 Athens | `packages\Delphi13\dclBold.dproj` |
+| Delphi 13 Florence | `packages\Delphi13\dclBold.dproj` |
 
 Then:
 

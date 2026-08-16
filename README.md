@@ -21,7 +21,7 @@ Bold for Delphi is best suited for:
 
 ## Supported Delphi Versions
 
-- Delphi 13.0 Athens (packages/Delphi13/)
+- Delphi 13 Florence (packages/Delphi13/)
 - Delphi 12.3 Athens (packages/Delphi12.3/)
 - Delphi 12.1 CE Athens (packages/Delphi12.1_CE/)
 - Delphi 11.3 Alexandria (packages/Delphi11.3/)
