@@ -62,7 +62,7 @@ end;
 
 ## Version
 
-**Current Version**: 26.01.0 (community-maintained)
+**Current Version**: 26.8.0 (community-maintained)
 
 **Supported Delphi Versions**: 11.3, 12.1, 12.3, 13
 

@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [26.01.0] - 2026-01-06
+## [26.1.0] - 2026-01-06
 
 ### Added
 - **Oracle Database Support**: Full Oracle support in Bold core persistence mappers (#10)
