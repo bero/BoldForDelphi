@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldUndoHandler;
@@ -1046,8 +1046,10 @@ begin
     DoUndo(aBlock.FSValueSpace, RedoValueSpace);
     FromList.InternalRemoveBlock(BlockName);
     if aBlock.ContainsChanges then  // do no transfer empty blocks
+    begin
       ToList.AddBlock(BlockName, BlockCaption).FSValueSpace := RedoValueSpace;
-    RedoValueSpace := nil;
+      RedoValueSpace := nil; // ownership transferred; otherwise the guard frees it
+    end;
     System.CommitTransaction;
   except
     System.RollbackTransaction;
