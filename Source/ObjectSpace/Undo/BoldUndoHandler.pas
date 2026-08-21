@@ -1030,6 +1030,7 @@ var
   aBlock: TBoldUndoBlock;
   RedoValueSpace: TBoldFreeStandingValueSpace;
   BlockCaption: string;
+  BlockContainsChanges: Boolean;
   G: IBoldGuard;
 begin
   G := TBoldGuard.Create(RedoValueSpace);
@@ -1040,12 +1041,13 @@ begin
     raise EBold.CreateFmt(sCannotMoveToTop, [BlockName]);
 
   BlockCaption := aBlock.Caption;
+  BlockContainsChanges := aBlock.ContainsChanges;
   RedoValueSpace := TBoldFreeStandingValueSpace.Create;
   System.StartTransaction;
   try
     DoUndo(aBlock.FSValueSpace, RedoValueSpace);
     FromList.InternalRemoveBlock(BlockName);
-    if aBlock.ContainsChanges then  // do no transfer empty blocks
+    if BlockContainsChanges then  // do no transfer empty blocks
     begin
       ToList.AddBlock(BlockName, BlockCaption).FSValueSpace := RedoValueSpace;
       RedoValueSpace := nil; // ownership transferred; otherwise the guard frees it
