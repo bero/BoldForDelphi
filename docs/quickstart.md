@@ -21,7 +21,7 @@ UML Model → Code Generator → Business Classes → Bold Runtime → Database
 
 ## Prerequisites ✅
 
-- **Delphi 11.3, 12.1 CE, 12.3, or 13**
+- **Delphi 11.3, 12.3, or 13**
 - **Database**: The following FireDAC-supported databases should work. SQLite, SQL Server, PostgreSQL, Firebird, MariaDB/MySQL and Oracle. SQLite requires no installation.
 - **Bold packages installed** (see Installation below)
 
@@ -58,7 +58,6 @@ Open the package project for your Delphi version in the IDE:
 | Delphi Version | Open this file |
 |----------------|----------------|
 | Delphi 11.3 Alexandria | `packages\Delphi11.3\dclBold.dproj` |
-| Delphi 12.1 CE Athens | `packages\Delphi12.1_CE\dclBold.dproj` |
 | Delphi 12.3 Athens | `packages\Delphi12.3\dclBold.dproj` |
 | Delphi 13 Florence | `packages\Delphi13\dclBold.dproj` |
 

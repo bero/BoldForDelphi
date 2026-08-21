@@ -6,8 +6,7 @@ Never zero-pad the month (Boss/semver rejects leading zeros).
 ## Build & release
 - [ ] CHANGELOG + docs/changelog updated; grep docs for stale "Current Version" lines
 - [ ] Build the 4 design packages (auto-named since LIBSUFFIX AUTO):
-      `dclBold280.bpl` (11.3), `dclBold290.bpl` (12.x - one BPL serves 12.1 CE + 12.3,
-      pending load test in 12.1 CE), `dclBold370.bpl` (13)
+      `dclBold280.bpl` (11.3), `dclBold290.bpl` (12.x), `dclBold370.bpl` (13)
 - [ ] Remove any stale old-style BPLs (`dclBold.28.bpl` etc.) from `packages/Bin`
 - [ ] `git tag <Y.M.b>` on the release commit; verify local == remote
       (`git ls-remote --tags origin`) before pushing

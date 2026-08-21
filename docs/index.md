@@ -64,7 +64,7 @@ end;
 
 **Current Version**: 26.8.0 (community-maintained)
 
-**Supported Delphi Versions**: 11.3, 12.1, 12.3, 13
+**Supported Delphi Versions**: 11.3, 12.3 (serves all 12.x), 13
 
 ## Resources
 

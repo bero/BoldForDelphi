@@ -56,7 +56,6 @@ DelphiBuildDPROJ.ps1 -Projectfile "packages\Delphi29.3\dclBold.dproj" -VerboseOu
 | Delphi Version | Package Folder |
 |----------------|----------------|
 | Delphi 11.3 Alexandria | `packages/Delphi11.3/` |
-| Delphi 12.1 CE Athens | `packages/Delphi12.1_CE/` |
 | Delphi 12.3 Athens | `packages/Delphi12.3/` |
 | Delphi 13 Florence | `packages/Delphi13/` |
 
