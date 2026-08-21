@@ -1,0 +1,37 @@
+# TMS Smart Setup definition for Bold for Delphi.
+# DRAFT - authored 2026-08-21 against the published registry entries
+# (zeos.zeoslib, amelander.map2pdb). Validate with the tms CLI
+# (tms install from a local clone) before submitting to
+# https://github.com/tmssoftware/smartsetup-registry
+minimum required tmsbuild version: 2.0
+
+application:
+  id: bero.boldfordelphi
+  name: Bold for Delphi
+  description: "Bold for Delphi is a Model Driven Architecture (MDA) framework
+    and object-relational mapping (ORM) tool for Delphi: UML-based models,
+    OCL queries, derived attributes, automatic SQL persistence and
+    model-aware VCL components. Open-sourced by Embarcadero under MIT,
+    community-maintained."
+  copyright: MIT
+  url: https://github.com/bero/BoldForDelphi
+  docs: https://github.com/bero/BoldForDelphi/tree/develop/docs
+
+supported frameworks:
+  vcl:
+    ide since: delphi11
+    platforms:
+      - win32intel
+      - win64intel
+
+packages:
+  - dclBold: [design, vcl]
+
+package options:
+  package folders:
+    # TODO validate with the tms CLI: registry entries use bare folder
+    # names (ZeosLib: "Delphi12"), suggesting a packages-root convention.
+    # If paths must be repo-relative, prefix each with "packages/".
+    delphi11: Delphi11.3
+    delphi12: Delphi12.3
+    delphi13: Delphi13

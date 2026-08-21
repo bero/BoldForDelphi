@@ -1,0 +1,12 @@
+{
+  "name": "boldfordelphi",
+  "description": "Bold for Delphi - Model Driven Architecture framework with UML modelling, OCL expressions, code generation and object-relational persistence",
+  "version": "26.8.1",
+  "homepage": "https://github.com/bero/BoldForDelphi",
+  "license": "MIT",
+  "mainsrc": "Source",
+  "projects": [
+    "packages/Delphi12.3/dclBold.dproj"
+  ],
+  "dependencies": {}
+}
