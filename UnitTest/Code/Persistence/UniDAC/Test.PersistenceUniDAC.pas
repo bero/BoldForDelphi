@@ -27,11 +27,16 @@ type
     [Test]
     [Category('DB')]
     procedure TestReopenKeepsOwnershipOfOwnReadTransaction;
+    [Test]
+    [Category('DB')]
+    procedure TestDestroyFreesCachedQueries;
   end;
 
 implementation
 
 uses
+  System.SysUtils,
+  BoldUniDACInterfaces,
   BoldSystem,
   BoldId,
   BoldDBInterfaces;
@@ -176,6 +181,56 @@ begin
   end;
 
   UniConnection.ExecSQL('DROP TABLE Bold_TxReopen');
+end;
+
+function CurrentAllocatedBlocks: Int64;
+var
+  st: TMemoryManagerState;
+  i: Integer;
+begin
+  GetMemoryManagerState(st);
+  Result := Int64(st.AllocatedMediumBlockCount) + Int64(st.AllocatedLargeBlockCount);
+  for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
+    Result := Result + Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
+end;
+
+procedure TTestPersistenceUniDAC.TestDestroyFreesCachedQueries;
+
+  procedure UseAndDestroyWrapper;
+  var
+    Wrapper: TBoldUniDACConnection;
+    DB: IBoldDatabase;
+    Query: IBoldQuery;
+    ExecQuery: IBoldExecQuery;
+  begin
+    // A second wrapper on the fixture's TUniConnection; the wrapper does not
+    // own the component, so only the wrapper and its cache go away here.
+    Wrapper := TBoldUniDACConnection.Create(UniConnection, UniDACAdapter.SQLDatabaseConfig);
+    DB := Wrapper; // the public surface; the wrapper is not reference counted
+    try
+      Query := DB.GetQuery;
+      DB.ReleaseQuery(Query);          // now sits in the wrapper's query cache
+      ExecQuery := DB.GetExecQuery;
+      DB.ReleaseExecQuery(ExecQuery);  // now sits in the wrapper's exec-query cache
+    finally
+      DB := nil;
+      Wrapper.Free;
+    end;
+  end;
+
+var
+  Before, After: Int64;
+begin
+  // First pass absorbs one-time allocations of the DAC layer; the second
+  // pass must be allocation-neutral: destroying the wrapper has to free the
+  // query and exec query it cached, not hand them back to the cache.
+  UseAndDestroyWrapper;
+  Before := CurrentAllocatedBlocks;
+  UseAndDestroyWrapper;
+  After := CurrentAllocatedBlocks;
+  Assert.AreEqual(Before, After,
+    'Destroying a TBoldUniDACConnection must free its cached query and exec query ' +
+    '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
 end;
 
 initialization

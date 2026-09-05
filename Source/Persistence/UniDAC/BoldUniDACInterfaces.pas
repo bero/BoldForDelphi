@@ -1448,18 +1448,41 @@ begin
 end;
 
 procedure TBoldUniDACConnection.ReleaseCachedObjects;
+var
+  Cached: TObject;
 begin
+  // Free the cached objects, do not Release them: the Release* methods put
+  // an object back into the cache unless the TUniConnection component itself
+  // is being destroyed, and that component outlives this wrapper. The cache
+  // interfaces are non-refcounted, so take the implementor out and nil the
+  // field before freeing it.
   if Assigned(fCachedTable) then
-    ReleaseTable(fCachedTable);
+  begin
+    Cached := fCachedTable.Implementor;
+    fCachedTable := nil;
+    Cached.Free;
+  end;
 
   if Assigned(fCachedQuery1) then
-    ReleaseQuery(fCachedQuery1);
+  begin
+    Cached := fCachedQuery1.Implementor;
+    fCachedQuery1 := nil;
+    Cached.Free;
+  end;
 
   if Assigned(fCachedQuery2) then
-    ReleaseQuery(fCachedQuery2);
+  begin
+    Cached := fCachedQuery2.Implementor;
+    fCachedQuery2 := nil;
+    Cached.Free;
+  end;
 
   if Assigned(fCachedExecQuery1) then
-    ReleaseExecQuery(fCachedExecQuery1);
+  begin
+    Cached := fCachedExecQuery1.Implementor;
+    fCachedExecQuery1 := nil;
+    Cached.Free;
+  end;
 end;
 
 { TBoldUniDACExecQuery }
