@@ -176,6 +176,9 @@ type
     [Test]
     [Category('DB')]
     procedure TestCreateThreeObjectsKeepsDistinctValues;
+    [Test]
+    [Category('DB')]
+    procedure TestReleaseAnotherDatabaseConnectionFreesWrapper;
   end;
 
 implementation
@@ -194,6 +197,7 @@ uses
   BoldTestDatabaseConfig,
   FireDAC.Comp.Client,
   maan_UndoRedoBase,
+  maan_UndoRedoTestCaseUtils,
   BoldTestModel;
 
 { TTestPersistenceFireDAC }
@@ -1373,9 +1377,9 @@ begin
 
     AnotherDbInterface.Close;
     DbInterface.Close;
-    // Note: TBoldNonRefCountedObject doesn't use ref counting, so AnotherDbInterface
-    // must be explicitly freed. The fOwnsConnection flag ensures the TFDConnection is also freed.
-    (AnotherDbInterface as TBoldFireDACConnection).Free;
+    // The wrapper is not reference counted; the interface releases it (and
+    // the TFDConnection it owns) without naming the adapter class.
+    DbInterface.ReleaseAnotherDatabaseConnection(AnotherDbInterface);
   finally
     Adapter.Free;
     Connection.Free;
@@ -2361,6 +2365,37 @@ begin
     Assert.AreEqual(1, StrToInt(dmUndoRedo.BoldSystemHandle1.System.EvaluateExpressionAsString(
       'SomeClass.allInstances->select(aString = ''' + cValues[i] + ''')->size')),
       'Object ' + IntToStr(i) + ' must carry its own value, not a neighbour''s. Reloaded: ' + Reloaded);
+end;
+
+procedure TTestPersistenceFireDAC.TestReleaseAnotherDatabaseConnectionFreesWrapper;
+var
+  DbInterface: IBoldDatabase;
+
+  procedure CreateAndReleaseAnotherConnection;
+  var
+    Another: IBoldDatabase;
+  begin
+    Another := DbInterface.CreateAnotherDatabaseConnection;
+    Assert.AreNotSame(DbInterface.Implementor, Another.Implementor,
+      'CreateAnotherDatabaseConnection must create its own connection component');
+    DbInterface.ReleaseAnotherDatabaseConnection(Another);
+    Assert.IsNull(Another, 'ReleaseAnotherDatabaseConnection must nil the reference');
+  end;
+
+var
+  Before, After: Int64;
+begin
+  // Adapter-neutral disposal of an extra connection - what TBoldDbCopy and the
+  // DB validator threads need, since the wrapper is not reference counted and
+  // Implementor is the DAC component, not the wrapper.
+  DbInterface := dmUndoRedo.BoldDatabaseAdapterFireDAC1.DatabaseInterface;
+  CreateAndReleaseAnotherConnection; // warm-up for one-time allocations
+  Before := CurrentAllocatedBlocks;
+  CreateAndReleaseAnotherConnection;
+  After := CurrentAllocatedBlocks;
+  Assert.AreEqual(Before, After,
+    'Releasing the extra connection must free the wrapper and its connection component ' +
+    '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
 end;
 
 initialization

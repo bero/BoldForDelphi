@@ -40,6 +40,7 @@ implementation
 uses
   System.SysUtils,
   BoldUniDACInterfaces,
+  maan_UndoRedoTestCaseUtils,
   BoldSystem,
   BoldId,
   BoldDBInterfaces;
@@ -186,17 +187,6 @@ begin
   UniConnection.ExecSQL('DROP TABLE Bold_TxReopen');
 end;
 
-function CurrentAllocatedBlocks: Int64;
-var
-  st: TMemoryManagerState;
-  i: Integer;
-begin
-  GetMemoryManagerState(st);
-  Result := Int64(st.AllocatedMediumBlockCount) + Int64(st.AllocatedLargeBlockCount);
-  for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
-    Result := Result + Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
-end;
-
 procedure TTestPersistenceUniDAC.TestDestroyFreesCachedQueries;
 
   procedure UseAndDestroyWrapper;
@@ -241,17 +231,14 @@ procedure TTestPersistenceUniDAC.TestCreateAnotherDatabaseConnectionOwnsItsConne
   procedure CreateAndFreeAnotherConnection;
   var
     Another: IBoldDatabase;
-    Wrapper: TBoldUniDACConnection;
   begin
     Another := UniDACAdapter.DatabaseInterface.CreateAnotherDatabaseConnection;
     // Implementor is the TUniConnection, so this checks for a new component
     Assert.AreNotSame(UniDACAdapter.DatabaseInterface.Implementor, Another.Implementor,
       'CreateAnotherDatabaseConnection must create its own TUniConnection');
-    // The wrapper is not reference counted and must be freed explicitly, the
-    // way the FireDAC test frees the one it gets.
-    Wrapper := Another as TBoldUniDACConnection;
-    Another := nil;
-    Wrapper.Free;
+    // The wrapper is not reference counted; the interface releases it without
+    // naming the adapter class.
+    UniDACAdapter.DatabaseInterface.ReleaseAnotherDatabaseConnection(Another);
   end;
 
 var

@@ -336,6 +336,9 @@ type
     procedure DropDatabase;
     function DatabaseExists: boolean;
     function CreateAnotherDatabaseConnection: IBoldDatabase;
+    { Frees a connection obtained from CreateAnotherDatabaseConnection. The
+      wrappers are not reference counted, so dropping the reference leaks. }
+    procedure ReleaseAnotherDatabaseConnection(var ADatabase: IBoldDatabase);
     function GetImplementor: TObject;
     property Implementor: TObject read GetImplementor;
   end;
@@ -512,6 +515,7 @@ type
     procedure ReleaseQuery(var Query: IBoldQuery); virtual; abstract;
     function GetExecQuery: IBoldExecQuery; virtual;
     procedure ReleaseExecQuery(var Query: IBoldExecQuery); virtual;
+    procedure ReleaseAnotherDatabaseConnection(var ADatabase: IBoldDatabase);
     function GetSQLDatabaseConfig: TBoldSQLDatabaseConfig;
     function InternalGetDatabaseError(const aErrorType: TBoldDatabaseErrorType;
         const E: Exception; sSQL, sServer, sDatabase, sUserName: string;
@@ -1591,6 +1595,21 @@ begin
     releaseTable(DbTable);
   end;
 
+end;
+
+procedure TBoldDatabaseWrapper.ReleaseAnotherDatabaseConnection(var ADatabase: IBoldDatabase);
+var
+  Wrapper: TObject;
+begin
+  if not Assigned(ADatabase) then
+    Exit;
+  // The wrapper object itself - Implementor is the DAC component, which the
+  // wrapper frees in its destructor when it owns it.
+  Wrapper := ADatabase as TObject;
+  // Nil before Free: the wrapper is not reference counted, but assigning nil
+  // still calls _Release on the old pointer.
+  ADatabase := nil;
+  Wrapper.Free;
 end;
 
 function TBoldDatabaseWrapper.GetSQLDatabaseConfig: TBoldSQLDatabaseConfig;

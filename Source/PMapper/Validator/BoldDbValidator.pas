@@ -413,6 +413,10 @@ begin
   fValidator := AValidator;
   fPersistenceHandle := AValidator.PersistenceHandle;
   fSystemSQLMapper := AValidator.SystemSQLMapper;
+  // Fire-and-forget worker: it removes itself from the validator's ThreadList
+  // at the end of Execute and nobody else holds a reference, so it must free
+  // itself - without this, one thread object leaked per run.
+  FreeOnTerminate := True;
   Suspended := False;
 end;
 
@@ -442,7 +446,8 @@ begin
       Validate;
     finally
       fBoldDatabase.Close;
-      fBoldDatabase := nil;
+      // The wrapper is not reference counted; dropping the reference leaked it.
+      Validator.PersistenceHandle.DatabaseInterface.ReleaseAnotherDatabaseConnection(fBoldDatabase);
     end;
   finally
     CoUninitialize;

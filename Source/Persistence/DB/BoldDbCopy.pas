@@ -339,6 +339,10 @@ begin
     DatabaseInterface.ReleaseQuery(TestQuery);
     SourceDatabaseInterface.Close;
     DatabaseInterface.Close;
+    // Both wrappers came from CreateAnotherDatabaseConnection and are not
+    // reference counted - they used to leak here, one pair per worker.
+    SourcePersistenceHandle.DatabaseInterface.ReleaseAnotherDatabaseConnection(SourceDatabaseInterface);
+    DestinationPersistenceHandle.DatabaseInterface.ReleaseAnotherDatabaseConnection(DatabaseInterface);
     BoldLog.Log(Format('Thread %d completed', [TThread.CurrentThread.ThreadID]));
   end;
 end;
