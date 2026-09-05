@@ -29,6 +29,9 @@ type
     fTotalRecords: integer;
     FOnComplete: TNotifyEvent;
     fProgressEvent: TBoldDbCopyProgressEvent;
+    fErrors: TStringList;
+    procedure RecordError(const AMessage: string);
+    function GetHasErrors: Boolean;
     procedure SetDestinationPersistenceHandle(const Value: TBoldAbstractPersistenceHandleDB);
     procedure SetSourcePersistenceHandle(const Value: TBoldAbstractPersistenceHandleDB);
     procedure SetThreadCount(const Value: integer);
@@ -56,6 +59,10 @@ type
     property OnProgress: TBoldDbCopyProgressEvent read fProgressEvent write fProgressEvent;
     property TotalTables: integer read fTotalTables;
     property TotalRecords: integer read fTotalRecords;
+    { Worker failures. A worker that raises is logged and recorded here; the
+      run still completes (OnComplete fires), so check HasErrors afterwards. }
+    property Errors: TStringList read fErrors;
+    property HasErrors: Boolean read GetHasErrors;
   end;
 
   EBoldDbCopy = class(Exception);
@@ -136,6 +143,7 @@ begin
   ThreadCount := 4;
   fThreadList := TThreadList.Create;
   fAllTables := TStringList.Create;
+  fErrors := TStringList.Create;
 end;
 
 procedure TBoldDbCopy.BeforeDestruction;
@@ -143,7 +151,30 @@ begin
   fTableQueue.free;
   fAllTables.free;
   fThreadList.Free;
+  fErrors.Free;
   inherited;
+end;
+
+procedure TBoldDbCopy.RecordError(const AMessage: string);
+begin
+  BoldLog.Log(AMessage, ltError);
+  // Called from the worker threads
+  TMonitor.Enter(fErrors);
+  try
+    fErrors.Add(AMessage);
+  finally
+    TMonitor.Exit(fErrors);
+  end;
+end;
+
+function TBoldDbCopy.GetHasErrors: Boolean;
+begin
+  TMonitor.Enter(fErrors);
+  try
+    result := fErrors.Count > 0;
+  finally
+    TMonitor.Exit(fErrors);
+  end;
 end;
 
 procedure TBoldDbCopy.DoOnComplete;
@@ -199,7 +230,9 @@ var
     DestinationQuery.ClearParams;
     DestinationQuery.ParamCheck := true;
     DestinationQuery.SQLText := InsertSql;
-    DestinationQuery.Prepare;
+    // No explicit Prepare here: the parameters have no types yet (they get
+    // them from AssignFieldValue in the row loop) and FireDAC refuses to
+    // prepare typeless parameters. Both adapters prepare on the first Execute.
     ParamIndex := 0;
     sl.free;
     sl2.free;
@@ -386,17 +419,20 @@ begin
 
   var SourceQuery: IBoldQuery;
   SourceQuery :=  SourcePersistenceHandle.DatabaseInterface.GetQuery;
-
-  for SourceTable in SourcePersistenceMapper.AllTables do
-  begin
-    var SelectSql := Format('select count(*) from %s', [SourceTable.SQLName]);
-    SourceQuery.SQLText := SelectSql;
-    SourceQuery.Open;
-    if SourceQuery.Fields[0].AsInteger = 0 then
-      continue;
-    inc(fTotalRecords, SourceQuery.Fields[0].AsInteger);
-    fAllTables.Values[SourceTable.SQLName] := SourceQuery.Fields[0].AsString;
-    SourceQuery.Close;
+  try
+    for SourceTable in SourcePersistenceMapper.AllTables do
+    begin
+      var SelectSql := Format('select count(*) from %s', [SourceTable.SQLName]);
+      SourceQuery.SQLText := SelectSql;
+      SourceQuery.Open;
+      if SourceQuery.Fields[0].AsInteger = 0 then
+        continue;
+      inc(fTotalRecords, SourceQuery.Fields[0].AsInteger);
+      fAllTables.Values[SourceTable.SQLName] := SourceQuery.Fields[0].AsString;
+      SourceQuery.Close;
+    end;
+  finally
+    SourcePersistenceHandle.DatabaseInterface.ReleaseQuery(SourceQuery);
   end;
   fAllTables.CustomSort(SortByDescendingRowCount);
 //  var q := vTables.IndexOfName('Person');
@@ -410,7 +446,15 @@ begin
      begin
        CoInitialize(nil);
        try
-         ProcessTables;
+         try
+           ProcessTables;
+         except
+           // The worker is a FreeOnTerminate thread: an exception that leaves
+           // it is lost, the run would complete and look successful. Record it
+           // so the caller can see the copy failed.
+           on E: Exception do
+             RecordError(Format('%s: %s', [E.ClassName, E.Message]));
+         end;
        finally
          CoUninitialize;
          fThreadList.Remove(TThread.CurrentThread);

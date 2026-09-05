@@ -6,7 +6,9 @@ interface
 
 uses
   SysUtils,
+  SyncObjs,
   DUnitX.TestFramework,
+  BoldDBInterfaces,
   BoldDbCopy;
 
 type
@@ -32,11 +34,34 @@ type
     procedure TestStripControlCharsKeepsPlainText;
   end;
 
+  { Copies the test database into a second in-memory database with a real
+    TBoldDbCopy run (Run spawns ThreadCount worker threads, each with its own
+    source and destination connection) and checks what arrived. }
+  [TestFixture]
+  [Category('Persistence')]
+  TTestBoldDbCopyEndToEnd = class
+  private
+    FDone: TEvent;
+    procedure HandleComplete(Sender: TObject);
+    function RowCount(const ADatabase: IBoldDatabase; const ATable: string): Integer;
+    function StringsOf(const ADatabase: IBoldDatabase; const ASql: string): string;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+    [Test]
+    [Category('DB')]
+    procedure TestCopiesAllRowsToTheDestination;
+  end;
+
 implementation
 
 uses
-  BoldDBInterfaces,
   BoldFireDACInterfaces,
+  BoldTestDatabaseConfig,
+  BoldTestModel,
+  maan_UndoRedoBase,
   BoldSQLDatabaseConfig,
   FireDAC.Comp.Client,
   FireDAC.Stan.Option;
@@ -103,8 +128,138 @@ begin
     'non-ASCII printable characters must pass through');
 end;
 
+{ TTestBoldDbCopyEndToEnd }
+
+const
+  cDestinationDatabase = 'file:memdb_dbcopy?mode=memory&cache=shared';
+
+procedure TTestBoldDbCopyEndToEnd.SetUp;
+begin
+  EnsureDM;
+  if not dmUndoRedo.BoldSystemHandle1.Active then
+    dmUndoRedo.BoldSystemHandle1.Active := True;
+  // Destination: the data module's second persistence handle, pointed at a
+  // second in-memory database with a freshly created (empty) schema. The
+  // connection stays open so the shared-cache database stays alive.
+  dmUndoRedo.FDConnection2.Params.Values['Database'] := cDestinationDatabase;
+  dmUndoRedo.FDConnection2.Open;
+  dmUndoRedo.BoldPersistenceHandleDB2.CreateDataBaseSchema;
+  FDone := TEvent.Create(nil, True, False, '');
+end;
+
+procedure TTestBoldDbCopyEndToEnd.TearDown;
+begin
+  FreeAndNil(FDone);
+  if Assigned(dmUndoRedo) then
+  begin
+    if dmUndoRedo.BoldPersistenceHandleDB2.Active then
+      dmUndoRedo.BoldPersistenceHandleDB2.Active := False;
+    if dmUndoRedo.BoldSystemHandle1.Active then
+    begin
+      dmUndoRedo.BoldSystemHandle1.System.Discard;
+      dmUndoRedo.BoldSystemHandle1.Active := False;
+    end;
+  end;
+  // The data module's second connection was re-pointed; drop the module so
+  // the next fixture gets a fresh one from the dfm.
+  FreeAndNil(dmUndoRedo);
+end;
+
+procedure TTestBoldDbCopyEndToEnd.HandleComplete(Sender: TObject);
+begin
+  FDone.SetEvent;
+end;
+
+function TTestBoldDbCopyEndToEnd.RowCount(const ADatabase: IBoldDatabase; const ATable: string): Integer;
+var
+  Query: IBoldQuery;
+begin
+  Query := ADatabase.GetQuery;
+  try
+    Query.SQLText := 'select count(*) from ' + ATable;
+    Query.Open;
+    result := Query.Fields[0].AsInteger;
+    Query.Close;
+  finally
+    ADatabase.ReleaseQuery(Query);
+  end;
+end;
+
+function TTestBoldDbCopyEndToEnd.StringsOf(const ADatabase: IBoldDatabase; const ASql: string): string;
+var
+  Query: IBoldQuery;
+begin
+  result := '';
+  Query := ADatabase.GetQuery;
+  try
+    Query.SQLText := ASql;
+    Query.Open;
+    while not Query.Eof do
+    begin
+      result := result + Query.Fields[0].AsString + '|';
+      Query.Next;
+    end;
+    Query.Close;
+  finally
+    ADatabase.ReleaseQuery(Query);
+  end;
+end;
+
+procedure TTestBoldDbCopyEndToEnd.TestCopiesAllRowsToTheDestination;
+const
+  cValues: array[1..3] of string = ('copy one', 'copy two', 'copy three');
+var
+  i: Integer;
+  DbCopy: TBoldDbCopy;
+  Source, Destination: IBoldDatabase;
+  SourceObjects, SourceStrings: string;
+begin
+  for i := Low(cValues) to High(cValues) do
+    TSomeClass.Create(dmUndoRedo.BoldSystemHandle1.System).aString := cValues[i];
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  Source := dmUndoRedo.BoldDatabaseAdapterFireDAC1.DatabaseInterface;
+  Destination := dmUndoRedo.BoldDatabaseAdapterFireDAC2.DatabaseInterface;
+  SourceObjects := IntToStr(RowCount(Source, 'BOLD_OBJECT'));
+  SourceStrings := StringsOf(Source, 'select aString from SomeClass order by aString');
+  Assert.AreEqual(0, RowCount(Destination, 'SomeClass'),
+    'precondition: the destination schema starts empty');
+
+  DbCopy := TBoldDbCopy.Create(nil);
+  try
+    DbCopy.SourcePersistenceHandle := dmUndoRedo.BoldPersistenceHandleDB1;
+    DbCopy.DestinationPersistenceHandle := dmUndoRedo.BoldPersistenceHandleDB2;
+    // SQLite's shared-cache mode (the in-memory test database) refuses
+    // concurrent writers with SQLITE_LOCKED, so one worker there; the
+    // multi-worker path is exercised on server engines.
+    if SameText(GetTestDatabaseEngine, 'SQLite') then
+      DbCopy.ThreadCount := 1
+    else
+      DbCopy.ThreadCount := 2;
+    DbCopy.OnComplete := HandleComplete;
+    DbCopy.Run;
+    Assert.AreEqual(Ord(wrSignaled), Ord(FDone.WaitFor(30000)),
+      'the copy workers must complete and call OnComplete');
+    // OnComplete fires from inside the last worker; the anonymous threads
+    // finish and free themselves right after it.
+    Sleep(200);
+
+    Assert.IsFalse(DbCopy.HasErrors, 'the workers must not fail: ' + DbCopy.Errors.Text);
+    Assert.IsTrue(DbCopy.TotalTables > 0, 'the run must have found tables to copy');
+    Assert.AreEqual(SourceObjects, IntToStr(RowCount(Destination, 'BOLD_OBJECT')),
+      'every BOLD_OBJECT row must have been copied');
+    Assert.AreEqual(Length(cValues), RowCount(Destination, 'SomeClass'),
+      'every SomeClass row must have been copied');
+    Assert.AreEqual(SourceStrings,
+      StringsOf(Destination, 'select aString from SomeClass order by aString'),
+      'the copied rows must carry the source values');
+  finally
+    DbCopy.Free;
+  end;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldDbCopy);
   TDUnitX.RegisterTestFixture(TTestBoldDbCopyFireDACTuning);
+  TDUnitX.RegisterTestFixture(TTestBoldDbCopyEndToEnd);
 
 end.

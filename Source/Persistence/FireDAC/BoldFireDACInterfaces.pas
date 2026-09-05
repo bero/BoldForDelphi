@@ -1322,7 +1322,11 @@ end;
 
 procedure TBoldFireDACParameter.AssignFieldValue(const source: IBoldField);
 begin
-  FDParam.Assign(source.Field);
+  // Not FDParam.Assign(source.Field): TParam.Assign(TField) also copies the
+  // field's name onto the parameter, and FireDAC binds by name - a statement
+  // with :p0_0 markers then finds no parameter and binds NULL (TBoldDbCopy).
+  // AssignFieldValue sets type and value only, like the base class does.
+  FDParam.AssignFieldValue(source.Field, source.AsVariant);
 end;
 
 procedure TBoldFireDACConnection.ReleaseCachedObjects;
