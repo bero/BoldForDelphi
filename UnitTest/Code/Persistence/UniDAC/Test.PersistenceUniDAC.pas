@@ -30,6 +30,9 @@ type
     [Test]
     [Category('DB')]
     procedure TestDestroyFreesCachedQueries;
+    [Test]
+    [Category('DB')]
+    procedure TestCreateAnotherDatabaseConnectionOwnsItsConnection;
   end;
 
 implementation
@@ -230,6 +233,38 @@ begin
   After := CurrentAllocatedBlocks;
   Assert.AreEqual(Before, After,
     'Destroying a TBoldUniDACConnection must free its cached query and exec query ' +
+    '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
+end;
+
+procedure TTestPersistenceUniDAC.TestCreateAnotherDatabaseConnectionOwnsItsConnection;
+
+  procedure CreateAndFreeAnotherConnection;
+  var
+    Another: IBoldDatabase;
+    Wrapper: TBoldUniDACConnection;
+  begin
+    Another := UniDACAdapter.DatabaseInterface.CreateAnotherDatabaseConnection;
+    // Implementor is the TUniConnection, so this checks for a new component
+    Assert.AreNotSame(UniDACAdapter.DatabaseInterface.Implementor, Another.Implementor,
+      'CreateAnotherDatabaseConnection must create its own TUniConnection');
+    // The wrapper is not reference counted and must be freed explicitly, the
+    // way the FireDAC test frees the one it gets.
+    Wrapper := Another as TBoldUniDACConnection;
+    Another := nil;
+    Wrapper.Free;
+  end;
+
+var
+  Before, After: Int64;
+begin
+  // The extra connection's TUniConnection is created by the wrapper, so the
+  // wrapper must own it: freeing the wrapper has to free the component too.
+  CreateAndFreeAnotherConnection; // warm-up for one-time DAC allocations
+  Before := CurrentAllocatedBlocks;
+  CreateAndFreeAnotherConnection;
+  After := CurrentAllocatedBlocks;
+  Assert.AreEqual(Before, After,
+    'Freeing the wrapper from CreateAnotherDatabaseConnection must free its TUniConnection ' +
     '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
 end;
 

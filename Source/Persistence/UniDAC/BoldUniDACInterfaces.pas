@@ -183,6 +183,9 @@ type
   TBoldUniDACConnection = class(TBoldDatabaseWrapper, IBoldDataBase)
   private
     fUniConnection: TUniConnection;
+    // True for the connection created by CreateAnotherDatabaseConnection: that
+    // TUniConnection has no other owner and is freed with this wrapper.
+    fOwnsConnection: Boolean;
     fCachedTable: IBoldTable;
     fCachedQuery1: IBoldQuery;
     fCachedQuery2: IBoldQuery;
@@ -903,6 +906,8 @@ end;
 destructor TBoldUniDACConnection.Destroy;
 begin
   ReleaseCachedObjects;
+  if fOwnsConnection then
+    FreeAndNil(fUniConnection);
   inherited;
 end;
 
@@ -963,10 +968,15 @@ begin
 end;
 
 function TBoldUniDACConnection.CreateAnotherDatabaseConnection: IBoldDatabase;
+var
+  Connection: TUniConnection;
+  NewDbConnection: TBoldUniDACConnection;
 begin
-  var Connection := TUniConnection.Create(nil); // owner ?
+  Connection := TUniConnection.Create(nil);
   Connection.Assign(self.fUniConnection);
-  result := TBoldUniDACConnection.Create(Connection, SQLDatabaseConfig);
+  NewDbConnection := TBoldUniDACConnection.Create(Connection, SQLDatabaseConfig);
+  NewDbConnection.fOwnsConnection := True;
+  result := NewDbConnection;
 end;
 
 procedure TBoldUniDACConnection.BeginExecuteQuery;
