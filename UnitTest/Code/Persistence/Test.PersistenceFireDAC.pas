@@ -173,6 +173,9 @@ type
     [Test]
     [Category('DB')]
     procedure TestReopenKeepsOwnershipOfOwnReadTransaction;
+    [Test]
+    [Category('DB')]
+    procedure TestCreateThreeObjectsKeepsDistinctValues;
   end;
 
 implementation
@@ -2325,6 +2328,39 @@ begin
     Adapter.Free;
     Connection.Free;
   end;
+end;
+
+procedure TTestPersistenceFireDAC.TestCreateThreeObjectsKeepsDistinctValues;
+const
+  cValues: array[1..3] of string = ('First', 'Second', 'Third');
+var
+  i: Integer;
+  Reloaded: string;
+  List: TBoldObjectList;
+begin
+  // Three new objects of one class saved in one UpdateDatabase: with
+  // MultiRowInsertLimit = 1 (the default, used by SQLite) PMCreate executes
+  // one parameterized INSERT per row and resets the query between rows. Each
+  // row must end up with its own attribute value.
+  for i := Low(cValues) to High(cValues) do
+    TSomeClass.Create(dmUndoRedo.BoldSystemHandle1.System).aString := cValues[i];
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  dmUndoRedo.BoldSystemHandle1.System.Discard;
+  dmUndoRedo.BoldSystemHandle1.Active := False;
+  dmUndoRedo.BoldSystemHandle1.Active := True;
+
+  List := dmUndoRedo.BoldSystemHandle1.System.ClassByExpressionName['SomeClass'];
+  Reloaded := '';
+  for i := 0 to List.Count - 1 do
+    Reloaded := Reloaded + TSomeClass(List[i]).aString + ' ';
+  // Other tests of this fixture may have left objects in the shared database,
+  // so only a lower bound is a valid precondition here.
+  Assert.IsTrue(List.Count >= 3, 'All three objects must be persisted: ' + Reloaded);
+  for i := Low(cValues) to High(cValues) do
+    Assert.AreEqual(1, StrToInt(dmUndoRedo.BoldSystemHandle1.System.EvaluateExpressionAsString(
+      'SomeClass.allInstances->select(aString = ''' + cValues[i] + ''')->size')),
+      'Object ' + IntToStr(i) + ' must carry its own value, not a neighbour''s. Reloaded: ' + Reloaded);
 end;
 
 initialization

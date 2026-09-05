@@ -1138,7 +1138,10 @@ var
       aQuery.SQLStrings.BeginUpdate;
 //    aQuery.ParamCheck := false;
     end;
-    aQuery.Params.Clear;
+    // ClearParams, not Params.Clear: on FireDAC the Params view is a detached
+    // snapshot, so clearing it leaves the previous row's parameter in place and
+    // the next row's 'p<n>' name collides with it - the stale value then wins.
+    aQuery.ClearParams;
     aQuery.AssignSQL(SQL);
     Row := 0;
   end;
@@ -1349,7 +1352,7 @@ begin
   finally
     aQuery.SQLStrings.Clear;
     aQuery.SQLStrings.EndUpdate;
-    aQuery.Params.Clear;
+    aQuery.ClearParams;
     aQuery.Params.EndUpdate;
     SystemPersistenceMapper.ReleaseExecQuery(aQuery);
   end;
