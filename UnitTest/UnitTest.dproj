@@ -143,6 +143,7 @@
         <DCCReference Include="Code\PMapper\Test.BoldSQLDatabaseConfig.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUtils.pas"/>
         <DCCReference Include="Code\Persistence\Test.PersistenceFireDAC.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldBatchQueries.pas"/>
         <DCCReference Include="Code\Persistence\Benchmark.BoldFetch.pas"/>
         <DCCReference Include="Code\Persistence\Benchmark.BoldIdListSql.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldDBInterfacesLogging.pas"/>

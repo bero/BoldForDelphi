@@ -150,7 +150,6 @@ type
     procedure SetUseReadTransactions(value: boolean);
     procedure BeginExecuteQuery;
     procedure EndExecuteQuery;
-    function GetBatchQueryParamCount: integer;
     procedure Prepare;
     function GetDataSet: TDataSet; override;
     procedure ClearParams;
@@ -1470,14 +1469,10 @@ function TBoldFireDACExecQuery.FindParam(const Value: string): IBoldParameter;
 var
   Param: TFDParam;
 begin
+  result := nil;
   Param := ExecQuery.FindParam(Value);
-  if not Assigned(Param) then
-    result := CreateParam(ftUnknown, Value);
-end;
-
-function TBoldFireDACExecQuery.GetBatchQueryParamCount: integer;
-begin
-  result := 0; // update when batch support is implemented
+  if Assigned(Param) then
+    result := TBoldFireDACParameter.Create(Param, Self);
 end;
 
 function TBoldFireDACExecQuery.GetExecQuery: TFDQuery;
@@ -1507,7 +1502,9 @@ end;
 
 function TBoldFireDACExecQuery.GetParams: TParams;
 begin
-  result := TFDAdaptedDataSetAccess(ExecQuery).fVclParams;
+  // Same detached snapshot as TBoldFireDACQuery.GetParams; fVclParams is nil
+  // until PSGetParams has been called once.
+  result := TFDAdaptedDataSetAccess(ExecQuery).PSGetParams;
 end;
 
 function TBoldFireDACExecQuery.GetParam(i: Integer): IBoldParameter;

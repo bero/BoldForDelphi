@@ -71,6 +71,7 @@ uses
   Test.BoldSQLDatabaseConfig in 'Code\PMapper\Test.BoldSQLDatabaseConfig.pas',
   Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas',
   Test.PersistenceFireDAC in 'Code\Persistence\Test.PersistenceFireDAC.pas',
+  Test.BoldBatchQueries in 'Code\Persistence\Test.BoldBatchQueries.pas',
   Benchmark.BoldFetch in 'Code\Persistence\Benchmark.BoldFetch.pas',
   Benchmark.BoldIdListSql in 'Code\Persistence\Benchmark.BoldIdListSql.pas',
   Test.BoldDBInterfacesLogging in 'Code\Persistence\Test.BoldDBInterfacesLogging.pas',

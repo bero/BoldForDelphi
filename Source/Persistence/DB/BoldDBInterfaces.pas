@@ -462,7 +462,7 @@ type
     fBatchQuery: IBoldExecQuery;
     FInBatch: Boolean;
     fAccumulatedSQLLength: integer;
-    fParamsInBeginUpdate: Boolean;
+    fBatchSQLInBeginUpdate: Boolean;
     SB: TStringBuilder;
     function GetAccumulatedSQL: TStrings;
     function GetHasCachedStatements: boolean;
@@ -1735,10 +1735,12 @@ end;
 function TBoldBatchDataSetWrapper.ParamsContainBlob: Boolean;
 var
   i: integer;
+  Parameterized: IBoldParameterized;
 begin
   result := false;
-  for i := 0 to self.Params.Count-1 do
-    if (Params[i].DataType in BlobFieldTypes) then
+  Parameterized := self as IBoldParameterized;
+  for i := 0 to Parameterized.ParamCount - 1 do
+    if (Parameterized.Param[i].DataType in BlobFieldTypes) then
     begin
       result := true;
       exit;
@@ -1752,7 +1754,6 @@ procedure TBoldBatchDataSetWrapper.ReplaceParamMarkers(sql: TStrings;
 const
   Literals = ['''', '"', '`'];
 var
-  SourceParams, DestParams: TParams;
   Name: String;
   Prefix: String;
   NewParamName: String;
@@ -1761,7 +1762,7 @@ var
   i: integer;
   ParamIndex, FirstParam: integer;
   Line: String;
-  oldParam, NewParam: TParam;
+  oldParam: IBoldParameter;
   Literal: Boolean;
 
   function NameDelimiter: Boolean;
@@ -1785,7 +1786,10 @@ var
   end;
 
 begin
-  DestParams := Dest.Params;
+  { Parameters are copied through IBoldParameterized/IBoldParameter, never
+    through the TParams view: on FireDAC IBoldParameterized.Params is a
+    detached snapshot (TFDAdaptedDataSet.PSGetParams), so anything written
+    into it never reaches the query that executes the batch. }
     if Source.ParamCount = 0 then
     begin
       for i := 0 to Sql.Count - 1 do
@@ -1796,10 +1800,15 @@ begin
     end
     else
     begin
-      SourceParams := Source.Params;
       if Dest.ParamCount = 0 then
       begin
-        DestParams.Assign(SourceParams);
+        // First parameterized statement of the batch: the markers keep their
+        // names, the parameters are copied as they are.
+        for i := 0 to Source.ParamCount - 1 do
+        begin
+          OldParam := Source.Param[i];
+          Dest.CreateParam(OldParam.DataType, OldParam.Name).Assign(OldParam);
+        end;
         for i := 0 to Sql.Count - 1 do
         begin
           Line := sql[i];
@@ -1808,9 +1817,10 @@ begin
       end
       else
       begin
+        // Later statements: every marker is renamed P<n> with n running over
+        // the whole batch, so names stay unique across the concatenated text.
         FirstParam := Dest.ParamCount;
         ParamIndex := Dest.ParamCount;
-        Dest.ParamCheck := false;
         for i := 0 to Sql.Count - 1 do
         begin
           Line := Sql[i];
@@ -1836,13 +1846,11 @@ begin
                 end;
               end;
               Name := copy(Line, StartPos+1, CurPos-(StartPos+1));
-              OldParam := SourceParams[ParamIndex-FirstParam];
+              OldParam := Source.Param[ParamIndex-FirstParam];
               Assert(OldParam.Name = Name);
               Prefix := 'P'+IntToStr(ParamIndex);
               NewParamName := prefix {+ Name};
-              NewParam := DestParams.CreateParam(OldParam.DataType, NewParamName, ptUnknown);
-              NewParam.Assign(OldParam);
-              NewParam.Name := NewParamName;
+              Dest.CreateParam(OldParam.DataType, NewParamName).Assign(OldParam);
               AddLine(Copy(Line, PrevPos, StartPos-PrevPos+1));
               PrevPos := CurPos;
               SB.Append(NewParamName);
@@ -1894,7 +1902,7 @@ end;
 
 procedure TBoldBatchDataSetWrapper.SetInBatch(const Value: Boolean);
 begin
-  if not DatabaseWrapper.SQLDatabaseConfig.UseBatchQueries then
+  if Value and not DatabaseWrapper.SQLDatabaseConfig.UseBatchQueries then
     exit;
   if FInBatch <> Value then
   begin
@@ -1903,18 +1911,23 @@ begin
     begin
       fBatchQuery := DatabaseWrapper.GetExecQuery;
       fBatchQuery.SQLStrings.BeginUpdate;
-      fBatchQuery.Params.BeginUpdate;
-      fParamsInBeginUpdate := true;
-      if Supports(fBatchQuery, IBoldParameterized) then
-        (fBatchQuery as IBoldParameterized).ParamCheck := false;
+      fBatchSQLInBeginUpdate := true;
+      // The batch query receives its parameters from ReplaceParamMarkers;
+      // the adapter must not create or drop parameters from the SQL text.
+      fBatchQuery.ParamCheck := false;
     end
     else
     begin
-      if fParamsInBeginUpdate then
+      if fBatchSQLInBeginUpdate then
       begin
         fBatchQuery.SQLStrings.EndUpdate;
-        fBatchQuery.Params.EndUpdate;
+        fBatchSQLInBeginUpdate := false;
       end;
+      // The query goes back to the pool: hand it over in the state a fresh
+      // query has, since TBoldMemberSQLMapper.ValueToQuery names its
+      // parameters differently depending on ParamCheck.
+      fBatchQuery.ClearParams;
+      fBatchQuery.ParamCheck := true;
       DatabaseWrapper.ReleaseExecQuery(fBatchQuery);
     end;
   end;
@@ -1970,6 +1983,10 @@ begin
   begin
     AccumulatedSQL.Clear;
     fAccumulatedSQLLength := 0;
+    // End the batch like EndSQLBatch does, so the batch query goes back to
+    // the pool now instead of staying checked out - with the parameters of
+    // the failed statements still attached - until the next successful save.
+    InBatch := false;
   end;
 end;
 
@@ -1979,15 +1996,17 @@ begin
   begin
     fInBatch := false;
     try
-      if fParamsInBeginUpdate then
+      if fBatchSQLInBeginUpdate then
       begin
         if DatabaseWrapper.SQLDatabaseConfig.BatchQueryBegin <> '' then
           fBatchQuery.SQLStrings.Insert(0, DatabaseWrapper.SQLDatabaseConfig.BatchQueryBegin);
         if DatabaseWrapper.SQLDatabaseConfig.BatchQueryEnd <> '' then
           fBatchQuery.SQLStrings.Append(DatabaseWrapper.SQLDatabaseConfig.BatchQueryEnd);
         fBatchQuery.SQLStrings.EndUpdate;
-        fBatchQuery.Params.EndUpdate;
-        fParamsInBeginUpdate:=false;
+        fBatchSQLInBeginUpdate := false;
+        // UniDAC only binds markers it has parsed, and parses on this
+        // transition; FireDAC binds the existing parameters by name and
+        // ignores the flag once the SQL is assigned.
         fBatchQuery.ParamCheck := true;
       end;
       fBatchQuery.ExecSql;
@@ -1996,9 +2015,8 @@ begin
       AccumulatedSQL.Clear;
       fAccumulatedSQLLength := 0;
       fBatchQuery.SQLStrings.BeginUpdate;
-      fBatchQuery.Params.BeginUpdate;
-      fBatchQuery.Params.Clear;
-      fParamsInBeginUpdate:=true;
+      fBatchQuery.ClearParams;
+      fBatchSQLInBeginUpdate := true;
       fBatchQuery.ParamCheck := false;
     end;
   end;

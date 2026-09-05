@@ -144,7 +144,6 @@ type
     procedure SetUseReadTransactions(value: boolean);
     procedure BeginExecuteQuery;
     procedure EndExecuteQuery;
-    function GetBatchQueryParamCount: integer;
     procedure Prepare;
     function GetDataSet: TDataSet; override;
     procedure ClearParams;
@@ -431,10 +430,13 @@ procedure TBoldUniDACQuery.ExecSQL;
 var
   Retries: Integer;
   Done: Boolean;
+{$IFDEF ATTRACS}
   PerformanceMeasurement: TPerformanceMeasurement;
 begin
   PerformanceMeasurement := TPerformanceMeasurement.ReStart;
-
+{$ELSE}
+begin
+{$ENDIF}
   if InBatch then
   begin
     BatchExecSQL;
@@ -1575,6 +1577,11 @@ begin
 {$ELSE}
 begin
 {$ENDIF}
+  if InBatch then
+  begin
+    BatchExecSQL;
+    exit;
+  end;
   BeginExecuteQuery;
   try
   BoldLogSQLWithParams(ExecQuery.SQL, self);
@@ -1633,16 +1640,12 @@ end;
 
 function TBoldUniDACExecQuery.FindParam(const Value: string): IBoldParameter;
 var
-  Param: TParam;
+  Param: TUniParam;
 begin
+  result := nil;
   Param := ExecQuery.FindParam(Value);
-  if not Assigned(Param) then
-    result := CreateParam(ftUnknown, Value);
-end;
-
-function TBoldUniDACExecQuery.GetBatchQueryParamCount: integer;
-begin
-  result := 0; // update when batch support is implemented
+  if Assigned(Param) then
+    Result := TBoldUniDACParameter.Create(Param, Self);
 end;
 
 function TBoldUniDACExecQuery.GetDataSet: TDataSet;
