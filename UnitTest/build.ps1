@@ -8,6 +8,12 @@
 #   -Config    : Build configuration (default: "Debug")
 #   -Platform  : Target platform (default: "Win32")
 #   -GUI       : Build UnitTestGUI.dproj instead of UnitTest.dproj
+#   -DelphiVersion : Registry version of the Delphi to use (e.g. 23.0 = 12 Athens).
+#                Default: newest installed. UniDAC 10.4 does not compile with Delphi 13,
+#                so use -Config DebugUniDAC together with -DelphiVersion 23.0.
+#   -Config DebugUniDAC : Debug + the real UniDAC test units (Code\Persistence\UniDAC)
+#                instead of their empty stubs. Needs the UniDAC environment variable
+#                (UniDAC installation root containing Source\); output goes to .\UniDAC\.
 #
 # EXAMPLES:
 #   .\build.ps1
@@ -17,7 +23,8 @@
 param(
     [string]$Config = "Debug",
     [string]$Platform = "Win32",
-    [switch]$GUI
+    [switch]$GUI,
+    [string]$DelphiVersion = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -27,6 +34,17 @@ $ErrorActionPreference = "Stop"
 # fall back to the historical default location otherwise.
 if (-not $env:DUnitX)      { $env:DUnitX      = "C:\Attracs\DUnitX\Source" }
 if (-not $env:DelphiMocks) { $env:DelphiMocks = "C:\Attracs\Delphi-Mocks\Source" }
+
+# UniDAC is a commercial component and is never part of this repository. Only the
+# DebugUniDAC configuration compiles against it, through $(UniDAC)\Source; the
+# default below is the copy vendored in the Attracs repositories.
+if ($Config -eq "DebugUniDAC") {
+    if (-not $env:UniDAC) { $env:UniDAC = "C:\Attracs\Attracs-Common\components\UniDAC" }
+    if (-not (Test-Path (Join-Path $env:UniDAC "Source\Uni.pas"))) {
+        Write-Host "ERROR: UniDAC not found at $env:UniDAC (expected Source\Uni.pas)" -ForegroundColor Red
+        exit 1
+    }
+}
 
 if (-not (Test-Path $env:DUnitX) -or -not (Test-Path $env:DelphiMocks)) {
     Write-Host "ERROR: Unit test dependencies not found:" -ForegroundColor Red
@@ -67,6 +85,10 @@ Write-Host "  Platform: $Platform" -ForegroundColor Gray
 Write-Host ""
 
 # Call the universal build script
-& $BuildScript -ProjectFile $ProjectPath -Config $Config -Platform $Platform
+if ($DelphiVersion) {
+    & $BuildScript -ProjectFile $ProjectPath -Config $Config -Platform $Platform -DelphiVersion $DelphiVersion
+} else {
+    & $BuildScript -ProjectFile $ProjectPath -Config $Config -Platform $Platform
+}
 
 exit $LASTEXITCODE

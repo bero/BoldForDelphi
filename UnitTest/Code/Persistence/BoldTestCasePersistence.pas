@@ -346,8 +346,13 @@ var
 begin
   Result := nil;
   Locator := System.EnsuredLocatorByID[AObjectId];
+  // After RefreshSystem the locator exists but the object is not loaded yet;
+  // BoldObject alone would be nil, so fetch it.
   if Assigned(Locator) then
+  begin
+    Locator.EnsureBoldObject;
     Result := Locator.BoldObject;
+  end;
 end;
 
 function TBoldTestCasePersistence.GetAttributeAsString(AObject: TBoldObject;

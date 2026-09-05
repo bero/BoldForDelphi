@@ -1,8 +1,6 @@
 ﻿{$include bold.inc}
 unit Test.PersistenceUniDAC;
 
-{$IFDEF UniDAC}
-
 interface
 
 uses
@@ -182,13 +180,5 @@ end;
 
 initialization
   TDUnitX.RegisterTestFixture(TTestPersistenceUniDAC);
-
-{$ELSE}
-
-interface
-
-implementation
-
-{$ENDIF}
 
 end.

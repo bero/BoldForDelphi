@@ -157,6 +157,24 @@ Core Bold packages use **relative paths** and require no environment variable se
 
 **Optional**: For UniDAC support, set the `UniDAC` environment variable in Delphi (Tools > Options > Environment Variables) pointing to the UniDAC installation root.
 
+### UniDAC tests (optional - UniDAC is commercial and never required)
+
+The default `Debug`/`Release` test builds compile empty stub twins of the UniDAC test units
+(`UnitTest\Code\Persistence\UniDACStubs`), found through the unit search path - the same idea as
+`Source\Common\Stubs`. No `$IFDEF` is involved, neither in code nor in the dpr. The build
+configuration `DebugUniDAC` puts the real units (`UnitTest\Code\Persistence\UniDAC`) and
+`$(UniDAC)\Source` first on the path instead, and writes its exe to `UnitTest\UniDAC\`:
+
+```powershell
+# UniDAC 10.4 does not compile with Delphi 13 - pin Delphi 12
+powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\build.ps1" -Config DebugUniDAC -DelphiVersion 23.0
+# UnitTest.ini must say Engine=SQLServer (that UniDAC has no SQLite provider); restore it afterwards
+powershell -Command "& '.\UnitTest\UniDAC\UnitTest.exe' --run:Test.PersistenceUniDAC 2>&1"
+```
+
+`build.ps1` defaults `$env:UniDAC` to `C:\Attracs\Attracs-Common\components\UniDAC` when the variable
+is not set. A new UniDAC-only test unit needs an empty twin with the same unit name in `UniDACStubs`.
+
 ## Compiler Directives (Bold.inc)
 
 The `{$DEFINE Attracs}` block at end of Bold.inc enables optimizations used by Attracs. When `Attracs` is NOT defined, several features are disabled for broader compatibility.

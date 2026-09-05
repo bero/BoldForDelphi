@@ -20,6 +20,7 @@ procedure ConfigureConnection(Connection: TFDConnection; Adapter: TBoldDatabaseA
 procedure CreateTestDatabase;
 procedure DropTestDatabase;
 function GetTestDatabaseEngine: string;
+function GetIniFilePath: string;
 
 implementation
 
