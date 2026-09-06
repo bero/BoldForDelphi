@@ -33,16 +33,21 @@ type
     [Test]
     [Category('DB')]
     procedure TestCreateAnotherDatabaseConnectionOwnsItsConnection;
+    [Test]
+    procedure TestGetDatabaseErrorKeepsTheOriginalErrorForProvidersWithoutCodeMap;
   end;
 
 implementation
 
 uses
   System.SysUtils,
+  DBAccess,
+  Uni,
   BoldUniDACInterfaces,
   maan_UndoRedoTestCaseUtils,
   BoldSystem,
   BoldId,
+  BoldDefs,
   BoldDBInterfaces;
 
 { TTestPersistenceUniDAC }
@@ -253,6 +258,46 @@ begin
   Assert.AreEqual(Before, After,
     'Freeing the wrapper from CreateAnotherDatabaseConnection must free its TUniConnection ' +
     '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
+end;
+
+procedure TTestPersistenceUniDAC.TestGetDatabaseErrorKeepsTheOriginalErrorForProvidersWithoutCodeMap;
+var
+  Conn: TUniConnection;
+  Wrapper: TBoldUniDACConnection;
+  E: EUniError;
+  Err: EBoldDatabaseError;
+begin
+  { GetDatabaseError translates a UniDAC error into Bold's EBoldDatabaseError. It
+    has error-code tables for SQL Server, InterBase and PostgreSQL only; for any
+    other provider it must still hand back the original error as a generic
+    EBoldDatabaseError, never replace it with an exception of its own - that
+    would hide every real database error on that provider. SQLite is such a
+    provider (no connection is opened here; only the provider name matters). }
+  Conn := TUniConnection.Create(nil);
+  try
+    Conn.ProviderName := 'SQLite';
+    Wrapper := TBoldUniDACConnection.Create(Conn, UniDACAdapter.SQLDatabaseConfig);
+    try
+      // EUniError wraps the provider's error; ErrorCode 19 is SQLITE_CONSTRAINT
+      E := EUniError.Create(EDAError.Create(19, 'UNIQUE constraint failed: SOMECLASS.BOLD_ID'));
+      try
+        Err := Wrapper.GetDatabaseError(E, 'INSERT INTO SOMECLASS ...');
+        try
+          Assert.IsNotNull(Err, 'a database error must be produced');
+          Assert.IsTrue(Pos('UNIQUE constraint failed', Err.Message) > 0,
+            'the original error text must survive the translation: ' + Err.Message);
+        finally
+          Err.Free;
+        end;
+      finally
+        E.Free;
+      end;
+    finally
+      Wrapper.Free;
+    end;
+  finally
+    Conn.Free;
+  end;
 end;
 
 initialization

@@ -1067,8 +1067,9 @@ begin
       case EUniError(E).ErrorCode of
         0: aErrorType := bdetLogin;
       end
-    else
-      raise Exception.Create('Error codes not implemented for ' + UniConnection.ProviderName);
+    // Providers without a code table (SQLite among them) keep the generic bdetError,
+    // which carries class, code and message. This method runs inside except blocks,
+    // so raising here would replace the real database error with our own.
   end;
   Result := InternalGetDatabaseError(aErrorType, E, sSQL, sServer, sDatabase,
       sUsername, bUseWindowsAuth, sErrorDetail);
