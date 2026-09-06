@@ -71,7 +71,6 @@
         <VerInfo_Locale>2077</VerInfo_Locale>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
         <DCC_UnitSearchPath>..\..\Source;..\..\Source\Common\Include;..\..\Source\Forms;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-        <DllVersion>29</DllVersion>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>26</VerInfo_MajorVer>
         <VerInfo_MinorVer>8</VerInfo_MinorVer>
@@ -118,7 +117,6 @@
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=26.8.1.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=26.8.1.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
-        <DllVersion>29.3</DllVersion>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -643,12 +641,6 @@
             </Platforms>
             <Deployment Version="5">
                 <DeployFile LocalName="..\..\Bin\BPL\Bold.bpl" Configuration="Debug" Class="ProjectOutput"/>
-                <DeployFile LocalName="..\Bin\dclBold.29.3.bpl" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>dclBold.bpl</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="C:\Attracs\BPL\dclBold.29.bpl" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="OSX32">
