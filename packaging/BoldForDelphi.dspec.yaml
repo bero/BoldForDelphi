@@ -10,7 +10,7 @@ min dpm client version: 1.0
 metadata:
   id: bero.BoldForDelphi
   version: 26.9.0
-  description: >
+  description: >-
     Bold for Delphi - a Model Driven Architecture framework with UML modelling,
     OCL expressions, code generation and object-relational persistence.
     Community-maintained fork of the framework open-sourced by Embarcadero.
@@ -22,8 +22,8 @@ metadata:
   repositoryType: git
   license: MIT
   copyright: Boldsoft AB, Embarcadero Technologies, Bold for Delphi community
-  frameworks:
-    - VCL
+  # frameworks: [VCL] is omitted on purpose: dpm 0.9.317 writes it lower-case into the
+  # packed spec and delphi.dev's schema then rejects the push (expects VCL|FMX|None).
   readme: README.md
   tags:
     - orm
