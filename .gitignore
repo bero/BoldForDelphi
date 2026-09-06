@@ -49,6 +49,9 @@ UnitTest/codecov.json
 UnitTest/codecov.exe
 UnitTest/test_codecov.json
 UnitTest/matrix_*.log
+# per-project build output (TMS Smart Setup builds packages in place when given a local folder)
+packages/*/Win32/
+packages/*/Win64/
 TestInsightSettings.ini
 
 # Example app data files

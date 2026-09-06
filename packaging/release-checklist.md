@@ -16,7 +16,10 @@ Never zero-pad the month (Boss/semver rejects leading zeros).
 - [ ] `packaging/boss.json` -> move to repo root when Boss goes live; bump `version`
 - [ ] `packaging/BoldForDelphi.dspec.yaml` -> bump `version`; libSuffix values are
       280/290/370 since LIBSUFFIX AUTO (NOT 28/29.3/30)
-- [ ] `tmsbuild.yaml` version file (convention TBD in Phase 1 trial)
+- [ ] `version.txt` in the repo root -> `bero.boldfordelphi: <Y.M.b>` (TMS Smart Setup shows it as the
+      product version; the installable versions themselves are the git tags)
+- [ ] `packaging/tmsbuild.yaml` unchanged? If it changed, mirror it to the registry folder
+      `bero.boldfordelphi/` in tmssoftware/smartsetup-registry via pull request
 - [ ] DPM (when live): `dpm pack` for compilers 11.0/12.0/13.0; attach `.dpkg`
       files to the GitHub release; push to feed
 - [ ] GetIt (when live): resubmit to Embarcadero for `Y.M.0` releases only

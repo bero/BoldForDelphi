@@ -1,37 +1,45 @@
 # TMS Smart Setup definition for Bold for Delphi.
-# DRAFT - authored 2026-08-21 against the published registry entries
-# (zeos.zeoslib, amelander.map2pdb). Validate with the tms CLI
-# (tms install from a local clone) before submitting to
-# https://github.com/tmssoftware/smartsetup-registry
+#
+# Smart Setup reads this file from the community registry
+# (https://github.com/tmssoftware/smartsetup-registry, folder bero.boldfordelphi/);
+# this copy is the master, keep the two identical. A local clone can be built with
+# it directly through 'additional products folders' in tms.config.yaml. Versions are
+# the git tags of this repository (Year.Month.build); the displayed version comes
+# from version.txt next to this file.
+#
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tmssoftware/smartsetup/refs/heads/main/tms/example-config/tmsbuild.schema.json
 minimum required tmsbuild version: 2.0
 
 application:
   id: bero.boldfordelphi
   name: Bold for Delphi
-  description: "Bold for Delphi is a Model Driven Architecture (MDA) framework
-    and object-relational mapping (ORM) tool for Delphi: UML-based models,
-    OCL queries, derived attributes, automatic SQL persistence and
-    model-aware VCL components. Open-sourced by Embarcadero under MIT,
-    community-maintained."
-  copyright: MIT
+  description: Model Driven Architecture framework for Delphi with UML modelling, OCL expressions, code generation and object-relational persistence. Community-maintained fork of the framework open-sourced by Embarcadero under the MIT license.
+  company name: Bold for Delphi community
+  copyright: Boldsoft AB, Embarcadero Technologies, Bold for Delphi community
+  license: MIT
+  license url: https://opensource.org/licenses/MIT
   url: https://github.com/bero/BoldForDelphi
   docs: https://github.com/bero/BoldForDelphi/tree/develop/docs
+  version file: version.txt
 
 supported frameworks:
   vcl:
     ide since: delphi11
     platforms:
       - win32intel
-      - win64intel
+    c++ builder support: false
 
+# Bold ships one design-time package per Delphi version; applications compile the
+# source, which Smart Setup puts on the library path from the units the package lists.
 packages:
   - dclBold: [design, vcl]
 
 package options:
+  # Package projects live in packages\<Delphi version>\dclBold.dproj and use
+  # LIBSUFFIX AUTO, so the produced files carry the standard suffixes
+  # (dclBold280.bpl, dclBold290.bpl, dclBold370.bpl) and no lib suffixes section is needed.
+  root package folder: packages
   package folders:
-    # TODO validate with the tms CLI: registry entries use bare folder
-    # names (ZeosLib: "Delphi12"), suggesting a packages-root convention.
-    # If paths must be repo-relative, prefix each with "packages/".
     delphi11: Delphi11.3
     delphi12: Delphi12.3
     delphi13: Delphi13
