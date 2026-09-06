@@ -23,6 +23,9 @@ uses
   BoldPersistenceHandleDB,
   BoldTestModel,
   BoldTestDatabaseConfig,
+  BoldDBInterfaces,
+  BoldLogHandler,
+  Test.BoldBatchQueries,
   maan_UndoRedoBase,
   maan_UndoRedoTestCaseUtils;
 
@@ -284,7 +287,13 @@ type
     // CanEvaluateInPS must return False - not a false True
     [Test]
     [Category('Quick')]
-    procedure TestCanEvaluateInPS_CollectRole_NoFalsePositive;
+    procedure TestCanEvaluateInPS_CollectRole_Translates;
+    [Test]
+    [Category('DB')]
+    procedure TestCollectRoleInPS_MatchesInMemory;
+    [Test]
+    [Category('DB')]
+    procedure TestCanEvaluateInPS_CollectAttribute_IsRejectedWithReason;
     [Test]
     [Category('Quick')]
     procedure TestCanEvaluateInPS_Exists;
@@ -1823,6 +1832,17 @@ begin
   Assert.Pass('SubSelect OCL-to-SQL executed');
 end;
 
+function LastFailureReasonText: string;
+var
+  Reason: TBoldFailureReason;
+begin
+  Reason := GetBoldLastFailureReason;
+  if Assigned(Reason) then
+    result := Reason.Reason
+  else
+    result := '(no failure reason recorded)';
+end;
+
 procedure TTestBoldLinks.TestCanEvaluateInPS_MultiNavigation;
 var
   Sys: TBoldSystem;
@@ -1830,15 +1850,26 @@ var
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
-  // Multi-hop navigation
-  Sys.CanEvaluateInPS('self.parent.parent.aString', CTI);
-  Sys.CanEvaluateInPS('self.child->collect(aString)', CTI);
-  // collect(role) can't be translated to SQL — should return False, not crash
-  Sys.CanEvaluateInPS('self.child->collect(parent)', CTI);
-  Assert.Pass('Multi-navigation OCL-to-SQL executed');
+  // PS evaluation returns object ids, so an attribute-valued result is refused
+  // up front, whatever the navigation in front of it.
+  Assert.IsFalse(Sys.CanEvaluateInPS('self.parent.parent.aString', CTI),
+    'attribute-valued result must be refused');
+  Assert.IsTrue(Pos('objectlist', LowerCase(LastFailureReasonText)) > 0,
+    'the reason must state the objectlist contract: ' + LastFailureReasonText);
+  // A chain of single-valued roles is plain joins.
+  Assert.IsTrue(Sys.CanEvaluateInPS('self.parent.parent', CTI),
+    'single-role chain must translate: ' + LastFailureReasonText);
+  // collect of an attribute yields no objects - refused with a reason (#96).
+  Assert.IsFalse(Sys.CanEvaluateInPS('self.child->collect(aString)', CTI),
+    'collect(attribute) must be refused');
+  Assert.IsTrue(Pos('collect', LowerCase(LastFailureReasonText)) > 0,
+    'the reason must name collect: ' + LastFailureReasonText);
+  // collect of a role is the join to the other end (#96).
+  Assert.IsTrue(Sys.CanEvaluateInPS('self.child->collect(parent)', CTI),
+    'collect(role) must translate: ' + LastFailureReasonText);
 end;
 
-procedure TTestBoldLinks.TestCanEvaluateInPS_CollectRole_NoFalsePositive;
+procedure TTestBoldLinks.TestCanEvaluateInPS_CollectRole_Translates;
 var
   Sys: TBoldSystem;
   CTI: TBoldClassTypeInfo;
@@ -1847,16 +1878,108 @@ begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
   CanEvaluate := Sys.CanEvaluateInPS('self.child->collect(parent)', CTI);
-  // collect(role) has no InPS symbol on any engine: TBSS_collect is declared
-  // but never installed in the SQL symbol dictionary, so the resolver raises
-  // "SQLSymbol 'collect' not found" and CanEvaluateInPS must answer False.
-  // A True here means the generator silently skipped the unresolved node -
-  // the same silent skip on the fetch path produces SQL missing the
-  // iteration constraint. (The failure reason is included so a change in the
-  // answer explains itself.)
-  Assert.IsFalse(CanEvaluate,
-    'collect(parent) is not translatable to SQL on ' + GetTestDatabaseEngine +
-    ' - True is a false positive. Last failure reason: ' + GetBoldLastFailureReason.Reason);
+  // collect over a role is a join to the other end's table; it must be
+  // translatable on every engine. (Until #96 TBSS_collect was declared but
+  // never installed, so this answered False everywhere.)
+  Assert.IsTrue(CanEvaluate,
+    'collect(parent) must be translatable to SQL on ' + GetTestDatabaseEngine +
+    '. Last failure reason: ' + LastFailureReasonText);
+end;
+
+procedure TTestBoldLinks.TestCollectRoleInPS_MatchesInMemory;
+var
+  Sys: TBoldSystem;
+  P1, P2, C1, C2, C3: TSomeClass;
+  Capture: TBatchSQLCapture;
+  SavedHandler: TBoldLogHandler;
+
+  { Distinct ids, sorted: OCL collect yields a bag, the SQL form a set. }
+  function DistinctIdsOf(const AList: TBoldObjectList): string;
+  var
+    Ids: TStringList;
+    i: Integer;
+  begin
+    Ids := TStringList.Create;
+    try
+      Ids.Sorted := True;
+      Ids.Duplicates := dupIgnore;
+      for i := 0 to AList.Count - 1 do
+        Ids.Add(AList[i].BoldObjectLocator.BoldObjectID.AsString);
+      result := Ids.CommaText;
+    finally
+      Ids.Free;
+    end;
+  end;
+
+  procedure CheckSameResult(Root: TBoldElement; const Expr: string);
+  var
+    InMemory, InPS: TBoldIndirectElement;
+  begin
+    InMemory := TBoldIndirectElement.Create;
+    InPS := TBoldIndirectElement.Create;
+    try
+      Root.EvaluateExpression(Expr, InMemory, False);
+      Capture.Clear;
+      Root.EvaluateExpression(Expr, InPS, True);
+      Assert.IsTrue(Capture.StatementCount('SELECT') > 0,
+        Expr + ': evaluating in PS must execute SQL - nothing was captured, so it did not run in the persistence layer');
+      Assert.IsTrue(InPS.Value is TBoldObjectList, Expr + ': the PS result must be an object list');
+      Assert.AreEqual(DistinctIdsOf(InMemory.Value as TBoldObjectList), DistinctIdsOf(InPS.Value as TBoldObjectList),
+        Expr + ': the PS result must equal the in-memory result. SQL: ' + Capture.CapturedText);
+    finally
+      InPS.Free;
+      InMemory.Free;
+    end;
+  end;
+
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  P1 := TSomeClass.Create(Sys);
+  P1.aString := 'P1';
+  C1 := TSomeClass.Create(Sys);
+  C1.aString := 'C1';
+  C1.parent := P1;
+  C2 := TSomeClass.Create(Sys);
+  C2.aString := 'C2';
+  C2.parent := P1;
+  P2 := TSomeClass.Create(Sys);
+  P2.aString := 'P2';
+  C3 := TSomeClass.Create(Sys);
+  C3.aString := 'C3';
+  C3.parent := P2;
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+
+  Capture := TBatchSQLCapture.Create;
+  SavedHandler := BoldSQLLogHandler;
+  BoldSQLLogHandler := Capture;
+  try
+    // single-valued role from a collection: both children point at P1
+    CheckSameResult(P1, 'self.child->collect(parent)');
+    // the implicit form is rewritten to the same collect node
+    CheckSameResult(P1, 'self.child.parent');
+    // multi-valued role from a collection
+    CheckSameResult(Sys, 'SomeClass.allInstances->select(aString = ''P1'')->collect(child)');
+  finally
+    BoldSQLLogHandler := SavedHandler;
+    Capture.Free;
+  end;
+end;
+
+procedure TTestBoldLinks.TestCanEvaluateInPS_CollectAttribute_IsRejectedWithReason;
+var
+  Sys: TBoldSystem;
+  CTI: TBoldClassTypeInfo;
+  CanEvaluate: Boolean;
+begin
+  Sys := dmUndoRedo.BoldSystemHandle1.System;
+  CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+  // collect of an attribute has no SQL form (the result is not an object
+  // set). It must be refused with a reason that names the operation, so the
+  // in-memory fallback is a documented boundary rather than a silent one.
+  CanEvaluate := Sys.CanEvaluateInPS('self.child->collect(aString)', CTI);
+  Assert.IsFalse(CanEvaluate, 'collect(attribute) is not translatable to SQL');
+  Assert.IsTrue(Pos('collect', LowerCase(LastFailureReasonText)) > 0,
+    'the failure reason must name collect: ' + LastFailureReasonText);
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_Exists;

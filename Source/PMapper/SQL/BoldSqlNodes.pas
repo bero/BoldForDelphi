@@ -297,6 +297,14 @@ type
     function GetSQLName: String; virtual;
   public
     function ResolveObjectMapper(OperationNode: TBoldSqlOperation): TBoldObjectSqlMapper; virtual;
+    { Iterations only. True (default): the loop variable is an enclosing scope,
+      so member navigation on it in the body opens a correlated query - what
+      select/exists/forAll bodies need. False: the body continues the source
+      query, so its join chain becomes the iteration's result (collect). }
+    function LoopVarIsEnclosing: Boolean; virtual;
+    { Iterations only: the class of the result once the body is resolved.
+      Default: the class set by ResolveObjectMapper, i.e. the source's. }
+    function ResolveResultObjectMapper(IterationNode: TBoldSqlIteration): TBoldObjectSqlMapper; virtual;
     procedure BuildWCFOrQuery(OperationNode: TBoldSQLOperation; NameSpace: TBoldSqlNameSpace); virtual;
     property Name: String read GetName;
     property SQLName: String read GetSQLName;
@@ -937,6 +945,16 @@ end;
 function TBoldSqlSymbol.ResolveObjectMapper(OperationNode: TBoldSqlOperation): TBoldObjectSqlMapper;
 begin
   result := nil;
+end;
+
+function TBoldSqlSymbol.LoopVarIsEnclosing: Boolean;
+begin
+  result := True;
+end;
+
+function TBoldSqlSymbol.ResolveResultObjectMapper(IterationNode: TBoldSqlIteration): TBoldObjectSqlMapper;
+begin
+  result := IterationNode.ObjectMapper;
 end;
 
 { TBoldSQLWCFVariable }

@@ -111,10 +111,16 @@ begin
 
   n.LoopVar.ObjectMapper := n.ObjectMapper;
   n.LoopVar.AcceptVisitor(self);
-  n.LoopVar.IsLoopVar := true;
+  n.LoopVar.IsLoopVar := n.Symbol.LoopVarIsEnclosing;
 
   for i := 1 to n.args.count - 1 do
     n.args[i].AcceptVisitor(self);
+
+  // The body is resolved now; a symbol whose result is not the source class
+  // (collect over a role yields the other end) says so here.
+  n.ObjectMapper := n.Symbol.ResolveResultObjectMapper(n);
+  if not Assigned(n.ObjectMapper) then
+    raise EBold.CreateFmt('InPs iteration ''%s'': result class could not be resolved, possibly not available for InPs evaluation.', [n.OperationName]);
 end;
 
 procedure TBoldSqlNodeResolver.VisitTBoldSqlListCoercion(N: TBoldSqlListCoercion);

@@ -1186,7 +1186,10 @@ var
 begin
   C1 := TClassA.Create(GetSystem); C1.aString := 'First';
   C2 := TClassA.Create(GetSystem); C2.aString := 'Last';
-  Assert.AreEqual('Last', GetSystem.EvaluateExpressionAsString('ClassA.allInstances->last.aString'));
+  // The extent is built after the objects exist, so its order follows the
+  // locator hash of transient ids (a process-wide counter) - not creation
+  // order. Sort before indexing; the operation under test is unchanged.
+  Assert.AreEqual('Last', GetSystem.EvaluateExpressionAsString('ClassA.allInstances->orderBy(aString)->last.aString'));
 end;
 
 procedure TTestBoldOclEvaluation.TestAt;
@@ -1196,7 +1199,10 @@ begin
   C1 := TClassA.Create(GetSystem); C1.aString := 'A';
   C2 := TClassA.Create(GetSystem); C2.aString := 'B';
   C3 := TClassA.Create(GetSystem); C3.aString := 'C';
-  Assert.AreEqual('B', GetSystem.EvaluateExpressionAsString('ClassA.allInstances->at(2).aString'));
+  // The extent is built after the objects exist, so its order follows the
+  // locator hash of transient ids (a process-wide counter) - not creation
+  // order. Sort before indexing; the operation under test is unchanged.
+  Assert.AreEqual('B', GetSystem.EvaluateExpressionAsString('ClassA.allInstances->orderBy(aString)->at(2).aString'));
 end;
 
 procedure TTestBoldOclEvaluation.TestIndexOf;
@@ -1558,7 +1564,10 @@ var
 begin
   C1 := TClassA.Create(GetSystem); C1.aString := 'A';
   C2 := TClassA.Create(GetSystem); C2.aString := 'B';
-  Assert.AreEqual('A;B', GetSystem.EvaluateExpressionAsString('ClassA.allInstances.aString->separate('';'')'));
+  // The extent is built after the objects exist, so its order follows the
+  // locator hash of transient ids (a process-wide counter) - not creation
+  // order. Sort before indexing; the operation under test is unchanged.
+  Assert.AreEqual('A;B', GetSystem.EvaluateExpressionAsString('ClassA.allInstances->orderBy(aString).aString->separate('';'')'));
 end;
 
 procedure TTestBoldOclEvaluation.TestFormatFloat;

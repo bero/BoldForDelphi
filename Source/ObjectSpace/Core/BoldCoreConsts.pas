@@ -789,6 +789,7 @@ const
 
 // BoldSQLSymbold
   sArgToOrderByMustBeMember = 'Argument to OrderBy must be a Member';
+  sCollectBodyMustYieldObjectsInPS = 'InPs iteration ''collect'': only collect over a role (yielding objects) can be evaluated in PS; the body yields no objects.';
   sArgToOrderByMustHaveExactlyOneColumn = 'Argument to OrderBy must have exactly 1 column';
 
 // BoldPersistenceHandleDBreg

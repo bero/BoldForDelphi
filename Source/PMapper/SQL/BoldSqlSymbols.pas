@@ -287,6 +287,18 @@ type
     procedure BuildWCFOrQuery(OperationNode: TBoldSQLOperation; NameSpace: TBoldSqlNameSpace); override;
   end;
 
+  // collect over a role: the body's navigation from each source row to the
+  // other end. The loop variable is not an enclosing scope, so the body's
+  // HandleRelation continues the source query with its join and re-points
+  // the retrieved columns at the other end; that query, made DISTINCT, is
+  // the result. Bodies that do not yield objects (attributes) are refused.
+  TBSS_collect = class(TBSS_Iteration)
+  public
+    function LoopVarIsEnclosing: Boolean; override;
+    function ResolveResultObjectMapper(IterationNode: TBoldSqlIteration): TBoldObjectSqlMapper; override;
+    procedure BuildWCFOrQuery(OperationNode: TBoldSQLOperation; NameSpace: TBoldSqlNameSpace); override;
+  end;
+
   TBSS_orderby = class(TBSS_Iteration)
   public
     procedure BuildWCFOrQuery(OperationNode: TBoldSQLOperation; NameSpace: TBoldSqlNameSpace); override;
@@ -524,6 +536,45 @@ end;
 function TBSS_Iteration.ResolveObjectMapper(OperationNode: TBoldSqlOperation): TBoldObjectSqlMapper;
 begin
   result := OperationNode.Args[0].ObjectMapper;
+end;
+
+{ TBSS_collect }
+
+function TBSS_collect.LoopVarIsEnclosing: Boolean;
+begin
+  // The body's member navigation must take over the source query (the
+  // HandleRelation branch used for plain navigation chains), not open a
+  // correlated subquery as select/exists bodies do.
+  result := False;
+end;
+
+function TBSS_collect.ResolveResultObjectMapper(IterationNode: TBoldSqlIteration): TBoldObjectSqlMapper;
+begin
+  // What collect yields per element is the body's value; only a role body
+  // yields objects, and only objects can be fetched from the persistence layer.
+  if IterationNode.Args[1].HasObjectMapper then
+    result := IterationNode.Args[1].ObjectMapper
+  else
+    raise EBold.Create(sCollectBodyMustYieldObjectsInPS);
+end;
+
+procedure TBSS_collect.BuildWCFOrQuery(OperationNode: TBoldSQLOperation; NameSpace: TBoldSqlNameSpace);
+var
+  Iteration: TBoldSqlIteration;
+  Body: TBoldSqlNode;
+begin
+  Iteration := OperationNode as TBoldSqlIteration;
+  Body := OperationNode.Args[1];
+  // The body continued the source query: it already carries the source's
+  // constraints, the join(s) to the other end and retrieves the other end's
+  // main columns. A join returns the same object once per source row.
+  OperationNode.Query := Body.RelinquishQuery;
+  OperationNode.Query.Distinct := True;
+  // Enclosing nodes locate tables through the iteration's loop variable
+  // (TBoldSqlIteration.TableReferenceForTable); make the body's tables - the
+  // other end's - known there and on the iteration itself.
+  Iteration.LoopVar.CopyTableReferences(Body);
+  OperationNode.CopyTableReferences(Body);
 end;
 
 { TBSS_AllInstances }
@@ -1455,6 +1506,7 @@ initialization
   sqlSymbols.Add(TBSS_Size.Create);
   sqlSymbols.Add(TBSS_Select.Create);
   sqlSymbols.Add(TBSS_Reject.Create);
+  sqlSymbols.Add(TBSS_collect.Create);
   sqlSymbols.Add(TBSS_orderby.Create);
   sqlSymbols.Add(TBSS_orderDescending.Create);
   sqlSymbols.Add(TBSS_AllInstances.Create);
