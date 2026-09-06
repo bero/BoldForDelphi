@@ -21,6 +21,10 @@ application:
   url: https://github.com/bero/BoldForDelphi
   docs: https://github.com/bero/BoldForDelphi/tree/develop/docs
   version file: version.txt
+  # Consumers normally compile against the units built by dclBold. Users who need to
+  # compile Bold from source with their own defines can enable Smart Setup's
+  # 'add source code to library path' option; this line permits that for Bold.
+  can add source code to library path: true
 
 supported frameworks:
   vcl:
