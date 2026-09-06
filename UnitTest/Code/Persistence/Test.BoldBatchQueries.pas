@@ -88,6 +88,9 @@ type
     [Test]
     [Category('DB')]
     procedure TestFailedBatchLeavesSystemUsable;
+    [Test]
+    [Category('DB')]
+    procedure TestUnverifiedEngineIsRejected;
   end;
 
 implementation
@@ -403,6 +406,34 @@ begin
   Save;
   Assert.AreEqual(2, SavedSomeClassCount,
     'The retried save must persist the object the failed batch dropped');
+end;
+
+procedure TTestBoldBatchQueries.TestUnverifiedEngineIsRejected;
+var
+  Raised: string;
+begin
+  // Batching is verified on SQL Server and SQLite only. Only the engine field
+  // is changed here - the SQL generation settings stay those of the SQLite
+  // test database - so the guard is the only thing that can stop the save.
+  Config.Engine := dbePostgres;
+  TSomeClass.Create(GetSystem).aString := 'Guarded';
+  Raised := '';
+  try
+    Save;
+  except
+    on E: Exception do
+      Raised := E.ClassName + ': ' + E.Message;
+  end;
+  Assert.IsTrue(Raised <> '', 'UseBatchQueries on an unverified engine must refuse the save');
+  Assert.IsTrue(Pos('UseBatchQueries', Raised) > 0, 'the error must name the setting: ' + Raised);
+  Assert.IsTrue(Pos('dbePostgres', Raised) > 0, 'the error must name the engine: ' + Raised);
+
+  // Back on a verified engine the pending objects save normally: the guard
+  // fired before anything was accumulated or sent.
+  Config.Engine := dbeGenericANSISQL92;
+  Save;
+  Assert.AreEqual(1, SavedSomeClassCount,
+    'the same objects must save once the engine is verified again');
 end;
 
 initialization

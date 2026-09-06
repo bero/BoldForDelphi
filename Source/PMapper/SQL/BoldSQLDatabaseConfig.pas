@@ -203,6 +203,12 @@ type
     function GetColumnTypeForUnicodeString(Size: Integer): string;
     function GetColumnTypeForAnsiString(Size: Integer): string;
     procedure InitializeDbEngineSettings(Engine: TBoldDatabaseEngine);
+    { True for the engines UseBatchQueries has been verified on. Batching
+      concatenates the statements of one save into a single command, and
+      whether the server accepts that - several statements, parameters spread
+      across them - is engine-specific and not abstracted by the data-access
+      layer. Add an engine here after running the batch tests against it. }
+    function BatchQueriesVerified: Boolean;
     function CorrectlyQuotedDefaultValue(value: string): String;
     function GetColumnExistsQuery(const TableName, ColumnName: string): string;
     function GetIfColumnNotExistsQuery(const TableName, ColumnName, SQLStatement:
@@ -265,6 +271,8 @@ type
     property BatchQueryBegin: string read fBatchQueryBegin write SetBatchQueryBegin;
     property BatchQueryEnd: string read fBatchQueryEnd write SetBatchQueryEnd;
     property BatchQuerySeparator: string read fBatchQuerySeparator write SetBatchQuerySeparator;
+    // Verified on SQL Server and SQLite (dbeGenericANSISQL92) only; the batch
+    // wrapper refuses to start a batch on other engines (BatchQueriesVerified).
     property UseBatchQueries: boolean read fUseBatchQueries write SetUseBatchQueries default false;
     property UseParamsForInteger: boolean read fUseParamsForInteger write SetUseParamsForInteger default false;
     property UseParamsForEmptyString: boolean read fUseParamsForEmptyString write SetUseParamsForEmptyString default false;
@@ -934,6 +942,11 @@ begin
     fUseBatchQueries := Value;
     Change;
   end;
+end;
+
+function TBoldSQLDataBaseConfig.BatchQueriesVerified: Boolean;
+begin
+  result := Engine in [dbeSQLServer, dbeGenericANSISQL92];
 end;
 
 procedure TBoldSQLDataBaseConfig.SetUseParamsForEmptyString(

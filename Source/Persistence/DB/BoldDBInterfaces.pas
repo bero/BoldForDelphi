@@ -598,6 +598,7 @@ implementation
 
 uses
   Windows,
+  System.TypInfo,
 
   BoldCoreConsts,
   BoldSharedStrings,
@@ -1954,6 +1955,14 @@ end;
 
 procedure TBoldBatchDataSetWrapper.StartSQLBatch;
 begin
+  // Fail before anything is accumulated: on an engine the batch code has not
+  // been verified on, a concatenated command may be rejected by the server
+  // or partially applied, and the error would point at SQL rather than at
+  // the setting.
+  if DatabaseWrapper.SQLDatabaseConfig.UseBatchQueries and
+     not DatabaseWrapper.SQLDatabaseConfig.BatchQueriesVerified then
+    raise EBold.CreateFmt(sBatchQueriesNotVerified,
+      [GetEnumName(TypeInfo(TBoldDatabaseEngine), Ord(DatabaseWrapper.SQLDatabaseConfig.Engine))]);
   InBatch := DatabaseWrapper.SQLDatabaseConfig.UseBatchQueries;
 end;
 

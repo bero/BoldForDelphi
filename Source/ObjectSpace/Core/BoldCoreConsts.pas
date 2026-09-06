@@ -773,6 +773,7 @@ const
 
 // BoldDBInterfaces
   sCreateParamNotImplemented = '%s.Createparam: Not supported yet... override in this subclass needed';
+  sBatchQueriesNotVerified = 'UseBatchQueries is not supported on %s: batched statements are verified on SQL Server and SQLite (dbeGenericANSISQL92) only';
 
 // BoldIDAdderHandle
   sPropertyHasMoved = '%s.%s has been moved to component (%s.%s). Old value was "%s"';
