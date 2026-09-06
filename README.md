@@ -67,7 +67,7 @@ Run `UnitTest\setup-tests.ps1` to clone DUnitX and Delphi-Mocks and set the envi
 Unit tests are located in `UnitTest/` and use the DUnitX framework. Code coverage is tracked on [Codecov.io](https://codecov.io/gh/bero/BoldForDelphi).
 
 **Current Statistics** (as of 2026-08-13):
-- **Tests**: 2181 total (2179 passing, 2 ignored, 0 failed)
+- **Tests**: 2182 total (2182 passing, 0 ignored, 0 failed)
 - **Code Coverage**: 58.5% (35,189 / 60,171 lines covered, measured 2026-09-06)
 
 ### Running Tests with Code Coverage

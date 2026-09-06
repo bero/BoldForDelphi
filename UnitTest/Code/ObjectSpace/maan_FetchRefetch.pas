@@ -13,13 +13,23 @@ uses
   BoldSubscription,
   BoldTestModel,
   BoldValueInterfaces,
+  BoldDBInterfaces,
+  BoldLogHandler,
   maan_UndoRedoBase,
-  maan_UndoRedoTestCaseUtils;
+  maan_UndoRedoTestCaseUtils,
+  Test.BoldBatchQueries;
 
 type
   [TestFixture]
   [Category('FetchRefetch')]
   Tmaan_FetchRefetchTestCase = class(Tmaan_UndoRedoAbstractTestCase)
+  private
+    { The reverse single link of an object reached through a multilink fetch is
+      either parked on the UNLOADED locator (EmbeddedSingleLinks) or, when the
+      fetch loaded the object (FetchFromClassList does), already applied to the
+      member. Both are the same contract: the other end knows its parent. }
+    procedure VerifyReverseLinkKnown(Locator: TBoldObjectLocator; EmbeddedIndex: integer;
+      Parent: TBoldObject; const Msg: string);
   public
     [Test]
     [Category('DB')]
@@ -32,7 +42,6 @@ type
     procedure TestFetchModifiedAttribute;
     [Test]
     [Category('DB')]
-    [Ignore('Premise unreachable: FetchFromClassList loads every other-end object, so EmbeddedSingleLinks is nil by design (stamps only exist for UNLOADED locators). Verified 2026-08-16: bdepPMIn does not fix this. Passes only via DbFetchOwningMember, i.e. with a non-current class extent.')]
     procedure TestFetchEmbeddedRoleInvalid;
     [Test]
     [Category('DB')]
@@ -42,16 +51,35 @@ type
     procedure TestFetchEmbeddedRoleCurrent;
     [Test]
     [Category('DB')]
-    [Ignore('Same root cause as TestFetchEmbeddedRoleInvalid: first scenario asserts EmbeddedSingleLinks on a locator that FetchFromClassList has already loaded, so the stamp cannot exist. Fails at Assigned(ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex]) with or without the bdepPMIn change.')]
     procedure TestFetchNonEmbeddedRoleInvalid;
     [Test]
     [Category('DB')]
     procedure TestDbFetchStampsEmbeddedSingleLinks;
+    [Test]
+    [Category('DB')]
+    procedure TestClassListFetchRefetchesInvalidSingleLinks;
   end;
 
 implementation
 
 { Tmaan_FetchRefetchTestCase }
+
+procedure Tmaan_FetchRefetchTestCase.VerifyReverseLinkKnown(Locator: TBoldObjectLocator;
+  EmbeddedIndex: integer; Parent: TBoldObject; const Msg: string);
+var
+  Stamp: TBoldObjectLocator;
+begin
+  if Assigned(Locator.BoldObject) then
+    Assert.IsTrue((Locator.BoldObject as TSomeClass).parent = Parent,
+      Msg + ': loaded other end must point at the parent')
+  else
+  begin
+    Stamp := Locator.EmbeddedSingleLinks[EmbeddedIndex];
+    Assert.IsTrue(Assigned(Stamp), Msg + ': unloaded other end must carry the parent stamp');
+    Assert.IsTrue(Stamp.BoldObjectID.AsString = Parent.BoldObjectLocator.BoldObjectID.AsString,
+      Msg + ': the stamp must name the parent');
+  end;
+end;
 
 procedure Tmaan_FetchRefetchTestCase.TestFetchInvalidAttribute;
 var
@@ -124,13 +152,21 @@ var
   objB: TSomeClass;
   NewObjB: TSomeClass;
   EmbeddedIndex: integer;
-  Locator: TBoldObjectLocator;
   procedure prepare;
   begin
     RefreshSystem;
     ObjA := FSomeClassList[0];
     EmbeddedIndex := ObjA.M_parent.BoldMemberRTInfo.EmbeddedLinkIndex;
     ObjBLocator := FSomeClassList.Locators[1];
+  end;
+  { RefreshSystem loads every object, so a scenario that wants to observe the
+    fetch of the other end must unload it first (and drop the stamp the unload
+    parks from the in-memory value). }
+  procedure UnloadForFetch(Locator: TBoldObjectLocator);
+  begin
+    Locator.UnloadBoldObject;
+    Locator.EmbeddedSingleLinks[EmbeddedIndex] := nil;
+    Assert.IsFalse(Assigned(Locator.BoldObject), 'Precondition: other end must not be loaded');
   end;
 begin
 //  TestClassListOrder;
@@ -139,6 +175,7 @@ begin
   {ObjA.child Invalid}
   Prepare;
   VerifyState(ObjA.M_child, bvpsInvalid);
+  UnloadForFetch(ObjBLocator);
   ObjB := ObjBLocator.EnsuredBoldObject as TSomeClass; //fetch embedded role
   VerifyState(ObjB.M_parent, bvpsCurrent);
   Assert.IsTrue(ObjB.parent = ObjA, 'Line 134: ObjB.parent should = ObjA');
@@ -148,9 +185,7 @@ begin
   NewObjBLocator := FSomeClassList.Locators[2];
   ObjA.Child.EnsureContentsCurrent;
   VerifyState(ObjA.M_child, bvpsCurrent);
-  Locator := ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex];
-  Assert.IsTrue(Assigned(Locator), 'Line 142: Locator should be assigned');
-  Assert.IsTrue(Locator.BoldObjectID.AsString = ObjA.BoldObjectLocator.BoldObjectID.AsString, 'Line 143: Locator ID should match ObjA ID');
+  VerifyReverseLinkKnown(ObjBLocator, EmbeddedIndex, ObjA, 'Scenario 2 after fetching ObjA.child');
 
   OpenSystem2;
   Assert.IsTrue(FSomeClassList.Locators[0].BoldObjectID.AsString = FSomeClassList2.Locators[0].BoldObjectID.AsString, 'Line 146: Locator[0] IDs should match');
@@ -162,6 +197,7 @@ begin
 
   StoreObject(ObjA);
   FSubscriber.SubscribeToElement(ObjA.M_child);
+  UnloadForFetch(NewObjBLocator);
   NewObjB := NewObjBLocator.EnsuredBoldObject as TSomeClass; //fetch embedded role
   VerifyState(NewObjB.M_parent, bvpsCurrent);
   Assert.IsTrue(NewObjB.parent = ObjA, 'Line 157: NewObjB.parent should = ObjA');
@@ -173,8 +209,7 @@ begin
   Prepare;
   ObjA.Child.EnsureContentsCurrent;
   VerifyState(ObjA.M_child, bvpsCurrent);
-  Assert.IsTrue(not Assigned(ObjBLocator.BoldObject), 'Line 166: ObjBLocator.BoldObject should not be assigned');
-  Assert.IsTrue(ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex].BoldObjectID.AsString = ObjA.BoldObjectLocator.BoldObjectID.AsString, 'Line 167: EmbeddedSingleLinks ID should match ObjA ID');
+  VerifyReverseLinkKnown(ObjBLocator, EmbeddedIndex, ObjA, 'Scenario 3 after fetching ObjA.child');
 
   OpenSystem2;
   Assert.IsTrue(FSomeClassList.Locators[2].BoldObjectID.AsString = FSomeClassList2.Locators[2].BoldObjectID.AsString, 'Line 170: Locator[2] IDs should match in System2');
@@ -378,6 +413,18 @@ var
     EmbeddedIndex := ObjA.M_parent.BoldMemberRTInfo.EmbeddedLinkIndex ;
   end;
 
+  { These scenarios pin the classic DbFetchOwningMember path: the multilink is
+    fetched from the database and invalid single ends are left alone. With a
+    current class extent Bold takes the FetchFromClassList shortcut instead,
+    which derives the list from memory and refetches invalid single ends (see
+    TestClassListFetchRefetchesInvalidSingleLinks), so the extent is
+    invalidated before each fetch. }
+  procedure FetchFromDb(Member: TBoldMember);
+  begin
+    System.Classes[Member.OwningObject.BoldClassTypeInfo.TopSortedIndex].Invalidate;
+    Member.EnsureContentsCurrent;
+  end;
+
   procedure ModifyEmbeddedStateInDb;
   begin
     OpenSystem2;
@@ -390,11 +437,10 @@ begin
   {ObjB.parent invalid}
   Prepare;
   StoreValue(ObjA.M_child);
-  ObjA.child.EnsureContentsCurrent;
+  FetchFromDb(ObjA.M_child);
   VerifySetContents(ObjA.M_child.AsIBoldValue[bdepContents], GetStoredValueOfMember(ObjA.M_child));
   VerifyState(ObjA.M_child, bvpsCurrent);
-  Assert.IsTrue(Assigned(ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex]));
-  Assert.IsTrue(ObjBLocator.EmbeddedSingleLinks[EmbeddedIndex].BoldObjectID.AsString = ObjA.BoldObjectLocator.BoldObjectID.AsString);
+  VerifyReverseLinkKnown(ObjBLocator, EmbeddedIndex, ObjA, 'Scenario 1 after fetching ObjA.child');
 
   {ObjB.parent Invalid/Adjust}
   {after fetch ObjB not included in ObjA.child}
@@ -416,7 +462,7 @@ begin
   System2.UpdateDatabase;
   SaveAndCloseSystem2;
 
-  ObjA.child.EnsureContentsCurrent;
+  FetchFromDb(ObjA.M_child);
   VerifySetContents(ObjA.M_child.AsIBoldValue[bdepContents], GetStoredValueOfMember(ObjA.M_child));
   VerifyState(ObjA.M_child, bvpsCurrent);
   VerifyState(ObjB.M_parent, bvpsInvalid);
@@ -431,7 +477,7 @@ begin
   VerifyState(ObjB.M_parent, bvpsInvalid);
   VerifyHasOldValues(ObjB.M_parent);
   StoreValue(ObjA.M_child);
-  ObjA.child.EnsureContentsCurrent;
+  FetchFromDb(ObjA.M_child);
   VerifySetContents(ObjA.M_child.AsIBoldValue[bdepContents], GetStoredValueOfMember(ObjA.M_child));
   VerifyState(ObjA.M_child, bvpsCurrent);
   VerifyState(ObjB.M_parent, bvpsInvalid); // Fetching multi end should not effect invalid single end
@@ -441,7 +487,7 @@ begin
   Prepare;
   VerifyState(ObjA2.M_child,bvpsInvalid);
   VerifyState(ObjB2.M_parent, bvpsCurrent);
-  ObjA2.M_child.EnsureContentsCurrent;  //fetch
+  FetchFromDb(ObjA2.M_child);  //fetch
   VerifyState(ObjA2.M_child, bvpsCurrent);
   VerifyState(ObjB2.M_parent, bvpsCurrent);
   Assert.IsTrue(ObjB2.parent = ObjA2);
@@ -465,7 +511,7 @@ begin
   Assert.IsTrue((ObjB2.M_parent.asIBoldValue[bdepContents] as IBoldObjectIdRef).id.AsString = ObjA2.BoldObjectLocator.BoldObjectId.asstring);
   VerifyState(ObjA2.M_child, bvpsCurrent);
   Assert.IsTrue(ObjA2.M_child.indexOf(ObjB2) <> -1);
-  ObjA.child.EnsureContentsCurrent;
+  FetchFromDb(ObjA.M_child);
 
   Assert.IsTrue(ObjA.child.count = 2);
   VerifyState(ObjA.M_child, bvpsCurrent);
@@ -487,7 +533,7 @@ begin
   System2.UpdateDatabase;
   SaveAndCloseSystem2;
 
-  ObjA.child.EnsureContentsCurrent;
+  FetchFromDb(ObjA.M_child);
   VerifySetContents(ObjA.M_child.AsIBoldValue[bdepContents], GetStoredValueOfMember(ObjA.M_child));
   VerifyState(ObjA.M_child, bvpsCurrent);
   VerifyState(ObjB.M_parent, bvpsInvalid);
@@ -498,7 +544,7 @@ begin
   ObjB := (ObjBLocator.EnsuredBoldObject as TSomeClass);
   VerifyState(ObjB.M_parent, bvpsCurrent);
   StoreValue(ObjA.M_child);
-  ObjA.child.EnsureContentsCurrent;
+  FetchFromDb(ObjA.M_child);
   VerifySetContents(ObjA.M_child.AsIBoldValue[bdepContents], GetStoredValueOfMember(ObjA.M_child));
   VerifyState(ObjA.M_child, bvpsCurrent);
   VerifyState(ObjB.M_parent, bvpsCurrent);
@@ -506,7 +552,7 @@ begin
   {ObjB.parent Current}
   {after fetch ObjB2 included in ObjA.child}
   Prepare;
-  ObjA2.M_child.EnsureContentsCurrent;
+  FetchFromDb(ObjA2.M_child);
   VerifyState(ObjA2.M_child, bvpsCurrent);
   VerifyState(ObjB2.M_parent, bvpsCurrent);
   StoreValue(ObjB2.M_parent);
@@ -521,7 +567,7 @@ begin
   FSomeClassList2[3].parent := FSomeClassList2[0];
   System2.UpdateDatabase;
   SaveAndCloseSystem2;
-  ObjA.child.ensureContentsCurrent;
+  FetchFromDb(ObjA.M_child);
   VerifySetContents(ObjA.M_child.AsIBoldValue[bdepContents], GetStoredValueOfMember(ObjA.M_child));
   VerifyState(ObjA.M_child, bvpsCurrent);
   VerifySetContents(ObjB2.M_parent.AsIBoldValue[bdepContents], GetStoredValueOfMember(ObjB2.M_parent));
@@ -580,6 +626,53 @@ begin
     'Stamp storage must be freed once the object is loaded');
   VerifyState(ObjB.M_parent, bvpsCurrent);
   Assert.IsTrue(ObjB.parent = ObjA, 'Navigation must resolve to the owner');
+end;
+
+procedure Tmaan_FetchRefetchTestCase.TestClassListFetchRefetchesInvalidSingleLinks;
+var
+  ObjA: TSomeClass;
+  Capture: TBatchSQLCapture;
+  SavedHandler: TBoldLogHandler;
+  i: integer;
+begin
+  { DOCUMENTS CURRENT BEHAVIOUR, does not endorse it (see the GitHub issue on
+    FetchFromClassList side effects). When the other-end class extent is current,
+    TBoldDirectMultiLinkController.MakeDbCurrent derives the multilink from the
+    loaded objects by reading each candidate's single link (FetchFromClassList).
+    TBoldObjectReference.GetLocator starts with EnsureContentsCurrent, so every
+    INVALID single link in that class is fetched - and made current - as a side
+    effect of fetching one multilink. The classic DbFetchOwningMember path leaves
+    them invalid (TestFetchNonEmbeddedRoleInvalid). }
+  SetSimpleConfiguration;
+  RefreshSystem;
+  ObjA := FSomeClassList[0];
+  VerifyState(System.Classes[ObjA.BoldClassTypeInfo.TopSortedIndex], bvpsCurrent);
+  for i := 1 to 3 do
+  begin
+    FSomeClassList[i].M_parent.Invalidate;
+    VerifyState(FSomeClassList[i].M_parent, bvpsInvalid);
+  end;
+  VerifyState(ObjA.M_child, bvpsInvalid);
+
+  Capture := TBatchSQLCapture.Create;
+  SavedHandler := BoldSQLLogHandler;
+  BoldSQLLogHandler := Capture;
+  try
+    ObjA.child.EnsureContentsCurrent;
+    TDUnitX.CurrentRunner.Log(TLogLevel.Information, Format(
+      'FetchFromClassList with 3 invalid single links issued %d SELECT statements: %s',
+      [Capture.StatementCount('SELECT'), Capture.CapturedText]));
+    Assert.IsTrue(Capture.StatementCount('SELECT') > 0,
+      'the invalid single links are fetched from the database during the multilink fetch');
+  finally
+    BoldSQLLogHandler := SavedHandler;
+    Capture.Free;
+  end;
+  for i := 1 to 3 do
+    VerifyState(FSomeClassList[i].M_parent, bvpsCurrent);
+  VerifyState(ObjA.M_child, bvpsCurrent);
+  Assert.IsTrue(ObjA.child.Count = 1, 'ObjA.child must hold the one child the database has');
+  Assert.IsTrue(ObjA.child[0] = FSomeClassList[1], 'the child must be FSomeClassList[1]');
 end;
 
 initialization
