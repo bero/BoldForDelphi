@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Adapter-neutral persistence scenario tests run on every adapter (#88, #80, #89); end-to-end tests drive `TBoldDbCopy` and the database validator threads (#92, #93, #94)
 - `BOLD_TEST_ENGINE` selects the test database engine without editing `UnitTest.ini`; `UnitTest\run_matrix.ps1` runs the adapter x engine matrix (FireDAC and UniDAC on SQLite and SQL Server) with one summary table
 - `UnitTest\sync_gui_dpr.ps1` generates the GUI runner's unit list from the console runner, so TestInsight runs the whole suite (#84)
-- Package-manager manifests for Boss and DPM, and a release checklist (#87)
+- DPM package specification, packed and published to the public feed at https://delphi.dev as `bero.BoldForDelphi` for Delphi 11, 12 and 13, plus a Boss manifest and a release checklist (#87)
 - TMS Smart Setup definition (`tmsbuild.yaml`) and `version.txt`, so `tms install bero.boldfordelphi` builds and registers the design package for Delphi 11, 12 and 13; submitted to the community registry (#87)
 
 ### Fixed
