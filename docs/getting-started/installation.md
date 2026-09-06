@@ -6,6 +6,57 @@
 - **Database**: SQLite (easiest), SQL Server, PostgreSQL, Firebird, MariaDB/MySQL, or Oracle
 - **Git** (for cloning the repository)
 
+## Installing with a Package Manager (Recommended)
+
+Both package managers download Bold's source, build the design-time package
+`dclBold` for your Delphi version and register it, so Steps 1 and 2 below are
+not needed. Bold is available for Delphi 11, 12 and 13, Win32.
+
+### TMS Smart Setup
+
+1. Get Smart Setup (free) from
+   [doc.tmssoftware.com/smartsetup/download](https://doc.tmssoftware.com/smartsetup/download):
+   unzip the portable `tmssmartsetup.zip` or run the installer; both give you `tms.exe`
+   and the GUI `tmsgui.exe`.
+2. Run:
+
+   ```shell
+   tms install bero.boldfordelphi
+   ```
+
+   Smart Setup clones the latest release tag, builds `dclBold` for every installed
+   Delphi it supports, registers the package in the IDE and puts Bold's compiled
+   units on the library path (the sources go on the browsing path). Later
+   `tms update` moves to newer releases; `tms install bero.boldfordelphi:26.9.0`
+   pins a version.
+
+   The community registry entry is pending
+   ([tmssoftware/smartsetup-registry#9](https://github.com/tmssoftware/smartsetup-registry/pull/9));
+   until it is merged, add it as a server first:
+
+   ```shell
+   tms server-add boldtest zipfile https://github.com/bero/smartsetup-registry/archive/refs/heads/bero.boldfordelphi.zip
+   ```
+
+### DPM
+
+1. Get DPM (free) from
+   [github.com/DelphiPackageManager/DPM/releases](https://github.com/DelphiPackageManager/DPM/releases).
+   The installer adds `dpm.exe` to the PATH and an IDE plugin.
+2. DPM installs per project. In the IDE, right-click the project in the Projects
+   pane and choose **Manage DPM Packages**, then install `bero.BoldForDelphi`; or
+   from the command line:
+
+   ```shell
+   dpm install bero.BoldForDelphi C:\path\to\YourProject.dproj -compiler=13.0 -platforms=Win32
+   ```
+
+   DPM builds the design package into its package cache once, loads it in the IDE
+   while the project is open, and adds Bold's compiled units to that project's
+   search path (`$(DPMSearch)`). Nothing is registered IDE-wide. The package is
+   published on the public feed at [delphi.dev](https://delphi.dev), so no source
+   configuration is needed.
+
 ## Step 1: Get the Source
 
 ```bash
@@ -16,7 +67,7 @@ Or download and extract to a folder like `C:\BoldForDelphi`.
 
 ## Step 2: Install the Packages
 
-### Option A: Download Pre-built Binaries (Recommended)
+### Option A: Download Pre-built Binaries
 
 1. Download the binary package for your Delphi version from:
    [https://github.com/bero/BoldForDelphi/releases/](https://github.com/bero/BoldForDelphi/releases/)

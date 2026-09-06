@@ -14,6 +14,10 @@ Bold for Delphi is best suited for:
 
 ## Getting Started
 
+Install with a package manager: `tms install bero.boldfordelphi` ([TMS Smart Setup](https://doc.tmssoftware.com/smartsetup/download)) or
+`dpm install bero.BoldForDelphi <project>.dproj` ([DPM](https://github.com/DelphiPackageManager/DPM/releases), from the public feed at
+[delphi.dev](https://delphi.dev)). Details and the manual route: [Installation](docs/getting-started/installation.md).
+
 - **[Documentation](https://bero.github.io/BoldForDelphi/)** - Full documentation including concepts, class reference, and FAQ.
 - **[Quick Start Guide](docs/quickstart.md)** - Step-by-step instructions to install Bold, build your first model, and run the MasterDetail example application.
 - **[Roadmap](ROADMAP.md)** - Development plans, supported features, and future directions for Bold for Delphi.
