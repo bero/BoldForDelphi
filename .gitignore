@@ -48,6 +48,7 @@ UnitTest/cobertura.xml
 UnitTest/codecov.json
 UnitTest/codecov.exe
 UnitTest/test_codecov.json
+UnitTest/matrix_*.log
 TestInsightSettings.ini
 
 # Example app data files

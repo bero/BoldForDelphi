@@ -97,9 +97,9 @@ var
 begin
   Ini := TIniFile.Create(GetIniFilePath);
   try
-    Engine := Ini.ReadString('Database', 'Engine', 'SQLServer');
+    Engine := GetTestDatabaseEngine; // BOLD_TEST_ENGINE or UnitTest.ini
     if not SameText(Engine, 'SQLServer') then
-      raise Exception.CreateFmt('UniDAC tests support Engine=SQLServer only (UnitTest.ini has %s): ' +
+      raise Exception.CreateFmt('UniDAC tests support Engine=SQLServer only (configured: %s): ' +
         'the UniDAC installation used by the DebugUniDAC configuration has no SQLite provider', [Engine]);
 
     AConnection.ProviderName := 'SQL Server';

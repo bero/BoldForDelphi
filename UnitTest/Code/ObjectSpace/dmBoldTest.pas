@@ -1,4 +1,4 @@
-unit dmBoldTest;
+﻿unit dmBoldTest;
 
 { Generic DataModule for Bold unit tests.
   Uses SQLite shared-cache in-memory by default.
@@ -102,15 +102,9 @@ end;
 
 procedure ConfigureFromIni(const AIniPath: string);
 var
-  Ini: TIniFile;
   Engine: string;
 begin
-  Ini := TIniFile.Create(AIniPath);
-  try
-    Engine := Ini.ReadString('Database', 'Engine', 'SQLite');
-  finally
-    Ini.Free;
-  end;
+  Engine := GetTestDatabaseEngine(AIniPath); // honours BOLD_TEST_ENGINE
 
   if SameText(Engine, 'SQLite') then
   begin

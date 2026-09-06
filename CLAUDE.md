@@ -56,6 +56,30 @@ powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\buil
 powershell -Command "& { $env:DUnitX = '...'; ... }"
 ```
 
+### Choosing the database engine
+
+`UnitTest.ini` `[Database] Engine=` selects the engine (SQLite in-memory by default). The environment
+variable `BOLD_TEST_ENGINE` overrides it without editing the file, which is how a script runs the same exe
+against several engines:
+
+```powershell
+powershell -Command "$env:BOLD_TEST_ENGINE='SQLServer'; & '.\UnitTest\UnitTest.exe' --run:Test.BoldBatchQueries 2>&1"
+```
+
+### The adapter x engine matrix
+
+Bold SQL generation depends on the engine, the adapter wrappers depend on the DAC, and only driver
+quirks depend on the pair. `UnitTest\run_matrix.ps1` runs the combinations that matter: the FireDAC build on
+SQLite and SQL Server, then the DebugUniDAC build on SQL Server (skipped when UniDAC is not installed).
+Run it when `Source\Persistence` or `Source\PMapper` change; the SQLite run alone is the everyday gate.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\run_matrix.ps1"            # full matrix
+powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\run_matrix.ps1" -SkipBuild -Filter Test.BoldBatchQueries
+```
+
+Logs land in `UnitTest\matrix_<adapter>_<engine>.log`; the exit code is the number of failed runs.
+
 ### Running Specific Tests
 
 The `--run` filter uses the full namespace path `UnitName.ClassName[.TestName]`.
@@ -168,8 +192,9 @@ configuration `DebugUniDAC` puts the real units (`UnitTest\Code\Persistence\UniD
 ```powershell
 # UniDAC 10.4 does not compile with Delphi 13 - pin Delphi 12
 powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\build.ps1" -Config DebugUniDAC -DelphiVersion 23.0
-# UnitTest.ini must say Engine=SQLServer (that UniDAC has no SQLite provider); restore it afterwards
-powershell -Command "& '.\UnitTest\UniDAC\UnitTest.exe' --run:Test.PersistenceUniDAC 2>&1"
+# The vendored UniDAC ships no SQLite provider, so select SQL Server through the environment
+# variable instead of editing UnitTest.ini
+powershell -Command "$env:BOLD_TEST_ENGINE='SQLServer'; & '.\UnitTest\UniDAC\UnitTest.exe' --run:Test.PersistenceUniDAC 2>&1"
 ```
 
 `build.ps1` defaults `$env:UniDAC` to `C:\Attracs\Attracs-Common\components\UniDAC` when the variable

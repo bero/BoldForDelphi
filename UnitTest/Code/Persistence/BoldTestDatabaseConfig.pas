@@ -8,6 +8,10 @@
 {  FireDAC connections for various database engines (SQL Server, SQLite,       }
 {  Interbase, Firebird, PostgreSQL).                                           }
 {                                                                              }
+{  The engine can be overridden without editing the ini through the            }
+{  environment variable BOLD_TEST_ENGINE, so a script can run the same exe     }
+{  against several engines in turn (see UnitTest\run_matrix.ps1).             }
+{                                                                              }
 {******************************************************************************}
 
 interface
@@ -22,7 +26,11 @@ procedure ConfigureConnection(Connection: TFDConnection; Adapter: TBoldDatabaseA
   that need a second database next to the shared one (e.g. a copy target). }
 procedure CreateTestDatabase(const ADatabaseName: string = '');
 procedure DropTestDatabase;
-function GetTestDatabaseEngine: string;
+{ The engine to test against: the BOLD_TEST_ENGINE environment variable when
+  set, otherwise [Database] Engine in UnitTest.ini. Every reader of the engine
+  goes through here so the override is honoured everywhere. }
+function GetTestDatabaseEngine: string; overload;
+function GetTestDatabaseEngine(const AIniPath: string): string; overload;
 { The database name from UnitTest.ini for the configured engine. }
 function GetTestDatabaseName: string;
 function GetIniFilePath: string;
@@ -55,16 +63,27 @@ begin
     raise Exception.Create('UnitTest.ini not found. Expected at: ' + Result);
 end;
 
-function GetTestDatabaseEngine: string;
+const
+  cTestEngineEnvVar = 'BOLD_TEST_ENGINE';
+
+function GetTestDatabaseEngine(const AIniPath: string): string;
 var
   Ini: TIniFile;
 begin
-  Ini := TIniFile.Create(GetIniFilePath);
+  Result := Trim(GetEnvironmentVariable(cTestEngineEnvVar));
+  if Result <> '' then
+    Exit;
+  Ini := TIniFile.Create(AIniPath);
   try
     Result := Ini.ReadString('Database', 'Engine', 'SQLServer');
   finally
     Ini.Free;
   end;
+end;
+
+function GetTestDatabaseEngine: string;
+begin
+  Result := GetTestDatabaseEngine(GetIniFilePath);
 end;
 
 procedure ConfigureConnection(Connection: TFDConnection; Adapter: TBoldDatabaseAdapterFireDAC);
@@ -77,7 +96,7 @@ var
 begin
   Ini := TIniFile.Create(GetIniFilePath);
   try
-    Engine := Ini.ReadString('Database', 'Engine', 'SQLServer');
+    Engine := GetTestDatabaseEngine;
 
     Connection.Params.Clear;
 
@@ -182,7 +201,7 @@ var
 begin
   Ini := TIniFile.Create(GetIniFilePath);
   try
-    Engine := Ini.ReadString('Database', 'Engine', 'SQLServer');
+    Engine := GetTestDatabaseEngine;
     if SameText(Engine, 'SQLite') then
       Result := Ini.ReadString('SQLite', 'Database', 'file:memdb1?mode=memory&cache=shared')
     else
@@ -202,7 +221,7 @@ begin
   Ini := TIniFile.Create(GetIniFilePath);
   TempConn := TFDConnection.Create(nil);
   try
-    Engine := Ini.ReadString('Database', 'Engine', 'SQLServer');
+    Engine := GetTestDatabaseEngine;
 
     if SameText(Engine, 'SQLServer') then
     begin
@@ -253,7 +272,7 @@ begin
   Ini := TIniFile.Create(GetIniFilePath);
   TempConn := TFDConnection.Create(nil);
   try
-    Engine := Ini.ReadString('Database', 'Engine', 'SQLServer');
+    Engine := GetTestDatabaseEngine;
 
     if SameText(Engine, 'SQLServer') then
     begin
