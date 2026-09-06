@@ -1,16 +1,11 @@
 min dpm client version: 1.0
 
-# DRAFT - not added to the repository yet.
-# Verified against DPM docs (docs.delphi.dev) and the parser source
-# (Source/Core/Spec/DPM.Core.Spec.Template.pas) on 2026-08-16.
-#
-# Template sections the parser actually reads:
-#   name, dependencies, source, build, design, copyToLib, copyToBin,
-#   copyLocal, package definitions, precompiledBinaries, environmentVariables
-# There is NO searchPaths section - consumers get search paths from the
-# 'dest' folders of the shipped source. This is the one point to confirm
-# against a published package before relying on it; DPM's own docs say
-# they are out of date.
+# DPM package specification for Bold for Delphi.
+# Reference: docs/dspec-format.md in https://github.com/DelphiPackageManager/DPM
+# Pack from the repository root (the paths below are relative to it):
+#   dpm pack packaging\BoldForDelphi.dspec.yaml -basepath=. -o=<output folder>
+# One .dpkg per compiler (11.0, 12.0, 13.0), Win32, design-time package dclBold;
+# the version must equal the release tag (see packaging/release-checklist.md).
 
 metadata:
   id: bero.BoldForDelphi
@@ -24,7 +19,11 @@ metadata:
     - Bold for Delphi community
   projectUrl: https://github.com/bero/BoldForDelphi
   repositoryUrl: https://github.com/bero/BoldForDelphi
+  repositoryType: git
   license: MIT
+  copyright: Boldsoft AB, Embarcadero Technologies, Bold for Delphi community
+  frameworks:
+    - VCL
   readme: README.md
   tags:
     - orm
@@ -79,6 +78,14 @@ templates:
         dest: Source
         exclude:
           - ./Source/Deprecated/**
+      - src: ./Source/**/*.dcr
+        dest: Source
+        exclude:
+          - ./Source/Deprecated/**
+      - src: ./Source/**/*.rc
+        dest: Source
+        exclude:
+          - ./Source/Deprecated/**
       - src: ./packages/$packageFolder$/dclBold.dpk
         dest: packages/$packageFolder$
       - src: ./packages/$packageFolder$/dclBold.dproj
@@ -86,9 +93,7 @@ templates:
       - src: ./packages/$packageFolder$/dclBold.res
         dest: packages/$packageFolder$
       - src: ./LICENSE
-        dest: .
-      - src: ./README.md
-        dest: .
+      # README.md is packed by metadata.readme; listing it here duplicates the entry
 
     design:
       # designide is added automatically by DPM for design entries.
@@ -99,10 +104,9 @@ templates:
 
 # Notes for whoever picks this up:
 #
-# 1. DPM targets compiler MAJORS. 12.1 CE and 12.3 are both compiler 12.0, so
-#    only one 12.x package project can be expressed here. 12.3 is used; the
-#    resulting BPL is dclBold.29.3.bpl and loads in both, since 12.x shares the
-#    290 runtime packages.
+# 1. DPM targets compiler MAJORS. Every 12.x is compiler 12.0, so one 12.x
+#    package project is expressed here (12.3); with LIBSUFFIX AUTO the built
+#    file is dclBold290.bpl and loads in any 12.x, which share the 290 runtime.
 #
 # 2. dclBold requires FireDAC, IndySystem, IndyCore, DesignIDE, vcl, vcldb,
 #    soaprtl, dbrtl and inet - all shipped with RAD Studio, so no DPM
@@ -111,6 +115,7 @@ templates:
 # 3. Design-time packages are Win32 only (Win64 from Delphi 12 onwards per the
 #    DPM docs). Bold's packages are Win32 designtime, so Win32 alone is right.
 #
-# 4. Publishing: `dpm pack` produces one .dpkg per compiler/platform, then push
-#    to a feed. The public feed is https://delphi.dev/api/v1/index.json and
-#    needs an account with the DPM maintainers.
+# 4. Publishing: `dpm pack` produces one .dpkg per compiler/platform. Attach
+#    them to the GitHub release (consumers add their download folder as a
+#    source) and/or `dpm push` to the public feed https://delphi.dev, which
+#    needs an account there.
