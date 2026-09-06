@@ -635,14 +635,14 @@ var
   SavedHandler: TBoldLogHandler;
   i: integer;
 begin
-  { DOCUMENTS CURRENT BEHAVIOUR, does not endorse it (see the GitHub issue on
-    FetchFromClassList side effects). When the other-end class extent is current,
-    TBoldDirectMultiLinkController.MakeDbCurrent derives the multilink from the
-    loaded objects by reading each candidate's single link (FetchFromClassList).
-    TBoldObjectReference.GetLocator starts with EnsureContentsCurrent, so every
-    INVALID single link in that class is fetched - and made current - as a side
-    effect of fetching one multilink. The classic DbFetchOwningMember path leaves
-    them invalid (TestFetchNonEmbeddedRoleInvalid). }
+  { The FetchFromClassList shortcut answers a multilink from memory when the
+    other-end class extent is current. It may only do so when memory can answer:
+    a candidate whose single link is invalid would have to be fetched (one
+    default-member SELECT per object, no span fetch, and the member is made
+    current behind the caller's back). In that case the classic one-query
+    DbFetchOwningMember path must be taken instead, leaving the invalid
+    members alone. (Unloaded candidates cannot occur: the class list controller
+    drops the extent to non-current on beObjectUnloaded.) GitHub issue #97. }
   SetSimpleConfiguration;
   RefreshSystem;
   ObjA := FSomeClassList[0];
@@ -659,17 +659,15 @@ begin
   BoldSQLLogHandler := Capture;
   try
     ObjA.child.EnsureContentsCurrent;
-    TDUnitX.CurrentRunner.Log(TLogLevel.Information, Format(
-      'FetchFromClassList with 3 invalid single links issued %d SELECT statements: %s',
-      [Capture.StatementCount('SELECT'), Capture.CapturedText]));
-    Assert.IsTrue(Capture.StatementCount('SELECT') > 0,
-      'the invalid single links are fetched from the database during the multilink fetch');
+    Assert.AreEqual(1, Capture.StatementCount('SELECT'),
+      'the multilink must be fetched with the single DB query, not one fetch per invalid candidate. SQL: ' +
+      Capture.CapturedText);
   finally
     BoldSQLLogHandler := SavedHandler;
     Capture.Free;
   end;
   for i := 1 to 3 do
-    VerifyState(FSomeClassList[i].M_parent, bvpsCurrent);
+    VerifyState(FSomeClassList[i].M_parent, bvpsInvalid); // fetching a multilink must not touch other objects' members
   VerifyState(ObjA.M_child, bvpsCurrent);
   Assert.IsTrue(ObjA.child.Count = 1, 'ObjA.child must hold the one child the database has');
   Assert.IsTrue(ObjA.child[0] = FSomeClassList[1], 'the child must be FSomeClassList[1]');

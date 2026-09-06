@@ -689,7 +689,7 @@ end;
 
 procedure TBoldDirectMultiLinkController.MakeDbCurrent;
 {$IFDEF FetchFromClassList}
-  procedure FetchFromClassList;
+  function FetchFromClassList: Boolean;
   var
     ClassList: TBoldObjectList;
     lBoldObjectIdList: TBoldObjectIdList;
@@ -719,6 +719,19 @@ procedure TBoldDirectMultiLinkController.MakeDbCurrent;
     CheckType := ClassList.BoldPersistenceState <> bvpsCurrent;
     if CheckType then
       ClassList := TBoldClassListController(GetControllerForMember(ClassList)).ClosestLoadedClassList{.FilterOnType(RoleRTInfo.ClassTypeInfoOfOtherEnd)};
+    // Memory can only answer when every candidate's single link is current:
+    // reading Locator on an invalid reference fetches it, one SELECT per object,
+    // and makes it current behind the caller's back. In that case the single
+    // query of DbFetchOwningMember is both cheaper and free of side effects.
+    for i := 0 to ClassList.Count - 1 do
+    begin
+      if CheckType and (ClassList.Locators[i].BoldObjectID.TopSortedIndex < lTopSortedIndex) or
+        not ClassList.Locators[i].BoldClassTypeInfo.BoldIsA(OtherEndBoldClassTypeInfo) then
+        Continue;
+      lBoldObjectReference := ClassList[i].BoldMembers[lIndexOfOtherEnd] as TBoldObjectReference;
+      if Assigned(lBoldObjectReference) and (lBoldObjectReference.BoldPersistenceState <> bvpsCurrent) then
+        Exit(False);
+    end;
     for i := 0 to ClassList.Count - 1 do
     begin
       if CheckType and (ClassList.Locators[i].BoldObjectID.TopSortedIndex < lTopSortedIndex) or
@@ -753,24 +766,25 @@ procedure TBoldDirectMultiLinkController.MakeDbCurrent;
     end;
 
     // NOTE: EmbeddedSingleLinks stamping cannot happen on this path regardless of
-    // proxy mode: the ClassList[i] loop above loads every other-end object before
-    // SetFromIdList runs, and SingleLinkLinkTo only stamps locators whose object
-    // is NOT loaded (loaded ones go through LinkTo). Changing bdepContents to
-    // bdepPMIn was tried 2026-08-16 and does not fix the ignored maan_FetchRefetch
-    // tests. Stamping still works on the DbFetchOwningMember path, which delivers
-    // ids without loading objects.
+    // proxy mode: a current class extent has all its objects loaded, and
+    // SingleLinkLinkTo only stamps locators whose object is NOT loaded (loaded
+    // ones go through LinkTo). Changing bdepContents to bdepPMIn was tried
+    // 2026-08-16 and makes no difference. Stamping still works on the
+    // DbFetchOwningMember path, which delivers ids without loading objects; the
+    // maan_FetchRefetch tests pin that path by invalidating the extent first.
     SetFromIdList(lBoldObjectIdList, bdepContents);
     OwningObjectList.BoldPersistenceState := bvpsCurrent;
+    Result := True;
   end;
 {$ENDIF}
 begin
   EnsureOrder;
 {$IFDEF FetchFromClassList}
   if TBoldClassListController(GetControllerForMember(BoldSystem.Classes[RoleRTInfo.ClassTypeInfoOfOtherEnd.TopSortedIndex])).IsCurrentOrSuperClassIsCurrent then
-    FetchFromClassList
-  else
+    if FetchFromClassList then
+      exit;
 {$ENDIF}
-    DbFetchOwningMember;
+  DbFetchOwningMember;
 end;
 
 function TBoldDirectMultiLinkController.GetCount: Integer;
@@ -1737,7 +1751,9 @@ procedure TBoldDirectSingleLinkController.MakeDbCurrent;
         not ClassList.Locators[i].BoldClassTypeInfo.BoldIsA(OtherEndBoldClassTypeInfo)) then
         Continue;
       BoldMember := ClassList[i].BoldMemberIfAssigned[IndexOfOtherEnd];
-      if Assigned(BoldMember) then
+      // Reading Locator on an invalid reference would fetch it; treat it like an
+      // unassigned member so the DB answers unless a current match is found.
+      if Assigned(BoldMember) and (BoldMember.BoldPersistenceState = bvpsCurrent) then
       begin
         if ((BoldMember as TBoldObjectReference).Locator = Locator) then
         begin
@@ -2165,7 +2181,7 @@ end;
 
 procedure TBoldIndirectMultiLinkController.MakeDbCurrent;
 {$IFDEF FetchFromClassList}
-  procedure FetchFromClassList;
+  function FetchFromClassList: Boolean;
   var
     ClassList: TBoldObjectList;
     lBoldGuard: IBoldGuard;
@@ -2199,6 +2215,21 @@ procedure TBoldIndirectMultiLinkController.MakeDbCurrent;
     if CheckType then
       ClassList := TBoldClassListController(GetControllerForMember(ClassList)).ClosestLoadedClassList;
     Assert(Assigned(ClassList));
+    // Memory can only answer when both references of every candidate link object
+    // are current: reading Locator on an invalid one fetches it, one SELECT per
+    // object. Otherwise the single query of DbFetchOwningMember is cheaper and
+    // has no side effects on other objects' members.
+    for i := 0 to ClassList.Count - 1 do
+    begin
+      if CheckType and not ClassList.Locators[i].BoldClassTypeInfo.BoldIsA(lLinkClassTypeInfo) then
+        Continue;
+      lBoldObject := ClassList[i];
+      lThisEndInLinkClass := lBoldObject.BoldMembers[lOwnIndexInLinkClass] as TBoldObjectReference;
+      lOtherEndInLinkClass := lBoldObject.BoldMembers[lOtherIndexInLinkClass] as TBoldObjectReference;
+      if (Assigned(lThisEndInLinkClass) and (lThisEndInLinkClass.BoldPersistenceState <> bvpsCurrent)) or
+         (Assigned(lOtherEndInLinkClass) and (lOtherEndInLinkClass.BoldPersistenceState <> bvpsCurrent)) then
+        Exit(False);
+    end;
     for i := 0 to ClassList.Count - 1 do
     begin
       if CheckType and not ClassList.Locators[i].BoldClassTypeInfo.BoldIsA(lLinkClassTypeInfo) then
@@ -2248,6 +2279,7 @@ procedure TBoldIndirectMultiLinkController.MakeDbCurrent;
 //    Assert(lListOfOtherEnd.count = OwningObjectList.Count);
     SetFromIDLists(lListOfLinkObjects, lListOfOtherEnd, bdepContents);
     OwningObjectList.BoldPersistenceState := bvpsCurrent;
+    Result := True;
   end;
 {$ENDIF}
 begin
@@ -2256,8 +2288,8 @@ begin
     EnsureOrder;
 {$IFDEF FetchFromClassList}
     if TBoldClassListController(GetControllerForMember(BoldSystem.Classes[RoleRTInfo.LinkClassTypeInfo.TopSortedIndex])).IsCurrentOrSuperClassIsCurrent then
-      FetchFromClassList
-   else
+      if FetchFromClassList then
+        exit;
 {$ENDIF}
     DbFetchOwningMember;
   end;
