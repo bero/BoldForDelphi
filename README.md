@@ -1,6 +1,6 @@
 # BoldForDelphi
 
-Bold is a Model Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool for Delphi. It allows you to start with a UML model of your application and execute it with a sophisticated object-relational mapping layer, OCL query language, change synchronization, and IDE-integrated tools.
+Bold is a Model Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool for Delphi. It allows you to start with a UML model of your application and execute it with a sophisticated object-relational mapping layer, [OCL](https://en.wikipedia.org/wiki/Object_Constraint_Language) query language, change synchronization, and IDE-integrated tools.
 
 ## Use Cases
 
@@ -21,8 +21,8 @@ Bold for Delphi is best suited for:
 
 ## Supported Delphi Versions
 
-- Delphi 13 Florence (packages/Delphi13/)
-- Delphi 12.3 Athens (packages/Delphi12.3/) - also serves 12.1 (same compiler major)
+- Delphi 13.1 Florence (packages/Delphi13/) - also serves 13.0 Community Edition (same compiler major)
+- Delphi 12.3 Athens (packages/Delphi12.3/) 
 - Delphi 11.3 Alexandria (packages/Delphi11.3/)
 
 ## Dependencies
