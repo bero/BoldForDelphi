@@ -90,7 +90,7 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
-        <Debugger_RunParams>--consolemode:Verbose --exit:pause</Debugger_RunParams>
+        <Debugger_RunParams>--run:Benchmark.BoldIdListSql.TBoldIdListSqlBenchmark.IdListFetch_DistinctStatementsPerBucket --exit:pause</Debugger_RunParams>
         <DCC_Inlining>off</DCC_Inlining>
         <DCC_ConsoleTarget>true</DCC_ConsoleTarget>
     </PropertyGroup>
@@ -101,8 +101,15 @@
         <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_3)'!=''">
-        <DCC_UnitSearchPath>Code\Persistence\UniDAC;..\Source\Persistence\UniDAC;$(UniDAC)\Source;$(UniDAC)\Source\UniProviders\SQLServer;$(UniDAC)\Source\UniProviders\TDS;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_ExeOutput>.\UniDAC</DCC_ExeOutput>
+    </PropertyGroup>
+    <!-- UniDAC as source (the vendored 10.4 copy, or the Devart source archive extracted into Source) -->
+    <PropertyGroup Condition="'$(Cfg_3)'!='' and Exists('$(UniDAC)\Source\Uni.pas')">
+        <DCC_UnitSearchPath>Code\Persistence\UniDAC;..\Source\Persistence\UniDAC;$(UniDAC)\Source;$(UniDAC)\Source\UniProviders\SQLServer;$(UniDAC)\Source\UniProviders\TDS;$(UniDAC)\Source\UniProviders\SQLite;$(DCC_UnitSearchPath);Code\Persistence\UniDACProviderStubs</DCC_UnitSearchPath>
+    </PropertyGroup>
+    <!-- UniDAC as compiled units only (the Devart installer): its Source folder holds stubs that need the source archive, so keep it off the path -->
+    <PropertyGroup Condition="'$(Cfg_3)'!='' and !Exists('$(UniDAC)\Source\Uni.pas')">
+        <DCC_UnitSearchPath>Code\Persistence\UniDAC;..\Source\Persistence\UniDAC;$(UniDAC)\Lib\Win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">

@@ -9,11 +9,12 @@
 #   -Platform  : Target platform (default: "Win32")
 #   -GUI       : Build UnitTestGUI.dproj instead of UnitTest.dproj
 #   -DelphiVersion : Registry version of the Delphi to use (e.g. 23.0 = 12 Athens).
-#                Default: newest installed. UniDAC 10.4 does not compile with Delphi 13,
-#                so use -Config DebugUniDAC together with -DelphiVersion 23.0.
+#                Default: newest installed. The vendored UniDAC 10.4 does not compile with
+#                Delphi 13, so with that copy use -Config DebugUniDAC together with
+#                -DelphiVersion 23.0; an installed UniDAC 11 for RAD Studio 13 needs no pin.
 #   -Config DebugUniDAC : Debug + the real UniDAC test units (Code\Persistence\UniDAC)
 #                instead of their empty stubs. Needs the UniDAC environment variable
-#                (UniDAC installation root containing Source\); output goes to .\UniDAC\.
+#                (installation root with Source\ and/or Lib\Win32\); output goes to .\UniDAC\.
 #
 # EXAMPLES:
 #   .\build.ps1
@@ -40,8 +41,9 @@ if (-not $env:DelphiMocks) { $env:DelphiMocks = "C:\Attracs\Delphi-Mocks\Source"
 # default below is the copy vendored in the Attracs repositories.
 if ($Config -eq "DebugUniDAC") {
     if (-not $env:UniDAC) { $env:UniDAC = "C:\Attracs\Attracs-Common\components\UniDAC" }
-    if (-not (Test-Path (Join-Path $env:UniDAC "Source\Uni.pas"))) {
-        Write-Host "ERROR: UniDAC not found at $env:UniDAC (expected Source\Uni.pas)" -ForegroundColor Red
+    # A source installation has Source\Uni.pas; the Devart installer alone ships compiled units in Lib\Win32.
+    if (-not (Test-Path (Join-Path $env:UniDAC "Source\Uni.pas")) -and -not (Test-Path (Join-Path $env:UniDAC "Lib\Win32\Uni.dcu"))) {
+        Write-Host "ERROR: UniDAC not found at $env:UniDAC (expected Source\Uni.pas or Lib\Win32\Uni.dcu)" -ForegroundColor Red
         exit 1
     }
 }

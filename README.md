@@ -98,7 +98,7 @@ SQL Server when UniDAC is installed:
 
 ```powershell
 cd UnitTest
-.\run_matrix.ps1                      # FireDAC x SQLite, FireDAC x SQL Server, UniDAC x SQL Server
+.\run_matrix.ps1                      # FireDAC and UniDAC, each on SQLite and SQL Server (UniDAC rows need UniDAC)
 .\run_matrix.ps1 -Engines SQLite     # one engine
 .\run_matrix.ps1 -SkipBuild -Filter Test.BoldBatchQueries
 ```

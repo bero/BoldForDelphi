@@ -2,7 +2,7 @@
 #
 # Builds the test project once and runs it against each database engine in
 # turn, then (unless skipped) builds the DebugUniDAC configuration and runs the
-# UniDAC fixtures against SQL Server. The engine is passed through the
+# UniDAC fixtures against each UniDAC engine. The engine is passed through the
 # BOLD_TEST_ENGINE environment variable, which BoldTestDatabaseConfig reads
 # before UnitTest.ini, so the ini is never edited.
 #
@@ -17,10 +17,17 @@
 #                  Test.BoldLinks.TTestBoldLinks.TestCollectRoleInPS_MatchesInMemory.
 #   -SkipBuild   : Reuse the existing executables.
 #   -SkipUniDAC  : Do not build or run the DebugUniDAC configuration.
+#   -UniDACEngines : Engines for the UniDAC build. Default: the same list as -Engines when
+#                  the UniDAC environment variable points at an installation with the
+#                  SQLite provider (UniDAC 11), otherwise SQLServer only (the vendored
+#                  10.4 copy has no SQLite provider).
 #   -UniDACFull  : Run the whole suite with the UniDAC build instead of only the
 #                  UniDAC fixtures (Test.PersistenceUniDAC, Test.PersistenceScenariosUniDAC).
-#   -UniDACDelphiVersion : Delphi registry version for the UniDAC build
-#                  (default 23.0 = Delphi 12; UniDAC 10.4 does not compile on Delphi 13).
+#   -UniDACDelphiVersion : Delphi registry version for the UniDAC build. Default: 23.0
+#                  (Delphi 12) when the vendored Attracs-Common copy is used, because stock
+#                  UniDAC 10.4 does not compile on Delphi 13; the newest Delphi when the
+#                  UniDAC environment variable points at another installation (for example
+#                  the patched copy in C:\Attracs\UniDAC-10.4-D13, see its PATCHES.md).
 #
 # Logs: UnitTest\matrix_<adapter>_<engine>.log. Exit code = number of failed runs.
 
@@ -30,7 +37,8 @@ param(
     [switch]$SkipBuild,
     [switch]$SkipUniDAC,
     [switch]$UniDACFull,
-    [string]$UniDACDelphiVersion = "23.0"
+    [string[]]$UniDACEngines = @(),
+    [string]$UniDACDelphiVersion = $(if ($env:UniDAC) { "" } else { "23.0" })
 )
 
 $ErrorActionPreference = "Stop"
@@ -103,16 +111,25 @@ try {
         catch { Write-Host "  $_" -ForegroundColor Red }
     }
 
-    # ---- UniDAC build (Delphi 12), SQL Server only
+    # ---- UniDAC build, one run per UniDAC engine
     if (-not $SkipUniDAC) {
         if (-not $env:UniDAC) { $env:UniDAC = "C:\Attracs\Attracs-Common\components\UniDAC" }
-        if (Test-Path (Join-Path $env:UniDAC "Source\Uni.pas")) {
+        # source installation (Source\Uni.pas) or the Devart installer's compiled units (Lib\Win32\Uni.dcu)
+        if ((Test-Path (Join-Path $env:UniDAC "Source\Uni.pas")) -or (Test-Path (Join-Path $env:UniDAC "Lib\Win32\Uni.dcu"))) {
             $UniDACExe = Join-Path $ScriptDir "UniDAC\UnitTest.exe"
             try {
                 if (-not $SkipBuild) { Invoke-Build "DebugUniDAC" $UniDACDelphiVersion }
                 if (-not (Test-Path $UniDACExe)) { throw "Not found: $UniDACExe" }
                 $UniFilter = if ($Filter) { $Filter } elseif ($UniDACFull) { "" } else { $UniDACFixtures }
-                Invoke-Run "UniDAC" $UniDACExe "SQLServer" $UniFilter
+                if ($UniDACEngines.Count -eq 0) {
+                    $HasSQLite = (Test-Path (Join-Path $env:UniDAC "Lib\Win32\SQLiteUniProvider.dcu")) -or
+                                 (Test-Path (Join-Path $env:UniDAC "Source\UniProviders\SQLite\SQLiteUniProvider.pas"))
+                    $UniDACEngines = if ($HasSQLite) { $Engines } else { @("SQLServer") }
+                }
+                foreach ($Engine in $UniDACEngines) {
+                    try { Invoke-Run "UniDAC" $UniDACExe $Engine $UniFilter }
+                    catch { Write-Host "  $_" -ForegroundColor Red }
+                }
             } catch { Write-Host "  $_" -ForegroundColor Red }
         } else {
             Write-Host ""

@@ -70,7 +70,8 @@ powershell -Command "$env:BOLD_TEST_ENGINE='SQLServer'; & '.\UnitTest\UnitTest.e
 
 Bold SQL generation depends on the engine, the adapter wrappers depend on the DAC, and only driver
 quirks depend on the pair. `UnitTest\run_matrix.ps1` runs the combinations that matter: the FireDAC build on
-SQLite and SQL Server, then the DebugUniDAC build on SQL Server (skipped when UniDAC is not installed).
+SQLite and SQL Server, then the DebugUniDAC build on the same engines when the UniDAC installation has a
+SQLite provider (UniDAC 11), on SQL Server only otherwise (skipped when UniDAC is not installed at all).
 Run it when `Source\Persistence` or `Source\PMapper` change; the SQLite run alone is the everyday gate.
 
 ```powershell
@@ -192,13 +193,36 @@ configuration `DebugUniDAC` puts the real units (`UnitTest\Code\Persistence\UniD
 ```powershell
 # UniDAC 10.4 does not compile with Delphi 13 - pin Delphi 12
 powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\build.ps1" -Config DebugUniDAC -DelphiVersion 23.0
-# The vendored UniDAC ships no SQLite provider, so select SQL Server through the environment
+# The vendored 10.4 copy ships no SQLite provider, so select SQL Server through the environment
 # variable instead of editing UnitTest.ini
 powershell -Command "$env:BOLD_TEST_ENGINE='SQLServer'; & '.\UnitTest\UniDAC\UnitTest.exe' --run:Test.PersistenceUniDAC 2>&1"
 ```
 
+With the licensed **UniDAC 11.0.1** (installed for Delphi 13 only; full source copied to `C:\Attracs\UniDAC-11.0.1`)
+the same configuration builds on Delphi 13 without a version pin and runs on SQLite as well:
+
+```powershell
+$env:UniDAC = 'C:\Attracs\UniDAC-11.0.1'
+powershell -ExecutionPolicy Bypass -File "C:\Attracs\BoldForDelphi\UnitTest\build.ps1" -Config DebugUniDAC
+powershell -Command "$env:BOLD_TEST_ENGINE='SQLite'; & '.\UnitTest\UniDAC\UnitTest.exe' --run:Test.PersistenceUniDAC 2>&1"
+```
+
+The `DebugUniDAC` search path adapts to the installation through an MSBuild `Exists()` condition in
+`UnitTest.dproj`: with `$(UniDAC)\Source\Uni.pas` present it compiles UniDAC from source (plus the SQLite
+provider folder); otherwise it uses the compiled units in `$(UniDAC)\Lib\Win32` only. The Devart installer's
+own `Source` folder holds stubs that need the source archive, and MSBuild's `-B` recompiles any `.pas` it
+finds, so that folder must stay off the path for a compiled-only installation.
+
 `build.ps1` defaults `$env:UniDAC` to `C:\Attracs\Attracs-Common\components\UniDAC` when the variable
 is not set. A new UniDAC-only test unit needs an empty twin with the same unit name in `UniDACStubs`.
+`UnitTest\Code\Persistence\UniDACProviderStubs` holds an empty `SQLiteUniProvider` and is the LAST entry on the
+source-branch search path, so the test base can import the SQLite provider unconditionally: a real provider
+wins when the installation has one, the stub keeps the vendored 10.4 copy compiling when it has not.
+
+Stock UniDAC 10.4 does not compile on Delphi 13. A separately patched copy lives outside both repos in
+`C:\Attracs\UniDAC-10.4-D13` (three local patches, documented in its `PATCHES.md`); it documents what a future
+Attracs move to Delphi 13 would need. Never apply those patches to the Attracs-Common copy, which Attracs links
+statically with Delphi 12.
 
 ## Compiler Directives (Bold.inc)
 
