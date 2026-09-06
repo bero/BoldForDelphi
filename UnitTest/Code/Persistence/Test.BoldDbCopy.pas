@@ -134,14 +134,24 @@ const
   cDestinationDatabase = 'file:memdb_dbcopy?mode=memory&cache=shared';
 
 procedure TTestBoldDbCopyEndToEnd.SetUp;
+var
+  Destination: string;
 begin
   EnsureDM;
   if not dmUndoRedo.BoldSystemHandle1.Active then
     dmUndoRedo.BoldSystemHandle1.Active := True;
   // Destination: the data module's second persistence handle, pointed at a
-  // second in-memory database with a freshly created (empty) schema. The
-  // connection stays open so the shared-cache database stays alive.
-  dmUndoRedo.FDConnection2.Params.Values['Database'] := cDestinationDatabase;
+  // second database with a freshly created (empty) schema. On SQLite that is
+  // a second in-memory database (the connection stays open so the shared
+  // cache stays alive); on server engines a sibling of the test database.
+  if SameText(GetTestDatabaseEngine, 'SQLite') then
+    Destination := cDestinationDatabase
+  else
+  begin
+    Destination := GetTestDatabaseName + '_DbCopy';
+    CreateTestDatabase(Destination);
+  end;
+  dmUndoRedo.FDConnection2.Params.Values['Database'] := Destination;
   dmUndoRedo.FDConnection2.Open;
   dmUndoRedo.BoldPersistenceHandleDB2.CreateDataBaseSchema;
   FDone := TEvent.Create(nil, True, False, '');

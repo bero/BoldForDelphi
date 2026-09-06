@@ -1,4 +1,4 @@
-unit BoldTestDatabaseConfig;
+﻿unit BoldTestDatabaseConfig;
 
 {******************************************************************************}
 {                                                                              }
@@ -17,9 +17,14 @@ uses
   FireDAC.Comp.Client;
 
 procedure ConfigureConnection(Connection: TFDConnection; Adapter: TBoldDatabaseAdapterFireDAC);
-procedure CreateTestDatabase;
+{ Creates the test database on server engines if it does not exist. With a
+  name, creates that database instead of the one in UnitTest.ini - for tests
+  that need a second database next to the shared one (e.g. a copy target). }
+procedure CreateTestDatabase(const ADatabaseName: string = '');
 procedure DropTestDatabase;
 function GetTestDatabaseEngine: string;
+{ The database name from UnitTest.ini for the configured engine. }
+function GetTestDatabaseName: string;
 function GetIniFilePath: string;
 
 implementation
@@ -170,7 +175,24 @@ begin
   end;
 end;
 
-procedure CreateTestDatabase;
+function GetTestDatabaseName: string;
+var
+  Ini: TIniFile;
+  Engine: string;
+begin
+  Ini := TIniFile.Create(GetIniFilePath);
+  try
+    Engine := Ini.ReadString('Database', 'Engine', 'SQLServer');
+    if SameText(Engine, 'SQLite') then
+      Result := Ini.ReadString('SQLite', 'Database', 'file:memdb1?mode=memory&cache=shared')
+    else
+      Result := Ini.ReadString(Engine, 'Database', 'BoldUnitTest');
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure CreateTestDatabase(const ADatabaseName: string);
 var
   Ini: TIniFile;
   Engine, Server, Database, User, Password: string;
@@ -185,7 +207,10 @@ begin
     if SameText(Engine, 'SQLServer') then
     begin
       Server := Ini.ReadString('SQLServer', 'Server', '.\SQLEXPRESS');
-      Database := Ini.ReadString('SQLServer', 'Database', 'BoldUnitTest');
+      if ADatabaseName <> '' then
+        Database := ADatabaseName
+      else
+        Database := Ini.ReadString('SQLServer', 'Database', 'BoldUnitTest');
       User := Ini.ReadString('SQLServer', 'User', '');
       Password := Ini.ReadString('SQLServer', 'Password', '');
       // Handle Yes/No/True/False/1/0

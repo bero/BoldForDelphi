@@ -1847,13 +1847,16 @@ begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
   CanEvaluate := Sys.CanEvaluateInPS('self.child->collect(parent)', CTI);
-  if SameText(GetTestDatabaseEngine, 'SQLite') then
-    // On SQLite the iteration's ObjectMapper never resolves. A True answer
-    // here means the generator silently skipped the collect node - the same
-    // silent skip on the fetch path produces SQL missing the constraint.
-    Assert.IsFalse(CanEvaluate, 'collect(parent) is not translatable to SQL on SQLite - True is a false positive')
-  else
-    Assert.IsTrue(CanEvaluate, 'collect(parent) should be translatable on ' + GetTestDatabaseEngine);
+  // collect(role) has no InPS symbol on any engine: TBSS_collect is declared
+  // but never installed in the SQL symbol dictionary, so the resolver raises
+  // "SQLSymbol 'collect' not found" and CanEvaluateInPS must answer False.
+  // A True here means the generator silently skipped the unresolved node -
+  // the same silent skip on the fetch path produces SQL missing the
+  // iteration constraint. (The failure reason is included so a change in the
+  // answer explains itself.)
+  Assert.IsFalse(CanEvaluate,
+    'collect(parent) is not translatable to SQL on ' + GetTestDatabaseEngine +
+    ' - True is a false positive. Last failure reason: ' + GetBoldLastFailureReason.Reason);
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_Exists;
