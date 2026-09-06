@@ -1,4 +1,4 @@
-unit maan_UndoRedoBase;
+﻿unit maan_UndoRedoBase;
 
 interface
 
@@ -179,7 +179,17 @@ begin
       if Assigned(dmUndoRedo.BoldSystemHandle1.System) then
         dmUndoRedo.BoldSystemHandle1.System.Discard;
       dmUndoRedo.BoldSystemHandle1.Active := False;
-      dmUndoRedo.BoldSystemHandle1.Active := True;
+      try
+        dmUndoRedo.BoldSystemHandle1.Active := True;
+      except
+        // Fixtures built on TBoldTestCasePersistence recreate the schema of
+        // the shared test database with their own model; after one of them
+        // this module's system no longer matches the tables. Rebuild the
+        // module - and with it the schema - instead of failing every later
+        // fixture that runs in this order.
+        FreeAndNil(dmUndoRedo);
+        EnsureDM;
+      end;
     end;
   except
     on E: Exception do
