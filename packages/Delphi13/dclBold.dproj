@@ -73,7 +73,6 @@
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
         <DCC_UnitSearchPath>..\..\Source\Common\Include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_ResourcePath>..\..\Source;$(DCC_ResourcePath)</DCC_ResourcePath>
-        <DllVersion>30</DllVersion>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>26</VerInfo_MajorVer>
         <VerInfo_MinorVer>8</VerInfo_MinorVer>
@@ -639,12 +638,6 @@
                 <Platform value="Win64x">False</Platform>
             </Platforms>
             <Deployment Version="5">
-                <DeployFile LocalName="..\Bin\dclBold.30.bpl" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>dclBold.bpl</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="OSX32">
                         <Operation>1</Operation>
