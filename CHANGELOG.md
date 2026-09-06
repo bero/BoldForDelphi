@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The two ignored `FetchRefetch` tests are rehabilitated and pin the classic `DbFetchOwningMember` path; the suite has no ignored tests (#83)
 - Three `TestBoldOclEvaluation` tests assumed the creation order of unsaved objects in a class extent; they sort first
 - The Delphi 11.3 design package was built without a version resource: its Debug/Win32 configuration overrode `VerInfo_IncludeVerInfo` to false
+- The 26.8.1 Delphi 12.3 package had lost `NoObjectSpaceTransactions` again (the define restored for #85 was dropped by the version-stamping commit the same day); all three packages now declare it in the same project group (#85)
 
 ### Changed
 - Design packages are named by compiler through `LIBSUFFIX AUTO` (`dclBold280.bpl`, `dclBold290.bpl`, `dclBold370.bpl`); the Delphi 12.1 CE package project is retired (#87)

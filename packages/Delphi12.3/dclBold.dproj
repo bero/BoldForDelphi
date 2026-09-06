@@ -52,6 +52,7 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <DCC_Define>NoObjectSpaceTransactions;$(DCC_Define)</DCC_Define>
         <DCC_BplOutput>..\Bin</DCC_BplOutput>
         <DCC_F>false</DCC_F>
         <DCC_S>false</DCC_S>
