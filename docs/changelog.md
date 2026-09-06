@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `BOLD_TEST_ENGINE` selects the test database engine without editing `UnitTest.ini`; `UnitTest\run_matrix.ps1` runs the adapter x engine matrix (FireDAC and UniDAC on SQLite and SQL Server) with one summary table
 - `UnitTest\sync_gui_dpr.ps1` generates the GUI runner's unit list from the console runner, so TestInsight runs the whole suite (#84)
 - Package-manager manifests for Boss and DPM, and a release checklist (#87)
+- TMS Smart Setup definition (`tmsbuild.yaml`) and `version.txt`, so `tms install bero.boldfordelphi` builds and registers the design package for Delphi 11, 12 and 13; submitted to the community registry (#87)
 
 ### Fixed
 - **Data corruption on FireDAC**: with `MultiRowInsertLimit = 1`, `PMCreate` wrote the second new object's attribute values into the third and later objects saved in one `UpdateDatabase`, because the per-row reset cleared a parameter snapshot instead of the query's real parameters (#88)
