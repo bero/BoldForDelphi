@@ -14,7 +14,7 @@ min dpm client version: 1.0
 
 metadata:
   id: bero.BoldForDelphi
-  version: 26.8.1
+  version: 26.9.0
   description: >
     Bold for Delphi - a Model Driven Architecture framework with UML modelling,
     OCL expressions, code generation and object-relational persistence.

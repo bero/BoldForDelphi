@@ -61,7 +61,7 @@
         <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
         <GenDll>true</GenDll>
         <DCC_E>false</DCC_E>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=26.8.1.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=26.8.1.0;Comments=;CFBundleName=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=26.9.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=26.9.0.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_Description>Bold Components for Delphi 12.3 Athens</DCC_Description>
         <SanitizedProjectName>dclBold</SanitizedProjectName>
         <DCC_K>false</DCC_K>
@@ -73,18 +73,18 @@
         <DCC_UnitSearchPath>..\..\Source;..\..\Source\Common\Include;..\..\Source\Forms;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>26</VerInfo_MajorVer>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
-        <VerInfo_Release>1</VerInfo_Release>
+        <VerInfo_MinorVer>9</VerInfo_MinorVer>
+        <VerInfo_Release>0</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>xmlrtl;rtl;vclactnband;vclx;vcl;vclimg;DbxCommonDriver;dbrtl;soaprtl;inet;vcldb;dsnap;dbexpress;adortl;dxCoreRS24;cxLibraryRS24;dxGDIPlusRS24;dxThemeRS24;cxDataRS24;cxPageControlRS24;cxEditorsRS24;dxLayoutControlRS24;dxComnRS24;dxBarRS24;cxGridRS24;fs24;FixInsight_10_1;frx24;frxe24;dxCoreRS26;cxLibraryRS26;dxGDIPlusRS26;dxComnRS26;dxBarRS26;cxGridRS26;frx26;fs26;frxe26;frx27;fs27;frxe27;dxCoreRS27;cxLibraryRS27;dxGDIPlusRS27;dxComnRS27;dxBarRS27;cxGridRS27;dxCoreRS28;cxLibraryRS28;dxGDIPlusRS28;dxComnRS28;dxBarRS28;cxGridRS28;FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;IndySystem;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=26.8.1.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=26.8.1.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=26.9.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=26.9.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_MajorVer>26</VerInfo_MajorVer>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
-        <VerInfo_Release>1</VerInfo_Release>
+        <VerInfo_MinorVer>9</VerInfo_MinorVer>
+        <VerInfo_Release>0</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <DCC_UsePackage>FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;IndySystem;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
@@ -92,7 +92,7 @@
     <PropertyGroup Condition="'$(Base_Win64x)'!=''">
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=26.8.1.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=Bold for Delphi;ProductVersion=26.8.1.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=26.9.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=Bold for Delphi;ProductVersion=26.9.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_UsePackage>FireDAC;FireDACCommonDriver;FireDACCommon;FireDACPgDriver;IndySystem;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
@@ -104,10 +104,10 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=26.8.1.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=26.8.1.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=26.9.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=26.9.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_MajorVer>26</VerInfo_MajorVer>
-        <VerInfo_MinorVer>8</VerInfo_MinorVer>
-        <VerInfo_Release>1</VerInfo_Release>
+        <VerInfo_MinorVer>9</VerInfo_MinorVer>
+        <VerInfo_Release>0</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -116,7 +116,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=26.8.1.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=26.8.1.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=26.9.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=Bold for Delphi;ProductVersion=26.9.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">

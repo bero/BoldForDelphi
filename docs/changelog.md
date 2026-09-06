@@ -10,6 +10,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [26.9.0] - 2026-09-06
+
+### Added
+- **`collect(role)` evaluates in the persistence layer**: `TBSS_collect` is implemented and installed, so `self.child->collect(parent)` and the implicit `self.child.parent` translate to SQL instead of falling back to in-memory evaluation (#96)
+- `IBoldDatabase.ReleaseAnotherDatabaseConnection` releases a connection obtained from `CreateAnotherDatabaseConnection` (#92)
+- The UniDAC adapter tests compile through a stub-unit `DebugUniDAC` build configuration, so UniDAC is never required; they run on SQL Server and SQLite, against the vendored UniDAC 10.4 on Delphi 12 or UniDAC 11 on Delphi 13 (#89)
+- Adapter-neutral persistence scenario tests run on every adapter (#88, #80, #89); end-to-end tests drive `TBoldDbCopy` and the database validator threads (#92, #93, #94)
+- `BOLD_TEST_ENGINE` selects the test database engine without editing `UnitTest.ini`; `UnitTest\run_matrix.ps1` runs the adapter x engine matrix (FireDAC and UniDAC on SQLite and SQL Server) with one summary table
+- `UnitTest\sync_gui_dpr.ps1` generates the GUI runner's unit list from the console runner, so TestInsight runs the whole suite (#84)
+- Package-manager manifests for Boss and DPM, and a release checklist (#87)
+
+### Fixed
+- **Data corruption on FireDAC**: with `MultiRowInsertLimit = 1`, `PMCreate` wrote the second new object's attribute values into the third and later objects saved in one `UpdateDatabase`, because the per-row reset cleared a parameter snapshot instead of the query's real parameters (#88)
+- `UseBatchQueries` was broken on both FireDAC and UniDAC (#80); it is now refused on engines where batching is unverified instead of failing at run time (#95)
+- Undo: the redo value space was orphaned when undoing a block with no changes, and `DoUndoInTransaction` used a block after freeing it (#86)
+- UniDAC: cached queries leaked when a connection wrapper was destroyed (#90); `CreateAnotherDatabaseConnection` created a `TUniConnection` nobody freed (#91); `GetDatabaseError` raised its own exception for providers without an error-code table, hiding the real database error (#98)
+- `TBoldDbCopy` and the database validator dropped the extra connection wrappers they obtained (#92); validator worker threads were never freed (#93)
+- `TBoldDbCopy` failed silently on FireDAC: `Prepare` ran before the parameter types were known, worker exceptions were swallowed, the row-count query leaked; failures are now logged and reported through `Errors` (#94)
+- `FetchFromClassList` fetched every invalid single link of the other-end class one by one, one `SELECT` each, when deriving a multilink from a current class extent; it now falls back to the single database query and leaves invalid members alone (#97)
+- The design packages could not be installed from the IDE after `LIBSUFFIX AUTO`: a leftover LIB version in the project files made the IDE look for `dclBold370.30.bpl` while the compiler produced `dclBold370.bpl` (#87)
+- The two ignored `FetchRefetch` tests are rehabilitated and pin the classic `DbFetchOwningMember` path; the suite has no ignored tests (#83)
+- Three `TestBoldOclEvaluation` tests assumed the creation order of unsaved objects in a class extent; they sort first
+- The Delphi 11.3 design package was built without a version resource: its Debug/Win32 configuration overrode `VerInfo_IncludeVerInfo` to false
+
+### Changed
+- Design packages are named by compiler through `LIBSUFFIX AUTO` (`dclBold280.bpl`, `dclBold290.bpl`, `dclBold370.bpl`); the Delphi 12.1 CE package project is retired (#87)
+- `CanEvaluateInPS` answers True for `collect(role)`, where it previously answered False on every engine (#43, #96)
+- Test suite at 2182 tests (2182 passing, 0 ignored, 0 failed); code coverage 58.5%
+
+---
+
 ## [26.8.1] - 2026-08-16
 
 ### Added
