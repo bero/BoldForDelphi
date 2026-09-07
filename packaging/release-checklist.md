@@ -5,7 +5,7 @@ Never zero-pad the month (Boss/semver rejects leading zeros).
 
 ## Build & release
 - [ ] CHANGELOG.md updated (docs/changelog.md includes it, do not edit that file); grep docs for stale
-      "Current Version" lines (docs/index.md, docs/roadmap.md)
+      "Current Version" lines (docs/index.md, ROADMAP.md) and add the release to the ROADMAP.md history table
 - [ ] Build the 4 design packages (auto-named since LIBSUFFIX AUTO):
       `dclBold280.bpl` (11.3), `dclBold290.bpl` (12.x), `dclBold370.bpl` (13)
 - [ ] Remove any stale old-style BPLs (`dclBold.28.bpl` etc.) from `packages/Bin`

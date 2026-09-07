@@ -8,6 +8,7 @@ on:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'CHANGELOG.md'  # included into docs/changelog.md
+      - 'ROADMAP.md'    # included into docs/roadmap.md
   workflow_dispatch:
 
 permissions:

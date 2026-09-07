@@ -1,60 +1,47 @@
-# Bold for Delphi - Roadmap
+# Bold for Delphi Roadmap
 
 This roadmap outlines the development direction for Bold for Delphi. It is a living document that evolves based on community feedback and contributions.
 
-**Current Version**: Delphi 13
+**Current Version**: 26.9.0
 **Status**: Active Development
-
----
 
 ## Vision
 
 Make Bold for Delphi a modern, well-documented, and reliable ORM framework for Delphi developers who value model-driven architecture.
 
-It should be easy to get a good understanding of what Bold is and in what cases it is useful.
-
----
-
 ## Status Legend
 
-| Icon | Meaning |
-|------|---------|
-| :white_check_mark: | Completed |
-| :white_large_square: | In Progress |
-| :calendar: | Planned |
-| :thinking: | Under Consideration |
-
----
+| Status | Meaning |
+|--------|---------|
+| Done | Completed |
+| In Progress | Currently being worked on |
+| Planned | Scheduled for future release |
+| Considering | Under evaluation |
 
 ## 1. Delphi Version Support
 
 | Status | Version |
 |--------|---------|
-| :white_check_mark: | Delphi 11.3 Alexandria |
-| :white_check_mark: | Delphi 12.1 Athens |
-| :white_check_mark: | Delphi 12.3 Athens |
-| :white_check_mark: | Delphi 13 |
-| :calendar: | Delphi 14+ |
+| Done | Delphi 11.3 Alexandria |
+| Done | Delphi 12.x Athens (one package for 12.1 Community Edition through 12.3) |
+| Done | Delphi 13 Florence |
+| Planned | Delphi 14+ |
 
 **Goal**: Support each new Delphi version within 30 days of release.
 
----
-
 ## 2. Documentation
 
-| Status | Notes |
-|--------|-------|
-| :white_check_mark: | Quick Start Guide (`quickstart.md`) |
-| :white_check_mark: | Example documentation in browser |
-| :white_check_mark: | Add about dialog to Bold menu item in IDE |
-| :white_check_mark: | Changelog (`CHANGELOG.md`) |
-| :calendar: | Complete API reference |
-| :calendar: |  OCL language reference |
-| :calendar: | Component reference guide |
-| :calendar: | Video tutorials |
-| :calendar: | Searchable documentation website (GitHub Pages + MkDocs) |
-
----
+| Status | Item |
+|--------|------|
+| Done | Quick Start Guide |
+| Done | Example documentation |
+| Done | About dialog in IDE |
+| Done | Changelog |
+| Done | Documentation website (GitHub Pages + MkDocs) |
+| Planned | Complete API reference |
+| Planned | OCL language reference |
+| Planned | Component reference guide |
+| Planned | Video tutorials |
 
 ## 3. Database Support
 
@@ -62,163 +49,144 @@ It should be easy to get a good understanding of what Bold is and in what cases 
 
 | Status | Adapter | Database |
 |--------|---------|----------|
-| :white_check_mark: | FireDAC | SQL Server |
-| :white_check_mark: | FireDAC | PostgreSQL |
-| :white_check_mark: | FireDAC | Firebird |
-| :white_check_mark: | FireDAC | SQLite |
-| :white_check_mark: | XML | Not used |
-| :white_check_mark: | FireDAC | Oracle |
-| :white_large_square: | FireDAC | MySQL |
-| :white_large_square: | FireDAC | MariaDB |
-| UniDAC (all supported databases) | UniDAC | :calendar: Needs testing (Optional as UniDAC is commercial) |
+| Done | FireDAC | SQL Server |
+| Done | FireDAC | PostgreSQL |
+| Done | FireDAC | Firebird |
+| Done | FireDAC | SQLite |
+| Done | FireDAC | Oracle |
+| Done | XML | File-based |
+| In Progress | FireDAC | MySQL |
+| In Progress | FireDAC | MariaDB |
+| Done | UniDAC | SQL Server and SQLite (optional: UniDAC is commercial; the adapter tests run on both engines) |
 
-### Planned
+### Planned Improvements
 
-| Status | Comment |
-|--------|---------|
-| :calendar: | Improve PostgreSQL-specific optimizations |
-| :calendar: | Document database-specific configurations |
-
----
+- Improve PostgreSQL-specific optimizations
+- Document database-specific configurations
 
 ## 4. Testing & Code Quality
 
 ### Testing Infrastructure
 
-| Status | Comment |
-|--------|---------|
-| :white_check_mark: | DUnitX test framework migration |
-| :white_check_mark: | Code coverage reporting with DelphiCodeCoverage for tests |
-| :white_large_square: | Increase code coverage |
-| :thinking: | Automated CI builds (GitHub Actions) |
-| :thinking: | Automated test runs on pull requests |
-| :thinking: | Performance benchmarks |
+| Status | Item |
+|--------|------|
+| Done | DUnitX test framework migration |
+| Done | Code coverage reporting with DelphiCodeCoverage |
+| Done | Adapter x engine test matrix (`UnitTest\run_matrix.ps1`: FireDAC and UniDAC on SQLite and SQL Server) |
+| In Progress | Increase code coverage |
+| In Progress | Performance benchmarks (id-list SQL benchmarks exist) |
+| Considering | Automated CI builds (GitHub Actions) |
+| Considering | Automated test runs on pull requests |
 
 ### Code Coverage Progress
 
-**Live tracking**: [Codecov.io Dashboard](https://app.codecov.io/github/bero/BoldForDelphi) (since 2026-01-06)
-
-Historical data (before Codecov integration):
-
-|    Date    | Units | Covered | Not covered | Total lines | Coverage % |
-|------------|-------|---------|-------------|-------------|------------|
-| 2025-12-22 |   153 |   15657 |       44318 |       59975 |    26.106% |
-| 2025-12-24 |   149 |   15629 |       40552 |       56181 |    27.819% |
-| 2026-01-01 |   149 |   20619 |       35624 |       56243 |    36.661% |
-| 2026-01-02 |   149 |   22481 |       33724 |       56205 |    39.998% |
-| 2026-01-04 |   156 |   22915 |       33991 |       56906 |    40.268% |
-| 2026-01-05 |   156 |   22944 |       33957 |       56901 |    40.322% |
-
-### Code Quality
-
-| Status | Comment |
-|--------|---------|
-| :white_check_mark: | Remove deprecated database adapters (ADO, BDE, DBExpress) |
-| :white_check_mark: | Removed C++Builder-specific code |
-| :white_large_square: | Fix warnings from Pascal Analyzer |
-| :calendar: | Consolidate duplicate code |
-| :calendar: | [Use generics](https://github.com/bero/BoldForDelphi/issues/12) |
+**Live tracking**: [Codecov.io Dashboard](https://app.codecov.io/github/bero/BoldForDelphi)
 
 ### Test Focus Areas
 
-| Status | Comment |
-|--------|---------|
-| :white_check_mark: | OCL parser and evaluator (78.5% coverage, 117+ evaluation tests) |
-| :calendar: | Persistence layer |
-| :calendar: | SQL generation |
-| :calendar: | Subscription system |
+| Status | Area |
+|--------|------|
+| Done | OCL parser and evaluator (117+ end-to-end evaluation tests) |
+| In Progress | Persistence layer: FireDAC and UniDAC adapters, batch queries, DbCopy and validator end-to-end tests |
+| In Progress | SQL generation from OCL (`collect(role)` added in 26.9.0) |
+| Planned | Subscription system |
 
----
+### Code Quality
+
+| Status | Item |
+|--------|------|
+| Done | Remove deprecated database adapters (ADO, BDE, DBExpress) |
+| Done | Remove C++Builder-specific code |
+| In Progress | Fix warnings from Pascal Analyzer |
+| Planned | Consolidate duplicate code |
+| Planned | Use generics |
 
 ## 5. Examples & Demos
 
-| Status | Comment |
-|--------|---------|
-| :white_check_mark: | MasterDetail demo (basic CRUD) |
-| :white_check_mark: | XML persistence demo |
-| :white_check_mark: | LogBridge demo (logging integration) |
-| :white_large_square: | Building/Person demo (associations) |
-| :calendar: | REST API integration example |
-| :calendar: | Real-world application template |
-
----
+| Status | Item |
+|--------|------|
+| Done | MasterDetail demo (basic CRUD) |
+| Done | XML persistence demo |
+| Done | LogBridge demo (logging integration) |
+| In Progress | Building/Person demo (associations) |
+| Planned | REST API integration example |
+| Planned | Real-world application template |
 
 ## 6. Core Improvements
 
 ### Performance
 
-| Status | Comment |
-|---------|--------|
-| :calendar: | Generate BOLD_ID from Windows service instead of database |
-| :calendar: | Object synchronization from Windows service |
-| :calendar: | SpanFetch for efficient batch loading |
-| :calendar: | Lazy loading improvements |
-| :calendar: | Query result caching |
-| :calendar: | Parallel object loading |
+| Status | Item |
+|--------|------|
+| Planned | Generate BOLD_ID from Windows service |
+| Planned | Object synchronization from Windows service |
+| Planned | SpanFetch for efficient batch loading |
+| Planned | Lazy loading improvements |
+| Planned | Query result caching |
 
 ### Model Editor
 
-| Status | Comment |
-|--------|---------|
-| :white_check_mark: | Save and Generate All |
-| :white_check_mark: | Save prompt on close |
-| :white_large_square: | Working SQL-script generator |
-| :white_large_square: | Search/filter in model tree |
-| :calendar: | Model Editor v2 using DevExpress grid with improved search |
-
----
+| Status | Item |
+|--------|------|
+| Done | Save and Generate All |
+| Done | Save prompt on close |
+| In Progress | Working SQL-script generator |
+| In Progress | Search/filter in model tree |
+| Planned | Model Editor v2 using DevExpress grid |
 
 ## 7. New Features (Under Consideration)
 
-These features are being evaluated based on community interest:
+- JSON serialization for REST APIs
+- Async/await database operations
+- LINQ-style query syntax alternative to OCL
+- Entity change tracking/auditing
+- Soft delete support
+- GraphQL integration
 
-| Status | Comment |
-|---------|--------|
-| :thinking: | JSON serialization for REST APIs |
-| :thinking: | Async/await database operations |
-| :thinking: | LINQ-style query syntax alternative to OCL |
-| :thinking: | Entity change tracking/auditing |
-| :thinking: | Soft delete support |
-| :thinking: | GraphQL integration |
+## 8. Distribution
 
----
-
-## 8. Community & Ecosystem
-
-| Status | Comment |
+| Status | Channel |
 |--------|---------|
-| :white_check_mark: | GitHub repository with issue tracking |
-| :white_check_mark: | Discord community |
-|  :calendar: | Contribution guidelines (CONTRIBUTING.md) |
-| :calendar: | Issue templates for bugs/features |
-| :thinking: | Register boldfordelphi.org domain |
-| :thinking: | Newsletter or blog updates |
+| Done | GitHub releases with the design packages for Delphi 11.3, 12.3 and 13 |
+| Done | TMS Smart Setup: `tms install bero.boldfordelphi` (community registry) |
+| Done | DPM: `dpm install bero.BoldForDelphi` from the public feed at delphi.dev |
+| Considering | GetIt (Embarcadero submission) |
+| Considering | Delphinus (requires a non-fork repository) |
 
----
+## 9. Community & Ecosystem
+
+| Status | Item |
+|--------|------|
+| Done | GitHub repository with issue tracking |
+| Done | Discord community |
+| Planned | Contribution guidelines |
+| Planned | Issue templates for bugs/features |
+| Considering | boldfordelphi.org domain |
 
 ## How to Contribute
 
-1. **Report issues**: Use GitHub Issues for bugs and feature requests
-2. **Submit PRs**: Fork the repo and submit pull requests
-3. **Documentation**: Help improve docs and examples
-4. **Testing**: Report compatibility issues with different databases/Delphi versions
-5. **Spread the word**: Blog posts, conference talks, social media
-
----
+1. **Report issues** - Use GitHub Issues for bugs and feature requests
+2. **Submit PRs** - Fork the repo and submit pull requests
+3. **Documentation** - Help improve docs and examples
+4. **Testing** - Report compatibility issues with different databases/Delphi versions
+5. **Spread the word** - Blog posts, conference talks, social media
 
 ## Release History
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| Community 25.12.0 | 2025-12-22 | Delphi 13 support, improved examples, documentation |
-| Community 25.10.0 | 2025-11-01 | DUnitX migration, code coverage |
-| Original 4.0.1.0 | 2004-04-01 | Initial Boldsoft release |
-
----
+| 26.9.0 | 2026-09-06 | `collect(role)` in PS evaluation, UseBatchQueries fixed on both adapters, FireDAC PMCreate corruption fix, UniDAC leak fixes, package managers |
+| 26.8.1 | 2026-08-16 | Parameterized ID-list SQL for SQL Server, read-transaction fix, SQL parameter logging |
+| 26.8.0 | 2026-08-03 | XML roundtrip tests for OLW nodes and conditions |
+| 26.1.0 | 2026-01-06 | Oracle support in the persistence mappers |
+| 25.12.1 | 2025-12-30 | SQLite and Firebird support in the MasterDetail demo |
+| 25.12.0 | 2025-12-22 | Delphi 13 support, improved examples, documentation |
+| 25.10.0 | 2025-11-01 | DUnitX migration, code coverage |
+| 4.0.1.0 | 2004-04-23 | Original Boldsoft release |
 
 ## Feedback
 
 Have suggestions for the roadmap? Open an issue on GitHub or discuss on Discord.
 
-- **GitHub**: https://github.com/bero/BoldForDelphi/issues
-- **Discord**: https://discord.gg/C6frzsn
+- **GitHub**: [https://github.com/bero/BoldForDelphi/issues](https://github.com/bero/BoldForDelphi/issues)
+- **Discord**: [https://discord.gg/C6frzsn](https://discord.gg/C6frzsn)
