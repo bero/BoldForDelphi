@@ -62,3 +62,7 @@ BoldDemo.xml
 nul
 # MkDocs generated site
 site/
+
+# Decompiled Help/BfD.chm, input for Tools/chm2mkdocs.py
+.chm-decompiled/
+__pycache__/

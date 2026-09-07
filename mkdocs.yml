@@ -132,6 +132,120 @@ nav:
     - Roadmap: roadmap.md
     - Changelog: changelog.md
     - Contributing: contributing.md
+# BEGIN generated reference nav
+  - Reference:
+    - reference/index.md
+    - BoldAbstractListHandle:
+      - Overview: reference/BoldAbstractListHandle/index.md
+      - TBoldAbstractListHandle: reference/BoldAbstractListHandle/TBoldAbstractListHandle.md
+    - BoldAttributes:
+      - Overview: reference/BoldAttributes/index.md
+      - TBABlob: reference/BoldAttributes/TBABlob.md
+      - TBABlobImageBMP: reference/BoldAttributes/TBABlobImageBMP.md
+      - TBABlobImageJPEG: reference/BoldAttributes/TBABlobImageJPEG.md
+      - TBABoolean: reference/BoldAttributes/TBABoolean.md
+      - TBAByte: reference/BoldAttributes/TBAByte.md
+      - TBAConstraint: reference/BoldAttributes/TBAConstraint.md
+      - TBACurrency: reference/BoldAttributes/TBACurrency.md
+      - TBADate: reference/BoldAttributes/TBADate.md
+      - TBADateTime: reference/BoldAttributes/TBADateTime.md
+      - TBAFloat: reference/BoldAttributes/TBAFloat.md
+      - TBAInteger: reference/BoldAttributes/TBAInteger.md
+      - TBAMoment: reference/BoldAttributes/TBAMoment.md
+      - TBANumeric: reference/BoldAttributes/TBANumeric.md
+      - TBAShortInt: reference/BoldAttributes/TBAShortInt.md
+      - TBASmallInt: reference/BoldAttributes/TBASmallInt.md
+      - TBAString: reference/BoldAttributes/TBAString.md
+      - TBATime: reference/BoldAttributes/TBATime.md
+      - TBATrimmedString: reference/BoldAttributes/TBATrimmedString.md
+      - TBATypedBlob: reference/BoldAttributes/TBATypedBlob.md
+      - TBAValueSet: reference/BoldAttributes/TBAValueSet.md
+      - TBAValueSetValue: reference/BoldAttributes/TBAValueSetValue.md
+      - TBAValueSetValueList: reference/BoldAttributes/TBAValueSetValueList.md
+      - TBAWord: reference/BoldAttributes/TBAWord.md
+      - TBoldBlobStream: reference/BoldAttributes/TBoldBlobStream.md
+    - BoldDomainElement:
+      - Overview: reference/BoldDomainElement/index.md
+      - TBoldDomainElement: reference/BoldDomainElement/TBoldDomainElement.md
+      - TBoldDomainElement_Proxy: reference/BoldDomainElement/TBoldDomainElement_Proxy.md
+      - TBoldDomainElementCollection: reference/BoldDomainElement/TBoldDomainElementCollection.md
+      - TBoldDomainElementCollectionTraverser: reference/BoldDomainElement/TBoldDomainElementCollectionTraverser.md
+    - BoldElements:
+      - Overview: reference/BoldElements/index.md
+      - TBoldElement: reference/BoldElements/TBoldElement.md
+      - TBoldElementTypeInfo: reference/BoldElements/TBoldElementTypeInfo.md
+      - TBoldEvaluator: reference/BoldElements/TBoldEvaluator.md
+      - TBoldExternalVariable: reference/BoldElements/TBoldExternalVariable.md
+      - TBoldExternalVariableList: reference/BoldElements/TBoldExternalVariableList.md
+      - TBoldIndirectElement: reference/BoldElements/TBoldIndirectElement.md
+      - TBoldMetaElement: reference/BoldElements/TBoldMetaElement.md
+      - TBoldSubscribableComponentViaBoldElem: reference/BoldElements/TBoldSubscribableComponentViaBoldElem.md
+    - BoldExpressionHandle:
+      - Overview: reference/BoldExpressionHandle/index.md
+      - TBoldExpressionHandle: reference/BoldExpressionHandle/TBoldExpressionHandle.md
+    - BoldHandle:
+      - Overview: reference/BoldHandle/index.md
+      - TBoldHandle: reference/BoldHandle/TBoldHandle.md
+    - BoldHandles:
+      - Overview: reference/BoldHandles/index.md
+      - TBoldAbstractSystemHandle: reference/BoldHandles/TBoldAbstractSystemHandle.md
+      - TBoldElementHandle: reference/BoldHandles/TBoldElementHandle.md
+      - TBoldNonSystemHandle: reference/BoldHandles/TBoldNonSystemHandle.md
+      - TBoldSystemTypeInfoHandle: reference/BoldHandles/TBoldSystemTypeInfoHandle.md
+    - BoldListHandle:
+      - Overview: reference/BoldListHandle/index.md
+      - TBoldListHandle: reference/BoldListHandle/TBoldListHandle.md
+    - BoldRootedHandles:
+      - Overview: reference/BoldRootedHandles/index.md
+      - TBoldRootedHandle: reference/BoldRootedHandles/TBoldRootedHandle.md
+    - BoldSubscription:
+      - Overview: reference/BoldSubscription/index.md
+      - TBoldEventSubscription: reference/BoldSubscription/TBoldEventSubscription.md
+      - TBoldPassthroughSubscriber: reference/BoldSubscription/TBoldPassthroughSubscriber.md
+      - TBoldPublisher: reference/BoldSubscription/TBoldPublisher.md
+      - TBoldSmallEventSubscription: reference/BoldSubscription/TBoldSmallEventSubscription.md
+      - TBoldSubscribableComponent: reference/BoldSubscription/TBoldSubscribableComponent.md
+      - TBoldSubscribableObject: reference/BoldSubscription/TBoldSubscribableObject.md
+      - TBoldSubscribablePersistent: reference/BoldSubscription/TBoldSubscribablePersistent.md
+      - TBoldSubscriber: reference/BoldSubscription/TBoldSubscriber.md
+      - TBoldSubscription: reference/BoldSubscription/TBoldSubscription.md
+    - BoldSystem:
+      - Overview: reference/BoldSystem/index.md
+      - EBoldAccessNullValue: reference/BoldSystem/EBoldAccessNullValue.md
+      - EBoldFailure: reference/BoldSystem/EBoldFailure.md
+      - EBoldOperationFailedForObjectList: reference/BoldSystem/EBoldOperationFailedForObjectList.md
+      - TBoldAbstractController: reference/BoldSystem/TBoldAbstractController.md
+      - TBoldAbstractObjectListController: reference/BoldSystem/TBoldAbstractObjectListController.md
+      - TBoldAbstractObjectReferenceController: reference/BoldSystem/TBoldAbstractObjectReferenceController.md
+      - TBoldAbstractOldValueHandler: reference/BoldSystem/TBoldAbstractOldValueHandler.md
+      - TBoldAbstractOptimisticLockHandler: reference/BoldSystem/TBoldAbstractOptimisticLockHandler.md
+      - TBoldAbstractPessimisticLockHandler: reference/BoldSystem/TBoldAbstractPessimisticLockHandler.md
+      - TBoldAbstractRegionFactory: reference/BoldSystem/TBoldAbstractRegionFactory.md
+      - TBoldAbstractSystemPersistenceHandler: reference/BoldSystem/TBoldAbstractSystemPersistenceHandler.md
+      - TBoldAbstractTransActionHandler: reference/BoldSystem/TBoldAbstractTransActionHandler.md
+      - TBoldAbstractUndoHandler: reference/BoldSystem/TBoldAbstractUndoHandler.md
+      - TBoldAttribute: reference/BoldSystem/TBoldAttribute.md
+      - TBoldAttribute_Proxy: reference/BoldSystem/TBoldAttribute_Proxy.md
+      - TBoldFailureReason: reference/BoldSystem/TBoldFailureReason.md
+      - TBoldList: reference/BoldSystem/TBoldList.md
+      - TBoldListController: reference/BoldSystem/TBoldListController.md
+      - TBoldLocatorListTraverser: reference/BoldSystem/TBoldLocatorListTraverser.md
+      - TBoldMember: reference/BoldSystem/TBoldMember.md
+      - TBoldMember_Proxy: reference/BoldSystem/TBoldMember_Proxy.md
+      - TBoldMemberFactory: reference/BoldSystem/TBoldMemberFactory.md
+      - TBoldMemberList: reference/BoldSystem/TBoldMemberList.md
+      - TBoldObject: reference/BoldSystem/TBoldObject.md
+      - TBoldObjectList: reference/BoldSystem/TBoldObjectList.md
+      - TBoldObjectLocator: reference/BoldSystem/TBoldObjectLocator.md
+      - TBoldObjectReference: reference/BoldSystem/TBoldObjectReference.md
+      - TBoldObjectReferenceController: reference/BoldSystem/TBoldObjectReferenceController.md
+      - TBoldSystem: reference/BoldSystem/TBoldSystem.md
+      - TBoldSystemExtension: reference/BoldSystem/TBoldSystemExtension.md
+      - TBoldSystemLocatorList: reference/BoldSystem/TBoldSystemLocatorList.md
+    - BoldSystemHandle:
+      - Overview: reference/BoldSystemHandle/index.md
+      - TBoldSystemHandle: reference/BoldSystemHandle/TBoldSystemHandle.md
+# END generated reference nav
 
 extra:
   social:
