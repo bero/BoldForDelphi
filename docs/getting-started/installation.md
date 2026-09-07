@@ -30,14 +30,6 @@ not needed. Bold is available for Delphi 11, 12 and 13, Win32.
    `tms update` moves to newer releases; `tms install bero.boldfordelphi:26.9.0`
    pins a version.
 
-   The community registry entry is pending
-   ([tmssoftware/smartsetup-registry#9](https://github.com/tmssoftware/smartsetup-registry/pull/9));
-   until it is merged, add it as a server first:
-
-   ```shell
-   tms server-add boldtest zipfile https://github.com/bero/smartsetup-registry/archive/refs/heads/bero.boldfordelphi.zip
-   ```
-
 ### DPM
 
 1. Get DPM (free) from
