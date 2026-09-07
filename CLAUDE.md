@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Bold for Delphi is a Model-Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool. It enables UML-based model development with OCL (Object Constraint Language) queries, automatic code generation, and sophisticated database persistence. Originally released by Boldsoft in 2004, it was open-sourced by Embarcadero in 2020 under MIT license.
 
-**Current Release**: 26.9.0 (tags are `Year.Month.build`, see `packaging/release-checklist.md`); the historical product version 4.0.1.0 from 2004 survives only in the package version info
+**Current Release**: 26.9.0 (tags are `Year.Month.build`, see `packaging/release-checklist.md`); the original Boldsoft product version was 4.0.1.0 (2004), still cited in README and ROADMAP.md
 **Target Platforms**: Delphi 11.3 Alexandria, 12.3 Athens and 13.1 Florence (Win32/Win64)
 
 ## Claude Code Instructions
