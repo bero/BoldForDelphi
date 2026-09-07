@@ -50,7 +50,7 @@ Bold for Delphi has **no external runtime dependencies**. All required functiona
 
 | Integration | Package | Notes |
 |-------------|---------|-------|
-| DevExpress | dclBoldDevEx.dpk | Bold-aware DevExpress components. Requires [DevExpress VCL](https://www.devexpress.com/products/vcl/) license with full source code |
+| DevExpress | `NotworkingProjects/dclBoldDevEx.dpk` | Bold-aware DevExpress components (`Source/BoldAwareGUI/BoldDevex`). Not part of the release packages; the project needs a [DevExpress VCL](https://www.devexpress.com/products/vcl/) license with full source code and is currently unmaintained |
 
 ### Unit Test Dependencies
 
@@ -163,18 +163,18 @@ Have suggestions for the roadmap? Open an issue on GitHub or discuss on Discord.
 
 ## Versioning
 
-Version format: `YY.MM.patch` (e.g., 25.12.0)
+Releases are tagged `Year.Month.build`, unpadded and without a prefix (e.g. `26.9.0`; the next
+one is `26.9.1` or `26.10.0`). The tag is the release identity: TMS Smart Setup and DPM resolve
+installable versions from it, so tags must parse as semantic versions.
 
 | Source | Purpose |
 |--------|---------|
-| dproj | Current version (shown in About dialog) |
-| [CHANGELOG.md](CHANGELOG.md) | Version history |
-| Git tags | Backup/release markers |
+| Git tag | The release; what package managers install |
+| `version.txt`, `packaging/*.yaml`, the three `dclBold.dproj` | Carry the same number (shown in the About dialog and by the package managers) |
+| [CHANGELOG.md](CHANGELOG.md) | Version history (also rendered on the documentation site) |
 
-**Release workflow:**
-1. Move `[Unreleased]` items in CHANGELOG.md to new version section
-2. Update version in dproj (Project > Options > Version Info)
-3. Create git tag: `git tag v25.12.1`
+The full procedure, from changelog to GitHub release, package-manager publication and
+announcement, is [`packaging/release-checklist.md`](packaging/release-checklist.md).
 
 ## Resources
 

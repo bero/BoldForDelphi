@@ -23,9 +23,8 @@ Make Bold for Delphi a modern, well-documented, and reliable ORM framework for D
 | Status | Version |
 |--------|---------|
 | Done | Delphi 11.3 Alexandria |
-| Done | Delphi 12.1 Athens |
-| Done | Delphi 12.3 Athens |
-| Done | Delphi 13 |
+| Done | Delphi 12.x Athens (one package for 12.1 Community Edition through 12.3) |
+| Done | Delphi 13 Florence |
 | Planned | Delphi 14+ |
 
 **Goal**: Support each new Delphi version within 30 days of release.

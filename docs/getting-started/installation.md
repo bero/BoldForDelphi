@@ -84,7 +84,7 @@ Building from source gives you the latest version or lets you use Bold with unsu
 
 2. Build the package (Shift+F9)
 
-3. Right-click the BPL file in the Project Manager and choose **Install**
+3. Right-click the BPL file in the Projects pane (Project Manager) and choose **Install**
 
 4. Verify via **Component → Install Packages...**
 
@@ -92,10 +92,10 @@ Building from source gives you the latest version or lets you use Bold with unsu
 
 If your Delphi version is not listed:
 
-1. Copy the folder of the closest supported version (e.g., copy `Delphi30` for Delphi 14)
-2. Rename the folder to match the compiler version (e.g., `Delphi31`)
-3. Open Project Options and update the Lib version in Description
-4. Build and install
+1. Copy the folder of the closest supported version (e.g., copy `packages\Delphi13` for Delphi 14)
+2. Rename the folder after the Delphi version (e.g., `packages\Delphi14`)
+3. Build and install; the package uses `LIBSUFFIX AUTO`, so the produced file is named
+   after the compiler automatically (`dclBold380.bpl` for Delphi 14) and no version setting needs editing
 
 !!! tip
     When you verify everything works, please submit a pull request to include the new package in the repository!

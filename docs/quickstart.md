@@ -29,6 +29,14 @@ UML Model → Code Generator → Business Classes → Bold Runtime → Database
 
 ## Installation 📦
 
+The quickest route is a package manager, which downloads Bold, builds the design-time
+package for your Delphi and registers it (details in the [Installation](getting-started/installation.md) guide):
+
+- [TMS Smart Setup](https://doc.tmssoftware.com/smartsetup/download): `tms install bero.boldfordelphi`
+- [DPM](https://github.com/DelphiPackageManager/DPM/releases), per project: `dpm install bero.BoldForDelphi <yourproject>.dproj`
+
+Otherwise, install by hand:
+
 ### Step 1: Get the Source
 
 ```
@@ -65,7 +73,7 @@ Then:
 
 1. **File → Open Project** and select the `.dproj` from the table above
 2. **Project → Build** (or Shift+F9) to compile the package
-3. In the **Project Manager** panel, right-click the `.bpl` and choose **Install**
+3. In the **Projects** pane (Project Manager), right-click the `.bpl` and choose **Install**
 4. Verify via menu **Component → Install Packages...** — you should see "Bold for Delphi" in the list
 
 The compiled BPL is output to `packages\Bin\`.
@@ -79,9 +87,9 @@ If your Delphi version is not listed above:
 1. Copy the folder of the closest supported version (e.g., copy `Delphi13` for Delphi 14)
 2. Rename the folder to match your Delphi version (e.g., `Delphi14`)
 3. Open `dclBold.dproj` in the IDE
-4. Go to **Project → Options → Description** and update the Lib Suffix to match your compiler version
-5. Build and install as described above
-6. If it works, consider submitting a pull request to include the new package folder
+4. Build and install as described above; the package uses `LIBSUFFIX AUTO`, so the file is named after
+   the compiler automatically and nothing needs editing
+5. If it works, consider submitting a pull request to include the new package folder
 
 ---
 
