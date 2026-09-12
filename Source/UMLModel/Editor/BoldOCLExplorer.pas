@@ -4,19 +4,13 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, BoldListBox, BoldSubscription,
-  BoldHandles, BoldRootedHandles, BoldAbstractListHandle, BoldCursorHandle,
-  BoldListHandle, BoldEdit, ExtCtrls, BoldExpressionHandle,
-  BoldVariableDefinition, BoldOclVariables, ActnList, Menus, BoldSystem,
-  BoldHandleAction, BoldActions, BoldSystemHandle, cxStyles, cxCustomData,
-  cxGraphics, cxFilter, cxData, cxDataStorage, cxEdit,
-  cxGridCustomTableView, cxGridTableView, cxGridBoldSupportUnit,
-  cxGridLevel, cxClasses, cxControls, cxGridCustomView, cxGrid,
-  BoldPlaceableListSubscriber, BoldControlPack, BoldElements,
-  BoldStringControlPack, cxSpinEdit, cxCheckBox, BoldDerivedHandle,
-  cxLookAndFeels, cxLookAndFeelPainters, BoldVariantControlPack,
-  cxGridCustomPopupMenu, cxGridPopupMenu, cxNavigator, BoldRawSQLHandle,
-  dxDateRanges, dxScrollbarAnnotations, dxBarBuiltInMenu, System.Actions;
+  StdCtrls, ComCtrls, Grids, ExtCtrls, ActnList, Menus, System.Actions,
+  BoldListBox, BoldSubscription, BoldHandles, BoldRootedHandles,
+  BoldAbstractListHandle, BoldCursorHandle, BoldListHandle, BoldEdit,
+  BoldExpressionHandle, BoldOclVariables, BoldSystem, BoldHandleAction,
+  BoldActions, BoldSystemHandle, BoldPlaceableListSubscriber, BoldControlPack,
+  BoldElements, BoldStringControlPack, BoldDerivedHandle, BoldRawSQLHandle,
+  BoldGrid;
 
 type
   TOclExplorerForm = class(TForm)
@@ -64,34 +58,17 @@ type
     UpdateDB1: TMenuItem;
     cbEvaluateInPS2: TCheckBox;
     cbEvaluateInPS1: TCheckBox;
-    cxGrid1: TcxGrid;
-    LeftView: TcxGridBoldTableView;
-    cxGrid1Level1: TcxGridLevel;
-    LeftViewClass: TcxGridBoldColumn;
-    cxGrid2: TcxGrid;
-    RightView: TcxGridBoldTableView;
-    cxGridLevel1: TcxGridLevel;
-    LeftViewObjectCount: TcxGridBoldColumn;
+    LeftGrid: TBoldGrid;
+    RightGrid: TBoldGrid;
     BoldPlaceableListSubscriber1: TBoldPlaceableListSubscriber;
     BoldPlaceableListSubscriber2: TBoldPlaceableListSubscriber;
-    LeftViewTopSortedIndex: TcxGridBoldColumn;
-    LeftViewPersistent: TcxGridBoldColumn;
-    LeftViewClassState: TcxGridBoldColumn;
-    brObjects: TBoldAsVariantRenderer;
-    brIndex: TBoldAsVariantRenderer;
-    bfIsPersistent: TBoldAsVariantRenderer;
-    bfClassState: TBoldAsVariantRenderer;
-    cxGridPopupMenu1: TcxGridPopupMenu;
-    cxGridPopupMenu2: TcxGridPopupMenu;
-    LeftViewIdCount: TcxGridBoldColumn;
-    brIds: TBoldAsVariantRenderer;
-    LeftViewColumn1: TcxGridBoldColumn;
-    brIsAbstract: TBoldAsVariantRenderer;
-    LeftViewColumn2: TcxGridBoldColumn;
-    brIsLinkClass: TBoldAsVariantRenderer;
-    RightViewColumn1: TcxGridBoldColumn;
-    RightViewColumn2: TcxGridBoldColumn;
-    RightViewColumn3: TcxGridBoldColumn;
+    brObjects: TBoldAsStringRenderer;
+    brIndex: TBoldAsStringRenderer;
+    bfIsPersistent: TBoldAsStringRenderer;
+    bfClassState: TBoldAsStringRenderer;
+    brIds: TBoldAsStringRenderer;
+    brIsAbstract: TBoldAsStringRenderer;
+    brIsLinkClass: TBoldAsStringRenderer;
     procedure List2EditOCL(Sender: TObject);
     procedure List1EditOCL(Sender: TObject);
     procedure CloseApplicationActionExecute(Sender: TObject);
@@ -106,23 +83,24 @@ type
       Follower: TBoldFollower);
     procedure BoldPlaceableListSubscriber2AfterMakeUptoDate(
       Follower: TBoldFollower);
-    function brObjectsGetAsVariant(
-      aFollower: TBoldFollower): Variant;
-    function brIndexGetAsVariant(aFollower: TBoldFollower): Variant;
+    function brObjectsGetAsString(aFollower: TBoldFollower): string;
+    function brIndexGetAsString(aFollower: TBoldFollower): string;
     procedure brClassListSubscribe(aFollower: TBoldFollower;
       Subscriber: TBoldSubscriber);
-    function bfIsPersistentGetAsVariant(aFollower: TBoldFollower): Variant;
-    function bfClassStateGetAsVariant(aFollower: TBoldFollower): Variant;
+    function bfIsPersistentGetAsString(aFollower: TBoldFollower): string;
+    function bfClassStateGetAsString(aFollower: TBoldFollower): string;
     procedure bfClassStateSubscribe(aFollower: TBoldFollower;
       Subscriber: TBoldSubscriber);
-    function brIdsGetAsVariant(AFollower: TBoldFollower): Variant;
-    function brIsAbstractGetAsVariant(AFollower: TBoldFollower): Variant;
-    function brIsLinkClassGetAsVariant(AFollower: TBoldFollower): Variant;
+    function brIdsGetAsString(AFollower: TBoldFollower): string;
+    function brIsAbstractGetAsString(AFollower: TBoldFollower): string;
+    function brIsLinkClassGetAsString(AFollower: TBoldFollower): string;
   private
     FBoldSystem: TBoldSystem;
     fSystemHandle: TBoldAbstractSystemHandle;
     { Private declarations }
     Procedure UpdateStatus;
+    procedure SetColumnWidths;
+    procedure ApplyEvaluateInPS(AHandle: TBoldListHandle; ABox: TCheckBox);
     procedure EditOCL(ListHandle: TBoldListHandle);
 //    procedure ExportBoldListToStringList(BoldList: TBoldListHandle; StringList: TStrings);
     procedure SetBoldSystem(const Value: TBoldSystem);
@@ -141,7 +119,7 @@ uses
   BoldOclPropEditor,
   BoldSystemDebuggerForm,
   BoldObjectListControllers,
-  cxVariants, BoldDefs, BoldSystemRT, Variants, BoldDBInterfaces;
+  BoldDefs, BoldSystemRT, BoldDBInterfaces;
 
 {$R *.DFM}
 
@@ -284,6 +262,28 @@ begin
   FBoldSystem := Value;
 end;
 
+{ TBoldGridColumn.Width is declared "stored False" and its setter writes
+  straight into the grid's ColWidths, which do not exist while the form is
+  streaming. So the widths cannot live in the .dfm and are applied here, once
+  the grid has its columns. }
+procedure TOclExplorerForm.SetColumnWidths;
+
+  procedure Widths(AGrid: TBoldGrid; const AWidths: array of Integer);
+  var
+    i: Integer;
+  begin
+    for i := 0 to High(AWidths) do
+      if i < AGrid.Columns.Count then
+        AGrid.Columns[i].Width := AWidths[i];
+  end;
+
+begin
+  //        Index Class Objects Ids Persistent Abstract Link Loaded
+  Widths(LeftGrid, [60, 298, 80, 80, 70, 70, 70, 70]);
+  //         BoldId Class AsString
+  Widths(RightGrid, [80, 140, 260]);
+end;
+
 procedure TOclExplorerForm.FormCreate(Sender: TObject);
 begin
   if BoldSystem = nil then
@@ -294,8 +294,8 @@ begin
   List1Handle.Expression  := BoldSystem.BoldSystemTypeInfo.RootClassTypeInfo.ExpressionName + '.allSubClasses';
 
   List1Handle.RootHandle:= fSystemHandle;
-  RightView.DataController.ClearColumnsOnTypeChange := false;
   BoldUpdateDBAction1.BoldSystemHandle := TBoldSystemHandle(fSystemHandle);
+  SetColumnWidths;
   UpdateStatus;
 end;
 
@@ -322,32 +322,133 @@ begin
     inherited Create(anOwner);
 end;
 
+{ Whether an expression can be evaluated in the persistent storage is not a
+  question the type system can answer. Asking for a non-object list is one way to
+  fail, and the type does catch that, but an expression can be a perfectly good
+  object list and still have no translation: allLoadedObjects is registered as an
+  object list, yet "loaded" is an in-memory notion the database knows nothing
+  about, so the translator has no SQL symbol for it.
+
+  Both refusals surface while the handle re-derives on idle, and a list handle
+  re-derives for ever, so the failure repeats until the flag is cleared. That is
+  the behaviour worth preventing, and the only reliable way is to try the
+  evaluation once, here, where the exception can be caught and the box unticked.
+  It costs one query and reports Bold's own message, which names the real cause
+  more precisely than any guess made from the type. }
+procedure TOclExplorerForm.ApplyEvaluateInPS(AHandle: TBoldListHandle;
+  ABox: TCheckBox);
+var
+  Indirect: TBoldIndirectElement;
+  Root: TBoldElement;
+  Reason: string;
+begin
+  if not ABox.Checked then
+  begin
+    AHandle.EvaluateInPS := False;
+    Exit;
+  end;
+
+  if not Assigned(AHandle.RootHandle) or not Assigned(AHandle.RootHandle.Value) or
+     (AHandle.Expression = '') then
+  begin
+    AHandle.EvaluateInPS := True;
+    Exit;
+  end;
+
+  Root := AHandle.RootHandle.Value;
+  Reason := '';
+  Indirect := TBoldIndirectElement.Create;
+  try
+    try
+      Root.EvaluateExpression(AHandle.Expression, Indirect, True,
+        AHandle.VariableList);
+    except
+      on E: Exception do
+        Reason := E.Message;
+    end;
+  finally
+    Indirect.Free;
+  end;
+
+  if Reason = '' then
+    AHandle.EvaluateInPS := True
+  else
+  begin
+    ABox.Checked := False;
+    AHandle.EvaluateInPS := False;
+    ShowMessage('This expression cannot be evaluated in the persistent '
+      + 'storage, so it will keep being evaluated in memory.'#13#10#13#10
+      + Reason);
+  end;
+end;
+
 procedure TOclExplorerForm.cbEvaluateInPS1Click(Sender: TObject);
 begin
-  List1Handle.EvaluateInPS := cbEvaluateInPS1.Checked;
+  ApplyEvaluateInPS(List1Handle, cbEvaluateInPS1);
 end;
 
 procedure TOclExplorerForm.cbEvaluateInPS2Click(Sender: TObject);
 begin
-  List2Handle.EvaluateInPS := cbEvaluateInPS2.Checked;
+  ApplyEvaluateInPS(List2Handle, cbEvaluateInPS2);
 end;
 
 procedure TOclExplorerForm.BoldPlaceableListSubscriber1AfterMakeUptoDate(
   Follower: TBoldFollower);
-begin
-  Label1.Caption := Format('%s (%d)', [List1Handle.BoldType.AsString, List1Handle.count]);
-  if Assigned(List1Handle.CurrentElement) then
+
+  function TypeName(AType: TBoldElementTypeInfo): string;
   begin
+    if Assigned(AType) then
+      Result := AType.AsString
+    else
+      Result := '';
+  end;
+
+var
+  lClassTypeInfo: TBoldClassTypeInfo;
+begin
+  Label1.Caption := Format('%s (%d)',
+    [TypeName(List1Handle.BoldType), List1Handle.Count]);
+
+  { The right pane lists the loaded objects of whichever class is selected on the
+    left, so it only means anything while the left pane holds classes. That
+    expression is editable, and the moment it yields something else this built
+    expression is nonsense: a date turns into "1.4.2011.allLoadedObjects", which
+    fails to parse. A list handle re-derives on every idle, so that failure then
+    repeats for as long as the selection stands. }
+  lClassTypeInfo := nil;
+  if List1Handle.CurrentElement is TBoldClassTypeInfo then
+    lClassTypeInfo := TBoldClassTypeInfo(List1Handle.CurrentElement);
+
+  if not Assigned(List1Handle.CurrentElement) then
+  begin
+    // Nothing selected, so there is nothing for the right pane to be about.
+    List2Handle.Expression := '';
+    List2Handle.MutableListExpression := '';
+    List2Handle.RootHandle := nil;
+  end
+  else if Assigned(lClassTypeInfo) then
+  begin
+    // The default pairing: pick a class, list its loaded objects. ExpressionName
+    // rather than AsString, which is the same thing for a meta element since its
+    // string representation IS the expression name, but it says why.
     List2Handle.RootHandle := fSystemHandle;
-    List2Handle.Expression := List1Handle.CurrentElement.AsString + '.allLoadedObjects';
-    List2Handle.MutableListExpression := BoldSystem.BoldSystemTypeInfo.RootClassTypeInfo.ExpressionName + '.allInstances'
+    List2Handle.Expression := lClassTypeInfo.ExpressionName + '.allLoadedObjects';
+    List2Handle.MutableListExpression :=
+      BoldSystem.BoldSystemTypeInfo.RootClassTypeInfo.ExpressionName + '.allInstances';
   end
   else
   begin
-    List2Handle.Expression := '';
-    List2Handle.RootHandle := nil;    
+    // The left pane has been pointed at something that is not a class, so there
+    // is no class name to build "X.allLoadedObjects" from. Leave whatever the
+    // user wrote in the right pane alone rather than clearing it: the variable
+    // "list" is bound to this handle's current element, so an expression such as
+    // "list.ownedBuildings" keeps working and simply re-evaluates as the
+    // selection moves. That pairing is the reason both panes are editable.
+    List2Handle.RootHandle := fSystemHandle;
   end;
-  Label2.Caption := Format('%s (%d)', [List2Handle.ListElementType.AsString, List2Handle.count]);
+
+  Label2.Caption := Format('%s (%d)',
+    [TypeName(List2Handle.ListElementType), List2Handle.Count]);
 end;
 
 procedure TOclExplorerForm.BoldPlaceableListSubscriber2AfterMakeUptoDate(
@@ -358,18 +459,51 @@ end;
 
 type TBoldObjectListAccess = Class(TBoldObjectList);
 
-function TOclExplorerForm.brObjectsGetAsVariant(
-  aFollower: TBoldFollower): Variant;
+{ A VCL grid column carries text, so the boolean columns render as a tick or as
+  nothing. That scans down a column as quickly as a check box did and costs no
+  third party control. }
+{ The computed columns only mean anything while the left pane holds a list of
+  classes, which is what allSubClasses gives it. Nothing stops that expression
+  being edited into something else, and then the element is not a class type info
+  at all. A hard cast there raises while the grid is painting, painting is retried,
+  and the dialog never stops. Answering with an empty cell is the honest result
+  and it cannot loop. }
+function AsClassTypeInfo(aFollower: TBoldFollower): TBoldClassTypeInfo;
+begin
+  if Assigned(aFollower) and (aFollower.Element is TBoldClassTypeInfo) then
+    Result := TBoldClassTypeInfo(aFollower.Element)
+  else
+    Result := nil;
+end;
+
+function BoolMark(AValue: Boolean): string;
+begin
+  if AValue then
+    Result := 'X'
+  else
+    Result := '';
+end;
+
+function TOclExplorerForm.brObjectsGetAsString(
+  aFollower: TBoldFollower): string;
 var
   lClassBoldObjectList: TBoldObjectList;
   lBoldClassListController: TBoldClassListController;
+  lClassTypeInfo: TBoldClassTypeInfo;
 begin
-  Result := Null;
-  if Assigned(aFollower.Element) then
+  Result := '';
+  lClassTypeInfo := AsClassTypeInfo(aFollower);
+  if Assigned(lClassTypeInfo) then
   begin
-    lClassBoldObjectList := BoldSystem.ClassByObjectClass[TBoldObjectClass((aFollower.Element as TBoldClassTypeInfo).ObjectClass)];
-    lBoldClassListController := TBoldObjectListAccess(lClassBoldObjectList).ObjectListController as TBoldClassListController;
-    result := lBoldClassListController.LoadedObjectCount;
+    lClassBoldObjectList := BoldSystem.ClassByObjectClass[TBoldObjectClass(lClassTypeInfo.ObjectClass)];
+    // The last hard cast in a paint path. A renderer that raises while the grid
+    // is drawing raises again on the repaint, so the type is asked, not assumed.
+    if TBoldObjectListAccess(lClassBoldObjectList).ObjectListController is TBoldClassListController then
+    begin
+      lBoldClassListController := TBoldClassListController(
+        TBoldObjectListAccess(lClassBoldObjectList).ObjectListController);
+      result := IntToStr(lBoldClassListController.LoadedObjectCount);
+    end;
   end;
 end;
 
@@ -377,15 +511,17 @@ procedure TOclExplorerForm.brClassListSubscribe(aFollower: TBoldFollower;
   Subscriber: TBoldSubscriber);
 var
   lClassBoldObjectList: TBoldObjectList;
+  lClassTypeInfo: TBoldClassTypeInfo;
 begin
-  if Assigned(aFollower.Element) then
+  lClassTypeInfo := AsClassTypeInfo(aFollower);
+  if Assigned(lClassTypeInfo) then
   begin
-    lClassBoldObjectList := BoldSystem.ClassByObjectClass[TBoldObjectClass((aFollower.Element as TBoldClassTypeInfo).ObjectClass)];
+    lClassBoldObjectList := BoldSystem.ClassByObjectClass[TBoldObjectClass(lClassTypeInfo.ObjectClass)];
     lClassBoldObjectList.AddSmallSubscription(Subscriber, [beItemAdded, beItemDeleted, beObjectFetched, beObjectUnloaded], breReEvaluate);
   end;
 end;
 
-function TOclExplorerForm.brIdsGetAsVariant(AFollower: TBoldFollower): Variant;
+function TOclExplorerForm.brIdsGetAsString(AFollower: TBoldFollower): string;
 var
   Query: IBoldQuery;
   sql: string;
@@ -396,10 +532,10 @@ var
 const
   cAllInstancesIdCount = 'select count(bold_id) from %s where bold_type = %d';
 begin
-  Result := Null;
-  if Assigned(AFollower.Element) then
+  Result := '';
+  ClassTypeInfo := AsClassTypeInfo(aFollower);
+  if Assigned(ClassTypeInfo) then
   begin
-    ClassTypeInfo := (aFollower.Element as TBoldClassTypeInfo);
     if ClassTypeInfo.Persistent then
     begin
       with TBoldSystemHandle(fSystemHandle).PersistenceHandleDB.PersistenceControllerDefault.PersistenceMapper do
@@ -414,7 +550,7 @@ begin
         Sql := Format(cAllInstancesIdCount, [TableName, dbType]);
         Query.AssignSQLText(SQL);
         Query.Open;
-        result := Query.Fields[0].AsInteger;
+        result := IntToStr(Query.Fields[0].AsInteger);
       finally
         Query.Close;
         TBoldSystemHandle(fSystemHandle).PersistenceHandleDB.DatabaseInterface.ReleaseQuery(Query);
@@ -423,61 +559,67 @@ begin
     else
     begin
       lClassBoldObjectList := BoldSystem.ClassByObjectClass[TBoldObjectClass(ClassTypeInfo.ObjectClass)];
-      result := lClassBoldObjectList.Count;
+      result := IntToStr(lClassBoldObjectList.Count);
     end;
   end;
 end;
 
-function TOclExplorerForm.brIndexGetAsVariant(
-  aFollower: TBoldFollower): Variant;
+function TOclExplorerForm.brIndexGetAsString(
+  aFollower: TBoldFollower): string;
+var
+  lClassTypeInfo: TBoldClassTypeInfo;
 begin
-  Result := Null;
-  if Assigned(aFollower.Element) then
-  begin
-    result := (aFollower.Element as TBoldClassTypeInfo).TopSortedIndex;
-  end;
+  Result := '';
+  lClassTypeInfo := AsClassTypeInfo(aFollower);
+  if Assigned(lClassTypeInfo) then
+    result := IntToStr(lClassTypeInfo.TopSortedIndex);
 end;
 
-function TOclExplorerForm.brIsAbstractGetAsVariant(
-  AFollower: TBoldFollower): Variant;
+function TOclExplorerForm.brIsAbstractGetAsString(
+  AFollower: TBoldFollower): string;
+var
+  lClassTypeInfo: TBoldClassTypeInfo;
 begin
-  Result := Null;
-  if Assigned(aFollower.Element) then
-  begin
-    result := (aFollower.Element as TBoldClassTypeInfo).IsAbstract;
-  end;
+  Result := '';
+  lClassTypeInfo := AsClassTypeInfo(aFollower);
+  if Assigned(lClassTypeInfo) then
+    Result := BoolMark(lClassTypeInfo.IsAbstract);
 end;
 
-function TOclExplorerForm.brIsLinkClassGetAsVariant(
-  AFollower: TBoldFollower): Variant;
+function TOclExplorerForm.brIsLinkClassGetAsString(
+  AFollower: TBoldFollower): string;
+var
+  lClassTypeInfo: TBoldClassTypeInfo;
 begin
-  Result := Null;
-  if Assigned(AFollower.Element) then
-  begin
-    result := (aFollower.Element as TBoldClassTypeInfo).IsLinkClass;
-  end;
+  Result := '';
+  lClassTypeInfo := AsClassTypeInfo(aFollower);
+  if Assigned(lClassTypeInfo) then
+    Result := BoolMark(lClassTypeInfo.IsLinkClass);
 end;
 
-function TOclExplorerForm.bfIsPersistentGetAsVariant(
-  aFollower: TBoldFollower): Variant;
+function TOclExplorerForm.bfIsPersistentGetAsString(
+  aFollower: TBoldFollower): string;
+var
+  lClassTypeInfo: TBoldClassTypeInfo;
 begin
-  Result := Null;
-  if Assigned(aFollower.Element) then
-  begin
-    result := (aFollower.Element as TBoldClassTypeInfo).Persistent;
-  end;
+  Result := '';
+  lClassTypeInfo := AsClassTypeInfo(aFollower);
+  if Assigned(lClassTypeInfo) then
+    Result := BoolMark(lClassTypeInfo.Persistent);
 end;
 
-function TOclExplorerForm.bfClassStateGetAsVariant(
-  aFollower: TBoldFollower): Variant;
+function TOclExplorerForm.bfClassStateGetAsString(
+  aFollower: TBoldFollower): string;
 var
   lClassBoldObjectList: TBoldObjectList;
+  lClassTypeInfo: TBoldClassTypeInfo;
 begin
-  Result := Null;
-  if Assigned(aFollower.Element) then
+  Result := '';
+  lClassTypeInfo := AsClassTypeInfo(aFollower);
+  if Assigned(lClassTypeInfo) then
   begin
-    lClassBoldObjectList := BoldSystem.ClassByObjectClass[TBoldObjectClass((aFollower.Element as TBoldClassTypeInfo).ObjectClass)];
-    result := lClassBoldObjectList.BoldPersistenceState = bvpsCurrent;
+    lClassBoldObjectList := BoldSystem.ClassByObjectClass[TBoldObjectClass(lClassTypeInfo.ObjectClass)];
+    result := BoolMark(lClassBoldObjectList.BoldPersistenceState = bvpsCurrent);
 {    case lClassBoldObjectList.BoldPersistenceState of
       bvpsCurrent : result := 'Current';
       bvpsModified : result := 'Modified';
@@ -492,10 +634,12 @@ procedure TOclExplorerForm.bfClassStateSubscribe(aFollower: TBoldFollower;
   Subscriber: TBoldSubscriber);
 var
   lClassBoldObjectList: TBoldObjectList;
+  lClassTypeInfo: TBoldClassTypeInfo;
 begin
-  if Assigned(aFollower.Element) then
+  lClassTypeInfo := AsClassTypeInfo(aFollower);
+  if Assigned(lClassTypeInfo) then
   begin
-    lClassBoldObjectList := BoldSystem.ClassByObjectClass[TBoldObjectClass((aFollower.Element as TBoldClassTypeInfo).ObjectClass)];
+    lClassBoldObjectList := BoldSystem.ClassByObjectClass[TBoldObjectClass(lClassTypeInfo.ObjectClass)];
     lClassBoldObjectList.AddSmallSubscription(Subscriber, [beItemAdded, beItemDeleted, beObjectFetched, beClassListStateChanged, beObjectUnloaded], breReEvaluate);
   end;
 end;

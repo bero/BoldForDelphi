@@ -118,50 +118,32 @@ object OclExplorerForm: TOclExplorerForm
           Caption = 'List 2'
         end
       end
-      object cxGrid2: TcxGrid
+      object RightGrid: TBoldGrid
         Left = 0
         Top = 25
-        Width = 470
+        Width = 495
         Height = 299
         Align = alClient
-        BorderStyle = cxcbsNone
+        AddNewAtEnd = False
+        BoldAutoColumns = False
+        BoldShowConstraints = False
+        BoldHandle = List2Handle
+        BoldProperties.InternalDrag = False
+        DragMode = dmAutomatic
         TabOrder = 1
-        LookAndFeel.NativeStyle = True
-        object RightView: TcxGridBoldTableView
-          DragMode = dmAutomatic
-          Navigator.Buttons.CustomButtons = <>
-          ScrollbarAnnotations.CustomAnnotations = <>
-          DataController.BoldHandle = List2Handle
-          DataController.Filter.Options = [fcoSoftNull]
-          DataController.Options = [dcoAssignGroupingValues, dcoAssignMasterDetailKeys, dcoSaveExpanding, dcoImmediatePost]
-          DataController.Summary.DefaultGroupSummaryItems = <>
-          DataController.Summary.FooterSummaryItems = <>
-          DataController.Summary.SummaryGroups = <>
-          DateTimeHandling.Grouping = dtgRelativeToToday
-          OptionsBehavior.CellHints = True
-          OptionsBehavior.IncSearch = True
-          OptionsBehavior.ImmediateEditor = False
-          OptionsSelection.MultiSelect = True
-          OptionsSelection.InvertSelect = False
-          OptionsSelection.UnselectFocusedRecordOnExit = False
-          OptionsView.ColumnAutoWidth = True
-          object RightViewColumn1: TcxGridBoldColumn
-            Caption = 'BoldId'
-            DataBinding.ValueType = 'Integer'
-            DataBinding.BoldProperties.Expression = 'boldId'
-          end
-          object RightViewColumn2: TcxGridBoldColumn
-            Caption = 'Class'
-            DataBinding.BoldProperties.Expression = 'oclType'
-          end
-          object RightViewColumn3: TcxGridBoldColumn
-            Caption = 'AsString'
-            DataBinding.BoldProperties.Expression = ''
-          end
+        Columns = <
+        item
+          BoldProperties.Expression = 'boldId'
+          Title.Caption = 'BoldId'
         end
-        object cxGridLevel1: TcxGridLevel
-          GridView = RightView
+        item
+          BoldProperties.Expression = 'oclType'
+          Title.Caption = 'Class'
         end
+        item
+          BoldProperties.Expression = ''
+          Title.Caption = 'AsString'
+        end>
       end
     end
   end
@@ -256,108 +238,67 @@ object OclExplorerForm: TOclExplorerForm
           Caption = 'List 1'
         end
       end
-      object cxGrid1: TcxGrid
+      object LeftGrid: TBoldGrid
         Left = 0
         Top = 25
         Width = 495
         Height = 299
         Align = alClient
-        BorderStyle = cxcbsNone
+        AddNewAtEnd = False
+        BoldAutoColumns = False
+        BoldShowConstraints = False
+        BoldHandle = List1Handle
+        BoldProperties.InternalDrag = False
+        DragMode = dmAutomatic
         TabOrder = 1
-        LookAndFeel.NativeStyle = True
-        object LeftView: TcxGridBoldTableView
-          DragMode = dmAutomatic
-          Navigator.Buttons.CustomButtons = <>
-          ScrollbarAnnotations.CustomAnnotations = <>
-          DataController.BoldProperties.DefaultDblClick = False
-          DataController.BoldHandle = List1Handle
-          DataController.Filter.Options = [fcoSoftNull]
-          DataController.Options = [dcoAssignGroupingValues, dcoAssignMasterDetailKeys, dcoSaveExpanding, dcoImmediatePost]
-          DataController.Summary.DefaultGroupSummaryItems = <>
-          DataController.Summary.FooterSummaryItems = <>
-          DataController.Summary.SummaryGroups = <>
-          DateTimeHandling.Grouping = dtgRelativeToToday
-          OptionsBehavior.CellHints = True
-          OptionsBehavior.IncSearch = True
-          OptionsBehavior.IncSearchItem = LeftViewClass
-          OptionsBehavior.ImmediateEditor = False
-          OptionsSelection.MultiSelect = True
-          OptionsSelection.InvertSelect = False
-          OptionsSelection.UnselectFocusedRecordOnExit = False
-          OptionsView.ColumnAutoWidth = True
-          OptionsView.Footer = True
-          object LeftViewTopSortedIndex: TcxGridBoldColumn
-            Caption = 'Index'
-            DataBinding.ValueType = 'Integer'
-            DataBinding.BoldProperties.Expression = ''
-            DataBinding.BoldProperties.Renderer = brIndex
-            PropertiesClassName = 'TcxSpinEditProperties'
-          end
-          object LeftViewClass: TcxGridBoldColumn
-            Caption = 'Class'
-            DataBinding.BoldProperties.Expression = ''
-            Width = 298
-          end
-          object LeftViewObjectCount: TcxGridBoldColumn
-            Caption = 'Objects'
-            DataBinding.ValueType = 'Integer'
-            DataBinding.BoldProperties.Expression = ''
-            DataBinding.BoldProperties.Renderer = brObjects
-            PropertiesClassName = 'TcxSpinEditProperties'
-            Properties.Alignment.Horz = taRightJustify
-            SortIndex = 0
-            SortOrder = soDescending
-            Width = 80
-          end
-          object LeftViewIdCount: TcxGridBoldColumn
-            Caption = 'Ids'
-            DataBinding.ValueType = 'Integer'
-            DataBinding.BoldProperties.Expression = ''
-            DataBinding.BoldProperties.Renderer = brIds
-            PropertiesClassName = 'TcxSpinEditProperties'
-            Properties.Alignment.Horz = taRightJustify
-            Properties.DisplayFormat = '# ### ###'
-          end
-          object LeftViewPersistent: TcxGridBoldColumn
-            Caption = 'Persistent'
-            DataBinding.ValueType = 'Boolean'
-            DataBinding.BoldProperties.Expression = ''
-            DataBinding.BoldProperties.Renderer = bfIsPersistent
-            PropertiesClassName = 'TcxCheckBoxProperties'
-            Width = 80
-          end
-          object LeftViewColumn1: TcxGridBoldColumn
-            Caption = 'Abstract'
-            DataBinding.ValueType = 'Boolean'
-            DataBinding.BoldProperties.Expression = ''
-            DataBinding.BoldProperties.Renderer = brIsAbstract
-          end
-          object LeftViewColumn2: TcxGridBoldColumn
-            Caption = 'LinkClass'
-            DataBinding.ValueType = 'Boolean'
-            DataBinding.BoldProperties.Expression = ''
-            DataBinding.BoldProperties.Renderer = brIsLinkClass
-          end
-          object LeftViewClassState: TcxGridBoldColumn
-            Caption = 'Loaded'
-            DataBinding.ValueType = 'Boolean'
-            DataBinding.BoldProperties.Expression = ''
-            DataBinding.BoldProperties.Renderer = bfClassState
-          end
+        Columns = <
+        item
+          BoldProperties.Expression = ''
+          BoldProperties.Renderer = brIndex
+          Title.Caption = 'Index'
         end
-        object cxGrid1Level1: TcxGridLevel
-          GridView = LeftView
+        item
+          BoldProperties.Expression = ''
+          Title.Caption = 'Class'
         end
+        item
+          BoldProperties.Expression = ''
+          BoldProperties.Renderer = brObjects
+          Title.Caption = 'Objects'
+        end
+        item
+          BoldProperties.Expression = ''
+          BoldProperties.Renderer = brIds
+          Title.Caption = 'Ids'
+        end
+        item
+          BoldProperties.Expression = ''
+          BoldProperties.Renderer = bfIsPersistent
+          Title.Caption = 'Persistent'
+        end
+        item
+          BoldProperties.Expression = ''
+          BoldProperties.Renderer = brIsAbstract
+          Title.Caption = 'Abstract'
+        end
+        item
+          BoldProperties.Expression = ''
+          BoldProperties.Renderer = brIsLinkClass
+          Title.Caption = 'LinkClass'
+        end
+        item
+          BoldProperties.Expression = ''
+          BoldProperties.Renderer = bfClassState
+          Title.Caption = 'Loaded'
+        end>
       end
     end
   end
   object List1Handle: TBoldListHandle
-    StaticSystemHandle = ServerData.SystemHandle
     Left = 16
     Top = 104
   end
   object List2Handle: TBoldListHandle
-    StaticSystemHandle = ServerData.SystemHandle
     Variables = BoldVariableDefinition
     Left = 516
     Top = 104
@@ -455,53 +396,41 @@ object OclExplorerForm: TOclExplorerForm
     Left = 625
     Top = 73
   end
-  object brObjects: TBoldAsVariantRenderer
+  object brObjects: TBoldAsStringRenderer
     OnSubscribe = brClassListSubscribe
-    OnGetAsVariant = brObjectsGetAsVariant
+    OnGetAsString = brObjectsGetAsString
     Left = 265
     Top = 237
   end
-  object brIndex: TBoldAsVariantRenderer
-    OnGetAsVariant = brIndexGetAsVariant
+  object brIndex: TBoldAsStringRenderer
+    OnGetAsString = brIndexGetAsString
     Left = 17
     Top = 237
   end
-  object bfIsPersistent: TBoldAsVariantRenderer
-    OnGetAsVariant = bfIsPersistentGetAsVariant
+  object bfIsPersistent: TBoldAsStringRenderer
+    OnGetAsString = bfIsPersistentGetAsString
     Left = 377
     Top = 237
   end
-  object bfClassState: TBoldAsVariantRenderer
+  object bfClassState: TBoldAsStringRenderer
     OnSubscribe = bfClassStateSubscribe
-    OnGetAsVariant = bfClassStateGetAsVariant
+    OnGetAsString = bfClassStateGetAsString
     Left = 449
     Top = 237
   end
-  object cxGridPopupMenu1: TcxGridPopupMenu
-    Grid = cxGrid1
-    PopupMenus = <>
-    Left = 385
-    Top = 73
-  end
-  object cxGridPopupMenu2: TcxGridPopupMenu
-    Grid = cxGrid2
-    PopupMenus = <>
-    Left = 897
-    Top = 73
-  end
-  object brIds: TBoldAsVariantRenderer
+  object brIds: TBoldAsStringRenderer
     OnSubscribe = brClassListSubscribe
-    OnGetAsVariant = brIDsGetAsVariant
+    OnGetAsString = brIdsGetAsString
     Left = 320
     Top = 240
   end
-  object brIsAbstract: TBoldAsVariantRenderer
-    OnGetAsVariant = brIsAbstractGetAsVariant
+  object brIsAbstract: TBoldAsStringRenderer
+    OnGetAsString = brIsAbstractGetAsString
     Left = 360
     Top = 144
   end
-  object brIsLinkClass: TBoldAsVariantRenderer
-    OnGetAsVariant = brIsLinkClassGetAsVariant
+  object brIsLinkClass: TBoldAsStringRenderer
+    OnGetAsString = brIsLinkClassGetAsString
     Left = 296
     Top = 144
   end
