@@ -1860,7 +1860,16 @@ procedure TcxGridBoldDataController.PreFetchColumns(AList: TBoldList; aItem: int
     cCollectOcl = 'self->collect(%s)';
 {$ENDIF}
   begin
-    if FetchList.Empty or not TBoldObjectList(FetchList).Locators[0].BoldSystem.BoldPersistent then
+    // Prefetching exists to pull the attributes of persistent objects in one
+    // round trip, so it only ever applies to an object list. The guard is not
+    // merely defensive: TBoldTypeList and TBoldObjectList are siblings under
+    // TBoldList, so the cast below is invalid rather than unchecked, and
+    // Locators[0] would read a foreign field and dispatch through it. A grid
+    // bound to a list of types rather than objects, as one bound to
+    // allSubClasses is, reaches here with a TBoldTypeList.
+    if FetchList.Empty or not (FetchList is TBoldObjectList) then
+      exit;
+    if not TBoldObjectList(FetchList).Locators[0].BoldSystem.BoldPersistent then
       exit;
     try
   {$IFDEF SpanFetch}
