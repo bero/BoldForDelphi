@@ -7,14 +7,14 @@ object PersonAutoForm: TPersonAutoForm
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 15
   object Label1: TLabel
     Left = 8
     Top = 7
@@ -70,8 +70,8 @@ object PersonAutoForm: TPersonAutoForm
     ReadOnly = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     Alignment = taLeftJustify
     ButtonStyle = bbsNone
@@ -88,8 +88,8 @@ object PersonAutoForm: TPersonAutoForm
     ReadOnly = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     Alignment = taLeftJustify
     ButtonStyle = bbsNone
@@ -106,8 +106,8 @@ object PersonAutoForm: TPersonAutoForm
     ReadOnly = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     Alignment = taLeftJustify
     ButtonStyle = bbsNone
@@ -140,8 +140,8 @@ object PersonAutoForm: TPersonAutoForm
         Color = clBtnFace
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         LookUpProperties.Expression = ''
       end
@@ -149,8 +149,8 @@ object PersonAutoForm: TPersonAutoForm
         BoldProperties.Expression = 'zipCode'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Title.Caption = 'ZipCode'
         LookUpProperties.Expression = ''
@@ -159,8 +159,8 @@ object PersonAutoForm: TPersonAutoForm
         BoldProperties.Expression = 'address'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Title.Caption = 'Address'
         LookUpProperties.Expression = ''
@@ -169,8 +169,8 @@ object PersonAutoForm: TPersonAutoForm
         BoldProperties.Expression = 'owners->size'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Title.Caption = '# owners'
         LookUpProperties.Expression = ''
@@ -179,15 +179,15 @@ object PersonAutoForm: TPersonAutoForm
     EnableColAdjust = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     ParentFont = False
     TabOrder = 4
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
-    TitleFont.Height = -11
-    TitleFont.Name = 'MS Sans Serif'
+    TitleFont.Height = -12
+    TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
     ColWidths = (
       17
@@ -224,8 +224,8 @@ object PersonAutoForm: TPersonAutoForm
         Color = clBtnFace
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         LookUpProperties.Expression = ''
       end
@@ -233,8 +233,8 @@ object PersonAutoForm: TPersonAutoForm
         BoldProperties.Expression = ''
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         LookUpProperties.Expression = ''
       end>
@@ -242,15 +242,15 @@ object PersonAutoForm: TPersonAutoForm
     EnableColAdjust = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     ParentFont = False
     TabOrder = 6
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
-    TitleFont.Height = -11
-    TitleFont.Name = 'Tahoma'
+    TitleFont.Height = -12
+    TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
     ColWidths = (
       17

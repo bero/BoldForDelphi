@@ -8,11 +8,11 @@ object BoldLEPropagatorMainForm: TBoldLEPropagatorMainForm
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poScreenCenter
-  TextHeight = 13
+  TextHeight = 15
   object StatusBar1: TStatusBar
     Left = 0
     Top = 268
@@ -53,8 +53,8 @@ object BoldLEPropagatorMainForm: TBoldLEPropagatorMainForm
       Align = alLeft
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       ItemHeight = 13
       ParentFont = False

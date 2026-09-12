@@ -8,8 +8,8 @@ object BoldOclPropEditForm: TBoldOclPropEditForm
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   HelpFile = 'BoldOCLPropEditForm'
   Icon.Data = {
@@ -40,7 +40,7 @@ object BoldOclPropEditForm: TBoldOclPropEditForm
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  TextHeight = 13
+  TextHeight = 15
   object ExpBottomPanel: TPanel
     Left = 0
     Top = 318

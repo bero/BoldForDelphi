@@ -9,8 +9,8 @@ object frmBoldUMLConstraintEditorCx: TfrmBoldUMLConstraintEditorCx
   Constraints.MinWidth = 217
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Icon.Data = {
     0000010001002020100000000000E80200001600000028000000200000004000
@@ -42,7 +42,7 @@ object frmBoldUMLConstraintEditorCx: TfrmBoldUMLConstraintEditorCx
   OnClose = FormClose
   OnDestroy = FormDestroy
   OnDeactivate = FormDeactivate
-  TextHeight = 13
+  TextHeight = 15
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
@@ -88,8 +88,8 @@ object frmBoldUMLConstraintEditorCx: TfrmBoldUMLConstraintEditorCx
         Color = clBtnFace
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         LookUpProperties.Expression = ''
       end
@@ -97,8 +97,8 @@ object frmBoldUMLConstraintEditorCx: TfrmBoldUMLConstraintEditorCx
         BoldProperties.Expression = 'name'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         LookUpProperties.Expression = ''
       end
@@ -106,8 +106,8 @@ object frmBoldUMLConstraintEditorCx: TfrmBoldUMLConstraintEditorCx
         BoldProperties.Expression = 'body'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         LookUpProperties.Expression = ''
       end>
@@ -115,8 +115,8 @@ object frmBoldUMLConstraintEditorCx: TfrmBoldUMLConstraintEditorCx
     EnableColAdjust = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goColMoving, goEditing, goTabs]
     ParentFont = False
@@ -124,8 +124,8 @@ object frmBoldUMLConstraintEditorCx: TfrmBoldUMLConstraintEditorCx
     TabOrder = 1
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
-    TitleFont.Height = -11
-    TitleFont.Name = 'MS Sans Serif'
+    TitleFont.Height = -12
+    TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
     ColWidths = (
       17

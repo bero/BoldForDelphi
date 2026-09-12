@@ -7,13 +7,13 @@ object MainForm: TMainForm
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
   OnCloseQuery = FormCloseQuery
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 15
   object PageControl1: TPageControl
     Left = 0
     Top = 0
@@ -32,8 +32,8 @@ object MainForm: TMainForm
         Caption = 'Customers'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
       end
@@ -47,8 +47,8 @@ object MainForm: TMainForm
         Color = clBtnFace
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
       end
@@ -60,8 +60,8 @@ object MainForm: TMainForm
         Caption = 'Log'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
       end
@@ -74,8 +74,8 @@ object MainForm: TMainForm
         Caption = 'Customers are fetched from external data source.'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsItalic]
         ParentFont = False
         WordWrap = True
@@ -116,16 +116,16 @@ object MainForm: TMainForm
             Color = clBtnFace
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
           end
           item
             BoldProperties.Expression = 'customerID'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'CustomerID'
           end
@@ -133,8 +133,8 @@ object MainForm: TMainForm
             BoldProperties.Expression = 'name'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Name'
           end
@@ -142,8 +142,8 @@ object MainForm: TMainForm
             BoldProperties.Expression = 'isMarried'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'IsMarried'
             AllowCheckBox = True
@@ -153,8 +153,8 @@ object MainForm: TMainForm
         TabOrder = 0
         TitleFont.Charset = DEFAULT_CHARSET
         TitleFont.Color = clWindowText
-        TitleFont.Height = -11
-        TitleFont.Name = 'MS Sans Serif'
+        TitleFont.Height = -12
+        TitleFont.Name = 'Segoe UI'
         TitleFont.Style = []
         ColWidths = (
           17
@@ -196,16 +196,16 @@ object MainForm: TMainForm
             Color = clBtnFace
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
           end
           item
             BoldProperties.Expression = 'name'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Name'
           end>
@@ -214,8 +214,8 @@ object MainForm: TMainForm
         TabOrder = 2
         TitleFont.Charset = DEFAULT_CHARSET
         TitleFont.Color = clWindowText
-        TitleFont.Height = -11
-        TitleFont.Name = 'MS Sans Serif'
+        TitleFont.Height = -12
+        TitleFont.Name = 'Segoe UI'
         TitleFont.Style = []
         ColWidths = (
           17
@@ -316,8 +316,8 @@ object MainForm: TMainForm
         ReadOnly = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -339,16 +339,16 @@ object MainForm: TMainForm
             Color = clBtnFace
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
           end
           item
             BoldProperties.Expression = 'part.description'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Product'
           end
@@ -356,8 +356,8 @@ object MainForm: TMainForm
             BoldProperties.Expression = 'part.listPrice'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Price'
           end
@@ -365,8 +365,8 @@ object MainForm: TMainForm
             BoldProperties.Expression = 'qty'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Qty'
           end
@@ -374,8 +374,8 @@ object MainForm: TMainForm
             BoldProperties.Expression = 'discount'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Discount'
           end>
@@ -384,8 +384,8 @@ object MainForm: TMainForm
         TabOrder = 11
         TitleFont.Charset = DEFAULT_CHARSET
         TitleFont.Color = clWindowText
-        TitleFont.Height = -11
-        TitleFont.Name = 'MS Sans Serif'
+        TitleFont.Height = -12
+        TitleFont.Name = 'Segoe UI'
         TitleFont.Style = []
         ColWidths = (
           17

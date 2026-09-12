@@ -9,13 +9,13 @@ object BoldSystemDebuggerFrm: TBoldSystemDebuggerFrm
   Constraints.MinWidth = 528
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  TextHeight = 13
+  TextHeight = 15
   object Splitter2: TSplitter
     Left = 286
     Top = 0

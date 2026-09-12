@@ -5,8 +5,8 @@ object BoldViewerFrame: TBoldViewerFrame
   Height = 240
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   ParentFont = False
   TabOrder = 0

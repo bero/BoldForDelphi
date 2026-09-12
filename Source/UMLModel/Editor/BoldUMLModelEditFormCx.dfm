@@ -8,8 +8,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Icon.Data = {
     0000010001002020100000000000E80200001600000028000000200000004000
@@ -48,7 +48,7 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
   OnDeactivate = FormDeactivate
   OnKeyDown = FormKeyDown
   OnShow = FormShow
-  TextHeight = 13
+  TextHeight = 15
   object Splitter9: TSplitter
     Left = 0
     Top = 588
@@ -201,8 +201,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -221,8 +221,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -241,8 +241,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -263,8 +263,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -285,8 +285,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -307,8 +307,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -431,8 +431,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -455,8 +455,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -492,8 +492,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -512,8 +512,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -587,8 +587,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
         ReadOnly = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Alignment = taLeftJustify
         ButtonStyle = bbsNone
@@ -911,7 +911,7 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
               Font.Height = -19
-              Font.Name = 'MS Sans Serif'
+              Font.Name = 'Segoe UI'
               Font.Style = []
               ParentFont = False
             end
@@ -924,7 +924,7 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
               Font.Height = -19
-              Font.Name = 'MS Sans Serif'
+              Font.Name = 'Segoe UI'
               Font.Style = []
               ParentFont = False
             end
@@ -1012,8 +1012,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1032,8 +1032,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1052,8 +1052,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1072,8 +1072,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1094,8 +1094,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1194,8 +1194,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1216,8 +1216,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = True
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1253,8 +1253,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1292,8 +1292,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1314,8 +1314,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1351,8 +1351,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -1428,7 +1428,7 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
               Font.Height = -13
-              Font.Name = 'Tahoma'
+              Font.Name = 'Segoe UI'
               Font.Style = []
               ParentFont = False
               TabOrder = 6
@@ -1464,8 +1464,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
               ReadOnly = False
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'MS Sans Serif'
+              Font.Height = -12
+              Font.Name = 'Segoe UI'
               Font.Style = []
               Alignment = taLeftJustify
               ButtonStyle = bbsNone
@@ -4441,8 +4441,8 @@ object BoldModelEditFrmCx: TBoldModelEditFrmCx
       AssignedValues = [svFont]
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Tahoma'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
     end
   end

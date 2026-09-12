@@ -7,14 +7,14 @@ object allform: Tallform
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = True
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 15
   object Label1: TLabel
     Left = 8
     Top = 16
@@ -74,8 +74,8 @@ object allform: Tallform
       ReadOnly = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       Alignment = taLeftJustify
       ButtonStyle = bbsNone
@@ -93,8 +93,8 @@ object allform: Tallform
       ReadOnly = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       Alignment = taLeftJustify
       ButtonStyle = bbsNone
@@ -128,8 +128,8 @@ object allform: Tallform
       ReadOnly = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       Alignment = taLeftJustify
       ButtonStyle = bbsNone
@@ -147,8 +147,8 @@ object allform: Tallform
       ReadOnly = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       Alignment = taLeftJustify
       ButtonStyle = bbsNone
@@ -185,8 +185,8 @@ object allform: Tallform
     ReadOnly = True
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     Alignment = taLeftJustify
     ButtonStyle = bbsNone
@@ -227,16 +227,16 @@ object allform: Tallform
         Color = clBtnFace
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
       end
       item
         BoldProperties.Expression = 'lastName + '#39', '#39'+firstName'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Title.Caption = 'Full Name'
       end
@@ -244,8 +244,8 @@ object allform: Tallform
         BoldProperties.Expression = 'assets'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
       end>
     DefaultRowHeight = 17
@@ -254,8 +254,8 @@ object allform: Tallform
     TabOrder = 5
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
-    TitleFont.Height = -11
-    TitleFont.Name = 'MS Sans Serif'
+    TitleFont.Height = -12
+    TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
     ColWidths = (
       17
@@ -295,8 +295,8 @@ object allform: Tallform
             Color = clBtnFace
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
           end
           item
@@ -304,8 +304,8 @@ object allform: Tallform
             BoldProperties.Renderer = bsrAddress
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
           end>
         DefaultRowHeight = 17
@@ -314,8 +314,8 @@ object allform: Tallform
         TabOrder = 0
         TitleFont.Charset = DEFAULT_CHARSET
         TitleFont.Color = clWindowText
-        TitleFont.Height = -11
-        TitleFont.Name = 'MS Sans Serif'
+        TitleFont.Height = -12
+        TitleFont.Name = 'Segoe UI'
         TitleFont.Style = []
         ColWidths = (
           17
@@ -352,8 +352,8 @@ object allform: Tallform
           ReadOnly = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           Alignment = taLeftJustify
           ButtonStyle = bbsNone
@@ -409,8 +409,8 @@ object allform: Tallform
             Color = clBtnFace
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
           end
           item
@@ -418,16 +418,16 @@ object allform: Tallform
             BoldProperties.Renderer = bsrAddress
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
           end
           item
             BoldProperties.Renderer = bsrRentPerResident
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Rent/Resident'
           end
@@ -436,8 +436,8 @@ object allform: Tallform
             BoldProperties.Renderer = HighRentRenderer
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Rent'
           end
@@ -445,8 +445,8 @@ object allform: Tallform
             BoldProperties.Expression = 'residents.Assets->Sum '
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'tot $'
           end>
@@ -456,8 +456,8 @@ object allform: Tallform
         TabOrder = 0
         TitleFont.Charset = DEFAULT_CHARSET
         TitleFont.Color = clWindowText
-        TitleFont.Height = -11
-        TitleFont.Name = 'MS Sans Serif'
+        TitleFont.Height = -12
+        TitleFont.Name = 'Segoe UI'
         TitleFont.Style = []
         ColWidths = (
           17
@@ -504,8 +504,8 @@ object allform: Tallform
           ReadOnly = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           Alignment = taLeftJustify
           ButtonStyle = bbsNone

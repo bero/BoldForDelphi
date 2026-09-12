@@ -8,8 +8,8 @@ object FGettingStarted: TFGettingStarted
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   FormStyle = fsStayOnTop
   Icon.Data = {
@@ -39,7 +39,7 @@ object FGettingStarted: TFGettingStarted
     000000000000000000000000000000000000000000000000000000000000}
   Position = poMainFormCenter
   OnClose = FormClose
-  TextHeight = 13
+  TextHeight = 15
   object Image1: TImage
     Left = 8
     Top = 8
@@ -1772,8 +1772,8 @@ object FGettingStarted: TFGettingStarted
     Caption = 'Don'#39't show this dialog again'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     ParentFont = False
     TabOrder = 2

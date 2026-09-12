@@ -10,8 +10,8 @@ object frmUsesEditor: TfrmUsesEditor
   Constraints.MinWidth = 182
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Icon.Data = {
     0000010001002020100000000000E80200001600000028000000200000004000
@@ -40,7 +40,7 @@ object frmUsesEditor: TfrmUsesEditor
     000000000000000000000000000000000000000000000000000000000000}
   Position = poScreenCenter
   OnClose = FormClose
-  TextHeight = 13
+  TextHeight = 15
   object pnButtons1: TPanel
     Left = 0
     Top = 138
@@ -112,8 +112,8 @@ object frmUsesEditor: TfrmUsesEditor
       BoldProperties.ApplyPolicy = bapDemand
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       MaxLength = 0
       PopupMenu = PopupMenu1

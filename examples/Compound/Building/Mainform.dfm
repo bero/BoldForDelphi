@@ -6,8 +6,8 @@ object allform: Tallform
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = True
@@ -15,7 +15,7 @@ object allform: Tallform
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 15
   object Label1: TLabel
     Left = 8
     Top = 16
@@ -75,8 +75,8 @@ object allform: Tallform
       ReadOnly = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       Alignment = taLeftJustify
       ButtonStyle = bbsNone
@@ -94,8 +94,8 @@ object allform: Tallform
       ReadOnly = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       Alignment = taLeftJustify
       ButtonStyle = bbsNone
@@ -128,8 +128,8 @@ object allform: Tallform
       ReadOnly = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       Alignment = taLeftJustify
       ButtonStyle = bbsNone
@@ -147,8 +147,8 @@ object allform: Tallform
       ReadOnly = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = []
       Alignment = taLeftJustify
       ButtonStyle = bbsNone
@@ -178,8 +178,8 @@ object allform: Tallform
     ReadOnly = True
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     Alignment = taLeftJustify
     ButtonStyle = bbsNone
@@ -220,8 +220,8 @@ object allform: Tallform
         Color = clBtnFace
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         LookUpProperties.Expression = ''
       end
@@ -229,8 +229,8 @@ object allform: Tallform
         BoldProperties.Expression = 'lastName + '#39', '#39'+firstName'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Title.Caption = 'Full Name'
         LookUpProperties.Expression = ''
@@ -239,8 +239,8 @@ object allform: Tallform
         BoldProperties.Expression = 'assets'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         LookUpProperties.Expression = ''
       end>
@@ -248,16 +248,16 @@ object allform: Tallform
     EnableColAdjust = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     ParentFont = False
     PopupMenu = PersonPopup
     TabOrder = 4
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
-    TitleFont.Height = -11
-    TitleFont.Name = 'MS Sans Serif'
+    TitleFont.Height = -12
+    TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
     ColWidths = (
       17
@@ -289,8 +289,8 @@ object allform: Tallform
             Color = clBtnFace
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             LookUpProperties.Expression = ''
           end
@@ -299,8 +299,8 @@ object allform: Tallform
             BoldProperties.Renderer = bsrAddress
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             LookUpProperties.Expression = ''
           end>
@@ -308,16 +308,16 @@ object allform: Tallform
         EnableColAdjust = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         ParentFont = False
         PopupMenu = BuildingPopup
         TabOrder = 0
         TitleFont.Charset = DEFAULT_CHARSET
         TitleFont.Color = clWindowText
-        TitleFont.Height = -11
-        TitleFont.Name = 'MS Sans Serif'
+        TitleFont.Height = -12
+        TitleFont.Name = 'Segoe UI'
         TitleFont.Style = []
         ColWidths = (
           17
@@ -354,8 +354,8 @@ object allform: Tallform
           ReadOnly = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           Alignment = taLeftJustify
           ButtonStyle = bbsNone
@@ -430,8 +430,8 @@ object allform: Tallform
             Color = clBtnFace
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             LookUpProperties.Expression = ''
           end
@@ -440,8 +440,8 @@ object allform: Tallform
             BoldProperties.Renderer = bsrAddress
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             LookUpProperties.Expression = ''
           end
@@ -450,8 +450,8 @@ object allform: Tallform
             BoldProperties.Renderer = bsrRentPerResident
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Rent/Resident'
             LookUpProperties.Expression = ''
@@ -461,8 +461,8 @@ object allform: Tallform
             BoldProperties.Renderer = HighRentRenderer
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'Rent'
             LookUpProperties.Expression = ''
@@ -471,8 +471,8 @@ object allform: Tallform
             BoldProperties.Expression = 'residents.Assets->Sum '
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Height = -12
+            Font.Name = 'Segoe UI'
             Font.Style = []
             Title.Caption = 'tot $'
             LookUpProperties.Expression = ''
@@ -481,16 +481,16 @@ object allform: Tallform
         EnableColAdjust = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         ParentFont = False
         PopupMenu = BuildingPopup
         TabOrder = 0
         TitleFont.Charset = DEFAULT_CHARSET
         TitleFont.Color = clWindowText
-        TitleFont.Height = -11
-        TitleFont.Name = 'MS Sans Serif'
+        TitleFont.Height = -12
+        TitleFont.Name = 'Segoe UI'
         TitleFont.Style = []
         ColWidths = (
           17
@@ -537,8 +537,8 @@ object allform: Tallform
           ReadOnly = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           Alignment = taLeftJustify
           ButtonStyle = bbsNone

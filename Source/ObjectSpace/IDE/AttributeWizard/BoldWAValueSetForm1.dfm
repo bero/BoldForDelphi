@@ -8,11 +8,11 @@ object ValueSetForm1: TValueSetForm1
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   OnDestroy = FormDestroy
-  TextHeight = 13
+  TextHeight = 15
   object PageControl1: TPageControl
     Left = 0
     Top = 0
@@ -35,8 +35,8 @@ object ValueSetForm1: TValueSetForm1
         Caption = ' Class Definition '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         ParentFont = False
         TabOrder = 0
@@ -48,8 +48,8 @@ object ValueSetForm1: TValueSetForm1
           Caption = 'Expression Name'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
         end
@@ -61,8 +61,8 @@ object ValueSetForm1: TValueSetForm1
           Caption = '( Ex: dayofweek)'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
         end
@@ -74,8 +74,8 @@ object ValueSetForm1: TValueSetForm1
           Caption = 'Delphi Class Name'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
         end
@@ -87,8 +87,8 @@ object ValueSetForm1: TValueSetForm1
           Caption = '( Ex: TDayOfWeek )'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
         end
@@ -100,8 +100,8 @@ object ValueSetForm1: TValueSetForm1
           Caption = 'Value Prefix'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
         end
@@ -113,8 +113,8 @@ object ValueSetForm1: TValueSetForm1
           Caption = '( Ex: dw for DayofWeek )'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
         end
@@ -126,8 +126,8 @@ object ValueSetForm1: TValueSetForm1
           Caption = 'Unit Name'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
         end
@@ -140,8 +140,8 @@ object ValueSetForm1: TValueSetForm1
           Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
           Visible = False
@@ -155,8 +155,8 @@ object ValueSetForm1: TValueSetForm1
           Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
           Visible = False
@@ -168,8 +168,8 @@ object ValueSetForm1: TValueSetForm1
           Height = 21
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
           TabOrder = 0
@@ -182,8 +182,8 @@ object ValueSetForm1: TValueSetForm1
           Height = 21
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
           TabOrder = 1
@@ -196,8 +196,8 @@ object ValueSetForm1: TValueSetForm1
           Height = 21
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
           TabOrder = 2
@@ -209,8 +209,8 @@ object ValueSetForm1: TValueSetForm1
           Height = 21
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
           TabOrder = 3
@@ -224,8 +224,8 @@ object ValueSetForm1: TValueSetForm1
           Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
           TabOrder = 4
@@ -247,8 +247,8 @@ object ValueSetForm1: TValueSetForm1
         Caption = '  Define values  '
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         ParentFont = False
         TabOrder = 0
@@ -263,8 +263,8 @@ object ValueSetForm1: TValueSetForm1
           EdgeOuter = esNone
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ParentFont = False
           ParentShowHint = False
@@ -432,8 +432,8 @@ object ValueSetForm1: TValueSetForm1
             end>
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
           Font.Style = []
           ReadOnly = True
           RowSelect = True

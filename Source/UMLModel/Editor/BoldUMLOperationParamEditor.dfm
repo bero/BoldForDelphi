@@ -9,8 +9,8 @@ object BoldUMLOperationParamEditForm: TBoldUMLOperationParamEditForm
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -19,7 +19,7 @@ object BoldUMLOperationParamEditForm: TBoldUMLOperationParamEditForm
     331
     198)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 15
   object PageControl1: TPageControl
     Left = 8
     Top = 8
@@ -71,8 +71,8 @@ object BoldUMLOperationParamEditForm: TBoldUMLOperationParamEditForm
         Style.Color = clWindow
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clWindowText
-        Style.Font.Height = -11
-        Style.Font.Name = 'MS Sans Serif'
+        Style.Font.Height = -12
+        Style.Font.Name = 'Segoe UI'
         Style.Font.Style = []
         Style.IsFontAssigned = True
         TabOrder = 0

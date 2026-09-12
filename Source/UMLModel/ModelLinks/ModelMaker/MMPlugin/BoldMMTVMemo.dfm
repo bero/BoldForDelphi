@@ -9,10 +9,10 @@ object frmMemoEdit: TfrmMemoEdit
   Constraints.MinWidth = 171
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
-  TextHeight = 13
+  TextHeight = 15
   object memoTheMemo: TMemo
     Left = 0
     Top = 0

@@ -8,8 +8,8 @@ object frmBoldUMLAddTV: TfrmBoldUMLAddTV
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Icon.Data = {
     0000010001002020100000000000E80200001600000028000000200000004000
@@ -42,7 +42,7 @@ object frmBoldUMLAddTV: TfrmBoldUMLAddTV
   DesignSize = (
     272
     140)
-  TextHeight = 13
+  TextHeight = 15
   object GroupBox1: TGroupBox
     Left = 8
     Top = 4

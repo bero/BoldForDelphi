@@ -8,8 +8,8 @@ object InputForm: TInputForm
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   HelpFile = 'BOLD20ATTRIBUTEWIZARD.HLP'
   Icon.Data = {
@@ -40,7 +40,7 @@ object InputForm: TInputForm
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
   OnDestroy = FormDestroy
-  TextHeight = 13
+  TextHeight = 15
   object pnBottom: TPanel
     Left = 0
     Top = 272

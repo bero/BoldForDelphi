@@ -15,7 +15,7 @@ object BoldUMLAttributeEditForm: TBoldUMLAttributeEditForm
     471
     500)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 15
   object PageControl1: TPageControl
     Left = 16
     Top = 16
@@ -212,8 +212,8 @@ object BoldUMLAttributeEditForm: TBoldUMLAttributeEditForm
         Style.Color = clWindow
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clWindowText
-        Style.Font.Height = -11
-        Style.Font.Name = 'MS Sans Serif'
+        Style.Font.Height = -12
+        Style.Font.Name = 'Segoe UI'
         Style.Font.Style = []
         Style.IsFontAssigned = True
         TabOrder = 4
@@ -234,8 +234,8 @@ object BoldUMLAttributeEditForm: TBoldUMLAttributeEditForm
         Style.Color = clWindow
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clWindowText
-        Style.Font.Height = -11
-        Style.Font.Name = 'MS Sans Serif'
+        Style.Font.Height = -12
+        Style.Font.Name = 'Segoe UI'
         Style.Font.Style = []
         Style.IsFontAssigned = True
         TabOrder = 1
@@ -256,8 +256,8 @@ object BoldUMLAttributeEditForm: TBoldUMLAttributeEditForm
         Style.Color = clWindow
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clWindowText
-        Style.Font.Height = -11
-        Style.Font.Name = 'MS Sans Serif'
+        Style.Font.Height = -12
+        Style.Font.Name = 'Segoe UI'
         Style.Font.Style = []
         Style.IsFontAssigned = True
         TabOrder = 15
@@ -280,8 +280,8 @@ object BoldUMLAttributeEditForm: TBoldUMLAttributeEditForm
         Style.Color = clWindow
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clWindowText
-        Style.Font.Height = -11
-        Style.Font.Name = 'MS Sans Serif'
+        Style.Font.Height = -12
+        Style.Font.Name = 'Segoe UI'
         Style.Font.Style = []
         Style.IsFontAssigned = True
         TabOrder = 20
@@ -303,8 +303,8 @@ object BoldUMLAttributeEditForm: TBoldUMLAttributeEditForm
         Style.Color = clWindow
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clWindowText
-        Style.Font.Height = -11
-        Style.Font.Name = 'MS Sans Serif'
+        Style.Font.Height = -12
+        Style.Font.Name = 'Segoe UI'
         Style.Font.Style = []
         Style.IsFontAssigned = True
         TabOrder = 24
@@ -326,8 +326,8 @@ object BoldUMLAttributeEditForm: TBoldUMLAttributeEditForm
         Style.Color = clWindow
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clWindowText
-        Style.Font.Height = -11
-        Style.Font.Name = 'MS Sans Serif'
+        Style.Font.Height = -12
+        Style.Font.Name = 'Segoe UI'
         Style.Font.Style = []
         Style.IsFontAssigned = True
         TabOrder = 17
@@ -349,8 +349,8 @@ object BoldUMLAttributeEditForm: TBoldUMLAttributeEditForm
         Style.Color = clWindow
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clWindowText
-        Style.Font.Height = -11
-        Style.Font.Name = 'MS Sans Serif'
+        Style.Font.Height = -12
+        Style.Font.Name = 'Segoe UI'
         Style.Font.Style = []
         Style.IsFontAssigned = True
         TabOrder = 22
@@ -372,8 +372,8 @@ object BoldUMLAttributeEditForm: TBoldUMLAttributeEditForm
         Style.Color = clWindow
         Style.Font.Charset = DEFAULT_CHARSET
         Style.Font.Color = clWindowText
-        Style.Font.Height = -11
-        Style.Font.Name = 'MS Sans Serif'
+        Style.Font.Height = -12
+        Style.Font.Name = 'Segoe UI'
         Style.Font.Style = []
         Style.IsFontAssigned = True
         TabOrder = 28

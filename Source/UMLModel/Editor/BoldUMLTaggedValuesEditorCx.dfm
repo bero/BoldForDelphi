@@ -11,8 +11,8 @@ object frmBoldUMLTaggedValuesEditorCx: TfrmBoldUMLTaggedValuesEditorCx
   Constraints.MinWidth = 100
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Icon.Data = {
     0000010001002020100000000000E80200001600000028000000200000004000
@@ -43,7 +43,7 @@ object frmBoldUMLTaggedValuesEditorCx: TfrmBoldUMLTaggedValuesEditorCx
   Position = poDesktopCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  TextHeight = 13
+  TextHeight = 15
   object Panel1: TPanel
     Left = 0
     Top = 0
@@ -512,8 +512,8 @@ object frmBoldUMLTaggedValuesEditorCx: TfrmBoldUMLTaggedValuesEditorCx
       AssignedValues = [svFont]
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Tahoma'
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
     end
   end

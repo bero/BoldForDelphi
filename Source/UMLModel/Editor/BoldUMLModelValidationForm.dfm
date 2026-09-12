@@ -7,8 +7,8 @@ object frmValidation: TfrmValidation
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Icon.Data = {
     0000010001002020100000000000E80200001600000028000000200000004000
@@ -39,7 +39,7 @@ object frmValidation: TfrmValidation
   Position = poScreenCenter
   OnClose = FormClose
   OnKeyDown = FormKeyDown
-  TextHeight = 13
+  TextHeight = 15
   object BoldGrid1: TBoldGrid
     Left = 0
     Top = 30
@@ -57,8 +57,8 @@ object frmValidation: TfrmValidation
         Color = clBtnFace
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         LookUpProperties.Expression = ''
       end
@@ -66,8 +66,8 @@ object frmValidation: TfrmValidation
         BoldProperties.Expression = 'description'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Title.Caption = 'Description'
         LookUpProperties.Expression = ''
@@ -76,8 +76,8 @@ object frmValidation: TfrmValidation
         BoldProperties.Expression = 'severity'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Title.Caption = 'Violation'
         LookUpProperties.Expression = ''
@@ -86,8 +86,8 @@ object frmValidation: TfrmValidation
         BoldProperties.Expression = 'modelElement.name'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = []
         Title.Caption = 'Element'
         LookUpProperties.Expression = ''
@@ -96,8 +96,8 @@ object frmValidation: TfrmValidation
     EnableColAdjust = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goColMoving]
     ParentFont = False
@@ -105,8 +105,8 @@ object frmValidation: TfrmValidation
     TabOrder = 0
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
-    TitleFont.Height = -11
-    TitleFont.Name = 'MS Sans Serif'
+    TitleFont.Height = -12
+    TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
     OnDblClick = BoldGrid1DblClick
     ColWidths = (

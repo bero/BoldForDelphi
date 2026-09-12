@@ -9,13 +9,13 @@ object frmAboutBold: TfrmAboutBold
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poScreenCenter
   ShowHint = True
   OnCreate = FormCreate
-  TextHeight = 13
+  TextHeight = 15
   object lblLatestGit: TLabel
     Left = 203
     Top = 179
@@ -80,8 +80,8 @@ object frmAboutBold: TfrmAboutBold
         Caption = 'History'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
         WordWrap = True
@@ -104,8 +104,8 @@ object frmAboutBold: TfrmAboutBold
         Caption = 'Github'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
         WordWrap = True
@@ -119,8 +119,8 @@ object frmAboutBold: TfrmAboutBold
         Caption = 'github.com/bero/BoldForDelphi'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlue
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsUnderline]
         ParentFont = False
         OnClick = URLLatestGitClick
@@ -459,8 +459,8 @@ object frmAboutBold: TfrmAboutBold
         Caption = 'github.com/embarcadero/BoldForDelphi'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlue
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsUnderline]
         ParentFont = False
         OnClick = URLOriginalGitClick
@@ -485,8 +485,8 @@ object frmAboutBold: TfrmAboutBold
         Caption = 'Community'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
         WordWrap = True
@@ -509,8 +509,8 @@ object frmAboutBold: TfrmAboutBold
         Caption = 'discord.gg/C6frzsn'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlue
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsUnderline]
         ParentFont = False
         OnClick = lblDiscordSupportURLClick
@@ -524,8 +524,8 @@ object frmAboutBold: TfrmAboutBold
         Caption = 'BoldSoft'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsBold]
         ParentFont = False
         WordWrap = True
@@ -539,8 +539,8 @@ object frmAboutBold: TfrmAboutBold
         Caption = 'www.boldsoft.com'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlue
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
         Font.Style = [fsUnderline]
         ParentFont = False
         OnClick = lblBoldSoftURLClick
