@@ -1,14 +1,14 @@
 object frmMain: TfrmMain
   Left = 0
   Top = -1
-  Width = 520
-  Height = 338
   Caption = 'Conway'#39's Game of Life'
+  ClientHeight = 500
+  ClientWidth = 854
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
   Font.Style = []
   Icon.Data = {
     0000010001002020100000000000E80200001600000028000000200000004000
@@ -35,14 +35,12 @@ object frmMain: TfrmMain
     0000000000000000000000000000000000000000000000000000000000000000
     0000000000000000000000000000000000000000000000000000000000000000
     000000000000000000000000000000000000000000000000000000000000}
-  OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   DesignSize = (
-    512
-    311)
-  PixelsPerInch = 96
-  TextHeight = 13
+    854
+    500)
+  TextHeight = 15
   object BoldLabel3: TBoldLabel
     Left = 76
     Top = 176
@@ -53,8 +51,8 @@ object frmMain: TfrmMain
     Color = clBtnFace
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
   end
   object Label4: TLabel
@@ -88,8 +86,8 @@ object frmMain: TfrmMain
     Color = clBtnFace
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
   end
   object Label3: TLabel
@@ -109,8 +107,8 @@ object frmMain: TfrmMain
     Color = clBtnFace
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
   end
   object BoldLabel4: TBoldLabel
@@ -123,8 +121,8 @@ object frmMain: TfrmMain
     Color = clBtnFace
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
     Font.Style = []
   end
   object btnTick: TButton
@@ -157,8 +155,8 @@ object frmMain: TfrmMain
   object BoldMemo1: TBoldMemo
     Left = 168
     Top = 4
-    Width = 338
-    Height = 302
+    Width = 688
+    Height = 503
     Alignment = taLeftJustify
     Anchors = [akLeft, akTop, akRight, akBottom]
     BoldHandle = refGame

@@ -11,7 +11,24 @@ qualified association used as a two-dimensional index, and reverse derivation.
 ## Running it
 
 Open `Conway.dpr`. There is no `.dproj` in this folder, so the IDE will offer
-to create one.
+to create one. Accept, but note that **the generated project will not compile as
+it stands**. The IDE writes a project file with an empty unit search path, and
+the first Bold unit then fails:
+
+```
+[dcc32 Fatal Error] fMain.pas(15): F2613 Unit 'BoldSubscription' not found.
+```
+
+The unit is present, at `Source\Common\Subscription\BoldSubscription.pas`. The
+compiler simply has nowhere to look. Add Bold's source folders to the project's
+unit search path, using the relative form `..\..\..\Source\...` so the project
+stays portable. The quickest source of a correct list is the search path in
+`examples\Simple\Tools\OclWorkbench\OclWorkbench.dproj`, which sits one level
+deeper, so replace its leading `..\..\..\..\` with `..\..\..\`.
+
+With that done the project builds clean, at roughly 229,000 lines. The one hint
+that remains, an unused private `ActiveCount`, comes from the generated
+`ConwayClasses_Interface.inc` and is not worth chasing.
 
 No database is involved. `BoldSystemHandle1` has no `PersistenceHandle` and
 `AutoActivate` is True, so the system opens empty in memory when the form is

@@ -20,17 +20,22 @@ var
   CellCount: integer;
 begin
   BoldSystem.StartTransaction;
-  // Increase generations
-  Generations := Generations + 1;
-  InactiveCount := 0;
-  CellCount := Cell.Count - 1;
-  // Get intermediate value
-  for i := 0 to CellCount do
-    Cell[i].CalculateIntermediate;
-  // Update board
-  for i := 0 to CellCount do
-    Cell[i].UpdateActive;
-  BoldSystem.CommitTransaction;
+  try
+    // Increase generations
+    Generations := Generations + 1;
+    InactiveCount := 0;
+    CellCount := Cell.Count - 1;
+    // Get intermediate value
+    for i := 0 to CellCount do
+      Cell[i].CalculateIntermediate;
+    // Update board
+    for i := 0 to CellCount do
+      Cell[i].UpdateActive;
+    BoldSystem.CommitTransaction;
+  except
+    BoldSystem.RollbackTransaction;
+    raise;
+  end;
 
   // Remove unused cells based on some simple rule
   if (Cell.Count > 0) and ((InactiveCount / Cell.Count) > 0.8) then
@@ -41,9 +46,14 @@ procedure TGame.ClearCells;
 begin
   // Delete all cells
   BoldSystem.StartTransaction;
-  while Cell.Count > 0 do
-    Cell[0].Delete;
-  BoldSystem.CommitTransaction;
+  try
+    while Cell.Count > 0 do
+      Cell[0].Delete;
+    BoldSystem.CommitTransaction;
+  except
+    BoldSystem.RollbackTransaction;
+    raise;
+  end;
   ResetBounds;
 end;
 
@@ -64,7 +74,14 @@ begin
 
   Bounds := GetBounds;
   Universe := TStringList.Create;
-  EmptyRow := StringOfChar(NOCELL, xSize);
+  // Width and column index both come from Bounds, so they cannot disagree.
+  // This previously took the width from the derived attribute xSize while the
+  // index below came from Bounds. Both ultimately rest on xMax and xMin, but
+  // one is a cached derivation and the other a live read, and nothing
+  // guaranteed they agreed. No failure was ever reproduced here, so read this
+  // as removing a second source of truth, not as a bug fix. The proven fault
+  // was in _board_ReverseDerive below, not in this routine.
+  EmptyRow := StringOfChar(NOCELL, Bounds.Right - Bounds.Left + 1);
   for y := Bounds.Top to Bounds.Bottom do
     Universe.Add(EmptyRow);
 
@@ -85,45 +102,63 @@ procedure TGame._board_ReverseDerive(DerivedObject: TObject);
 var
   EmptyRow,
   s: string;
-  x, y: integer;
+  x, y, LastCol: integer;
   Strings: TStringList;
   aCell: TCell;
   ActiveSpot: boolean;
 begin
   ClearCells;
   Strings := TStringList.Create;
-  Strings.Text := Board;
-  yMax := Strings.Count;
-  for y := 0 to Strings.Count - 1 do
-    if xMax < Length(Strings[y]) - 1 then
-      xMax := Length(Strings[y]) - 1;
+  try
+    Strings.Text := Board;
+    yMax := Strings.Count;
+    for y := 0 to Strings.Count - 1 do
+      if xMax < Length(Strings[y]) - 1 then
+        xMax := Length(Strings[y]) - 1;
 
-  BoldSystem.StartTransaction;
-  EmptyRow := StringOfChar(INACTIVECELL, xSize);
-  //EmptyRow := StringOfChar(' ', xSize);
-  // Traverse all lines
-  for y := 0 to Strings.Count - 1 do
-  begin
-    s := Strings[y] + EmptyRow;
-    // for all columns...
-    for x := 0 to xMax do
-    begin
-      aCell := Coord[x, y];
-      ActiveSpot := S[x + 1] = ACTIVECELL;
-      if Assigned(aCell) then
-        aCell.Active := ActiveSpot
-      else if ActiveSpot then
+    BoldSystem.StartTransaction;
+    try
+      // Snapshot the rightmost column ONCE, before any cell is created.
+      //
+      // This loop creates cells, and TCell.SetupCell calls UpdateBounds, which
+      // grows xMax whenever a cell appears at the right-hand edge. "for x := 0
+      // to xMax" re-reads that limit on entry to every row, so from the second
+      // row on it could run further right than the row that EmptyRow was sized
+      // for. On a short row, and an empty one in particular, s[x + 1] then
+      // indexes past the end of the string.
+      LastCol := xMax;
+      EmptyRow := StringOfChar(INACTIVECELL, LastCol - xMin + 1);
+      // Traverse all lines
+      for y := 0 to Strings.Count - 1 do
       begin
-        aCell := TCell(Cell.AddNew);
-        aCell.SetupCell(x, y);
-        aCell.Active := True;
+        // Pad the row out to the full board width, so a row shorter than the
+        // widest one is still safe to index across every column.
+        s := Strings[y] + EmptyRow;
+        // for all columns...
+        for x := 0 to LastCol do
+        begin
+          aCell := Coord[x, y];
+          ActiveSpot := s[x + 1] = ACTIVECELL;
+          if Assigned(aCell) then
+            aCell.Active := ActiveSpot
+          else if ActiveSpot then
+          begin
+            aCell := TCell(Cell.AddNew);
+            aCell.SetupCell(x, y);
+            aCell.Active := True;
+          end;
+          if Assigned(aCell) then
+            aCell.EnsureNeighbours;
+        end;
       end;
-      if Assigned(aCell) then
-        aCell.EnsureNeighbours;
+      BoldSystem.CommitTransaction;
+    except
+      BoldSystem.RollbackTransaction;
+      raise;
     end;
+  finally
+    Strings.Free;
   end;
-  BoldSystem.CommitTransaction;
-  Strings.Free;
 end;
 
 procedure TGame.UpdateBounds(x: integer; y: integer);
@@ -143,10 +178,15 @@ begin
   TBoldQueueable.DisplayAll;
 
   BoldSystem.StartTransaction;
-  for i := Cell.Count - 1 downto 0 do
-    if Cell[i].AllowRemove then
-      Cell[i].Delete;
-  BoldSystem.CommitTransaction;
+  try
+    for i := Cell.Count - 1 downto 0 do
+      if Cell[i].AllowRemove then
+        Cell[i].Delete;
+    BoldSystem.CommitTransaction;
+  except
+    BoldSystem.RollbackTransaction;
+    raise;
+  end;
   RefreshBounds;
 
   // Used for GUI feedback
