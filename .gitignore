@@ -31,6 +31,7 @@ dclBold.res
 *.tvsconfig
 *.dsk
 *.delphilsp.json
+*.skincfg
 
 # Delphi history and backups
 __history/
@@ -57,6 +58,7 @@ TestInsightSettings.ini
 # Example app data files
 *.db
 BoldDemo.xml
+OclWorkbench.xml
 
 # Windows nul device file accidentally created
 nul

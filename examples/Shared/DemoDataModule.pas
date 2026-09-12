@@ -1,4 +1,4 @@
-{$INCLUDE bold.inc}
+﻿{$INCLUDE bold.inc}
 unit DemoDataModule;
 
 interface
@@ -173,6 +173,18 @@ type
 
 function StringToDatabaseType(const AType: string): TDatabaseType;
 
+{ Reads a boolean written as a word.
+
+  TIniFile.ReadBool is ReadInteger(...) <> 0, and ReadInteger is StrToIntDef, so
+  the words True and False both fail to parse and quietly return the default.
+  The shipped .ini writes OSAuthent=True, which looks like it works only because
+  every call site defaulted to True: OSAuthent=False was ignored, and SQL Server
+  authentication could not be selected at all. This accepts True/False, Yes/No
+  and 1/0, and falls back to the default only when the key is absent or
+  unrecognisable. }
+function IniReadFlag(AIni: TCustomIniFile; const ASection, AKey: string;
+  ADefault: Boolean): Boolean;
+
 type
   TDemoDataModule = class(TDataModule)
     BoldModel1: TBoldModel;
@@ -217,7 +229,21 @@ type
     procedure ConfigureXML(AIni: TIniFile);
     function OracleUserHasTable(const TableName: string): Boolean;
     procedure DropOracleSchemaTables;
+    procedure TearDownPersistence;
+    function MissingDatabasePrompt: string;
   public
+    { Re-reads the .ini and rebuilds the persistence components from scratch.
+      Use it after changing the engine in the .ini so the change takes effect
+      without restarting the application. The Bold system is closed first, and
+      the caller is responsible for reopening it. }
+    procedure ReloadConfiguration;
+
+    { Writes the engine choice into the .ini. APersistence is one of
+      cPersistenceFireDAC / cPersistenceUniDAC / cPersistenceXML, and
+      ADatabaseType one of the cDbType* values (ignored for XML). Call
+      ReloadConfiguration afterwards to act on it. }
+    procedure WriteEngineToIni(const APersistence, ADatabaseType: string);
+
     procedure CreateDatabaseSchema;
     procedure CreateDatabaseIfNotExists;
     procedure DropDatabase;
@@ -250,6 +276,21 @@ var
 implementation
 
 {$R *.dfm}
+
+function IniReadFlag(AIni: TCustomIniFile; const ASection, AKey: string;
+  ADefault: Boolean): Boolean;
+var
+  Value: string;
+begin
+  Value := Trim(AIni.ReadString(ASection, AKey, ''));
+  if Value = '' then
+    Exit(ADefault);
+  if SameText(Value, 'True') or SameText(Value, 'Yes') or (Value = '1') then
+    Exit(True);
+  if SameText(Value, 'False') or SameText(Value, 'No') or (Value = '0') then
+    Exit(False);
+  Result := ADefault;
+end;
 
 function StringToDatabaseType(const AType: string): TDatabaseType;
 begin
@@ -302,8 +343,20 @@ end;
 
 procedure TDemoDataModule.DataModuleDestroy(Sender: TObject);
 begin
+  TearDownPersistence;
+end;
+
+{ Releases everything CreatePersistenceHandle built, in an order that does not
+  leave FireDAC holding cached queries against a freed connection. Shared by the
+  destructor and by ReloadConfiguration, because switching engine has to undo
+  exactly what shutting down undoes. }
+procedure TDemoDataModule.TearDownPersistence;
+begin
   // Close the Bold system first to release all database resources
   CloseSystem;
+
+  // The system handle must let go before the handle it points at is freed
+  BoldSystemHandle1.PersistenceHandle := nil;
 
   // Deactivate persistence handles to release database resources
   if Assigned(FPersistenceHandleDB) then
@@ -333,6 +386,32 @@ begin
   {$ENDIF}
   FreeAndNil(FPersistenceHandleDB);
   FreeAndNil(FPersistenceHandleXML);
+end;
+
+procedure TDemoDataModule.ReloadConfiguration;
+begin
+  TearDownPersistence;
+  FPersistenceType := ptFireDAC;
+  FDatabaseType := dtUnknown;
+  if FileExists(FConfigFile) then
+    LoadConfiguration;
+end;
+
+procedure TDemoDataModule.WriteEngineToIni(const APersistence, ADatabaseType: string);
+var
+  Ini: TIniFile;
+begin
+  Ini := TIniFile.Create(FConfigFile);
+  try
+    Ini.WriteString(cSectionDatabase, cKeyPersistence, APersistence);
+    // The Type key is meaningless for XML persistence, but leaving the previous
+    // value in place means switching back to FireDAC lands on the same engine.
+    if (ADatabaseType <> '') and not SameText(APersistence, cPersistenceXML) then
+      Ini.WriteString(cSectionDatabase, cKeyType, ADatabaseType);
+    Ini.UpdateFile;
+  finally
+    Ini.Free;
+  end;
 end;
 
 procedure TDemoDataModule.CreatePersistenceHandle;
@@ -439,7 +518,7 @@ var
 begin
   // Read XML settings
   FileName := AIni.ReadString(cSectionXML, cKeyFileName, ChangeFileExt(ParamStr(0), '.xml'));
-  CacheData := AIni.ReadBool(cSectionXML, cKeyCacheData, True);
+  CacheData := IniReadFlag(AIni, cSectionXML, cKeyCacheData, True);
 
   // Make path absolute if relative
   if not TPath.IsPathRooted(FileName) then
@@ -466,7 +545,7 @@ begin
         FFDConnection.Params.Add(cParamDriverID + '=' + cDriverMSSQL);
         FFDConnection.Params.Add(cParamServer + '=' + Server);
         FFDConnection.Params.Add(cParamDatabase + '=' + Database);
-        if AIni.ReadBool(cSectionMSSQL, cKeyOSAuthent, True) then
+        if IniReadFlag(AIni, cSectionMSSQL, cKeyOSAuthent, True) then
           FFDConnection.Params.Add(cParamOSAuthent + '=' + cValueYes)
         else
         begin
@@ -481,7 +560,7 @@ begin
         FUniConnection.ProviderName := cProviderSQLServer;
         FUniConnection.Server := Server;
         FUniConnection.Database := Database;
-        if AIni.ReadBool(cSectionMSSQL, cKeyOSAuthent, True) then
+        if IniReadFlag(AIni, cSectionMSSQL, cKeyOSAuthent, True) then
           FUniConnection.SpecificOptions.Values[cUniDACAuthOption] := cUniDACAuthWindows
         else
         begin
@@ -727,10 +806,16 @@ begin
   if FPersistenceType = ptXML then
     Exit(True);
 
-  // For file-based databases, check if file exists
+  // For file-based databases the file has to be there before anything else can
+  // be asked. Its mere presence is not enough, though: an empty file is not a
+  // database. Anything that connects to a missing SQLite file creates a
+  // zero-byte one, and if that counted as existing, the schema would never be
+  // created and opening the system would fail on a missing BOLD_TYPE. So fall
+  // through to the schema check below rather than returning True here.
   if FDatabaseType in [dtFirebird, dtSQLite] then
   begin
-    Exit(FileExists(GetDatabaseName));
+    if not FileExists(GetDatabaseName) then
+      Exit(False);
   end;
 
   // For Oracle, we must use admin credentials because we can't connect as
@@ -740,8 +825,9 @@ begin
     Exit(OracleUserHasTable('BOLD_TYPE'));
   end;
 
-  // For other server-based databases (MSSQL, PostgreSQL, MySQL, MariaDB),
-  // use Bold's built-in TableExists check.
+  // Everything else, server or file, is settled the same way: a database counts
+  // as existing only when it carries a Bold schema, which is what BOLD_TYPE
+  // stands in for.
   try
     case FPersistenceType of
       ptFireDAC:
@@ -1043,7 +1129,7 @@ begin
                   TempFDConn.Params.Add(cParamDriverID + '=' + cDriverMSSQL);
                   TempFDConn.Params.Add(cParamServer + '=' + Ini.ReadString(cSectionMSSQL, cKeyServer, cDefaultServer));
                   TempFDConn.Params.Add(cParamDatabase + '=' + cAdminDbMaster);
-                  if Ini.ReadBool(cSectionMSSQL, cKeyOSAuthent, True) then
+                  if IniReadFlag(Ini, cSectionMSSQL, cKeyOSAuthent, True) then
                     TempFDConn.Params.Add(cParamOSAuthent + '=' + cValueYes)
                   else
                   begin
@@ -1157,7 +1243,7 @@ begin
                   TempUniConn.ProviderName := cProviderSQLServer;
                   TempUniConn.Server := Ini.ReadString(cSectionMSSQL, cKeyServer, cDefaultServer);
                   TempUniConn.Database := cAdminDbMaster;
-                  if Ini.ReadBool(cSectionMSSQL, cKeyOSAuthent, True) then
+                  if IniReadFlag(Ini, cSectionMSSQL, cKeyOSAuthent, True) then
                     TempUniConn.SpecificOptions.Values[cUniDACAuthOption] := cUniDACAuthWindows
                   else
                   begin
@@ -1320,6 +1406,31 @@ begin
   end;
 end;
 
+{ The prompt used to name only the file, which left the reader guessing which
+  engine was being asked about. It now names the engine, and for a file-based
+  engine it also shows where the file is actually being looked for: the .ini
+  usually holds a bare filename, and FireDAC resolves that against the working
+  directory, which is not always the folder holding the executable. }
+function TDemoDataModule.MissingDatabasePrompt: string;
+var
+  Name: string;
+begin
+  Name := DatabaseName;
+
+  Result := Format('%s database "%s" does not exist.',
+    [GetDatabaseTypeStr, ExtractFileName(Name)]);
+
+  if FDatabaseType in [dtSQLite, dtFirebird] then
+    Result := Result + sLineBreak + sLineBreak +
+      'Looked for it here:' + sLineBreak +
+      ExpandFileName(Name)
+  else
+    Result := Result + sLineBreak + sLineBreak +
+      'On server: ' + FFDConnection.Params.Values[cParamServer];
+
+  Result := Result + sLineBreak + sLineBreak + 'Do you want to create it now?';
+end;
+
 procedure TDemoDataModule.OpenSystem;
 begin
   // Check if database exists (skip for XML persistence)
@@ -1327,8 +1438,7 @@ begin
   begin
     if not DatabaseExists then
     begin
-      if MessageDlg('Database "' + DatabaseName + '" does not exist.' + sLineBreak +
-                    'Do you want to create it now?',
+      if MessageDlg(MissingDatabasePrompt,
                     mtConfirmation, [mbYes, mbNo], 0) = mrYes then
       begin
         CreateDatabaseIfNotExists;
