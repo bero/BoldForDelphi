@@ -18,16 +18,21 @@ host involved. The server is a Delphi WebBroker **ISAPI DLL**
 the client's hard-coded URL, `http://n87zb/ASPdemo/ASPserver.dll/persistence`,
 which was a virtual directory called `ASPdemo` on a machine called `n87zb`.
 
-Three things stop this demo working as checked in:
+Both server-side projects were **ported off IBX to FireDAC with SQLite**, so
+nothing has to be installed to build them and there is no InterBase server to
+set up. `DBGenerator.exe` and `ASPserver.dll` both build, and the server has
+been confirmed to open the database the generator writes.
+
+Two things still stand between that and a running demo:
 
 - `Client\ClientMainForm.dfm` is a **byte-for-byte copy of `ClientDM.dfm`**.
   The main form's layout is not in the repository, so `ASPDemoClient` has no
-  resource for `TForm1`. This has been true since the 2020 source release.
-- Persistence uses `TBoldDatabaseAdapterIB` and IBX against an InterBase
-  `.gdb`. Both live in `Source/Deprecated/Persistance/IBX`, which this
-  repository does not maintain.
+  resource for `TForm1`. This has been true since the 2020 source release, and
+  it is the reason the demo cannot be driven end to end.
 - Hosting an ISAPI extension needs IIS with the ISAPI-Extensions role service
-  and an application pool whose bitness matches the DLL.
+  and an application pool whose bitness matches the DLL. Nothing behind the
+  request dispatch - the persistence endpoint, the SOAP action endpoint - has
+  been exercised without that.
 
 What follows describes what the code does, which is still worth reading.
 
@@ -36,7 +41,7 @@ What follows describes what the code does, which is still worth reading.
 | Project | What it is | Where |
 | --- | --- | --- |
 | `ASPserver.dpr` | ISAPI DLL. Holds the model, the database connection and a live server-side object space | `Server\` |
-| `DBGenerator.dpr` | Small VCL exe. One button that creates `ASPDemo.gdb` and the Bold schema in it | `Server\` |
+| `DBGenerator.dpr` | Small VCL exe. One button that creates `ASPDemo.db` (SQLite, through FireDAC) and the Bold schema in it | `Server\` |
 | `ASPDemoClient.dpr` | VCL client. No database components at all | `Client\` |
 | `ModelDM.pas` | `TBoldModel` named `bmASPDemo`, used by the client and by DBGenerator | `Common\` |
 | `BuildingClasses.pas` plus the `.inc` files | Generated classes and the hand-written method bodies | `Common\` |
@@ -47,13 +52,32 @@ to stay in step by hand.
 
 ## Running it
 
-1. Build `DBGenerator.exe` and run it once. It calls
-   `BoldDatabaseAdapterIB1.CreateInterbaseDatabase` and then
-   `BoldPersistenceHandleDB1.CreateDataBaseSchema`.
-2. Move `ASPDemo.gdb` next to the deployed `ASPserver.dll`. The generator writes
-   it wherever InterBase resolves the bare name `ASPDemo.gdb`; the server looks
-   for it beside its own module (see the note on `IBDatabase1BeforeConnect`
+1. Build `DBGenerator.exe`, run it and press **Create DB**. It calls
+   `BoldPersistenceHandleDB1.CreateDataBaseSchema`, which writes 15 tables: the
+   11 `BOLD_*` system tables plus `Building`, `Ownership`, `Person` and
+   `Residential_Building`. Pressing it again deletes the existing database
+   first, after asking. Nothing needs to be installed - SQLite is a file.
+
+   `DBGenerator.ini` holds the database name (`ASPDemo.db` by default). A bare
+   name is taken as relative to the executable, so the demo does not depend on
+   the working directory. The project also has a `DebugUniDAC` build
+   configuration that uses UniDAC instead of FireDAC; it needs the `UniDAC`
+   environment variable pointing at a UniDAC 11 installation, and writes its
+   exe to `Server\UniDAC\`.
+2. Nothing to move while developing. `DBGenerator.exe` writes the database
+   beside itself, and both it and `ASPserver.dll` build into `Server\`, so the
+   server already finds it - it looks for the database beside its own module,
+   not beside the running executable (see the note on locating the database
    below).
+
+   The `DebugUniDAC` build is the exception: it writes to `Server\UniDAC\`, so
+   the database lands there too. Copy `ASPDemo.db` up one level, or point
+   `ASPserver.ini` at the one in `UniDAC\`.
+
+   When deploying for real, `ASPDemo.db` has to travel with `ASPserver.dll`
+   into the IIS virtual directory. The application pool identity needs write
+   access to the file **and** to the folder holding it, because SQLite creates
+   journal files next to the database.
 3. Deploy `ASPserver.dll` into an IIS virtual directory that is allowed to
    execute ISAPI extensions.
 4. Run `ASPDemoClient.exe`, type the URL root into the edit box, for example
@@ -66,6 +90,43 @@ to stay in step by hand.
    ```
 
 5. Press **Open system**. The grids fill from the server.
+
+## Using another database engine
+
+SQLite is only the default, chosen so the demo needs nothing installed. Bold
+itself speaks a range of dialects - the `TBoldDataBaseEngine` values in
+`Source\PMapper\SQL\BoldSQLDatabaseConfig.pas` are `dbeInterbaseSQLDialect1`,
+`dbeInterbaseSQLDialect3`, `dbeGenericANSISQL92`, `dbeSQLServer`, `dbePostgres`,
+`dbeMySQL`, `dbeDBISAM`, `dbeOracle`, `dbeAdvantage`, `dbeParadox` and
+`dbeInformix`.
+
+The generator picks its engine in code rather than from the ini, so switching
+means editing `DBGeneratorForm.pas`. Three things have to agree:
+
+1. **The driver.** `DriverID=` for FireDAC (`cDriverSQLite`), or `ProviderName`
+   for the UniDAC build (`cProviderSQLite`).
+2. **The connection parameters.** A server engine wants `Server`, `User_Name`
+   and `Password` instead of a bare file name.
+3. **Bold's dialect.** `Adapter.DatabaseEngine`, currently
+   `dbeGenericANSISQL92`.
+
+Points 1 and 3 are independent settings and both have to be right: the driver
+decides who talks to the database, `DatabaseEngine` decides what SQL Bold
+generates. Setting one and not the other produces SQL the server rejects rather
+than a clear error.
+
+One piece of the generator is deliberately file-engine-specific. `Button1Click`
+deletes the database file before recreating it, and the comment above it
+explains why it does not call `TBoldDatabaseAdapterFireDAC.CreateDatabase` or
+`DatabaseExists`: both are written for server engines, and under
+`dbeGenericANSISQL92` the latter raises because `DatabaseExistsTemplate` is
+empty. For a server engine you would use those adapter calls instead of
+deleting a file.
+
+For a demo that switches engine from a menu, with the preconditions checked
+before it tries, see `examples\Simple\Tools\OclWorkbench` - it drives the shared
+`examples\Shared\DemoDataModule.pas`, which reads its engine from an ini. This
+ASP demo predates that and uses its own `Common\ModelDM.pas` instead.
 
 ## The main idea
 
@@ -113,13 +174,19 @@ demo says so rather than sending a request that cannot resolve.
 
 ## Notes
 
-- `IBDatabase1BeforeConnect` builds the database path as
+- **Locating the database.** The old `IBDatabase1BeforeConnect` built the path as
   `'localhost:' + GetModuleFileNameAsString(True) + ExtractFileName(...)`.
   `GetModuleFileNameAsString(True)` returns the full path **including the module
-  file name**, so the result is `...\ASPserver.dllASPDemo.gdb`. It needs
-  `ExtractFilePath` around it. The Locking demo's server gets the same
-  construction right.
+  file name**, so the result was `...\ASPserver.dllASPDemo.gdb`. The port
+  removed that handler; `ModuleDirectory` in `MainWebModule.pas` now wraps the
+  call in `ExtractFilePath`. The same construction is still wrong in
+  `HTTPPMapper\Common` and `XML\BoldAppDataModUnit`.
+
+  The module handle matters here rather than `Application.ExeName`: inside an
+  ISAPI extension the executable is the IIS worker process, so a database
+  located relative to the exe would be looked for under `System32\inetsrv`.
 - `TResidential_Building.ChargeRent` calls `ShowMessage` when a resident runs
   out of money and is evicted. Invoked through `ChargeRent` that message box
   opens inside the IIS worker process, where nobody can dismiss it.
-- There are no `.dproj` files anywhere in this folder, only `.dpr`.
+- `Server\` now has `.dproj` files for `DBGenerator` and `ASPserver`. The other
+  projects in this folder still have only a `.dpr`.

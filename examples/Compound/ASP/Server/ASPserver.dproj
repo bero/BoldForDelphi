@@ -1,0 +1,116 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{252FD1C8-61E1-45A5-BE97-FA677DDD6E9D}</ProjectGuid>
+        <MainSource>ASPserver.dpr</MainSource>
+        <Base>True</Base>
+        <Config Condition="'$(Config)'==''">Debug</Config>
+        <ProjectName Condition="'$(ProjectName)'==''">ASPserver</ProjectName>
+        <TargetedPlatforms>1</TargetedPlatforms>
+        <AppType>Library</AppType>
+        <FrameworkType>None</FrameworkType>
+        <ProjectVersion>20.3</ProjectVersion>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
+        <Base_Win32>true</Base_Win32>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
+        <Base_Win64>true</Base_Win64>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
+        <Cfg_1>true</Cfg_1>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
+        <Cfg_2>true</Cfg_2>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base)'!=''">
+        <DCC_E>false</DCC_E>
+        <DCC_F>false</DCC_F>
+        <DCC_K>false</DCC_K>
+        <DCC_N>false</DCC_N>
+        <DCC_S>false</DCC_S>
+        <DCC_ImageBase>00400000</DCC_ImageBase>
+        <DCC_UnitSearchPath>..\..\..\..\Source\Common\ConnectionHandlesCOM;..\..\..\..\Source\Common\ConnectionCOM;..\..\..\..\Source\Common\SOAP;..\..\..\..\Source\Persistence\HTTP;..\..\..\..\Source\Persistence\SOAP;..\..\..\..\Source\BoldAwareGUI\BoldControls;..\..\..\..\Source\BoldAwareGUI\ControlPacks;..\..\..\..\Source\BoldAwareGUI\Core;..\..\..\..\Source\BoldAwareGUI\FormGen;..\..\..\..\Source\BoldAwareGUI\IDE;..\..\..\..\Source\Common\COM;..\..\..\..\Source\Common\Connection;..\..\..\..\Source\Common\ConnectionHandles;..\..\..\..\Source\Common\Core;..\..\..\..\Source\Common\Environment;..\..\..\..\Source\Common\HTTP;..\..\..\..\Source\Common\IDE;..\..\..\..\Source\Common\Include;..\..\..\..\Source\Common\Logging;..\..\..\..\Source\Common\MSXML;..\..\..\..\Source\Common\Queue;..\..\..\..\Source\Common\Stubs;..\..\..\..\Source\Common\Subscription;..\..\..\..\Source\Common\Support;..\..\..\..\Source\Common\SupportWin;..\..\..\..\Source\Common\TaggedValues;..\..\..\..\Source\Common\Template;..\..\..\..\Source\Common\UML;..\..\..\..\Source\Common\UtilsGUI;..\..\..\..\Source\ConcurrencyControl\Common;..\..\..\..\Source\FreestandingValueSpace\Core;..\..\..\..\Source\Handles\Actions;..\..\..\..\Source\Handles\COM;..\..\..\..\Source\Handles\Core;..\..\..\..\Source\Handles\IDE;..\..\..\..\Source\Handles\Manipulators;..\..\..\..\Source\Handles\PessimisticLocking;..\..\..\..\Source\Handles\UnLoader;..\..\..\..\Source\Handles\XML;..\..\..\..\Source\MoldModel\Bld;..\..\..\..\Source\MoldModel\CodeGenerator;..\..\..\..\Source\MoldModel\Core;..\..\..\..\Source\MoldModel\Handles;..\..\..\..\Source\MoldModel\IDE;..\..\..\..\Source\MoldModel\TypeNameDictionary;..\..\..\..\Source\MoldModel\UtilsGUI;..\..\..\..\Source\ObjectSpace\BORepresentation;..\..\..\..\Source\ObjectSpace\COM;..\..\..\..\Source\ObjectSpace\Core;..\..\..\..\Source\ObjectSpace\IDE;..\..\..\..\Source\ObjectSpace\Interfaces;..\..\..\..\Source\ObjectSpace\Ocl;..\..\..\..\Source\ObjectSpace\PessimisticLocking;..\..\..\..\Source\ObjectSpace\RTModel;..\..\..\..\Source\ObjectSpace\Undo;..\..\..\..\Source\ObjectSpace\Unloader;..\..\..\..\Source\ObjectSpace\UtilsGUI;..\..\..\..\Source\Persistence\COM;..\..\..\..\Source\Persistence\Core;..\..\..\..\Source\Persistence\DB;..\..\..\..\Source\Persistence\ExternalPersistence;..\..\..\..\Source\Persistence\File;..\..\..\..\Source\Persistence\FireDAC;..\..\..\..\Source\Persistence\IDE;..\..\..\..\Source\Persistence\ObjectUpgrading;..\..\..\..\Source\Persistence\Propagation;..\..\..\..\Source\Persistence\System;..\..\..\..\Source\Persistence\UniDAC;..\..\..\..\Source\PMapper\Core;..\..\..\..\Source\PMapper\DBEvolutor;..\..\..\..\Source\PMapper\Default;..\..\..\..\Source\PMapper\SQL;..\..\..\..\Source\PMapper\Validator;..\..\..\..\Source\Propagator\Common;..\..\..\..\Source\UMLModel\Core;..\..\..\..\Source\UMLModel\Editor;..\..\..\..\Source\UMLModel\Handles;..\..\..\..\Source\UMLModel\IDE;..\..\..\..\Source\UMLModel\ModelLinks\Core;..\..\..\..\Source\UMLModel\Plugins;..\..\..\..\Source\ValueSpace\Condition;..\..\..\..\Source\ValueSpace\ExternalEvents;..\..\..\..\Source\ValueSpace\Id;..\..\..\..\Source\ValueSpace\Interfaces;..\..\..\..\Source\ValueSpace\XMLStreaming;..\Common;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <GenDll>true</GenDll>
+        <SanitizedProjectName>ASPserver</SanitizedProjectName>
+        <VerInfo_Locale>1035</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
+        <DCC_Namespace>Vcl;Vcl.Imaging;System;Xml;Data;Datasnap;Web;Soap;Web.Win;Winapi;$(DCC_Namespace)</DCC_Namespace>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+        <BT_BuildType>Debug</BT_BuildType>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <Icon_MainIcon>ASPserver_Icon.ico</Icon_MainIcon>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win64)'!=''">
+        <Icon_MainIcon>ASPserver_Icon.ico</Icon_MainIcon>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1)'!=''">
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+        <DCC_Optimize>false</DCC_Optimize>
+        <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+        <DCC_RangeChecking>true</DCC_RangeChecking>
+        <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+    </PropertyGroup>
+    <ItemGroup>
+        <DelphiCompile Include="$(MainSource)">
+            <MainSource>MainSource</MainSource>
+        </DelphiCompile>
+        <DCCReference Include="MainWebModule.pas">
+            <Form>wmASPServer</Form>
+            <DesignClass>TWebModule</DesignClass>
+        </DCCReference>
+        <DCCReference Include="..\Common\BuildingClasses.pas"/>
+        <BuildConfiguration Include="Base">
+            <Key>Base</Key>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Release">
+            <Key>Cfg_1</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Debug">
+            <Key>Cfg_2</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Delphi.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Delphi.Personality>
+                <Source>
+                    <Source Name="MainSource">ASPserver.dpr</Source>
+                </Source>
+            </Delphi.Personality>
+            <Platforms>
+                <Platform value="Linux64">False</Platform>
+                <Platform value="OSX32">False</Platform>
+                <Platform value="Win32">True</Platform>
+                <Platform value="Win64">False</Platform>
+            </Platforms>
+        </BorlandProject>
+        <ProjectFileVersion>12</ProjectFileVersion>
+    </ProjectExtensions>
+    <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
+    <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
+</Project>

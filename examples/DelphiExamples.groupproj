@@ -12,6 +12,12 @@
         <Projects Include="Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Compound\ASP\Server\DBGenerator.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Compound\ASP\Server\ASPserver.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -47,14 +53,32 @@
     <Target Name="TestSaveAndGenerate:Make">
         <MSBuild Projects="Simple\Tools\SaveAndGenerateTest\TestSaveAndGenerate.dproj" Targets="Make"/>
     </Target>
+    <Target Name="DBGenerator">
+        <MSBuild Projects="Compound\ASP\Server\DBGenerator.dproj"/>
+    </Target>
+    <Target Name="DBGenerator:Clean">
+        <MSBuild Projects="Compound\ASP\Server\DBGenerator.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DBGenerator:Make">
+        <MSBuild Projects="Compound\ASP\Server\DBGenerator.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ASPserver">
+        <MSBuild Projects="Compound\ASP\Server\ASPserver.dproj"/>
+    </Target>
+    <Target Name="ASPserver:Clean">
+        <MSBuild Projects="Compound\ASP\Server\ASPserver.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ASPserver:Make">
+        <MSBuild Projects="Compound\ASP\Server\ASPserver.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="MasterDetail;LogBridgeDemo;TestSaveAndGenerate"/>
+        <CallTarget Targets="MasterDetail;LogBridgeDemo;TestSaveAndGenerate;DBGenerator;ASPserver"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="MasterDetail:Clean;LogBridgeDemo:Clean;TestSaveAndGenerate:Clean"/>
+        <CallTarget Targets="MasterDetail:Clean;LogBridgeDemo:Clean;TestSaveAndGenerate:Clean;DBGenerator:Clean;ASPserver:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="MasterDetail:Make;LogBridgeDemo:Make;TestSaveAndGenerate:Make"/>
+        <CallTarget Targets="MasterDetail:Make;LogBridgeDemo:Make;TestSaveAndGenerate:Make;DBGenerator:Make;ASPserver:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
