@@ -25,8 +25,7 @@ uses
   BoldPropertiesController,
   BoldTrackBar,
   BoldLabel,
-  BoldMemo,
-  BoldCheckBox;
+  BoldMemo;
 
 type
   TfrmMain = class(TForm)
@@ -51,7 +50,8 @@ type
     BoldTrackBar1: TBoldTrackBar;
     bpcTimerInterval: TBoldPropertiesController;
     BoldLabel4: TBoldLabel;
-    bcbCollecting: TBoldCheckBox;
+    Label5: TLabel;
+    BoldLabel5: TBoldLabel;
     btnLoad: TButton;
     btnSave: TButton;
     btnHelp: TButton;

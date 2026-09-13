@@ -183,7 +183,14 @@ neighbour) and then recomputes the bounds. `TCell.PrepareDelete` clears the
 neighbours if they need them again.
 
 `Collecting` is set to True around that sweep and `TBoldQueueable.DisplayAll` is
-called, purely so the bound check box flickers and you can see it happen.
+called on each side, purely so the bound read-out flickers and you can see a
+phase that is otherwise over within one turn of the message loop.
+
+It is shown by a `TBoldLabel` rather than a check box. The attribute is written
+only by `GarbageCollect` and read by nothing, so it is a report rather than a
+setting, and a check box wrongly advertises that you could change it. The label
+renders it through OCL, `if collecting then 'yes' else 'no' endif`, alongside the
+other model read-outs.
 
 ## Driving plain VCL properties from the model
 

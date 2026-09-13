@@ -158,6 +158,28 @@ object frmMain: TfrmMain
     TabOrder = 2
     OnClick = btnStartClick
   end
+  object Label5: TLabel
+    Left = 9
+    Top = 272
+    Width = 58
+    Height = 15
+    Caption = 'Collecting'
+  end
+  object BoldLabel5: TBoldLabel
+    Left = 85
+    Top = 272
+    Width = 132
+    Height = 15
+    BoldHandle = refGame
+    BoldProperties.Expression = 'if collecting then '#39'yes'#39' else '#39'no'#39' endif'
+    Color = clBtnFace
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    Hint = 'Shows yes while the model is removing cells that can no longer affect anything'
+  end
   object btnLoad: TButton
     Left = 9
     Top = 288
@@ -245,20 +267,6 @@ object frmMain: TfrmMain
     BoldProperties.Expression = 'timerTime'
     BoldProperties.ApplyPolicy = bapChange
     ReadOnly = False
-  end
-  object bcbCollecting: TBoldCheckBox
-    Left = 89
-    Top = 132
-    Width = 77
-    Height = 17
-    Hint = 
-      'Lit while the model is removing cells that can no longer affect ' +
-      'anything'
-    BoldHandle = refGame
-    BoldProperties.Expression = 'collecting'
-    Caption = 'Collecting'
-    ReadOnly = True
-    TabOrder = 6
   end
   object BoldSystemHandle1: TBoldSystemHandle
     IsDefault = True
