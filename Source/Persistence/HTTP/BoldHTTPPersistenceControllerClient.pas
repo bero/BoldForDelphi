@@ -69,25 +69,34 @@ procedure TBoldHTTPSOAPService.Get(const request: WideString;
   out reply: WideString);
 var
   dataSent, dataReceived: TBoldDataBlock;
-  StrRequest, StrReply: string;
-  size, len, Context: Integer;
+  RequestBytes, ReplyBytes: TBytes;
+  size, Context: Integer;
 begin
-  StrRequest:= request;
-  len := Length(StrRequest);
-  Assert(len > 0);
+  { Encode and decode explicitly rather than copying string memory. Length
+    counts characters while Write and Read take bytes, and treating the two as
+    interchangeable was only correct while Char was a byte: on every Delphi
+    since 2009 this sent half a UTF-16 buffer, cut mid-character, and read the
+    reply back as UTF-16.
+
+    UTF-8 is what WebBroker already labels its responses with, and is
+    byte-identical to the old single-byte format for ASCII, which is all a SOAP
+    envelope contains apart from object data. }
+  RequestBytes := TEncoding.UTF8.GetBytes(string(request));
+  Assert(Length(RequestBytes) > 0);
   dataSent := TBoldDataBlock.Create;
   dataReceived := nil;
   try
-    dataSent.Write(StrRequest[1], len);
+    dataSent.Write(RequestBytes[0], Length(RequestBytes));
     Context := WebConnection.Send(datasent);
     dataReceived := WebConnection.Receive(true, Context);
     if assigned(dataReceived) then
     begin
       size := dataReceived.Stream.Position;
-      SetString(StrReply, nil, Size);
+      SetLength(ReplyBytes, size);
       dataReceived.Stream.Position := 0;
-      dataReceived.Stream.Read(Pointer(StrReply)^, Size);
-      Reply := WideString(StrReply);
+      if size > 0 then
+        dataReceived.Stream.Read(ReplyBytes[0], size);
+      Reply := TEncoding.UTF8.GetString(ReplyBytes);
     end else
       Reply := '';
   finally
