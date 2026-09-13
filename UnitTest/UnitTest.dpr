@@ -131,7 +131,8 @@ uses
   { Integration tests with transaction rollback }
   BoldTestPersistence in 'Code\Integration\BoldTestPersistence.pas',
   Test.BoldPersistence in 'Code\Integration\Test.BoldPersistence.pas',
-  Test.BoldMeta in 'Code\MoldModel\Test.BoldMeta.pas';
+  Test.BoldMeta in 'Code\MoldModel\Test.BoldMeta.pas',
+  Test.BoldHTTPPersistenceControllerClient in 'Code\Persistence\Test.BoldHTTPPersistenceControllerClient.pas';
 
 {$R *.res}
 
