@@ -23,12 +23,15 @@ nothing has to be installed to build them and there is no InterBase server to
 set up. `DBGenerator.exe` and `ASPserver.dll` both build, and the server has
 been confirmed to open the database the generator writes.
 
-Two things still stand between that and a running demo:
+The client was stuck too. `Client\ClientMainForm.dfm` was a **byte-for-byte
+copy of `ClientDM.dfm`**, so `ASPDemoClient` had no resource for `TForm1` and
+would not open - true since the 2020 source release. The form has been rebuilt
+from the component list in `ClientMainForm.pas`, so the project loads, compiles
+and streams again. The layout is a reconstruction: the original arrangement is
+not in the repository and cannot be recovered from it.
 
-- `Client\ClientMainForm.dfm` is a **byte-for-byte copy of `ClientDM.dfm`**.
-  The main form's layout is not in the repository, so `ASPDemoClient` has no
-  resource for `TForm1`. This has been true since the 2020 source release, and
-  it is the reason the demo cannot be driven end to end.
+One thing still stands between that and a running demo:
+
 - Hosting an ISAPI extension needs IIS with the ISAPI-Extensions role service
   and an application pool whose bitness matches the DLL. Nothing behind the
   request dispatch - the persistence endpoint, the SOAP action endpoint - has
@@ -78,9 +81,59 @@ to stay in step by hand.
    into the IIS virtual directory. The application pool identity needs write
    access to the file **and** to the folder holding it, because SQLite creates
    journal files next to the database.
-3. Deploy `ASPserver.dll` into an IIS virtual directory that is allowed to
+3. **Register the BoldSOAP type library, once per machine.** Both the client
+   and the server reach Bold's SOAP layer through `TBoldHTTPSOAPService`, whose
+   constructor calls `LoadRegTypeLib(LIBID_BoldSOAP, ...)`. That looks the type
+   library up in the registry by GUID, so without the registration the client
+   raises
+
+   ```
+   TBoldHTTPSOAPService.Create: Unable to load type library LIBID_BoldSOAP
+   ```
+
+   the moment you press **Open system**. The type library itself is in the
+   repository - `Source\Common\SOAP\BoldSOAP.tlb` - and Delphi ships the tool
+   that registers it. Nothing has to be built and no administrator rights are
+   needed:
+
+   ```
+   "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\tregsvr.exe" -c ^
+       "C:\path\to\BoldForDelphi\Source\Common\SOAP\BoldSOAP.tlb"
+   ```
+
+   Both paths are spelled out on purpose. `%BDS%` is only defined inside a
+   Delphi-configured environment - `rsvars.bat`, or the IDE's own command
+   prompt - and is empty in an ordinary `cmd` window, where it silently
+   collapses the path to `\bin\tregsvr.exe`. The `23.0` is Delphi 12.3; use
+   `22.0` for 11.3 or `37.0` for 13.
+
+   `-c` registers for the current user, under `HKCU\Software\Classes`, which
+   merges into `HKEY_CLASSES_ROOT` for that account. Drop `-c` to register for
+   the whole machine, which does need an elevated prompt. `-u` unregisters.
+
+   **Check it took:**
+
+   ```
+   reg query "HKCU\Software\Classes\TypeLib\{9BF07220-6C8A-11D4-BBAC-0010A4F9E114}"
+   ```
+
+   Nothing needs restarting - the client looks the library up when
+   `TBoldHTTPSOAPService` is constructed, so just press **Open system** again.
+
+   **Do not use `regsvr32` here.** `Source\Common\SOAP\BoldSOAP.dpr` looks like
+   the way in - it is an ActiveX library that embeds the same `.tlb` and
+   exports `DllRegisterServer` - but registering it fails with
+   `0x80004005`. `DllRegisterServer` calls `ComServer.UpdateRegistry`, which
+   registers coclasses and their factories, and `BoldSOAP` has none: it is a
+   pure type library, interfaces and a LIBID only. `tregsvr -t` registers the
+   type library itself, which is the only thing `LoadRegTypeLib` looks for.
+
+   Registration records the *path* of the `.tlb`, not a copy of it, so the file
+   has to stay where it is. The error names only a LIBID, so this is worth
+   doing before anything else - nothing else in the demo points at it.
+4. Deploy `ASPserver.dll` into an IIS virtual directory that is allowed to
    execute ISAPI extensions.
-4. Run `ASPDemoClient.exe`, type the URL root into the edit box, for example
+5. Run `ASPDemoClient.exe`, type the URL root into the edit box, for example
    `http://localhost/ASPdemo/ASPserver.dll`, and press **Connect**. That sets
    both web connections:
 
@@ -89,7 +142,7 @@ to stay in step by hand.
    BoldWebConnection2.URL := edtURLRoot.Text + '/soapcalls';
    ```
 
-5. Press **Open system**. The grids fill from the server.
+6. Press **Open system**. The grids fill from the server.
 
 ## Using another database engine
 
@@ -188,5 +241,13 @@ demo says so rather than sending a request that cannot resolve.
 - `TResidential_Building.ChargeRent` calls `ShowMessage` when a resident runs
   out of money and is evicted. Invoked through `ChargeRent` that message box
   opens inside the IIS worker process, where nobody can dismiss it.
-- `Server\` now has `.dproj` files for `DBGenerator` and `ASPserver`. The other
-  projects in this folder still have only a `.dpr`.
+- All three projects now have a `.dproj`, and all three are in
+  `examples\DelphiExamples.groupproj`. `ASPDemoClient` has to be in the group:
+  its main form links to `dmClient`, and opening the form without the project
+  that owns that module makes the IDE offer to remove the links, which would
+  silently unwire the four Bold handles.
+- The four list handles are rooted on `dmClient.BoldSystemHandle1`.
+  `blhBuildings` deliberately selects `Residential_Building.allInstances`
+  rather than every `Building`: **Charge rent** posts the selected object to
+  the server, which casts it to `TResidential_Building`, so a plain building
+  would raise there.

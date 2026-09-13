@@ -18,6 +18,9 @@
         <Projects Include="Compound\ASP\Server\ASPserver.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Compound\ASP\Client\ASPDemoClient.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -71,14 +74,23 @@
     <Target Name="ASPserver:Make">
         <MSBuild Projects="Compound\ASP\Server\ASPserver.dproj" Targets="Make"/>
     </Target>
+    <Target Name="ASPDemoClient">
+        <MSBuild Projects="Compound\ASP\Client\ASPDemoClient.dproj"/>
+    </Target>
+    <Target Name="ASPDemoClient:Clean">
+        <MSBuild Projects="Compound\ASP\Client\ASPDemoClient.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ASPDemoClient:Make">
+        <MSBuild Projects="Compound\ASP\Client\ASPDemoClient.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="MasterDetail;LogBridgeDemo;TestSaveAndGenerate;DBGenerator;ASPserver"/>
+        <CallTarget Targets="MasterDetail;LogBridgeDemo;TestSaveAndGenerate;DBGenerator;ASPserver;ASPDemoClient"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="MasterDetail:Clean;LogBridgeDemo:Clean;TestSaveAndGenerate:Clean;DBGenerator:Clean;ASPserver:Clean"/>
+        <CallTarget Targets="MasterDetail:Clean;LogBridgeDemo:Clean;TestSaveAndGenerate:Clean;DBGenerator:Clean;ASPserver:Clean;ASPDemoClient:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="MasterDetail:Make;LogBridgeDemo:Make;TestSaveAndGenerate:Make;DBGenerator:Make;ASPserver:Make"/>
+        <CallTarget Targets="MasterDetail:Make;LogBridgeDemo:Make;TestSaveAndGenerate:Make;DBGenerator:Make;ASPserver:Make;ASPDemoClient:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

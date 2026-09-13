@@ -24,7 +24,7 @@ uses
   BoldActions,
   ActnList,
   BoldHandleAction,
-  BoldNavigatorDefs;
+  BoldNavigatorDefs, System.Actions;
 
 type
   TForm1 = class(TForm)
