@@ -34,18 +34,48 @@ No database is involved. `BoldSystemHandle1` has no `PersistenceHandle` and
 `AutoActivate` is True, so the system opens empty in memory when the form is
 created. Nothing is ever saved.
 
-On startup the form reads `Instructions.txt` from the current directory and
-shows it in a message box, so run the executable with this folder as the working
-directory or that call raises.
+The demo reads nothing at startup and needs no particular working directory.
+Press **Help** for a summary of the controls and the rules. `Instructions.txt`
+is left in the folder but nothing loads it any more.
 
 Then:
 
-1. Type `*` characters into the memo on the right, or paste a pattern out of
-   `Initial.txt` or `zip2.lif.txt`. A space is a dead cell.
-2. **One generation** advances the board once, **Start ticking** runs it on a
+1. **Load pattern** reads a starting board from a text file and **Save
+   pattern** writes the current one back out, so anything you draw can be kept.
+   `Initial.txt` and `zip2.lif.txt` both ship here. You can also type `*`
+   characters into the memo directly, where a space is a dead cell.
+2. **Click a square in the memo** to toggle it between live and dead. Clicking
+   just past the end of a row extends that row, which is how you draw on an
+   empty board.
+3. **One generation** advances the board once, **Start ticking** runs it on a
    timer.
-3. The two track bars change the timer interval and the memo font size. Both are
-   bound to model attributes, not to the controls.
+4. **Help** explains the controls and states the rules.
+5. The two track bars change the timer interval and the memo font size. Both are
+   bound to model attributes, not to the controls. **The timer interval starts
+   at zero**, so move that track bar before pressing Start ticking or the timer
+   is enabled but can never fire.
+
+### Two board conventions
+
+`Initial.txt` is this demo's own format: an asterisk is a live cell and
+everything else is dead. `zip2.lif.txt` is Life 1.05, which marks a dead cell
+with a full stop and starts header and comment lines with `#`. Loading
+translates the second into the first, so either can be opened.
+
+### What clicking actually does
+
+Nothing in the click handler touches a cell object. It edits one character of
+the board text and assigns it back to `Game.Board`, which is a reverse derived
+attribute, so the assignment runs `_board_ReverseDerive` and that rebuilds the
+cell objects from the text. Clicking is therefore the same operation as typing,
+only aimed.
+
+One consequence is worth knowing. The board is rendered cropped to the live
+cells plus their neighbours, so its origin moves whenever the extent changes.
+On a small or nearly empty board a click can land somewhere different from
+where you expect, because the text shifted under the mouse after the previous
+edit. On a populated board the extent is stable and it behaves as you would
+want.
 
 ## The model
 

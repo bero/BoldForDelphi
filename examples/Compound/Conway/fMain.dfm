@@ -36,16 +36,17 @@ object frmMain: TfrmMain
     0000000000000000000000000000000000000000000000000000000000000000
     000000000000000000000000000000000000000000000000000000000000}
   Position = poScreenCenter
+  ShowHint = True
   OnCreate = FormCreate
   DesignSize = (
     854
     500)
   TextHeight = 15
   object BoldLabel3: TBoldLabel
-    Left = 76
+    Left = 85
     Top = 176
-    Width = 55
-    Height = 13
+    Width = 62
+    Height = 15
     BoldHandle = refGame
     BoldProperties.Expression = 'generations'
     Color = clBtnFace
@@ -56,31 +57,31 @@ object frmMain: TfrmMain
     Font.Style = []
   end
   object Label4: TLabel
-    Left = 0
+    Left = 9
     Top = 176
-    Width = 57
-    Height = 13
+    Width = 63
+    Height = 15
     Caption = 'Generations'
   end
   object Label1: TLabel
-    Left = 0
+    Left = 9
     Top = 156
-    Width = 63
-    Height = 13
+    Width = 72
+    Height = 15
     Caption = 'Timer interval'
   end
   object Label2: TLabel
-    Left = 0
+    Left = 9
     Top = 192
-    Width = 22
-    Height = 13
+    Width = 25
+    Height = 15
     Caption = 'Cells'
   end
   object BoldLabel1: TBoldLabel
-    Left = 76
+    Left = 85
     Top = 192
-    Width = 115
-    Height = 13
+    Width = 132
+    Height = 15
     BoldHandle = refGame
     BoldProperties.Expression = 'cell->select(active)->size'
     Color = clBtnFace
@@ -91,17 +92,17 @@ object frmMain: TfrmMain
     Font.Style = []
   end
   object Label3: TLabel
-    Left = 0
+    Left = 9
     Top = 256
-    Width = 42
-    Height = 13
+    Width = 46
+    Height = 15
     Caption = 'Font size'
   end
   object BoldLabel2: TBoldLabel
-    Left = 80
+    Left = 89
     Top = 256
-    Width = 38
-    Height = 13
+    Width = 42
+    Height = 15
     BoldHandle = refGame
     BoldProperties.Expression = 'fontSize'
     Color = clBtnFace
@@ -112,10 +113,10 @@ object frmMain: TfrmMain
     Font.Style = []
   end
   object BoldLabel4: TBoldLabel
-    Left = 76
+    Left = 85
     Top = 156
-    Width = 45
-    Height = 13
+    Width = 54
+    Height = 15
     BoldHandle = refGame
     BoldProperties.Expression = 'timerTime'
     Color = clBtnFace
@@ -126,37 +127,78 @@ object frmMain: TfrmMain
     Font.Style = []
   end
   object btnTick: TButton
-    Left = 0
+    Left = 9
     Top = 36
     Width = 93
     Height = 25
+    Hint = 'Advance the board a single step'
     Caption = 'One generation'
     TabOrder = 0
     OnClick = btnTickClick
   end
   object btnClear: TButton
-    Left = 0
+    Left = 9
     Top = 8
     Width = 93
     Height = 25
+    Hint = 'Remove every cell and start from an empty board'
     Caption = 'Clear the board'
     TabOrder = 1
     OnClick = btnClearClick
   end
   object btnStart: TButton
-    Left = 0
+    Left = 9
     Top = 64
     Width = 93
     Height = 25
+    Hint = 
+      'Run generations continuously. Set the interval slider first, it ' +
+      'starts at zero'
     Caption = 'Start ticking'
     TabOrder = 2
     OnClick = btnStartClick
   end
+  object btnLoad: TButton
+    Left = 9
+    Top = 288
+    Width = 93
+    Height = 25
+    Hint = 
+      'Read a starting board from a text file. Life 1.05 files are conv' +
+      'erted as they load'
+    Caption = 'Load pattern...'
+    TabOrder = 7
+    OnClick = btnLoadClick
+  end
+  object btnSave: TButton
+    Left = 9
+    Top = 316
+    Width = 93
+    Height = 25
+    Hint = 'Write the current board out to a text file'
+    Caption = 'Save pattern...'
+    TabOrder = 9
+    OnClick = btnSaveClick
+  end
+  object btnHelp: TButton
+    Left = 9
+    Top = 344
+    Width = 93
+    Height = 25
+    Hint = 'How to draw, how to load and save, and the rules of the game'
+    Caption = 'Help'
+    TabOrder = 8
+    OnClick = btnHelpClick
+  end
   object BoldMemo1: TBoldMemo
-    Left = 168
+    Left = 177
     Top = 4
     Width = 688
     Height = 503
+    Cursor = crArrow
+    Hint = 
+      'Click a square to toggle it, or type. An asterisk is a living ce' +
+      'll, a space is empty'
     Alignment = taLeftJustify
     Anchors = [akLeft, akTop, akRight, akBottom]
     BoldHandle = refGame
@@ -171,12 +213,15 @@ object frmMain: TfrmMain
     ReadOnly = False
     ScrollBars = ssBoth
     TabOrder = 3
+    OnClick = BoldMemo1Click
+    OnKeyPress = BoldMemo1KeyPress
   end
   object btbFontSize: TBoldTrackBar
-    Left = 4
+    Left = 13
     Top = 208
     Width = 157
     Height = 45
+    Hint = 'Size of the board text, 3 to 24 points'
     Max = 24
     Min = 3
     TabOrder = 4
@@ -186,10 +231,13 @@ object frmMain: TfrmMain
     ReadOnly = False
   end
   object BoldTrackBar1: TBoldTrackBar
-    Left = 4
+    Left = 13
     Top = 96
     Width = 149
     Height = 45
+    Hint = 
+      'Milliseconds between generations while ticking. At zero the time' +
+      'r never fires'
     Max = 1000
     Frequency = 100
     TabOrder = 5
@@ -199,10 +247,13 @@ object frmMain: TfrmMain
     ReadOnly = False
   end
   object bcbCollecting: TBoldCheckBox
-    Left = 80
+    Left = 89
     Top = 132
     Width = 77
     Height = 17
+    Hint = 
+      'Lit while the model is removing cells that can no longer affect ' +
+      'anything'
     BoldHandle = refGame
     BoldProperties.Expression = 'collecting'
     Caption = 'Collecting'
@@ -214,12 +265,12 @@ object frmMain: TfrmMain
     AutoActivate = True
     SystemTypeInfoHandle = BoldSystemTypeInfoHandle1
     Active = False
-    Left = 4
+    Left = 13
     Top = 276
   end
   object BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle
     BoldModel = BoldModel1
-    Left = 48
+    Left = 57
     Top = 276
   end
   object BoldModel1: TBoldModel
@@ -227,7 +278,7 @@ object frmMain: TfrmMain
     Boldify.EnforceDefaultUMLCase = False
     Boldify.DefaultNavigableMultiplicity = '0..1'
     Boldify.DefaultNonNavigableMultiplicity = '0..*'
-    Left = 108
+    Left = 117
     Top = 276
     Model = (
       'VERSION 19'
@@ -919,11 +970,12 @@ object frmMain: TfrmMain
     Enabled = False
     Interval = 0
     OnTimer = btnTickClick
+    Left = 9
     Top = 120
   end
   object refGame: TBoldReferenceHandle
     StaticValueTypeName = 'Game'
-    Left = 20
+    Left = 29
     Top = 16
   end
   object bpcFontSize: TBoldPropertiesController
@@ -935,7 +987,7 @@ object frmMain: TfrmMain
         VCLComponent = BoldMemo1
         PropertyName = 'Font.Size'
       end>
-    Left = 100
+    Left = 109
     Top = 208
   end
   object bpcTimerInterval: TBoldPropertiesController
@@ -947,7 +999,23 @@ object frmMain: TfrmMain
         VCLComponent = Timer1
         PropertyName = 'Interval'
       end>
-    Left = 124
+    Left = 133
     Top = 96
+  end
+  object dlgSavePattern: TSaveDialog
+    DefaultExt = 'txt'
+    Filter = 'Pattern files (*.txt)|*.txt|All files (*.*)|*.*'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
+    Title = 'Save the current board'
+    Left = 133
+    Top = 200
+  end
+  object dlgPattern: TOpenDialog
+    DefaultExt = 'txt'
+    Filter = 'Pattern files (*.txt;*.lif)|*.txt;*.lif|All files (*.*)|*.*'
+    Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
+    Title = 'Load a starting pattern'
+    Left = 133
+    Top = 152
   end
 end
