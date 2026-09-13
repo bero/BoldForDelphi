@@ -22,7 +22,8 @@ Never zero-pad the month (Boss/semver rejects leading zeros).
 - [ ] `packaging/tmsbuild.yaml` unchanged? If it changed, mirror it to the registry folder
       `bero.boldfordelphi/` in tmssoftware/smartsetup-registry via pull request
 - [ ] DPM: from the repo root `dpm pack packaging\BoldForDelphi.dspec.yaml -basepath=. -o=<folder>`
-      gives three `.dpkg` (delphi11.0/12.0/13.0, Win32); attach them to the GitHub release and/or
+      gives three `.dpkg` (delphi11.0 Win32; delphi12.0 and delphi13.0 Win32+Win64 - the platform
+      bitmask in the file name reads `...0001` and `...0011`); attach them to the GitHub release and/or
       `dpm push` to https://delphi.dev (account needed). Verify one with `dpm install` into a scratch project
 - [ ] GetIt (when live): resubmit to Embarcadero for `Y.M.0` releases only
 

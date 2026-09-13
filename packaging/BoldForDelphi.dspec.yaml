@@ -4,8 +4,9 @@ min dpm client version: 1.0
 # Reference: docs/dspec-format.md in https://github.com/DelphiPackageManager/DPM
 # Pack from the repository root (the paths below are relative to it):
 #   dpm pack packaging\BoldForDelphi.dspec.yaml -basepath=. -o=<output folder>
-# One .dpkg per compiler (11.0, 12.0, 13.0), Win32, design-time package dclBold;
-# the version must equal the release tag (see packaging/release-checklist.md).
+# One .dpkg per compiler (11.0, 12.0, 13.0), design-time package dclBold. Win32
+# everywhere, plus Win64 from Delphi 12 onwards - see note 3. The version must
+# equal the release tag (see packaging/release-checklist.md).
 
 metadata:
   id: bero.BoldForDelphi
@@ -46,13 +47,13 @@ targetPlatforms:
       libSuffix: "280"
 
   - compiler: 12.0            # Delphi 12 Athens - covers 12.1 and 12.3 alike
-    platforms: [Win32]
+    platforms: [Win32, Win64]
     variables:
       packageFolder: "Delphi12.3"
       libSuffix: "290"
 
   - compiler: 13.0            # Delphi 13 Florence
-    platforms: [Win32]
+    platforms: [Win32, Win64]
     variables:
       packageFolder: "Delphi13"
       libSuffix: "370"
@@ -98,7 +99,7 @@ templates:
     design:
       # designide is added automatically by DPM for design entries.
       - project: ./packages/$packageFolder$/dclBold.dproj
-        platforms: [Win32]
+        platforms: [Win32, Win64]
         libPrefix: dcl
         libSuffix: $libSuffix$
 
@@ -112,8 +113,17 @@ templates:
 #    soaprtl, dbrtl and inet - all shipped with RAD Studio, so no DPM
 #    dependencies are declared.
 #
-# 3. Design-time packages are Win32 only (Win64 from Delphi 12 onwards per the
-#    DPM docs). Bold's packages are Win32 designtime, so Win32 alone is right.
+# 3. Win64 is declared per compiler, because only Delphi 12 and 13 can build it:
+#    Delphi 11 ships no Win64 DesignIDE and the package build stops with
+#    "E2202: Required package 'DesignIDE' not found", so compiler 11.0 stays
+#    Win32 alone. The design entry above lists both platforms all the same - DPM
+#    intersects that list with each target's platforms instead of overriding
+#    them, so the 11.0 package still packs and installs as Win32 only.
+#    Declaring Win64 in targetPlatforms is not by itself enough: DPM derives the
+#    platforms a package supports from the build/design entries, so without the
+#    Win64 design entry an install reports "Platform [win64] not supported".
+#    What Win64 gives the consumer is lib\Win64 - the DCUs a 64-bit application
+#    compiles against; before this, Win64 consumers got no usable search path.
 #
 # 4. Publishing: `dpm pack` produces one .dpkg per compiler/platform. Attach
 #    them to the GitHub release (consumers add their download folder as a
