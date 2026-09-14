@@ -51,6 +51,7 @@ type
   private
     FAdapter: TBoldDatabaseAdapterFireDAC;
     function DatabaseFile: string;
+    procedure LogFailure(const Context: string; E: Exception);
     procedure SetUpPersistence;
   public
     { Public declarations }
@@ -64,6 +65,7 @@ implementation
 uses
   BoldId,
   BoldDefaultId,
+  BoldDefs,
   BoldSystem,
   BuildingClasses,
   BoldUtils;
@@ -75,7 +77,15 @@ procedure TwmASPServer.wmASPServerPersistenceAction(Sender: TObject;
 var
   reply: WideString;
 begin
-  BoldHTTPServerPersistenceHandlePassthrough1.Get(Request.Content, reply);
+  try
+    BoldHTTPServerPersistenceHandlePassthrough1.Get(Request.Content, reply);
+  except
+    on E: Exception do
+    begin
+      LogFailure('PersistenceAction', E);
+      raise;
+    end;
+  end;
   Response.Content := Reply;
   Handled := true;
 end;
@@ -86,8 +96,16 @@ var
   XMLRequest: TBoldXMLRequest;
   reply: String;
 begin
-  XMLRequest := TBoldXMLRequest.CreateFromXML(Request.Content);
-  BoldXMLDispatcher1.DispatchAction(XMLRequest, reply);
+  try
+    XMLRequest := TBoldXMLRequest.CreateFromXML(Request.Content);
+    BoldXMLDispatcher1.DispatchAction(XMLRequest, reply);
+  except
+    on E: Exception do
+    begin
+      LogFailure('SOAPCallsAction', E);
+      raise;
+    end;
+  end;
   Response.Content := reply;
   Handled := true;
 end;
@@ -131,6 +149,47 @@ begin
   Result := FileName;
 end;
 
+{ Diagnostic log written beside the DLL.
+
+  An exception raised here cannot be read from the HTTP response: the ISAPI
+  response path puts the WebBroker exception page on the wire as UTF-16 and
+  truncates it, so the status line arrives as 'HTTP/1.1 5' and the message is
+  cut off partway through. Writing the failure to a file before it ever reaches
+  HTTP is the only reliable way to see what went wrong.
+
+  EBoldDatabaseError keeps the exception it wrapped in OriginalExceptionClass
+  and OriginalExceptionMessage. Its own Message is only a formatted summary
+  ('Unknown Error: ...'), so the original is logged on its own line. }
+procedure TwmASPServer.LogFailure(const Context: string; E: Exception);
+var
+  Log: TextFile;
+  FileName: string;
+  Stamp: string;
+begin
+  try
+    FileName := ModuleDirectory + 'ASPserver.log';
+    Stamp := FormatDateTime('yyyy-mm-dd hh:nn:ss', Now);
+    AssignFile(Log, FileName);
+    if FileExists(FileName) then
+      Append(Log)
+    else
+      Rewrite(Log);
+    try
+      WriteLn(Log, Format('%s  %s  %s: %s',
+        [Stamp, Context, E.ClassName, E.Message]));
+      if E is EBoldDatabaseError then
+        WriteLn(Log, Format('%s  %s  wrapped %s: %s',
+          [Stamp, Context,
+           EBoldDatabaseError(E).OriginalExceptionClass,
+           EBoldDatabaseError(E).OriginalExceptionMessage]));
+    finally
+      CloseFile(Log);
+    end;
+  except
+    { A failure to log must not replace the failure being logged. }
+  end;
+end;
+
 procedure TwmASPServer.SetUpPersistence;
 var
   Connection: TFDConnection;
@@ -149,10 +208,18 @@ end;
 
 procedure TwmASPServer.WebModuleCreate(Sender: TObject);
 begin
-  { The adapter is built in code, so it has to exist before anything activates. }
-  SetUpPersistence;
-  BoldSystemHandle1.Active := true;
-  BoldPersistenceHandleSystem1.Active := true;
+  try
+    { The adapter is built in code, so it has to exist before anything activates. }
+    SetUpPersistence;
+    BoldSystemHandle1.Active := true;
+    BoldPersistenceHandleSystem1.Active := true;
+  except
+    on E: Exception do
+    begin
+      LogFailure('WebModuleCreate', E);
+      raise;
+    end;
+  end;
 end;
 
 procedure TwmASPServer.BoldXMLDispatcher1Actions0Action(

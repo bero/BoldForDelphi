@@ -33,9 +33,10 @@ not in the repository and cannot be recovered from it.
 One thing still stands between that and a running demo:
 
 - Hosting an ISAPI extension needs IIS with the ISAPI-Extensions role service
-  and an application pool whose bitness matches the DLL. Nothing behind the
+  and an application pool whose bitness matches the DLL. The setup is written
+  out under **Hosting the ISAPI extension** below, but nothing behind the
   request dispatch - the persistence endpoint, the SOAP action endpoint - has
-  been exercised without that.
+  been exercised on a running server.
 
 What follows describes what the code does, which is still worth reading.
 
@@ -81,11 +82,10 @@ to stay in step by hand.
    into the IIS virtual directory. The application pool identity needs write
    access to the file **and** to the folder holding it, because SQLite creates
    journal files next to the database.
-3. **Register the BoldSOAP type library, once per machine.** Both the client
-   and the server reach Bold's SOAP layer through `TBoldHTTPSOAPService`, whose
-   constructor calls `LoadRegTypeLib(LIBID_BoldSOAP, ...)`. That looks the type
-   library up in the registry by GUID, so without the registration the client
-   raises
+3. **Register the BoldSOAP type library on the client machine.** The client
+   reaches Bold's SOAP layer through `TBoldHTTPSOAPService`, whose constructor
+   calls `LoadRegTypeLib(LIBID_BoldSOAP, ...)`. That looks the type library up
+   in the registry by GUID, so without the registration the client raises
 
    ```
    TBoldHTTPSOAPService.Create: Unable to load type library LIBID_BoldSOAP
@@ -96,16 +96,16 @@ to stay in step by hand.
    that registers it. Nothing has to be built and no administrator rights are
    needed:
 
-   ```
-   "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\tregsvr.exe" -c ^
-       "C:\path\to\BoldForDelphi\Source\Common\SOAP\BoldSOAP.tlb"
+   ```powershell
+   & 'C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\tregsvr.exe' -c `
+       'C:\path\to\BoldForDelphi\Source\Common\SOAP\BoldSOAP.tlb'
    ```
 
-   Both paths are spelled out on purpose. `%BDS%` is only defined inside a
+   Both paths are spelled out on purpose. `$env:BDS` is only defined inside a
    Delphi-configured environment - `rsvars.bat`, or the IDE's own command
-   prompt - and is empty in an ordinary `cmd` window, where it silently
-   collapses the path to `\bin\tregsvr.exe`. The `23.0` is Delphi 12.3; use
-   `22.0` for 11.3 or `37.0` for 13.
+   prompt - and is empty in an ordinary session, where it silently collapses
+   the path to `\bin\tregsvr.exe`. The `23.0` is Delphi 12.3; use `22.0` for
+   11.3 or `37.0` for 13.
 
    `-c` registers for the current user, under `HKCU\Software\Classes`, which
    merges into `HKEY_CLASSES_ROOT` for that account. Drop `-c` to register for
@@ -113,8 +113,8 @@ to stay in step by hand.
 
    **Check it took:**
 
-   ```
-   reg query "HKCU\Software\Classes\TypeLib\{9BF07220-6C8A-11D4-BBAC-0010A4F9E114}"
+   ```powershell
+   Test-Path 'HKCU:\Software\Classes\TypeLib\{9BF07220-6C8A-11D4-BBAC-0010A4F9E114}'
    ```
 
    Nothing needs restarting - the client looks the library up when
@@ -131,8 +131,16 @@ to stay in step by hand.
    Registration records the *path* of the `.tlb`, not a copy of it, so the file
    has to stay where it is. The error names only a LIBID, so this is worth
    doing before anything else - nothing else in the demo points at it.
-4. Deploy `ASPserver.dll` into an IIS virtual directory that is allowed to
-   execute ISAPI extensions.
+
+   **The server does not need this.** `wmASPServerSOAPCallsAction` calls
+   `BoldXMLDispatcher1.DispatchAction` directly. The `LoadRegTypeLib` call on
+   that side lives in `TBoldXMLSOAPService.Create`, reached only through
+   `TBoldXMLDispatcher.GetComObject` - what a COM server handle would call, and
+   nothing in this demo does. Registering the type library on the IIS machine is
+   harmless but pointless.
+4. Deploy `ASPserver.dll` into an IIS application that is allowed to execute
+   ISAPI extensions. This is the one step with real setup behind it - see
+   **Hosting the ISAPI extension** below for the commands.
 5. Run `ASPDemoClient.exe`, type the URL root into the edit box, for example
    `http://localhost/ASPdemo/ASPserver.dll`, and press **Connect**. That sets
    both web connections:
@@ -143,6 +151,184 @@ to stay in step by hand.
    ```
 
 6. Press **Open system**. The grids fill from the server.
+
+## Hosting the ISAPI extension
+
+Step 4 of *Running it* is the only one with real setup behind it. Four facts
+about this particular DLL decide the settings:
+
+- **It is 32-bit.** `ASPserver.dproj` targets `Win32` only, and the built DLL's
+  PE machine field reads `0x014C` (i386). On 64-bit Windows that forces one
+  application-pool setting, and getting it wrong gives a `500` carrying
+  `0x800700c1` rather than anything that names the cause.
+- **It links statically.** The project uses no runtime packages, so there are no
+  BPLs to deploy. FireDAC links the SQLite engine statically as well, so there
+  is no `sqlite3.dll` either. One file.
+- **It needs its database beside it.** `ASPserver.ini` names `ASPDemo.db`, and a
+  bare name is resolved against `ModuleDirectory` - the folder holding the DLL,
+  not the folder holding the worker process.
+- **It does not need the BoldSOAP type library.** Only the client does; see
+  step 3 of *Running it*.
+
+Everything below is PowerShell, and all of it needs an **elevated** session:
+`appcmd` writes `applicationHost.config`, and `Enable-WindowsOptionalFeature`
+refuses outright with *The requested operation requires elevation*.
+
+Set these three once; the rest of the section uses them. `$server` is the only
+one to edit - point it at wherever the repository sits:
+
+```powershell
+$server = 'C:\path\to\BoldForDelphi\examples\Compound\ASP\Server'
+$deploy = 'C:\inetpub\ASPdemo'
+$appcmd = "$env:windir\system32\inetsrv\appcmd.exe"
+```
+
+### 1. Install IIS with the ISAPI-Extensions role service
+
+```powershell
+Enable-WindowsOptionalFeature -Online -FeatureName IIS-ISAPIExtensions -All
+Enable-WindowsOptionalFeature -Online -FeatureName IIS-ManagementConsole -All
+```
+
+`-All` pulls in the parent features. To look before installing:
+
+```powershell
+Get-WindowsOptionalFeature -Online -FeatureName IIS-ISAPIExtensions |
+    Select-Object FeatureName, State
+```
+
+On Windows Server the same thing is *Add Roles and Features > Web Server (IIS) >
+Application Development > ISAPI Extensions*. Without it the `ISAPI-dll` handler
+is not registered at all, and the request falls through to the static file
+handler.
+
+### 2. Lay out the deployment folder
+
+```powershell
+New-Item -ItemType Directory -Force $deploy | Out-Null
+Copy-Item "$server\ASPserver.dll", "$server\ASPserver.ini", "$server\ASPDemo.db" $deploy
+```
+
+Run `DBGenerator.exe` first if `ASPDemo.db` does not exist yet.
+
+`$deploy` can point inside the working tree if that is more convenient than
+`C:\inetpub`. Note what `.gitignore` does and does not cover there: `*.dll` and
+`*.db` are ignored, but `ASPserver.ini` and the `ASPDemo.db-journal` that SQLite
+writes at runtime are not, so they will show up in `git status`.
+
+### 3. Create a 32-bit application pool with no managed code
+
+```powershell
+& $appcmd add apppool /name:ASPdemo /managedRuntimeVersion: /enable32BitAppOnWin64:true
+```
+
+`/managedRuntimeVersion:` with nothing after the colon means "No Managed Code";
+no .NET is involved here, and PowerShell passes the bare trailing colon through
+unchanged. `enable32BitAppOnWin64:true` is the load-bearing one.
+
+### 4. Create the application
+
+```powershell
+& $appcmd add app '/site.name:Default Web Site' /path:/ASPdemo "/physicalPath:$deploy" /applicationPool:ASPdemo
+```
+
+`add app`, not `add vdir`. A plain virtual directory inherits the parent's
+application pool, so it would run 64-bit and fail to load the DLL. The
+`/ASPdemo` path segment is what makes the client's URL root
+`http://localhost/ASPdemo/ASPserver.dll` resolve.
+
+### 5. Allow Execute on that application
+
+```powershell
+& $appcmd set config 'Default Web Site/ASPdemo' /section:handlers /accessPolicy:Read,Script,Execute /commit:apphost
+```
+
+The default policy is `Read,Script` - **Execute is not in it**, and an ISAPI
+extension needs it. `/commit:apphost` is required because the `handlers` section
+is locked at site level; without it the command fails and browsing gives
+`500.19`.
+
+### 6. Unblock this DLL in the ISAPI/CGI restriction list
+
+```powershell
+& $appcmd set config /section:isapiCgiRestriction `
+    "/+[path='$deploy\ASPserver.dll',allowed='true',description='Bold ASP demo']" `
+    /commit:apphost
+```
+
+`notListedIsapisAllowed` is `false` out of the box, so an unlisted extension is
+refused. The path is matched literally - re-add it if the DLL moves.
+
+Two PowerShell details in that command. The line-continuation character is a
+backtick, not `^`. And the bracketed argument is wrapped in **double** quotes so
+`$deploy` expands, while the inner values keep the single quotes `appcmd` wants;
+PowerShell re-quotes the whole thing into one argument on the way out, the
+spaces in the description included.
+
+### 7. Give the pool identity write access to the folder
+
+```powershell
+icacls $deploy /grant 'IIS AppPool\ASPdemo:(OI)(CI)M'
+```
+
+**The single quotes are required.** `(OI)` and `(CI)` - the Object Inherit and
+Container Inherit flags - are PowerShell subexpression syntax when unquoted, and
+the command fails with *The term 'OI' is not recognized*. Do not put inner
+double quotes around the account name either, the way a `cmd` example would:
+PowerShell passes those through literally and `icacls` then fails with *No
+mapping between account names and security IDs was done*, having looked up an
+account whose name includes the quote characters.
+
+`IIS AppPool\ASPdemo` is a virtual account that does not exist until step 3 has
+created the pool, so running this out of order gives that same *No mapping*
+error for a real reason.
+
+Modify on the **folder**, not just on the file: SQLite writes
+`ASPDemo.db-journal` beside the database, so a read-only directory fails at the
+first write with `unable to open database file`. `M` rather than `F` - the
+worker process has no business rewriting the ACL.
+
+### 8. Check that the extension loads
+
+```powershell
+$r = Invoke-WebRequest 'http://localhost/ASPdemo/ASPserver.dll/persistence' -SkipHttpErrorCheck
+$r.StatusCode
+$r.Content
+```
+
+`-SkipHttpErrorCheck` needs PowerShell 7. On Windows PowerShell 5.1 a 4xx or 5xx
+throws instead, so wrap the call in `try`/`catch` there, or use
+`curl.exe -i <url>` - spelled with the extension, because `curl` is an alias for
+`Invoke-WebRequest` in 5.1.
+
+What this checks is who answered. A WebBroker response - including an exception
+page, which is what an empty request body deserves - means the DLL loaded and
+dispatched. An IIS error page means it never ran:
+
+| Status | Cause | Go back to |
+| --- | --- | --- |
+| `404.17` | the request went to the static file handler | 1, ISAPI Extensions |
+| `404.2` | ISAPI/CGI restriction | 6, the restriction list |
+| `403.1` | Execute access denied | 5, the access policy |
+| `500.0` with `0x800700c1` | a 64-bit pool loading a 32-bit DLL | 3, the pool bitness |
+| `500.19` | configuration section locked | add `/commit:apphost` |
+
+### Two things nobody has exercised
+
+Neither of these has been run, so they are named as the likely next obstacles,
+not as established behaviour.
+
+- **COM initialization on the IIS thread.** `TBoldXMLRequest` builds its
+  document with `CoDOMDocument.Create` - a `CoCreateInstance` against MSXML,
+  since `OXML` is not defined anywhere in the source. If the worker thread is
+  not COM-initialized for that apartment, `/soapcalls` raises `CoInitialize has
+  not been called` (`0x800401F0`), and a `CoInitialize` / `CoUninitialize` pair
+  around the body of `wmASPServerSOAPCallsAction` is the fix. `/persistence`
+  never touches the DOM, so it can work while `/soapcalls` fails - that is not a
+  networking problem.
+- **The message box.** `TResidential_Building.ChargeRent` calls `ShowMessage` on
+  eviction, as the notes below say. Inside `w3wp.exe` that blocks the request
+  thread with nobody to dismiss it, so **Charge rent** hangs rather than errors.
 
 ## Using another database engine
 
