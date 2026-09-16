@@ -10,6 +10,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [26.9.1] - 2026-09-16
+
+### Added
+- Win64 packages for Delphi 12 and 13 in the DPM specification. DPM derives the
+  platforms a package supports from its build and design entries rather than from
+  `targetPlatforms`, so declaring Win64 there is what `dpm install
+  -platforms=Win64` needed (#87)
+- An OCL workbench demo, and a Database menu that lets the demos switch engine
+  with their preconditions checked first
+- A generated class reference converted from the Bold 4.0 help file
+- A README for every example, recording which ones no longer run as shipped
+- Conway gained a usable interface: load, save, draw and help
+
+### Fixed
+- Bold's HTTP transport sends and receives its payload as bytes rather than
+  characters, so non-ASCII content survives the round trip (#99)
+- An invalid `TBoldObjectList` cast in `cxGridBoldSupportUnit` that crashed any
+  DevExpress grid bound to a list of types
+- Conway no longer crashes on a board containing blank lines
+- The ASP demo client's main form, which had been a byte-for-byte copy of the
+  data module's form since the 2020 source release and could not open
+
+### Changed
+- The ASP example is ported off IBX to FireDAC with SQLite, so it builds with
+  nothing installed; its README now documents hosting the ISAPI extension under
+  IIS
+- The OCL Explorer is ported off DevExpress onto `TBoldGrid`, taking the
+  executable from 26.7 MB to 10.6 MB
+- The GUI uses Segoe UI 9 pt throughout
+- Releases ship the Win32 design BPLs only, with the reasoning recorded in the
+  release checklist (#87)
+- Bold is listed on the TMS Smart Setup community registry; installing with
+  Smart Setup and with DPM is documented (#87)
+- Documentation is consolidated: ROADMAP.md is the single roadmap, CHANGELOG.md
+  is included into the docs site rather than duplicated, and the landing page
+  explains what Bold is for
+
+---
+
 ## [26.9.0] - 2026-09-06
 
 ### Added

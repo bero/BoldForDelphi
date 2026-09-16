@@ -2,7 +2,7 @@
 
 This roadmap outlines the development direction for Bold for Delphi. It is a living document that evolves based on community feedback and contributions.
 
-**Current Version**: 26.9.0
+**Current Version**: 26.9.1
 **Status**: Active Development
 
 ## Vision
@@ -175,6 +175,7 @@ Make Bold for Delphi a modern, well-documented, and reliable ORM framework for D
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 26.9.1 | 2026-09-16 | Win64 DPM packages for Delphi 12 and 13, ASP example ported to FireDAC and SQLite, HTTP transport sends bytes not characters, OCL workbench demo, OCL Explorer off DevExpress |
 | 26.9.0 | 2026-09-06 | `collect(role)` in PS evaluation, UseBatchQueries fixed on both adapters, FireDAC PMCreate corruption fix, UniDAC leak fixes, package managers |
 | 26.8.1 | 2026-08-16 | Parameterized ID-list SQL for SQL Server, read-transaction fix, SQL parameter logging |
 | 26.8.0 | 2026-08-03 | XML roundtrip tests for OLW nodes and conditions |

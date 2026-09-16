@@ -27,7 +27,7 @@ not needed. Bold is available for Delphi 11, 12 and 13, Win32.
    Smart Setup clones the latest release tag, builds `dclBold` for every installed
    Delphi it supports, registers the package in the IDE and puts Bold's compiled
    units on the library path (the sources go on the browsing path). Later
-   `tms update` moves to newer releases; `tms install bero.boldfordelphi:26.9.0`
+   `tms update` moves to newer releases; `tms install bero.boldfordelphi:26.9.1`
    pins a version.
 
 ### DPM

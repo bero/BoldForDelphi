@@ -10,7 +10,7 @@ min dpm client version: 1.0
 
 metadata:
   id: bero.BoldForDelphi
-  version: 26.9.0
+  version: 26.9.1
   description: >-
     Bold for Delphi - a Model Driven Architecture framework with UML modelling,
     OCL expressions, code generation and object-relational persistence.
@@ -21,11 +21,20 @@ metadata:
   projectUrl: https://github.com/bero/BoldForDelphi
   repositoryUrl: https://github.com/bero/BoldForDelphi
   repositoryType: git
+  # repositoryCommit is deliberately absent: the commit that carries this file
+  # cannot name its own hash, and a stale one is worse than none. The release
+  # tag is the pin - version above always equals it.
+  repositoryBranch: develop
   license: MIT
   copyright: Boldsoft AB, Embarcadero Technologies, Bold for Delphi community
   # frameworks: [VCL] is omitted on purpose: dpm 0.9.317 writes it lower-case into the
   # packed spec and delphi.dev's schema then rejects the push (expects VCL|FMX|None).
   readme: README.md
+  releaseNotes: >-
+    Win64 packages for Delphi 12 and 13, the ASP example ported from IBX to
+    FireDAC and SQLite, and a fix for non-ASCII characters sent over Bold's
+    HTTP transport. Full changelog:
+    https://github.com/bero/BoldForDelphi/blob/develop/CHANGELOG.md
   tags:
     - orm
     - mda
