@@ -184,7 +184,7 @@ type
     CharSet: Word;
   end;
 var
-  FileName: array [0..260] of Char;
+  FileName: string;
   SubBlock: array [0..255] of Char;
   VerHandle: Cardinal;
   Size: Word;
@@ -195,14 +195,15 @@ var
   LangCharSetString: string;
 begin
   {Get size and allocate buffer for VerInfo}
-  if GetModuleFileName(hInstance, FileName, SizeOf(FileName)) > 0 then
+  FileName := BoldGetModuleFileName(hInstance);
+  if FileName <> '' then
   begin
-    Size := GetFileVersionInfoSize(FileName, VerHandle);
+    Size := GetFileVersionInfoSize(PChar(FileName), VerHandle);
     if Size > 0 then
     begin
       GetMem(Buffer, Size);
       try
-        if GetFileVersionInfo(FileName, VerHandle, Size, Buffer) then
+        if GetFileVersionInfo(PChar(FileName), VerHandle, Size, Buffer) then
         begin
           {Query first language and that language blocks version info}
           if VerQueryValue(Buffer, '\VarFileInfo\Translation', Pointer(LangCharSetInfo), DataLen) then // do not localize

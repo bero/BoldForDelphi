@@ -96,11 +96,9 @@ end;
 function TBoldGettingStartedExpert.getURLGettingStarted: string;
 var
  Modulepath, ModuleName, temp, RootDir: string;
- Buffer: array [0..261] of Char;
  i: integer;
 begin
-  SetString(ModuleName, Buffer, Windows.GetModuleFileName(HInstance,
-   Buffer, SizeOf(Buffer)));
+  ModuleName := BoldGetModuleFileName(HInstance);
   ModulePath := ExtractFilePath(ModuleName);
   temp := ExcludeTrailingPathDelimiter(ModulePath);
   i := LastDelimiter(PathDelim, temp);

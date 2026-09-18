@@ -52,6 +52,7 @@ function UserTimeInTicks: Int64;
 function TicksToDateTime(Ticks: Int64): TDateTime;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
 
 function BoldRootRegistryKey: string;
+function BoldGetModuleFileName(AModule: HMODULE; AInitialSize: Integer = MAX_PATH + 2): string;
 function GetModuleFileNameAsString(IncludePath: Boolean): string;
 
 {variant support}
@@ -143,13 +144,37 @@ begin
   Result := Format('Software\BoldSoft\%s\%s',  [BoldProductNameShort,BoldProductVersion]);
 end;
 
+function BoldGetModuleFileName(AModule: HMODULE; AInitialSize: Integer): string;
+const
+  // A unicode path cannot exceed this, so the retry loop always terminates.
+  MaxBufferLength = 32768;
+var
+  Buffer: array of Char;
+  BufferLength: Integer;
+  Len: Cardinal;
+begin
+  BufferLength := AInitialSize;
+  if BufferLength < 1 then
+    BufferLength := MAX_PATH + 2;
+  repeat
+    SetLength(Buffer, BufferLength);
+    // nSize counts characters, not bytes. GetModuleFileName reports truncation
+    // by filling the buffer completely and returning nSize, so a returned length
+    // below the buffer length is the only proof that the path came back whole.
+    Len := Windows.GetModuleFileName(AModule, PChar(@Buffer[0]), BufferLength);
+    if Len < Cardinal(BufferLength) then
+      Break;
+    BufferLength := BufferLength * 2;
+  until BufferLength > MaxBufferLength;
+  // Len is at most the length passed in, which is the current length of Buffer
+  SetString(Result, PChar(@Buffer[0]), Integer(Len));
+end;
+
 function GetModuleFileNameAsString(IncludePath: Boolean): string;
 var
- Buffer: array[0..261] of Char;
  ModuleName: string;
 begin
-  SetString(ModuleName, Buffer, Windows.GetModuleFileName(HInstance,
-        Buffer, SizeOf(Buffer)));
+  ModuleName := BoldGetModuleFileName(HInstance);
   if IncludePath then
     Result := ModuleName
   else

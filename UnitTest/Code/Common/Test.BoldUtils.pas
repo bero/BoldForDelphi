@@ -1,4 +1,4 @@
-unit Test.BoldUtils;
+﻿unit Test.BoldUtils;
 
 interface
 
@@ -36,6 +36,15 @@ type
     [Test]
     [Category('Quick')]
     procedure TestBoldAppendToStringsLineSplit;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldGetModuleFileNameReturnsTheModulePath;
+    [Test]
+    [Category('Quick')]
+    procedure TestBoldGetModuleFileNameGrowsAnUndersizedBuffer;
+    [Test]
+    [Category('Quick')]
+    procedure TestGetModuleFileNameAsStringWithoutPath;
   end;
 
 implementation
@@ -137,6 +146,42 @@ begin
   finally
     Strings.Free;
   end;
+end;
+
+procedure TTestBoldUtils.TestBoldGetModuleFileNameReturnsTheModulePath;
+var
+  ModuleFileName: string;
+begin
+  // HInstance is this executable, so the module path is the one ParamStr(0) reports
+  ModuleFileName := BoldGetModuleFileName(HInstance);
+  Assert.IsTrue(SameFileName(ParamStr(0), ModuleFileName),
+    Format('Expected "%s" but got "%s"', [ParamStr(0), ModuleFileName]));
+end;
+
+procedure TTestBoldUtils.TestBoldGetModuleFileNameGrowsAnUndersizedBuffer;
+var
+  ModuleFileName: string;
+begin
+  // A buffer too small for the path forces the retry loop. Getting the whole path
+  // back proves the truncation check compares against the buffer length in
+  // characters - the count GetModuleFileName returns and fills.
+  ModuleFileName := BoldGetModuleFileName(HInstance, 8);
+  Assert.IsTrue(SameFileName(ParamStr(0), ModuleFileName),
+    Format('Expected "%s" but got "%s"', [ParamStr(0), ModuleFileName]));
+  // A size that cannot hold anything falls back to the default instead of
+  // indexing an empty buffer
+  ModuleFileName := BoldGetModuleFileName(HInstance, 0);
+  Assert.IsTrue(SameFileName(ParamStr(0), ModuleFileName),
+    Format('Expected "%s" but got "%s"', [ParamStr(0), ModuleFileName]));
+end;
+
+procedure TTestBoldUtils.TestGetModuleFileNameAsStringWithoutPath;
+begin
+  Assert.IsTrue(SameFileName(ParamStr(0), GetModuleFileNameAsString(True)),
+    Format('Expected "%s" but got "%s"', [ParamStr(0), GetModuleFileNameAsString(True)]));
+  Assert.IsTrue(SameFileName(ExtractFileName(ParamStr(0)), GetModuleFileNameAsString(False)),
+    Format('Expected "%s" but got "%s"',
+      [ExtractFileName(ParamStr(0)), GetModuleFileNameAsString(False)]));
 end;
 
 initialization

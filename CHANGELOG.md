@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- `GetModuleFileName` was told the size of its buffer in bytes, where the API
+  documents `nSize` as a count of characters. Windows was thus offered twice the
+  room the buffer had, so a module path longer than 261 characters overran it, and
+  the return value could never signal truncation. The three call sites now share
+  `BoldUtils.BoldGetModuleFileName`, which passes a character count and retries
+  with a larger buffer, so paths beyond `MAX_PATH` resolve in full (#101)
+
 ---
 
 ## [26.9.1] - 2026-09-16
