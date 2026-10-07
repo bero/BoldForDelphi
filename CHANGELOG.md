@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- A subclass extent filled from an already loaded superclass extent came back
+  empty: `TBoldClassListController.FillFromClassList` added through the list's
+  `AddLocator`, which has been a no-op for class lists since 25.12.1. The fill
+  now goes through the controller's internal add (#102)
+
 ---
 
 ## [26.9.1] - 2026-09-16

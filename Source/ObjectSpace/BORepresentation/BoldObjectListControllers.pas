@@ -1,4 +1,4 @@
-{ Global compiler directives }
+﻿{ Global compiler directives }
 {$include bold.inc}
 unit BoldObjectListControllers;
 
@@ -85,6 +85,7 @@ type
     procedure CheckStillCurrent;
     procedure SetPersistenceState(APersistenceState: TBoldValuePersistenceState);
     procedure InternalAddLocator(Locator: TBoldObjectLocator);
+    procedure InternalAddLocatorIfMissing(Locator: TBoldObjectLocator);
   protected
     function GetCanCreateNew: Boolean; override;
     function GetStringrepresentation: String; override;
@@ -557,30 +558,28 @@ procedure TBoldClassListController.FillFromClassList(ObjectList: TBoldObjectList
 var
   I: Integer;
   iTopSortedIndex: Integer;
-  DestinationList: TBoldObjectList;
   Locator: TBoldObjectLocator;
 begin
   iTopSortedIndex := ClassTypeinfo.TopSortedIndex;
-  DestinationList := OwningObjectList;
   for I := 0 to ObjectList.Count - 1 do
   begin
     Locator := ObjectList.Locators[I];
     if Assigned(Locator.BoldObject) then
     begin
       if Locator.BoldObject.BoldClassTypeInfo.BoldIsA(ClassTypeInfo) then
-        DestinationList.AddLocator(Locator);
+        InternalAddLocatorIfMissing(Locator);
     end
     else
     if Locator.BoldObjectID.TopSortedIndexExact and
       ((Locator.BoldObjectID.TopSortedIndex = iTopSortedIndex) or
       (Locator.BoldClassTypeInfo.BoldIsA(ClassTypeinfo))) then
     begin
-      DestinationList.AddLocator(Locator);
+      InternalAddLocatorIfMissing(Locator);
       iTopSortedIndex := Locator.BoldObjectID.TopSortedIndex;
     end
     else
     if Locator.EnsuredBoldObject.BoldClassTypeInfo.BoldIsA(ClassTypeInfo) then
-        DestinationList.AddLocator(Locator);
+        InternalAddLocatorIfMissing(Locator);
   end;
 end;
 
@@ -762,6 +761,19 @@ procedure TBoldClassListController.InternalAddLocator(
 begin
   LocatorList.Add(Locator);
   CheckStillCurrent;
+end;
+
+procedure TBoldClassListController.InternalAddLocatorIfMissing(
+  Locator: TBoldObjectLocator);
+begin
+  // Class lists ignore the public AddLocator (they are maintained by the class
+  // events), so a fill from a superclass extent must add through the internal
+  // path. The membership check keeps a locator already in the list from being
+  // added twice.
+  if not LocatorList.LocatorInList[Locator] then
+  begin
+    InternalAddLocator(Locator);
+  end;
 end;
 
 procedure TBoldClassListController.AddLocator(Locator: TBoldObjectLocator);

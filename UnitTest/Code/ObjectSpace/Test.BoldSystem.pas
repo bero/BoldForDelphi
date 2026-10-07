@@ -674,6 +674,24 @@ type
     procedure TestPreUpdateSubscriberDeletesNewObjectInBatch;
   end;
 
+  // Uses the SQLite-backed BoldTestDM: when a superclass extent is already
+  // current, MakeDbCurrent fills the subclass extent from it (FillFromClassList)
+  // instead of fetching from the database. GitHub issue #102.
+  [TestFixture]
+  [Category('ObjectSpace')]
+  TTestBoldClassListFillFromSuperClass = class
+  private
+    function GetSystem: TBoldSystem;
+  public
+    [SetupFixture]
+    procedure SetUpFixture;
+    [TearDownFixture]
+    procedure TearDownFixture;
+
+    [Test]
+    procedure TestSubclassListFilledFromLoadedSuperClassList;
+  end;
+
   [TestFixture]
   [Category('ObjectSpace')]
   TTestBoldObjectLifecycle = class
@@ -4408,10 +4426,76 @@ begin
   end;
 end;
 
+{ TTestBoldClassListFillFromSuperClass }
+
+procedure TTestBoldClassListFillFromSuperClass.SetUpFixture;
+begin
+  EnsureBoldTestDM;
+end;
+
+procedure TTestBoldClassListFillFromSuperClass.TearDownFixture;
+begin
+  CloseBoldTestDM;
+end;
+
+function TTestBoldClassListFillFromSuperClass.GetSystem: TBoldSystem;
+begin
+  Result := BoldTestDM.BoldSystemHandle1.System;
+end;
+
+procedure TTestBoldClassListFillFromSuperClass.TestSubclassListFilledFromLoadedSuperClassList;
+var
+  Book: TBook;
+  Locator1, Locator2: TBoldObjectLocator;
+  RootList, BookList: TBoldObjectList;
+begin
+  GetSystem.Discard;
+  Book := TBook.Create(GetSystem);
+  Book.Title := 'Book 1';
+  Locator1 := Book.BoldObjectLocator;
+  Book := TBook.Create(GetSystem);
+  Book.Title := 'Book 2';
+  Locator2 := Book.BoldObjectLocator;
+  GetSystem.UpdateDatabase;
+  try
+    RootList := GetSystem.Classes[GetSystem.BoldSystemTypeInfo.RootClassTypeInfo.TopSortedIndex];
+    BookList := GetSystem.ClassByExpressionName['Book'];
+
+    // Cold start: neither extent is current and the objects are unloaded, so
+    // the class events cannot have put the books into the Book extent.
+    RootList.Invalidate;
+    BookList.Invalidate;
+    Locator1.UnloadBoldObject;
+    Locator2.UnloadBoldObject;
+
+    // Load the superclass extent first. An extent is current only once every
+    // object in it is loaded, so fetch the objects as well as the ids.
+    RootList.EnsureContentsCurrent;
+    RootList.EnsureObjects;
+    Assert.IsTrue(RootList.BoldPersistenceState = bvpsCurrent,
+      'the root extent must be current once all its objects are loaded');
+    Assert.IsTrue(RootList.LocatorInList(Locator1) and RootList.LocatorInList(Locator2),
+      'the root extent must hold both books');
+
+    // ... then the subclass extent, which is filled from the root extent, not
+    // from the database.
+    Assert.IsTrue(BookList.LocatorInList(Locator1),
+      'book 1 missing from the Book extent filled from the loaded root extent');
+    Assert.IsTrue(BookList.LocatorInList(Locator2),
+      'book 2 missing from the Book extent filled from the loaded root extent');
+    Assert.AreEqual(2, BookList.Count, 'Book extent filled from the loaded root extent');
+  finally
+    Locator1.EnsuredBoldObject.Delete;
+    Locator2.EnsuredBoldObject.Delete;
+    GetSystem.UpdateDatabase;
+  end;
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldSystem);
   TDUnitX.RegisterTestFixture(TTestBoldSystemDirtyObjectsPersistent);
   TDUnitX.RegisterTestFixture(TTestBoldSystemPreUpdatePersistent);
+  TDUnitX.RegisterTestFixture(TTestBoldClassListFillFromSuperClass);
   TDUnitX.RegisterTestFixture(TTestBoldObjectReference);
   TDUnitX.RegisterTestFixture(TTestBoldSystemTransactions);
   TDUnitX.RegisterTestFixture(TTestBoldDirtyObjectTracker);
