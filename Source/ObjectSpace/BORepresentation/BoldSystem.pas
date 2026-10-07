@@ -2592,10 +2592,27 @@ begin
 end;
 
 procedure TBoldSystem.DiscardPersistent(ADiscardTransientLinks: boolean);
+const
+  // An object can be re-dirtied while it is being discarded: the discard of a
+  // modified member sends beValueInvalid, and a subscriber or derivation that
+  // writes to the object on that event puts it back into the dirty list. The
+  // list then never empties and this loop would run forever. After this many
+  // passes without the dirty count reaching a new low, escalate once to a full
+  // discard (transient links included); if that stalls as well, give up and
+  // log the remaining objects.
+  cMaxStalledPasses = 3;
+  cMaxLoggedObjects = 20;
 var
   LocalDirtyObjects: TList;
   i: integer;
+  LowestCount: integer;
+  StalledPasses: integer;
+  FullDiscard: Boolean;
+  DirtyObject: TBoldObject;
 begin
+  StalledPasses := 0;
+  FullDiscard := ADiscardTransientLinks;
+  LowestCount := DirtyObjects.Count;
   DelayObjectDestruction;
   try
     while DirtyObjects.Count > 0 do
@@ -2604,11 +2621,47 @@ begin
       i := LocalDirtyObjects.Count - 1;
       repeat
         i := MinIntValue([i, LocalDirtyObjects.Count - 1]);
-        TBoldObject(LocalDirtyObjects[i]).BoldObjectLocator.DiscardBoldObject(ADiscardTransientLinks);
+        TBoldObject(LocalDirtyObjects[i]).BoldObjectLocator.DiscardBoldObject(FullDiscard);
         dec(i);
         while i >= LocalDirtyObjects.Count do
           dec(i);
       until (i < 0) or (LocalDirtyObjects.Count = 0);
+
+      // Progress means a new low; a count swinging 1, 2, 1, 2 must not reset the counter.
+      if DirtyObjects.Count < LowestCount then
+      begin
+        LowestCount := DirtyObjects.Count;
+        StalledPasses := 0;
+      end
+      else
+      begin
+        Inc(StalledPasses);
+
+        if StalledPasses >= cMaxStalledPasses then
+        begin
+          if not FullDiscard then
+          begin
+            // Escalate: preserving transient links is a known re-dirty source.
+            FullDiscard := True;
+            StalledPasses := 0;
+            BoldLog.LogFmt('DiscardPersistent stalled after %d passes with %d dirty objects left; retrying with full discard (transient links included).', // do not localize
+              [cMaxStalledPasses, DirtyObjects.Count], ltWarning);
+          end
+          else
+          begin
+            BoldLog.LogFmt('DiscardPersistent gave up: %d passes without progress even with full discard. %d dirty objects remain (they get re-dirtied while being discarded):', // do not localize
+              [StalledPasses, DirtyObjects.Count], ltError);
+
+            for i := 0 to MinIntValue([DirtyObjects.Count, cMaxLoggedObjects]) - 1 do
+            begin
+              DirtyObject := TBoldObject(DirtyObjects[i]);
+              BoldLog.LogFmt('  Remaining dirty: %s, %s', [DirtyObject.ClassName, DirtyObject.BoldObjectLocator.AsString], ltError); // do not localize
+            end;
+
+            Break; // give up rather than loop forever; do not raise, callers use this for recovery
+          end;
+        end;
+      end;
     end;
   finally
     AllowObjectDestruction;

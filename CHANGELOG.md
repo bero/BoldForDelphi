@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   empty: `TBoldClassListController.FillFromClassList` added through the list's
   `AddLocator`, which has been a no-op for class lists since 25.12.1. The fill
   now goes through the controller's internal add (#102)
+- `TBoldSystem.DiscardPersistent` looped forever when an object was re-dirtied
+  while it was being discarded. It now stops after three passes without the
+  dirty count reaching a new low: once by escalating to a full discard, then by
+  logging the remaining objects through `BoldLog` and giving up (#103)
 
 ---
 
