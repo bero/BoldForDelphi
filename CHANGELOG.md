@@ -17,6 +17,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   while it was being discarded. It now stops after three passes without the
   dirty count reaching a new low: once by escalating to a full discard, then by
   logging the remaining objects through `BoldLog` and giving up (#103)
+- `objectTimeStamp` and `boldTime` applied behind a nil single-valued role
+  raised an Access Violation instead of yielding null: both are OCL operations,
+  so they bypass the nil handling that member navigation gets. `TBOS_ObjectTimeStamp`
+  and `TBOS_BoldTime` now return null for a nil object. `boldTime` was also
+  registered twice; the shadowed duplicate `TBOS_ObjectTime` is removed (#105)
 
 ---
 

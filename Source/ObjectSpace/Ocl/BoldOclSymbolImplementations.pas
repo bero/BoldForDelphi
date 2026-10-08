@@ -901,13 +901,6 @@ type
     procedure Evaluate(const Params: TBoldOclSymbolParameters); override;
   end;
 
-  TBOS_ObjectTime = class(TBoldOclSymbol)
-  protected
-    procedure Init; override;
-  public
-    procedure Evaluate(const Params: TBoldOclSymbolParameters); override;
-  end;
-
   TBOS_ObjectTimeStamp = class(TBoldOclSymbol)
   protected
     procedure Init; override;
@@ -1599,11 +1592,6 @@ end;
 procedure TBOS_ObjectTimeStamp.Init;
 begin
   InternalInit('objectTimeStamp', [help.ObjectType], tbodNo, Help.IntegerType, True, 182);
-end;
-
-procedure TBOS_ObjectTime.Init;
-begin
-  InternalInit('boldTime', [help.ObjectType], tbodNo, Help.IntegerType, True, 182);
 end;
 
 procedure TBOS_allInstancesAtTime.Init;
@@ -3278,16 +3266,15 @@ var
   Obj: TBoldObject;
 begin
   Obj := Params.values[0] as TBoldObject;
+
+  if not Assigned(Obj) then
+  begin
+    Help.MakeNewNull(Params.Result, Params.Result.BoldType);
+    Exit;
+  end;
+
   Help.MakeNewInteger(Params.Result, Obj.BoldTimeStamp);
   Obj.AddSubscription(Params.Subscriber, beObjectTimestampChanged, breReEvaluate);
-end;
-
-procedure TBOS_ObjectTime.Evaluate(const Params: TBoldOclSymbolParameters);
-var
-  Obj: TBoldObject;
-begin
-  Obj := Params.values[0] as TBoldObject;
-  Help.MakeNewInteger(Params.Result, Obj.BoldObjectLocator.BoldObjectId.TimeStamp);
 end;
 
 procedure TBOS_AllInstancesAtTime.Evaluate(const Params: TBoldOclSymbolParameters);
@@ -3367,8 +3354,18 @@ begin
 end;
 
 procedure TBOS_BoldTime.Evaluate(const Params: TBoldOclSymbolParameters);
+var
+  Obj: TBoldObject;
 begin
-  help.MakeNewInteger(Params.Result, (Params.values[0] as TBoldObject).BoldTime);
+  Obj := Params.values[0] as TBoldObject;
+
+  if not (Assigned(Obj) and Assigned(Obj.BoldObjectLocator)) then
+  begin
+    Help.MakeNewNull(Params.Result, Params.Result.BoldType);
+    Exit;
+  end;
+
+  Help.MakeNewInteger(Params.Result, Obj.BoldTime);
 end;
 
 procedure TBOS_TimeStampToTime.Evaluate(const Params: TBoldOclSymbolParameters);
@@ -4070,7 +4067,6 @@ initialization
   RegisterOclOperation(TBOS_StrToDate);
   RegisterOclOperation(TBOS_StrToTime);
   RegisterOclOperation(TBOS_AtTime);
-  RegisterOclOperation(TBOS_ObjectTime);
   RegisterOclOperation(TBOS_AllInstancesAtTime);
   RegisterOclOperation(TBOS_ObjectTimeStamp);
   RegisterOclOperation(TBOS_Existing);
