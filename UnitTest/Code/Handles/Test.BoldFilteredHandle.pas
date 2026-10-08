@@ -1,12 +1,18 @@
-unit Test.BoldFilteredHandle;
+﻿unit Test.BoldFilteredHandle;
 
 interface
 
 uses
+  System.Classes,
   DUnitX.TestFramework,
   BoldElements,
   BoldSubscription,
-  BoldFilteredHandle;
+  BoldSystem,
+  BoldExpressionHandle,
+  BoldListHandle,
+  BoldFilteredHandle,
+  jehoBCBoldTest,
+  Test.BoldAttributes;  // For TjehodmBoldTest
 
 type
   /// <summary>
@@ -54,11 +60,40 @@ type
     procedure TestStorePreFetchRoles_NonEmptyReturnsTrue;
   end;
 
+  /// <summary>
+  /// A TBoldFilteredHandle whose TBoldFilter is destroyed must re-derive
+  /// without it - on its own and as the filter stage inside a TBoldListHandle.
+  /// Filter and handles share an owner, as on a form.
+  /// </summary>
+  [TestFixture]
+  [Category('Handles')]
+  TTestBoldFilteredHandleFilterRemoval = class
+  strict private
+    fDataModule: TjehodmBoldTest;
+    fOwner: TComponent;
+    function RejectAll(aElement: TBoldElement): Boolean;
+    function CreateRejectAllFilter: TBoldFilter;
+    function CreateClassAHandle: TBoldExpressionHandle;
+    function CreateClassAObjects: Integer;
+  public
+    [Setup]
+    procedure SetUp;
+    [TearDown]
+    procedure TearDown;
+
+    [Test]
+    procedure TestFilteredHandle_ReDerivesUnfilteredWhenFilterIsDestroyed;
+    [Test]
+    procedure TestListHandle_ReDerivesUnfilteredWhenFilterIsDestroyed;
+  end;
+
 implementation
 
 uses
-  System.SysUtils,
-  System.Classes;
+  System.SysUtils;
+
+const
+  cnClassAInstances = 'ClassA.allInstances';
 
 { TTestBoldFilter }
 
@@ -221,7 +256,97 @@ begin
   end;
 end;
 
+{ TTestBoldFilteredHandleFilterRemoval }
+
+procedure TTestBoldFilteredHandleFilterRemoval.SetUp;
+begin
+  fDataModule := TjehodmBoldTest.Create(nil);
+  fOwner := TComponent.Create(nil);
+end;
+
+procedure TTestBoldFilteredHandleFilterRemoval.TearDown;
+begin
+  FreeAndNil(fOwner);
+  FreeAndNil(fDataModule);
+end;
+
+function TTestBoldFilteredHandleFilterRemoval.RejectAll(aElement: TBoldElement): Boolean;
+begin
+  Result := False;
+end;
+
+function TTestBoldFilteredHandleFilterRemoval.CreateRejectAllFilter: TBoldFilter;
+begin
+  Result := TBoldFilter.Create(fOwner);
+  Result.OnFilter := RejectAll;
+end;
+
+function TTestBoldFilteredHandleFilterRemoval.CreateClassAHandle: TBoldExpressionHandle;
+begin
+  Result := TBoldExpressionHandle.Create(fOwner);
+  Result.RootHandle := fDataModule.BoldSystemHandle1;
+  Result.Expression := cnClassAInstances;
+end;
+
+function TTestBoldFilteredHandleFilterRemoval.CreateClassAObjects: Integer;
+var
+  i: Integer;
+begin
+  Result := 3;
+  for i := 1 to Result do
+    TClassA.Create(fDataModule.BoldSystemHandle1.System);
+end;
+
+procedure TTestBoldFilteredHandleFilterRemoval.TestFilteredHandle_ReDerivesUnfilteredWhenFilterIsDestroyed;
+var
+  oClassA: TBoldExpressionHandle;
+  oFiltered: TBoldFilteredHandle;
+  oFilter: TBoldFilter;
+  iObjectCount: Integer;
+begin
+  iObjectCount := CreateClassAObjects;
+  oClassA := CreateClassAHandle;
+  Assert.AreEqual(iObjectCount, (oClassA.Value as TBoldList).Count,
+    'precondition: the expression handle sees every ClassA');
+
+  oFilter := CreateRejectAllFilter;
+  oFiltered := TBoldFilteredHandle.Create(fOwner);
+  oFiltered.RootHandle := oClassA;
+  oFiltered.BoldFilter := oFilter;
+  Assert.AreEqual(0, (oFiltered.Value as TBoldList).Count,
+    'precondition: the filter rejects every ClassA');
+
+  oFilter.Free;
+
+  Assert.IsNull(oFiltered.BoldFilter, 'The destroyed filter must be cleared');
+  Assert.AreEqual(iObjectCount, (oFiltered.Value as TBoldList).Count,
+    'The handle must re-derive without the destroyed filter, not keep the filtered list');
+end;
+
+procedure TTestBoldFilteredHandleFilterRemoval.TestListHandle_ReDerivesUnfilteredWhenFilterIsDestroyed;
+var
+  oList: TBoldListHandle;
+  oFilter: TBoldFilter;
+  iObjectCount: Integer;
+begin
+  iObjectCount := CreateClassAObjects;
+
+  oFilter := CreateRejectAllFilter;
+  oList := TBoldListHandle.Create(fOwner);
+  oList.RootHandle := fDataModule.BoldSystemHandle1;
+  oList.Expression := cnClassAInstances;
+  oList.BoldFilter := oFilter;
+  Assert.AreEqual(0, oList.Count, 'precondition: the filter rejects every ClassA');
+
+  oFilter.Free;
+
+  Assert.IsNull(oList.BoldFilter, 'The destroyed filter must be cleared');
+  Assert.AreEqual(iObjectCount, oList.Count,
+    'The list handle must re-derive without the destroyed filter, not keep the filtered list');
+end;
+
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldFilter);
+  TDUnitX.RegisterTestFixture(TTestBoldFilteredHandleFilterRemoval);
 
 end.

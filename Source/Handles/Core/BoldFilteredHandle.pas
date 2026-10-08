@@ -206,16 +206,21 @@ procedure TBoldFilteredHandle.Notification(AComponent: TComponent; Operation: TO
 begin
   inherited;
   if (Operation = opRemove) and (AComponent = fBoldFilter) then
-    fBoldFilter := nil;
+    BoldFilter := nil;
 end;
 
 procedure TBoldFilteredHandle.SetBoldFilter(NewValue: TBoldFilter);
 begin
   if NewValue <> fBoldFilter then
   begin
+    if Assigned(FBoldFilter) then
+      FBoldFilter.RemoveFreeNotification(Self);
+
     FBoldFilter := NewValue;
+
     if Assigned(FBoldFilter) then
       FBoldFilter.FreeNotification(Self);
+
     MarkSubscriptionOutOfdate;
   end;
 end;
