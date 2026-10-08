@@ -291,6 +291,9 @@ begin
     if IsSqlBased and (not InTransaction) then
     begin
       StartTransaction;
+      // Verify transaction actually started
+      if not InTransaction then
+        raise EBold.CreateFmt('%s.StartTransaction: Failed to start transaction', [ClassName]);
       fTransactionStartedByMe := true;
     end
     else

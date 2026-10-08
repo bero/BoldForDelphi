@@ -136,6 +136,7 @@
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclClasses.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclLightWeightNodes.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclEvaluation.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldOclObjectTimeStamp.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldSystem.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldLinks.pas"/>
         <DCCReference Include="Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas"/>
@@ -155,6 +156,7 @@
         <DCCReference Include="Code\PMapper\Test.BoldSqlParameterization.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSqlNodes.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMappersDefault.pas"/>
+        <DCCReference Include="Code\PMapper\Test.BoldPMTransactionGuards.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldAbstractObjectUpgrader.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSQLDatabaseConfig.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUtils.pas"/>
@@ -216,6 +218,7 @@
         <DCCReference Include="Code\Integration\BoldTestPersistence.pas"/>
         <DCCReference Include="Code\Integration\Test.BoldPersistence.pas"/>
         <DCCReference Include="Code\MoldModel\Test.BoldMeta.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldHTTPPersistenceControllerClient.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

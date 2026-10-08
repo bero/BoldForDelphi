@@ -1162,6 +1162,9 @@ var
   UseParams: boolean;
   Limit: integer;
 begin
+  if not SystemPersistenceMapper.Database.InTransaction then
+    raise EBold.Create('TBoldObjectDefaultMapper.PMCreate: Not in transaction - multi-table operation requires transaction protection');
+
   BoldGuard := TBoldGuard.Create({MemberPMList}SB,TempList);
   SB := TStringBuilder.Create;
   Tickcounter := 0;
@@ -1514,6 +1517,9 @@ var
   UseParams: boolean;
   BoldGuard: IBoldGuard;
 begin
+  if not SystemPersistenceMapper.Database.InTransaction then
+    raise EBold.Create('TBoldObjectDefaultMapper.PMUpdate: Not in transaction - multi-table operation requires transaction protection');
+
   BoldGuard := TBoldGuard.Create(MemberPMList, SQL, TempList);
   if Versioned then
   begin
@@ -1616,6 +1622,9 @@ var
   FetchBlockSize: integer;
   IdListString: string;
 begin
+  if not SystemPersistenceMapper.Database.InTransaction then
+    raise EBold.Create('TBoldObjectDefaultMapper.PMDelete: Not in transaction - multi-table operation requires transaction protection');
+
   BoldGuard := TBoldGuard.Create(lst);
   if Assigned(Old_Values) then
     FetchPreviousSingleLinkValues(ObjectIdList, Old_Values);
