@@ -19,6 +19,9 @@ type
     [Test]
     [Category('Quick')]
     procedure TestAddRemedyThreadSafety;
+    [Test]
+    [Category('Quick')]
+    procedure TestCorruptObjectsActionDefaultsToDelete;
   end;
 
   { Drives a real TBoldDbValidator run: Execute activates the persistence
@@ -113,18 +116,6 @@ type
     function CreateValidatorThread: TBoldDbValidatorThread; override;
   end;
 
-  { Suggests INSERTs for rows missing in the parent table - TBoldDbDataValidator
-    always hands its threads caDelete. }
-  TInsertRemedyValidatorThread = class(TRecordingDataValidatorThread)
-  public
-    constructor Create(AValidator: TBoldDbValidator); override;
-  end;
-
-  TInsertRemedyDataValidator = class(TRecordingDataValidator)
-  protected
-    function CreateValidatorThread: TBoldDbValidatorThread; override;
-  end;
-
   { Records what Validate finds when it starts: whether the constructor has
     finished and whether the validator lists the thread. The constructor sleeps
     after the inherited one, so a thread started inside it gets well ahead.
@@ -206,21 +197,6 @@ function TStartupDbValidator.Lists(Thread: TThread): Boolean;
 begin
   result := ThreadList.LockList.IndexOf(Thread) >= 0;
   ThreadList.UnlockList;
-end;
-
-{ TInsertRemedyValidatorThread }
-
-constructor TInsertRemedyValidatorThread.Create(AValidator: TBoldDbValidator);
-begin
-  inherited;
-  CorruptObjectsAction := caInsert;
-end;
-
-{ TInsertRemedyDataValidator }
-
-function TInsertRemedyDataValidator.CreateValidatorThread: TBoldDbValidatorThread;
-begin
-  result := TInsertRemedyValidatorThread.Create(Self);
 end;
 
 { TRecordingDataValidatorThread }
@@ -311,6 +287,20 @@ begin
   finally
     Validator.Free;
     StartSignal.Free;
+  end;
+end;
+
+procedure TTestBoldDbValidator.TestCorruptObjectsActionDefaultsToDelete;
+var
+  Validator: TBoldDbDataValidator;
+begin
+  // Without a choice the data validator keeps suggesting DELETEs for corrupt
+  // objects, as it did before the action could be chosen.
+  Validator := TBoldDbDataValidator.Create(nil);
+  try
+    Assert.AreEqual(Ord(caDelete), Ord(Validator.CorruptObjectsAction));
+  finally
+    Validator.Free;
   end;
 end;
 
@@ -458,16 +448,17 @@ end;
 
 procedure TTestBoldDbValidatorEndToEnd.TestInsertRemedyPutsScriptSeparatorOnItsOwnLine;
 var
-  Validator: TInsertRemedyDataValidator;
+  Validator: TBoldDbDataValidator;
   SomeObject: TSomeClass;
   SystemMapper: TBoldSystemSQLMapper;
   OwnTable, ParentTable, ObjectId, OldSeparator: string;
   Remedy: TStringList;
-  i, InsertAt, Waited: Integer;
+  i, InsertAt: Integer;
 begin
-  // A SomeClass row whose parent table row is gone makes the validator suggest
-  // an INSERT for the parent table. Script tools only honour a batch separator
-  // such as GO on a line of its own, so it must not trail the INSERT.
+  // A SomeClass row whose parent table row is gone makes a validator set to
+  // caInsert suggest an INSERT for the parent table. Script tools only honour
+  // a batch separator such as GO on a line of its own, so it must not trail
+  // the INSERT.
   SystemMapper := dmUndoRedo.BoldPersistenceHandleDB1.PersistenceControllerDefault.PersistenceMapper;
   for i := 0 to SystemMapper.ObjectPersistenceMappers.Count - 1 do
     if Assigned(SystemMapper.ObjectPersistenceMappers[i]) and
@@ -484,24 +475,19 @@ begin
   Assert.AreEqual(1, dmUndoRedo.FDConnection1.ExecSQL('DELETE FROM ' + ParentTable + ' WHERE BOLD_ID = ' + ObjectId),
     'precondition: the parent table holds the new object');
 
-  TRecordingDataValidatorThread.Reset;
   OldSeparator := dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator;
   dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator := 'GO';
-  Validator := TInsertRemedyDataValidator.Create(nil);
+  Validator := TBoldDbDataValidator.Create(nil);
   try
     Validator.PersistenceHandle := dmUndoRedo.BoldPersistenceHandleDB2;
     Validator.ThreadCount := 1;
     Validator.ClassesToValidate := 'SomeClass';
+    Validator.ValidatorTestTypes := [ttExistenceInParentTest];
+    Validator.CorruptObjectsAction := caInsert;
     Validator.OnComplete := HandleComplete;
     Validator.Execute;
     Assert.AreEqual(Ord(wrSignaled), Ord(FDone.WaitFor(10000)),
       'the validator thread must complete and call OnComplete');
-    Waited := 0;
-    while (TRecordingDataValidatorThread.InstanceCount > 0) and (Waited < 5000) do
-    begin
-      Sleep(50);
-      Inc(Waited, 50);
-    end;
 
     Remedy := Validator.Remedy;
     InsertAt := -1;

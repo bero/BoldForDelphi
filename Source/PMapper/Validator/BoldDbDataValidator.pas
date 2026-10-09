@@ -40,6 +40,7 @@ type
   private
     fValidatorTestTypes: TBoldDBDataValidatorTestTypes;
     fClassesToValidate: string;
+    fCorruptObjectsAction: TBoldDbDataValidatorCorruptObjectsAction;
   protected
 //    procedure DeActivate; override;
     function CreateValidatorThread: TBoldDbValidatorThread; override;
@@ -48,6 +49,7 @@ type
     destructor Destroy; override;
     procedure Validate; override;
     property ValidatorTestTypes: TBoldDBDataValidatorTestTypes read fValidatorTestTypes write fValidatorTestTypes;
+    property CorruptObjectsAction: TBoldDbDataValidatorCorruptObjectsAction read fCorruptObjectsAction write fCorruptObjectsAction;
     property ClassesToValidate: string read fClassesToValidate write fClassesToValidate;
   end;
 
@@ -1162,6 +1164,7 @@ end;
 constructor TBoldDbDataValidator.Create(owner: TComponent);
 begin
   inherited;
+  fCorruptObjectsAction := caDelete;
 end;
 
 destructor TBoldDbDataValidator.Destroy;
@@ -1213,6 +1216,7 @@ begin
   var thread := TBoldDbDataValidatorThread.Create(self);
   result := thread;
   thread.ValidatorTestTypes := ValidatorTestTypes;
+  thread.CorruptObjectsAction := CorruptObjectsAction;
 end;
 
 end.
