@@ -394,8 +394,14 @@ begin
   fStartTime := now;
   BoldLog.LogHeader := 'Validating...';
   BoldLog.ProgressMax := TableQueue.Count;
+  // Start a thread only once it is fully constructed and listed - Execute
+  // asserts the listing when it ends.
   for var i := 0 to ThreadCount-1 do
-    ThreadList.Add(CreateValidatorThread);
+  begin
+    var Thread := CreateValidatorThread;
+    ThreadList.Add(Thread);
+    Thread.Start;
+  end;
 end;
 
 { TBoldDbValidatorThread }
@@ -418,7 +424,6 @@ begin
   // at the end of Execute and nobody else holds a reference, so it must free
   // itself - without this, one thread object leaked per run.
   FreeOnTerminate := True;
-  Suspended := False;
 end;
 
 destructor TBoldDbValidatorThread.Destroy;

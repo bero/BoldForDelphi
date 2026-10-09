@@ -44,6 +44,9 @@ type
     [Test]
     [Category('DB')]
     procedure TestInsertRemedyPutsScriptSeparatorOnItsOwnLine;
+    [Test]
+    [Category('DB')]
+    procedure TestValidatorThreadStartsAfterConstructionAndListing;
   end;
 
 implementation
@@ -90,8 +93,7 @@ type
   { A real data validator thread that checks existence in the parent table, so
     it opens a query on its own connection, and records how it ended: the
     exception Execute left in FatalException and one raised while it is
-    destroyed. The base constructor already starts the thread, so Validate
-    waits until construction is over and the validator lists it. }
+    destroyed. }
   TRecordingDataValidatorThread = class(TBoldDbDataValidatorThread)
   private
     class var FInstanceCount: Integer;
@@ -100,7 +102,6 @@ type
   public
     constructor Create(AValidator: TBoldDbValidator); override;
     destructor Destroy; override;
-    procedure Validate; override;
     class procedure Reset;
     class property InstanceCount: Integer read FInstanceCount;
     class property FatalError: string read FFatalError;
@@ -110,8 +111,6 @@ type
   TRecordingDataValidator = class(TBoldDbDataValidator)
   protected
     function CreateValidatorThread: TBoldDbValidatorThread; override;
-  public
-    function Lists(Thread: TThread): Boolean;
   end;
 
   { Suggests INSERTs for rows missing in the parent table - TBoldDbDataValidator
@@ -125,6 +124,89 @@ type
   protected
     function CreateValidatorThread: TBoldDbValidatorThread; override;
   end;
+
+  { Records what Validate finds when it starts: whether the constructor has
+    finished and whether the validator lists the thread. The constructor sleeps
+    after the inherited one, so a thread started inside it gets well ahead.
+    Validate then waits for the listing, so even a thread started too early
+    ends cleanly - Execute asserts the listing. }
+  TStartupValidatorThread = class(TBoldDbValidatorThread)
+  private
+    FConstructed: Boolean;
+    class var FInstanceCount: Integer;
+    class var FValidated: Boolean;
+    class var FSawConstructed: Boolean;
+    class var FSawListed: Boolean;
+  protected
+    procedure Validate; override;
+  public
+    constructor Create(AValidator: TBoldDbValidator); override;
+    destructor Destroy; override;
+    class procedure Reset;
+    class property InstanceCount: Integer read FInstanceCount;
+    class property Validated: Boolean read FValidated;
+    class property SawConstructed: Boolean read FSawConstructed;
+    class property SawListed: Boolean read FSawListed;
+  end;
+
+  TStartupDbValidator = class(TBoldDbValidator)
+  protected
+    function CreateValidatorThread: TBoldDbValidatorThread; override;
+  public
+    function Lists(Thread: TThread): Boolean;
+  end;
+
+{ TStartupValidatorThread }
+
+constructor TStartupValidatorThread.Create(AValidator: TBoldDbValidator);
+begin
+  AtomicIncrement(FInstanceCount);
+  inherited;
+  Sleep(200);
+  FConstructed := True;
+end;
+
+destructor TStartupValidatorThread.Destroy;
+begin
+  inherited;
+  AtomicDecrement(FInstanceCount);
+end;
+
+procedure TStartupValidatorThread.Validate;
+var
+  Waited: Integer;
+begin
+  FSawConstructed := FConstructed;
+  FSawListed := (Validator as TStartupDbValidator).Lists(Self);
+  FValidated := True;
+  Waited := 0;
+  while not (Validator as TStartupDbValidator).Lists(Self) and (Waited < 5000) do
+  begin
+    Sleep(1);
+    Inc(Waited);
+  end;
+end;
+
+class procedure TStartupValidatorThread.Reset;
+begin
+  FInstanceCount := 0;
+  FValidated := False;
+  FSawConstructed := False;
+  FSawListed := False;
+end;
+
+{ TStartupDbValidator }
+
+function TStartupDbValidator.CreateValidatorThread: TBoldDbValidatorThread;
+begin
+  result := TStartupValidatorThread.Create(Self);
+end;
+
+function TStartupDbValidator.Lists(Thread: TThread): Boolean;
+begin
+  result := ThreadList.LockList.IndexOf(Thread) >= 0;
+  ThreadList.UnlockList;
+end;
 
 { TInsertRemedyValidatorThread }
 
@@ -166,19 +248,6 @@ begin
   end;
 end;
 
-procedure TRecordingDataValidatorThread.Validate;
-var
-  Waited: Integer;
-begin
-  Waited := 0;
-  while not (Validator as TRecordingDataValidator).Lists(Self) and (Waited < 5000) do
-  begin
-    Sleep(1);
-    Inc(Waited);
-  end;
-  inherited;
-end;
-
 class procedure TRecordingDataValidatorThread.Reset;
 begin
   FInstanceCount := 0;
@@ -191,12 +260,6 @@ end;
 function TRecordingDataValidator.CreateValidatorThread: TBoldDbValidatorThread;
 begin
   result := TRecordingDataValidatorThread.Create(Self);
-end;
-
-function TRecordingDataValidator.Lists(Thread: TThread): Boolean;
-begin
-  result := ThreadList.LockList.IndexOf(Thread) >= 0;
-  ThreadList.UnlockList;
 end;
 
 function TTestableDbValidator.CreateValidatorThread: TBoldDbValidatorThread;
@@ -456,6 +519,38 @@ begin
     Validator.Free;
     dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator := OldSeparator;
     dmUndoRedo.FDConnection1.ExecSQL('DELETE FROM ' + OwnTable + ' WHERE BOLD_ID = ' + ObjectId);
+  end;
+end;
+
+procedure TTestBoldDbValidatorEndToEnd.TestValidatorThreadStartsAfterConstructionAndListing;
+var
+  Validator: TStartupDbValidator;
+  Waited: Integer;
+begin
+  // A validator thread may only run once its constructors have finished -
+  // descendants set up what Validate uses there - and once the validator
+  // lists it, which Execute asserts when it ends.
+  TStartupValidatorThread.Reset;
+  Validator := TStartupDbValidator.Create(nil);
+  try
+    Validator.PersistenceHandle := dmUndoRedo.BoldPersistenceHandleDB2;
+    Validator.ThreadCount := 1;
+    Validator.OnComplete := HandleComplete;
+    Validator.Execute;
+    Assert.AreEqual(Ord(wrSignaled), Ord(FDone.WaitFor(10000)),
+      'the validator thread must complete and call OnComplete');
+    Waited := 0;
+    while (TStartupValidatorThread.InstanceCount > 0) and (Waited < 5000) do
+    begin
+      Sleep(50);
+      Inc(Waited, 50);
+    end;
+    Assert.IsTrue(TStartupValidatorThread.Validated, 'Validate must have run');
+    Assert.IsTrue(TStartupValidatorThread.SawConstructed and TStartupValidatorThread.SawListed,
+      Format('Validate started with the constructor finished: %s, listed by the validator: %s',
+        [BoolToStr(TStartupValidatorThread.SawConstructed, True), BoolToStr(TStartupValidatorThread.SawListed, True)]));
+  finally
+    Validator.Free;
   end;
 end;
 
