@@ -322,6 +322,7 @@ var
   j: integer;
   Skip: Boolean;
   remedySQL: String;
+  Separator: string;
   UnsupportedColumns, NotNullColumns, NotNullValues: string;
   Column: TBoldSQLColumnDescription;
 begin
@@ -358,7 +359,7 @@ begin
     end;
   end;
 
-  remedySQL := 'INSERT INTO %s (BOLD_ID, BOLD_TYPE%s) VALUES (%s, %s%s)'+ PersistenceHandle.SQLDataBaseConfig.SqlScriptSeparator;
+  remedySQL := 'INSERT INTO %s (BOLD_ID, BOLD_TYPE%s) VALUES (%s, %s%s)';
   if skip then
   begin
     AddRemedy(format(sColumnsHaveUnsupportedType, [UnsupportedColumns]));
@@ -367,8 +368,15 @@ begin
   else
     AddRemedy(Format(sAddMissingEntries, [Table.SQLName]));
 
+  Separator := PersistenceHandle.SQLDataBaseConfig.SqlScriptSeparator;
   for j := 0 to idlist.count - 1 do
+  begin
     AddRemedy(format(remedySQL, [Table.SQLName, NotNullColumns, IdList[j], TypeList[j], NotNullValues]));
+    // A batch separator such as GO only works on a line of its own, and a
+    // commented-out INSERT needs none.
+    if (Separator <> '') and not Skip then
+      AddRemedy(Separator);
+  end;
 end;
 
 procedure TBoldDbDataValidatorThread.ValidateExistence(ObjectSQLMapper: TBoldObjectSQLMapper);

@@ -41,13 +41,20 @@ type
     [Test]
     [Category('DB')]
     procedure TestDataValidatorThreadEndsCleanly;
+    [Test]
+    [Category('DB')]
+    procedure TestInsertRemedyPutsScriptSeparatorOnItsOwnLine;
   end;
 
 implementation
 
 uses
+  System.StrUtils,
+  FireDAC.Comp.Client,
   BoldDBInterfaces,
+  BoldPMappersSQL,
   BoldDbDataValidator,
+  BoldTestModel,
   maan_UndoRedoBase;
 
 type
@@ -106,6 +113,33 @@ type
   public
     function Lists(Thread: TThread): Boolean;
   end;
+
+  { Suggests INSERTs for rows missing in the parent table - TBoldDbDataValidator
+    always hands its threads caDelete. }
+  TInsertRemedyValidatorThread = class(TRecordingDataValidatorThread)
+  public
+    constructor Create(AValidator: TBoldDbValidator); override;
+  end;
+
+  TInsertRemedyDataValidator = class(TRecordingDataValidator)
+  protected
+    function CreateValidatorThread: TBoldDbValidatorThread; override;
+  end;
+
+{ TInsertRemedyValidatorThread }
+
+constructor TInsertRemedyValidatorThread.Create(AValidator: TBoldDbValidator);
+begin
+  inherited;
+  CorruptObjectsAction := caInsert;
+end;
+
+{ TInsertRemedyDataValidator }
+
+function TInsertRemedyDataValidator.CreateValidatorThread: TBoldDbValidatorThread;
+begin
+  result := TInsertRemedyValidatorThread.Create(Self);
+end;
 
 { TRecordingDataValidatorThread }
 
@@ -356,6 +390,72 @@ begin
         [TRecordingDataValidatorThread.FatalError, TRecordingDataValidatorThread.DestroyError]));
   finally
     Validator.Free;
+  end;
+end;
+
+procedure TTestBoldDbValidatorEndToEnd.TestInsertRemedyPutsScriptSeparatorOnItsOwnLine;
+var
+  Validator: TInsertRemedyDataValidator;
+  SomeObject: TSomeClass;
+  SystemMapper: TBoldSystemSQLMapper;
+  OwnTable, ParentTable, ObjectId, OldSeparator: string;
+  Remedy: TStringList;
+  i, InsertAt, Waited: Integer;
+begin
+  // A SomeClass row whose parent table row is gone makes the validator suggest
+  // an INSERT for the parent table. Script tools only honour a batch separator
+  // such as GO on a line of its own, so it must not trail the INSERT.
+  SystemMapper := dmUndoRedo.BoldPersistenceHandleDB1.PersistenceControllerDefault.PersistenceMapper;
+  for i := 0 to SystemMapper.ObjectPersistenceMappers.Count - 1 do
+    if Assigned(SystemMapper.ObjectPersistenceMappers[i]) and
+      SameText(SystemMapper.ObjectPersistenceMappers[i].ExpressionName, 'SomeClass') then
+    begin
+      OwnTable := (SystemMapper.ObjectPersistenceMappers[i] as TBoldObjectSQLMapper).MainTable.SQLName;
+      ParentTable := (SystemMapper.ObjectPersistenceMappers[i].SuperClass as TBoldObjectSQLMapper).MainTable.SQLName;
+    end;
+  Assert.AreNotEqual('', ParentTable, 'precondition: SomeClass has a parent table');
+
+  SomeObject := TSomeClass.Create(dmUndoRedo.BoldSystemHandle1.System);
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+  ObjectId := SomeObject.BoldObjectLocator.BoldObjectID.AsString;
+  Assert.AreEqual(1, dmUndoRedo.FDConnection1.ExecSQL('DELETE FROM ' + ParentTable + ' WHERE BOLD_ID = ' + ObjectId),
+    'precondition: the parent table holds the new object');
+
+  TRecordingDataValidatorThread.Reset;
+  OldSeparator := dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator;
+  dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator := 'GO';
+  Validator := TInsertRemedyDataValidator.Create(nil);
+  try
+    Validator.PersistenceHandle := dmUndoRedo.BoldPersistenceHandleDB2;
+    Validator.ThreadCount := 1;
+    Validator.ClassesToValidate := 'SomeClass';
+    Validator.OnComplete := HandleComplete;
+    Validator.Execute;
+    Assert.AreEqual(Ord(wrSignaled), Ord(FDone.WaitFor(10000)),
+      'the validator thread must complete and call OnComplete');
+    Waited := 0;
+    while (TRecordingDataValidatorThread.InstanceCount > 0) and (Waited < 5000) do
+    begin
+      Sleep(50);
+      Inc(Waited, 50);
+    end;
+
+    Remedy := Validator.Remedy;
+    InsertAt := -1;
+    for i := 0 to Remedy.Count - 1 do
+      if StartsText('INSERT INTO', Remedy[i]) then
+      begin
+        InsertAt := i;
+        Break;
+      end;
+    Assert.IsTrue(InsertAt >= 0, 'expected an INSERT remedy:' + sLineBreak + Remedy.Text);
+    Assert.IsFalse(EndsText('GO', Remedy[InsertAt]), 'GO trails the INSERT:' + sLineBreak + Remedy.Text);
+    Assert.IsTrue(InsertAt + 1 < Remedy.Count, 'no separator after the INSERT:' + sLineBreak + Remedy.Text);
+    Assert.AreEqual('GO', Remedy[InsertAt + 1]);
+  finally
+    Validator.Free;
+    dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator := OldSeparator;
+    dmUndoRedo.FDConnection1.ExecSQL('DELETE FROM ' + OwnTable + ' WHERE BOLD_ID = ' + ObjectId);
   end;
 end;
 
