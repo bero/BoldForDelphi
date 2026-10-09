@@ -38,12 +38,16 @@ type
     [Test]
     [Category('DB')]
     procedure TestValidatorThreadsCompleteAndFreeThemselves;
+    [Test]
+    [Category('DB')]
+    procedure TestDataValidatorThreadEndsCleanly;
   end;
 
 implementation
 
 uses
   BoldDBInterfaces,
+  BoldDbDataValidator,
   maan_UndoRedoBase;
 
 type
@@ -75,6 +79,91 @@ type
   protected
     function CreateValidatorThread: TBoldDbValidatorThread; override;
   end;
+
+  { A real data validator thread that checks existence in the parent table, so
+    it opens a query on its own connection, and records how it ended: the
+    exception Execute left in FatalException and one raised while it is
+    destroyed. The base constructor already starts the thread, so Validate
+    waits until construction is over and the validator lists it. }
+  TRecordingDataValidatorThread = class(TBoldDbDataValidatorThread)
+  private
+    class var FInstanceCount: Integer;
+    class var FFatalError: string;
+    class var FDestroyError: string;
+  public
+    constructor Create(AValidator: TBoldDbValidator); override;
+    destructor Destroy; override;
+    procedure Validate; override;
+    class procedure Reset;
+    class property InstanceCount: Integer read FInstanceCount;
+    class property FatalError: string read FFatalError;
+    class property DestroyError: string read FDestroyError;
+  end;
+
+  TRecordingDataValidator = class(TBoldDbDataValidator)
+  protected
+    function CreateValidatorThread: TBoldDbValidatorThread; override;
+  public
+    function Lists(Thread: TThread): Boolean;
+  end;
+
+{ TRecordingDataValidatorThread }
+
+constructor TRecordingDataValidatorThread.Create(AValidator: TBoldDbValidator);
+begin
+  AtomicIncrement(FInstanceCount);
+  inherited;
+  ValidatorTestTypes := [ttExistenceInParentTest];
+end;
+
+destructor TRecordingDataValidatorThread.Destroy;
+begin
+  if Assigned(FatalException) then
+    FFatalError := FatalException.ClassName;
+  try
+    try
+      inherited;
+    except
+      on E: Exception do
+        FDestroyError := E.ClassName;
+    end;
+  finally
+    AtomicDecrement(FInstanceCount);
+  end;
+end;
+
+procedure TRecordingDataValidatorThread.Validate;
+var
+  Waited: Integer;
+begin
+  Waited := 0;
+  while not (Validator as TRecordingDataValidator).Lists(Self) and (Waited < 5000) do
+  begin
+    Sleep(1);
+    Inc(Waited);
+  end;
+  inherited;
+end;
+
+class procedure TRecordingDataValidatorThread.Reset;
+begin
+  FInstanceCount := 0;
+  FFatalError := '';
+  FDestroyError := '';
+end;
+
+{ TRecordingDataValidator }
+
+function TRecordingDataValidator.CreateValidatorThread: TBoldDbValidatorThread;
+begin
+  result := TRecordingDataValidatorThread.Create(Self);
+end;
+
+function TRecordingDataValidator.Lists(Thread: TThread): Boolean;
+begin
+  result := ThreadList.LockList.IndexOf(Thread) >= 0;
+  ThreadList.UnlockList;
+end;
 
 function TTestableDbValidator.CreateValidatorThread: TBoldDbValidatorThread;
 begin
@@ -231,6 +320,40 @@ begin
     end;
     Assert.AreEqual(0, TEndToEndValidatorThread.InstanceCount,
       'validator threads must free themselves after completion');
+  finally
+    Validator.Free;
+  end;
+end;
+
+procedure TTestBoldDbValidatorEndToEnd.TestDataValidatorThreadEndsCleanly;
+var
+  Validator: TRecordingDataValidator;
+  Waited: Integer;
+begin
+  // Execute releases the thread's own connection when validation is done.
+  // Neither Execute's cleanup nor the thread's destructor may use it after
+  // that - the query the data validator opened on it included.
+  TRecordingDataValidatorThread.Reset;
+  Validator := TRecordingDataValidator.Create(nil);
+  try
+    Validator.PersistenceHandle := dmUndoRedo.BoldPersistenceHandleDB2;
+    Validator.ThreadCount := 1;
+    Validator.ClassesToValidate := 'SomeClass';
+    Validator.OnComplete := HandleComplete;
+    Validator.Execute;
+    Assert.AreEqual(Ord(wrSignaled), Ord(FDone.WaitFor(10000)),
+      'the validator thread must complete and call OnComplete');
+
+    Waited := 0;
+    while (TRecordingDataValidatorThread.InstanceCount > 0) and (Waited < 5000) do
+    begin
+      Sleep(50);
+      Inc(Waited, 50);
+    end;
+    Assert.AreEqual(0, TRecordingDataValidatorThread.InstanceCount, 'the validator thread must be destroyed');
+    Assert.IsTrue((TRecordingDataValidatorThread.FatalError = '') and (TRecordingDataValidatorThread.DestroyError = ''),
+      Format('Execute ended with [%s], the destructor raised [%s]',
+        [TRecordingDataValidatorThread.FatalError, TRecordingDataValidatorThread.DestroyError]));
   finally
     Validator.Free;
   end;

@@ -82,6 +82,7 @@ type
     fBoldDatabase: IBoldDatabase;
     fSystemSQLMapper: TBoldSystemSQLMapper;
     fPersistenceHandle: TBoldAbstractPersistenceHandleDB;
+    procedure OpenDatabase;
   protected
     procedure Validate; virtual; abstract;
     function DoCheckStop: boolean;
@@ -435,13 +436,20 @@ begin
   Validator.DoOnLog(AStatus);
 end;
 
+procedure TBoldDbValidatorThread.OpenDatabase;
+begin
+  // Own routine: the compiler's temporary for the new connection is released
+  // here, while the wrapper still exists - Execute frees the wrapper later.
+  fBoldDatabase := Validator.PersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
+  fBoldDatabase.Open;
+end;
+
 procedure TBoldDbValidatorThread.Execute;
 begin
   NameThreadForDebugging(ClassName);
   CoInitialize(nil);
   try
-    fBoldDatabase := Validator.PersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
-    fBoldDatabase.Open;
+    OpenDatabase;
     try
       Validate;
     finally

@@ -192,8 +192,6 @@ destructor TBoldDbDataValidatorThread.Destroy;
 begin
   FreeAndNil(fTypeTestedTables);
   FreeAndNil(fExistenceInParentTestedTables);
-  if assigned(fQuery) then
-    Database.ReleaseQuery(fQuery);
   inherited;
 end;
 
@@ -273,6 +271,10 @@ begin
     until Validator.TableQueue.Empty;
   finally
     Database.ReleaseTable(fCurrentTable);
+    // Execute releases the connection after Validate, so the query opened on
+    // it goes back first.
+    if assigned(fQuery) then
+      Database.ReleaseQuery(fQuery);
   end;
 end;
 
