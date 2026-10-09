@@ -1,4 +1,4 @@
-unit Test.BoldSQLDatabaseConfig;
+﻿unit Test.BoldSQLDatabaseConfig;
 
 interface
 
@@ -149,15 +149,21 @@ type
     // Change notification
     [Test] [Category('Quick')]
     procedure TestOnChange;
+
+    // Generated evolution script
+    [Test] [Category('Quick')]
+    procedure TestSQLServerEvolutionScript_OneDeclarePerBatch;
   end;
 
 implementation
 
 uses
   SysUtils,
+  Classes,
   db,
   BoldDefs,
-  BoldSQLDatabaseConfig;
+  BoldSQLDatabaseConfig,
+  BoldDbEvolutorScript;
 
 { TTestBoldSQLDatabaseConfig }
 
@@ -1116,6 +1122,47 @@ begin
     Cfg.ColumnTypeForFloat := 'REAL';
     Assert.AreEqual(2, FChangeCount);
   finally
+    Cfg.Free;
+  end;
+end;
+
+// --- Generated evolution script ---
+
+procedure TTestBoldSQLDatabaseConfig.TestSQLServerEvolutionScript_OneDeclarePerBatch;
+const
+  cDeclare = 'DECLARE @CONSTRAINTNAME';
+var
+  Cfg: TBoldSQLDataBaseConfig;
+  EvolutionScript: TBoldDataBaseEvolutorScript;
+  Lines: TStringList;
+  i, DeclaresInBatch, DeclaresTotal: Integer;
+begin
+  // Every SQL Server column drop declares @CONSTRAINTNAME, and SQL Server
+  // refuses a second DECLARE of a variable within one batch. A script that
+  // drops two columns must therefore separate the drops with GO.
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  EvolutionScript := TBoldDataBaseEvolutorScript.Create;
+  Lines := TStringList.Create;
+  try
+    Cfg.InitializeDbEngineSettings(dbeSQLServer);
+    EvolutionScript.DropColumn('PERSON', 'NICKNAME');
+    EvolutionScript.DropColumn('PERSON', 'SHOESIZE');
+    EvolutionScript.GenerateScript(Lines, Cfg);
+    DeclaresInBatch := 0;
+    DeclaresTotal := 0;
+    for i := 0 to Lines.Count - 1 do
+      if SameText(Trim(Lines[i]), 'GO') then
+        DeclaresInBatch := 0
+      else if Pos(cDeclare, Lines[i]) > 0 then
+      begin
+        Inc(DeclaresInBatch);
+        Inc(DeclaresTotal);
+        Assert.AreEqual(1, DeclaresInBatch, 'Two drops share one batch:' + sLineBreak + Lines.Text);
+      end;
+    Assert.AreEqual(2, DeclaresTotal, Lines.Text);
+  finally
+    Lines.Free;
+    EvolutionScript.Free;
     Cfg.Free;
   end;
 end;

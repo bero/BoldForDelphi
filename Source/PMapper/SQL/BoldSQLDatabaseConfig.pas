@@ -1134,6 +1134,9 @@ begin
       // fetch SQL byte-identical and plans reusable. Well below the 2100
       // params/statement engine limit.
       fMaxParamsInIdList := 500;
+      // GO ends a batch, so every script statement gets its own: the drop column
+      // template declares @CONSTRAINTNAME, which a batch can declare only once.
+      fSqlScriptSeparator := 'GO';
       fSqlScriptStartTransaction := 'BEGIN TRANSACTION';
       fDropColumnTemplate :=
           'DECLARE @CONSTRAINTNAME NVARCHAR(200)' 
