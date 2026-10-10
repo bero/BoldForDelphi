@@ -664,6 +664,11 @@ const
   sDBValidation = 'Database validation';
   sFoundInconsistencies = 'Inconsistencies found';
   sDBValidationDone = 'Database validation finished';
+  sDBValidationIncomplete = 'Database validation incomplete: %d error(s)';
+  sDBValidationOfItemFailed = 'Validating %s failed: %s: %s';
+  sDBValidationOK = 'Database validated OK';
+  sDBValidationFoundProblems = 'Database validated found problems';
+  sDBValidationFailedSeeLog = 'Database validation failed, see log';
   sDBValidationFailed = 'Database validation failed: %s';
   sMissingPSHandle = 'Unable to perform validation, missing a PersistenceHandle';
   sClassWithoutDBID = 'Model contains a class %s that does not have a database id';

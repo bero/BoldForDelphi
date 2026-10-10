@@ -258,17 +258,24 @@ begin
       BoldLog.LogHeader := Format(sCheckingTable, [ObjectPMapper.ExpressionName]);
       BoldLog.ProgressMax := 100;
       BoldLog.Progress := 0;
-      ValidateExistence(ObjectPMapper);
-      BoldLog.Progress := 20;
-      ValidateRelations(ObjectPMapper);
-      BoldLog.Progress := 60;
-      ValidateNotNullColumns(ObjectPMapper);
-      BoldLog.Progress := 80;
-      if ObjectPmapper is TBoldObjectDefaultMapper then
-        ValidateStrayObjects(ObjectPMapper as TBoldObjectDefaultMapper);
-      if ObjectPMapper.IsLinkClass then
-      begin
-        ValidateLinkObjects(ObjectPmapper);
+      // A class that cannot be validated is reported, and the classes after it
+      // in the queue are still validated.
+      try
+        ValidateExistence(ObjectPMapper);
+        BoldLog.Progress := 20;
+        ValidateRelations(ObjectPMapper);
+        BoldLog.Progress := 60;
+        ValidateNotNullColumns(ObjectPMapper);
+        BoldLog.Progress := 80;
+        if ObjectPmapper is TBoldObjectDefaultMapper then
+          ValidateStrayObjects(ObjectPMapper as TBoldObjectDefaultMapper);
+        if ObjectPMapper.IsLinkClass then
+        begin
+          ValidateLinkObjects(ObjectPmapper);
+        end;
+      except
+        on E: Exception do
+          AddError(Format(sDBValidationOfItemFailed, [ObjectPMapper.ExpressionName, E.ClassName, E.Message]));
       end;
     until Validator.TableQueue.Empty;
   finally
@@ -614,6 +621,7 @@ begin
     exit;
   BoldLog.LogHeader := Format('ValidateLinkObjects %s', [ObjectSQLMapper.ExpressionName]);
   IdList := TStringList.create;
+  try
   LinkColumn1 := (ObjectSQLMapper.LinkClassRole1 as TBoldEmbeddedSingleLinkDefaultMapper).MainColumnName;
   LinkColumn2 := (ObjectSQLMapper.LinkClassRole2 as TBoldEmbeddedSingleLinkDefaultMapper).MainColumnName;
   LinkTable := ObjectSQLMapper.MainTable.SQLName;
@@ -636,7 +644,9 @@ begin
   CheckSpacePointers(ObjectSQLMapper.LinkClassRole1 as TBoldEmbeddedSingleLinkDefaultMapper);
   CheckSpacePointers(ObjectSQLMapper.LinkClassRole2 as TBoldEmbeddedSingleLinkDefaultMapper);
 
-  IdList.Free;
+  finally
+    IdList.Free;
+  end;
 end;
 
 procedure TBoldDbDataValidatorThread.ValidateNotNullForColumn(
@@ -710,12 +720,13 @@ var
   Block, Start,Stop: integer;
   s: string;
 begin
-  IdList := TStringList.create;
   LinkTable := ObjectSQLMapper.MainTable;
   MemberMappings := nil;
   BoldLog.ProgressMax := ObjectSQLMapper.MemberPersistenceMappers.count;
   if not assigned(LinkTable) then
     exit;
+  IdList := TStringList.create;
+  try
   for i := 0 to ObjectSQLMapper.MemberPersistenceMappers.count-1 do
   begin
     if ObjectSQLMapper.MemberPersistenceMappers[i] is TBoldEmbeddedSingleLinkDefaultMapper then
@@ -881,7 +892,9 @@ begin
       end;
     end;
   end;
-  IdList.Free;
+  finally
+    IdList.Free;
+  end;
 end;
 
 procedure TBoldDbDataValidatorThread.ValidateStrayObjects(ObjectDefaultMapper: TBoldObjectDefaultMapper);

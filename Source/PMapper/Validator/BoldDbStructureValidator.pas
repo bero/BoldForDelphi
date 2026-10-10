@@ -79,7 +79,14 @@ begin
       if DoCheckStop then exit;
       BoldLog.LogHeader := Format(sCheckingTable, [Table.SQLName]);
 //      BoldLog.ProgressStep;
-      ValidateTable(Table);
+      // A table that cannot be validated is reported, and the tables after it
+      // in the queue are still validated.
+      try
+        ValidateTable(Table);
+      except
+        on E: Exception do
+          AddError(Format(sDBValidationOfItemFailed, [Table.SQLName, E.ClassName, E.Message]));
+      end;
     until Validator.TableQueue.Empty;
   finally
     Database.ReleaseTable(fCurrentTable);

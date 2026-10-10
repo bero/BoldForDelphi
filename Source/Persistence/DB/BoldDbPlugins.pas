@@ -177,10 +177,7 @@ procedure TBoldDbValidatorPlugIn.ValidationComplete(Sender: TObject);
 var
   msg: string;
 begin
-  if (Sender as TBoldDbValidator).Remedy.Count = 0 then
-    msg := 'Database validated OK'
-  else
-    msg := 'Database validated found problems';
+  msg := (Sender as TBoldDbValidator).CompletionMessage;
   TThread.Queue(nil, procedure
     begin
       ShowMessage(msg);

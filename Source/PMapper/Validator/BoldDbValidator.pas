@@ -28,6 +28,8 @@ type
     fSystemMapper: TBoldSystemSQLMapper;
     fRemedyList: TList<String>;
     fRemedyStrings: TStringList;
+    fErrorList: TList<String>;
+    fErrorStrings: TStringList;
     fPersistenceHandle: TBoldAbstractPersistenceHandleDB;
     FEnabled: Boolean;
     fSubscriber: TBoldPassThroughSubscriber;
@@ -46,6 +48,7 @@ type
     procedure SetThreadCount(const Value: integer);
     procedure SetOnComplete(const Value: TNotifyEvent);
     function GetRemedy: TStringList;
+    function GetErrors: TStringList;
   protected
     fStartTime: TDateTime;
     function DoCheckStop: boolean;
@@ -65,7 +68,10 @@ type
     procedure Validate; virtual;
     procedure Execute;
     procedure AddRemedy(const s: string);
+    procedure AddError(const s: string);
+    function CompletionMessage: string;
     property Remedy: TStringList read GetRemedy;
+    property Errors: TStringList read GetErrors;
     property TableQueue: TBoldThreadSafeObjectQueue read fTableQueue;
   published
     property PersistenceHandle: TBoldAbstractPersistenceHandleDB read fPersistenceHandle write SetPersistenceHandle;
@@ -88,6 +94,7 @@ type
     function DoCheckStop: boolean;
     procedure DoOnLog(const AStatus: string);
     procedure AddRemedy(const s: string);
+    procedure AddError(const s: string);
     property Database: IBoldDatabase read fBoldDatabase;
     property Validator: TBoldDbValidator read fValidator;
     property SystemSQLMapper: TBoldSystemSQLMapper read fSystemSQLMapper;
@@ -145,11 +152,27 @@ begin
       BoldLog.Log(Remedy[i], ltDetail);
     BoldLog.Separator;
   end;
-  BoldLog.Log(sDBValidationDone, ltInfo);
-  DeActivate;
-  if Assigned(FOnComplete) then
-    FOnComplete(self);
-  BoldLog.EndLog;  // pairs with StartLog in Execute
+  var ErrorLines := Errors;
+  if ErrorLines.Count <> 0 then
+  begin
+    BoldLog.Separator;
+    for var i := 0 to ErrorLines.Count - 1 do
+      BoldLog.Log(ErrorLines[i], ltError);
+    BoldLog.Separator;
+    BoldLog.LogFmt(sDBValidationIncomplete, [ErrorLines.Count], ltError);
+  end
+  else
+    BoldLog.Log(sDBValidationDone, ltInfo);
+  try
+    DeActivate;
+  finally
+    try
+      if Assigned(FOnComplete) then
+        FOnComplete(self);
+    finally
+      BoldLog.EndLog;  // pairs with StartLog in Execute
+    end;
+  end;
 end;
 
 procedure TBoldDbValidator.DoOnLog(const AStatus: string);
@@ -169,6 +192,43 @@ begin
   finally
     TMonitor.Exit(fRemedyList);
   end;
+end;
+
+procedure TBoldDbValidator.AddError(const s: string);
+begin
+  // Called by the validator threads, concurrently like AddRemedy.
+  TMonitor.Enter(fErrorList);
+  try
+    fErrorList.Add(s);
+  finally
+    TMonitor.Exit(fErrorList);
+  end;
+end;
+
+function TBoldDbValidator.GetErrors: TStringList;
+begin
+  result := fErrorStrings;
+  fErrorStrings.BeginUpdate;
+  TMonitor.Enter(fErrorList);
+  try
+    fErrorStrings.Clear;
+    for var i := 0 to fErrorList.Count-1 do
+      fErrorStrings.Add(fErrorList[i]);
+  finally
+    TMonitor.Exit(fErrorList);
+    fErrorStrings.EndUpdate;
+  end;
+end;
+
+function TBoldDbValidator.CompletionMessage: string;
+begin
+  // An error outranks remedies: the remedies of a failed run are incomplete.
+  if Errors.Count <> 0 then
+    result := sDBValidationFailedSeeLog
+  else if Remedy.Count <> 0 then
+    result := sDBValidationFoundProblems
+  else
+    result := sDBValidationOK;
 end;
 
 function TBoldDbValidator.GetRemedy: TStringList;
@@ -211,6 +271,8 @@ begin
   inherited;
   fRemedyStrings := TStringList.Create;
   fRemedyList := TList<String>.Create;
+  fErrorStrings := TStringList.Create;
+  fErrorList := TList<String>.Create;
   fSubscriber := TBoldPassThroughSubscriber.Create(Receive);
   fTableQueue := TBoldThreadSafeObjectQueue.Create('TableValidationQueue');
   fThreadList := TThreadList.Create;
@@ -221,6 +283,8 @@ destructor TBoldDbValidator.destroy;
 begin
   FreeAndNil(fRemedyList);
   FreeAndNil(fRemedyStrings);
+  FreeAndNil(fErrorList);
+  FreeAndNil(fErrorStrings);
   FreeAndNil(fSubscriber);
   FreeAndNil(fTableQueue);
   FreeAndNil(fThreadList);
@@ -354,6 +418,20 @@ end;
 
 procedure TBoldDbValidator.Execute;
 begin
+  // A validator may be executed again (the DB actions keep theirs), so the
+  // results of an earlier run must not carry over into this one.
+  TMonitor.Enter(fErrorList);
+  try
+    fErrorList.Clear;
+  finally
+    TMonitor.Exit(fErrorList);
+  end;
+  TMonitor.Enter(fRemedyList);
+  try
+    fRemedyList.Clear;
+  finally
+    TMonitor.Exit(fRemedyList);
+  end;
   // On success the log session is closed by DoOnComplete (validation is
   // asynchronous); the error paths below must close it themselves - the
   // pre-threading Execute always paired StartLog with EndLog.
@@ -411,6 +489,11 @@ begin
   fValidator.AddRemedy(s);
 end;
 
+procedure TBoldDbValidatorThread.AddError(const s: string);
+begin
+  fValidator.AddError(s);
+end;
+
 constructor TBoldDbValidatorThread.Create(AValidator: TBoldDbValidator);
 begin
   inherited Create(true);
@@ -454,13 +537,24 @@ begin
   NameThreadForDebugging(ClassName);
   CoInitialize(nil);
   try
-    OpenDatabase;
     try
-      Validate;
-    finally
-      fBoldDatabase.Close;
-      // The wrapper is not reference counted; dropping the reference leaked it.
-      Validator.PersistenceHandle.DatabaseInterface.ReleaseAnotherDatabaseConnection(fBoldDatabase);
+      try
+        OpenDatabase;
+        Validate;
+      finally
+        // Also releases a connection that was created but failed to open.
+        if Assigned(fBoldDatabase) then
+        begin
+          fBoldDatabase.Close;
+          // The wrapper is not reference counted; dropping the reference leaked it.
+          Validator.PersistenceHandle.DatabaseInterface.ReleaseAnotherDatabaseConnection(fBoldDatabase);
+        end;
+      end;
+    except
+      // An exception leaving Execute would only reach FatalException, which
+      // nothing reads - report it with the run instead.
+      on E: Exception do
+        AddError(Format('%s: %s', [E.ClassName, E.Message]));
     end;
   finally
     CoUninitialize;
@@ -474,7 +568,16 @@ begin
       Validator.ThreadList.UnlockList;
     end;
     if Count = 0 then
-      Validator.DoOnComplete;
+    begin
+      try
+        Validator.DoOnComplete;
+      except
+        // Completing has failure modes of its own (deactivating the handle,
+        // the caller's OnComplete) - FatalException would hide them.
+        on E: Exception do
+          BoldLog.LogFmt(sDBValidationFailed, [E.Message], ltError);
+      end;
+    end;
   end;
 end;
 
