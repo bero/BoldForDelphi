@@ -170,7 +170,7 @@ procedure TBoldSnooperHandle.ReadObsoleteProperty(Reader: TReader;
   const PropertyName, NewPropertyName, OldPropertyValue, ComponentName: string);
 begin
   if (csDesigning in ComponentState) then
-    MessageDlg(Format('%s.%s has been moved to component (%s.%s). Old value was "%s"',
+    MessageDlg(Format(sMovedToComponent,
                       [ClassName, PropertyName, ComponentName, NewPropertyName, OldPropertyValue]), mtWarning, [mbOK], 0);
 end;
 

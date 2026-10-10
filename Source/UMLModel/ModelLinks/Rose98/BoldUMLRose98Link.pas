@@ -119,6 +119,7 @@ const
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldUtils,
   Dialogs,
@@ -1493,7 +1494,7 @@ begin
     OldPropValue := Reader.ReadIdent;
 
   if OldPropValue <> '' then
-    MessageDlg(Format('%s.%s has been moved to model component (Boldify.%s). Old value was "%s"',
+    MessageDlg(Format(sMovedToModelComponent,
                       [ClassName, PropertyName, NewPropertyName, OldPropValue]), mtWarning, [mbOK], 0);
 end;
 

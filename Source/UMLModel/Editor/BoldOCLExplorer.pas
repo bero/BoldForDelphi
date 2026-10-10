@@ -115,6 +115,7 @@ type
 implementation
 
 uses
+  BoldCoreConsts,
 //  BoldOclSymbolLister,
   BoldOclPropEditor,
   BoldSystemDebuggerForm,
@@ -376,9 +377,7 @@ begin
   begin
     ABox.Checked := False;
     AHandle.EvaluateInPS := False;
-    ShowMessage('This expression cannot be evaluated in the persistent '
-      + 'storage, so it will keep being evaluated in memory.'#13#10#13#10
-      + Reason);
+    ShowMessage(Format(sExpressionNotEvaluableInPS, [Reason]));
   end;
 end;
 

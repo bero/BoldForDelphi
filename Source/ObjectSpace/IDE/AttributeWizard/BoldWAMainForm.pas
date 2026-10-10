@@ -68,6 +68,7 @@ var
 implementation
 
 uses
+  BoldCoreConsts,
   BoldUtils,
   BoldWAInputFormUnit,
   BoldWAClassInfo,
@@ -91,7 +92,7 @@ end;
 
 procedure TMainForm.btnCancelClick(Sender: TObject);
 begin
-  if (MessageDlg('Exit the Bold Attribute Wizard?',mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+  if (MessageDlg(sExitAttributeWizard,mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
   begin
     Close;
   end;

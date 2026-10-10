@@ -92,6 +92,7 @@ implementation
 {$R BoldUMLPlugins.res}
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldUtils,
   Dialogs,
@@ -187,7 +188,7 @@ var
   UMLLink: TBoldUMLModelLink;
   UMLModel: TUMLModel;
 begin
-  if MessageDlg('Are you sure you want to import?', mtWarning, [mbYes, mbNo], 0) = mrYes then
+  if MessageDlg(sConfirmImport, mtWarning, [mbYes, mbNo], 0) = mrYes then
   begin
     Initialize(Context, UMLModel, UMLLink);
     try
@@ -232,7 +233,7 @@ var
   UMLLink: TBoldUMLModelLink;
   UMLModel: TUMLModel;
 begin
-  if MessageDlg('Are you sure you want to export?', mtWarning, [mbYes, mbNo], 0) = mrYes then
+  if MessageDlg(sConfirmExport, mtWarning, [mbYes, mbNo], 0) = mrYes then
   begin
     Initialize(Context, UMLModel, UMLLink);
     try

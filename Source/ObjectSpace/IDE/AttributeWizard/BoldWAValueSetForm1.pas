@@ -114,6 +114,7 @@ var
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldUtils,
   BoldWAdmTemplates,
@@ -272,8 +273,7 @@ begin
     end;
     Exit;
   end;
-  if (MessageDlg('The Wizard will now generate code for your new attribute!' + #13 +
-     '                               Continue? ',mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+  if (MessageDlg(sWizardWillGenerateCode,mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
     Result := wfaFinish
   else
     Result := wfaIgnore;
@@ -387,7 +387,7 @@ end;
 procedure TValueSetForm1.ActionDeleteExecute(Sender: TObject);
 begin
   if Assigned(ListViewValues.Selected) then
-    if (Messagedlg(Format('Delete value "%s" ?',[listViewValues.Selected.Caption]), mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+    if (Messagedlg(Format(sDeleteValue,[listViewValues.Selected.Caption]), mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
     begin
       DeleteValue;
       EnableNextBtn(ListViewValues.Items.Count > 0);

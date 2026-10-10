@@ -41,6 +41,7 @@ type
 implementation
 
 uses
+  DBISAMConsts,
   SysUtils,
   Dialogs,
   BoldSQLDatabaseConfig;
@@ -104,7 +105,7 @@ begin
     LongRec(DesInfo).Lo := LongRec(DesInfo).lo+16;
     LongRec(DesInfo).Hi := LongRec(DesInfo).hi+16;
     Target.DatabaseAdapter.DesignInfo          := DesInfo;
-    showmessage('Created a new DatabaseAdapterDBISAM');
+    showmessage(sCreatedDatabaseAdapterDBISAM);
   end
   else if not (target.DatabaseAdapter is tBoldDatabaseAdapterDBISAM) then
     raise Exception.CreateFmt('The persistencehandle is connected to a %s, properties can only be transfered to a TBoldDatabaseAdapterDBISAM', [target.DatabaseAdapter.ClassName] );
@@ -117,7 +118,7 @@ begin
   begin
     Adapter.DataBase := TDBISAMDatabase.Create(Target.owner);
     Adapter.DataBase.Name := GetNewComponentName(Adapter.DataBase, 'Database');
-    showmessage('Created a new Database');
+    showmessage(sCreatedDatabase);
     LongRec(DesInfo).Lo := LongRec(DesInfo).lo+16;
     LongRec(DesInfo).Hi := LongRec(DesInfo).hi+16;
     Adapter.DataBase.DesignInfo          := DesInfo;

@@ -84,6 +84,9 @@ resourcestring
   sOutputQueueHandlerNotAssigned = '%s.getQueueHandler: AbstractOutputQueueHandler is not assigned.';
 
 
+//BoldPropagatorServer
+  sInvalidCommandLineArgument = 'Invalid command line argument %s';
+
 implementation
 
 end.

@@ -50,6 +50,7 @@ var
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldUtils;
 
@@ -57,7 +58,7 @@ uses
 
 procedure TInputForm.btnCancelClick(Sender: TObject);
 begin
-  if (MessageDlg('Exit the Bold Attribute Wizard?',mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+  if (MessageDlg(sExitAttributeWizard,mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
   begin
     WizFormIntf.Cancel;
     FormAction := wfaCancel;

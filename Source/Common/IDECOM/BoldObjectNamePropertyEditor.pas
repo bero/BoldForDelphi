@@ -85,6 +85,7 @@ var
 implementation
 
 uses
+  BoldCoreConsts,
   BoldComUtils,
   Variants,
   dialogs;
@@ -129,7 +130,7 @@ begin
   begin
     Caption := Format('Objects in %s', [ConnectionHandle.ServerName]);
     if (ObjectServers.IndexOf(ConnectionHandle.ServerCLSID) = -1) and
-    (MessageDlg(Format('Would you like to start the server %s to get the list of exported objects?', [ConnectionHandle.ServerName]), mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+    (MessageDlg(Format(sStartServerForObjects, [ConnectionHandle.ServerName]), mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
       GetObjectsFromServer;
     CurrentInfo := nil;
     if (ObjectServers.IndexOf(ConnectionHandle.ServerCLSID) <> -1) then
@@ -262,7 +263,7 @@ procedure TObjectNamePropEditFrm.RefreshActionExecute(Sender: TObject);
 var
   CurrentInfo: TBoldProviderObjectInfo;
 begin
-  if (MessageDlg(Format('Connect to server %s and retrieve exported objects?', [ConnectionHandle.ServerName]), mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+  if (MessageDlg(Format(sConnectToServerForObjects, [ConnectionHandle.ServerName]), mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
   begin
     GetObjectsFromServer;
     CurrentInfo := nil;
@@ -295,7 +296,7 @@ begin
     end;
   end
   else
-    MessageDlg('Cannot find a ConnectionHandle.',mtInformation, [mbOk], 0);
+    MessageDlg(sConnectionHandleNotFound,mtInformation, [mbOk], 0);
 end;
 
 function TBoldObjectNameProperty.FileFilter: string;

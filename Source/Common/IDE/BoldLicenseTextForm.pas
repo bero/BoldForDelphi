@@ -36,6 +36,7 @@ implementation
 {$R *.DFM}
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldUtils;
 
@@ -46,7 +47,7 @@ procedure TfrmLicenseText.FormCloseQuery(Sender: TObject; var CanClose: Boolean)
 begin
   CanClose := rbAgree.Checked or rbNotAgree.Checked;
   if not CanClose then
-    ShowMessage('You must first select either "I Agree" or "I do not Agree"')
+    ShowMessage(sSelectLicenseAgreement)
   else
   begin
     reg := TBoldRegistry.Create;

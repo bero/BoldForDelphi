@@ -979,6 +979,7 @@ procedure _Log(aMessage: string; aCategory: string = '');
 implementation
 
 uses
+  cxBoldEditConsts,
   Dialogs,
   Forms,
   Graphics,
@@ -1197,7 +1198,7 @@ begin
                     begin
                       if lAttributeClass.InheritsFrom(TBALanguage) or lAttributeClass.InheritsFrom(TBADerivedValueSetValueList) and GridView.IsDesigning then
                       begin
-                        MessageDlg(Format('Combo values for ''%s'' can only be fetched at run time', [aElementTypeInfo.expressionName]), mtError, [mbOk], 0);
+                        MessageDlg(Format(sComboValuesRunTimeOnly, [aElementTypeInfo.expressionName]), mtError, [mbOk], 0);
                       end
                       else
                       begin

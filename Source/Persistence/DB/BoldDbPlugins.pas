@@ -80,6 +80,7 @@ type
 implementation
 
 uses
+  BoldCoreConsts,
   Dialogs,
   Classes,
   Controls,
@@ -193,7 +194,7 @@ var
 begin
 
   PHandle := GetValidPersistenceHandle(context);
-  Res := MessageDlg('Generic script? (generic scripts can be used on other databases with the same schema. Answering "No" gives you a script that will only apply to this database',
+  Res := MessageDlg(sGenericScriptQuestion,
     mtConfirmation, [mbYes, mbNo, mbCancel], 0);
   if res in [mrYes, mrNo] then
     TfrmBoldDbEvolutor.EvolveDB(PHandle, res = mrYes);
@@ -246,7 +247,7 @@ begin
     for I := 0 to List.Count - 1 do
     begin
       Temp := TBoldAbstractPersistenceHandleDB(List[0]);
-      if (MessageDlg(format('Use Database settings from %s?', [Temp.Name]), mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+      if (MessageDlg(format(sUseDatabaseSettingsFrom, [Temp.Name]), mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
       begin
         result := temp;
         break;

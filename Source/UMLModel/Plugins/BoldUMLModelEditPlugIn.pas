@@ -73,6 +73,7 @@ type
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldUtils;
 
@@ -98,7 +99,7 @@ procedure TUMLPlugIn.GuardedExecute(Context: IUMLModelPlugInContext);
 begin
   if Context.IsExecutingPlugin then
   begin
-    ShowMessage('Already executing a plugin');
+    ShowMessage(sAlreadyExecutingPlugin);
     exit;
   end;
   Context.IsExecutingPlugin := true;

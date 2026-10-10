@@ -73,7 +73,7 @@ begin
     GettingStartedExpert := TBoldGettingStartedExpert.Create('BoldGettingStartedExpert', 'GettingStarted', [], 5, 'Bold');
     GettingStartedExpert.AddMenuItem(dmMenus.GettingStartedMenu);
   except on E: Exception do
-    showmessage(Format('InitExpert: ', [E.Message]));
+    showmessage(Format(sInitExpertFailed, [E.Message]));
   end;
 end;
 
@@ -142,7 +142,7 @@ procedure TBoldGettingStartedExpert.DisplayGettingStarted(Sender: TObject);
 begin
   if not FileExists(UrlGettingStarted) then
   begin
-    showmessage(Format('Could not find Bold for Delphi''s GettingStarted document: %s', [UrlGettingStarted]));
+    showmessage(Format(sGettingStartedNotFound, [UrlGettingStarted]));
   end
   else
     ShellExecute(0, 'open', PChar(URLGettingStarted), '', '', SW_SHOWNORMAL);

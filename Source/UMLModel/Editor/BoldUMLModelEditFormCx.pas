@@ -686,6 +686,7 @@ type
 implementation
 
 uses
+  BoldCoreConsts,
   BoldDefaultTaggedValues,
   BoldUMLAttributes,
   BoldUMLModelConverter,
@@ -969,8 +970,7 @@ procedure TBoldModelEditFrmCx.DeleteXxx1Click(Sender: TObject);
 var
   QueryRes: TBoldQueryResult;
 begin
-  if MessageDlg('Delete ' + CurrentElement.BoldType.ModelName + BoldCRLF +
-    format('Do you want to delete %s:%s ?', [CurrentElement.BoldType.ModelName, CurrentElement.expandedExpressionName])
+  if MessageDlg(Format(sDeleteModelElement, [CurrentElement.BoldType.ModelName, CurrentElement.BoldType.ModelName, CurrentElement.expandedExpressionName])
   , mtConfirmation, [mbYes, mbNo], 0) = mrYes then
     if CurrentElement is TUMLClass then
     begin
@@ -1369,7 +1369,7 @@ begin
     result := TUMLPlugInToolButton.Create(self);
     if not ilMenu.ResInstLoad(PlugIn.Instance, rtBitmap, PlugIn.ImageResourceName, PlugIn.ImageMaskColor) then
       if not ilMenu.ResourceLoad(rtBitmap, PlugIn.ImageResourceName, PlugIn.ImageMaskColor) then
-        ShowMessage('Unable to locate bitmap resource ' + PlugIn.ImageResourceName);
+        ShowMessage(Format(sUnableToLocateBitmapResource, [PlugIn.ImageResourceName]));
     result.ImageIndex := ilMenu.Count - 1;
     result.OnClick    := PlugInButtonClick;
     result.PlugIn     := PlugIn;
@@ -1872,7 +1872,7 @@ begin
   ApplyGUI;
   if fIsExecutingPlugin then
   begin
-    ShowMessage('Already executing a plugin');
+    ShowMessage(sAlreadyExecutingPlugin);
     Exit;
   end;
 
@@ -1911,7 +1911,7 @@ var
 begin
   if fIsExecutingPlugin then
   begin
-    ShowMessage('Already executing a plugin');
+    ShowMessage(sAlreadyExecutingPlugin);
     Exit;
   end;
   fIsExecutingPlugin := true;
@@ -2256,7 +2256,7 @@ begin
     JumpToElement(NewMethod);
   end
   else
-    MessageDlg('Error: Could not find operation!', mtError, [mbOK], 0);
+    MessageDlg(sCouldNotFindOperation, mtError, [mbOK], 0);
 end;
 
 procedure TBoldModelEditFrmCx.CreateParamsFromStringList(ParamNames, ParamTypes: TStringList; NewOperation: TUMLOperation; ReturnType: String);
@@ -2335,7 +2335,7 @@ begin
     JumpToElement(NewOperation);
   end
   else
-    MessageDlg('Error: Could not find operation!', mtError, [mbOK], 0);
+    MessageDlg(sCouldNotFindOperation, mtError, [mbOK], 0);
 end;
 
 procedure TBoldModelEditFrmCx.OnOverrideMenuItemClick(Sender: TObject);
@@ -2360,7 +2360,7 @@ begin
   ApplyGUI;
   if fIsExecutingPlugin then
   begin
-    ShowMessage('Already executing a plugin');
+    ShowMessage(sAlreadyExecutingPlugin);
     Exit;
   end;
   FileOpen1.Dialog.Filter := Copy(BoldUMLModelLinkList.FileFilter, 1, Length(BoldUMLModelLinkList.FileFilter) - Length(ALLFILESFILTER)) ;
@@ -2576,7 +2576,7 @@ begin
     EditOclExpression(AssoEnd, TAG_DERIVATIONOCL, AssoEnd.OtherEnd.Type_);
   end
   else
-    showmessage('This association is not complete... the other end is not connected');
+    showmessage(sAssociationNotComplete);
 end;
 
 procedure TBoldModelEditFrmCx.BoldTreeView1Paste(Sender: TObject);
@@ -2863,7 +2863,7 @@ var
 begin
   if fIsExecutingPlugin then
   begin
-    ShowMessage('Already executing a plugin');
+    ShowMessage(sAlreadyExecutingPlugin);
     Exit;
   end;
   fIsExecutingPlugin := true;
@@ -3038,7 +3038,7 @@ var
   CursorGuard: IBoldCursorGuard;
 begin
   if Assigned(CurrentModel) and
-    (MessageDlg('This will clear your model, are you sure?', mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+    (MessageDlg(sClearModel, mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
   begin
     ApplyGUI;
     CurrentModel.BoldSystem.UndoHandlerInterface.Enabled := false;

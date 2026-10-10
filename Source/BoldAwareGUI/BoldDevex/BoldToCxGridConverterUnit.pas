@@ -30,7 +30,8 @@ const
 procedure Register;
 
 implementation
-uses Dialogs, cxGrid;
+uses
+  cxBoldEditConsts, Dialogs, cxGrid;
 
 procedure Register;
 begin
@@ -61,7 +62,7 @@ begin
     if AOwner.Components[I] is TBoldGrid then
     begin
       vGrid :=  AOwner.Components[I] as TBoldGrid;
-      if MessageDlg('Convert ' + vGrid.Name + ' into a cxBoldGrid ?',mtWarning,[mbYes,mbNo],0) = 6 then
+      if MessageDlg(Format(sConvertToCxBoldGrid, [vGrid.Name]),mtWarning,[mbYes,mbNo],0) = 6 then
         ConvertGrid(vGrid);
     end;
   end;
@@ -98,9 +99,7 @@ begin
   for vCol := 1 to aBoldGrid.ColCount - 1 do
     CopyBoldColumn(aBoldGrid.Columns[vCol],vCxGridBoldTableView.CreateItem as TcxGridBoldColumn );
 
-  ShowMessage('Successfully converted ' + aBoldGrid.name + ' into a TcxBoldGrid' + CtrLf +
-              'Remember to remove old boldgrid and this converter component.' + Ctrlf +
-              'Add a TcxGridPopupMenu component if you want to use menus on the grids header.');
+  ShowMessage(Format(sGridConverted, [aBoldGrid.name]));
 
 end;
 

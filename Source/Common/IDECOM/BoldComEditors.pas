@@ -76,6 +76,7 @@ type
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   DesignIntf,
   Windows,
@@ -240,7 +241,7 @@ begin
     ServerHandle := Component as TBoldComServerHandle;
     if ServerHandle.Classes.Count > 0 then
     begin
-      if MessageDlg('This will generate server code, continue?',
+      if MessageDlg(sGenerateComServerCode,
         mtConfirmation, [mbYes, mbNo], 0) = idYes then
       begin
         BorlandIDEServices.QueryInterface(IOTAModuleServices, Ms);
@@ -252,7 +253,7 @@ begin
       end;
     end
     else
-      MessageDlg('Can''t generate code, no class(es) defined.', mtWarning, [mbOK], 0);
+      MessageDlg(sNoClassesToGenerate, mtWarning, [mbOK], 0);
   end;
 end;
 

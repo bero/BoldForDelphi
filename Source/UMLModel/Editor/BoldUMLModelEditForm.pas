@@ -713,6 +713,7 @@ type
 implementation
 
 uses
+  BoldCoreConsts,
   System.UITypes,
   BoldDefaultTaggedValues,
   BoldUMLAttributes,
@@ -1189,7 +1190,7 @@ begin
     result := TUMLPlugInToolButton.Create(self);
     if not ilMenu.ResInstLoad(PlugIn.Instance, rtBitmap, PlugIn.ImageResourceName, PlugIn.ImageMaskColor) then
       if not ilMenu.ResourceLoad(rtBitmap, PlugIn.ImageResourceName, PlugIn.ImageMaskColor) then
-        ShowMessage('Unable to locate bitmap resource ' + PlugIn.ImageResourceName);
+        ShowMessage(Format(sUnableToLocateBitmapResource, [PlugIn.ImageResourceName]));
     result.ImageIndex := ilMenu.Count - 1;
     result.OnClick    := PlugInButtonClick;
     result.PlugIn     := PlugIn;
@@ -1545,7 +1546,7 @@ begin
   ApplyGUI;
   if fIsExecutingPlugin then
   begin
-    ShowMessage('Already executing a plugin');
+    ShowMessage(sAlreadyExecutingPlugin);
     Exit;
   end;
   odOpenModel.Filter := Copy(BoldUMLModelLinkList.FileFilter, 1, Length(BoldUMLModelLinkList.FileFilter) - Length(ALLFILESFILTER)) ;
@@ -1564,7 +1565,7 @@ begin
   ApplyGUI;
   if fIsExecutingPlugin then
   begin
-    ShowMessage('Already executing a plugin');
+    ShowMessage(sAlreadyExecutingPlugin);
     Exit;
   end;
 
@@ -1653,7 +1654,7 @@ var
 begin
   if fIsExecutingPlugin then
   begin
-    ShowMessage('Already executing a plugin');
+    ShowMessage(sAlreadyExecutingPlugin);
     Exit;
   end;
   fIsExecutingPlugin := true;
@@ -2012,7 +2013,7 @@ begin
     ParamTypes.Free;
   end
   else
-    MessageDlg('Error: Could not find operation!', mtError, [mbOK], 0);
+    MessageDlg(sCouldNotFindOperation, mtError, [mbOK], 0);
 end;
 
 procedure TBoldModelEditFrm.CreateParamsFromStringList(ParamNames, ParamTypes: TStringList; NewOperation: TUMLOperation; ReturnType: String);
@@ -2089,7 +2090,7 @@ begin
     end;
   end
   else
-    MessageDlg('Error: Could not find operation!', mtError, [mbOK], 0);
+    MessageDlg(sCouldNotFindOperation, mtError, [mbOK], 0);
 end;
 
 procedure TBoldModelEditFrm.OnOverrideMenuItemClick(Sender: TObject);
@@ -2321,7 +2322,7 @@ begin
     EditOclExpression(AssoEnd, TAG_DERIVATIONOCL, AssoEnd.OtherEnd.Type_);
   end
   else
-    showmessage('This association is not complete... the other end is not connected');
+    showmessage(sAssociationNotComplete);
 end;
 
 procedure TBoldModelEditFrm.BoldTreeView1Cut(Sender: TObject);
@@ -2701,7 +2702,7 @@ end;
 procedure TBoldModelEditFrm.Clear1Click(Sender: TObject);
 begin
   if Assigned(CurrentModel) and
-    (MessageDlg('This will remove everything from your model, are you sure?', mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+    (MessageDlg(sRemoveEverythingFromModel, mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
     CurrentModel.Clear;
 end;
 
@@ -2782,7 +2783,7 @@ begin
   // Check if model has unsaved changes
   if fModelModified then
   begin
-    MsgResult := MessageDlg('Model has unsaved changes. Save before closing?',
+    MsgResult := MessageDlg(sModelHasUnsavedChanges,
       mtConfirmation, [mbYes, mbNo, mbCancel], 0);
 
     case MsgResult of

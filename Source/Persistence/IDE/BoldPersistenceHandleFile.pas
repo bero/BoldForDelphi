@@ -173,7 +173,7 @@ begin
   end
   else if Condition is TBoldSQLCondition then
   begin
-    ShowMessage('This filehandler does not understand SQL, ignoring condition and orderby...');
+    ShowMessage(sFileHandlerIgnoresSQL);
     NewCondition := TBoldConditionWithClass.Create;
     NewCondition.TopSortedIndex := TBoldSQLCondition(Condition).TopSortedIndex;
     PMFetchIDListWithCondition(ObjectIdList, ValueSpace, FetchMode, NewCondition, NOTVALIDCLIENTID);

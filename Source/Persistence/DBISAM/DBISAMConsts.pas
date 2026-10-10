@@ -10,6 +10,10 @@ resourcestring
 //BoldDatabaseAdapterDBISAM
   sAdapterNotConnected = '%s.GetDatabaseInterface: The adapter is not connected to a database';  
 
+//BoldPersistenceHandleDBISAM
+  sCreatedDatabaseAdapterDBISAM = 'Created a new DatabaseAdapterDBISAM';
+  sCreatedDatabase = 'Created a new Database';
+
 implementation
 
 end.

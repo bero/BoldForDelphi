@@ -94,6 +94,7 @@ implementation
 {$R *.dfm}
 
 uses
+  BoldCoreConsts,
   MMEngineDefs,
   BoldMMTVDefs,
   BoldMMTVMemo;
@@ -186,7 +187,7 @@ begin
   end;
 
   if ErrorMessage <> '' then
-    showmessage('Error reading tag definition file (BoldMMTagDefs.xml): ' +  ErrorMessage);
+    showmessage(Format(sErrorReadingTagDefinitionFile, [ErrorMessage]));
 end;
 
 function TfrmBoldMMTVEdit.CurrentElement: IMMModelPart;

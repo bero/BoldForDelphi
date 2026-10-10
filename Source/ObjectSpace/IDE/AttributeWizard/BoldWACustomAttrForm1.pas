@@ -169,6 +169,7 @@ var
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldUtils,
   BoldWAClassInfo,
@@ -298,8 +299,7 @@ begin
     Result := wfaLast;
     Exit;
   end;
-  if (MessageDlg('The Wizard will now generate code for your new attribute!' + #13 +
-     '                               Continue? ',mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+  if (MessageDlg(sWizardWillGenerateCode,mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
     Result := wfaFinish
   else
     Result := wfaIgnore;
@@ -637,12 +637,12 @@ begin
     if ValidateProperty then
       fMgrStringGridProperties.Add
     else
-      MessageDlg('Invalid property entry', mtInformation, [mbOk], 0)
+      MessageDlg(sInvalidPropertyEntry, mtInformation, [mbOk], 0)
   else if tsMethods.Visible then
     if ValidateMethods then
       fMgrStringGridMethods.Add
     else
-      MessageDlg('Invalid method entry', mtInformation, [mbOk], 0);
+      MessageDlg(sInvalidMethodEntry, mtInformation, [mbOk], 0);
 
 end;
 

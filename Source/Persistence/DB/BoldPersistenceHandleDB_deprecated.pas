@@ -59,6 +59,7 @@ type
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldPersistenceControllerDefault,
   BoldPersistenceHandle;
@@ -145,7 +146,7 @@ procedure TBoldDBPersistenceHandle.TransferPropertiesToNewPersistenceHandle(
   const Value: TBoldPersistenceHandleDB);
 begin
   if assigned(value) and
-    (MessageDlg(format('Do you want to transfer the settings to %s', [value.Name]),
+    (MessageDlg(format(sTransferSettingsTo, [value.Name]),
        mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
   begin
     InternalTransferproperties(value);
@@ -155,7 +156,7 @@ begin
     Value.UpgraderHandle := UpgraderHandle;
     Value.OnGetCurrentTime := OnGetCurrentTime;
     Value.BoldModel := BoldModel;
-    showmessage('All settings have been transferred to ' + value.Name);
+    showmessage(Format(sSettingsTransferredTo, [value.Name]));
   end;
 end;
 

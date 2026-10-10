@@ -235,7 +235,7 @@ var
   UMLModel: TUMLModel;
 
 begin
-  OverwriteOld := MessageDlg('Keep Existing GUIDs?', mtConfirmation, [mbYes, mbNo], 0) = mrNo;
+  OverwriteOld := MessageDlg(sKeepExistingGuids, mtConfirmation, [mbYes, mbNo], 0) = mrNo;
   UMLModel := Context.GetCurrentModelhandle.EnsuredUMLModel;
   NewGuid(UMLModel, TAG_GUID, OverwriteOld);
   for i := 0 to UMLModel.Classes.Count - 1 do

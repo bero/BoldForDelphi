@@ -1,4 +1,4 @@
-{$include bold.inc}
+﻿{$include bold.inc}
 unit BoldSaveAndGeneratePlugin;
 
 interface
@@ -24,6 +24,7 @@ type
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   Classes,
   Controls,
@@ -306,14 +307,13 @@ begin
   PHandle := GetPersistenceHandle(BoldModel);
   if Assigned(PHandle) and Assigned(PHandle.SQLDataBaseConfig) then
   begin
-    Res := MessageDlg('Do you want to check for database schema changes?',
+    Res := MessageDlg(sCheckForSchemaChanges,
       mtConfirmation, [mbYes, mbNo], 0);
     if Res = mrYes then
     begin
       BoldLog.Log('Opening database evolution dialog...');
       // Ask about generic script
-      Res := MessageDlg('Generate generic script?' + sLineBreak +
-        '(Generic scripts can be used on other databases with the same schema)',
+      Res := MessageDlg(sGenerateGenericScript,
         mtConfirmation, [mbYes, mbNo], 0);
       TfrmBoldDbEvolutor.EvolveDB(PHandle, Res = mrYes);
     end;
@@ -322,9 +322,7 @@ begin
   BoldLog.Log('Save and Generate All completed successfully');
   BoldLog.EndLog;
 
-  MessageDlg('Save and Generate All completed successfully!' + sLineBreak + sLineBreak +
-    'Model saved to: ' + BldFilePath + sLineBreak +
-    'Code generated in: ' + CodePath,
+  MessageDlg(Format(sSaveAndGenerateCompleted, [BldFilePath, CodePath]),
     mtInformation, [mbOK], 0);
 end;
 

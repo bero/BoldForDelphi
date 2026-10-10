@@ -96,6 +96,7 @@ var
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldQueue,
   BoldEnvironment,
@@ -173,7 +174,7 @@ begin
     raise EBold.Create('No validator registered');
 
   if UMLModel.Validator.HighestSeverity = sNone then
-    ShowMessage('Model validated OK!');
+    ShowMessage(sModelValidatedOK);
 end;
 
 constructor TfrmValidation.CreateWithModel(ModelComponent: TBoldModel; Owner: Tcomponent);

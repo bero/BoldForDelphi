@@ -463,6 +463,12 @@ const
 // BoldAttributeWizard
   sBoldAttributeWizard = 'Bold Attribute Wizard';
   sUnableToCreateUnit = 'Unable to create unit %s, check unit name (Reason: %s)';
+  sWizardWillGenerateCode = 'The Wizard will now generate code for your new attribute!' + #13 +
+    '                               Continue? ';
+  sExitAttributeWizard = 'Exit the Bold Attribute Wizard?';
+  sInvalidPropertyEntry = 'Invalid property entry';
+  sInvalidMethodEntry = 'Invalid method entry';
+  sDeleteValue = 'Delete value "%s" ?';
 
 // BoldObjectUpgrader
   sMissingTypeInfo = '%s.GetBoldSystem: Missing System Type Info';
@@ -1178,6 +1184,74 @@ const
 
 // BoldUMLModel
   sConstraintCannotBeRemoved = 'Constraint cannot be removed.';
+
+// BoldGettingStartedExpert
+  sInitExpertFailed = 'InitExpert: %s';
+  sGettingStartedNotFound = 'Could not find Bold for Delphi''s GettingStarted document: %s';
+
+// BoldLicenseTextForm
+  sSelectLicenseAgreement = 'You must first select either "I Agree" or "I do not Agree"';
+
+// BoldComEditors
+  sGenerateComServerCode = 'This will generate server code, continue?';
+  sNoClassesToGenerate = 'Can''t generate code, no class(es) defined.';
+
+// BoldObjectNamePropertyEditor
+  sStartServerForObjects = 'Would you like to start the server %s to get the list of exported objects?';
+  sConnectToServerForObjects = 'Connect to server %s and retrieve exported objects?';
+  sConnectionHandleNotFound = 'Cannot find a ConnectionHandle.';
+
+// BoldDbPlugins
+  sGenericScriptQuestion = 'Generic script? (generic scripts can be used on other databases with the same schema. ' +
+    'Answering "No" gives you a script that will only apply to this database';
+  sUseDatabaseSettingsFrom = 'Use Database settings from %s?';
+
+// BoldPersistenceHandleDB_deprecated
+  sTransferSettingsTo = 'Do you want to transfer the settings to %s';
+  sSettingsTransferredTo = 'All settings have been transferred to %s';
+
+// BoldPersistenceHandleFile
+  sFileHandlerIgnoresSQL = 'This filehandler does not understand SQL, ignoring condition and orderby...';
+
+// BoldSnooperHandle
+  sMovedToComponent = '%s.%s has been moved to component (%s.%s). Old value was "%s"';
+
+// BoldOCLExplorer
+  sExpressionNotEvaluableInPS = 'This expression cannot be evaluated in the persistent storage, so it will keep ' +
+    'being evaluated in memory.'#13#10#13#10'%s';
+
+// BoldUMLModelEditForm, BoldUMLModelEditFormCx
+  sAlreadyExecutingPlugin = 'Already executing a plugin';
+  sUnableToLocateBitmapResource = 'Unable to locate bitmap resource %s';
+  sCouldNotFindOperation = 'Error: Could not find operation!';
+  sAssociationNotComplete = 'This association is not complete... the other end is not connected';
+  sRemoveEverythingFromModel = 'This will remove everything from your model, are you sure?';
+  sClearModel = 'This will clear your model, are you sure?';
+  sModelHasUnsavedChanges = 'Model has unsaved changes. Save before closing?';
+  sDeleteModelElement = 'Delete %s'#13#10'Do you want to delete %s:%s ?';
+
+// BoldUMLModelValidationForm, BoldUMLModelValidationFormCx
+  sModelValidatedOK = 'Model validated OK!';
+
+// BoldMMTVEditor
+  sErrorReadingTagDefinitionFile = 'Error reading tag definition file (BoldMMTagDefs.xml): %s';
+
+// BoldUMLRose98Link
+  sMovedToModelComponent = '%s.%s has been moved to model component (Boldify.%s). Old value was "%s"';
+
+// BoldCodePlugins
+  sKeepExistingGuids = 'Keep Existing GUIDs?';
+
+// BoldSaveAndGeneratePlugin
+  sCheckForSchemaChanges = 'Do you want to check for database schema changes?';
+  sGenerateGenericScript = 'Generate generic script?' + sLineBreak +
+    '(Generic scripts can be used on other databases with the same schema)';
+  sSaveAndGenerateCompleted = 'Save and Generate All completed successfully!' + sLineBreak + sLineBreak +
+    'Model saved to: %s' + sLineBreak + 'Code generated in: %s';
+
+// BoldUMLPlugins
+  sConfirmImport = 'Are you sure you want to import?';
+  sConfirmExport = 'Are you sure you want to export?';
 
 implementation
 

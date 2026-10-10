@@ -87,6 +87,7 @@ var
 implementation
 
 uses
+  BoldCoreConsts,
   SysUtils,
   BoldUtils,
   BoldWAdmTemplates,
@@ -221,8 +222,7 @@ begin
     end;
     Exit;
   end;
-  if (MessageDlg('The Wizard will now generate code for your new attribute!' + #13 +
-     '                               Continue? ',mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+  if (MessageDlg(sWizardWillGenerateCode,mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
     Result := wfaFinish
   else
     Result := wfaIgnore;

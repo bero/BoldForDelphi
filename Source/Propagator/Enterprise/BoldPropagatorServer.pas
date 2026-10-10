@@ -84,6 +84,7 @@ type
 implementation
 
 uses
+  PropagatorConsts,
   Sysutils,
   BoldUtils,
   BoldPropagatorGUIDs,
@@ -293,7 +294,7 @@ begin
     end;
   end
   else
-    showmessage(Format('Invalid command line argument %s', [aServerName]));
+    showmessage(Format(sInvalidCommandLineArgument, [aServerName]));
     ;
 end;
 
