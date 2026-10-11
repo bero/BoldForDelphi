@@ -126,7 +126,7 @@ begin
   if Value = TBoldPropertyMapping(GetComponent(0)).PropertyMapper.Owner.Name then
   begin
     Component := TBoldPropertyMapping(GetComponent(0)).PropertyMapper.Owner;
-    SetOrdValue(Longint(Component));
+    SetOrdValue(NativeInt(Component));
   end
   else
     inherited;

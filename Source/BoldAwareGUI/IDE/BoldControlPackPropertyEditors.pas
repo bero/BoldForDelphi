@@ -444,7 +444,7 @@ begin
     if not (Component is GetTypeData(GetPropType)^.ClassType) then
       raise EPropertyError.Create('Invalid property value');
   end;
-  SetOrdValue(Longint(Component));
+  SetOrdValue(NativeInt(Component));
 end;
 
 {---TBoldNodeDescriptionEditor---}

@@ -118,7 +118,7 @@ begin
   if Value = TBoldDrivenPropertyCom(GetComponent(0)).PropertiesController.Owner.Name then
   begin
     Component := TBoldDrivenPropertyCom(GetComponent(0)).PropertiesController.Owner;
-    SetOrdValue(Longint(Component));
+    SetOrdValue(NativeInt(Component));
   end
   else
     inherited;

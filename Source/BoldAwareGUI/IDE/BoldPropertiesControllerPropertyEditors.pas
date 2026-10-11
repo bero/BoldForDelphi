@@ -123,7 +123,7 @@ begin
   if Value = TBoldDrivenProperty(GetComponent(0)).PropertiesController.Owner.Name then
   begin
     Component := TBoldDrivenProperty(GetComponent(0)).PropertiesController.Owner;
-    SetOrdValue(Longint(Component));
+    SetOrdValue(NativeInt(Component));
   end
   else
     inherited;
