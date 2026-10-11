@@ -48,37 +48,11 @@ begin
   inherited;
 end;
 
+// An object's entry is removed when its last old value goes
+// (MemberPersistenceStatePreChange, PurgeEqualValues), so every entry holds a value.
 function TBoldOldValueHandler.GetIsEmpty: Boolean;
-var
-  i: integer;
-  m: integer;
-  ObjectIdList: TBoldObjectIdList;
-  ObjectContents: TBoldFreeStandingObjectContents;
-  value: TBoldFreeStandingValue;
 begin
   result := fOldValues.IdCount = 0;
-  if result then
-    exit;
-  ObjectIdList := TBoldObjectIdList.Create;
-  try
-    fOldValues.AllObjectIds(objectIdList, false); // do we really need ALL objects ?
-    for i := 0 to ObjectIdList.Count-1 do
-    begin
-      ObjectContents := fOldValues.GetFSObjectContentsByObjectId(ObjectIdList[i]);
-      if assigned(objectContents) then
-        for m := 0 to ObjectContents.MemberCount do
-        begin
-          value := ObjectContents.FSValueByIndex[m];
-          if assigned(value) then
-          begin
-            result := false;
-            exit;
-          end;
-        end;
-    end;
-  finally
-    ObjectIdList.Free;
-  end;
 end;
 
 function TBoldOldValueHandler.GetOldValues: IBoldValueSpace;
@@ -192,7 +166,7 @@ begin
         ObjectContents := fOldValues.GetFSObjectContentsByObjectId(Id);
         if assigned(ObjectContents) then
         begin
-          for m := 0 to ObjectContents.MemberCount do
+          for m := 0 to ObjectContents.MemberCount - 1 do
           begin
             value := ObjectContents.FSValueByIndex[m];
             if assigned(value) then
@@ -238,7 +212,7 @@ begin
 
           bEqual := True;
           // Is there no longer any difference, OldValue can be completely removed
-          for m := 0 to ObjectContents.MemberCount do begin
+          for m := 0 to ObjectContents.MemberCount - 1 do begin
             value := ObjectContents.FSValueByIndex[m];
             if Assigned(value) then begin
               bEqual := False;

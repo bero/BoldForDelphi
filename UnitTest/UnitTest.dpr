@@ -70,6 +70,7 @@ uses
   Test.BoldPMappersDefault in 'Code\PMapper\Test.BoldPMappersDefault.pas',
   Test.BoldPMTransactionGuards in 'Code\PMapper\Test.BoldPMTransactionGuards.pas',
   Test.BoldDbEvolutor in 'Code\PMapper\Test.BoldDbEvolutor.pas',
+  Test.BoldOldValueHandler in 'Code\ObjectSpace\Test.BoldOldValueHandler.pas',
   Test.BoldAbstractObjectUpgrader in 'Code\PMapper\Test.BoldAbstractObjectUpgrader.pas',
   Test.BoldSQLDatabaseConfig in 'Code\PMapper\Test.BoldSQLDatabaseConfig.pas',
   Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas',

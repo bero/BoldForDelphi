@@ -158,6 +158,7 @@
         <DCCReference Include="Code\PMapper\Test.BoldPMappersDefault.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMTransactionGuards.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldDbEvolutor.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldOldValueHandler.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldAbstractObjectUpgrader.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSQLDatabaseConfig.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUtils.pas"/>
