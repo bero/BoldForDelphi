@@ -228,8 +228,10 @@ type
     procedure SetUpdateTransaction(const Value: TFDTransaction);
     function CreateAnotherDatabaseConnection: IBoldDatabase;
     function GetImplementor: TObject;
+    function SQLitePrimaryKeyName(const TableName: String): string;
   protected
     procedure AllTableNames(Pattern: string; ShowSystemTables: Boolean; TableNameList: TStrings); override;
+    function GetIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray; override;
     function GetTable: IBoldTable; override;
     function GetQuery: IBoldQuery; override;
     function GetExecQuery: IBoldExecQuery; override;
@@ -259,6 +261,7 @@ implementation
 uses
   Variants,
   Masks,
+  System.RegularExpressions,
 
   FireDAC.Stan.Option,
   FireDAC.Stan.Error,
@@ -705,6 +708,57 @@ begin
   end
   else
     Result := inherited TableExists(TableName);
+end;
+
+// SQLite makes a single INTEGER PRIMARY KEY column an alias of the rowid and
+// keeps no index for it, so PRAGMA index_list - the source of TFDTable.IndexDefs -
+// does not report Bold's primary keys.
+function TBoldFireDACConnection.GetIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray;
+var
+  KeyFields: TStringList;
+  KeyColumns: string;
+  i: integer;
+begin
+  Result := inherited GetIndexDescriptions(TableName);
+  if not SameText(FDConnection.Params.DriverID, 'SQLite') then
+    Exit;
+  KeyFields := TStringList.Create;
+  try
+    FDConnection.GetKeyFieldNames('', '', TableName, '', KeyFields);
+    KeyFields.Delimiter := ';';
+    KeyFields.StrictDelimiter := True;
+    KeyColumns := KeyFields.DelimitedText;
+  finally
+    KeyFields.Free;
+  end;
+  if KeyColumns = '' then
+    Exit;
+  for i := 0 to High(Result) do
+    if SameText(Result[i].IndexedColumns, KeyColumns) then
+    begin
+      Result[i].IsPrimary := True;
+      Exit;
+    end;
+  SetLength(Result, Length(Result) + 1);
+  Result[High(Result)].IndexName := SQLitePrimaryKeyName(TableName);
+  Result[High(Result)].IndexedColumns := KeyColumns;
+  Result[High(Result)].IsPrimary := True;
+  Result[High(Result)].IsUnique := True;
+end;
+
+// The name Bold gave the key in CREATE TABLE; FireDAC reports every SQLite
+// primary key as PRIMARY.
+function TBoldFireDACConnection.SQLitePrimaryKeyName(const TableName: String): string;
+var
+  Match: TMatch;
+begin
+  Match := TRegEx.Match(VarToStr(FDConnection.ExecSQLScalar(
+    'SELECT sql FROM sqlite_master WHERE type = ''table'' AND name = :name COLLATE NOCASE', [TableName])),
+    'CONSTRAINT\s+"?(\w+)"?\s+PRIMARY\s+KEY', [roIgnoreCase]);
+  if Match.Success then
+    Result := Match.Groups[1].Value
+  else
+    Result := 'PRIMARY';
 end;
 
 procedure TBoldFireDACConnection.Commit;
