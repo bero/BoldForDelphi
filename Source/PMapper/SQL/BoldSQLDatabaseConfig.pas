@@ -1011,13 +1011,17 @@ begin
       FColumnExistsTemplate := 'SELECT column_name FROM information_schema.columns WHERE upper(table_name)=upper(''<TableName>'') and upper(column_name)=upper(''<ColumnName>'')';
       fDatabaseExistsTemplate := 'select exists(SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower(''<DatabaseName>''));';
 //      IndexInfoTemplate fields: IndexName, IsPrimary, IsUnique, ColumnName
-      IndexInfoTemplate :=  'SELECT ix.relname IndexName, indisunique isUnique, indisprimary isPrimary, '+
-            '  regexp_replace(pg_get_indexdef(indexrelid), '#39'.*\((.*)\)'#39', '#39'\1'#39
-+            ') columnName '
+//      One row per indexed column in index order, as GetIndexDescriptionsViaQuery
+//      expects, and only the table the search path resolves to: Bold's SQL names no schema.
+      IndexInfoTemplate :=
+            'SELECT ix.relname AS IndexName, i.indisunique AS isUnique, i.indisprimary AS isPrimary, '
++           'a.attname AS columnName '
 +          'FROM pg_index i '
 +          'JOIN pg_class t ON t.oid = i.indrelid '
 +          'JOIN pg_class ix ON ix.oid = i.indexrelid '
-+          'WHERE t.relname = (''<TableName>'')';
++          'JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(i.indkey) '
++          'WHERE lower(t.relname) = lower(''<TableName>'') AND pg_table_is_visible(t.oid) '
++          'ORDER BY ix.relname, array_position(i.indkey, a.attnum)';
 
 
       fReservedWords.Text := 'ALL, ANALYSE, AND, ANY, ARRAY, AS, ASC, ASYMMETRIC, AUTHORIZATION,'#10 +
