@@ -7,8 +7,10 @@ unit BoldTestCaseUniDAC;
 {                                                                              }
 {  Concrete implementation of TBoldTestCasePersistence using UniDAC.           }
 {  Database configuration is read from UnitTest.ini via BoldTestDatabaseConfig.}
-{  Engine=SQLServer and Engine=SQLite are supported; SQLite needs a UniDAC       }
+{  Engine=SQLServer, SQLite or PostgreSQL is supported; SQLite needs a UniDAC  }
 {  with the SQLite provider (the vendored 10.4 copy has none, UniDAC 11 has).   }
+{  PostgreSQL runs in the Win32 test exe: UniDAC's provider speaks the         }
+{  PostgreSQL protocol itself and loads no libpq.                              }
 {                                                                              }
 {  Requirements:                                                               }
 {    - Build configuration DebugUniDAC (defines UniDAC)                         }
@@ -31,7 +33,7 @@ uses
 type
   /// <summary>
   /// Base class for Bold test cases using UniDAC against the engine configured
-  /// in UnitTest.ini or BOLD_TEST_ENGINE (SQL Server or SQLite). Inherit from
+  /// in UnitTest.ini or BOLD_TEST_ENGINE (SQL Server, SQLite or PostgreSQL). Inherit from
   /// this class for tests that need database persistence via UniDAC.
   /// </summary>
   TBoldTestCaseUniDAC = class(TBoldTestCasePersistence)
@@ -68,7 +70,56 @@ uses
   BoldSQLDatabaseConfig,
   BoldTestDatabaseConfig,
   SQLServerUniProvider,
-  SQLiteUniProvider;
+  SQLiteUniProvider,
+  PostgreSQLUniProvider;
+
+const
+  cPostgreSQLSection = 'PostgreSQL';
+
+procedure ConfigurePostgreSQLConnection(AConnection: TUniConnection; AIni: TIniFile; const ADatabase: string);
+begin
+  AConnection.ProviderName := 'PostgreSQL';
+  AConnection.Server := AIni.ReadString(cPostgreSQLSection, 'Server', 'localhost');
+  AConnection.Port := AIni.ReadInteger(cPostgreSQLSection, 'Port', 5432);
+  AConnection.Database := ADatabase;
+  AConnection.Username := AIni.ReadString(cPostgreSQLSection, 'User', 'postgres');
+  AConnection.Password := AIni.ReadString(cPostgreSQLSection, 'Password', '');
+  // Strings travel as UTF-8, not through the ANSI code page
+  AConnection.SpecificOptions.Values['UseUnicode'] := 'True';
+end;
+
+{ BoldTestDatabaseConfig.CreateTestDatabase connects through FireDAC, which
+  would load libpq for PostgreSQL; the 64-bit libpq of current releases does
+  not load into the Win32 test exe. PostgreSQL has no CREATE DATABASE IF NOT
+  EXISTS and refuses CREATE DATABASE inside a transaction block, hence the
+  lookup first. }
+procedure CreatePostgreSQLDatabase;
+var
+  Ini: TIniFile;
+  Conn: TUniConnection;
+  Query: TUniQuery;
+  Database: string;
+begin
+  Ini := TIniFile.Create(GetIniFilePath);
+  Conn := TUniConnection.Create(nil);
+  Query := TUniQuery.Create(nil);
+  try
+    Database := Ini.ReadString(cPostgreSQLSection, 'Database', 'boldunittest');
+    ConfigurePostgreSQLConnection(Conn, Ini, 'postgres');
+    Conn.LoginPrompt := False;
+    Conn.Open;
+    Query.Connection := Conn;
+    Query.SQL.Text := 'SELECT 1 FROM pg_database WHERE datname = :DatabaseName';
+    Query.ParamByName('DatabaseName').AsString := Database;
+    Query.Open;
+    if Query.IsEmpty then
+      Conn.ExecSQL('CREATE DATABASE "' + Database + '"');
+  finally
+    Query.Free;
+    Conn.Free;
+    Ini.Free;
+  end;
+end;
 
 { TBoldTestCaseUniDAC }
 
@@ -81,7 +132,10 @@ end;
 procedure TBoldTestCaseUniDAC.SetUp;
 begin
   // Ensure the test database exists before opening the connection
-  CreateTestDatabase;
+  if SameText(GetTestDatabaseEngine, 'PostgreSQL') then
+    CreatePostgreSQLDatabase
+  else
+    CreateTestDatabase;
   inherited;
 end;
 
@@ -138,8 +192,14 @@ begin
       FMemoryDbAnchor.Open;
       Exit;
     end;
+    if SameText(Engine, 'PostgreSQL') then
+    begin
+      ConfigurePostgreSQLConnection(AConnection, Ini, Ini.ReadString(cPostgreSQLSection, 'Database', 'boldunittest'));
+      AAdapter.DatabaseEngine := dbePostgres;
+      Exit;
+    end;
     if not SameText(Engine, 'SQLServer') then
-      raise Exception.CreateFmt('UniDAC tests support Engine=SQLServer or SQLite (configured: %s)', [Engine]);
+      raise Exception.CreateFmt('UniDAC tests support Engine=SQLServer, SQLite or PostgreSQL (configured: %s)', [Engine]);
 
     AConnection.ProviderName := 'SQL Server';
     AConnection.Server := Ini.ReadString('SQLServer', 'Server', '.\SQLEXPRESS');

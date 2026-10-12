@@ -43,6 +43,7 @@ type
     function CountWithName(const AName: string): Integer;
     function AllNames: string;
     function PooledExecQueryImplementor: TObject;
+    procedure EnableBatchQueries;
   public
     constructor Create(ASystemHandle: TBoldSystemHandle; AAdapter: TBoldAbstractDatabaseAdapter);
     destructor Destroy; override;
@@ -64,6 +65,7 @@ type
 implementation
 
 uses
+  System.TypInfo,
   BoldPersistenceControllerDefault;
 
 const
@@ -167,6 +169,17 @@ begin
   Database.ReleaseExecQuery(Query);
 end;
 
+// Batching is refused on an engine it is not verified on (#95), which
+// TTestBoldBatchQueries.TestUnverifiedEngineIsRejected covers. Assert.Pass
+// raises, so a batch scenario on such an engine ends here.
+procedure TBoldPersistenceScenarios.EnableBatchQueries;
+begin
+  if not Config.BatchQueriesVerified then
+    Assert.Pass(Format('UseBatchQueries is not verified on %s (#95)',
+      [GetEnumName(TypeInfo(TBoldDatabaseEngine), Ord(Config.Engine))]));
+  Config.UseBatchQueries := True;
+end;
+
 procedure TBoldPersistenceScenarios.ThreeObjectsKeepDistinctValues;
 const
   cValues: array[1..3] of string = ('First', 'Second', 'Third');
@@ -192,7 +205,7 @@ procedure TBoldPersistenceScenarios.BatchedCreateRoundTrips;
 var
   i: Integer;
 begin
-  Config.UseBatchQueries := True;
+  EnableBatchQueries;
   for i := 1 to 3 do
     NewTestObject('Batched ' + IntToStr(i));
   FCapture.Clear;
@@ -216,7 +229,7 @@ procedure TBoldPersistenceScenarios.BatchedMixedUpdateRoundTrips;
 var
   ObjA, ObjB: TBoldObject;
 begin
-  Config.UseBatchQueries := True;
+  EnableBatchQueries;
   ObjA := NewTestObject('A');
   ObjB := NewTestObject('B');
   NewTestObject('C');
@@ -246,7 +259,7 @@ procedure TBoldPersistenceScenarios.BatchReleasesQueryWithParamCheckRestored;
 var
   Query: IBoldExecQuery;
 begin
-  Config.UseBatchQueries := True;
+  EnableBatchQueries;
   NewTestObject('ParamCheck');
   Save;
 
@@ -267,7 +280,7 @@ var
   Pooled: TObject;
   Query: IBoldExecQuery;
 begin
-  Config.UseBatchQueries := True;
+  EnableBatchQueries;
   NewTestObject('First');
   Save;
   Pooled := PooledExecQueryImplementor;

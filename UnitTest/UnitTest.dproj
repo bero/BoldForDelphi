@@ -105,7 +105,7 @@
     </PropertyGroup>
     <!-- UniDAC as source (the vendored 10.4 copy, or the Devart source archive extracted into Source) -->
     <PropertyGroup Condition="'$(Cfg_3)'!='' and Exists('$(UniDAC)\Source\Uni.pas')">
-        <DCC_UnitSearchPath>Code\Persistence\UniDAC;..\Source\Persistence\UniDAC;$(UniDAC)\Source;$(UniDAC)\Source\UniProviders\SQLServer;$(UniDAC)\Source\UniProviders\TDS;$(UniDAC)\Source\UniProviders\SQLite;$(DCC_UnitSearchPath);Code\Persistence\UniDACProviderStubs</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>Code\Persistence\UniDAC;..\Source\Persistence\UniDAC;$(UniDAC)\Source;$(UniDAC)\Source\UniProviders\SQLServer;$(UniDAC)\Source\UniProviders\TDS;$(UniDAC)\Source\UniProviders\SQLite;$(UniDAC)\Source\UniProviders\PostgreSQL;$(DCC_UnitSearchPath);Code\Persistence\UniDACProviderStubs</DCC_UnitSearchPath>
     </PropertyGroup>
     <!-- UniDAC as compiled units only (the Devart installer): its Source folder holds stubs that need the source archive, so keep it off the path -->
     <PropertyGroup Condition="'$(Cfg_3)'!='' and !Exists('$(UniDAC)\Source\Uni.pas')">
@@ -157,6 +157,7 @@
         <DCCReference Include="Code\PMapper\Test.BoldSqlNodes.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMappersDefault.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMTransactionGuards.pas"/>
+        <DCCReference Include="Code\PMapper\BoldDbEvolutorScenarios.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldDbEvolutor.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldOldValueHandler.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldAbstractObjectUpgrader.pas"/>

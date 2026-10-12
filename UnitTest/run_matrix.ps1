@@ -20,9 +20,13 @@
 #   -UniDACEngines : Engines for the UniDAC build. Default: the same list as -Engines when
 #                  the UniDAC environment variable points at an installation with the
 #                  SQLite provider (UniDAC 11), otherwise SQLServer only (the vendored
-#                  10.4 copy has no SQLite provider).
+#                  10.4 copy has no SQLite provider). PostgreSQL is added when -Engines is
+#                  left at its default and the installation has the PostgreSQL provider.
 #   -UniDACFull  : Run the whole suite with the UniDAC build instead of only the
-#                  UniDAC fixtures (Test.PersistenceUniDAC, Test.PersistenceScenariosUniDAC).
+#                  UniDAC fixtures (Test.PersistenceUniDAC, Test.PersistenceScenariosUniDAC,
+#                  Test.BoldDbEvolutorUniDAC). The PostgreSQL row runs the UniDAC fixtures
+#                  even then: the FireDAC tests in the same exe would load libpq, and current
+#                  PostgreSQL releases ship a 64-bit libpq only, which the Win32 exe cannot load.
 #   -UniDACDelphiVersion : Delphi registry version for the UniDAC build. Default: 23.0
 #                  (Delphi 12) when the vendored Attracs-Common copy is used, because stock
 #                  UniDAC 10.4 does not compile on Delphi 13; the newest Delphi when the
@@ -49,7 +53,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $BuildScript = Join-Path $ScriptDir "build.ps1"
-$UniDACFixtures = "Test.PersistenceUniDAC,Test.PersistenceScenariosUniDAC"
+$UniDACFixtures = "Test.PersistenceUniDAC,Test.PersistenceScenariosUniDAC,Test.BoldDbEvolutorUniDAC"
 $MatrixActivity = "Adapter x Engine matrix"
 
 $Results = New-Object System.Collections.Generic.List[object]
@@ -66,6 +70,9 @@ if (-not $SkipUniDAC) {
         $HasSQLite = (Test-Path (Join-Path $env:UniDAC "Lib\Win32\SQLiteUniProvider.dcu")) -or
                      (Test-Path (Join-Path $env:UniDAC "Source\UniProviders\SQLite\SQLiteUniProvider.pas"))
         $UniDACEngines = if ($HasSQLite) { $Engines } else { @("SQLServer") }
+        $HasPostgreSQL = (Test-Path (Join-Path $env:UniDAC "Lib\Win32\PostgreSQLUniProvider.dcu")) -or
+                         (Test-Path (Join-Path $env:UniDAC "Source\UniProviders\PostgreSQL\PostgreSQLUniProvider.pas"))
+        if ($HasPostgreSQL -and -not $PSBoundParameters.ContainsKey("Engines")) { $UniDACEngines += "PostgreSQL" }
     }
 }
 $TotalSteps = $Engines.Count
@@ -195,7 +202,9 @@ try {
             if (-not (Test-Path $UniDACExe)) { throw "Not found: $UniDACExe" }
             $UniFilter = if ($Filter) { $Filter } elseif ($UniDACFull) { "" } else { $UniDACFixtures }
             foreach ($Engine in $UniDACEngines) {
-                try { Invoke-Run "UniDAC" $UniDACExe $Engine $UniFilter }
+                # FireDAC tests on PostgreSQL would load the 64-bit libpq (see -UniDACFull)
+                $EngineFilter = if (($Engine -eq "PostgreSQL") -and -not $Filter) { $UniDACFixtures } else { $UniFilter }
+                try { Invoke-Run "UniDAC" $UniDACExe $Engine $EngineFilter }
                 catch { Write-Host "  $_" -ForegroundColor Red }
             }
         } catch { Write-Host "  $_" -ForegroundColor Red }

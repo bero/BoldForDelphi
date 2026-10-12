@@ -72,6 +72,10 @@ Bold SQL generation depends on the engine, the adapter wrappers depend on the DA
 quirks depend on the pair. `UnitTest\run_matrix.ps1` runs the combinations that matter: the FireDAC build on
 SQLite and SQL Server, then the DebugUniDAC build on the same engines when the UniDAC installation has a
 SQLite provider (UniDAC 11), on SQL Server only otherwise (skipped when UniDAC is not installed at all).
+UniDAC also gets a PostgreSQL row, which runs only the UniDAC fixtures, even with `-UniDACFull`: the
+FireDAC tests in that exe would load libpq, and current PostgreSQL releases ship a 64-bit libpq only, which
+the Win32 test exe cannot load. That row needs a local PostgreSQL server (`[PostgreSQL]` in `UnitTest.ini`);
+the UniDAC test base creates the database when it is missing.
 Run it when `Source\Persistence` or `Source\PMapper` change; the SQLite run alone is the everyday gate.
 
 ```powershell
