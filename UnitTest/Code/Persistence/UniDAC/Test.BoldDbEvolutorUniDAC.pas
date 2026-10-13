@@ -17,7 +17,6 @@ type
   TTestBoldDbEvolutorUniDAC = class(TBoldTestCaseUniDAC)
   private
     FScenarios: TBoldDbEvolutorScenarios;
-    procedure RequireIndexInfoTemplate;
   public
     [Setup]
     procedure SetUp; override;
@@ -57,42 +56,28 @@ begin
   inherited;
 end;
 
-// Without an IndexInfoTemplate the index descriptions go through
-// TBoldUniDACTable.GetIndexDefs, which raises (#116). Assert.Pass raises, so
-// a test on such an engine ends here.
-procedure TTestBoldDbEvolutorUniDAC.RequireIndexInfoTemplate;
-begin
-  if DatabaseAdapter.SQLDatabaseConfig.IndexInfoTemplate = '' then
-    Assert.Pass('UniDAC reads index descriptions only through an IndexInfoTemplate (#116)');
-end;
-
 procedure TTestBoldDbEvolutorUniDAC.TestEvolveOfUpToDateDatabasePlansNoIndexes;
 begin
-  RequireIndexInfoTemplate;
   FScenarios.EvolveOfUpToDateDatabasePlansNoIndexes;
 end;
 
 procedure TTestBoldDbEvolutorUniDAC.TestIndexDescriptionListsCompositeColumnsInIndexOrder;
 begin
-  RequireIndexInfoTemplate;
   FScenarios.IndexDescriptionListsCompositeColumnsInIndexOrder;
 end;
 
 procedure TTestBoldDbEvolutorUniDAC.TestIndexDescriptionsFlagThePrimaryKeyUnderItsModelName;
 begin
-  RequireIndexInfoTemplate;
   FScenarios.IndexDescriptionsFlagThePrimaryKeyUnderItsModelName;
 end;
 
 procedure TTestBoldDbEvolutorUniDAC.TestIndexDescriptionsListAnIndexedPrimaryKeyOnce;
 begin
-  RequireIndexInfoTemplate;
   FScenarios.IndexDescriptionsListAnIndexedPrimaryKeyOnce;
 end;
 
 procedure TTestBoldDbEvolutorUniDAC.TestIndexDescriptionsIgnoreSameNamedTableInOtherSchema;
 begin
-  RequireIndexInfoTemplate;
   FScenarios.IndexDescriptionsIgnoreSameNamedTableInOtherSchema;
 end;
 

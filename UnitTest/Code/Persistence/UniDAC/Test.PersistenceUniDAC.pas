@@ -32,6 +32,9 @@ type
     procedure TestDestroyFreesCachedQueries;
     [Test]
     [Category('DB')]
+    procedure TestFreedTablesFreeTheirTUniTable;
+    [Test]
+    [Category('DB')]
     procedure TestCreateAnotherDatabaseConnectionOwnsItsConnection;
     [Test]
     procedure TestGetDatabaseErrorKeepsTheOriginalErrorForProvidersWithoutCodeMap;
@@ -228,6 +231,44 @@ begin
   After := CurrentAllocatedBlocks;
   Assert.AreEqual(Before, After,
     'Destroying a TBoldUniDACConnection must free its cached query and exec query ' +
+    '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
+end;
+
+procedure TTestPersistenceUniDAC.TestFreedTablesFreeTheirTUniTable;
+
+  procedure UseTwoTablesAndDestroyWrapper;
+  var
+    Wrapper: TBoldUniDACConnection;
+    DB: IBoldDatabase;
+    Table1, Table2: IBoldTable;
+  begin
+    // A second wrapper on the fixture's TUniConnection, as in
+    // TestDestroyFreesCachedQueries. Both tables are created new: the cache
+    // is empty until the first release.
+    Wrapper := TBoldUniDACConnection.Create(UniConnection, UniDACAdapter.SQLDatabaseConfig);
+    DB := Wrapper; // the public surface; the wrapper is not reference counted
+    try
+      Table1 := DB.GetTable;
+      Table2 := DB.GetTable;
+      DB.ReleaseTable(Table1); // now sits in the wrapper's table cache
+      DB.ReleaseTable(Table2); // cache occupied: ReleaseTable frees this one
+    finally
+      DB := nil;
+      Wrapper.Free;            // ReleaseCachedObjects frees the cached one
+    end;
+  end;
+
+var
+  Before, After: Int64;
+begin
+  // GetTable creates the TUniTable without an owner, so the table wrapper is
+  // the only thing that can free it - on both paths that free a wrapper.
+  UseTwoTablesAndDestroyWrapper; // warm-up for one-time DAC allocations
+  Before := CurrentAllocatedBlocks;
+  UseTwoTablesAndDestroyWrapper;
+  After := CurrentAllocatedBlocks;
+  Assert.AreEqual(Before, After,
+    'Freeing a TBoldUniDACTable must free the TUniTable it wraps ' +
     '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
 end;
 
