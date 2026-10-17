@@ -507,6 +507,7 @@ const
 
 // BoldEnvironment*
   sNotRunningInIDE = '%s: Not running in IDE';
+  sFrameworkEnvironmentAlreadyRegistered = 'BoldRegisterFrameworkEnvironment: Cannot register %s, %s is already registered';
   sUnknownDisplayMode = '%s.ApplicationEventsOnIdle: Unknown displaymode';
 
 // BoldObjectSpaceExternalEvents

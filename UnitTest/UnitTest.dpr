@@ -95,6 +95,7 @@ uses
   Test.BoldLogHandler in 'Code\Common\Test.BoldLogHandler.pas',
   Test.BoldGuard in 'Code\Common\Test.BoldGuard.pas',
   Test.BoldQueue in 'Code\Common\Test.BoldQueue.pas',
+  Test.BoldEnvironment in 'Code\Common\Test.BoldEnvironment.pas',
   Test.BoldContainers in 'Code\Common\Test.BoldContainers.pas',
   Test.BoldControlPack in 'Code\Common\Test.BoldControlPack.pas',
   Test.BoldExternalizedReferences in 'Code\Common\Test.BoldExternalizedReferences.pas',

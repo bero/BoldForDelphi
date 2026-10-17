@@ -64,7 +64,8 @@ type
 implementation
 
 uses
-  BoldEnvironment;
+  BoldEnvironment,
+  BoldEnvironmentVCL; // ProcessMessages
 
 const
   { Signature that is sent with every UDP propagation to identify ourselves }

@@ -65,6 +65,7 @@ implementation
 
 uses
   BoldEnvironment,
+  BoldEnvironmentVCL, // ProcessMessages
   SysUtils, //NEW
   Windows;
 

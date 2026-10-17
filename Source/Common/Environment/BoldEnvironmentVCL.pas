@@ -229,6 +229,12 @@ begin
 end;
 
 initialization
-  BoldInternalVCLConfiguration := TBoldVCLEnvironmentConfiguration.Create;
+  BoldRegisterFrameworkEnvironment(TBoldVCLEnvironmentConfiguration);
+
+finalization
+  // The queue owns a TApplicationEvents, so free it while the VCL units used
+  // here are still initialized; BoldEnvironment is finalized later
+  if BoldInternalFrameworkConfiguration is TBoldVCLEnvironmentConfiguration then
+    TBoldVCLEnvironmentConfiguration(BoldInternalFrameworkConfiguration).FinalizeQueue;
 
 end.

@@ -422,7 +422,8 @@ uses
 {$ENDIF}
   BoldGuard,
   BoldListControlPack,
-  BoldDomainElement;
+  BoldDomainElement,
+  BoldEnvironmentVCL; // The followers need the VCL environment to drain the display queue
 
 const
   breVariablesRemoved = 42;

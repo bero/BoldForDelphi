@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- `BoldEnvironment` no longer links the VCL environment into every application.
+  A GUI framework unit registers its environment with
+  `BoldRegisterFrameworkEnvironment`. `BoldEnvironmentVCL` does so, and the
+  units that need it import it: the Bold-aware VCL controls, `BoldControlPack`
+  (so the DevExpress Bold controls too), `BoldListenerHandle`,
+  `BoldUDPModificationBroadcaster`, `BoldComEventQueue` and
+  `BoldComponentValidator`. Without a framework environment the freestanding
+  environment now provides a queue, which the application drains itself with
+  `TBoldQueueable.DisplayAll` or `PerformPreDisplayQueue` (#118)
+  **Action needed:** a VCL application that queues display work through its own
+  `TBoldQueueable` descendants or `AddToPreDisplayQueue`/`AddToPostDisplayQueue`,
+  and links none of those units, must add `BoldEnvironmentVCL` to one uses
+  clause. `BoldInternalVCLConfiguration` is renamed
+  `BoldInternalFrameworkConfiguration`.
+
+### Removed
+- `BoldEnvironmentAllowBothUseVCL`, which needed the removed CLX environment and
+  did not compile (#118)
+
 ### Fixed
 - A subclass extent filled from an already loaded superclass extent came back
   empty: `TBoldClassListController.FillFromClassList` added through the list's

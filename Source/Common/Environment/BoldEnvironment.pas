@@ -17,6 +17,7 @@ type
   TBoldFreestandingEnvironmentConfiguration = class;
 
   TBoldQueueClass = class of TBoldQueue;
+  TBoldEnvironmentConfigurationClass = class of TBoldEnvironmentConfiguration;
 
   { TBoldApplicationSubscriber }
   TBoldApplicationSubscriber = class(TComponent)
@@ -33,17 +34,18 @@ type
     fQueue: TBoldQueue;
     fApplicationSubscriber: TBoldApplicationSubscriber;
     fQueueFinalized: Boolean;
-    procedure FinalizeQueue;
     procedure _ApplicationDestroyed;
 
     class function GetRunningInIDE: Boolean;
   protected
+    procedure FinalizeQueue;
     function GetQueue: TBoldQueue;
     function GetQueueClass: TBoldQueueClass; virtual;
     procedure SetQueue(NewValue: TBoldQueue);
     function GetName: string; virtual; abstract;
     function GetRootComponent: TComponent; virtual;
   public
+    constructor Create; virtual;
     procedure AfterConstruction; override;
     destructor Destroy; override;
     procedure HandleDesigntimeException(Sender: TObject); virtual;
@@ -65,7 +67,9 @@ type
   TBoldFreestandingEnvironmentConfiguration = class(TBoldEnvironmentConfiguration)
   protected
     function GetName: string; override;
-  public  
+    function GetQueueClass: TBoldQueueClass; override;
+    function GetRootComponent: TComponent; override;
+  public
     procedure BringToFront; override;
     procedure FocusMainForm; override;
   end;
@@ -73,22 +77,38 @@ type
 var
   BoldInternalRunningInIDE: Boolean = false;
 
-  BoldInternalVCLConfiguration: TBoldEnvironmentConfiguration = nil;
+  BoldInternalFrameworkConfiguration: TBoldEnvironmentConfiguration = nil;
   BoldInternalCustomConfiguration: TBoldEnvironmentConfiguration = nil;
   BoldInternalFreestandingConfiguration: TBoldEnvironmentConfiguration = nil;
 
   function BoldEffectiveEnvironment: TBoldEnvironmentConfiguration;
   function BoldEnvironmentsFinalized: Boolean;
   function BoldInstalledQueue: TBoldQueue;
+  // Called from the initialization of a GUI framework unit such as BoldEnvironmentVCL
+  procedure BoldRegisterFrameworkEnvironment(ConfigurationClass: TBoldEnvironmentConfigurationClass);
 
 implementation
 
 uses
   SysUtils,
-  BoldEnvironmentVCL;   // Don't remove this!
+  BoldCoreConsts;
 
 const
   UnsupportedFunction = '%s: function unsupported in environment configuration %s';
+
+type
+  { TBoldFreestandingQueue }
+  // Nothing dequeues this queue by itself. Without a GUI framework environment
+  // the application calls TBoldQueueable.DisplayAll or PerformPreDisplayQueue.
+  TBoldFreestandingQueue = class(TBoldQueue)
+  private
+    fDeactivationNesting: Integer;
+  protected
+    function GetIsActive: Boolean; override;
+  public
+    procedure ActivateDisplayQueue; override;
+    procedure DeActivateDisplayQueue; override;
+  end;
 
 var
   G_EnvironmentsFinalized: Boolean = false;
@@ -98,8 +118,8 @@ function GetBoldEffectiveEnvironment: TBoldEnvironmentConfiguration;
 begin
   if Assigned(BoldInternalCustomConfiguration) then
     Result := BoldInternalCustomConfiguration
-  else if Assigned(BoldInternalVCLConfiguration) then
-    Result := BoldInternalVCLConfiguration
+  else if Assigned(BoldInternalFrameworkConfiguration) then
+    Result := BoldInternalFrameworkConfiguration
   else if Assigned(BoldInternalFreestandingConfiguration) then
     Result := BoldInternalFreestandingConfiguration
   else
@@ -126,7 +146,20 @@ begin
   result := G_EnvironmentsFinalized;
 end;
 
+procedure BoldRegisterFrameworkEnvironment(ConfigurationClass: TBoldEnvironmentConfigurationClass);
+begin
+  if Assigned(BoldInternalFrameworkConfiguration) then
+    raise EBold.CreateFmt(sFrameworkEnvironmentAlreadyRegistered,
+      [ConfigurationClass.ClassName, BoldInternalFrameworkConfiguration.ClassName]);
+  BoldInternalFrameworkConfiguration := ConfigurationClass.Create;
+end;
+
 { TBoldEnvironmentConfiguration }
+
+constructor TBoldEnvironmentConfiguration.Create;
+begin
+  inherited Create;
+end;
 
 procedure TBoldEnvironmentConfiguration.AfterConstruction;
 begin
@@ -258,6 +291,34 @@ begin
   Result := 'Freestanding';
 end;
 
+function TBoldFreestandingEnvironmentConfiguration.GetQueueClass: TBoldQueueClass;
+begin
+  Result := TBoldFreestandingQueue;
+end;
+
+function TBoldFreestandingEnvironmentConfiguration.GetRootComponent: TComponent;
+begin
+  Result := nil;
+end;
+
+{ TBoldFreestandingQueue }
+
+procedure TBoldFreestandingQueue.ActivateDisplayQueue;
+begin
+  if fDeactivationNesting > 0 then
+    Dec(fDeactivationNesting);
+end;
+
+procedure TBoldFreestandingQueue.DeActivateDisplayQueue;
+begin
+  Inc(fDeactivationNesting);
+end;
+
+function TBoldFreestandingQueue.GetIsActive: Boolean;
+begin
+  Result := fDeactivationNesting = 0;
+end;
+
 { TBoldApplicationSubscriber }
 
 
@@ -274,7 +335,7 @@ initialization
   BoldInternalFreestandingConfiguration :=  TBoldFreestandingEnvironmentConfiguration.Create;
 
 finalization
-  FreeAndNil(BoldInternalVCLConfiguration);
+  FreeAndNil(BoldInternalFrameworkConfiguration);
   FreeAndNil(BoldInternalCustomConfiguration);
   FreeAndNil(BoldInternalFreestandingConfiguration);
   G_BoldEffectiveEnvironment := nil;

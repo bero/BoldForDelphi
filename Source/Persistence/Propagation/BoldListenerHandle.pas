@@ -94,6 +94,7 @@ uses
   BoldCoreConsts,
   BoldUtils,
   BoldEnvironment,
+  BoldEnvironmentVCL, // TriggerQueueMechanism
   BoldThreadSafeQueue;
 
 { TBoldListenerHandle }
