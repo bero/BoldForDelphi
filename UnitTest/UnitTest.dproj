@@ -169,6 +169,7 @@
         <DCCReference Include="Code\Persistence\Test.BoldBatchQueries.pas"/>
         <DCCReference Include="Code\Persistence\Benchmark.BoldFetch.pas"/>
         <DCCReference Include="Code\Persistence\Benchmark.BoldIdListSql.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldSqlParameterizationBlocks.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldDBInterfacesLogging.pas"/>
         <DCCReference Include="Code\Common\Test.BoldGUIDUtils.pas"/>
         <DCCReference Include="Code\Common\Test.BoldIsoDateTime.pas"/>

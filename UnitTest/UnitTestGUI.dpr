@@ -63,6 +63,7 @@ uses
   Test.BoldBatchQueries in 'Code\Persistence\Test.BoldBatchQueries.pas',
   Benchmark.BoldFetch in 'Code\Persistence\Benchmark.BoldFetch.pas',
   Benchmark.BoldIdListSql in 'Code\Persistence\Benchmark.BoldIdListSql.pas',
+  Test.BoldSqlParameterizationBlocks in 'Code\Persistence\Test.BoldSqlParameterizationBlocks.pas',
   Test.BoldDBInterfacesLogging in 'Code\Persistence\Test.BoldDBInterfacesLogging.pas',
   Test.BoldGUIDUtils in 'Code\Common\Test.BoldGUIDUtils.pas',
   Test.BoldIsoDateTime in 'Code\Common\Test.BoldIsoDateTime.pas',
