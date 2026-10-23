@@ -84,6 +84,7 @@ contains
   BoldCheckboxStateControlPack in '..\..\Source\BoldAwareGUI\ControlPacks\BoldCheckboxStateControlPack.pas',
   BoldClient in '..\..\Source\Common\Connection\BoldClient.pas',
   BoldClientHandles in '..\..\Source\Common\ConnectionHandles\BoldClientHandles.pas',
+  BoldClock in '..\..\Source\Common\Support\BoldClock.pas',
   BoldCodePlugins in '..\..\Source\UMLModel\Plugins\BoldCodePlugins.pas',
   BoldSaveAndGeneratePlugin in '..\..\Source\UMLModel\Plugins\BoldSaveAndGeneratePlugin.pas',
   BoldCollections in '..\..\Source\Common\Support\BoldCollections.pas',

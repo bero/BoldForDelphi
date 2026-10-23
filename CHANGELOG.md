@@ -8,7 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- `BoldClock`: one-shot alarms delivered on the main thread without a window
+  handle or a message loop. A background thread hands each due alarm to the
+  main thread with `TThread.Queue`, so it runs on the next `CheckSynchronize`,
+  which VCL and FMX call from their idle loops and a console application calls
+  itself. `BoldSharedClock` is the instance shared by the application (#119)
+
 ### Changed
+- `TBoldOcl` refreshes its `today` and `now` variables through `BoldSharedClock`
+  instead of two VCL `TTimer`s, so `BoldOcl` no longer imports `ExtCtrls` (#119).
+  An application that never calls `CheckSynchronize` keeps the values from
+  construction time, as it did before without a message loop.
 - `BoldEnvironment` no longer links the VCL environment into every application.
   A GUI framework unit registers its environment with
   `BoldRegisterFrameworkEnvironment`. `BoldEnvironmentVCL` does so, and the

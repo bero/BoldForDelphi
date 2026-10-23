@@ -13,7 +13,6 @@ interface
 
 uses
   Classes,
-  ExtCtrls,
   BoldBase,
   BoldSystemRT,
   BoldOclClasses,
@@ -97,7 +96,6 @@ type
     fOnLookUpOclDefinition: TBoldLookUpOclDefinition;
     fTodayVar: TBADate;
     fNowVar: TBADateTime;
-    fTodayTimer, fNowTimer: TTimer;
     fParses: Integer;
     fDictionaryHits: Integer;
     fExpresionTypeCount: Integer;
@@ -110,8 +108,8 @@ type
     procedure PSEvaluation(const Expr: string; Root: TBoldElement; ResultEntry: TBoldOclEntry; Env: TBoldOclEnvironment; MaxAnswers: integer = -1; Offset: integer = -1);
     procedure AddVarsToEnv(Env: TBoldOCLEnvironment; const VariableList: TBoldExternalVariableList; Initializevalues: Boolean);
     function GetGlobalEnv: TBoldOclEnvironment;
-    procedure TodayTimerEvent(Sender: TObject);
-    procedure NowTimerEvent(Sender: TObject);
+    procedure RefreshToday;
+    procedure RefreshNow;
   protected
     function GetVariableCount: integer; override;
     function GetVariable(index: integer): TBoldIndirectElement; override;
@@ -180,6 +178,7 @@ uses
   // Bold
   BoldCoreConsts,
   BoldUtils,
+  BoldClock,
   BoldCondition,
   BoldDefs,
   BoldHashIndexes,
@@ -282,30 +281,25 @@ begin
   DefineVariable('timeStampNow', MaxTimeStamp, fIntegerType, True, False); // do not localize
 
   fTodayVar := TBoldMemberFactory.CreateMemberFromBoldType(fDateType) as TBADate;
-  fTodayTimer := TTimer.Create(nil);
-  fTodayTimer.OnTimer := TodayTimerEvent;
-  fTodayTimer.Enabled := True;
-  TodayTimerEvent(nil);
+  RefreshToday;
   DefineVariable('today', fTodayVar, fDateType, True, False); // do not localize
 
   // Now is rounded to full minutes and is only refreshed once per minute
   fNowVar := TBoldMemberFactory.CreateMemberFromBoldType(fDateTimeType) as TBADateTime;
-  fNowTimer := TTimer.Create(nil);
-  fNowTimer.OnTimer := NowTimerEvent;
-  fNowTimer.Enabled := True;
-  NowTimerEvent(nil);
+  RefreshNow;
   DefineVariable('now', fNowVar, fDateTimeType, True, False); // do not localize
   CalculateMaxMemberNameLength;
 end;
 
 destructor TBoldOcl.Destroy;
 begin
+  // Before anything else, so no alarm can reach a half-destroyed evaluator
+  BoldSharedClock.Cancel(RefreshToday);
+  BoldSharedClock.Cancel(RefreshNow);
   SendEvent(beDestroying);
   FreeAndNil(fOclDictionary);
   FreeAndNil(fSymbolTable);
   FreeAndNil(fGlobalEnv);
-  FreeAndNil(fTodayTimer);
-  FreeAndNil(fNowTimer);
   inherited;
 end;
 
@@ -1324,23 +1318,19 @@ begin
   end;
 end;
 
-procedure TBoldOcl.TodayTimerEvent(Sender: TObject);
+procedure TBoldOcl.RefreshToday;
 begin
-  fTodayTimer.Interval := MilliSecondsBetween( Now, Today+1 );
   fTodayVar.AsDate := Today;
+  BoldSharedClock.Schedule(Tomorrow, RefreshToday);
 end;
 
-procedure TBoldOcl.NowTimerEvent(Sender: TObject);
+procedure TBoldOcl.RefreshNow;
 var
-  vTime: TDateTime;
+  dMinute: TDateTime;
 begin
-  vTime := RecodeMilliSecond(now, 0);
-  vTime := RecodeSecond(vTime, 0);
-  fNowVar.AsDateTime := vTime;
-  vTime := IncMinute(vTime);
-  fNowTimer.Interval := MilliSecondsBetween( Now, vTime );
-  if (fNowTimer.Interval = 0) or (fNowTimer.Interval > MSecsPerSec * SecsPerMin) then
-    fNowTimer.Interval := MSecsPerSec * SecsPerMin
+  dMinute := RecodeSecond(RecodeMilliSecond(Now, 0), 0);
+  fNowVar.AsDateTime := dMinute;
+  BoldSharedClock.Schedule(IncMinute(dMinute), RefreshNow);
 end;
 
 procedure BoldForceNelCompatibility;

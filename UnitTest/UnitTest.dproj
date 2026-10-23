@@ -182,6 +182,7 @@
         <DCCReference Include="Code\Common\Test.BoldGuard.pas"/>
         <DCCReference Include="Code\Common\Test.BoldQueue.pas"/>
         <DCCReference Include="Code\Common\Test.BoldEnvironment.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldClock.pas"/>
         <DCCReference Include="Code\Common\Test.BoldContainers.pas"/>
         <DCCReference Include="Code\Common\Test.BoldControlPack.pas"/>
         <DCCReference Include="Code\Common\Test.BoldExternalizedReferences.pas"/>

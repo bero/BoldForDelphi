@@ -534,6 +534,14 @@ type
     procedure TestOrderByExpression;
     [Test] [Category('Quick')]
     procedure TestOrderDescendingExpression;
+
+    // --- Time variables ---
+    [Test] [Category('Quick')]
+    procedure TestNowEvaluatesToCurrentMinute;
+    [Test] [Category('Quick')]
+    procedure TestTodayEvaluatesToCurrentDate;
+    [Test] [Category('Quick')]
+    procedure TestEvaluatorSchedulesTimeVariableRefreshWhileItLives;
   end;
 
 implementation
@@ -541,6 +549,8 @@ implementation
 uses
   DateUtils,
   Math,
+  BoldClock,
+  BoldOcl,
   BoldOclError,
   BoldSystemRT;
 
@@ -2691,6 +2701,56 @@ begin
   Assert.AreEqual('C', Obj1.EvaluateExpressionAsString(
     'ClassA.allInstances->orderDescending(aString)->first.aString'),
     'orderDescending should sort descending');
+end;
+
+// === Time variables ===
+
+procedure TTestBoldOclEvaluation.TestNowEvaluatesToCurrentMinute;
+var
+  dBefore: TDateTime;
+  dNow: TDateTime;
+begin
+  // now is rounded down to whole minutes and refreshed once a minute, so it
+  // may lag the wall clock by less than a minute but never run ahead of it
+  dBefore := Now;
+  dNow := GetSystem.EvaluateExpressionAsDateTime('now');
+  Assert.AreEqual(0, SecondOf(dNow), 'now is rounded to whole minutes');
+  Assert.AreEqual(0, MilliSecondOf(dNow), 'now has no milliseconds');
+  Assert.IsTrue(dNow <= Now, 'now is not in the future');
+  Assert.IsTrue(dNow >= IncMinute(RecodeSecond(RecodeMilliSecond(dBefore, 0), 0), -1), 'now is less than a minute old');
+end;
+
+procedure TTestBoldOclEvaluation.TestTodayEvaluatesToCurrentDate;
+var
+  oToday: TBoldElement;
+  dToday: TDateTime;
+begin
+  // today is the evaluator's own TBADate, so the direct element is that value
+  oToday := GetSystem.EvaluateExpressionAsDirectElement('today');
+  Assert.IsNotNull(oToday, 'today is a variable, not a temporary value');
+  Assert.IsTrue(oToday is TBADate, 'today is a date, not a date-time');
+  dToday := TBADate(oToday).AsDate;
+  // Either value is right when the test straddles midnight
+  Assert.IsTrue(SameDate(dToday, Date) or SameDate(dToday, Yesterday), 'today is the current date');
+end;
+
+procedure TTestBoldOclEvaluation.TestEvaluatorSchedulesTimeVariableRefreshWhileItLives;
+var
+  iBefore: Integer;
+  oEvaluator: TBoldOcl;
+begin
+  // today and now are refreshed through the shared clock: an evaluator
+  // schedules one alarm for each when it is created and cancels both when
+  // it is destroyed, so no alarm can fire into a freed evaluator
+  iBefore := BoldSharedClock.Count;
+  oEvaluator := TBoldOcl.Create(GetSystem.BoldSystemTypeInfo, nil);
+  try
+    Assert.AreEqual(iBefore + 2, BoldSharedClock.Count, 'An evaluator schedules the refresh of today and now');
+  finally
+    oEvaluator.Free;
+  end;
+
+  Assert.AreEqual(iBefore, BoldSharedClock.Count, 'A destroyed evaluator cancels its alarms');
 end;
 
 initialization
