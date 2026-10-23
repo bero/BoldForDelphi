@@ -74,6 +74,7 @@ type
     FMapper: TBoldObjectDefaultMapper;
     FQuery: IBoldExecQuery;
     FSavedMaxParams: Integer;
+    FSavedFetchBlockSize: Integer;
     function SystemMapper: TBoldSystemDefaultMapper;
     function Config: TBoldSQLDataBaseConfig;
     function MakeIdList(Count: Integer): TBoldObjectIdList;
@@ -320,10 +321,12 @@ begin
   FQuery := SystemMapper.GetExecQuery;
   FQuery.ParamCheck := true;
   FSavedMaxParams := Config.MaxParamsInIdList;
+  FSavedFetchBlockSize := Config.FetchBlockSize;
 end;
 
 procedure TTestBoldIdListWhereFragment.TearDown;
 begin
+  Config.FetchBlockSize := FSavedFetchBlockSize;
   Config.MaxParamsInIdList := FSavedMaxParams;
   SystemMapper.ReleaseExecQuery(FQuery);
   // The pooled wrapper dies with the datamodule below; the interface field
@@ -436,7 +439,9 @@ var
 begin
   // Legacy default config: MaxParamsInIdList = 20. 15 ids would pad to the
   // 50 bucket, which exceeds the limit - so the list stays unpadded rather
-  // than growing beyond what the engine config allows.
+  // than growing beyond what the engine config allows. On SQL Server the
+  // ceiling is floored at FetchBlockSize, so the block size comes down first.
+  Config.FetchBlockSize := 20;
   Config.MaxParamsInIdList := 20;
   IdList := MakeIdList(15);
   try
@@ -453,6 +458,8 @@ var
   IdList: TBoldObjectIdList;
   Fragment: string;
 begin
+  // Legacy limit 20; on SQL Server the ceiling is floored at FetchBlockSize.
+  Config.FetchBlockSize := 20;
   Config.MaxParamsInIdList := 20;
   IdList := MakeIdList(250);
   try

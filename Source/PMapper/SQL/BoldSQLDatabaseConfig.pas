@@ -126,6 +126,8 @@ type
     procedure SetColumnTypeForFloat(const Value: string);
     procedure SetDefaultStringLength(const Value: integer);
     procedure SetFetchBlockSize(const Value: integer);
+    procedure SetEngine(const Value: TBoldDatabaseEngine);
+    function EnsureSQLServerIdListCeiling: Boolean;
     procedure SetColumnTypeForString(const Value: string);
     procedure SetColumnTypeForUnicodeString(const Value: string);
     procedure SetColumnTypeForText(const Value: string);
@@ -222,7 +224,7 @@ type
 
     property EffectiveSQLForNotNull: string read GetEffectiveSQLForNotNull;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
-    property Engine: TBoldDatabaseEngine read fEngine write fEngine;
+    property Engine: TBoldDatabaseEngine read fEngine write SetEngine;
   published
     property DefaultSystemMapper: string read FDefaultSystemMapper write SetDefaultSystemMapper;
     property DefaultObjectMapper: string read FDefaultObjectMapper write SetDefaultObjectMapper;
@@ -251,6 +253,9 @@ type
     property ColumnTypeForGUID: string read fColumnTypeForGUID write SetColumnTypeForGUID;
     property FieldTypeForBlob: TFieldType read fFieldTypeForBlob write SetFieldTypeForBlob default ftBlob;
     property FetchBlockSize: integer read fFetchBlockSize write SetFetchBlockSize default 250;
+    { Ids per IN-list above which the literal path is used. 0 switches id-list
+      parameterization off; on SQL Server any positive value is raised to
+      FetchBlockSize so full fetch blocks stay parameterized. }
     property MaxParamsInIdList: integer read fMaxParamsInIdList write SetMaxParamsInIdList default 20;
     property DefaultStringLength: integer read fDefaultStringLength write SetDefaultStringLength default 255;
     property UseSQL92Joins: boolean read fUseSQL92Joins write SetUseSQL92Joins default false;
@@ -308,6 +313,10 @@ uses
   SysUtils;
 
 const
+  // SQL Server: keep full fetch blocks parameterized (plan reuse) while staying
+  // below the engine's 2100 parameters per statement.
+  cSQLServerMinParamsInIdList = 500;
+  cSQLServerMaxParamsInIdList = 2000;
   EmptyMarker = '<Empty>';
   DatabaseNameMarker = '<DatabaseName>';
   TableNameMarker = '<TableName>';
@@ -657,7 +666,53 @@ begin
   if fFetchBlockSize <> Value then
   begin
     fFetchBlockSize := Value;
+    EnsureSQLServerIdListCeiling;
     Change;
+  end;
+end;
+
+procedure TBoldSQLDataBaseConfig.SetEngine(const Value: TBoldDatabaseEngine);
+begin
+  if fEngine <> Value then
+  begin
+    fEngine := Value;
+
+    // A dfm-streamed adapter sets Engine after the config's own properties and
+    // never re-runs InitializeDbEngineSettings, so this is the last write.
+    if EnsureSQLServerIdListCeiling then
+    begin
+      Change;
+    end;
+  end;
+end;
+
+{ SQL Server opted in to full-block parameterization: its MaxParamsInIdList is
+  never below FetchBlockSize, or every full fetch block would silently fall back
+  to literal SQL. Capped below the engine's 2100 parameters per statement.
+  0 is the explicit off-switch for id-list parameterization and is left alone.
+  Returns True when the ceiling was raised. }
+function TBoldSQLDataBaseConfig.EnsureSQLServerIdListCeiling: Boolean;
+var
+  MinCeiling: integer;
+begin
+  Result := False;
+
+  if (fEngine <> dbeSQLServer) or (fMaxParamsInIdList = 0) then
+  begin
+    Exit;
+  end;
+
+  MinCeiling := fFetchBlockSize;
+
+  if MinCeiling > cSQLServerMaxParamsInIdList then
+  begin
+    MinCeiling := cSQLServerMaxParamsInIdList;
+  end;
+
+  if fMaxParamsInIdList < MinCeiling then
+  begin
+    fMaxParamsInIdList := MinCeiling;
+    Result := True;
   end;
 end;
 
@@ -993,6 +1048,8 @@ procedure TBoldSQLDataBaseConfig.InitializeDbEngineSettings(Engine: TBoldDatabas
       ReservedWords.Add(name)
   end;
 begin
+  fEngine := Engine;
+
   if Engine <> dbeUnknown then
     SetInitialValues;
   case Engine of
@@ -1133,11 +1190,12 @@ begin
       fMaxBatchQueryLength := 65536 * 1024; // Length of a string containing SQL statements (batch size) 65,536 * Network packet size Default packet size is 4096 bytes
       fMaxBatchQueryParams := 2000;
       fMultiRowInsertLimit := 1000;
-      // SQL Server compiles a plan per distinct statement text; keeping id
-      // lists above FetchBlockSize (250) on the parameterized path makes
-      // fetch SQL byte-identical and plans reusable. Well below the 2100
-      // params/statement engine limit.
-      fMaxParamsInIdList := 500;
+      // SQL Server compiles a plan per distinct statement text; keeping full
+      // fetch blocks on the parameterized path makes fetch SQL byte-identical
+      // and plans reusable. EnsureSQLServerIdListCeiling raises this further
+      // when FetchBlockSize exceeds it.
+      fMaxParamsInIdList := cSQLServerMinParamsInIdList;
+      EnsureSQLServerIdListCeiling;
       // GO ends a batch, so every script statement gets its own: the drop column
       // template declares @CONSTRAINTNAME, which a batch can declare only once.
       fSqlScriptSeparator := 'GO';
@@ -1495,6 +1553,7 @@ begin
   if fMaxParamsInIdList <> Value then
   begin
     fMaxParamsInIdList := Value;
+    EnsureSQLServerIdListCeiling;
     Change;
   end;
 end;

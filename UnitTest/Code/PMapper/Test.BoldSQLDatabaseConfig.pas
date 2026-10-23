@@ -24,6 +24,28 @@ type
     [Test] [Category('Quick')]
     procedure TestInitialize_SQLServer_MaxParamsInIdList;
     [Test] [Category('Quick')]
+    procedure TestInitialize_SQLServer_MaxParamsInIdListFollowsFetchBlockSize;
+    [Test] [Category('Quick')]
+    procedure TestInitialize_SQLServer_MaxParamsInIdListCappedAtEngineLimit;
+    [Test] [Category('Quick')]
+    procedure TestInitialize_SetsEngine;
+    [Test] [Category('Quick')]
+    procedure TestSetFetchBlockSize_SQLServer_RaisesMaxParamsInIdList;
+    [Test] [Category('Quick')]
+    procedure TestSetFetchBlockSize_OtherEngine_KeepsMaxParamsInIdList;
+    [Test] [Category('Quick')]
+    procedure TestSetEngine_SQLServer_RaisesMaxParamsInIdListToFetchBlockSize;
+    [Test] [Category('Quick')]
+    procedure TestSetEngine_SQLServer_DefaultBlockSizeRaisesToBlockSize;
+    [Test] [Category('Quick')]
+    procedure TestSetEngine_SQLServer_CapsAtEngineLimit;
+    [Test] [Category('Quick')]
+    procedure TestSetEngine_OtherEngine_KeepsMaxParamsInIdList;
+    [Test] [Category('Quick')]
+    procedure TestSetMaxParamsInIdList_SQLServer_NeverBelowFetchBlockSize;
+    [Test] [Category('Quick')]
+    procedure TestMaxParamsInIdListZero_SwitchesParameterizationOff;
+    [Test] [Category('Quick')]
     procedure TestInitialize_Postgres;
     [Test] [Category('Quick')]
     procedure TestInitialize_MySQL;
@@ -273,6 +295,180 @@ begin
     // param ceiling above FetchBlockSize (250) keeps full fetch blocks on the
     // parameterized path so statements stay byte-identical and plans reusable.
     Assert.AreEqual(500, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestInitialize_SQLServer_MaxParamsInIdListFollowsFetchBlockSize;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    // A dfm-streamed FetchBlockSize above 500 must not push every full fetch
+    // block back to literal SQL: the ceiling follows the block size.
+    Cfg.FetchBlockSize := 600;
+    Cfg.InitializeDbEngineSettings(dbeSQLServer);
+    Assert.AreEqual(600, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestInitialize_SQLServer_MaxParamsInIdListCappedAtEngineLimit;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    // SQL Server allows 2100 parameters per statement; the ceiling stays below it.
+    Cfg.FetchBlockSize := 3000;
+    Cfg.InitializeDbEngineSettings(dbeSQLServer);
+    Assert.AreEqual(2000, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestInitialize_SetsEngine;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    Cfg.InitializeDbEngineSettings(dbeSQLServer);
+    Assert.IsTrue(Cfg.Engine = dbeSQLServer, 'Engine must record the engine the settings were initialized for');
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestSetFetchBlockSize_SQLServer_RaisesMaxParamsInIdList;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    // FetchBlockSize set at runtime, after the engine settings ran.
+    Cfg.InitializeDbEngineSettings(dbeSQLServer);
+    Cfg.FetchBlockSize := 600;
+    Assert.AreEqual(600, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestSetFetchBlockSize_OtherEngine_KeepsMaxParamsInIdList;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    // Only SQL Server opted in to full-block parameterization; other engines
+    // keep the default ceiling whatever the block size.
+    Cfg.InitializeDbEngineSettings(dbePostgres);
+    Cfg.FetchBlockSize := 600;
+    Assert.AreEqual(20, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestSetEngine_SQLServer_RaisesMaxParamsInIdListToFetchBlockSize;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    // dfm order: the config streams before the adapter's DatabaseEngine, and
+    // under csLoading InitializeDbEngineSettings never runs - the Engine
+    // setter is the last write and must apply the ceiling itself.
+    Cfg.FetchBlockSize := 600;
+    Cfg.Engine := dbeSQLServer;
+    Assert.AreEqual(600, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestSetEngine_SQLServer_DefaultBlockSizeRaisesToBlockSize;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    // A dfm that stores neither FetchBlockSize nor MaxParamsInIdList still
+    // gets its full 250-id blocks parameterized on SQL Server.
+    Cfg.Engine := dbeSQLServer;
+    Assert.AreEqual(250, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestSetEngine_SQLServer_CapsAtEngineLimit;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    Cfg.FetchBlockSize := 3000;
+    Cfg.Engine := dbeSQLServer;
+    Assert.AreEqual(2000, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestSetEngine_OtherEngine_KeepsMaxParamsInIdList;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    Cfg.FetchBlockSize := 600;
+    Cfg.Engine := dbePostgres;
+    Assert.AreEqual(20, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestSetMaxParamsInIdList_SQLServer_NeverBelowFetchBlockSize;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    // A stored MaxParamsInIdList streams after FetchBlockSize; a value below
+    // the block size would silently put every full block back on literal SQL.
+    Cfg.InitializeDbEngineSettings(dbeSQLServer);
+    Cfg.FetchBlockSize := 600;
+    Cfg.MaxParamsInIdList := 500;
+    Assert.AreEqual(600, Cfg.MaxParamsInIdList);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestMaxParamsInIdListZero_SwitchesParameterizationOff;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    // 0 is the explicit off-switch (a bad parameterized plan is worked around
+    // by forcing literal id lists); no write path may raise it to the floor.
+    Cfg.FetchBlockSize := 600;
+    Cfg.MaxParamsInIdList := 0;
+    Cfg.Engine := dbeSQLServer;
+    Assert.AreEqual(0, Cfg.MaxParamsInIdList, 'Engine setter must not raise an explicit 0');
+    Cfg.FetchBlockSize := 700;
+    Assert.AreEqual(0, Cfg.MaxParamsInIdList, 'FetchBlockSize setter must not raise an explicit 0');
+    Cfg.InitializeDbEngineSettings(dbeSQLServer);
+    Cfg.MaxParamsInIdList := 0;
+    Assert.AreEqual(0, Cfg.MaxParamsInIdList, 'Writing 0 after the engine settings must stick');
   finally
     Cfg.Free;
   end;
