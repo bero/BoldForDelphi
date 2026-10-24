@@ -15,6 +15,14 @@
   {$DEFINE MSWINDOWS}
 {$ENDIF}
 
+// Free Pascal declares the IInterface methods (QueryInterface, _AddRef, _Release)
+// cdecl outside Windows; Delphi and Free Pascal on Windows use stdcall.
+{$IFDEF FPC}
+  {$IFNDEF MSWINDOWS}
+    {$DEFINE BOLD_INTF_CDECL}
+  {$ENDIF}
+{$ENDIF}
+
 {$IFDEF BOLD_DELPHI_PARSER}
   {$DEFINE WIN32}
   {$DEFINE VER130}

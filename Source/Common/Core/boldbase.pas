@@ -34,9 +34,9 @@ type
   {-- TBoldInterfacedObject --}
   TBoldInterfacedObject = class(TBoldMemoryManagedObject, IInterface)
   protected
-    function QueryInterface(const IId: TGUID; out Obj): HResult; virtual; stdcall;
-    function _AddRef: Integer; virtual; stdcall; abstract;
-    function _Release: Integer; virtual; stdcall; abstract;
+    function QueryInterface({$IFDEF FPC}constref{$ELSE}const{$ENDIF} IId: TGUID; out Obj): HResult; virtual; {$IFDEF BOLD_INTF_CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Integer; virtual; {$IFDEF BOLD_INTF_CDECL}cdecl{$ELSE}stdcall{$ENDIF}; abstract;
+    function _Release: Integer; virtual; {$IFDEF BOLD_INTF_CDECL}cdecl{$ELSE}stdcall{$ENDIF}; abstract;
   public
     function SupportsInterface(const IID: TGUID): Boolean; virtual;
   end;
@@ -174,7 +174,7 @@ var
 
 {-- TBoldInterfacedObject -----------------------------------------------------}
 
-function TBoldInterfacedObject.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TBoldInterfacedObject.QueryInterface({$IFDEF FPC}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult;
 begin
   if GetInterface(IID, Obj) then
     Result := S_OK
