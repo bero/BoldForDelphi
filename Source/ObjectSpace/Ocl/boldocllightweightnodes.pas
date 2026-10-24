@@ -279,7 +279,7 @@ implementation
 
 uses
   SysUtils,
-  {$IFDEF OXML}OXmlPDOM{$ELSE}Bold_MSXML_TLB{$ENDIF},
+  Contnrs,
   BoldCoreConsts,
   BoldXMLStreaming,
   BoldDefaultStreamNames,
@@ -1392,49 +1392,23 @@ procedure TBoldXMLOLWNodeListStreamer.ReadObject(Obj: TObject;
   Node: TBoldXMLNode);
 var
   OLWList: TBoldOLWNodeList;
-  {$IFDEF OXML}
-  aNodeEnumerator: TXMLChildNodeListEnumerator;
-  aNode: PXMLNode;
-  {$ELSE}
-  aNodeList: IXMLDOMNodeList;
-  aNode: IXMLDOMNode;
-  {$ENDIF}
+  SubNodes: TObjectList;
+  i: Integer;
   aSubNode: TBoldXMLNode;
 begin
   inherited;
   OLWList := Obj as TBoldOLWNodeList;
-  {$IFDEF OXML}
-  aNodeEnumerator := Node.XMLDomElement.ChildNodes.GetEnumerator;
+  SubNodes := Node.NewChildNodes;
   try
-    while aNodeEnumerator.MoveNext do
+    for i := 0 to SubNodes.Count - 1 do
     begin
-      aNode := aNodeEnumerator.Current;
-      aSubNode := Node.MakeNodeForElement(aNode);
-      try
-        if aSubNode.Accessor = 'Node' then // do not localize
-          OLWList.Add(aSubNode.ReadObject('') as TBoldOLWNode);
-      finally
-        aSubNode.Free;
-      end;
+      aSubNode := TBoldXMLNode(SubNodes[i]);
+      if aSubNode.Accessor = 'Node' then // do not localize
+        OLWList.Add(aSubNode.ReadObject('') as TBoldOLWNode);
     end;
   finally
-    aNodeEnumerator.Free;
+    SubNodes.Free;
   end;
-  {$ELSE}
-  aNodeList := Node.XMLDomElement.childNodes;
-  aNode := aNodeList.nextNode;
-  while assigned(aNode) do
-  begin
-    aSubNode := Node.MakeNodeForElement(aNode as IXMLDOMElement);
-    try
-      if aSubNode.Accessor = 'Node' then
-        OLWList.Add(aSubNode.ReadObject('') as TBoldOLWNode);
-    finally
-      aSubNode.Free;
-    end;
-    aNode := aNodeList.nextNode;
-  end;
-  {$ENDIF}
 end;
 
 procedure TBoldXMLOLWNodeListStreamer.WriteObject(

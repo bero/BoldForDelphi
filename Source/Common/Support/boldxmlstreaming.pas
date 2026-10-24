@@ -68,6 +68,9 @@ type
     // Nodes for all descendant elements named TagName (getElementsByTagName).
     // The caller frees the list, which owns the nodes.
     function NewSubNodesByTagName(const TagName: string): TObjectList;
+    // Nodes for the direct child nodes of this element (childNodes), in document
+    // order. The caller frees the list, which owns the nodes.
+    function NewChildNodes: TObjectList;
     function ReadBoolean: Boolean;
     procedure ReadInterface(const StreamName: string; const Item: IBoldStreamable);
     function ReadInteger: Integer;
@@ -689,6 +692,40 @@ begin
     end;
     {$ELSE}
     aNodeList := XMLDomElement.getElementsByTagName(TagName);
+    aNode := aNodeList.nextNode;
+    while assigned(aNode) do
+    begin
+      result.Add(MakeNodeForElement(aNode as IXMLDOMElement));
+      aNode := aNodeList.nextNode;
+    end;
+    {$ENDIF}
+  except
+    result.Free;
+    raise;
+  end;
+end;
+
+function TBoldXMLNode.NewChildNodes: TObjectList;
+var
+  {$IFDEF OXML}
+  aNodeEnumerator: TXMLChildNodeListEnumerator;
+  {$ELSE}
+  aNodeList: IXMLDOMNodeList;
+  aNode: IXMLDOMNode;
+  {$ENDIF}
+begin
+  result := TObjectList.Create(True);
+  try
+    {$IFDEF OXML}
+    aNodeEnumerator := XMLDomElement.ChildNodes.GetEnumerator;
+    try
+      while aNodeEnumerator.MoveNext do
+        result.Add(MakeNodeForElement(aNodeEnumerator.Current));
+    finally
+      aNodeEnumerator.Free;
+    end;
+    {$ELSE}
+    aNodeList := XMLDomElement.childNodes;
     aNode := aNodeList.nextNode;
     while assigned(aNode) do
     begin
