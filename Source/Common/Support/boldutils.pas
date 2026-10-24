@@ -82,8 +82,21 @@ begin
 end;
 
 function BoldStrAnsiEqual(P1, P2: PChar; Len: integer): Boolean;
+{$IFDEF FPC}
+var
+  S1, S2: UnicodeString;
+{$ENDIF}
 begin
+  {$IFDEF FPC}
+  // FPC 3.2.2 has AnsiStrLIComp for PAnsiChar only
+  if CompareMem(P1, P2, Len * SizeOf(Char)) then
+    Exit(True);
+  SetString(S1, P1, Len);
+  SetString(S2, P2, Len);
+  Result := UnicodeCompareText(S1, S2) = 0;
+  {$ELSE}
   Result := CompareMem(P1, P2, Len * SizeOf(Char)) or (AnsiStrLIComp(P1, P2, Len) = 0);
+  {$ENDIF}
 end;
 
 function BoldAnsiEqual(const S1, S2: string): Boolean;
