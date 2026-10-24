@@ -474,7 +474,7 @@ type
     constructor Create(AEdit: TcxCustomEdit); override;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldTextEdit = class(TcxCustomTextEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxBoldTextEditProperties;
@@ -553,7 +553,7 @@ type
   TcxBoldDateEditProperties = class(TcxCustomBoldDateEditProperties)
   end;
 }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldDateEdit = class(TcxCustomDateEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxDateEditProperties;
@@ -630,7 +630,7 @@ type
     property OnStartDock;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldMemo = class(TcxCustomMemo, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxMemoProperties;
@@ -697,7 +697,7 @@ type
     property OnStartDrag;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldTimeEdit = class(TcxCustomTimeEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxTimeEditProperties;
@@ -767,7 +767,7 @@ type
     property OnStartDrag;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldCurrencyEdit = class(TcxCustomCurrencyEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxCurrencyEditProperties;
@@ -829,7 +829,7 @@ type
     property OnStartDock;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldMaskEdit = class(TcxCustomMaskEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxMaskEditProperties;
@@ -897,7 +897,7 @@ type
     property OnStartDock;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldCheckBox = class(TcxCustomCheckBox, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxCheckBoxProperties;
@@ -967,7 +967,7 @@ type
     property OnStartDock;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldComboBox = class(TcxCustomComboBox, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxBoldComboBoxProperties;
@@ -1038,7 +1038,7 @@ type
   end;
 
   // perhaps use TBoldIntegerFollowerController ?
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldSpinEdit = class(TcxCustomSpinEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxSpinEditProperties;
@@ -1106,7 +1106,7 @@ type
     property OnStartDrag;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldButtonEdit = class(TcxCustomButtonEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxButtonEditProperties;
@@ -1173,7 +1173,7 @@ type
     property OnStartDock;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldHyperLinkEdit = class(TcxCustomHyperLinkEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxHyperLinkEditProperties;
@@ -1234,7 +1234,7 @@ type
     property OnStartDock;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldProgressBar = class(TcxCustomProgressBar, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxProgressBarProperties;
@@ -1292,7 +1292,7 @@ type
     property OnStartDrag;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBarBoldEditItem = class(TcxCustomBarEditItem)
   private
     fInternalChange: integer;
@@ -1331,7 +1331,7 @@ type
 //    property TextHint;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBarBoldEditItemControl = class(TcxBarEditItemControl)
   private
   protected
@@ -1345,7 +1345,7 @@ type
   end;
 
 {$IFDEF DevExScheduler}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldDateNavigator = class(TcxCustomDateNavigator, IBoldValidateableComponent)
   private
     fInternalChange: integer;
@@ -1451,7 +1451,7 @@ type
 
   { TcxBoldLabel }
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldLabel = class(TcxCustomLabel, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxLabelProperties;
@@ -1514,7 +1514,7 @@ type
     property OnStartDrag;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldImage = class(TcxCustomImage, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxImageProperties;
@@ -1574,7 +1574,7 @@ type
     property OnStartDrag;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldRichEdit = class(TcxCustomRichEdit, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetActiveProperties: TcxRichEditProperties;
@@ -1641,7 +1641,7 @@ type
     property OnStartDrag;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldListBox = class(TcxListBox, IBoldValidateableComponent)
   private
     fInternalUpdate: boolean;
@@ -1697,7 +1697,7 @@ type
     property BoldHandleIndexLock: Boolean read GetBoldHandleIndexLock write SetBoldHandleIndexLock default true;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldCustomCheckListBox = class(TcxCustomCheckListBox, IBoldValidateableComponent)
   private
     fInternalUpdate: boolean;
@@ -1813,7 +1813,7 @@ type
     property OnStartDrag;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldCheckListBox = class(TcxBoldCustomCheckListBox{, IBoldValidateableComponent, IBoldOCLComponent})
   private
     // IBoldValidateableComponent
@@ -1827,7 +1827,7 @@ const
   beSelectionHandleChanged = 400;
 
 type
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldSelectionCheckListBox = class(TcxBoldCustomCheckListBox{, IBoldValidateableComponent, IBoldOCLComponent})
   private
     fCheckBoxRenderer: TBoldAsCheckBoxStateRenderer;
@@ -1850,7 +1850,7 @@ type
     property BoldSelectionHandle: TBoldAbstractListHandle read fBoldSelectionHandle write SetSelectionHandle;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldListView = class(TcxCustomListView{, IBoldValidateableComponent, IBoldOCLComponent})
   private
     fListHandleFollower: TBoldListHandleFollower;

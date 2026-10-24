@@ -133,7 +133,7 @@ type
   end;
 
   { TcxCustomBoldLookupComboBox }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxCustomBoldLookupComboBox = class(TcxCustomBoldLookupEdit)
   private
     function GetProperties: TcxBoldLookupComboBoxProperties;
@@ -150,7 +150,7 @@ type
   end;
 
   { TcxBoldLookupComboBox }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldNBLookupComboBox = class(TcxCustomBoldLookupComboBox)
   published
     property Anchors;
@@ -194,7 +194,7 @@ type
   end;
 
   { TcxBoldLookupComboBox }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldLookupComboBox = class(TcxCustomBoldLookupComboBox, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetDataBinding: TcxBoldTextEditDataBinding;
@@ -246,7 +246,7 @@ type
   end;
 
   { TcxBoldFilterLookupComboBoxHelper }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldFilterLookupComboBoxHelper = class(TcxFilterComboBoxHelper)
   protected
     class function IsIDefaultValuesProviderNeeded(

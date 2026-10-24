@@ -26,7 +26,7 @@ type
   TBoldDerivedHandle = class;
 
   {---TBoldDerviedHandle---}
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TBoldDerivedHandle = class(TBoldRootedHandle)
   private
     fOnDeriveAndSubscribe: TBoldHandleDeriveAndSubscribe;

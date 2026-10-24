@@ -18,7 +18,7 @@ type
   {forward declarations}
   TBoldWebConnection = class;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldWebConnection = class(TComponent)
   private
     FUserName: string;

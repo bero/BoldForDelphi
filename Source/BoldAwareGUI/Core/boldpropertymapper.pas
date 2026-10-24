@@ -79,7 +79,7 @@ type
   end;
 
   { TBoldPropertyMapper }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldPropertyMapper = class(TComponent)
   private
     FMappingCollection: TBoldPropertyMappingCollection;

@@ -29,7 +29,7 @@ type
   TBoldHandleLocatorStyle = (hfByName, hfByType);
 
   {---TBoldPlaceableAFP---}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldPlaceableAFP = class(TComponent)
   private
     fOnGetFormClass: TBoldGetFormClassEvent;

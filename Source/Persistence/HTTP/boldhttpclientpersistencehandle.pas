@@ -18,7 +18,7 @@ type
   TBoldHTTPClientPersistenceHandle = class;
 
   { TBoldHTTPClientPersistenceHandle }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldHTTPClientPersistenceHandle = class(TBoldPersistenceHandle)
   private
     FModel: TBoldAbstractModel;

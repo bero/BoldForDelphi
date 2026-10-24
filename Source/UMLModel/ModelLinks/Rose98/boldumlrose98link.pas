@@ -28,7 +28,7 @@ type
   TRoseLinkPass = (Pass1, Pass2);
 
   { TBoldRoseLink }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldUMLRoseLink = class(TBoldUMLModelLink)
   private
     fFileName: string;
@@ -108,7 +108,7 @@ type
   end;
 
  { TBoldUMLRose98Link }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
  TBoldUMLRose98Link = class(TBoldUMLRoseLink)
  end;
 

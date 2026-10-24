@@ -18,7 +18,7 @@ type
   TBoldSOAPServerPersistenceHandle = class;
 
   {-- TBoldComServerElementHandle --}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldSOAPServerPersistenceHandle = class(TBoldComExportHandle)
   private
     FBoldHandle: TBoldPersistenceHandle;

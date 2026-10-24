@@ -64,7 +64,7 @@ type
   end;
 
   { TBoldSystemTypeInfoHandle }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldSystemTypeInfoHandle = class(TBoldElementHandle)
   private
     fBoldModel: TBoldAbstractModel;

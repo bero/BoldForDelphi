@@ -18,7 +18,7 @@ uses
   ComCtrls;
 
 type
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldPageControl = class(TPageControl)
   private
     { Private declarations }

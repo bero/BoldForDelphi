@@ -20,7 +20,7 @@ type
   TBoldElementFilter = function (Element: TBoldElement): Boolean of object;
 
   { TBoldFilter }
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TBoldFilter = class(TBoldSubscribableComponentViaBoldElem)
   private
     FOnFilter: TBoldElementFilter;
@@ -42,7 +42,7 @@ type
   end;
 
   { TBoldFilteredHandle }
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TBoldFilteredHandle = class(TBoldRootedHandle)
   private
     FBoldFilter: TBoldFilter;

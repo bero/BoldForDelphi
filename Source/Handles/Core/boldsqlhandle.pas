@@ -16,7 +16,7 @@ type
   TBoldSQLHandle = class;
 
   { TBoldSQLHandle }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldSQLHandle = class(TBoldNonSystemHandle)
   private
     fBoldObjectClass: TBoldObjectClass;

@@ -22,7 +22,7 @@ type
   TBoldCaptionController = class;
 
   {---TBoldCaptionController---}
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TBoldCustomCaptionController = class(TComponent, IBoldOCLComponent)
   private
     { Private declarations }
@@ -57,7 +57,7 @@ type
   end;
 
   {---TBoldCaptionController---}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldCaptionController = class(TBoldCustomCaptionController)
   published
     property BoldHandle;

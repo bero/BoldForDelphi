@@ -19,7 +19,7 @@ type
   TBoldOclDefinition = class;
   TBoldOclRepository = class;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldOclRepository = class(TBoldSubscribableComponent, IBoldValidateableComponent)
   private
     fSystemHandle: TBoldSystemHandle;

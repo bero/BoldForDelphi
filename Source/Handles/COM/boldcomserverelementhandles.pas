@@ -17,7 +17,7 @@ type
   TBoldComServerElementHandle = class;
 
   {-- TBoldComServerElementHandle --}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldComServerElementHandle = class(TBoldComExportHandle)
   private
     FBoldHandle: TBoldElementHandle;

@@ -25,7 +25,7 @@ type
   { Forward declaration of classes }
   TBoldUnloaderHandle = class;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldUnloaderHandle = class(TBoldSystemExtensionComponent)
   private
     fActive: Boolean;

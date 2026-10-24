@@ -18,7 +18,7 @@ type
   TBoldReceiveEvent = procedure (Originator: TObject; OriginalEvent: TBoldEvent;
       RequestedEvent: TBoldRequestedEvent; const Args: array of const) of object;
 
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TCustomBoldPlaceableListSubscriber = class(TComponent)
   private
     fBoldRowProperties: TBoldStringFollowerController;

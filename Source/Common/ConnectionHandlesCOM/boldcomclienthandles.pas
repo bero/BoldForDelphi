@@ -19,7 +19,7 @@ type
   TBoldComClientObjectHandle = class;
 
   {-- TBoldComConnectionHandle --}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldComConnectionHandle = class(TBoldClientHandle)
   private
     FAfterConnect: TNotifyEvent;
@@ -106,7 +106,7 @@ type
     property ObjectName;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldComClientObjectHandle = class(TBoldComImportHandle)
   private
     FComObject: IUnknown;

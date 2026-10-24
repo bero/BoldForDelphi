@@ -92,7 +92,7 @@ type
   end;
 
   {---TBoldMemo---}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldMemo = class(TBoldCustomMemo)
   public
     {$IFNDEF T2H}

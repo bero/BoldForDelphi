@@ -86,7 +86,7 @@ type
   end;
 
   {-- TBoldComServerHandle --}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldComServerHandle = class(TBoldServerHandle)
   private
     FClasses: TBoldComClasses;
@@ -137,7 +137,7 @@ type
   TBoldComGetComObjectEvent = procedure(Sender: TObject; out Obj: IUnknown) of object;
   
   {-- TBoldComServerObjectHandle --}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldComServerObjectHandle = class(TBoldComExportHandle)
   private
     FOnGetComObject: TBoldComGetComObjectEvent;

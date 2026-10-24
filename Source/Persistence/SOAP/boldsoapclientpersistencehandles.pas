@@ -12,7 +12,7 @@ uses
   BoldPersistenceController;
 
 type
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldSOAPClientPersistenceHandle = class(TBoldAbstractComClientPersistenceHandle)
   private
     fModel: TBoldAbstractModel;

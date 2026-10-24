@@ -28,7 +28,7 @@ type
   TBoldImage = class;
 
   {-- TBoldImage --}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldImage = class(TCustomControl, IBoldOCLComponent)
   private
     fBoldProperties: TBoldViewerFollowerController;

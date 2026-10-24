@@ -27,7 +27,7 @@ type
   TBoldExpressionHandleClass = class of TBoldExpressionHandle;       
 
   {---TBoldExpressionHandle---}
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TBoldExpressionHandle = class(TBoldRootedHandle, IBoldOCLComponent)
   function IBoldOCLComponent.GetContextType = GetStaticRootType;
   private

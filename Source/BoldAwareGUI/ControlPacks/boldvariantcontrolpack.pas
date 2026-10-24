@@ -95,7 +95,7 @@ type
     property OnGetAsString: TBoldGetAsString read fOnGetAsString write fOnGetAsString;    
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldAsVariantRenderer = class(TBoldCustomAsVariantRenderer)
   published
     property OnGetAsVariant;

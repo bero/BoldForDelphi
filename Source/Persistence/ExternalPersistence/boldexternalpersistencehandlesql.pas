@@ -19,7 +19,7 @@ uses
   BoldPersistenceController;
 
 type
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldExternalPersistenceHandleSQL = class(TBoldAbstractPartiallyExternalPH)
   private
     FDatabaseAdapter: TBoldAbstractDatabaseAdapter;

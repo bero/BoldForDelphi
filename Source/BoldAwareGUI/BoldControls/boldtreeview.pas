@@ -175,7 +175,7 @@ type
   end;
 
   {---TBoldTreeView---}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldTreeView = class(TBoldCustomTreeView)
   public
     {$IFNDEF T2H}

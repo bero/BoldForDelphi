@@ -21,7 +21,7 @@ uses
 type
 
   { TcxBoldExtLookupGrid }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldExtLookupGrid = class(TcxGrid)
   private
     FEditable: Boolean;
@@ -174,7 +174,7 @@ type
   end;
 
   { TcxCustomBoldExtLookupComboBox }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxCustomBoldExtLookupComboBox = class(TcxCustomBoldLookupEdit)
   private
     function GetActiveProperties: TcxBoldExtLookupComboBoxProperties;
@@ -193,7 +193,7 @@ type
   end;
 
   { TcxBoldNBExtLookupComboBox }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldNBExtLookupComboBox = class(TcxCustomBoldExtLookupComboBox)
   published
     property Anchors;
@@ -235,7 +235,7 @@ type
   end;
 
   { TcxBoldExtLookupComboBox }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxBoldExtLookupComboBox = class(TcxCustomBoldExtLookupComboBox, IBoldValidateableComponent, IBoldOCLComponent)
   private
     function GetDataBinding: TcxBoldTextEditDataBinding;
@@ -285,7 +285,7 @@ type
   end;
 
   { TcxEditRepositoryExtLookupComboBoxItem }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxEditRepositoryExtLookupComboBoxItem = class(TcxEditRepositoryItem)
   private
     function GetProperties: TcxBoldExtLookupComboBoxProperties;

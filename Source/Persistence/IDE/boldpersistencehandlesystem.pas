@@ -14,7 +14,7 @@ uses
   Classes;
 
 type
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldPersistenceHandleSystem = class(TBoldPersistenceHandle)
   private
     fSystemHandle: TBoldSystemHandle;

@@ -64,7 +64,7 @@ type
     property AsString: string read GetAsString;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldConstraintValidator = class(TBoldNonSystemHandle, IBoldValidateableComponent)
   strict private
     fValidatioNesting: integer;

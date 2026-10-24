@@ -21,7 +21,7 @@ uses
 type
   TBoldFormSaverExceptionEvent = procedure(Error: Exception) of object;
 
-  [ComponentPlatformsAttribute(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute(pidWin32 or pidWin64)]{$ENDIF}
   TBoldFormSaver = class(TBoldNonSystemHandle)
   private
     fBoldDirtyObjectTracker: IBoldDirtyObjectTracker;

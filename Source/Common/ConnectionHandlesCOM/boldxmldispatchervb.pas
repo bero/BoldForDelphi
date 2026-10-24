@@ -26,7 +26,7 @@ type
     property Owner: TObject read FOwner;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldXMLDispatcherVB = class(TBoldXMLDispatcher)
   protected
     function GetComObject: IUnknown; override;

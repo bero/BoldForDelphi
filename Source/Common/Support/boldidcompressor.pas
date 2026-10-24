@@ -12,7 +12,7 @@ uses
 type
   TBoldIDCompressorProgressEvent = procedure(APosition, aTotal: integer) of object;
 
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TBoldIDCompressor = class(TComponent)
   private
     fSystemHandle: TBoldSystemHandle;

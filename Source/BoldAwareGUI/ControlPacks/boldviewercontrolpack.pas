@@ -47,7 +47,7 @@ type
   end;
 
   { TBoldAsViewerRenderer }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldAsViewerRenderer = class(TBoldSingleRenderer)
   private
     FOnGetAsViewer: TBoldGetAsViewer;

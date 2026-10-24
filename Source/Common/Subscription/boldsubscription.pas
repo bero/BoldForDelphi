@@ -324,7 +324,7 @@ type
   end;
 
   {---TBoldSubscribableComponent---}
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldSubscribableComponent = class(TComponent)
   strict private
     fPublisher: TBoldPublisher;

@@ -25,7 +25,7 @@ type
   TBoldAlertExcessiveFetchEvent = procedure(ObjectId: TBoldObjectId; FetchCount: integer) of object;
 
   { TBoldAbstractPersistenceNotifier }
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TBoldAbstractPersistenceNotifier = class(TComponent)
   private
     fEvents: array[bpeMinReserved..bpeMaxReserved] of TBoldExtendedEventHandler;
@@ -81,7 +81,7 @@ type
   end;
 
   { TBoldPersistenceNotifier }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldPersistenceNotifier = class(TBoldAbstractPersistenceNotifier)
   published
     property PersistenceHandle;
@@ -103,7 +103,7 @@ type
   end;
 
   { TBoldPersistenceProgressNotifier }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldPersistenceProgressNotifier = class(TBoldAbstractPersistenceNotifier)
   private
     { Private declarations }

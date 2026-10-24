@@ -166,7 +166,7 @@ type
     property UseMouseWheel: Boolean read FUseMouseWheel write FUseMouseWheel;
   end;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldComboBox = class(TBoldCustomCombobox)
   {$IFNDEF T2H}
   public

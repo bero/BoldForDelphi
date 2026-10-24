@@ -75,7 +75,7 @@ type
   end;
 
   { TBoldLabel }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldLabel = class(TBoldCustomLabel)
   public
     {$IFNDEF T2H}

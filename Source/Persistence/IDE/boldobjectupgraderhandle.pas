@@ -16,7 +16,7 @@ uses
   BoldAbstractObjectUpgraderHandle;
 
 type
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldObjectUpgraderHandle = class(TBoldAbstractObjectUpgraderHandle)
   private
     FPersistenceHandle: TBoldAbstractPersistenceHandleDB;

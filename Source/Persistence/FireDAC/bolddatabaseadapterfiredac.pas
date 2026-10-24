@@ -16,7 +16,7 @@ type
   TBoldDatabaseAdapterFireDAC = class;
 
   { TBoldDatabaseAdapterFireDAC }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldDatabaseAdapterFireDAC = class(TBoldAbstractDatabaseAdapter)
   private
     fBoldFireDACConnection: TBoldFireDACConnection;

@@ -16,7 +16,7 @@ type
   TBoldDatabaseAdapterUniDAC = class;
 
   { TBoldDatabaseAdapterUniDAC }
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TBoldDatabaseAdapterUniDAC = class(TBoldAbstractDatabaseAdapter)
   private
     fBoldUniDACConnection: TBoldUniDACConnection;

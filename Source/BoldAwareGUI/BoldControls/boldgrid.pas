@@ -402,7 +402,7 @@ type
   end;
 
   { TBoldGrid }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldGrid = class(TBoldCustomGrid)
   public
     {$IFNDEF T2H}

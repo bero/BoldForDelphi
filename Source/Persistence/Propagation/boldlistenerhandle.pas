@@ -20,7 +20,7 @@ type
   {forward declarations}
   TBoldListenerHandle= class;
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldListenerHandle = class(TBoldHandle)
   private
     fActive: Boolean;

@@ -16,7 +16,7 @@ type
   TBoldCursorHandle = class;
 
   { TBoldCursorHandle }
-  [ComponentPlatforms(pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
   TBoldCursorHandle = class(TBoldAbstractListHandle)
   private
     fAutoFirst: Boolean;

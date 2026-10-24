@@ -23,7 +23,7 @@ type
   TUMLModelMode = (ummNone, ummDesignTime, ummRunTime);
 
   { TBoldModel }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldModel = class(TBoldAbstractModel)
   private
     FUMLModelExposed: Boolean;

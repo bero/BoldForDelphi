@@ -25,7 +25,7 @@ type
   TBoldProgressBar = class;
 
   { TBoldProgressBar }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldProgressBar = class(TProgressBar, IBoldOCLComponent)
   private
     FEffectiveReadOnly: Boolean;

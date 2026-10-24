@@ -16,7 +16,7 @@ type
   TBoldUMLXMILink = class;
 
   { TBoldUMLXMILink }
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TBoldUMLXMILink = class(TBoldUMLModelLink)
   private
     fFilename: String;

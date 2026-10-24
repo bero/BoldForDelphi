@@ -133,7 +133,7 @@ type
 
   { TcxCustomBoldLookupEdit }
 
-  [ComponentPlatformsAttribute (pidWin32 or pidWin64)]
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
   TcxCustomBoldLookupEdit = class(TcxCustomLookupEdit)
   private
     function GetProperties: TcxCustomBoldLookupEditProperties;
