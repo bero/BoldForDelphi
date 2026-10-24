@@ -25,7 +25,7 @@ uses
   ImgList,
   Menus,
   ShellAPI,
-  System.ImageList;
+  ImageList;
 
 type
   TBoldOclPropEditForm = class(TForm)
@@ -145,9 +145,9 @@ type
 implementation
 
 uses
-  System.SysUtils,
-  System.StrUtils,
-  System.UITypes,  // Prevent H2443 for TFont.GetStyle
+  SysUtils,
+  StrUtils,
+  UITypes,  // Prevent H2443 for TFont.GetStyle
 
   BoldCoreConsts,
   BoldUtils,

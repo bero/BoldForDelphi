@@ -53,7 +53,7 @@ type
 implementation
 
 uses
-  System.Types,
+  Types,
   SysUtils;
 
 var

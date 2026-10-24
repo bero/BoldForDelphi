@@ -3,19 +3,19 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Windows, Messages, SysUtils, Variants, Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, BoldCheckBox,
   BoldComboBox, BoldEdit, BoldLabel, Vcl.ExtCtrls, BoldSubscription,
   BoldHandles, BoldReferenceHandle, cxGraphics, cxControls, cxLookAndFeels,
   cxLookAndFeelPainters, cxStyles, cxCustomData, cxFilter, cxData,
   cxDataStorage, cxEdit, cxNavigator, dxDateRanges, dxScrollbarAnnotations,
-  Data.DB, cxDBData, cxTextEdit, cxDropDownEdit, cxGridLevel,
+  DB, cxDBData, cxTextEdit, cxDropDownEdit, cxGridLevel,
   cxGridCustomTableView, cxGridTableView, cxGridBoldSupportUnit, cxClasses,
   cxGridCustomView, cxGridDBTableView, cxGrid, Vcl.ComCtrls,
   BoldPropertiesController, cxCheckBox, cxBoldLookupComboBox, cxContainer,
   cxBoldEditors, cxMaskEdit, BoldRootedHandles, BoldAbstractListHandle,
-  BoldCursorHandle, BoldListHandle, Vcl.ToolWin, System.Actions, Vcl.ActnList,
-  System.ImageList, Vcl.ImgList, cxImageList;
+  BoldCursorHandle, BoldListHandle, Vcl.ToolWin, Actions, Vcl.ActnList,
+  ImageList, Vcl.ImgList, cxImageList;
 
 type
   TBoldUMLOperationEditForm = class(TForm)

@@ -157,9 +157,9 @@ type
 implementation
 
 uses
-  System.SysUtils,
-  System.Types,
-  System.UITypes,
+  SysUtils,
+  Types,
+  UITypes,
   Vcl.Dialogs,
 
   BoldCoreConsts,

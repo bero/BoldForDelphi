@@ -18,9 +18,9 @@ uses
   ComCtrls,
   Menus,
   BoldLogHandler,
-  System.Math,
+  Math,
   ImgList,
-  System.ImageList;
+  ImageList;
 
 type
   TBoldLogForm = class(TForm)

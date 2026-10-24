@@ -77,7 +77,7 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  System.Math;
+  Math;
 
 const
   bleFirst = 1;

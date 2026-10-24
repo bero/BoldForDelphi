@@ -8,8 +8,8 @@ interface
 uses
   BoldIndexableList,
   BoldSqlNodes,
-  System.Classes,
-  Data.DB;
+  Classes,
+  DB;
 
 type
   TBSS_Symbol = class(TBoldSqlSymbol)

@@ -3,7 +3,7 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Windows, Messages, SysUtils, Variants, Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, cxGraphics, cxControls, cxLookAndFeels,
   cxLookAndFeelPainters, cxStyles, cxCustomData, cxFilter, cxData,
   cxDataStorage, cxEdit, cxNavigator, dxDateRanges, dxScrollbarAnnotations,
@@ -13,7 +13,7 @@ uses
   BoldCursorHandle, BoldRootedHandles, BoldDerivedHandle,
   BoldElements,
   BoldUMLModel, cxButtonEdit, BoldControlPack, BoldVariantControlPack,
-  System.ImageList, Vcl.ImgList, cxImageList, System.Actions, Vcl.ActnList,
+  ImageList, Vcl.ImgList, cxImageList, Actions, Vcl.ActnList,
   Vcl.ComCtrls, Vcl.ToolWin, cxBoldLookupComboBox;
 
 type

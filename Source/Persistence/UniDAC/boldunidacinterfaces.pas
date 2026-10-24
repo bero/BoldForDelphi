@@ -250,7 +250,7 @@ implementation
 uses
   Variants,
   Masks,
-  System.RegularExpressions,
+  RegularExpressions,
 
   BoldUtils,
   BoldGuard,

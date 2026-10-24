@@ -18,7 +18,7 @@ uses
   ExtCtrls,
   Menus,
   ImgList,
-  Graphics, System.ImageList;
+  Graphics, ImageList;
 
 type
   TfrmAboutBold = class(TForm)

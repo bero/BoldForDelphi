@@ -299,7 +299,7 @@ type
 implementation
 
 uses
-   System.Types,
+   Types,
    BoldSystem,
    cxDropDownEdit,
    cxGridFilterHelpers;

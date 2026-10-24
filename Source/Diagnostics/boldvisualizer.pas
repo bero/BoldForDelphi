@@ -3,11 +3,11 @@
 interface
 
 uses
-  Winapi.Windows,
-  Winapi.Messages,
-  System.SysUtils,
-  System.Variants,
-  System.Classes,
+  Windows,
+  Messages,
+  SysUtils,
+  Variants,
+  Classes,
   Vcl.Graphics,
   Vcl.Controls,
   Vcl.Forms,
@@ -81,7 +81,7 @@ procedure Register;
 implementation
 
 uses
-  DesignIntf, Actnlist, ImgList, Menus, IniFiles, System.IOUtils;
+  DesignIntf, Actnlist, ImgList, Menus, IniFiles, IOUtils;
 
 {$R *.dfm}
 

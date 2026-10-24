@@ -123,7 +123,7 @@ uses
   SysUtils,
   BoldUtils,
   Dialogs,
-  System.UITypes,
+  UITypes,
   BoldLogHandler,
   BoldUMLDelphiSupport,
   BoldUMLRose98Support,

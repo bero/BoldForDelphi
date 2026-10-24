@@ -261,7 +261,7 @@ implementation
 uses
   Variants,
   Masks,
-  System.RegularExpressions,
+  RegularExpressions,
 
   FireDAC.Stan.Option,
   FireDAC.Stan.Error,

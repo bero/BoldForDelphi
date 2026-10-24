@@ -111,7 +111,7 @@ implementation
 uses
   SysUtils,
   BoldUMLModelSupport,
-  System.Math,
+  Math,
   BoldGuard,
   BoldTaggedValueSupport,
   BoldElements,

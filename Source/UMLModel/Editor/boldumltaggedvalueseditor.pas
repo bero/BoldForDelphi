@@ -36,7 +36,7 @@ uses
   ToolWin, 
   Menus, 
   ImgList, 
-  System.ImageList;
+  ImageList;
 
 const
   WM_REFRESHGUI = WM_USER + 123;

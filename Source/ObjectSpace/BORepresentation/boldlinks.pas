@@ -272,7 +272,7 @@ uses
   BoldValueInterfaces,
   BoldIndexableList,
   BoldSystemRT,
-  System.Math,
+  Math,
   BoldObjectListControllers,
   BoldLogHandler;
 

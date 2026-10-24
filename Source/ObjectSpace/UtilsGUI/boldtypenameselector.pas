@@ -15,7 +15,7 @@ uses
   BoldSystemRT,
   BoldElements,
   ImgList,
-  Menus, System.ImageList;
+  Menus, ImageList;
 
 type
   TNodeType = (ntClass, ntClasses, ntAttributes, ntList, ntAttribute, ntClassList,

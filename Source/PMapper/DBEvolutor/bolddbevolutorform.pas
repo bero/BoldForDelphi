@@ -18,7 +18,7 @@ uses
   BoldLoghandler,
   BoldLogReceiverInterface,
   BoldAbstractPersistenceHandleDB,
-  System.ImageList;
+  ImageList;
 
 type
   TfrmBoldDbEvolutor = class(TForm, IBoldLogReceiver)

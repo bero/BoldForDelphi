@@ -19,7 +19,7 @@ uses
   ToolWin,
   BoldWAInterfaces,
   ActnList, 
-  System.Actions;
+  Actions;
 
 type
   TStageType = (stBegin, stIntermediate, stFinal);

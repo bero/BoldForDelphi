@@ -345,7 +345,7 @@ uses
   BoldPMapperLists,
   BoldPSParamsDefault,
   BoldMappingInfo,
-  System.Math,
+  Math,
   BoldGlobalId,
   BoldPMappersLinkDefault,
   BoldOclLightWeightNodes,

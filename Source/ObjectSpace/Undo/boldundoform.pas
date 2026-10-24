@@ -3,7 +3,7 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Windows, Messages, SysUtils, Variants, Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, cxGraphics, cxControls,
   cxLookAndFeels, cxLookAndFeelPainters, cxContainer, cxEdit, cxListView,
   cxBoldEditors, BoldSystemHandle, BoldSubscription, cxStyles, cxCustomData,
@@ -11,7 +11,7 @@ uses
   dxScrollbarAnnotations, cxCheckBox, cxMemo, cxGridLevel,
   cxGridCustomTableView, cxGridTableView, cxGridBoldSupportUnit, cxClasses,
   cxGridCustomView, cxGrid,
-  BoldUndoHandler, Vcl.ExtCtrls, cxTimeEdit, Vcl.Menus, System.Actions,
+  BoldUndoHandler, Vcl.ExtCtrls, cxTimeEdit, Vcl.Menus, Actions,
   Vcl.ActnList, BoldUndoActions, BoldHandleAction, BoldActions;
 
 type

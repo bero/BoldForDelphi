@@ -16,7 +16,7 @@ uses
   Menus,
   Grids,
   BoldTypeNameHandle,
-  BoldTypeNameDictionary, ImgList, System.ImageList;
+  BoldTypeNameDictionary, ImgList, ImageList;
 
 type
   TBoldTypeNameEditorForm = class(TForm)

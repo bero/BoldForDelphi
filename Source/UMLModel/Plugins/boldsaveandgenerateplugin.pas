@@ -29,7 +29,7 @@ uses
   Classes,
   Controls,
   Dialogs,
-  System.UITypes,
+  UITypes,
   StrUtils,
   BoldDefs,
   BoldGuard,

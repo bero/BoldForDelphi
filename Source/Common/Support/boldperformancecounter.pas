@@ -127,7 +127,7 @@ implementation
 uses
   SysUtils,
   DateUtils,
-  System.Types,
+  Types,
 
   BoldCoreConsts,
   BoldUtils;

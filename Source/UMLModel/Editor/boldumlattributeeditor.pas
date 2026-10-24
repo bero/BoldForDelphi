@@ -2,7 +2,7 @@
 
 interface
 
-uses Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Forms,
+uses Windows, SysUtils, Classes, Vcl.Graphics, Vcl.Forms,
   Vcl.Controls, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls, BoldComboBox,
   BoldCheckBox, BoldEdit, BoldLabel, BoldStringControlPack, BoldSubscription,
   BoldElements, BoldControlPack, BoldCheckboxStateControlPack, BoldHandles,
@@ -88,7 +88,7 @@ uses
   BoldSystem,
   BoldSystemRT,
   BoldUMLConstraintEditorCx,
-  System.Variants;
+  Variants;
 
 {$R *.dfm}
 

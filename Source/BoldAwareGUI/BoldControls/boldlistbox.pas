@@ -176,7 +176,7 @@ implementation
 uses
   SysUtils,
   Forms,
-  System.Types,
+  Types,
   {$IFNDEF BOLDCOMCLIENT} // uses
   BoldGui, // IFNDEF BOLDCOMCLIENT
   {$ENDIF}

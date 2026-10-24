@@ -222,7 +222,7 @@ var
 implementation
 
 uses
-  System.Types,
+  Types,
   SysUtils,
   BoldDefs;
 

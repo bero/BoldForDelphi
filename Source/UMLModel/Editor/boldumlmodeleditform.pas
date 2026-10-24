@@ -714,7 +714,7 @@ implementation
 
 uses
   BoldCoreConsts,
-  System.UITypes,
+  UITypes,
   BoldDefaultTaggedValues,
   BoldUMLAttributes,
   BoldUMLModelConverter,

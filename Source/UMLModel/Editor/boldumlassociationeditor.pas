@@ -3,7 +3,7 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Windows, Messages, SysUtils, Variants, Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, BoldSubscription, BoldHandles,
   BoldRootedHandles, BoldExpressionHandle, Vcl.ExtCtrls, Vcl.StdCtrls,
   BoldElements, BoldControlPack, BoldStringControlPack,

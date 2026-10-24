@@ -85,7 +85,7 @@ uses
   Classes,
   Controls,
   SysUtils,
-  System.UITypes,
+  UITypes,
   BoldDefs,
   BoldHandle,
   BoldDbEvolutorForm,

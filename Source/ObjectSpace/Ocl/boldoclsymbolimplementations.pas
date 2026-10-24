@@ -18,8 +18,8 @@ uses
   Classes,
   Variants,
   Math,
-  System.RegularExpressions,
-  System.RegularExpressionsCore,
+  RegularExpressions,
+  RegularExpressionsCore,
 
   BoldCoreConsts,
   BoldElements,

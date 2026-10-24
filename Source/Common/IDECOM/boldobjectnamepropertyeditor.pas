@@ -21,7 +21,7 @@ uses
   ActnList,
   BoldAbstractPropertyEditors,
   DesignIntf,
-  TypInfo, System.Actions;
+  TypInfo, Actions;
 
 const
   INDEX_OBJECTNAME = 0;

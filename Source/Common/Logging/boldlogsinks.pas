@@ -47,7 +47,7 @@ unit BoldLogSinks;
 interface
 
 uses
-  System.Classes,
+  Classes,
   BoldLogInterfaces;
 
 type
@@ -127,9 +127,9 @@ type
 implementation
 
 uses
-  System.SysUtils,
-  System.SyncObjs,
-  WinApi.Windows;
+  SysUtils,
+  SyncObjs,
+  Windows;
 
 { TBoldBaseLogSink }
 

@@ -12,8 +12,8 @@ uses
   BoldValueInterfaces,
 
   JSON,
-  System.JSON.Readers,
-  System.JSON.Writers;
+  JSON.Readers,
+  JSON.Writers;
 
 type
 //  TBoldJSONOptions = (jo);
@@ -49,8 +49,8 @@ type
 implementation
 
 uses
-  System.JSON.Types,
-  System.TypInfo,
+  JSON.Types,
+  TypInfo,
 
   BoldDefs,
   BoldID;

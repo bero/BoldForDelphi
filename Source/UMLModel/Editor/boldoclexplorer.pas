@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, Grids, ExtCtrls, ActnList, Menus, System.Actions,
+  StdCtrls, ComCtrls, Grids, ExtCtrls, ActnList, Menus, Actions,
   BoldListBox, BoldSubscription, BoldHandles, BoldRootedHandles,
   BoldAbstractListHandle, BoldCursorHandle, BoldListHandle, BoldEdit,
   BoldExpressionHandle, BoldOclVariables, BoldSystem, BoldHandleAction,

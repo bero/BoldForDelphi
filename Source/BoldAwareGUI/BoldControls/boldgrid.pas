@@ -533,8 +533,8 @@ implementation
 uses
   SysUtils,
   Forms,
-  System.Types,
-  System.UITypes,
+  Types,
+  UITypes,
   {$IFNDEF BOLDCOMCLIENT}
   BoldAttributes,
   BoldSystemRT,
@@ -546,7 +546,7 @@ uses
   BoldListControlPack,
   BoldUtils,
   TypInfo,
-  System.Math,
+  Math,
   BoldQueue;
 
 const

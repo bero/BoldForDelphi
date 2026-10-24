@@ -104,7 +104,7 @@ uses
   BoldLogHandler,
   BoldDefs,
   BoldUtils,
-  System.Math,
+  Math,
   BoldGuard;
 
 const

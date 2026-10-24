@@ -18,7 +18,7 @@ uses
   DesignIntf,
   BoldNodeControlPack,
   Menus,
-  BoldSubscription, ImgList, System.ImageList;
+  BoldSubscription, ImgList, ImageList;
 
 type
 

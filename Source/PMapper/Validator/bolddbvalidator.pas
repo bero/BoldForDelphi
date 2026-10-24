@@ -6,13 +6,13 @@ interface
 
 uses
   Classes,
-  System.Threading,
+  Threading,
   BoldDbInterfaces,
   BoldAbstractPersistenceHandleDB,
   BoldPMappersSQL,
   BoldSubscription,
   BoldThreadSafeQueue,
-  System.Generics.Collections;
+  Generics.Collections;
 
 type
   { forward declarations }
@@ -110,15 +110,15 @@ implementation
 uses
   Vcl.Dialogs,
   Vcl.Controls,
-  System.SysUtils,
-  System.Types,
+  SysUtils,
+  Types,
 
   BoldPMappers,
   BoldLogHandler,
   BoldNameExpander,
   BoldDefs,
   BoldCoreConsts,
-  UITypes, Winapi.ActiveX;
+  UITypes, ActiveX;
 
 { TBoldDbValidator }
 

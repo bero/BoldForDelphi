@@ -8,7 +8,7 @@ uses
   Classes,
   Db,
   SysUtils,
-  System.DateUtils,
+  DateUtils,
   BoldBase,
   BoldSQLDatabaseConfig,
   WideStrings,
@@ -598,7 +598,7 @@ implementation
 
 uses
   Windows,
-  System.TypInfo,
+  TypInfo,
 
   BoldCoreConsts,
   BoldSharedStrings,

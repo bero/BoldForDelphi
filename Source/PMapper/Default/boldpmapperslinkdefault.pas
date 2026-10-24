@@ -199,7 +199,7 @@ uses
   BoldPSDescriptionsSQL,
   BoldSQLMappingInfo,
   BoldPMappersSQL,
-  System.Math,
+  Math,
   BoldSubscription,
   BoldTaggedValueSupport,
   BoldPMapperLists,

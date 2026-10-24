@@ -20,7 +20,7 @@ uses
   BoldHandles,
   BoldElements,
   BoldSubscription,
-  BoldReferenceHandle, ImgList, System.ImageList;
+  BoldReferenceHandle, ImgList, ImageList;
 
 type
   TfrmUsesEditor = class(TForm)

@@ -36,7 +36,7 @@ uses
   BoldPlaceableSubscriber,
   Menus,
   ExtCtrls,
-  ImgList, System.ImageList;
+  ImgList, ImageList;
 
 type
   TBoldUMLElementClickedEvent = procedure (sender: TComponent; element: TUMLModelElement) of object;

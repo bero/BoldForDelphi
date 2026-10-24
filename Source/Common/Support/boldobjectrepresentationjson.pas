@@ -8,7 +8,7 @@ uses
   Classes,
   BoldSystem,
   BoldElements,
-  System.JSON;
+  JSON;
 
 const
   DefaultEmbeddedDepth = 20;
@@ -75,7 +75,7 @@ implementation
 uses
   SysUtils,
   DateUtils,
-  System.Generics.Collections,
+  Generics.Collections,
 
   //BoldExpressSecuredObject,
   BoldCoreConsts,

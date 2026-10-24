@@ -40,7 +40,7 @@
 
 interface
 
-uses Winapi.Windows, System.Classes, System.Variants, System.Win.StdVCL, Vcl.Graphics, Vcl.OleServer, Winapi.ActiveX;
+uses Windows, Classes, Variants, StdVCL, Vcl.Graphics, Vcl.OleServer, ActiveX;
   
 
 // *********************************************************************//
@@ -3841,7 +3841,7 @@ type
 
 implementation
 
-uses System.Win.ComObj;
+uses ComObj;
 
 class function CoDOMDocument60.Create: IXMLDOMDocument3;
 begin

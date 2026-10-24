@@ -4,11 +4,11 @@ interface
 
 uses
   Classes,
-  System.SysUtils,
+  SysUtils,
   BoldAbstractPersistenceHandleDB,
   BoldDBInterfaces,
   BoldThreadSafeQueue,
-  System.TimeSpan;
+  TimeSpan;
 
 type
   TBoldDbCopy = class;
@@ -71,14 +71,14 @@ implementation
 
 uses
   // VCL
-  Data.DB,
+  DB,
   FireDAC.Comp.Client,
   FireDAC.Stan.Option,
-  System.Character,
-  System.DateUtils,
-  System.Math,
-  System.Types, // Remove inline hint H2443
-  Winapi.ActiveX,
+  Character,
+  DateUtils,
+  Math,
+  Types, // Remove inline hint H2443
+  ActiveX,
 
   {$IFDEF UniDAC} Uni,{$ENDIF}
 

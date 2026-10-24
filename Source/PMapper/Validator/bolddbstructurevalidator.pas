@@ -57,8 +57,8 @@ uses
   BoldPMappersDefault,
   BoldPMappersSQL,
   BoldPMappers,
-  Winapi.ActiveX,
-  System.TimeSpan;
+  ActiveX,
+  TimeSpan;
 
 { TBoldDbStructureValidator }
 

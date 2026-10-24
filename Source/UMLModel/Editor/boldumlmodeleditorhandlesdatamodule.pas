@@ -3,7 +3,7 @@
 interface
 
 uses
-  System.SysUtils, System.Classes,
+  SysUtils, Classes,
   VCL.Graphics,
   BoldStringControlPack, BoldElements,
   BoldControlPack, BoldCheckboxStateControlPack, BoldReferenceHandle,
@@ -163,11 +163,11 @@ var
 implementation
 
 uses
-  System.UITypes,
+  UITypes,
   BoldSystem, BoldDefs, BoldPMapperLists, BoldAttributes,
   BoldUMLModelDataModule, BoldDefaultTaggedValues, BoldUtils,
   BoldTaggedValueSupport, Variants, BoldUMLModelSupport, BoldUMLOCLEditor,
-  Winapi.Windows, BoldAbstractModel, BoldSystemHandle, RTLConsts;
+  Windows, BoldAbstractModel, BoldSystemHandle, RTLConsts;
 
 {$R *.dfm}
 

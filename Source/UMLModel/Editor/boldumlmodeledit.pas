@@ -60,7 +60,7 @@ uses
   SysUtils,
   BoldRegistry,
   Controls,
-  System.Types,
+  Types,
   BoldUMLModelDataModule,
   BoldUMLModelEditorHandlesDataModule,
   BoldUMLModelEditForm,

@@ -40,7 +40,7 @@ type
 implementation
 
 uses
-  System.Types;
+  Types;
 
 var
   G_BoldExceptionHandlers: TList = nil;

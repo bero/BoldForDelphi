@@ -93,7 +93,7 @@ type
 implementation
 
 uses
-  System.SysUtils;
+  SysUtils;
 
 { TBoldClassSubscriber }
 

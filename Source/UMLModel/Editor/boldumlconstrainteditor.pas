@@ -27,7 +27,7 @@ uses
   BoldReferenceHandle,
   BoldUMLModel,
   BoldPropertiesController,
-  System.ImageList,
+  ImageList,
   BoldCoreConsts;
 
 type

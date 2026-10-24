@@ -34,7 +34,7 @@ uses
   BoldControlPack,
   BoldStringControlPack,
   BoldPlaceableSubscriber,
-  ToolWin, Menus, ImgList, System.ImageList, cxGraphics, cxControls,
+  ToolWin, Menus, ImgList, ImageList, cxGraphics, cxControls,
   cxLookAndFeels, cxLookAndFeelPainters, cxStyles, cxCustomData, cxFilter,
   cxData, cxDataStorage, cxEdit, cxNavigator, dxDateRanges,
   dxScrollbarAnnotations, cxGridCustomView, cxGridCustomTableView,
@@ -120,7 +120,7 @@ implementation
 uses
   SysUtils,
   BoldUtils,
-  System.UITypes,
+  UITypes,
   BoldUMLModelDataModule,
   BoldUMLAddTV, BoldUMLModelEditorHandlesDataModule, BoldDefaultTaggedValues,
   BoldUMLModelSupport;

@@ -35,12 +35,12 @@ uses
   BoldPlaceableSubscriber,
   Menus,
   ExtCtrls,
-  ImgList, System.ImageList, cxGraphics, cxControls, cxLookAndFeels,
+  ImgList, ImageList, cxGraphics, cxControls, cxLookAndFeels,
   cxLookAndFeelPainters, cxStyles, cxCustomData, cxFilter, cxData,
   cxDataStorage, cxEdit, cxNavigator, dxDateRanges, dxScrollbarAnnotations,
   cxTextEdit, cxDropDownEdit, cxGridCustomTableView, cxGridTableView,
   cxGridBoldSupportUnit, cxGridCustomView, cxClasses, cxGridLevel, cxGrid,
-  System.Actions, Vcl.ActnList, Vcl.StdActns, BoldExpressionHandle;
+  Actions, Vcl.ActnList, Vcl.StdActns, BoldExpressionHandle;
 
 type
   TBoldUMLElementClickedEvent = procedure (element: TUMLModelElement) of object;
