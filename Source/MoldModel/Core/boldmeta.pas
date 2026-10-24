@@ -3210,7 +3210,7 @@ end;
 
 function TMoldElement.GetTVByName(const Tag: string): string;
 begin
-   if Tag.StartsWith(BOLDTVPREFIX) then
+   if Copy(Tag, 1, Length(BOLDTVPREFIX)) = BOLDTVPREFIX then
      Result := BoldTVByName[Copy(Tag, Length(BOLDTVPREFIX) +1, MaxInt)]
    else if Assigned(fTaggedValues) and Assigned(TaggedValues.ItemByName[Tag]) then
      Result := TaggedValues.ValueByName[Tag]
@@ -3223,7 +3223,7 @@ var
   TrimmedValue: string;
 begin
   TrimmedValue := Trim(Value);
-  if Tag.StartsWith(BOLDTVPREFIX) then
+  if Copy(Tag, 1, Length(BOLDTVPREFIX)) = BOLDTVPREFIX then
     BoldTVByName[Copy(Tag, Length(BOLDTVPREFIX) +1, MaxInt)] := TrimmedValue
   else
     TaggedValues.ValueByName[Tag] := TrimmedValue;
