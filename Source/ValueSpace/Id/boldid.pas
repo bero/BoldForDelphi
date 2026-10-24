@@ -239,8 +239,8 @@ type
 implementation
 
 uses
-  {$IFDEF OXML}OXmlPDOM{$ELSE}Bold_MSXML_TLB{$ENDIF},
   SysUtils,
+  Contnrs,
   BoldDefaultXMLStreaming,
   BoldDefaultStreamNames,
   BoldMeta;
@@ -1040,48 +1040,23 @@ procedure TBoldXMLObjectIdListStreamer.ReadObject(Obj: TObject;
   Node: TBoldXMLNode);
 var
   anIdList: TBoldObjectIdList;
-  {$IFDEF OXML}
-  aNodeEnumerator: TXMLResNodeListEnumerator;
-  aNodeList: IXMLNodeList;
-  aNode: PXMLNode;
-  {$ELSE}
-  aNodeList: IXMLDOMNodeList;
-  aNode: IXMLDOMNode;
-  {$ENDIF}
-  aSubNode: TBoldXMLNode;
+  SubNodes: TObjectList;
+  i: Integer;
   ObjectId: TBoldObjectId;
 begin
   inherited;
   anIdList := Obj as TBoldObjectIdList;
-  {$IFDEF OXML}
-  if Node.XMLDomElement.GetElementsByTagName('id', aNodeList) then begin
-    aNodeEnumerator := aNodeList.GetEnumerator;
-    try
-      while aNodeEnumerator.MoveNext do begin
-        aNode := aNodeEnumerator.Current;
-        aSubNode := Node.MakeNodeForElement(aNode);
-        ObjectId := aSubNode.ReadObject('') as TBoldObjectId;
-        anIdList.Add(ObjectId);
-        ObjectId.Free;
-        aSubNode.Free;
-      end;
-    finally
-      aNodeEnumerator.Free;
+  SubNodes := Node.NewSubNodesByTagName('id');  // do not localize
+  try
+    for i := 0 to SubNodes.Count - 1 do
+    begin
+      ObjectId := TBoldXMLNode(SubNodes[i]).ReadObject('') as TBoldObjectId;
+      anIdList.Add(ObjectId);
+      ObjectId.Free;
     end;
+  finally
+    SubNodes.Free;
   end;
-  {$ELSE}
-  aNodeList := Node.XMLDomElement.getElementsByTagName('id');  // do not localize
-  aNode := aNodeList.nextNode;
-  while assigned(aNode) do
-  begin
-    aSubNode := Node.MakeNodeForElement(aNode as IXMLDOMElement);
-    ObjectId := aSubNode.ReadObject('') as TBoldObjectId;
-    anIdList.Add(ObjectId);
-    ObjectId.Free;
-    aSubNode.Free;
-    aNode := aNodeList.nextNode;
-  end;
-  {$ENDIF}
 end;
 
 procedure TBoldXMLObjectIdListStreamer.WriteObject(Obj: TBoldInterfacedObject;
@@ -1179,43 +1154,18 @@ procedure TBoldXMLMemberIdListStreamer.ReadObject(Obj: TObject;
   Node: TBoldXMLNode);
 var
   aMemberIdList: TBoldMemberIdList;
-  {$IFDEF OXML}
-  aNodeEnumerator: TXMLResNodeListEnumerator;
-  aNodeList: IXMLNodeList;
-  aNode: PXMLNode;
-  {$ELSE}
-  aNodeList: IXMLDOMNodeList;
-  aNode: IXMLDOMNode;
-  {$ENDIF}
-  aSubNode: TBoldXMLNode;
+  SubNodes: TObjectList;
+  i: Integer;
 begin
   inherited;
   aMemberIdList := Obj as TBoldMemberIdList;
-  {$IFDEF OXML}
-  if Node.XMLDomElement.GetElementsByTagName('id', aNodeList) then begin
-    aNodeEnumerator := aNodeList.GetEnumerator;
-    try
-      while aNodeEnumerator.MoveNext do begin
-        aNode := aNodeEnumerator.Current;
-        aSubNode := Node.MakeNodeForElement(aNode);
-        aMemberIdList.Add(aSubNode.ReadObject('') as TBoldMemberId);
-        aSubNode.Free;
-      end;
-    finally
-      aNodeEnumerator.Free;
-    end;
+  SubNodes := Node.NewSubNodesByTagName('id');  // do not localize
+  try
+    for i := 0 to SubNodes.Count - 1 do
+      aMemberIdList.Add(TBoldXMLNode(SubNodes[i]).ReadObject('') as TBoldMemberId);
+  finally
+    SubNodes.Free;
   end;
-  {$ELSE}
-  aNodeList := Node.XMLDomElement.getElementsByTagName('id');  // do not localize
-  aNode := aNodeList.nextNode;
-  while assigned(aNode) do
-  begin
-    aSubNode := Node.MakeNodeForElement(aNode as IXMLDOMElement);
-    aMemberIdList.Add(aSubNode.ReadObject('') as TBoldMemberId);
-    aSubNode.Free;
-    aNode := aNodeList.nextNode;
-  end;
-  {$ENDIF}
 end;
 
 procedure TBoldXMLMemberIdListStreamer.WriteObject(

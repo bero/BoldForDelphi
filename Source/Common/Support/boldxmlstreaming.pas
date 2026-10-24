@@ -10,6 +10,7 @@ uses
   BoldBase,
   BoldStreams,
   BoldIndexableList,
+  Contnrs,
   classes;
 
 const
@@ -64,6 +65,9 @@ type
     function NewSubNode(const Accessor: string): TBoldXMLNode;
     function MakeNodeForElement(Element:
         {$IFDEF OXML}PXMLNode{$ELSE}IXMLDOMElement{$ENDIF}): TBoldXMLNode;
+    // Nodes for all descendant elements named TagName (getElementsByTagName).
+    // The caller frees the list, which owns the nodes.
+    function NewSubNodesByTagName(const TagName: string): TObjectList;
     function ReadBoolean: Boolean;
     procedure ReadInterface(const StreamName: string; const Item: IBoldStreamable);
     function ReadInteger: Integer;
@@ -659,6 +663,43 @@ function TBoldXMLNode.MakeNodeForElement(Element:
     {$IFDEF OXML}PXMLNode{$ELSE}IXMLDOMElement{$ENDIF}): TBoldXMLNode;
 begin
   result := TBoldXMLNode.Create(Manager, Element, fStateManager);
+end;
+
+function TBoldXMLNode.NewSubNodesByTagName(const TagName: string): TObjectList;
+var
+  {$IFDEF OXML}
+  aNodeEnumerator: TXMLResNodeListEnumerator;
+  aNodeList: IXMLNodeList;
+  {$ELSE}
+  aNodeList: IXMLDOMNodeList;
+  aNode: IXMLDOMNode;
+  {$ENDIF}
+begin
+  result := TObjectList.Create(True);
+  try
+    {$IFDEF OXML}
+    if XMLDomElement.GetElementsByTagName(TagName, aNodeList) then begin
+      aNodeEnumerator := aNodeList.GetEnumerator;
+      try
+        while aNodeEnumerator.MoveNext do
+          result.Add(MakeNodeForElement(aNodeEnumerator.Current));
+      finally
+        aNodeEnumerator.Free;
+      end;
+    end;
+    {$ELSE}
+    aNodeList := XMLDomElement.getElementsByTagName(TagName);
+    aNode := aNodeList.nextNode;
+    while assigned(aNode) do
+    begin
+      result.Add(MakeNodeForElement(aNode as IXMLDOMElement));
+      aNode := aNodeList.nextNode;
+    end;
+    {$ENDIF}
+  except
+    result.Free;
+    raise;
+  end;
 end;
 
 function TBoldXMLNode.ReadSubNodeDate(const Accessor: string): TDateTime;
