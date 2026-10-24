@@ -9,7 +9,9 @@ uses
   SysUtils;
 
 const
+{$IFNDEF FPC}
   BoldSupportedPlatforms = pidWin32 or pidWin64;
+{$ENDIF}
 
   NO_CLASS        = -1;
   INTERNALNULLKEY = -1;
@@ -112,11 +114,15 @@ const
     '%s.Commit: transaction was lost during the update - aborting to surface a possible partial commit';
 type
   // TListIndex: Delphi 12+ uses NativeInt for TList.Items index, older versions use Integer
+  {$IFDEF FPC}
+  TListIndex = Integer;
+  {$ELSE}
   {$IF CompilerVersion >= 36.0}  // Delphi 12+
   TListIndex = NativeInt;
   {$ELSE}
   TListIndex = Integer;
   {$IFEND}
+  {$ENDIF}
 
   TBoldRoleType= (rtRole, rtLinkRole, rtInnerLinkRole);
   TBoldRoleSet = set of TBoldRoleType;
