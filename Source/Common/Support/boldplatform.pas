@@ -18,6 +18,8 @@ interface
 function BoldProcessUserTimeInTicks: Int64;
 // Full file name of the module (exe or package) that contains this code.
 function BoldModuleFileName: string;
+// True when a debugger is attached to the process.
+function BoldDebuggerPresent: Boolean;
 
 implementation
 
@@ -25,7 +27,8 @@ uses
 {$IFDEF MSWINDOWS}
   Windows;
 {$ELSE}
-  Classes;
+  Classes,
+  SysUtils;
 {$ENDIF}
 
 {$IFDEF MSWINDOWS}
@@ -68,6 +71,57 @@ function BoldModuleFileName: string;
 begin
   Result := ParamStr(0);
 end;
+{$ENDIF}
+
+{$IFNDEF FPC}
+function BoldDebuggerPresent: Boolean;
+begin
+  Result := DebugHook <> 0;
+end;
+{$ELSE}
+{$IFDEF MSWINDOWS}
+function BoldDebuggerPresent: Boolean;
+begin
+  Result := IsDebuggerPresent;
+end;
+{$ELSE}
+{$IFDEF LINUX}
+// The kernel reports the process id of an attached debugger as TracerPid in /proc/self/status.
+function BoldDebuggerPresent: Boolean;
+const
+  TracerPid = 'TracerPid:';
+var
+  Status: TextFile;
+  Line: string;
+begin
+  Result := False;
+  AssignFile(Status, '/proc/self/status');
+  {$I-}
+  Reset(Status);
+  {$I+}
+  if IOResult <> 0 then
+    Exit;
+  try
+    while not Eof(Status) do
+    begin
+      ReadLn(Status, Line);
+      if Copy(Line, 1, Length(TracerPid)) = TracerPid then
+      begin
+        Result := StrToIntDef(Trim(Copy(Line, Length(TracerPid) + 1, MaxInt)), 0) <> 0;
+        Break;
+      end;
+    end;
+  finally
+    CloseFile(Status);
+  end;
+end;
+{$ELSE}
+function BoldDebuggerPresent: Boolean;
+begin
+  Result := False;
+end;
+{$ENDIF}
+{$ENDIF}
 {$ENDIF}
 
 initialization

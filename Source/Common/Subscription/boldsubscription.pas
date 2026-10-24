@@ -395,6 +395,7 @@ implementation
 uses
   BoldDefs,
   BoldEventQueue,
+  BoldPlatform,
   BoldCoreConsts;
 
 (*function BoldEventToString(aEvent: integer): string;
@@ -1441,7 +1442,7 @@ initialization
 
 finalization
   FreeAndNil(G_PostNotifyQueue);
-  if (DebugHook <> 0) then
+  if BoldDebuggerPresent then
     if (ActiveSubscriptionCount + PublisherCount + SubscriberCount) > 0 then
       Assert(false, Format('ActiveSubscriptionCount = %d, PublisherCount = %d, SubscriberCount = %d', [ActiveSubscriptionCount, PublisherCount, SubscriberCount]));
 end.
