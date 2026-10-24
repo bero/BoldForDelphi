@@ -1,4 +1,4 @@
-unit Test.BoldCondition;
+﻿unit Test.BoldCondition;
 
 interface
 
@@ -75,6 +75,10 @@ type
     procedure TestXMLRoundTrip_SQLCondition_NoParams;
     [Test]
     procedure TestXMLRoundTrip_SQLCondition_WithParams;
+    [Test]
+    procedure TestXMLRoundTrip_SQLCondition_ParamValues;
+    [Test]
+    procedure TestXMLRead_SQLCondition_LegacyStringData;
     [Test]
     procedure TestXMLRoundTrip_TimestampCondition;
     [Test]
@@ -677,6 +681,174 @@ begin
     Cond1.MemberIdList.Free;
     Cond1.Free;
     anId.Free;
+  end;
+end;
+
+{ Parameter VALUES must survive the XML round trip, not only names and types.
+  AsString makes a parameter ftWideString; AsAnsiString keeps ftString. The
+  numeric, boolean, date-time and null parameters guard the binary data path.
+  All mismatches are collected and reported together. }
+procedure TTestBoldConditionXMLStreaming.TestXMLRoundTrip_SQLCondition_ParamValues;
+const
+  cUnicode = #$00C5'sa '#$0436#$6F22;  // A-ring outside ASCII, Cyrillic and CJK outside ANSI
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  Cond1, Cond2: TBoldSQLCondition;
+  Moment: TDateTime;
+  Mismatches: TStringList;
+  i: Integer;
+
+  procedure Expect(AOk: Boolean; const AWhat, AActual: string);
+  begin
+    if not AOk then
+      Mismatches.Add(AWhat + ': got [' + AActual + ']');
+  end;
+
+begin
+  Moment := EncodeDate(2026, 10, 24) + EncodeTime(12, 30, 15, 0);
+  Mismatches := TStringList.Create;
+  Cond1 := TBoldSQLCondition.Create;
+  try
+    Cond1.WhereFragment := 'Name = :aString';
+    Cond1.Params := TParams.Create(nil);
+    Cond1.Params.CreateParam(ftString, 'aString', ptInput).AsString := 'test value';
+    Cond1.Params.CreateParam(ftWideString, 'aUnicode', ptInput).AsWideString := cUnicode;
+    Cond1.Params.CreateParam(ftString, 'anAnsi', ptInput).AsAnsiString := 'ansi value';
+    Cond1.Params.CreateParam(ftInteger, 'anInt', ptInput).AsInteger := 42;
+    Cond1.Params.CreateParam(ftFloat, 'aFloat', ptInput).AsFloat := 1.5;
+    Cond1.Params.CreateParam(ftBoolean, 'aBool', ptInput).AsBoolean := True;
+    Cond1.Params.CreateParam(ftDateTime, 'aMoment', ptInput).AsDateTime := Moment;
+    Cond1.Params.CreateParam(ftInteger, 'aNull', ptInput);
+    Cond1.Params.CreateParam(ftString, 'anEmpty', ptInput).AsString := '';
+
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'SQLCondParamValuesTest');
+      aNode.WriteSubNodeObject('Condition', '', Cond1);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'SQLCondParamValuesTest');
+      try
+        Cond2 := aNode.ReadSubNodeObject('Condition', '') as TBoldSQLCondition;
+        try
+          Assert.AreEqual(Cond1.Params.Count, Cond2.Params.Count, 'Params count');
+          for i := 0 to Cond1.Params.Count - 1 do
+            Expect(Cond1.Params[i].DataType = Cond2.Params[i].DataType, Cond1.Params[i].Name + ' DataType',
+              IntToStr(Ord(Cond2.Params[i].DataType)));
+          Expect(Cond2.Params.ParamByName('aString').AsString = 'test value', 'aString', Cond2.Params.ParamByName('aString').AsString);
+          Expect(Cond2.Params.ParamByName('aUnicode').AsString = cUnicode, 'aUnicode', Cond2.Params.ParamByName('aUnicode').AsString);
+          Expect(Cond2.Params.ParamByName('anAnsi').AsAnsiString = 'ansi value', 'anAnsi', string(Cond2.Params.ParamByName('anAnsi').AsAnsiString));
+          Expect(Cond2.Params.ParamByName('anInt').AsInteger = 42, 'anInt', Cond2.Params.ParamByName('anInt').AsString);
+          Expect(Cond2.Params.ParamByName('aFloat').AsFloat = 1.5, 'aFloat', Cond2.Params.ParamByName('aFloat').AsString);
+          Expect(Cond2.Params.ParamByName('aBool').AsBoolean, 'aBool', Cond2.Params.ParamByName('aBool').AsString);
+          Expect(Abs(Cond2.Params.ParamByName('aMoment').AsDateTime - Moment) < 1 / MSecsPerDay, 'aMoment',
+            DateTimeToStr(Cond2.Params.ParamByName('aMoment').AsDateTime));
+          Expect(Cond2.Params.ParamByName('aNull').IsNull, 'aNull IsNull', Cond2.Params.ParamByName('aNull').AsString);
+          Expect(not Cond2.Params.ParamByName('anEmpty').IsNull and (Cond2.Params.ParamByName('anEmpty').AsString = ''),
+            'anEmpty is an empty, non-null string', Cond2.Params.ParamByName('anEmpty').AsString);
+          Assert.IsTrue(Mismatches.Count = 0,
+            Format('%d parameter mismatch(es):' + sLineBreak + '%s', [Mismatches.Count, Mismatches.Text]));
+        finally
+          Cond2.Params.Free;
+          Cond2.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    Cond1.Params.Free;
+    Cond1.Free;
+    Mismatches.Free;
+  end;
+end;
+
+{ XML written by older versions stored string parameters as GetData bytes:
+  the ANSI text, then whatever the buffer held, base64-encoded when that
+  included a #0. The payloads below are 'legacy'#0#$AA and 'ansi'#0. Reading
+  such XML must give back the text before the #0. }
+procedure TTestBoldConditionXMLStreaming.TestXMLRead_SQLCondition_LegacyStringData;
+const
+  cWidePlaceholder = 'WIDE-PLACEHOLDER';
+  cAnsiPlaceholder = 'ANSI-PLACEHOLDER';
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+  anXML: string;
+  Cond1, Cond2: TBoldSQLCondition;
+
+  procedure ReplaceData(const APlaceholder, ABase64: string);
+  var
+    NewText: string;
+  begin
+    NewText := StringReplace(anXML, '<Data>' + APlaceholder + '</Data>',
+      '<Data dt="binary.base64">' + ABase64 + '</Data>', []);
+    Assert.AreNotEqual(anXML, NewText, 'Placeholder not found in the written XML: ' + APlaceholder);
+    anXML := NewText;
+  end;
+
+begin
+  Cond1 := TBoldSQLCondition.Create;
+  try
+    Cond1.WhereFragment := 'x';
+    Cond1.Params := TParams.Create(nil);
+    Cond1.Params.CreateParam(ftString, 'oldWide', ptInput).AsString := cWidePlaceholder;
+    Cond1.Params.CreateParam(ftString, 'oldAnsi', ptInput).AsAnsiString := cAnsiPlaceholder;
+
+    aDoc := TDomDocument.Create(nil);
+    aMgr := TBoldDefaultXMLStreamManager.Create(
+      TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+      TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+    try
+      aNode := aMgr.NewRootNode(aDoc, 'SQLCondLegacyTest');
+      aNode.WriteSubNodeObject('Condition', '', Cond1);
+      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      aNode.Free;
+      aDoc.Free;
+
+      ReplaceData(cWidePlaceholder, 'bGVnYWN5AKo=');
+      ReplaceData(cAnsiPlaceholder, 'YW5zaQA=');
+
+      aDoc := TDomDocument.Create(nil);
+      aDoc.async := False;
+      aDoc.loadXML(anXML);
+      aNode := aMgr.GetRootNode(aDoc, 'SQLCondLegacyTest');
+      try
+        Cond2 := aNode.ReadSubNodeObject('Condition', '') as TBoldSQLCondition;
+        try
+          Assert.AreEqual('legacy', Cond2.Params.ParamByName('oldWide').AsString, 'oldWide');
+          Assert.AreEqual(Integer(ftWideString), Integer(Cond2.Params.ParamByName('oldWide').DataType), 'oldWide DataType');
+          Assert.AreEqual('ansi', string(Cond2.Params.ParamByName('oldAnsi').AsAnsiString), 'oldAnsi');
+          Assert.AreEqual(Integer(ftString), Integer(Cond2.Params.ParamByName('oldAnsi').DataType), 'oldAnsi DataType');
+        finally
+          Cond2.Params.Free;
+          Cond2.Free;
+        end;
+      finally
+        aNode.Free;
+      end;
+    finally
+      aDoc.Free;
+      aMgr.Free;
+    end;
+  finally
+    Cond1.Params.Free;
+    Cond1.Free;
   end;
 end;
 

@@ -113,6 +113,9 @@ type
     procedure WriteSubNodeDateTime(const Accessor: string; Value: TDateTime);
 
     function ReadData: TBoldAnsiString;
+    // True when WriteData stored this node's data base64-encoded, because it
+    // held characters that XML text cannot carry. ReadData decodes either form.
+    function HasBase64Data: Boolean;
     function ReadSubNodeData(const Accessor: string): TBoldAnsiString;
     procedure WriteData(Value: TBoldAnsiString);
     procedure WriteSubNodeData(const Accessor: string; const Value: TBoldAnsiString);
@@ -887,16 +890,22 @@ begin
   WriteString(DataString);
 end;
 
-function TBoldXMLNode.ReadData: TBoldAnsiString;
+function TBoldXMLNode.HasBase64Data: Boolean;
 var
   anAttr: {$IFDEF OXML}PXMLNode{$ELSE}IXMLDOMAttribute{$ENDIF};
+begin
+  anAttr := fNode.getAttributeNode('dt'); // do not localize
+  Result := assigned(anAttr) and (
+    {$IFDEF OXML}anAttr.NodeValue{$ELSE}anAttr.Value{$ENDIF} = 'binary.base64'); // do not localize
+end;
+
+function TBoldXMLNode.ReadData: TBoldAnsiString;
+var
   DataString: string;
   Decoder: TBase64;
 begin
   DataString := ReadString;
-  anAttr := fNode.getAttributeNode('dt'); // do not localize
-  if assigned(anAttr) and (
-    {$IFDEF OXML}anAttr.NodeValue{$ELSE}anAttr.Value{$ENDIF} = 'binary.base64') then // do not localize
+  if HasBase64Data then
   begin
     Decoder := TBase64.Create;
     Decoder.DecodeData(DataString, Result);

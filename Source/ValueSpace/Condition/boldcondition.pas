@@ -289,6 +289,70 @@ begin
   Node.WriteSubNodeInteger(BoldNodeName_Time, Condition.Time);
 end;
 
+{ SQL condition parameters in XML
+
+  TParam.GetData and SetData are not inverse for strings: GetData writes a
+  wide string as ANSI bytes while SetData reads the buffer as UTF-16, and
+  GetData never writes the terminator of an ANSI string. String values are
+  therefore streamed as text; all other types as the bytes GetData produces,
+  which is the format older versions wrote for them too. }
+
+const
+  cStringParamTypes = [ftString, ftFixedChar, ftWideString, ftFixedWideChar, ftMemo, ftWideMemo, ftGuid];
+
+type
+  // TParam.GetData and SetData take a TValueBuffer: a byte array since Delphi
+  // XE3, a plain pointer before that and in Free Pascal (see the declaration
+  // above). The bytes always live in a byte array.
+  TBoldParamBytes = {$IFDEF BOLD_DELPHI17_OR_LATER}TValueBuffer{$ELSE}array of Byte{$ENDIF};
+
+function AsValueBuffer(const ABytes: TBoldParamBytes): TValueBuffer;
+begin
+  {$IFDEF BOLD_DELPHI17_OR_LATER}
+  Result := ABytes;
+  {$ELSE}
+  Result := Pointer(ABytes);
+  {$ENDIF}
+end;
+
+function ParamDataAsBytes(AParam: TParam): TBoldAnsiString;
+var
+  Buffer: TBoldParamBytes;
+begin
+  Result := '';
+  SetLength(Buffer, AParam.GetDataSize);
+  if Length(Buffer) = 0 then
+    Exit;
+  AParam.GetData(AsValueBuffer(Buffer));
+  SetString(Result, PAnsiChar(@Buffer[0]), Length(Buffer));
+end;
+
+procedure SetParamDataFromBytes(AParam: TParam; const AData: TBoldAnsiString);
+var
+  Buffer: TBoldParamBytes;
+begin
+  if AData = '' then
+    Exit;
+  SetLength(Buffer, Length(AData));
+  Move(PAnsiChar(AData)^, Buffer[0], Length(AData));
+  AParam.SetData(AsValueBuffer(Buffer));
+end;
+
+// Older versions stored string values with GetData too: the ANSI bytes, then
+// whatever the buffer held, base64-encoded when that included characters XML
+// text cannot carry. The value is the ANSI text before the first #0.
+function ReadParamString(DataNode: TBoldXMLNode): string;
+var
+  ZeroPos: Integer;
+begin
+  if not DataNode.HasBase64Data then
+    Exit(DataNode.ReadString);
+  Result := string(DataNode.ReadData);
+  ZeroPos := Pos(#0, Result);
+  if ZeroPos > 0 then
+    SetLength(Result, ZeroPos - 1);
+end;
+
 { TBoldXMLSQLConditionStreamer }
 
 function TBoldXMLSQLConditionStreamer.CreateObject: TObject;
@@ -310,7 +374,6 @@ var
   ParamsNode: TBoldXMLNode;
   DataNode: TBoldXMLNode;
   aParam: TParam;
-  Buf: TBoldAnsiString;
 begin
   inherited;
   anSQLCond := Obj as TBoldSQLCondition;
@@ -334,8 +397,11 @@ begin
         DataNode := aSubNode.GetSubNode(BoldNodeName_Data);
         if assigned(DataNode) then
         begin
-          Buf := DataNode.ReadData;
-          aParam.SetData(TValueBuffer(PAnsiChar(Buf)));
+          // Value keeps the DataType just read.
+          if aParam.DataType in cStringParamTypes then
+            aParam.Value := ReadParamString(DataNode)
+          else
+            SetParamDataFromBytes(aParam, DataNode.ReadData);
         end;
         DataNode.Free;
       end;
@@ -351,7 +417,6 @@ end;
 procedure TBoldXMLSQLConditionStreamer.WriteObject(Obj: TBoldInterfacedObject; Node: TBoldXMLNode);
 var
   anSQLCond: TBoldSQLCondition;
-  Buf: TBoldAnsiString;
   i: Integer;
   SubNode: TBoldXMLNode;
   ParamsNode: TBoldXMLNode;
@@ -368,13 +433,16 @@ begin
     for i := 0 to anSQLCond.Params.Count - 1 do
     begin
       SubNode := ParamsNode.NewSubNode(BoldNodeName_Param);
-      SetLength(Buf, anSQLCond.Params[i].GetDataSize);
-      anSQLCond.Params[i].GetData(TValueBuffer(PAnsiChar(Buf)));
       SubNode.WriteSubNodeString(BoldNodeName_Name, anSQLCond.Params[i].Name);
       SubNode.WriteSubNodeInteger(BoldNodeName_DataType, Integer(anSQLCond.Params[i].DataType));
       SubNode.WriteSubNodeInteger(BoldNodeName_ParamType, Integer(anSQLCond.Params[i].ParamType));
       if not anSQLCond.Params[i].IsNull then
-        SubNode.WriteSubNodeData(BoldNodeName_Data, Buf);
+      begin
+        if anSQLCond.Params[i].DataType in cStringParamTypes then
+          SubNode.WriteSubNodeString(BoldNodeName_Data, anSQLCond.Params[i].AsWideString)
+        else
+          SubNode.WriteSubNodeData(BoldNodeName_Data, ParamDataAsBytes(anSQLCond.Params[i]));
+      end;
       SubNode.Free;
     end;
   end else
