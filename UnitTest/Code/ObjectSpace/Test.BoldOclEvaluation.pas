@@ -463,6 +463,8 @@ type
     [Test] [Category('Quick')]
     procedure TestToLowerCase;
     [Test] [Category('Quick')]
+    procedure TestToUpperToLowerNonAscii;
+    [Test] [Category('Quick')]
     procedure TestTrimString;
     [Test] [Category('Quick')]
     procedure TestSubStringOcl;
@@ -2390,6 +2392,36 @@ begin
   Obj := TClassA.Create(GetSystem);
   Obj.aString := 'HELLO';
   Assert.AreEqual('hello', Obj.EvaluateExpressionAsString('self.aString.toLower'), 'toLower');
+end;
+
+{ toUpper and toLower beyond ASCII. Every pair maps the same way under the
+  Finnish, Swedish, English, Turkish and German user locales, and the two
+  directions are exact inverses. Deliberately absent: a plain i or I, because a
+  Turkish locale uppercases i to U+0130; and sharp s, ligatures or a lowercased
+  capital sigma, which full Unicode case mapping (ICU, used by Delphi's Linux
+  RTL) handles differently from Windows. }
+procedure TTestBoldOclEvaluation.TestToUpperToLowerNonAscii;
+var
+  Obj: TClassA;
+
+  procedure CheckPair(const ALower, AUpper, AWhat: string);
+  begin
+    Obj.aString := ALower;
+    Assert.AreEqual(AUpper, Obj.EvaluateExpressionAsString('self.aString.toUpper'), AWhat + ': toUpper');
+    Obj.aString := AUpper;
+    Assert.AreEqual(ALower, Obj.EvaluateExpressionAsString('self.aString.toLower'), AWhat + ': toLower');
+  end;
+
+begin
+  Obj := TClassA.Create(GetSystem);
+  CheckPair('åäö', 'ÅÄÖ', 'Swedish and Finnish letters');
+  CheckPair(#$00FF, #$0178, 'y with diaeresis, uppercase outside Latin-1');
+  CheckPair(#$0142#$0159, #$0141#$0158, 'l with stroke, r with caron');
+  CheckPair(#$0451#$0436, #$0401#$0416, 'Cyrillic yo and zhe');
+  CheckPair(#$03AC, #$0386, 'Greek alpha with tonos');
+  CheckPair(#$D801#$DC28, #$D801#$DC00, 'Deseret letter, a surrogate pair');
+  CheckPair('e'#$0301, 'E'#$0301, 'combining acute accent');
+  CheckPair(#$6F22#$5B57'123'#$D83D#$DE00, #$6F22#$5B57'123'#$D83D#$DE00, 'CJK, digits and emoji have no case');
 end;
 
 procedure TTestBoldOclEvaluation.TestTrimString;
