@@ -1,10 +1,11 @@
-unit Test.BoldDefaultId;
+﻿unit Test.BoldDefaultId;
 
 interface
 
 uses
   Classes,
   DUnitX.TestFramework,
+  BoldBase,
   BoldDefaultId,
   BoldId,
   BoldDefs;
@@ -72,6 +73,10 @@ type
   TTestBoldDefaultIdXMLStreaming = class
   private
     FDataModule: TDataModule;
+    // The only places that know the XML back end (MSXML today). A port to
+    // another back end replaces these two and keeps the id-list tests.
+    function WriteToXML(const ARootName, AAccessor: string; AObject: TBoldInterfacedObject): string;
+    function ReadFromXML(const AXML, ARootName, AAccessor: string): TObject;
   public
     [Setup]
     procedure Setup;
@@ -81,6 +86,10 @@ type
     procedure TestXMLRoundTrip_DefaultId;
     [Test]
     procedure TestXMLRoundTrip_TimestampedDefaultId;
+    [Test]
+    procedure TestXMLRoundTrip_ObjectIdList;
+    [Test]
+    procedure TestXMLRoundTrip_MemberIdList;
   end;
 
 implementation
@@ -608,6 +617,122 @@ begin
     end;
   finally
     anId.Free;
+  end;
+end;
+
+function TTestBoldDefaultIdXMLStreaming.WriteToXML(const ARootName, AAccessor: string;
+  AObject: TBoldInterfacedObject): string;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+begin
+  aDoc := TDomDocument.Create(nil);
+  aMgr := TBoldDefaultXMLStreamManager.Create(
+    TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+    TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+  try
+    aNode := aMgr.NewRootNode(aDoc, ARootName);
+    try
+      aNode.WriteSubNodeObject(AAccessor, '', AObject);
+      Result := aNode.XMLDomElement.ownerDocument.xml;
+    finally
+      aNode.Free;
+    end;
+  finally
+    aDoc.Free;
+    aMgr.Free;
+  end;
+end;
+
+function TTestBoldDefaultIdXMLStreaming.ReadFromXML(const AXML, ARootName, AAccessor: string): TObject;
+var
+  aMgr: TBoldDefaultXMLStreamManager;
+  aDoc: TDomDocument;
+  aNode: TBoldXMLNode;
+begin
+  aDoc := TDomDocument.Create(nil);
+  aMgr := TBoldDefaultXMLStreamManager.Create(
+    TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
+    TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
+  try
+    aDoc.async := False;
+    aDoc.loadXML(AXML);
+    aNode := aMgr.GetRootNode(aDoc, ARootName);
+    try
+      Result := aNode.ReadSubNodeObject(AAccessor, '');
+    finally
+      aNode.Free;
+    end;
+  finally
+    aDoc.Free;
+    aMgr.Free;
+  end;
+end;
+
+// Three ids that differ in value, class index, exactness and id class, in an
+// order that is not sorted, so a reader that drops, duplicates or reorders ids,
+// or loses the id class, fails here.
+procedure TTestBoldDefaultIdXMLStreaming.TestXMLRoundTrip_ObjectIdList;
+var
+  List, ReadList: TBoldObjectIdList;
+  anId: TBoldDefaultId;
+  i: Integer;
+begin
+  List := TBoldObjectIdList.Create;
+  try
+    anId := TBoldDefaultId.CreateWithClassID(1, True);
+    anId.AsInteger := 42;
+    List.AddAndAdopt(anId);
+    anId := TBoldDefaultId.CreateWithClassID(2, False);
+    anId.AsInteger := 7;
+    List.AddAndAdopt(anId);
+    anId := TBoldTimestampedDefaultId.CreateWithTimeAndClassId(13, 1, True);
+    anId.AsInteger := 99;
+    List.AddAndAdopt(anId);
+
+    ReadList := ReadFromXML(WriteToXML('IdListTest', 'Ids', List), 'IdListTest', 'Ids') as TBoldObjectIdList;
+    try
+      Assert.AreEqual(3, ReadList.Count, 'Count');
+      for i := 0 to List.Count - 1 do
+      begin
+        Assert.AreEqual(List[i].ClassName, ReadList[i].ClassName, Format('Id class of id %d', [i]));
+        Assert.AreEqual((List[i] as TBoldDefaultId).AsInteger, (ReadList[i] as TBoldDefaultId).AsInteger,
+          Format('Value of id %d', [i]));
+        Assert.AreEqual(List[i].TopSortedIndex, ReadList[i].TopSortedIndex, Format('Class index of id %d', [i]));
+        Assert.IsTrue(List[i].TopSortedIndexExact = ReadList[i].TopSortedIndexExact, Format('Exactness of id %d', [i]));
+      end;
+      Assert.AreEqual(13, (ReadList[2] as TBoldTimestampedDefaultId).TimeStamp, 'TimeStamp of id 2');
+    finally
+      ReadList.Free;
+    end;
+  finally
+    List.Free;
+  end;
+end;
+
+// Two member ids in descending order, one of them index 0.
+procedure TTestBoldDefaultIdXMLStreaming.TestXMLRoundTrip_MemberIdList;
+var
+  List, ReadList: TBoldMemberIdList;
+begin
+  List := TBoldMemberIdList.Create;
+  try
+    // The list owns its entries.
+    List.Add(TBoldMemberId.Create(5));
+    List.Add(TBoldMemberId.Create(0));
+
+    ReadList := ReadFromXML(WriteToXML('MemberIdListTest', 'Ids', List), 'MemberIdListTest', 'Ids') as TBoldMemberIdList;
+    try
+      Assert.AreEqual(2, ReadList.Count, 'Count');
+      Assert.AreEqual(5, ReadList[0].MemberIndex, 'Member index of id 0');
+      Assert.AreEqual(0, ReadList[1].MemberIndex, 'Member index of id 1');
+      Assert.IsTrue(ReadList.IsEqual(List), 'IsEqual');
+    finally
+      ReadList.Free;
+    end;
+  finally
+    List.Free;
   end;
 end;
 
