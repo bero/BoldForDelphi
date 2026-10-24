@@ -101,7 +101,6 @@ type
 implementation
 
 uses
-  Windows,
   BoldUtils,
   SysUtils;
 
