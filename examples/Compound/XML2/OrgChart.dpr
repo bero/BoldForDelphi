@@ -1,6 +1,6 @@
 program OrgChart;
 
-{%File '..\..\..\..\SOURCE\Common\Include\Bold.inc'}
+{%File '..\..\..\..\SOURCE\Common\Include\bold.inc'}
 {%File 'OrgChartClasses.inc'}
 
 uses

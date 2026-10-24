@@ -111,7 +111,7 @@ After installation, you should see Bold components in the Delphi Tool Palette:
 
 ## Troubleshooting
 
-### "Bold.inc not found"
+### "bold.inc not found"
 
 Add `Source\Common\Include` to your project's search path.
 

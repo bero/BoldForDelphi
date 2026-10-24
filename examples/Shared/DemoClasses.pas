@@ -14,7 +14,7 @@
 
 unit DemoClasses;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 {$DEFINE DemoClasses_unitheader}
 {$INCLUDE DemoClasses_Interface.inc}
 

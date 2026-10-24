@@ -1,6 +1,6 @@
 ﻿unit BoldAppMain;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 interface
 

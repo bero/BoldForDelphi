@@ -2,7 +2,7 @@
 { Global compiler directives }
 {$include bold.inc}
 unit RationalRose2000_TLB;
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 {$WARNINGS OFF}
 {$WARN SYMBOL_PLATFORM OFF}

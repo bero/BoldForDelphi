@@ -1,6 +1,6 @@
 ﻿unit maan_PropagatorLockingSupport;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 interface
 

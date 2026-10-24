@@ -1,7 +1,7 @@
 ﻿unit cxBoldEditors;
 
 {$ASSERTIONS ON}
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 {$DEFINE Constraints}
 

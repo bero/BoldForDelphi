@@ -1,5 +1,5 @@
 ﻿
-{$INCLUDE BOLD.INC}
+{$INCLUDE bold.inc}
 
 unit joho_ocl2Sql;
 

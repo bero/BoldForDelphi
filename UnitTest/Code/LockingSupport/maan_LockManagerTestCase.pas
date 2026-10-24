@@ -1,6 +1,6 @@
 ﻿unit maan_LockManagerTestCase;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 interface
 

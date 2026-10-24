@@ -2,7 +2,7 @@
 
 
 {$ASSERTIONS ON}
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 {$DEFINE DelayOnFocusedRecordChange}
 

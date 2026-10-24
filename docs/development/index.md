@@ -61,7 +61,7 @@ DelphiBuildDPROJ.ps1 -Projectfile "packages\Delphi29.3\dclBold.dproj" -VerboseOu
 
 ## Compiler Directives
 
-Key defines in `Bold.inc`:
+Key defines in `bold.inc`:
 
 ```pascal
 {$DEFINE CompareToOldValues}  // Skip unchanged values in updates

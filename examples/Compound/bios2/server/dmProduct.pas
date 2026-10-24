@@ -1,6 +1,6 @@
 ﻿unit dmProduct;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 interface
 

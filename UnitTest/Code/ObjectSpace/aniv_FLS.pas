@@ -1,6 +1,6 @@
 ﻿unit aniv_FLS;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 interface
 

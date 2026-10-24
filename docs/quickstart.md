@@ -406,7 +406,7 @@ self.firstName + ' ' + self.lastName     -- Concatenation
 
 ## Troubleshooting 🔧
 
-**"Bold.inc not found"**
+**"bold.inc not found"**
 - Add `Source\Common\Include` to your project's search path
 
 **Components not showing in palette**

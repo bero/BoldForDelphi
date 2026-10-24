@@ -13,7 +13,7 @@
 
 unit InvoiceClasses;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 {$DEFINE InvoiceClasses_unitheader}
 {$INCLUDE InvoiceClasses_Interface.inc}
 

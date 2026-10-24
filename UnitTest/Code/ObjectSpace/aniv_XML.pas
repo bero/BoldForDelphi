@@ -1,6 +1,6 @@
 ﻿unit aniv_XML;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 interface
 

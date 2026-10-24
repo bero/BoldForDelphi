@@ -228,9 +228,9 @@ Stock UniDAC 10.4 does not compile on Delphi 13. A separately patched copy lives
 Attracs move to Delphi 13 would need. Never apply those patches to the Attracs-Common copy, which Attracs links
 statically with Delphi 12.
 
-## Compiler Directives (Bold.inc)
+## Compiler Directives (bold.inc)
 
-The `{$DEFINE Attracs}` block at end of Bold.inc enables optimizations used by Attracs. When `Attracs` is NOT defined, several features are disabled for broader compatibility.
+The `{$DEFINE Attracs}` block at end of bold.inc enables optimizations used by Attracs. When `Attracs` is NOT defined, several features are disabled for broader compatibility.
 
 Key defines (enabled when `Attracs` is defined):
 ```pascal

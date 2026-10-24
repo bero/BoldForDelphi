@@ -1,6 +1,6 @@
 ﻿unit dMain;
 
-{$Include Bold.inc}
+{$Include bold.inc}
 
 interface
 

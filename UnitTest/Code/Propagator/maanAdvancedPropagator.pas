@@ -1,6 +1,6 @@
 ﻿unit maanAdvancedPropagator;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 interface
 

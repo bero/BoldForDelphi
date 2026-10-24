@@ -1,6 +1,6 @@
 ﻿unit maanClientHandler;
 
-{$INCLUDE Bold.inc}
+{$INCLUDE bold.inc}
 
 interface
 
