@@ -1,0 +1,108 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{7D2C4A91-5E3B-4F08-B6A2-1C9E8D7F3A54}</ProjectGuid>
+        <MainSource>InvoicingTests.dpr</MainSource>
+        <Base>True</Base>
+        <Config Condition="'$(Config)'==''">Debug</Config>
+        <TargetedPlatforms>3</TargetedPlatforms>
+        <AppType>Console</AppType>
+        <FrameworkType>VCL</FrameworkType>
+        <ProjectVersion>20.4</ProjectVersion>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <ProjectName Condition="'$(ProjectName)'==''">InvoicingTests</ProjectName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
+        <Base_Win32>true</Base_Win32>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
+        <Base_Win64>true</Base_Win64>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_1)'!=''">
+        <Cfg_1>true</Cfg_1>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
+        <Cfg_2>true</Cfg_2>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base)'!=''">
+        <DCC_E>false</DCC_E>
+        <DCC_F>false</DCC_F>
+        <DCC_K>false</DCC_K>
+        <DCC_N>false</DCC_N>
+        <DCC_S>false</DCC_S>
+        <DCC_ConsoleTarget>true</DCC_ConsoleTarget>
+        <SanitizedProjectName>InvoicingTests</SanitizedProjectName>
+        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_UnitSearchPath>$(DUnitX);.;..\Model;..\Data;..\..\..\..\Source;..\..\..\..\Source\Common\Include;..\..\..\..\Source\Common\Core;..\..\..\..\Source\Common\Support;..\..\..\..\Source\Common\SupportWin;..\..\..\..\Source\Common\Subscription;..\..\..\..\Source\Common\Logging;..\..\..\..\Source\Common\Queue;..\..\..\..\Source\Common\Environment;..\..\..\..\Source\Common\TaggedValues;..\..\..\..\Source\Common\UML;..\..\..\..\Source\Common\Stubs;..\..\..\..\Source\Common\Template;..\..\..\..\Source\Common\MSXML;..\..\..\..\Source\Common\UtilsGUI;..\..\..\..\Source\ObjectSpace\Core;..\..\..\..\Source\ObjectSpace\BORepresentation;..\..\..\..\Source\ObjectSpace\RTModel;..\..\..\..\Source\ObjectSpace\Ocl;..\..\..\..\Source\ObjectSpace\Interfaces;..\..\..\..\Source\ObjectSpace\PessimisticLocking;..\..\..\..\Source\ObjectSpace\Undo;..\..\..\..\Source\ObjectSpace\COM;..\..\..\..\Source\ObjectSpace\UtilsGUI;..\..\..\..\Source\Handles\Core;..\..\..\..\Source\Handles\Actions;..\..\..\..\Source\Persistence\Core;..\..\..\..\Source\Persistence\DB;..\..\..\..\Source\Persistence\FireDAC;..\..\..\..\Source\Persistence\File;..\..\..\..\Source\Persistence\IDE;..\..\..\..\Source\Persistence\System;..\..\..\..\Source\Persistence\ObjectUpgrading;..\..\..\..\Source\Persistence\Propagation;..\..\..\..\Source\BoldAwareGUI\BoldControls;..\..\..\..\Source\BoldAwareGUI\ControlPacks;..\..\..\..\Source\BoldAwareGUI\Core;..\..\..\..\Source\BoldAwareGUI\FormGen;..\..\..\..\Source\UMLModel\Handles;..\..\..\..\Source\UMLModel\Core;..\..\..\..\Source\UMLModel\Editor;..\..\..\..\Source\UMLModel\Plugins;..\..\..\..\Source\UMLModel\ModelLinks;..\..\..\..\Source\UMLModel\ModelLinks\Core;..\..\..\..\Source\MoldModel\Core;..\..\..\..\Source\MoldModel\Handles;..\..\..\..\Source\MoldModel\CodeGenerator;..\..\..\..\Source\MoldModel\TypeNameDictionary;..\..\..\..\Source\MoldModel\IDE;..\..\..\..\Source\MoldModel\Bld;..\..\..\..\Source\PMapper\Core;..\..\..\..\Source\PMapper\SQL;..\..\..\..\Source\PMapper\Default;..\..\..\..\Source\PMapper\Validator;..\..\..\..\Source\PMapper\DBEvolutor;..\..\..\..\Source\ValueSpace\Id;..\..\..\..\Source\ValueSpace\Interfaces;..\..\..\..\Source\ValueSpace\XMLStreaming;..\..\..\..\Source\ValueSpace\Condition;..\..\..\..\Source\FreestandingValueSpace\Core;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_ExeOutput>.\</DCC_ExeOutput>
+        <DCC_DcuOutput>.\dcu\$(Config)\$(Platform)</DCC_DcuOutput>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win64)'!=''">
+        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1)'!=''">
+        <DCC_Optimize>false</DCC_Optimize>
+        <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+        <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
+        <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
+    </PropertyGroup>
+    <ItemGroup>
+        <DelphiCompile Include="$(MainSource)">
+            <MainSource>MainSource</MainSource>
+        </DelphiCompile>
+        <DCCReference Include="..\Data\dmInvoicing.pas">
+            <Form>dmInvoicing</Form>
+            <DesignClass>TDataModule</DesignClass>
+        </DCCReference>
+        <DCCReference Include="..\Model\InvoicingClasses.pas"/>
+        <DCCReference Include="InvoicingScenario.pas"/>
+        <DCCReference Include="Test.InvoicingScenario.pas"/>
+        <BuildConfiguration Include="Base">
+            <Key>Base</Key>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Debug">
+            <Key>Cfg_1</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Release">
+            <Key>Cfg_2</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Delphi.Personality.12</Borland.Personality>
+        <Borland.ProjectType>Application</Borland.ProjectType>
+        <BorlandProject>
+            <Delphi.Personality>
+                <Source>
+                    <Source Name="MainSource">InvoicingTests.dpr</Source>
+                </Source>
+            </Delphi.Personality>
+            <Platforms>
+                <Platform value="Win32">True</Platform>
+                <Platform value="Win64">True</Platform>
+            </Platforms>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
+    <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
+</Project>
