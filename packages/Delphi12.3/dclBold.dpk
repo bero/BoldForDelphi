@@ -86,6 +86,7 @@ contains
   BoldClientHandles in '..\..\Source\Common\ConnectionHandles\BoldClientHandles.pas',
   BoldClock in '..\..\Source\Common\Support\BoldClock.pas',
   BoldCodePlugins in '..\..\Source\UMLModel\Plugins\BoldCodePlugins.pas',
+  BoldPlatform in '..\..\Source\Common\Support\boldplatform.pas',
   BoldSaveAndGeneratePlugin in '..\..\Source\UMLModel\Plugins\BoldSaveAndGeneratePlugin.pas',
   BoldCollections in '..\..\Source\Common\Support\BoldCollections.pas',
   BoldComAdapter in '..\..\Source\Common\COM\BoldComAdapter.pas',

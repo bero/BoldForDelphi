@@ -167,6 +167,7 @@
         <DCCReference Include="..\..\Source\Common\ConnectionHandles\BoldClientHandles.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldClock.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\Plugins\BoldCodePlugins.pas"/>
+        <DCCReference Include="..\..\Source\Common\Support\boldplatform.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\Plugins\BoldSaveAndGeneratePlugin.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldCollections.pas"/>
         <DCCReference Include="..\..\Source\Common\COM\BoldComAdapter.pas"/>

@@ -17,7 +17,6 @@ uses
   SysUtils,
   Classes,
   TypInfo,
-  Windows,
   BoldDefs,
   WideStrings;
 
@@ -63,28 +62,12 @@ implementation
 
 uses
   BoldCoreConsts,
+  BoldPlatform,
   BoldRev;
 
-type
-  TFileTimeAligner = record
-  case integer of
-  0: (asFileTime: TFileTime);
-  1: (asInt64: Int64);
-  end;
-var
-  CurrentProcess: THANDLE = INVALID_HANDLE_VALUE ;
-
 function UserTimeInTicks: Int64;
-var
-  UserTime, CreationTime, ExitTime, KernelTime: TFileTimeAligner;
 begin
-  if CurrentProcess <> 0 then
-    CloseHandle(CurrentProcess);
-  CurrentProcess := OpenProcess(PROCESS_QUERY_INFORMATION, False, GetCurrentProcessId);
-  if GetProcessTimes(CurrentProcess, CreationTime.asFileTime, ExitTime.asFileTime, KernelTime.asFileTime, UserTime.asFileTime) then
-    Result := UserTime.asInt64
-  else
-    Result := 0;
+  Result := BoldProcessUserTimeInTicks;
 end;
 
 function TicksToDateTime(Ticks: Int64): TDateTime;
@@ -145,11 +128,9 @@ end;
 
 function GetModuleFileNameAsString(IncludePath: Boolean): string;
 var
- Buffer: array[0..261] of Char;
  ModuleName: string;
 begin
-  SetString(ModuleName, Buffer, Windows.GetModuleFileName(HInstance,
-        Buffer, SizeOf(Buffer)));
+  ModuleName := BoldModuleFileName;
   if IncludePath then
     Result := ModuleName
   else
@@ -372,6 +353,4 @@ end;
 initialization
 
 finalization
-  if CurrentProcess<>INVALID_HANDLE_VALUE then
-    CloseHandle(CurrentProcess);
 end.
