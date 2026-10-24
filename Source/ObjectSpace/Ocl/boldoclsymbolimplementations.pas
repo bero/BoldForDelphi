@@ -14,6 +14,9 @@ implementation
 
 uses
   SysUtils,
+  {$IFDEF FPC}
+  unicodedata, // UnicodeToUpper/UnicodeToLower map per code point
+  {$ENDIF}
   DateUtils,
   Classes,
   Variants,
@@ -1955,13 +1958,31 @@ begin
 end;
 
 procedure TBOS_ToUpper.Evaluate(const Params: TBoldOclSymbolParameters);
+{$IFDEF FPC}
+var
+  S: UnicodeString;
+{$ENDIF}
 begin
-  HELP.MakeNewString(Params.Result, {$IFDEF FPC}UnicodeUpperCase(XString(Params.values[0])){$ELSE}XString(Params.values[0]).ToUpper{$ENDIF});
+  {$IFDEF FPC}
+  UnicodeToUpper(XString(Params.values[0]), True, S);
+  HELP.MakeNewString(Params.Result, S);
+  {$ELSE}
+  HELP.MakeNewString(Params.Result, XString(Params.values[0]).ToUpper);
+  {$ENDIF}
 end;
 
 procedure TBOS_toLower.Evaluate(const Params: TBoldOclSymbolParameters);
+{$IFDEF FPC}
+var
+  S: UnicodeString;
+{$ENDIF}
 begin
-  HELP.MakeNewString(Params.Result, {$IFDEF FPC}UnicodeLowerCase(XString(Params.values[0])){$ELSE}XString(Params.values[0]).ToLower{$ENDIF});
+  {$IFDEF FPC}
+  UnicodeToLower(XString(Params.values[0]), True, S);
+  HELP.MakeNewString(Params.Result, S);
+  {$ELSE}
+  HELP.MakeNewString(Params.Result, XString(Params.values[0]).ToLower);
+  {$ENDIF}
 end;
 
 procedure TBOS_SubString.Evaluate(const Params: TBoldOclSymbolParameters);
