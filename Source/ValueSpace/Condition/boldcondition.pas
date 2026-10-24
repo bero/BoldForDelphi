@@ -119,7 +119,7 @@ implementation
 
 uses
   classes,
-  {$IFDEF OXML}OXmlPDOM{$ELSE}Bold_MSXML_TLB{$ENDIF},
+  Contnrs,
   BoldDefaultStreamNames;
 
 const
@@ -304,14 +304,8 @@ end;
 procedure TBoldXMLSQLConditionStreamer.ReadObject(Obj: TObject; Node: TBoldXMLNode);
 var
   anSQLCond: TBoldSQLCondition;
-  {$IFDEF OXML}
-  aNodeEnumerator: TXMLResNodeListEnumerator;
-  aNodeList: IXMLNodeList;
-  aNode: PXMLNode;
-  {$ELSE}
-  aNodeList: IXMLDOMNodeList;
-  aNode: IXMLDOMNode;
-  {$ENDIF}
+  SubNodes: TObjectList;
+  i: Integer;
   aSubNode: TBoldXMLNode;
   ParamsNode: TBoldXMLNode;
   DataNode: TBoldXMLNode;
@@ -328,54 +322,26 @@ begin
   if not ParamsNode.IsNull then
   begin
     anSQLCond.Params := TParams.Create;
-    {$IFDEF OXML}
-    if Node.XMLDomElement.GetElementsByTagName(BoldNodeName_Param, aNodeList) then
-    begin
-      aNodeEnumerator := aNodeList.GetEnumerator;
-      try
-        while aNodeEnumerator.MoveNext do begin
-          aNode := aNodeEnumerator.Current;
-          aSubNode := Node.MakeNodeForElement(aNode);
-          aParam := anSQLCond.Params.Add as TParam;
-          aParam.Name := aSubNode.ReadSubNodeString(BoldNodeName_Name);
-          aParam.DataType := TFieldType(aSubNode.ReadSubNodeInteger(BoldNodeName_DataType));
-          aParam.ParamType := TParamType(aSubNode.ReadSubNodeInteger(BoldNodeName_ParamType));
-          DataNode := aSubNode.GetSubNode(BoldNodeName_Data);
-          if Assigned(DataNode) then
-          begin
-            Buf := DataNode.ReadData;
-            aParam.SetData(TValueBuffer(PAnsiChar(Buf)));
-          end;
-          DataNode.Free;
-          aSubNode.Free;
-        end;
-      finally
-        aNodeEnumerator.Free;
-      end;
-    end;
-    {$ELSE}
-    aNodeList := Node.XMLDomElement.getElementsByTagName(BoldNodeName_Param);
-    aNode := aNodeList.nextNode;
-
-    while assigned(aNode) do
-    begin
-      aSubNode := Node.MakeNodeForElement(aNode as IXMLDOMElement);
-
-      aParam := anSQLCond.Params.Add as TParam;
-      aParam.Name := aSubNode.ReadSubNodeString(BoldNodeName_Name);
-      aParam.DataType := TFieldType(aSubNode.ReadSubNodeInteger(BoldNodeName_DataType));
-      aParam.ParamType := TParamType(aSubNode.ReadSubNodeInteger(BoldNodeName_ParamType));
-      DataNode := aSubNode.GetSubNode(BoldNodeName_Data);
-      if assigned(DataNode) then
+    SubNodes := Node.NewSubNodesByTagName(BoldNodeName_Param);
+    try
+      for i := 0 to SubNodes.Count - 1 do
       begin
-        Buf := DataNode.ReadData;
-        aParam.SetData(TValueBuffer(PAnsiChar(Buf)));
+        aSubNode := TBoldXMLNode(SubNodes[i]);
+        aParam := anSQLCond.Params.Add as TParam;
+        aParam.Name := aSubNode.ReadSubNodeString(BoldNodeName_Name);
+        aParam.DataType := TFieldType(aSubNode.ReadSubNodeInteger(BoldNodeName_DataType));
+        aParam.ParamType := TParamType(aSubNode.ReadSubNodeInteger(BoldNodeName_ParamType));
+        DataNode := aSubNode.GetSubNode(BoldNodeName_Data);
+        if assigned(DataNode) then
+        begin
+          Buf := DataNode.ReadData;
+          aParam.SetData(TValueBuffer(PAnsiChar(Buf)));
+        end;
+        DataNode.Free;
       end;
-      DataNode.Free;
-      aSubNode.Free;
-      aNode := aNodeList.nextNode;
+    finally
+      SubNodes.Free;
     end;
-    {$ENDIF}
   end
   else
     anSQLCond.Params := nil;
