@@ -1937,7 +1937,7 @@ begin
   else if source.QueryInterface(IBoldIntegerContent, i) = S_OK then
     SetContent(i.AsInteger)
   else if source.QueryInterface(IBoldStringContent, s) = S_OK then
-    SetContent(s.asString.ToInteger)
+    SetContent(StrToInt(s.asString))
   else
     raise EBold.CreateFmt(sUnknownTypeOfSource, [classname, sAssignContentValue]);
 end;

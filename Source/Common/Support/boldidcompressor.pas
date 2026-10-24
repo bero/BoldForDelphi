@@ -155,7 +155,7 @@ begin
       fOnProgress(SourceObjectList.Count, j);
   until i = SourceObjectList.Count;
   Log('Loaded %d BoldIDs', [SourceObjectList.count]);
-  HighestUsedID := SourceObjectList.Locators[SourceObjectList.Count-1].AsString.ToInteger;
+  HighestUsedID := StrToInt(SourceObjectList.Locators[SourceObjectList.Count-1].AsString);
   Bits.Size := HighestUsedID;
   Log('Highest used ID = %d', [HighestUsedID]);
   Log('%.7f percent of IDs used', [((HighestUsedID-SourceObjectList.count)/maxint*100)]);

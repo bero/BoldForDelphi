@@ -1956,12 +1956,12 @@ end;
 
 procedure TBOS_ToUpper.Evaluate(const Params: TBoldOclSymbolParameters);
 begin
-  HELP.MakeNewString(Params.Result, XString(Params.values[0]).ToUpper);
+  HELP.MakeNewString(Params.Result, {$IFDEF FPC}UnicodeUpperCase(XString(Params.values[0])){$ELSE}XString(Params.values[0]).ToUpper{$ENDIF});
 end;
 
 procedure TBOS_toLower.Evaluate(const Params: TBoldOclSymbolParameters);
 begin
-  HELP.MakeNewString(Params.Result, XString(Params.values[0]).ToLower);
+  HELP.MakeNewString(Params.Result, {$IFDEF FPC}UnicodeLowerCase(XString(Params.values[0])){$ELSE}XString(Params.values[0]).ToLower{$ENDIF});
 end;
 
 procedure TBOS_SubString.Evaluate(const Params: TBoldOclSymbolParameters);
