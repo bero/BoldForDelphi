@@ -117,7 +117,9 @@ procedure ClearInstanceLog;
 implementation
 
 uses
-  BoldCoreConsts,
+  {$IFDEF MSWINDOWS}
+  Windows, // InterlockedIncrement/Decrement; Free Pascal has them in System
+  {$ENDIF}
   {$IFDEF DebugInstanceCounter}
   BoldIndexableList,
   BoldHashIndexes,
@@ -125,7 +127,7 @@ uses
   {$IFNDEF BOLD_DISABLEMEMORYMANAGER}
   BoldMemoryManager,
   {$ENDIF}
-  Windows;
+  BoldCoreConsts;
 
 var
   Finalized: boolean;
