@@ -17,8 +17,7 @@ uses
   SysUtils,
   Classes,
   TypInfo,
-  BoldDefs,
-  WideStrings;
+  BoldDefs;
 
 type
   TBoldNotificationEvent = procedure(AComponent: TComponent; Operation: TOperation) of object;
