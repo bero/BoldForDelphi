@@ -1,4 +1,4 @@
-unit Test.BoldSqlNodes;
+﻿unit Test.BoldSqlNodes;
 
 interface
 
@@ -280,7 +280,7 @@ begin
     Assert.AreEqual(20, Operation.Position);
     Assert.AreEqual('includes', Operation.OperationName);
     Assert.IsNotNull(Operation.Args, 'Args list should be created');
-    Assert.AreEqual(0, Operation.Args.Count);
+    Assert.AreEqual(0, Integer(Operation.Args.Count));
   finally
     Operation.Free;
   end;
@@ -727,13 +727,13 @@ var
 begin
   List := TBoldSqlNodeList.Create;
   try
-    Assert.AreEqual(0, List.Count);
+    Assert.AreEqual(0, Integer(List.Count));
     List.Add(TBoldSqlIntLiteral.Create(0, 1));
-    Assert.AreEqual(1, List.Count);
+    Assert.AreEqual(1, Integer(List.Count));
     List.Add(TBoldSqlIntLiteral.Create(0, 2));
-    Assert.AreEqual(2, List.Count);
+    Assert.AreEqual(2, Integer(List.Count));
     List.Add(TBoldSqlIntLiteral.Create(0, 3));
-    Assert.AreEqual(3, List.Count);
+    Assert.AreEqual(3, Integer(List.Count));
   finally
     List.Free; // Destroy frees all items
   end;
@@ -894,17 +894,17 @@ end;
 procedure TTestBoldSqlNodes.TestVariableBinding_AddRef_NonLoopVar_Raises;
 var
   Binding: TBoldSqlVariableBinding;
+  Action: TProc;
 begin
   Binding := TBoldSqlVariableBinding.Create(0, 'ext', 0);
   try
     Binding.AddRef; // first call OK
-    Assert.WillRaise(
+    Action :=
       procedure
       begin
         Binding.AddRef; // second call on non-loopvar should raise
-      end,
-      EBold
-    );
+      end;
+    Assert.WillRaise(Action, EBold);
   finally
     Binding.Free;
   end;
@@ -928,17 +928,17 @@ end;
 procedure TTestBoldSqlNodes.TestVariableBinding_DecRef_ZeroRefCount_Raises;
 var
   Binding: TBoldSqlVariableBinding;
+  Action: TProc;
 begin
   Binding := TBoldSqlVariableBinding.Create(0, 'x', 0);
   try
     // RefCount starts at 0, so DecRef should raise
-    Assert.WillRaise(
+    Action :=
       procedure
       begin
         Binding.DecRef;
-      end,
-      EBold
-    );
+      end;
+    Assert.WillRaise(Action, EBold);
   finally
     Binding.Free;
   end;
@@ -1012,18 +1012,18 @@ procedure TTestBoldSqlNodes.TestVariableReference_SetObjectMapper_Raises;
 var
   Binding: TBoldSqlVariableBinding;
   VarRef: TBoldSqlVariableReference;
+  Action: TProc;
 begin
   Binding := TBoldSqlVariableBinding.Create(0, 'x', 0);
   try
     VarRef := TBoldSqlVariableReference.Create(0, Binding);
     try
-      Assert.WillRaise(
+      Action :=
         procedure
         begin
           VarRef.ObjectMapper := nil; // calls SetObjectMapper which raises
-        end,
-        EBoldInternal
-      );
+        end;
+      Assert.WillRaise(Action, EBoldInternal);
     finally
       VarRef.Free;
     end;
@@ -1036,18 +1036,18 @@ procedure TTestBoldSqlNodes.TestVariableReference_SetQuery_Raises;
 var
   Binding: TBoldSqlVariableBinding;
   VarRef: TBoldSqlVariableReference;
+  Action: TProc;
 begin
   Binding := TBoldSqlVariableBinding.Create(0, 'x', 0);
   try
     VarRef := TBoldSqlVariableReference.Create(0, Binding);
     try
-      Assert.WillRaise(
+      Action :=
         procedure
         begin
           VarRef.Query := nil; // calls SetQuery which raises
-        end,
-        EBoldInternal
-      );
+        end;
+      Assert.WillRaise(Action, EBoldInternal);
     finally
       VarRef.Free;
     end;
@@ -1214,6 +1214,7 @@ procedure TTestBoldSqlNodes.TestSymbol_Methods;
 var
   Symbol: TTestSqlSymbol;
   Operation: TBoldSqlOperation;
+  Action: TProc;
 begin
   Symbol := TTestSqlSymbol.Create('mySymbol');
   try
@@ -1232,13 +1233,12 @@ begin
     // BuildWCFOrQuery raises EBoldInternal
     Operation := TBoldSqlOperation.Create(0, 'op');
     try
-      Assert.WillRaise(
+      Action :=
         procedure
         begin
           Symbol.BuildWCFOrQuery(Operation, nil);
-        end,
-        EBoldInternal
-      );
+        end;
+      Assert.WillRaise(Action, EBoldInternal);
     finally
       Operation.Free;
     end;

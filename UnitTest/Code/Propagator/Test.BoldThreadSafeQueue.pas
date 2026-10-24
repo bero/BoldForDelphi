@@ -1,4 +1,4 @@
-unit Test.BoldThreadSafeQueue;
+﻿unit Test.BoldThreadSafeQueue;
 
 interface
 
@@ -257,7 +257,7 @@ begin
   ResultList := TObjectList.Create(True);
   try
     FQueue.DequeueList(ResultList, 10);
-    Assert.AreEqual(3, ResultList.Count, 'Should dequeue all 3 items');
+    Assert.AreEqual(3, Integer(ResultList.Count), 'Should dequeue all 3 items');
     Assert.AreEqual(0, FQueue.Count, 'Queue should be empty after DequeueList');
   finally
     ResultList.Free;
@@ -277,7 +277,7 @@ begin
   ResultList := TObjectList.Create(True);
   try
     FQueue.DequeueList(ResultList, 3);
-    Assert.AreEqual(3, ResultList.Count, 'Should dequeue max 3 items');
+    Assert.AreEqual(3, Integer(ResultList.Count), 'Should dequeue max 3 items');
     Assert.AreEqual(2, FQueue.Count, 'Queue should have 2 remaining items');
   finally
     ResultList.Free;

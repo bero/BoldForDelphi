@@ -755,7 +755,7 @@ begin
 
   Assert.IsTrue(Sys.DirtyObjects.Count > 0, 'System should be dirty');
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'System should be clean after update');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'System should be clean after update');
 end;
 
 procedure TTestBoldLinks.TestUpdateDatabaseModifyAttributes;
@@ -772,7 +772,7 @@ begin
   Obj.aString := 'Modified';
   Assert.IsTrue(Sys.DirtyObjects.Count > 0, 'Should be dirty after modify');
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Should be clean after second update');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Should be clean after second update');
 end;
 
 procedure TTestBoldLinks.TestDeleteObjectAndSave;
@@ -788,7 +788,7 @@ begin
   Obj.Delete;
   Assert.IsTrue(Sys.DirtyObjects.Count > 0, 'Should be dirty after delete');
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Should be clean after saving delete');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Should be clean after saving delete');
 end;
 
 procedure TTestBoldLinks.TestDeleteLinkedObjectAndSave;
@@ -837,7 +837,7 @@ begin
 
   // Save and verify
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after save');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after save');
 end;
 
 procedure TTestBoldLinks.TestMultiLinkMoveIndex;
@@ -881,7 +881,7 @@ begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
 
   // System should be clean, objects fetchable
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Should be clean after re-open');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Should be clean after re-open');
 end;
 
 procedure TTestBoldLinks.TestModifyLinkAndSave;
@@ -945,7 +945,7 @@ begin
   Book.Topic.Clear;
   Assert.AreEqual(0, Book.Topic.Count, 'Topics should be cleared');
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after saving clear');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after saving clear');
 end;
 
 procedure TTestBoldLinks.TestDeleteWithManyToManyAndSave;
@@ -982,7 +982,7 @@ begin
   begin
     Obj.aString := 'Iteration' + IntToStr(i);
     dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-    Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after iteration ' + IntToStr(i));
+    Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after iteration ' + IntToStr(i));
   end;
   Assert.AreEqual('Iteration5', Obj.aString, 'Final value should be Iteration5');
 end;
@@ -1152,7 +1152,7 @@ begin
     Assert.IsTrue(ObjList.Count > 0, 'Should find objects');
     ObjList[0].aString := 'Modified';
     dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-    Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after modify+save');
+    Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after modify+save');
     Assert.AreEqual('Modified', ObjList[0].aString, 'Value should be modified');
   finally
     ObjList.Free;
@@ -1211,7 +1211,7 @@ begin
   // Modify link class attribute
   CWL1.oneLinkClass.Attribute1 := 'Modified';
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after link class modify');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after link class modify');
   Assert.AreEqual('Modified', CWL1.oneLinkClass.Attribute1, 'Link attr should be modified');
 end;
 
@@ -1232,7 +1232,7 @@ begin
   CWL1.many.Remove(CWL2);
   Assert.AreEqual(0, CWL1.many.Count, 'many should be empty');
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after link removal');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after link removal');
 end;
 
 // Multi-link operations with persistence
@@ -1259,7 +1259,7 @@ begin
   Parent.child.RemoveByIndex(1);
   Assert.AreEqual(2, Parent.child.Count, 'Should have 2 children after RemoveByIndex');
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after RemoveByIndex+save');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after RemoveByIndex+save');
 end;
 
 procedure TTestBoldLinks.TestMultiLinkInsertAtIndex;
@@ -1283,7 +1283,7 @@ begin
   CNew.parent := Parent;
   Assert.AreEqual(3, Parent.child.Count, 'Should have 3 children after insert');
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after insert+save');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after insert+save');
 end;
 
 // Complex relationship graphs
@@ -1307,7 +1307,7 @@ begin
   L3.parent := L2;
 
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after saving deep hierarchy');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after saving deep hierarchy');
   Assert.AreEqual(1, Root.child.Count, 'Root should have 1 child');
   Assert.AreEqual(1, L1.child.Count, 'L1 should have 1 child');
   Assert.AreEqual(1, L2.child.Count, 'L2 should have 1 child');
@@ -1349,7 +1349,7 @@ begin
     Obj.aString := 'Batch' + IntToStr(i);
   end;
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after batch create');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after batch create');
 end;
 
 procedure TTestBoldLinks.TestBatchDeleteAndSave;
@@ -1377,7 +1377,7 @@ begin
     ObjList.Free;
   end;
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after batch delete');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after batch delete');
 end;
 
 // Object reference operations
@@ -1399,7 +1399,7 @@ begin
   CWL1.one := nil;
   Assert.IsNull(CWL1.one, 'Link should be nil after clear');
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after clear single link');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after clear single link');
 end;
 
 procedure TTestBoldLinks.TestSingleLinkReassignment;
@@ -1421,7 +1421,7 @@ begin
   CWL1.one := CWL3;
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
   Assert.AreSame(TObject(CWL3), TObject(CWL1.one), 'Should point to new target');
-  Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after reassignment');
+  Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after reassignment');
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS;
@@ -1750,7 +1750,7 @@ begin
     // Delete and save
     ObjList[0].Delete;
     dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-    Assert.AreEqual(0, Sys.DirtyObjects.Count, 'Clean after full cycle');
+    Assert.AreEqual(0, Integer(Sys.DirtyObjects.Count), 'Clean after full cycle');
   finally
     ObjList.Free;
   end;
@@ -2171,11 +2171,11 @@ begin
   // including leaves an external SQL variable binding with refcount 0;
   // TBoldSqlNodeMaker.destroy DecRefs it unconditionally and the EBold escapes
   // CanEvaluateInPS through its finally block, masking the real answer.
-  Assert.WillNotRaise(
+  Assert.WillNotRaiseAny(
     procedure
     begin
       Sys.CanEvaluateInPS('APersistentClass.allInstances->including(self)', CTI);
-    end, nil, 'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
+    end, 'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_Excluding;
@@ -2186,11 +2186,11 @@ begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
   // Regression for H4 — see TestCanEvaluateInPS_Including.
-  Assert.WillNotRaise(
+  Assert.WillNotRaiseAny(
     procedure
     begin
       Sys.CanEvaluateInPS('APersistentClass.allInstances->excluding(self)', CTI);
-    end, nil, 'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
+    end, 'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_Union;
