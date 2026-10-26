@@ -426,6 +426,8 @@ type
     procedure TestSQLLikePercent;
     [Test] [Category('Quick')]
     procedure TestSQLLikeUnderscore;
+    [Test] [Category('Quick')]
+    procedure TestSQLLikeEmptyStringMatchesWildcard;
 
     // --- Type operations ---
     [Test] [Category('Quick')]
@@ -2233,6 +2235,25 @@ begin
     'sqlLike exact match should work');
   Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.aString.sqlLike(''hello'')'),
     'sqlLike should be case sensitive');
+end;
+
+{ '' LIKE '%' is true in SQL, and the in-memory evaluation agrees since BoldRegEx
+  matches without roNotEmpty; before that an empty match was refused and this
+  returned false. Pins the SQL answer. }
+procedure TTestBoldOclEvaluation.TestSQLLikeEmptyStringMatchesWildcard;
+var
+  Obj: TClassA;
+begin
+  Obj := TClassA.Create(GetSystem);
+  Obj.aString := '';
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('self.aString.sqlLike(''%'')'),
+    'an empty string matches the % wildcard, as '''' LIKE ''%'' does in SQL');
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('self.aString.sqlLike(''%%'')'),
+    'an empty string matches a pattern of only wildcards');
+  Assert.IsTrue(Obj.EvaluateExpressionAsBoolean('self.aString.sqlLikeCaseInsensitive(''%'')'),
+    'the case-insensitive variant agrees');
+  Assert.IsFalse(Obj.EvaluateExpressionAsBoolean('self.aString.sqlLike(''_'')'),
+    '_ needs one character, an empty string has none');
 end;
 
 // === Type operations ===
