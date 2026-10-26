@@ -2549,12 +2549,14 @@ begin
 end;
 
 procedure TBoldSystem.UpdateDatabaseWithList(ObjectList: TBoldObjectList);
+var
+  BO: TBoldObject;
 begin
   if IsUpdatingDatabase then
     raise EBold.CreateFmt(sUpdateDbRentry, []);
   if BoldSystemCount > 1 then
   begin
-    for var BO in ObjectList do
+    for BO in ObjectList do
       if BO.BoldSystem <> self then
         raise EBold.CreateFmt(sObjectFromAnotherSystem, [classname, 'UpdateDatabaseWithList']);
   end;
@@ -3711,10 +3713,11 @@ begin
 end;
 
 function TBoldObject.GetBoldMemberIfAssigned(index: Integer): TBoldMember;
+var
+  ID: String;
 begin
   if Cardinal(Index) >= Cardinal(Length(fMemberArray)) then
   begin
-    var ID: String;
     if Assigned(FBoldObjectLocator) and Assigned(FBoldObjectLocator.BoldObjectID) then
       ID := FBoldObjectLocator.BoldObjectID.AsString
     else
