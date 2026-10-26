@@ -1432,7 +1432,6 @@ implementation
 uses
   SysUtils,
   Variants,
-  Windows,
 
   BoldCoreConsts,
   BoldLogHandler,
@@ -1448,6 +1447,7 @@ uses
   BoldDefaultId,
   BoldTaggedValueSupport,
   BoldUndoHandler,
+  BoldPlatform,
   {$IFDEF BOLDJSON}
   BoldObjectRepresentationJson,
   {$ENDIF}
@@ -2779,7 +2779,7 @@ end;
 
 function TBoldSystem.GetAllDirtyObjectsAsBoldList: TBoldObjectList;
 begin
-  result := GetDirtyObjectsAsBoldList(nil);
+  result := GetDirtyObjectsAsBoldList(TBoldClassTypeInfo(nil));
 end;
 
 procedure TBoldSystem.MarkObjectPossiblyCleaner(BoldObject: TBoldObject);
@@ -6274,13 +6274,8 @@ end;
 
 
 function UnicodeCompareLen(CaseSensitive: Boolean; s1, s2 : string; n : Integer) : Integer;
-const
-   CSTR_EQUAL = 2;
 begin
-  if CaseSensitive then
-    Result:=CompareStringEx(nil, 0, PWideChar(s1), n, PWideChar(s2), n, nil, nil, 0)-CSTR_EQUAL
-  else
-    Result:=CompareStringEx(nil, NORM_IGNORECASE, PWideChar(s1), n, PWideChar(s2), n, nil, nil, 0)-CSTR_EQUAL
+  Result := BoldUnicodeCompareLen(CaseSensitive, s1, s2, n);
 end;
 
 function UnicodeCompareText(CaseSensitive: Boolean; const s1, s2 : UnicodeString) : Integer;

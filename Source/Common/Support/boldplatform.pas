@@ -22,17 +22,19 @@ function BoldModuleFileName: string;
 function BoldDebuggerPresent: Boolean;
 // Login name of the user running the process.
 function BoldLoginName: string;
+// Locale-aware comparison of the first n characters of s1 and s2 (<0, 0, >0),
+// case-insensitive unless CaseSensitive. Used for string attribute comparison.
+function BoldUnicodeCompareLen(CaseSensitive: Boolean; s1, s2: string; n: Integer): Integer;
 
 implementation
 
 uses
 {$IFDEF MSWINDOWS}
   Windows,
-  SysUtils;
 {$ELSE}
   Classes,
-  SysUtils;
 {$ENDIF}
+  SysUtils;
 
 {$IFDEF MSWINDOWS}
 type
@@ -161,6 +163,26 @@ begin
 end;
 {$ENDIF}
 {$ENDIF}
+{$ENDIF}
+
+{$IFNDEF FPC}
+function BoldUnicodeCompareLen(CaseSensitive: Boolean; s1, s2: string; n: Integer): Integer;
+const
+   CSTR_EQUAL = 2;
+begin
+  if CaseSensitive then
+    Result:=CompareStringEx(nil, 0, PWideChar(s1), n, PWideChar(s2), n, nil, nil, 0)-CSTR_EQUAL
+  else
+    Result:=CompareStringEx(nil, NORM_IGNORECASE, PWideChar(s1), n, PWideChar(s2), n, nil, nil, 0)-CSTR_EQUAL
+end;
+{$ELSE}
+function BoldUnicodeCompareLen(CaseSensitive: Boolean; s1, s2: string; n: Integer): Integer;
+begin
+  if CaseSensitive then
+    Result := SysUtils.UnicodeCompareStr(Copy(s1, 1, n), Copy(s2, 1, n))
+  else
+    Result := SysUtils.UnicodeCompareText(Copy(s1, 1, n), Copy(s2, 1, n));
+end;
 {$ENDIF}
 
 initialization
