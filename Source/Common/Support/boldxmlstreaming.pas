@@ -28,6 +28,21 @@ type
   TBoldXMLNode = class;
   TBoldXMLStreamStateManager = class;
 
+  { TBoldXMLDocument }
+  // Owns one XML document and hides the XML library from callers.
+  TBoldXMLDocument = class(TBoldMemoryManagedObject)
+  private
+    fDocument: {$IFDEF OXML}TXMLDocument{$ELSE}TDomDocument{$ENDIF};
+  public
+    constructor Create;
+    destructor Destroy; override;
+    // Raises EBold when XML cannot be parsed.
+    procedure LoadXML(const XML: string);
+    // The root element as XML, without the XML declaration.
+    function RootXML: string;
+    property Document: {$IFDEF OXML}TXMLDocument{$ELSE}TDomDocument{$ENDIF} read fDocument;
+  end;
+
   { TBoldXMLStreamStateManager }
   TBoldXMLStreamStateManager = class(TBoldMemoryManagedObject)
   private
@@ -154,10 +169,12 @@ type
     constructor Create(Registry: TBoldXMLStreamerRegistry);
     function GetRootNode(Document:
         {$IFDEF OXML}TXMLDocument{$ELSE}TDomDocument{$ENDIF}; const Accessor:
-        string): TBoldXMLNode;
+        string): TBoldXMLNode; overload;
+    function GetRootNode(Document: TBoldXMLDocument; const Accessor: string): TBoldXMLNode; overload;
     function NewRootNode(Document:
         {$IFDEF OXML}TXMLDocument{$ELSE}TDomDocument{$ENDIF}; const Accessor:
-        string): TBoldXMLNode;
+        string): TBoldXMLNode; overload;
+    function NewRootNode(Document: TBoldXMLDocument; const Accessor: string): TBoldXMLNode; overload;
     function GetSOAP(Document:
         {$IFDEF OXML}TXMLDocument{$ELSE}TDomDocument{$ENDIF}): TBoldXMLNode;
     function NewSOAP(Document:
@@ -983,6 +1000,54 @@ procedure TBoldXMLInterfaceStreamer.WriteInterface(const Item: IBoldStreamable; 
 begin
 end;
 
+{ TBoldXMLDocument }
+
+constructor TBoldXMLDocument.Create;
+begin
+  inherited Create;
+  {$IFDEF OXML}
+  fDocument := TXMLDocument.Create;
+  {$ELSE}
+  fDocument := TDomDocument.Create(nil);
+  {$ENDIF}
+end;
+
+destructor TBoldXMLDocument.Destroy;
+begin
+  FreeAndNil(fDocument);
+  inherited;
+end;
+
+procedure TBoldXMLDocument.LoadXML(const XML: string);
+{$IFDEF OXML}
+var
+  ParseError: IOTextParseError;
+begin
+  fDocument.LoadFromXML(XML);
+  ParseError := fDocument.ParseError;
+  if Assigned(ParseError) and (ParseError.ErrorCode <> 0) then
+    raise EBold.Create(sXMLParseError);
+end;
+{$ELSE}
+var
+  ParseError: IXMLDOMParseError;
+begin
+  fDocument.loadXML(XML);
+  ParseError := fDocument.parseError;
+  if Assigned(ParseError) and (ParseError.errorCode <> 0) then
+    raise EBold.Create(sXMLParseError);
+end;
+{$ENDIF}
+
+function TBoldXMLDocument.RootXML: string;
+begin
+  {$IFDEF OXML}
+  Result := fDocument.XML;
+  {$ELSE}
+  Result := fDocument.documentElement.xml;
+  {$ENDIF}
+end;
+
 { TBoldXMLStreamManager }
 
 constructor TBoldXMLStreamManager.Create(Registry: TBoldXMLStreamerRegistry);
@@ -1009,6 +1074,14 @@ begin
   result := TBoldXMLNode.Create(self, Document.documentElement, nil);
 end;
 
+function TBoldXMLStreamManager.GetRootNode(Document: TBoldXMLDocument;
+    const Accessor: string): TBoldXMLNode;
+begin
+  if not assigned(Document) then
+    raise EBold.CreateFmt(sStreamerNotConnected, [classname, 'GetRootNode']); //do not localize
+  result := GetRootNode(Document.Document, Accessor);
+end;
+
 function TBoldXMLStreamManager.GetSOAP(Document:
     {$IFDEF OXML}TXMLDocument{$ELSE}TDomDocument{$ENDIF}): TBoldXMLNode;
 var
@@ -1032,6 +1105,14 @@ begin
   result := TBoldXMLNode.Create(self, Document.documentElement, nil);
   result.XMLDomElement.setAttribute('xmlns:xsi', 'http://www.w3.org/1999/XMLSchema-instance');
   result.XMLDomElement.setAttribute('xml:space', 'preserve');
+end;
+
+function TBoldXMLStreamManager.NewRootNode(Document: TBoldXMLDocument;
+    const Accessor: string): TBoldXMLNode;
+begin
+  if not assigned(Document) then
+    raise EBold.CreateFmt(sStreamerNotConnected, [classname, 'NewRootNode']); // do not localize
+  result := NewRootNode(Document.Document, Accessor);
 end;
 
 function TBoldXMLStreamManager.NewSOAP(Document:
