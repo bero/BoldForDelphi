@@ -184,8 +184,11 @@ Illegal symbol combination
 // IndexColumn creates an extra Index column in MemberMappingTable
 {.$DEFINE IndexColumn}
 
-//Adds brJson StringRepresentation via BoldObjectRepresentationJson unit
+//Adds brJson StringRepresentation via BoldObjectRepresentationJson unit.
+// Not under FPC yet: that unit is built on Delphi's System.JSON (#117).
+{$IFNDEF FPC}
 {$DEFINE BoldJson}
+{$ENDIF}
 
 // NoEnsureEnclosure skips EnsureEnclosure call in UpdateDatabase, use NoEnsureEnclosure if objects passed to UpdateDatabase are already enclosed
 {.$DEFINE NoEnsureEnclosure}
