@@ -26,9 +26,12 @@ interface
 
 uses
   System.SysUtils,
-  DUnitX.TestFramework;
+  DUnitX.TestFramework,
+  BoldWebConnection;
 
 type
+  TWebConnectionClass = class of TBoldWebConnection;
+
   [TestFixture]
   TTestBoldHTTPPersistenceControllerClient = class
   private
@@ -37,7 +40,9 @@ type
     FReceivedContentLength: Integer;
     procedure StartEchoServer;
     procedure StopEchoServer;
-    function RoundTrip(const ARequest: WideString): WideString;
+    function RoundTrip(const ARequest: WideString): WideString; overload;
+    function RoundTrip(const ARequest: WideString;
+      AConnectionClass: TWebConnectionClass): WideString; overload;
   public
     [Setup]
     procedure Setup;
@@ -57,17 +62,26 @@ type
       comes back as UTF-16 nonsense. }
     [Test]
     procedure ReplyRoundTrips;
+
+    {$IFDEF WIN64}
+    { A 64-bit object address can have bit 31 set. Send passed Integer(Self) to
+      WinInet as the request context, and range checking refuses the negative
+      value, so the request never left the client. A 32-bit process has no such
+      address, so the test only exists on Win64. }
+    [Test]
+    procedure RoundTripFromAnObjectAbove2GB;
+    {$ENDIF}
   end;
 
 implementation
 
 uses
   System.Classes,
+  Winapi.Windows,
   IdHTTPServer,
   IdCustomHTTPServer,
   IdContext,
   IdGlobal,
-  BoldWebConnection,
   BoldHTTPPersistenceControllerClient;
 
 const
@@ -94,6 +108,45 @@ type
 
 var
   GHandler: TEchoHandler;
+
+{$IFDEF WIN64}
+type
+  { A connection object placed above the 2 GB mark, so that bit 31 of its
+    address is set. The heap of a short test run rarely puts one there. }
+  THighAddressWebConnection = class(TBoldWebConnection)
+  public
+    class function NewInstance: TObject; override;
+    procedure FreeInstance; override;
+  end;
+
+class function THighAddressWebConnection.NewInstance: TObject;
+const
+  { 64 KB aligned, as VirtualAlloc requires for a chosen address. }
+  cCandidates: array[0..3] of NativeUInt = ($80000000, $180000000, $280000000, $380000000);
+var
+  i: Integer;
+  P: Pointer;
+begin
+  P := nil;
+  for i := Low(cCandidates) to High(cCandidates) do
+  begin
+    P := VirtualAlloc(Pointer(cCandidates[i]), InstanceSize, MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE);
+    if Assigned(P) then
+      Break;
+  end;
+  if not Assigned(P) then
+    raise Exception.Create('Could not reserve memory above 2 GB for the connection object');
+  if (NativeUInt(P) and $80000000) = 0 then
+    raise Exception.CreateFmt('VirtualAlloc returned %p, which does not have bit 31 set', [P]);
+  Result := InitInstance(P);
+end;
+
+procedure THighAddressWebConnection.FreeInstance;
+begin
+  CleanupInstance;
+  VirtualFree(Pointer(Self), 0, MEM_RELEASE);
+end;
+{$ENDIF}
 
 procedure TEchoHandler.CommandGet(AContext: TIdContext;
   ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
@@ -155,11 +208,17 @@ end;
 
 function TTestBoldHTTPPersistenceControllerClient.RoundTrip(
   const ARequest: WideString): WideString;
+begin
+  Result := RoundTrip(ARequest, TBoldWebConnection);
+end;
+
+function TTestBoldHTTPPersistenceControllerClient.RoundTrip(
+  const ARequest: WideString; AConnectionClass: TWebConnectionClass): WideString;
 var
   Connection: TBoldWebConnection;
   Service: TBoldHTTPSOAPService;
 begin
-  Connection := TBoldWebConnection.Create(nil);
+  Connection := AConnectionClass.Create(nil);
   try
     Connection.URL := Format('http://localhost:%d/persistence', [FPort]);
     Service := TBoldHTTPSOAPService.Create;
@@ -217,6 +276,18 @@ begin
     'The echo server returned exactly what it was given, so Get should hand ' +
     'back the original document.');
 end;
+
+{$IFDEF WIN64}
+procedure TTestBoldHTTPPersistenceControllerClient.RoundTripFromAnObjectAbove2GB;
+var
+  Reply: WideString;
+begin
+  Reply := RoundTrip(cRequest, THighAddressWebConnection);
+  Assert.AreEqual(string(cRequest), string(Reply),
+    'A connection object whose address has bit 31 set has to send and receive ' +
+    'like any other.');
+end;
+{$ENDIF}
 
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldHTTPPersistenceControllerClient);

@@ -70,7 +70,8 @@ procedure TBoldHTTPSOAPService.Get(const request: WideString;
 var
   dataSent, dataReceived: TBoldDataBlock;
   RequestBytes, ReplyBytes: TBytes;
-  size, Context: Integer;
+  size: Integer;
+  Context: NativeInt;
 begin
   { Encode and decode explicitly rather than copying string memory. Length
     counts characters while Write and Read take bytes, and treating the two as

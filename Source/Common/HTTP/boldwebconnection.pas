@@ -41,8 +41,8 @@ type
     procedure Check(Error: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
-    function Send(const Data: TBoldDataBlock): Integer;
-    function Receive(WaitForInput: Boolean; Context: Integer): TBoldDataBlock;
+    function Send(const Data: TBoldDataBlock): NativeInt;
+    function Receive(WaitForInput: Boolean; Context: NativeInt): TBoldDataBlock;
     property Connected: Boolean read GetConnected write SetConnected;
   published
     property UserName: string read FUserName write FUserName;
@@ -96,7 +96,7 @@ begin
   Result := Assigned(FInetConnect);
 end;
 
-function TBoldWebConnection.Receive(WaitForInput: Boolean; Context: Integer): TBoldDataBlock;
+function TBoldWebConnection.Receive(WaitForInput: Boolean; Context: NativeInt): TBoldDataBlock;
 var
   Size, Downloaded, Status, Len, Index: DWord;
   S: string;
@@ -126,7 +126,7 @@ begin
   until Size = 0;
 end;
 
-function TBoldWebConnection.Send(const Data: TBoldDataBlock): Integer;
+function TBoldWebConnection.Send(const Data: TBoldDataBlock): NativeInt;
 var
   Request: HINTERNET;
   RetVal, Flags: DWord;
@@ -140,7 +140,7 @@ begin
   if FURLScheme = BOLD_INTERNET_SCHEME_HTTPS then
     Flags := Flags or BOLD_INTERNET_FLAG_SECURE;
   SetConnected(True);
-  Request := BoldHttpOpenRequest(FInetConnect, 'POST', FURLSite, '', '', AcceptTypes, Flags, Integer(Self));
+  Request := BoldHttpOpenRequest(FInetConnect, 'POST', FURLSite, '', '', AcceptTypes, Flags, DWORD_PTR(Self));
   Check(not Assigned(Request));
   while True do
   begin
@@ -154,7 +154,7 @@ begin
       BOLD_ERROR_INTERNET_FORCE_RETRY: {Retry the operation};
     end;
   end;
-  Result := Integer(Request)
+  Result := NativeInt(Request)
 end;
 
 procedure TBoldWebConnection.SetConnected(Value: Boolean);
@@ -174,7 +174,7 @@ begin
       SysUtils.Abort;
     Check(not Assigned(FInetRoot));
     try
-      FInetConnect := BoldInternetConnect(FInetRoot, FURLHost, FURLPort, FUserName, FPassword, BOLD_INTERNET_SERVICE_HTTP, 0, Cardinal(Self));
+      FInetConnect := BoldInternetConnect(FInetRoot, FURLHost, FURLPort, FUserName, FPassword, BOLD_INTERNET_SERVICE_HTTP, 0, DWORD_PTR(Self));
       Check(not Assigned(FInetConnect));
     except
       BoldInternetCloseHandle(FInetRoot);

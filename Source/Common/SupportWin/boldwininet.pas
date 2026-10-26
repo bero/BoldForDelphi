@@ -35,16 +35,16 @@ const
   BOLD_INTERNET_SERVICE_HTTP = WinINet.INTERNET_SERVICE_HTTP;
 
 function BoldInternetOpen(Agent: String; AccessType: integer; Proxy: string; ProxyByPass: String; Flags: integer): pointer;
-function BoldInternetOpenUrl(iNet: Pointer; URL: string; Headers: String; Flags, Context: cardinal): Pointer;
+function BoldInternetOpenUrl(iNet: Pointer; URL: string; Headers: String; Flags: Cardinal; Context: DWORD_PTR): Pointer;
 function BoldInternetReadFile(hFile: Pointer; Buffer: Pointer; NumberOfBytesToRead: Cardinal; var NumberOfBytesRead: Cardinal): LongBool;
 function BoldInternetCloseHandle(HINet: Pointer): LongBool;
 function BoldHttpQueryInfo(hRequest: Pointer; InfoLevel: Cardinal; Buffer: Pointer; BufferLength: Cardinal; Reserved: Cardinal): LongBool;
-function BoldInternetQueryDataAvailable(hFile: Pointer; var NumberOfBytesAvailable: Cardinal; flags: Cardinal; Context: Cardinal): LongBool;
-function BoldHttpOpenRequest(hConnect: Pointer; Verb, ObjectName, Version, Referrer: String; AcceptTypes: PCharArr; Flags, Context: Cardinal): Pointer;
+function BoldInternetQueryDataAvailable(hFile: Pointer; var NumberOfBytesAvailable: Cardinal; flags: Cardinal; Context: DWORD_PTR): LongBool;
+function BoldHttpOpenRequest(hConnect: Pointer; Verb, ObjectName, Version, Referrer: String; AcceptTypes: PCharArr; Flags: Cardinal; Context: DWORD_PTR): Pointer;
 function BoldHttpSendRequest(hRequest: Pointer; Headers: string; Optional: Pointer; OptionalLength: Cardinal): LongBool;
 function BoldInternetErrorDlg(hWnd: HWND; hRequest: HINTERNET; dwError, dwFlags: DWORD; var lppvData: Pointer): DWORD;
 function BoldInternetAttemptConnect(dwReserved: DWORD): DWORD;
-function BoldInternetConnect(hInet: HINTERNET; ServerName: string; nServerPort: INTERNET_PORT; Username: string; Password: string; dwService: DWORD; dwFlags: DWORD; dwContext: DWORD): HINTERNET;
+function BoldInternetConnect(hInet: HINTERNET; ServerName: string; nServerPort: INTERNET_PORT; Username: string; Password: string; dwService: DWORD; dwFlags: DWORD; dwContext: DWORD_PTR): HINTERNET;
 function BoldInternetCrackUrl(Url: PChar; UrlLength, dwFlags: DWORD; var lpUrlComponents: TURLComponents): BOOL;
 
 implementation
@@ -58,7 +58,7 @@ begin
   result := InternetOpen(PChar(Agent), AccessType, PChar(Proxy), PChar(ProxyByPass), flags);
 end;
 
-function BoldInternetOpenUrl(iNet: Pointer; URL: string; Headers: String; Flags, Context: cardinal): Pointer;
+function BoldInternetOpenUrl(iNet: Pointer; URL: string; Headers: String; Flags: Cardinal; Context: DWORD_PTR): Pointer;
 begin
   result := InternetOpenURL(iNet, pChar(Url), PChar(Headers), length(Headers), Flags, Context);
 end;
@@ -78,12 +78,12 @@ begin
   result := HTTPQueryInfo(hRequest, InfoLevel, Buffer, BufferLength, Reserved);
 end;
 
-function BoldInternetQueryDataAvailable(hFile: Pointer; var NumberOfBytesAvailable: Cardinal; flags: Cardinal; Context: Cardinal): LongBool;
+function BoldInternetQueryDataAvailable(hFile: Pointer; var NumberOfBytesAvailable: Cardinal; flags: Cardinal; Context: DWORD_PTR): LongBool;
 begin
   result := InternetQueryDataAvailable(hFile, NumberOfBytesAvailable, flags, Context)
 end;
 
-function BoldHttpOpenRequest(hConnect: Pointer; Verb, ObjectName, Version, Referrer: String; AcceptTypes: PCharArr; Flags, Context: Cardinal): Pointer;
+function BoldHttpOpenRequest(hConnect: Pointer; Verb, ObjectName, Version, Referrer: String; AcceptTypes: PCharArr; Flags: Cardinal; Context: DWORD_PTR): Pointer;
 begin
   result := httpOpenRequest(hConnect, PChar(Verb), PChar(ObjectName), PChar(Version), PChar(Referrer), Pointer(AcceptTypes), Flags, Context)
 end;
@@ -103,7 +103,7 @@ begin
   result := InternetAttemptConnect(dwReserved);
 end;
 
-function BoldInternetConnect(hInet: HINTERNET; ServerName: string; nServerPort: INTERNET_PORT; Username: string; Password: string; dwService: DWORD; dwFlags: DWORD; dwContext: DWORD): HINTERNET;
+function BoldInternetConnect(hInet: HINTERNET; ServerName: string; nServerPort: INTERNET_PORT; Username: string; Password: string; dwService: DWORD; dwFlags: DWORD; dwContext: DWORD_PTR): HINTERNET;
 begin
   result := InternetConnect(hINet, PChar(ServerName), nServerPort, PChar(UserName), PChar(Password), dwService, dwFlags, dwContext);
 end;
