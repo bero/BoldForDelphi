@@ -369,6 +369,12 @@ type
     property SystemPersistenceHandler: TBoldAbstractSystemPersistenceHandler read fSystemPersistenceHandler;
     property OldValueHandler: TBoldAbstractOldValueHandler read fOldValueHandler;
   public
+    {$IFDEF FPC}
+    // FPC 3.2.2 writes 'System.AbstractError' as the body of every abstract method. In the
+    // handler classes with a System property that name resolves here, so this stands in
+    // for the RTL procedure (FPC issue 32538).
+    class procedure AbstractError;
+    {$ENDIF}
 {$IFDEF ACCESSSTATISTICS} //// START PATCH ACCESSSTATISTICS ////////////////////
     fAccessStats: TArrayOfArrayOfIntegers;
     fDeriveStats: TArrayOfArrayOfIntegers;
@@ -2776,6 +2782,13 @@ begin
   if Assigned(ClassTypeInfo) then
     result := GetDirtyObjectsAsBoldList(ClassTypeInfo);
 end;
+
+{$IFDEF FPC}
+class procedure TBoldSystem.AbstractError;
+begin
+  raise EAbstractError.Create('Abstract method called');
+end;
+{$ENDIF}
 
 function TBoldSystem.GetAllDirtyObjectsAsBoldList: TBoldObjectList;
 begin
