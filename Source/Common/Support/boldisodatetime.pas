@@ -1,4 +1,4 @@
-
+﻿
 { Global compiler directives }
 {$include bold.inc}
 unit BoldIsoDateTime;
@@ -124,7 +124,11 @@ begin
 end;
 
 initialization
+  {$IFDEF FPC}
+  FormatSettings := DefaultFormatSettings;
+  {$ELSE}
   FormatSettings := TFormatSettings.Create;
+  {$ENDIF}
   FormatSettings.DateSeparator := '-';
   FormatSettings.TimeSeparator := ':'
 
