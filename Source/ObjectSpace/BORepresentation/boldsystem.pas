@@ -875,7 +875,7 @@ type
     procedure AssignContentValue(const Source: IBoldValue); override;
     procedure SetContentToNull;
     function GetContentIsNull: Boolean;
-    property ProxedAttribute: TBoldAttribute read GetProxedAttribute implements IBoldNullableValue;
+    property ProxedAttribute: TBoldAttribute read GetProxedAttribute {$IFNDEF FPC}implements IBoldNullableValue{$ENDIF};
     function GetStringRepresentation(representation:integer): String;
     procedure SetStringRepresentation(Representation: integer; const NewValue: String);
     function GetContentAsString: String; virtual;
