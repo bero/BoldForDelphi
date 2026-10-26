@@ -1040,7 +1040,7 @@ end;
 
 function TBoldDataSetWrapper.FieldByUpperCaseName(const FieldNameUpper: string): IBoldField;
 var
-  DataSetFieldList :TFieldList;
+  DataSetFieldList: {$IFDEF FPC}TFields{$ELSE}TFieldList{$ENDIF};
 
   procedure FoundIndex(Index: Integer);
   begin
@@ -1076,7 +1076,9 @@ var
   var
     F: integer;
   begin
+    {$IFNDEF FPC}
     DataSetFieldList.Update;
+    {$ENDIF}
     SetLength(fFieldNames, DataSet.FieldCount);
     for F := 0 to DataSet.FieldCount - 1 do
       fFieldNames[F] := AnsiUpperCase(DataSetFieldList.Fields[F].FieldName);
@@ -1084,7 +1086,7 @@ var
   end;
 
 begin
-  DataSetFieldList := DataSet.FieldList;
+  DataSetFieldList := DataSet.{$IFDEF FPC}Fields{$ELSE}FieldList{$ENDIF};
   if not fNamesInited  then
     InitNames;
   if not TryIndex(fLastUsedFieldIndex+1) then
