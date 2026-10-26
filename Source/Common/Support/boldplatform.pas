@@ -20,12 +20,15 @@ function BoldProcessUserTimeInTicks: Int64;
 function BoldModuleFileName: string;
 // True when a debugger is attached to the process.
 function BoldDebuggerPresent: Boolean;
+// Login name of the user running the process.
+function BoldLoginName: string;
 
 implementation
 
 uses
 {$IFDEF MSWINDOWS}
-  Windows;
+  Windows,
+  SysUtils;
 {$ELSE}
   Classes,
   SysUtils;
@@ -70,6 +73,42 @@ end;
 function BoldModuleFileName: string;
 begin
   Result := ParamStr(0);
+end;
+{$ENDIF}
+
+{$IFDEF MSWINDOWS}
+function BoldLoginName: string;
+var
+  User: PChar;
+  Size: DWord;
+begin
+  Result := '';
+  Size := 256;
+  User := StrAlloc(Size);
+  try
+    try
+      if WNetGetUser(PChar(0), User, Size) = 0 then begin
+        Result := string(User);
+      end else begin
+        RaiseLastOSError;
+      end;
+    except
+      if GetUserName(User, Size) then begin
+        Result := string(User);
+      end else begin
+        RaiseLastOSError;
+      end;
+    end;
+  finally
+    StrDispose(User);
+  end;
+end;
+{$ELSE}
+function BoldLoginName: string;
+begin
+  Result := GetEnvironmentVariable('USER');
+  if Result = '' then
+    Result := GetEnvironmentVariable('LOGNAME');
 end;
 {$ENDIF}
 

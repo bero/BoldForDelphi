@@ -595,7 +595,6 @@ var
 implementation
 
 uses
-  Windows,
   TypInfo,
 
   BoldCoreConsts,
@@ -604,6 +603,7 @@ uses
   BoldUnitLog,
 {$ENDIF}
   BoldUtils,
+  BoldPlatform,
   BoldIsoDateTime;
 
 const
@@ -1590,30 +1590,8 @@ begin
 end;
 
 function TBoldDatabaseWrapper.GetWindowsLoginName: string;
-var
-  User: PChar;
-  Size: DWord;
 begin
-  Result := '';
-  Size := 256;
-  User := StrAlloc(Size);
-  try
-    try
-      if WNetGetUser(PChar(0), User, Size) = 0 then begin
-        Result := string(User);
-      end else begin
-        RaiseLastOSError;
-      end;
-    except
-      if GetUserName(User, Size) then begin
-        Result := string(User);
-      end else begin
-        RaiseLastOSError;
-      end;
-    end;
-  finally
-    StrDispose(User);
-  end;
+  Result := BoldLoginName;
 end;
 
 
