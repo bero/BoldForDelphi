@@ -697,17 +697,6 @@ begin
   end;
 end;
 
-    if Params <> nil then
-      for I := 0 to Params.ParamCount - 1 do
-      begin
-      BoldSQLLogHandler.Log(
-        '                                                    ' +
-        Format('  [%s]:%s', [Params.Param[i].Name, Params.Param[i].AsString])
-      );
-      end;
-  end;
-end;
-
 function BoldQueryAsString(const sql: TStrings; const Params: IBoldParameterized): string;
 var
   i: integer;
