@@ -780,7 +780,7 @@ implementation
 
 uses
   Math,
-  AnsiStrings,
+  {$IFNDEF FPC}AnsiStrings,{$ENDIF}
   BoldNameExpander,
   BoldTaggedValueSupport,
   Variants,
@@ -2060,7 +2060,7 @@ begin
     result := CanSetToNull(nil)
   else
   begin
-    result := TextToFloat(PChar(Value), temp, fvExtended);
+    result := TryStrToFloat(Value, temp);
     if not result then
       FormatFailure(value, 'float'); // do not localize
   end;
@@ -2356,7 +2356,7 @@ begin
     result := CanSetToNull(nil)
   else
   begin
-    result := TextToFloat(PChar(Value), temp, fvCurrency);
+    result := TryStrToCurr(Value, temp);
     if not result then
       FormatFailure(value, 'currency'); // do not localize
   end;
@@ -2874,7 +2874,7 @@ begin
     SetToNonNull;
   // Old value is not passed in as parameter when Blob is set via Stream
   // TODO: If Old value is needed store it in StartModifyOfBlob
-  Changed(beValueChanged, [fStream.fData]);
+  Changed(beValueChanged, [{$IFDEF FPC}Pointer(fStream.fData){$ELSE}fStream.fData{$ENDIF}]);
   if not SupressEvents then
     EndModify;
 end;
