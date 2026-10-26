@@ -455,7 +455,7 @@ begin
               if Ocl[i] = '''' then
                 InQuote := not InQuote;
               if not InQuote and not CharInSet(Ocl[i], [' ', #9, BOLDCR, '0'..'9', 'a'..'z', 'A'..'Z', '_', '[', ']', '{', '}',
-                '(', ')', '+', '-', '*', '/', '=', '>', '<', ',', '.', '@', '|', '''', ':', '#', '«', '»']) then
+                '(', ')', '+', '-', '*', '/', '=', '>', '<', ',', '.', '@', '|', '''', ':', '#', #171, #187]) then  // « »
                 raise EBoldOclAbort.CreateFmt(boeInvalidcharacter,[i - 1]);
             end;
           if Pos('SSYacc0105e: SyncErr failed, no valid token', e.message) <> 0 then // do not localize
@@ -1027,7 +1027,7 @@ begin
   FreeAndNil(fSubscriber);
   FreeAndNil(SelfVar);
   FreeAndNil(Ocl);
-  FreeAndNil(ReferencedVariables);
+  FreeAndNil(fReferencedVariables);
   inherited;
 end;
 
