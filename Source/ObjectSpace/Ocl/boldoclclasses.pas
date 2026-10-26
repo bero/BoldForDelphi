@@ -1202,7 +1202,7 @@ procedure TBoldOclVariableReference.Receive(Originator: TObject;
   OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
 begin
   if Originator = VariableBinding then
-    FreeAndNil(VariableBinding);
+    FreeAndNil(fVariableBinding);
 end;
 
 procedure TBoldOclVariableReference.SetVariableBinding(
