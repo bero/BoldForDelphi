@@ -203,13 +203,13 @@ Build the UnitTest project in Debug configuration.
 
 **Option A: Using Delphi IDE (recommended)**
 1. Open `UnitTest\UnitTest.dproj` in Delphi
-2. Set configuration to **Debug** and platform to **Win32**
+2. Set configuration to **Debug** and platform to **Win64**
 3. Build the project (Shift+F9)
 
 **Option B: Using command line**
 ```batch
 cd UnitTest
-msbuild UnitTest.dproj /p:Config=Debug /p:Platform=Win32
+msbuild UnitTest.dproj /p:Config=Debug /p:Platform=Win64
 ```
 Note: Ensure Delphi's bin folder is in PATH, or run `rsvars.bat` from your Delphi installation first.
 

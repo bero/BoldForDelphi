@@ -6,7 +6,7 @@
 #
 # PARAMETERS:
 #   -Config    : Build configuration (default: "Debug")
-#   -Platform  : Target platform (default: "Win32")
+#   -Platform  : Target platform (default: "Win64")
 #   -GUI       : Build UnitTestGUI.dproj instead of UnitTest.dproj
 #   -DelphiVersion : Registry version of the Delphi to use (e.g. 23.0 = 12 Athens).
 #                Default: newest installed. The vendored UniDAC 10.4 does not compile with
@@ -18,12 +18,12 @@
 #
 # EXAMPLES:
 #   .\build.ps1
-#   .\build.ps1 -Config Release -Platform Win64
+#   .\build.ps1 -Config Release -Platform Win32
 #   .\build.ps1 -GUI
 
 param(
     [string]$Config = "Debug",
-    [string]$Platform = "Win32",
+    [string]$Platform = "Win64",
     [switch]$GUI,
     [string]$DelphiVersion = ""
 )

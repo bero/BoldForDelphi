@@ -66,7 +66,8 @@ it reads environment variables at startup.
 **Command line:**
 
 ```powershell
-.\build.ps1                  # console runner, Debug/Win32
+.\build.ps1                  # console runner, Debug/Win64
+.\build.ps1 -Platform Win32  # the 32-bit runner
 .\build.ps1 -GUI             # GUI runner
 .\UnitTest.exe               # run all tests
 ```
