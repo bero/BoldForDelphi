@@ -11,7 +11,6 @@ uses
   DateUtils,
   BoldBase,
   BoldSQLDatabaseConfig,
-  WideStrings,
   BoldLogHandler,
 {$IFDEF BOLD_UnitLog}
   UnitLog,
@@ -575,7 +574,6 @@ type
 procedure BoldLogSQL(const sql: TStrings); overload;
 procedure BoldLogSQL(const AQuery: IBoldQuery); overload;
 procedure BoldLogSQL(const AQuery: IBoldExecQuery); overload;
-procedure BoldLogSQLWide(const sql: TWideStrings; const Params: IBoldParameterized);
 procedure BoldLogSQLWithParams(const sql: TStrings; const Params: IBoldParameterized);
 function BoldParamsAsLogString(const AQuery: IBoldQuery): string; overload;
 function BoldParamsAsLogString(const AParams: IBoldParameterized): string; overload;
@@ -699,24 +697,6 @@ begin
   end;
 end;
 
-procedure BoldLogSQLWide(const sql: TWideStrings; const Params: IBoldParameterized);
-var
-  i: integer;
-begin
-  Inc(BoldSQLLogCount);
-  if assigned(BoldSQLLogHandler) then
-  begin
-    if BoldSQLMessage <> '' then
-      BoldSQLLogHandler.Log(BoldSQLMessage);
-    BoldSQLLogHandler.Log(
-      AsIsoDateTimeMs(now) +':'+
-      format('SQL %3d- %s', [BoldSQLLogCount, trim(SQL[0])]));
-    for i := 1 to SQL.Count - 1 do
-    begin
-      if trim(SQL[i]) <> '' then
-        BoldSQLLogHandler.Log('                                                    '  +
-                              Trim(SQL[i]));
-    end;
     if Params <> nil then
       for I := 0 to Params.ParamCount - 1 do
       begin
