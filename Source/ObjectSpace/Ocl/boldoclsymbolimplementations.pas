@@ -21,8 +21,7 @@ uses
   Classes,
   Variants,
   Math,
-  RegularExpressions,
-  RegularExpressionsCore,
+  BoldRegEx,
 
   BoldCoreConsts,
   BoldElements,
@@ -3148,7 +3147,7 @@ end;
 
 function EscapeRegEx(const ASource: string): string;
 begin
-  result := TPerlRegEx.EscapeRegExChars(ASource);
+  result := BoldRegExEscape(ASource);
   result := SQLLikeToRegEx(result);
 end;
 
@@ -3161,7 +3160,7 @@ begin
   if s = '' then
     Help.MakeNewBoolean(Params.Result, false)
   else
-    Help.MakeNewBoolean(Params.Result, TRegEx.IsMatch(XString(Params.values[0]), s));
+    Help.MakeNewBoolean(Params.Result, BoldRegExMatch(XString(Params.values[0]), s, False));
 end;
 
 procedure TBOS_SQLLikeCaseInSensitive.Evaluate(const Params: TBoldOclSymbolParameters);
@@ -3173,12 +3172,12 @@ begin
   if s = '' then
     Help.MakeNewBoolean(Params.Result, false)
   else
-    Help.MakeNewBoolean(Params.Result, TRegEx.IsMatch(XString(Params.values[0]), s, [roIgnoreCase]));
+    Help.MakeNewBoolean(Params.Result, BoldRegExMatch(XString(Params.values[0]), s, True));
 end;
 
 procedure TBOS_RegExpMatch.Evaluate(const Params: TBoldOclSymbolParameters);
 begin
-  Help.MakeNewBoolean(Params.Result, TRegEx.IsMatch(XString(Params.values[0]), XString(Params.values[1]), []));
+  Help.MakeNewBoolean(Params.Result, BoldRegExMatch(XString(Params.values[0]), XString(Params.values[1]), False));
 end;
 
 procedure TBOS_InDateRange.Evaluate(const Params: TBoldOclSymbolParameters);
