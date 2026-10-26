@@ -447,7 +447,12 @@ begin
 end;
 
 procedure TBoldObjectListController.Resubscribe;
-var  Locator: TBoldObjectLocator;
+var
+  Locator: TBoldObjectLocator;
+  {$IFDEF AllowCrossSystemLists}
+  LastSystem: TBoldSystem;
+  i: integer;
+  {$ENDIF}
 begin
   Locator := (LocatorList.Any) as TBoldObjectLocator;
   if Assigned(Locator) then
@@ -456,9 +461,7 @@ begin
     {$IFDEF AllowCrossSystemLists}
     if BoldSystemCount > 1 then
     begin
-      var LastSystem: TBoldSystem;
       LastSystem := Locator.BoldSystem;
-      var i: integer;
       for i := 0 to Count - 1 do
       begin
         Locator := Locatorlist[i];
@@ -663,13 +666,13 @@ type
 procedure TBoldClassListController.ReceiveClassEvent(BoldElement: TBoldDomainElement; Event: TBoldEvent; const Args: array of const);
 var
   List: TBoldObjectListAccess;
+  BoldObject: TBoldObject;
 begin
   if Assigned(fSuperClassController) then
     fSuperClassController.ReceiveClassEvent(BoldElement, Event, args);
   List := TBoldObjectListAccess(OwningList);
   if BoldElement is TBoldObject then
   begin
-    var BoldObject: TBoldObject;
     BoldObject := BoldElement as TBoldObject;
     case Event of
       beObjectCreated:
