@@ -1379,7 +1379,7 @@ constructor TBoldMemberRTInfo.CreateWithoutMoldMember(ClassTypeInfo: TBoldClassT
   begin
     result := ExpressionName;
     if length(result) > 0 then
-      result[1] := LowerCase(result[1])[1];
+      result[1] := LowerCase(Copy(result, 1, 1))[1];
   end;
 begin
   inherited Create(nil, ModelName, EnsureLowerCaseLeadingCharacter(ExpressionName), DelphiName, ClassTypeINfo.SystemTypeInfo);
