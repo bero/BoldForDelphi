@@ -6,7 +6,6 @@ interface
 
 uses
   Classes,
-  Threading,
   BoldDbInterfaces,
   BoldAbstractPersistenceHandleDB,
   BoldPMappersSQL,
@@ -108,8 +107,6 @@ type
 implementation
 
 uses
-  Vcl.Dialogs,
-  Vcl.Controls,
   SysUtils,
   Types,
 
@@ -118,7 +115,8 @@ uses
   BoldNameExpander,
   BoldDefs,
   BoldCoreConsts,
-  UITypes, ActiveX;
+  BoldEnvironment,
+  ActiveX;
 
 { TBoldDbValidator }
 
@@ -365,7 +363,7 @@ begin
       end;
     end;
 
-    if MissingClasses and (MessageDlg(sCorrectClassWithNoID, mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+    if MissingClasses and BoldEffectiveEnvironment.AskUser(sCorrectClassWithNoID) then
     begin
       BoldLog.Separator;
       Execquery.AssignSQLText(

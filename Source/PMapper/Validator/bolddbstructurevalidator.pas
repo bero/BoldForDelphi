@@ -57,8 +57,7 @@ uses
   BoldPMappersDefault,
   BoldPMappersSQL,
   BoldPMappers,
-  ActiveX,
-  TimeSpan;
+  ActiveX;
 
 { TBoldDbStructureValidator }
 
