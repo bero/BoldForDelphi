@@ -148,6 +148,7 @@ type
 
   TBoldSQLStyle = (ssColumns, ssParameters, ssValues);
   TBoldAbstractionLevel = (alAbstract, alConcrete);
+  TBoldQueryResult = (qrYesAll, qrYes, qrNo, qrNoAll);
 
   TBoldAnsiString = AnsiString;
   TBoldUnicodeString = string;

@@ -21,6 +21,7 @@ uses
   BoldCoreConsts,
   BoldDefs,
   BoldQueue,
+  BoldQueryUserDlg,
   BoldEnvironment;
 
 type
@@ -61,6 +62,7 @@ type
     procedure UpdateDesigner(Sender: TObject); override;
     function IsFormOrDataModule(Sender: TObject): Boolean;override;
     function AskUser(const Text: string): Boolean; override;
+    function QueryUser(const Title, Query: string): TBoldQueryResult; override;
     procedure ProcessMessages; override;
     procedure BringToFront; override;
     procedure TriggerQueueMechanism; override;
@@ -70,6 +72,11 @@ type
 function TBoldVCLEnvironmentConfiguration.AskUser(const Text: string): Boolean;
 begin
   Result := MessageDlg(Text, mtWarning, [mbYes, mbNo], 0) = mrYes;
+end;
+
+function TBoldVCLEnvironmentConfiguration.QueryUser(const Title, Query: string): TBoldQueryResult;
+begin
+  Result := BoldQueryUserDlg.QueryUser(Title, Query);
 end;
 
 procedure TBoldVCLEnvironmentConfiguration.BringToFront;

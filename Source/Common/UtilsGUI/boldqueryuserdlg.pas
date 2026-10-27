@@ -10,10 +10,11 @@ uses
   Dialogs,
   Graphics,
   StdCtrls,
-  Classes;
+  Classes,
+  BoldDefs;
 
 type
-  TBoldQueryResult = (qrYesAll, qrYes, qrNo, qrNoAll);
+  TBoldQueryResult = BoldDefs.TBoldQueryResult;
   TfrmBoldQueryUser = class(TForm)
     cmdYesAll: TButton;
     cmdYes: TButton;

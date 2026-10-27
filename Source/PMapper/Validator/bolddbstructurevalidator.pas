@@ -50,7 +50,7 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  BoldQueryUserDlg,
+  BoldEnvironment,
   BoldLogHandler,
   BoldDefs,
   BoldSQlMappingInfo,
@@ -371,7 +371,7 @@ begin
       if MappingInfo.GetDbTypeMapping(ObjectMapper.ExpressionName) = NO_CLASS then
       begin
         if QueryRes <> qrYesAll then
-          QueryRes := QueryUser(sMissingID, format(sAnIDWasMissing, [ObjectMapper.ExpressionName]));
+          QueryRes := BoldEffectiveEnvironment.QueryUser(sMissingID, format(sAnIDWasMissing, [ObjectMapper.ExpressionName]));
 
         if QueryRes in [qrYesAll, qrYes] then
         begin

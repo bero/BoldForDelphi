@@ -224,17 +224,14 @@ var
 implementation
 
 uses
-  Controls,
-  Dialogs,
   SysUtils,
   TypInfo,
-  UITypes,
 
   BoldCoreConsts,
   BoldGuard,
   BoldNameExpander,
   BoldLogHandler,
-  BoldQueryUserDlg,
+  BoldEnvironment,
   BoldIndex;
 
 var
@@ -341,7 +338,7 @@ begin
   if TableNameList.IndexOf(BoldExpandPrefix(IDTABLE_NAME, '', SQLDatabaseConfig.SystemTablePrefix, SQLDatabaseConfig.MaxDBIdentifierLength, NationalCharConversion)) > -1 then
     Result :=
       BoldCleanDatabaseForced or
-      (MessageDlg(sContinueDeleteBoldTables, mtWarning, [mbYes, mbNo], 0) = mrYes);
+      BoldEffectiveEnvironment.AskUser(sContinueDeleteBoldTables);
 end;
 
 procedure TBoldSQLSystemDescription.CleanPersistentStorage(PSParams: TBoldPSSQLParams);
@@ -399,7 +396,7 @@ var
     if not IsBoldTable and (not PSParams.IgnoreUnknownTables) and
       not BoldCleanDatabaseForced and
       not (Query in [qrYesAll, qrNoAll]) then
-        Query := QueryUser(sDeleteTable, Format(sDeleteNonBoldTable, [TableNameList[i]]));
+        Query := BoldEffectiveEnvironment.QueryUser(sDeleteTable, Format(sDeleteNonBoldTable, [TableNameList[i]]));
 
     MayDelete := ((Query in [qrYes, qrYesAll]) or BoldCleanDatabaseForced) and (not PSParams.IgnoreUnknownTables);
 
