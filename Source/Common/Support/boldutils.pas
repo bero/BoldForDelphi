@@ -152,7 +152,7 @@ end;
 function BoldSeparateStringList(strings: TStringList; const Separator, PreString, PostString: String; AIndex: integer): String;
 var
   i, Cnt, Size: integer;
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
 begin
   Cnt := strings.Count;
   case Cnt of
@@ -164,7 +164,7 @@ begin
     for I := 0 to Cnt - 1 do
       Inc(Size, Length(Strings[I]));
     Inc(Size, Length(Separator) * Cnt);
-    SB := TStringBuilder.Create(Size);
+    SB := TBoldStringBuilder.Create(Size);
     SB.Append(PreString);
     for i := 0 to Cnt-2 do
     begin
@@ -186,12 +186,12 @@ end;
 procedure BoldAppendToStrings(Strings: TStrings; const aString: string; const ForceNewLine: Boolean);
 var
   StrCount, SplitterPos: Integer;
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
   TempStr: string;
 begin
   if (Pos(BOLDLF, aString)>0) or (Pos(BOLDCR, aString)>0) then
   begin
-    SB := TStringBuilder.Create(aString);
+    SB := TBoldStringBuilder.Create(aString);
     SB.Replace(BOLDCR, ' ');
     SB.Replace(BOLDLF, ' ');
     TempStr := SB.ToString;

@@ -1057,9 +1057,9 @@ end;
 
 procedure TBoldObjectDefaultMapper.JoinSQLTableByKey(SQL: TStringList; MainTable, JoinTable: TBoldSQLTableDescription);
 var
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
 begin
-    SB := TStringBuilder.Create();
+    SB := TBoldStringBuilder.Create();
   //SQL.Append(Format('%s.%s = %s.%s', [TableAlias(JoinTable, True), IDCOLUMN_NAME, TableAlias(MainTable, True), IDCOLUMN_NAME]));
     SB.Append(TableAlias(JoinTable, True));
     SB.Append('.');
@@ -1146,7 +1146,7 @@ var
     Row := 0;
   end;
 var
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
   I, T, A: Integer;
   TickCounter: integer;
   TempList: TStringList;
@@ -1166,7 +1166,7 @@ begin
     raise EBold.Create('TBoldObjectDefaultMapper.PMCreate: Not in transaction - multi-table operation requires transaction protection');
 
   BoldGuard := TBoldGuard.Create({MemberPMList}SB,TempList);
-  SB := TStringBuilder.Create;
+  SB := TBoldStringBuilder.Create;
   Tickcounter := 0;
   if IsLinkClass and (not Versioned) then
   begin
@@ -2071,7 +2071,7 @@ var
   MappingInfo: TBoldAllInstancesMappingArray;
   SQL: TStringList;
   SQLCondition: TBoldSQLCondition;
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
 begin
   if not assigned(BoldCondition) or (BoldCondition is TBoldConditionWithClass) then
   begin
@@ -2088,7 +2088,7 @@ begin
     MappingInfo := SystemPersistenceMapper.MappingInfo.GetAllInstancesMapping(ExpressionName);
     aQuery := SystemPersistenceMapper.GetQuery;
     sql := TStringList.Create;
-    SB := TStringBuilder.Create;
+    SB := TBoldStringBuilder.Create;
     try
       for i := 0 to length(MappingInfo) - 1 do
       begin
@@ -2323,12 +2323,12 @@ var
   Ids: TList;
   FetchBlockSize: integer;
   Found: boolean;
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
 begin
   if ObjectIDList.Count = 0 then
     exit;
   lst := TStringList.Create;
-  SB := TStringBuilder.Create;
+  SB := TBoldStringBuilder.Create;
   Ids := TList.Create;
   aQuery := SystemPersistenceMapper.GetQuery;
   FetchBlockSize := SystemPersistenceMapper.SQLDataBaseConfig.FetchBlockSize;
@@ -2438,7 +2438,7 @@ var
   PaddedCount: integer;
   IdIndex: integer;
   UseParams: Boolean;
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
 begin
 
   ParamCount := stop-start + 1;
@@ -2468,7 +2468,7 @@ begin
         i := PaddedCount * 12
       else
         i := ParamCount * 8;
-      SB := TStringBuilder.Create(i+5);
+      SB := TBoldStringBuilder.Create(i+5);
       SB.Append('in (');
       for i := 1 to PaddedCount do
       begin
@@ -2556,11 +2556,11 @@ procedure TBoldMemberDefaultMapper.GenerateMappingInfo(MoldClass: TMoldClass; Mo
 var
   i: integer;
   ColumnNames: String;
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
 begin
   if requiresMemberMapping then
   begin
-    SB := TStringBuilder.Create;
+    SB := TBoldStringBuilder.Create;
     ColumnNames := '';
     for i := 0 to ColumnCount - 1 do
     begin

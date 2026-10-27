@@ -342,14 +342,14 @@ const
     tmpQuery.Close;
   end;
 var
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
 
 
 begin
   AIMappingInfo := nil;
   SelectList := TStringList.Create;
   sql := TStringList.Create;
-  SB := TStringBuilder.Create;
+  SB := TBoldStringBuilder.Create;
   first := true;
   MappingInfo := SystemPersistenceMapper.MappingInfo.GetMemberMappings(ClosestOtherEndObjectMapper.ExpressionName, EmbeddingMapper.ExpressionName);
   try

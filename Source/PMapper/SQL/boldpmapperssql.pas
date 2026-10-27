@@ -465,7 +465,7 @@ end;
 
 procedure TBoldObjectSQLMapper.SQLForMembers(Table: TBoldSQLTableDescription; SQL: TStrings; const MemberList: TBoldMemberPersistenceMapperList; const SQLStyle: TBoldSQLStyle; const IncludeKey: Boolean; const StoredInObjectOnly, UseAlias: Boolean);
 var
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
   c, m: integer;
   Column: TBoldSQLColumnDescription;
   MemberMapper: TBoldMemberSQLMapper;
@@ -484,7 +484,7 @@ begin
 }
   if MemberList.Count = 0 then
     exit;
-  SB := TStringBuilder.Create(SQL.Text);
+  SB := TBoldStringBuilder.Create(SQL.Text);
   try
     for m := 0 to MemberList.Count - 1 do
     begin
@@ -554,7 +554,7 @@ var
   TableList: TBoldSQLtableDescriptionList;
   Table: TBoldSQLtableDescription;
   Mapper: TBoldMemberSQLMapper;
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
 begin
   SelectList := TStringList.Create;
   FromList := TStringList.Create;
@@ -562,7 +562,7 @@ begin
   JoinList :=  TStringList.Create;
   TableList := TBoldSQLtableDescriptionList.Create(SystemPersistenceMapper.PSSystemDescription);
   tableList.OwnsEntries := false;
-  SB := TStringBuilder.Create;
+  SB := TBoldStringBuilder.Create;
   try
 
     if ForceRootTable then

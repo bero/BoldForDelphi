@@ -155,6 +155,18 @@ type
   // Result/parameter type for overrides of RTL/LCL virtuals declared with string:
   // the precompiled FPC RTL is AnsiString-based, Delphi's is string.
   TBoldRTLString = {$IFDEF FPC}AnsiString{$ELSE}string{$ENDIF};
+{$IFDEF FPC}
+  // FPC's TStringBuilder is the AnsiString one; Bold's strings are UTF-16, so build on
+  // TUnicodeStringBuilder. FPC 3.2.2 cannot choose between its Append(WideChar) and
+  // Append(PWideChar) for a one-character literal, so only a string Append is exposed;
+  // Bold appends nothing else.
+  TBoldStringBuilder = class(TUnicodeStringBuilder)
+  public
+    function Append(const AValue: string): TBoldStringBuilder; reintroduce;
+  end;
+{$ELSE}
+  TBoldStringBuilder = TStringBuilder;
+{$ENDIF}
 
   EBold = class(Exception);
   EBoldDesignTime = class(EBold);
@@ -319,5 +331,15 @@ procedure EBoldDatabaseError.SetOriginalExceptionMessage(const Value: string);
 begin
   FOriginalExceptionMessage := Value;
 end;
+
+{$IFDEF FPC}
+{ TBoldStringBuilder }
+
+function TBoldStringBuilder.Append(const AValue: string): TBoldStringBuilder;
+begin
+  inherited Append(AValue);
+  Result := Self;
+end;
+{$ENDIF}
 
 end.

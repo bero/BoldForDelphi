@@ -227,10 +227,10 @@ procedure TBoldDefaultSystemDescription.AddTableNames(PSParams: TBoldPSDefaultPa
   var
     i: integer;
     row, limit: integer;
-    sb: TStringBuilder;
+    sb: TBoldStringBuilder;
     sInsert: string;
   begin
-    sb := TStringBuilder.Create;
+    sb := TBoldStringBuilder.Create;
     try
       sInsert := format('INSERT INTO %s (TABLENAME) VALUES ', [TableTable.SQLName]);
       limit := SQLDatabaseConfig.MultiRowInsertLimit;

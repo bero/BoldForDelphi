@@ -465,7 +465,7 @@ type
     FInBatch: Boolean;
     fAccumulatedSQLLength: integer;
     fBatchSQLInBeginUpdate: Boolean;
-    SB: TStringBuilder;
+    SB: TBoldStringBuilder;
     function GetAccumulatedSQL: TStrings;
     function GetHasCachedStatements: boolean;
     procedure ReplaceParamMarkers(sql: TStrings; const Source, Dest: IBoldExecQuery);
@@ -1936,7 +1936,7 @@ constructor TBoldBatchDataSetWrapper.Create(
   DatabaseWrapper: TBoldDatabaseWrapper);
 begin
   inherited Create(DatabaseWrapper);
-  SB := TStringBuilder.Create(cInitialBatchBufferSize);
+  SB := TBoldStringBuilder.Create(cInitialBatchBufferSize);
 end;
 
 destructor TBoldBatchDataSetWrapper.Destroy;

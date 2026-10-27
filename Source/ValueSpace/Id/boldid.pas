@@ -1271,14 +1271,14 @@ end;
 function TBoldIdList.CommaSeparatedIdList: String;
 var
   i: integer;
-  sb: TStringBuilder;
+  sb: TBoldStringBuilder;
 begin
   case count of
     0 :  result := '';
     1 :  result := TBoldId(Items[0]).AsString;
     2..MaxInt:
       begin
-        sb := TStringBuilder.Create(TBoldId(Items[0]).AsString);
+        sb := TBoldStringBuilder.Create(TBoldId(Items[0]).AsString);
         try
           for i := 1 to Count - 1 do
           begin

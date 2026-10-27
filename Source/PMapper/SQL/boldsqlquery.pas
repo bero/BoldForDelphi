@@ -1303,13 +1303,13 @@ end;
 function TBoldSQLWCFUnaryTransformLikeString.GetAsString(
   Query: TBoldSQlQuery): String;
 var
-  SB: TStringBuilder;
+  SB: TBoldStringBuilder;
   Ch: Char;
 begin
   Result := fArg1.GetAsString(Query);
   if true or Query.SQLDatabaseConfig.QuoteLeftBracketInLike then
   begin
-    Sb := TStringBuilder.Create(Length(Result)+10);
+    Sb := TBoldStringBuilder.Create(Length(Result)+10);
     try
       for Ch in Result do
       if Ch = '[' then
