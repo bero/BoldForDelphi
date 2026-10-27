@@ -98,7 +98,7 @@ type
     procedure SetContextTypeName(const Value: String);
     function GetContextType: TBoldElementTypeInfo;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
     function GetBoldNodeFollowerControllerClass: TBoldNodeFollowerControllerClass;virtual;
   public
     constructor Create(Collection: TCollection); override;
@@ -326,7 +326,7 @@ begin
     inherited Assign(Source);
 end;
 
-function TBoldNodeDescription.GetDisplayName: string;
+function TBoldNodeDescription.GetDisplayName: TBoldRTLString;
 begin
   Result := FName;
   if (Result = '') then

@@ -7,6 +7,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   BoldId,
   BoldDbInterfaces,
   BoldCollections,
@@ -26,7 +27,7 @@ type
     procedure SetUpgradeOlderThanVersion(const Value: integer);
     function GetConfig: TBoldObjectUpgraderConfiguration;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
   public
     procedure Assign(source: TPersistent); override;
     property Config: TBoldObjectUpgraderConfiguration read GetConfig;
@@ -87,7 +88,7 @@ begin
   result := Collection as TBoldObjectUpgraderConfiguration;
 end;
 
-function TBoldObjectUpgraderConfigurationItem.GetDisplayName: string;
+function TBoldObjectUpgraderConfigurationItem.GetDisplayName: TBoldRTLString;
 begin
   if ExpressionName <> '' then
     result := ExpressionName

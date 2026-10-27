@@ -141,7 +141,7 @@ type
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
     { IBoldOCLComponent }
     function GetContextType: TBoldElementTypeInfo;
     procedure SetExpression(const Value: TBoldExpression);
@@ -246,7 +246,7 @@ begin
     result := BoldSystemTypeInfo.ClassTypeInfoByExpressionName[Context];
 end;
 
-function TBoldConstraintItem.GetDisplayName: string;
+function TBoldConstraintItem.GetDisplayName: TBoldRTLString;
 begin
   if ErrorMessage = '' then
     result := Format('[%s]:%s', [Context, Expression])

@@ -7,6 +7,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   BoldValueSpaceInterfaces,
   BoldMeta,
   BoldExternalPersistenceSupport,
@@ -51,7 +52,7 @@ type
     procedure SetExpressionName(const Value: String);
     function GetExpressionName: String;
   protected
-    function GetDisplayName: String; override;
+    function GetDisplayName: TBoldRTLString; override;
   public
   published
     property ExpressionName: String read GetExpressionName write SetExpressionName;
@@ -96,7 +97,7 @@ begin
   result := UniqueName;
 end;
 
-function TBoldExternalPersistenceConfigItem.GetDisplayName: String;
+function TBoldExternalPersistenceConfigItem.GetDisplayName: TBoldRTLString;
 begin
   Result := ExpressionName;
 end;

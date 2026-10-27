@@ -7,6 +7,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   BoldHashIndexes;
 
 type
@@ -32,7 +33,7 @@ type
     procedure EnsureNameUnique(const Value: string);
     function GetCollection: TBoldCollectionWithUniquelyNamedItems;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
     function GetUniqueName: string; virtual; abstract;
     procedure SetUniqueName(const Value: String); virtual; abstract;
     property UniqueName: string read GetUniqueName write InternalSetUniqueName;
@@ -74,7 +75,6 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  BoldDefs,
   BoldIndex;
 
 { TBoldUniquelyNamedCollectionItem }
@@ -90,7 +90,7 @@ begin
   result := inherited Collection as TBoldCollectionWithUniquelyNamedItems;
 end;
 
-function TBoldUniquelyNamedCollectionItem.GetDisplayName: string;
+function TBoldUniquelyNamedCollectionItem.GetDisplayName: TBoldRTLString;
 begin
   result := UniqueName;
 end;

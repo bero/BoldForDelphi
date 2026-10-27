@@ -7,6 +7,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   BoldSubscription,
   BoldHandles,
   BoldElements;
@@ -111,7 +112,7 @@ type
     function GetTupleList: TBoldVariableTupleList;
     function GetEffectiveUseListElement: Boolean;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
@@ -155,7 +156,6 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  BoldDefs,
   BoldSystem,
   BoldRootedHandles,
   BoldAbstractListHandle,
@@ -585,7 +585,7 @@ begin
   inherited;
 end;
 
-function TBoldVariableTuple.GetDisplayName: string;
+function TBoldVariableTuple.GetDisplayName: TBoldRTLString;
 begin
   result := VariableName;
   if assigned(BoldHandle) then

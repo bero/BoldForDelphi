@@ -151,6 +151,9 @@ type
 
   TBoldAnsiString = AnsiString;
   TBoldUnicodeString = string;
+  // Result/parameter type for overrides of RTL/LCL virtuals declared with string:
+  // the precompiled FPC RTL is AnsiString-based, Delphi's is string.
+  TBoldRTLString = {$IFDEF FPC}AnsiString{$ELSE}string{$ENDIF};
 
   EBold = class(Exception);
   EBoldDesignTime = class(EBold);

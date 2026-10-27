@@ -7,6 +7,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   BoldSubscription,
   BoldHandlesCom;
 
@@ -55,7 +56,7 @@ type
     procedure SetUseListElement(const Value: Boolean);
     procedure Changed;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
@@ -69,8 +70,7 @@ type
 implementation
 
 uses
-  SysUtils,
-  BoldDefs;
+  SysUtils;
 
 { TBoldVariableDefinitionCom }
 constructor TBoldVariableDefinitionCom.create(Owner: TComponent);
@@ -169,7 +169,7 @@ begin
   inherited;
 end;
 
-function TBoldVariableTupleCom.GetDisplayName: string;
+function TBoldVariableTupleCom.GetDisplayName: TBoldRTLString;
 begin
   result := VariableName;
   if assigned(BoldHandle) then

@@ -9,6 +9,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   BoldControlPackCom,
   BoldStringControlPackCom,
   BoldNumericControlPackCom,
@@ -94,7 +95,7 @@ type
     procedure SetContextTypeName(const Value: String);
     function GetContextType: IBoldElementTypeInfo;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
     function GetBoldNodeFollowerControllerClass: TBoldNodeFollowerControllerClassCom;virtual;
   public
     constructor Create(Collection: TCollection); override;
@@ -138,7 +139,6 @@ implementation
 uses
   SysUtils,
   BoldControlPackDefs,
-  BoldDefs,
   BoldGuiResourceStringsCom,
   BoldListControlPackCom,
   BoldSubscription;
@@ -318,7 +318,7 @@ begin
     inherited Assign(Source);
 end;
 
-function TBoldNodeDescriptionCom.GetDisplayName: string;
+function TBoldNodeDescriptionCom.GetDisplayName: TBoldRTLString;
 begin
   Result := FName;
   if (Result = '') then

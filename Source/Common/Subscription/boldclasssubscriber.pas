@@ -4,6 +4,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   BoldHandles,
   BoldSubscription,
   BoldSystemRT,
@@ -30,7 +31,7 @@ type
     procedure _Receive(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent; const args: array of const);
     function GetBoldSystem: TBoldSystem;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
     property Collection: TBoldClassEventMappingCollection read GetCollection;
     procedure PlaceSubscriptions;
     property Subscriber: TBoldExtendedPassthroughSubscriber read fSubscriber;
@@ -169,7 +170,7 @@ begin
   result := inherited Collection as TBoldClassEventMappingCollection;
 end;
 
-function TBoldClassEventMapping.GetDisplayName: string;
+function TBoldClassEventMapping.GetDisplayName: TBoldRTLString;
 begin
   result := fClassTypeName;
 end;

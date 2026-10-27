@@ -66,7 +66,7 @@ type
     fOnset: TBoldManipulatorSetter;
     fMappingName: string;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
   public
     function GetAsString(Element: TBoldElement): string;
     procedure SetFromString(Element: TBoldElement; NewValue: string);
@@ -350,7 +350,7 @@ begin
     Result := OnGet(Element)
 end;
 
-function TBoldManipulatorMapper.GetDisplayName: string;
+function TBoldManipulatorMapper.GetDisplayName: TBoldRTLString;
 begin
   Result := MappingName;
 end;

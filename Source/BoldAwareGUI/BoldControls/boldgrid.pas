@@ -20,6 +20,7 @@ uses
   Menus,
   StdCtrls,
   Classes,
+  BoldDefs,
   BoldEnvironmentVCL,
   {$IFNDEF BOLDCOMCLIENT}
   BoldSystem,
@@ -179,7 +180,7 @@ type
     function GetFont: TFont;
     function AreFontsEqual(Font1, Font2: TFont): Boolean;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
     procedure RefreshDefaultFont;
     procedure SetIndex(Value: Integer); override;
     {$IFNDEF BOLDCOMCLIENT}
@@ -542,7 +543,6 @@ uses
   BoldGUI,
   {$ENDIF}
   BoldEnvironment,
-  BoldDefs,
   BoldListControlPack,
   BoldUtils,
   TypInfo,
@@ -1037,7 +1037,7 @@ begin
     Result := FFont;
 end;
 
-function TBoldGridColumn.GetDisplayName: string;
+function TBoldGridColumn.GetDisplayName: TBoldRTLString;
 begin
   Result := FTitle.Caption;
   if Result = '' then

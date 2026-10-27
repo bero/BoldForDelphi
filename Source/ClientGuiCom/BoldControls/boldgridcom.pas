@@ -28,6 +28,7 @@ uses
   Menus,
 
   // Bold
+  BoldDefs,
   {$IFNDEF BOLDCOMCLIENT}
   BoldComObjectSpace_TLB,
   {$ENDIF}
@@ -185,7 +186,7 @@ type
     function GetFont: TFont;
     function AreFontsEqual(Font1, Font2: TFont): Boolean;
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
     procedure RefreshDefaultFont;
     procedure SetIndex(Value: Integer); override;
     {$IFNDEF BOLDCOMCLIENT}
@@ -544,7 +545,6 @@ uses
   {$ENDIF}
   BoldCommonBitmaps,
   BoldControlPackDefs,
-  BoldDefs,
   BoldEnvironment,
   BoldListControlPackCom,
   Math,
@@ -1038,7 +1038,7 @@ begin
     Result := FFont;
 end;
 
-function TBoldGridColumnCom.GetDisplayName: string;
+function TBoldGridColumnCom.GetDisplayName: TBoldRTLString;
 begin
   Result := FTitle.Caption;
   if Result = '' then

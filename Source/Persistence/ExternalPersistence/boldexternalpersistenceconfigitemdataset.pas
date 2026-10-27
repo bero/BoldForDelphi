@@ -8,6 +8,7 @@ interface
 uses
   DB,
   Classes,
+  BoldDefs,
   SysUtils,
   BoldCollections;
 
@@ -18,7 +19,7 @@ type
     procedure SetExpressionName(const Value: String);
     function GetExpressionName: String;
   protected
-    function GetDisplayName: String; override;
+    function GetDisplayName: TBoldRTLString; override;
   public
     constructor Create(AOwner: TCollection); override;
     destructor Destroy; override;
@@ -50,7 +51,7 @@ begin
   inherited Destroy;
 end;
 
-function TBoldExternalPersistenceConfigDataSetItem.GetDisplayName: String;
+function TBoldExternalPersistenceConfigDataSetItem.GetDisplayName: TBoldRTLString;
 begin
   Result := UniqueName;
 end;

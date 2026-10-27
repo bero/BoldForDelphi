@@ -69,7 +69,7 @@ type
     function GetSystemTypeInfo: TBoldSystemTypeInfo;
     procedure SetName(const Value: String);
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
@@ -200,7 +200,7 @@ begin
   result := Collection as TBoldOclDefinitions;
 end;
 
-function TBoldOclDefinition.GetDisplayName: string;
+function TBoldOclDefinition.GetDisplayName: TBoldRTLString;
 begin
   result:= '%' + name + ': '+Expression;
 end;

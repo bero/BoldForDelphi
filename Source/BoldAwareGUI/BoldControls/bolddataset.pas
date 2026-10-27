@@ -14,6 +14,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   DB,
   BoldEnvironmentVCL,
   BoldSystem,
@@ -72,7 +73,7 @@ type
     procedure AfterMakeUptoDate(Follower: TBoldFollower);
     procedure DefineFieldType(aClass: TClass);
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
   public
     constructor Create(AOwner: TCollection); override;
     destructor Destroy; override;
@@ -237,7 +238,6 @@ implementation
 
 uses
   SysUtils,
-  BoldDefs,
   BoldAttributes,
   DBConsts,
   Variants,
@@ -533,7 +533,7 @@ begin
   result := DataSet;
 end;
 
-function TBoldDataSetFieldDescription.GetDisplayName: string;
+function TBoldDataSetFieldDescription.GetDisplayName: TBoldRTLString;
 begin
   result := EffectiveFieldName + ' = ' + Expression;
 end;

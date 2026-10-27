@@ -9,6 +9,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   BoldEnvironmentVCL,
   BoldElements,
   BoldHandles,
@@ -55,7 +56,7 @@ type
     procedure HookOnExit; virtual;
     procedure UnhookOnExit; virtual;
     procedure DoOnExit(Sender: TObject); virtual;
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
     procedure SetReadOnly(const Value: Boolean); virtual;
     procedure SetVCLComponent(const Value: TComponent); virtual;
     procedure SetPropertyName(const Value: String); virtual;
@@ -471,7 +472,7 @@ begin
     inherited;
 end;
 
-function TBoldDrivenProperty.GetDisplayName: string;
+function TBoldDrivenProperty.GetDisplayName: TBoldRTLString;
 begin
   if assigned(VCLComponent) then
     result := VCLComponent.Name

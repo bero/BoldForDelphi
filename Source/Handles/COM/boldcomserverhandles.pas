@@ -7,6 +7,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
   BoldBase,
   BoldContainers,
   BoldServerHandles,
@@ -35,7 +36,7 @@ type
     procedure SetActive(Value: Boolean);
     procedure SetName(const Value: string);
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
   public
     constructor Create(Collection: TCollection); override;
     procedure Assign(Source: TPersistent); override;
@@ -189,7 +190,7 @@ begin
     inherited Assign(Source);
 end;
 
-function TBoldComClass.GetDisplayName: string;
+function TBoldComClass.GetDisplayName: TBoldRTLString;
 begin
   Result := Name;
   if Result = '' then

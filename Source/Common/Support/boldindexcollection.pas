@@ -5,7 +5,8 @@ unit BoldIndexCollection;
 interface
 
 uses
-  Classes;
+  Classes,
+  BoldDefs;
 
 type
   TBoldIndexCollection = class;
@@ -20,7 +21,7 @@ type
     function GetAsString: string;
     procedure SetAsString(const Value: string);
   protected
-    function GetDisplayName: string; override;
+    function GetDisplayName: TBoldRTLString; override;
     procedure AssignTo(Dest: TPersistent); override;
   public
     property AsString: string read GetAsString write SetAsString;
@@ -53,7 +54,6 @@ implementation
 
 uses
   SysUtils,
-  BoldDefs,
   BoldNameExpander,
   BoldTaggedValueSupport;
 
@@ -144,7 +144,7 @@ begin
                      Columns]);
 end;
 
-function TBoldIndexDefintion.GetDisplayName: string;
+function TBoldIndexDefintion.GetDisplayName: TBoldRTLString;
 begin
   Result := Format('%s(%s)', [TableName, Columns]);
   if Unique then
