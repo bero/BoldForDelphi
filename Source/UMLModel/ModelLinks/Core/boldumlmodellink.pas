@@ -5,8 +5,6 @@ unit BoldUMLModelLink;
 interface
 
 uses
-  Dialogs,
-  Forms,
   Classes,
   BoldUMLModel,
   BoldHandle,

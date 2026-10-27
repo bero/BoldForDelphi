@@ -385,7 +385,6 @@ uses
   BoldUtils,
   SysUtils,
   Variants,
-  Windows,
   Typinfo,
   Classes;
 
