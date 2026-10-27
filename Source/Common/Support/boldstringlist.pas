@@ -6,7 +6,8 @@ unit BoldStringList;
 interface
 
 uses
-  Classes;
+  Classes,
+  BoldDefs;
 
 type
   { forward declarations }
@@ -20,12 +21,12 @@ type
     procedure SetFastValue(const Name, Value: String);
     function GetValueByIndex(index: integer): string;
   protected
-    procedure Put(Index: Integer; const S: string); override;
+    procedure Put(Index: Integer; const S: TBoldRTLString); override;
   public
     procedure Sort; override;
     procedure AddMultipleStrings(StringArr: array of string);
     procedure AssignMultipleStrings(StringArr: array of string);
-    function Add(const S: string): Integer; override;
+    function Add(const S: TBoldRTLString): Integer; override;
     function GetIndexOfName(const Name: String; var Index: integer): Boolean;
     function GetIndexOfprefix(const Name: String; var Index: integer): Boolean;
     procedure RemoveValue(const Name: String);
@@ -41,7 +42,7 @@ uses
 
 { TBoldStringList }
 
-function TBoldStringList.Add(const S: string): Integer;
+function TBoldStringList.Add(const S: TBoldRTLString): Integer;
 begin
   result := inherited add(BoldSharedStringManager.GetSharedString(s));
 end;
@@ -142,7 +143,7 @@ begin
     result := '';
 end;
 
-procedure TBoldStringList.Put(Index: Integer; const S: string);
+procedure TBoldStringList.Put(Index: Integer; const S: TBoldRTLString);
 begin
   inherited put(index, BoldSharedStringManager.GetSharedString(s));
 end;

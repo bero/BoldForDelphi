@@ -7,6 +7,7 @@ interface
 
 uses
   Classes,
+  BoldDefs,
 
   BoldCoreConsts,
   BoldId,
@@ -33,7 +34,7 @@ type
   private
     fOnUpgradeObject: TBoldUpgradeEvent;
   public
-    function GetNamePath: String; override;
+    function GetNamePath: TBoldRTLString; override;
     procedure Assign(source: TPersistent); override;
   published
     property OnUpgradeObject: TBoldUpgradeEvent read fOnUpgradeObject write fOnUpgradeObject;
@@ -80,7 +81,6 @@ implementation
 
 uses
   SysUtils,
-  BoldDefs,
   BoldPMappers,
   BoldPMappersSQL,
   BoldUtils,
@@ -296,7 +296,7 @@ begin
     OnUpgradeObject := (Source as TBoldObjectUpgraderConfigurationItemWithEvent).OnUpgradeObject;
 end;
 
-function TBoldObjectUpgraderConfigurationItemWithEvent.GetNamePath: String;
+function TBoldObjectUpgraderConfigurationItemWithEvent.GetNamePath: TBoldRTLString;
 begin
   result := Config.ConfigOwner.GetNamePath +'._'+ExpressionName+'_';
 end;

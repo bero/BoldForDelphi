@@ -39,7 +39,7 @@ type
     property UniqueName: string read GetUniqueName write InternalSetUniqueName;
     property Collection: TBoldCollectionWithUniquelyNamedItems read GetCollection;
   public
-    function GetNamePath: string; override;
+    function GetNamePath: TBoldRTLString; override;
   end;
 
   { TBoldUniquelyNamedCollectionItemWithNameStorage }
@@ -95,7 +95,7 @@ begin
   result := UniqueName;
 end;
 
-function TBoldUniquelyNamedCollectionItem.GetNamePath: string;
+function TBoldUniquelyNamedCollectionItem.GetNamePath: TBoldRTLString;
 begin
   if assigned(Collection) then
     Result := Format('%s.%s',[Collection.GetNamePath, UniqueName])

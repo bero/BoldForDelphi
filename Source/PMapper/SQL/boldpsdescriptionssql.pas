@@ -177,7 +177,7 @@ type
   public
     constructor Create(SystemDescription: TBoldSQLSystemDescription);
     procedure ToStrings(S: TStrings);
-    function ToString: string; override;
+    function ToString: TBoldRTLString; override;
     function CreateTraverser: TBoldSQLDescriptionListTraverser;
     function GetEnumerator: TBoldSQLDescriptionListTraverser;
     property Items[index: Integer]: TBoldSQLDescriptionElement read GetItem; default;
@@ -872,7 +872,7 @@ begin
       fSystemDescription.NationalCharConversion)));
 end;
 
-function TBoldSQLDescriptionList.ToString: string;
+function TBoldSQLDescriptionList.ToString: TBoldRTLString;
 var
   I: Integer;
   S: TStrings;
