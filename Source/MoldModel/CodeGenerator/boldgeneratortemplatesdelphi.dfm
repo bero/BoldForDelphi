@@ -464,7 +464,6 @@ object BoldGeneratorTemplatesDelphiDM: TBoldGeneratorTemplatesDelphiDM
       '$(ENDLOOPATTRIBUTECLASSDEPENDENCIESCOUNT)\'
       '  // other'
       '  Classes,'
-      '  Controls, // for TDate'
       '  SysUtils,'
       '  BoldDefs,'
       '  BoldSubscription,'

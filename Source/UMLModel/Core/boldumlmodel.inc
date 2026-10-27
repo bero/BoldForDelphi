@@ -65,7 +65,7 @@ function TUMLFeature.ExpandedExpressionName: String;
 begin
   Result := inherited ExpandedExpressionName;
   if Length(Result) > 0 then
-    Result[1] := LowerCase(Result[1])[1];
+    Result[1] := LowerCase(Copy(Result, 1, 1))[1];
 end;
 
 function TUMLClass.ExpandedExpressionName: String;
@@ -209,7 +209,7 @@ function TUMLAssociationEnd.ExpandedExpressionName: String;
 begin
   Result := inherited ExpandedExpressionName;
   if Length(Result) > 0 then
-    Result[1] := LowerCase(Result[1])[1];
+    Result[1] := LowerCase(Copy(Result, 1, 1))[1];
 end;
 
 procedure TUMLClassifier.GetAllOverrideableMethods(Methods: TList);

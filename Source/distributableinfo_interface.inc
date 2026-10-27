@@ -30,7 +30,6 @@ uses
   BoldAttributes,
   // other
   Classes,
-  Controls, // for TDate
   SysUtils,
   BoldDefs,
   BoldSubscription,
