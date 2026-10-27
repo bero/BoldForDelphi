@@ -38,6 +38,7 @@ implementation
 
 uses
   BoldSharedStrings,
+  BoldPlatform,
   SysUtils;
 
 { TBoldStringList }
@@ -100,7 +101,11 @@ begin
   Len1 := Length(s1);
   if Len1 < Len then
     Len := Len1;
+{$IFDEF FPC}
+  Result := BoldUnicodeCompareLen(False, s1, s2, Len);
+{$ELSE}
   Result := AnsiStrLIComp(PChar(s1), PChar(s2), Len);
+{$ENDIF}
 end;
 
 function TBoldStringList.GetIndexOfprefix(const Name: String; var Index: integer): Boolean;
