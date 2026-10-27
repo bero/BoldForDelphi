@@ -44,8 +44,10 @@ uses
   BoldCoreConsts,
   BoldLogHandler,
   BoldDefs,
-  BoldEnvironment,
-  BoldEnvironmentVCL; // RootComponent, IsFormOrDataModule
+{$IFNDEF FPC}
+  BoldEnvironmentVCL,
+{$ENDIF}
+  BoldEnvironment;
 
 { TBoldComponentValidator }
 
