@@ -149,7 +149,12 @@ implementation
 uses
   SysUtils;
 
-function GetEnsuredItem(List: TList; index: integer; theClass: TClass): TObject;
+type
+  TBoldListClass = class of TList;
+
+// theClass is a class reference to TList, not TClass: Free Pascal's TList has its own
+// constructor (it creates the internal TFPList), which TClass.Create would skip.
+function GetEnsuredItem(List: TList; index: integer; theClass: TBoldListClass): TObject;
 var
   Obj: TObject;
 begin
