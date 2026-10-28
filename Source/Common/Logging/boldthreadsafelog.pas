@@ -139,7 +139,6 @@ implementation
 uses
   SysUtils,
   BoldUtils,
-  Windows,
   BoldDefs,
   BoldIsoDateTime;
 
