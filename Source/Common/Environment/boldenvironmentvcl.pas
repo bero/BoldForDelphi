@@ -63,6 +63,7 @@ type
     function IsFormOrDataModule(Sender: TObject): Boolean;override;
     function AskUser(const Text: string): Boolean; override;
     function QueryUser(const Title, Query: string): TBoldQueryResult; override;
+    procedure InformUser(const Text: string); override;
     procedure ProcessMessages; override;
     procedure BringToFront; override;
     procedure TriggerQueueMechanism; override;
@@ -77,6 +78,11 @@ end;
 function TBoldVCLEnvironmentConfiguration.QueryUser(const Title, Query: string): TBoldQueryResult;
 begin
   Result := BoldQueryUserDlg.QueryUser(Title, Query);
+end;
+
+procedure TBoldVCLEnvironmentConfiguration.InformUser(const Text: string);
+begin
+  ShowMessage(Text);
 end;
 
 procedure TBoldVCLEnvironmentConfiguration.BringToFront;

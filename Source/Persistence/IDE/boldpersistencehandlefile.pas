@@ -75,9 +75,9 @@ type
 implementation
 
 uses
-  Dialogs,
   SysUtils,
   BoldDefaultId,
+  BoldEnvironment,
   BoldCoreConsts;
 
 { TBoldPersistenceControllerFile }
@@ -173,7 +173,7 @@ begin
   end
   else if Condition is TBoldSQLCondition then
   begin
-    ShowMessage(sFileHandlerIgnoresSQL);
+    BoldEffectiveEnvironment.InformUser(sFileHandlerIgnoresSQL);
     NewCondition := TBoldConditionWithClass.Create;
     NewCondition.TopSortedIndex := TBoldSQLCondition(Condition).TopSortedIndex;
     PMFetchIDListWithCondition(ObjectIdList, ValueSpace, FetchMode, NewCondition, NOTVALIDCLIENTID);

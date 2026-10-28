@@ -53,6 +53,7 @@ type
     function IsFormOrDataModule(Sender: TObject): Boolean; virtual;
     function AskUser(const Text: string): Boolean; virtual;
     function QueryUser(const Title, Query: string): TBoldQueryResult; virtual;
+    procedure InformUser(const Text: string); virtual;
     procedure ProcessMessages; virtual;
     procedure BringToFront; virtual;
     procedure FocusMainForm; virtual;
@@ -176,6 +177,11 @@ end;
 function TBoldEnvironmentConfiguration.QueryUser(const Title, Query: string): TBoldQueryResult;
 begin
   raise EBoldInternal.CreateFmt(UnsupportedFunction, ['QueryUser', Name]);
+end;
+
+procedure TBoldEnvironmentConfiguration.InformUser(const Text: string);
+begin
+  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['InformUser', Name]);
 end;
 
 procedure TBoldEnvironmentConfiguration.BringToFront;

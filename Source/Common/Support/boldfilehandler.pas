@@ -96,7 +96,7 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  Dialogs;
+  BoldEnvironment;
 
 var
   G_FileHandlerList: TBoldObjectArray;
@@ -179,7 +179,7 @@ begin
     FlushFile;
   except
     on e:Exception do
-      ShowMessage(SysUtils.Format(sFileSaveProblem, [e.Message]));
+      BoldEffectiveEnvironment.InformUser(SysUtils.Format(sFileSaveProblem, [e.Message]));
   end;
   FreeAndNil(fStringList);
   BoldFileHandlerList.remove(self);
@@ -351,7 +351,7 @@ begin
   else
   begin
     BoldLog.LogFmt(sModuleReadOnly, [FFileName], ltError);
-    ShowMessage(SysUtils.Format(sModuleReadOnly, [fFileName]));
+    BoldEffectiveEnvironment.InformUser(SysUtils.Format(sModuleReadOnly, [fFileName]));
   end;
 end;
 
