@@ -38,7 +38,7 @@ type
     FOnCheckStop: TCheckStopEvent;
     fTableQueue: TBoldThreadSafeObjectQueue;
     FThreadCount: integer;
-    fThreadList: TThreadList;
+    fThreadList: Classes.TThreadList;
     FOnComplete: TNotifyEvent;
     fOnLog: TBoldDbValidatorLogEvent;
     function GetSystemSQLMapper: TBoldSystemSQLMApper;
@@ -62,7 +62,7 @@ type
     function CreateValidatorThread: TBoldDbValidatorThread; virtual; abstract;
     property SystemSQLMapper: TBoldSystemSQLMapper read GetSystemSQLMapper;
     property DataBase: IBoldDataBase read GetDataBase;
-    property ThreadList: TThreadList read fThreadList;
+    property ThreadList: Classes.TThreadList read fThreadList;
   public
     constructor Create(Owner: TComponent); override;
     destructor Destroy; override;
@@ -285,7 +285,7 @@ begin
   fErrorLock := TCriticalSection.Create;
   fSubscriber := TBoldPassThroughSubscriber.Create(Receive);
   fTableQueue := TBoldThreadSafeObjectQueue.Create('TableValidationQueue');
-  fThreadList := TThreadList.Create;
+  fThreadList := Classes.TThreadList.Create;
   FThreadCount := 6;
 end;
 
@@ -549,7 +549,7 @@ end;
 
 procedure TBoldDbValidatorThread.Execute;
 var
-  List: TList;
+  List: Classes.TList;
   Count: Integer;
 begin
   NameThreadForDebugging(ClassName);
