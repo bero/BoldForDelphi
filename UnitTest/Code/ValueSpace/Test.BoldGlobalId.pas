@@ -4,58 +4,39 @@ interface
 
 uses
   Classes,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldGlobalId,
   BoldDefaultId,
   BoldId,
   BoldStreams;
 
 type
-  [TestFixture]
-  TTestBoldGlobalId = class
-  public
-    [Test]
+  TTestBoldGlobalId = class(TBoldTestCase)
+  published
     procedure TestCreateWithInfo;
-    [Test]
     procedure TestAsString;
-    [Test]
     procedure TestGetHash;
-    [Test]
     procedure TestGetHashDifferentStrings;
-    [Test]
     procedure TestGetIsEqual_SameId;
-    [Test]
     procedure TestGetIsEqual_DifferentId;
-    [Test]
     procedure TestGetIsEqual_NilId;
-    [Test]
     procedure TestGetIsEqual_DifferentClassType;
-    [Test]
     procedure TestGetIsStorable;
-    [Test]
     procedure TestGetStreamName;
-    [Test]
     procedure TestCloneWithClassId;
-    [Test]
     procedure TestClassExpressionName;
-    [Test]
     procedure TestTopSortedIndex;
-    [Test]
     procedure TestTopSortedIndexExact;
   end;
 
-  [TestFixture]
-  TTestBoldGlobalIdXMLStreaming = class
+  TTestBoldGlobalIdXMLStreaming = class(TBoldTestCase)
   private
     FDataModule: TDataModule;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestXMLRoundTrip_GlobalId;
-    [Test]
     procedure TestXMLWriteObject_GlobalId;
   end;
 
@@ -63,10 +44,9 @@ implementation
 
 uses
   SysUtils,
-  Bold_MSXML_TLB,
   BoldXMLStreaming,
   BoldDefaultXMLStreaming,
-  Test.BoldAttributes;
+  jehoBoldTestDataModule;
 
 { TTestBoldGlobalId }
 
@@ -207,7 +187,7 @@ begin
     Streamable := GlobalId as IBoldStreamable;
     Assert.AreEqual(BOLDGLOBALIDNAME, Streamable.StreamName, 'StreamName should be BOLDGLOBALIDNAME');
   finally
-    GlobalId.Free;
+    FreeAfterTest(GlobalId);
   end;
 end;
 
@@ -274,7 +254,7 @@ end;
 
 { TTestBoldGlobalIdXMLStreaming }
 
-procedure TTestBoldGlobalIdXMLStreaming.Setup;
+procedure TTestBoldGlobalIdXMLStreaming.SetUp;
 begin
   FDataModule := TjehodmBoldTest.Create(nil);
 end;
@@ -287,7 +267,7 @@ end;
 procedure TTestBoldGlobalIdXMLStreaming.TestXMLWriteObject_GlobalId;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   anId: TBoldGlobalId;
@@ -295,14 +275,14 @@ begin
   // TopSortedIndex=1 = ClassA in jehoBCBoldTest model
   anId := TBoldGlobalId.CreateWithInfo('test-global-123', 1, True, 'ClassA');
   try
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'GlobalIdTest');
       aNode.WriteSubNodeObject('Id', '', anId);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       Assert.IsTrue(Length(anXML) > 0, 'XML should not be empty');
       Assert.IsTrue(Pos('test-global-123', anXML) > 0, 'XML should contain the global ID string');
       aNode.Free;
@@ -318,7 +298,7 @@ end;
 procedure TTestBoldGlobalIdXMLStreaming.TestXMLRoundTrip_GlobalId;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   anId: TBoldGlobalId;
@@ -328,21 +308,20 @@ begin
   anId := TBoldGlobalId.CreateWithInfo('roundtrip-test-id', 1, True, 'ClassA');
   try
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'GlobalIdRoundTrip');
       aNode.WriteSubNodeObject('Id', '', anId);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'GlobalIdRoundTrip');
       try
         ReadId := aNode.ReadSubNodeObject('Id', '') as TBoldGlobalId;
@@ -369,7 +348,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldGlobalId);
-  TDUnitX.RegisterTestFixture(TTestBoldGlobalIdXMLStreaming);
+  BoldRegisterTest(TTestBoldGlobalId);
+  BoldRegisterTest(TTestBoldGlobalIdXMLStreaming);
 
 end.

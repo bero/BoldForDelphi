@@ -4,84 +4,56 @@ interface
 
 uses
   Classes,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldCondition;
 
 type
-  [TestFixture]
-  TTestBoldCondition = class
-  public
+  TTestBoldCondition = class(TBoldTestCase)
+  published
     // TBoldCondition tests (base class)
-    [Test]
     procedure TestConditionCreate;
-    [Test]
     procedure TestConditionMaxAnswersDefault;
-    [Test]
     procedure TestConditionOffsetDefault;
-    [Test]
     procedure TestConditionProperties;
 
     // TBoldConditionWithClass tests
-    [Test]
     procedure TestConditionWithClassCreate;
-    [Test]
     procedure TestConditionWithClassTimeDefault;
-    [Test]
     procedure TestConditionWithClassGetStreamName;
-    [Test]
     procedure TestConditionWithClassProperties;
 
     // TBoldSQLCondition tests
-    [Test]
     procedure TestSQLConditionCreate;
-    [Test]
     procedure TestSQLConditionJoinInheritedTablesDefault;
-    [Test]
     procedure TestSQLConditionGetStreamName;
-    [Test]
     procedure TestSQLConditionProperties;
 
     // TBoldRawSQLCondition tests
-    [Test]
     procedure TestRawSQLConditionGetStreamName;
-    [Test]
     procedure TestRawSQLConditionProperties;
 
     // TBoldTimestampCondition tests
-    [Test]
     procedure TestTimestampConditionGetStreamName;
-    [Test]
     procedure TestTimestampConditionProperties;
 
     // TBoldChangePointCondition tests
-    [Test]
     procedure TestChangePointConditionGetStreamName;
-    [Test]
     procedure TestChangePointConditionProperties;
   end;
 
-  [TestFixture]
-  TTestBoldConditionXMLStreaming = class
+  TTestBoldConditionXMLStreaming = class(TBoldTestCase)
   private
     FDataModule: TDataModule;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestXMLRoundTrip_ConditionWithClass;
-    [Test]
     procedure TestXMLRoundTrip_SQLCondition_NoParams;
-    [Test]
     procedure TestXMLRoundTrip_SQLCondition_WithParams;
-    [Test]
     procedure TestXMLRoundTrip_SQLCondition_ParamValues;
-    [Test]
     procedure TestXMLRead_SQLCondition_LegacyStringData;
-    [Test]
     procedure TestXMLRoundTrip_TimestampCondition;
-    [Test]
     procedure TestXMLRoundTrip_ChangePointCondition;
   end;
 
@@ -94,10 +66,9 @@ uses
   BoldId,
   BoldDefaultId,
   BoldStreams,
-  Bold_MSXML_TLB,
   BoldXMLStreaming,
   BoldDefaultXMLStreaming,
-  Test.BoldAttributes;
+  jehoBoldTestDataModule;
 
 { TTestBoldCondition }
 
@@ -190,7 +161,7 @@ begin
     Streamable := Condition as IBoldStreamable;
     Assert.AreEqual('ClassCondition', Streamable.StreamName);
   finally
-    Condition.Free;
+    FreeAfterTest(Condition);
   end;
 end;
 
@@ -244,7 +215,7 @@ begin
     Streamable := Condition as IBoldStreamable;
     Assert.AreEqual('SQLCondition', Streamable.StreamName);
   finally
-    Condition.Free;
+    FreeAfterTest(Condition);
   end;
 end;
 
@@ -281,7 +252,7 @@ begin
     Streamable := Condition as IBoldStreamable;
     Assert.AreEqual('RawSQLCondition', Streamable.StreamName);
   finally
-    Condition.Free;
+    FreeAfterTest(Condition);
   end;
 end;
 
@@ -314,7 +285,7 @@ begin
     Streamable := Condition as IBoldStreamable;
     Assert.AreEqual('TimestampCondition', Streamable.StreamName);
   finally
-    Condition.Free;
+    FreeAfterTest(Condition);
   end;
 end;
 
@@ -341,7 +312,7 @@ begin
     Streamable := Condition as IBoldStreamable;
     Assert.AreEqual('ChangePointCondition', Streamable.StreamName);
   finally
-    Condition.Free;
+    FreeAfterTest(Condition);
   end;
 end;
 
@@ -373,7 +344,7 @@ end;
 
 { TTestBoldConditionXMLStreaming }
 
-procedure TTestBoldConditionXMLStreaming.Setup;
+procedure TTestBoldConditionXMLStreaming.SetUp;
 begin
   FDataModule := TjehodmBoldTest.Create(nil);
 end;
@@ -386,7 +357,7 @@ end;
 procedure TTestBoldConditionXMLStreaming.TestXMLRoundTrip_ConditionWithClass;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Cond1, Cond2: TBoldConditionWithClass;
@@ -400,21 +371,20 @@ begin
     Cond1.Time := 12345;
 
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'CondWithClassTest');
       aNode.WriteSubNodeObject('Condition', '', Cond1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'CondWithClassTest');
       try
         Cond2 := aNode.ReadSubNodeObject('Condition', '') as TBoldConditionWithClass;
@@ -442,7 +412,7 @@ end;
 procedure TTestBoldConditionXMLStreaming.TestXMLRoundTrip_SQLCondition_NoParams;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Cond1, Cond2: TBoldSQLCondition;
@@ -456,21 +426,20 @@ begin
     Cond1.Params := nil;
 
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'SQLCondNoParamsTest');
       aNode.WriteSubNodeObject('Condition', '', Cond1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'SQLCondNoParamsTest');
       try
         Cond2 := aNode.ReadSubNodeObject('Condition', '') as TBoldSQLCondition;
@@ -498,7 +467,7 @@ end;
 procedure TTestBoldConditionXMLStreaming.TestXMLRoundTrip_SQLCondition_WithParams;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Cond1, Cond2: TBoldSQLCondition;
@@ -513,21 +482,20 @@ begin
     Cond1.Params.CreateParam(ftInteger, 'anInt', ptInput).AsInteger := 42;
 
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'SQLCondWithParamsTest');
       aNode.WriteSubNodeObject('Condition', '', Cond1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'SQLCondWithParamsTest');
       try
         Cond2 := aNode.ReadSubNodeObject('Condition', '') as TBoldSQLCondition;
@@ -562,7 +530,7 @@ end;
 procedure TTestBoldConditionXMLStreaming.TestXMLRoundTrip_TimestampCondition;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Cond1, Cond2: TBoldTimestampCondition;
@@ -574,21 +542,20 @@ begin
     Cond1.Timestamp := 99999;
 
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'TimestampCondTest');
       aNode.WriteSubNodeObject('Condition', '', Cond1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'TimestampCondTest');
       try
         Cond2 := aNode.ReadSubNodeObject('Condition', '') as TBoldTimestampCondition;
@@ -614,7 +581,7 @@ end;
 procedure TTestBoldConditionXMLStreaming.TestXMLRoundTrip_ChangePointCondition;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Cond1, Cond2: TBoldChangePointCondition;
@@ -635,21 +602,20 @@ begin
     Cond1.MemberIdList.Add(TBoldMemberId.Create(7));
 
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'ChangePointCondTest');
       aNode.WriteSubNodeObject('Condition', '', Cond1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'ChangePointCondTest');
       try
         Cond2 := aNode.ReadSubNodeObject('Condition', '') as TBoldChangePointCondition;
@@ -693,7 +659,7 @@ const
   cUnicode = #$00C5'sa '#$0436#$6F22;  // A-ring outside ASCII, Cyrillic and CJK outside ANSI
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Cond1, Cond2: TBoldSQLCondition;
@@ -724,20 +690,19 @@ begin
     Cond1.Params.CreateParam(ftInteger, 'aNull', ptInput);
     Cond1.Params.CreateParam(ftString, 'anEmpty', ptInput).AsString := '';
 
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'SQLCondParamValuesTest');
       aNode.WriteSubNodeObject('Condition', '', Cond1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'SQLCondParamValuesTest');
       try
         Cond2 := aNode.ReadSubNodeObject('Condition', '') as TBoldSQLCondition;
@@ -787,7 +752,7 @@ const
   cAnsiPlaceholder = 'ANSI-PLACEHOLDER';
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Cond1, Cond2: TBoldSQLCondition;
@@ -807,26 +772,25 @@ begin
   try
     Cond1.WhereFragment := 'x';
     Cond1.Params := TParams.Create(nil);
-    Cond1.Params.CreateParam(ftString, 'oldWide', ptInput).AsString := cWidePlaceholder;
+    Cond1.Params.CreateParam(ftString, 'oldWide', ptInput).AsWideString := cWidePlaceholder;
     Cond1.Params.CreateParam(ftString, 'oldAnsi', ptInput).AsAnsiString := cAnsiPlaceholder;
 
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'SQLCondLegacyTest');
       aNode.WriteSubNodeObject('Condition', '', Cond1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       ReplaceData(cWidePlaceholder, 'bGVnYWN5AKo=');
       ReplaceData(cAnsiPlaceholder, 'YW5zaQA=');
 
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'SQLCondLegacyTest');
       try
         Cond2 := aNode.ReadSubNodeObject('Condition', '') as TBoldSQLCondition;
@@ -853,7 +817,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldCondition);
-  TDUnitX.RegisterTestFixture(TTestBoldConditionXMLStreaming);
+  BoldRegisterTest(TTestBoldCondition);
+  BoldRegisterTest(TTestBoldConditionXMLStreaming);
 
 end.

@@ -4,7 +4,7 @@ interface
 
 uses
   Classes,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldOclLightWeightNodes;
 
 type
@@ -32,83 +32,51 @@ type
     property VisitedMethods: string read fVisitedMethods;
   end;
 
-  [TestFixture]
-  TTestBoldOLWNodeXMLStreaming = class
+  TTestBoldOLWNodeXMLStreaming = class(TBoldTestCase)
   private
     FDataModule: TComponent;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestXMLRoundTrip_NodeList;
-    [Test]
     procedure TestXMLRoundTrip_Operation;
-    [Test]
     procedure TestXMLRoundTrip_TypeNode;
-    [Test]
     procedure TestXMLRoundTrip_ListCoercion;
-    [Test]
     procedure TestXMLRoundTrip_Member;
-    [Test]
     procedure TestXMLRoundTrip_Literals;
-    [Test]
     procedure TestXMLRoundTrip_OclCondition;
   end;
 
-  [TestFixture]
-  TTestBoldOclLightWeightNodes = class
-  public
-    [Test]
+  TTestBoldOclLightWeightNodes = class(TBoldTestCase)
+  private
+    fRaiseBinding: TObject;
+    procedure TestVariableBinding_AddRef_NonLoopVar_Raises_Raiser;
+  published
     procedure TestNodeCreation_AllTypes;
-    [Test]
     procedure TestAcceptVisitor_AllNodeTypes;
-    [Test]
     procedure TestVisitorBaseStubs_AllCalled;
-    [Test]
     procedure TestVisitorBaseStub_VisitNode_Direct;
-    [Test]
     procedure TestGetStreamName_AllTypes;
-    [Test]
     procedure TestNodeList_AddAndCount;
-    [Test]
     procedure TestNodeList_IndexOf;
-    [Test]
     procedure TestNodeList_GetItem;
-    [Test]
     procedure TestNodeList_PutItem;
-    [Test]
     procedure TestNodeList_TraverseList;
-    [Test]
     procedure TestNodeList_DestroyOwned;
-    [Test]
     procedure TestNodeList_DestroyNonOwned;
-    [Test]
     procedure TestNodeList_GetStreamName;
-    [Test]
     procedure TestOperation_DestroyFreesArgs;
-    [Test]
     procedure TestIteration_DestroyFreesLoopVar;
-    [Test]
     procedure TestMember_CreateAndDestroy;
-    [Test]
     procedure TestListCoercion_DestroyFreesChild;
-    [Test]
     procedure TestOclCondition_CreateAndDestroy;
-    [Test]
     procedure TestVariableBinding_AddRef_FirstCall;
-    [Test]
     procedure TestVariableBinding_AddRef_LoopVar_MultipleRefs;
-    [Test]
     procedure TestVariableBinding_AddRef_NonLoopVar_Raises;
-    [Test]
     procedure TestVariableBinding_Properties;
-    [Test]
     procedure TestEnumLiteral_IntValue;
-    [Test]
     procedure TestDateLiteral_DateValue;
-    [Test]
     procedure TestTimeLiteral_TimeValue;
   end;
 
@@ -121,10 +89,9 @@ uses
   BoldStreams,
   BoldId,
   BoldDefaultId,
-  Bold_MSXML_TLB,
   BoldXMLStreaming,
   BoldDefaultXMLStreaming,
-  Test.BoldAttributes;
+  jehoBoldTestDataModule;
 
 function GetNodeStreamName(Node: TBoldOLWNode): string;
 var
@@ -226,7 +193,7 @@ end;
 
 { TTestBoldOLWNodeXMLStreaming }
 
-procedure TTestBoldOLWNodeXMLStreaming.Setup;
+procedure TTestBoldOLWNodeXMLStreaming.SetUp;
 begin
   FDataModule := TjehodmBoldTest.Create(nil);
 end;
@@ -239,7 +206,7 @@ end;
 procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_NodeList;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   List1, List2: TBoldOLWNodeList;
@@ -251,21 +218,20 @@ begin
     List1.Add(TBoldOLWIntLiteral.Create(3, 30));
 
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'NodeListTest');
       aNode.WriteSubNodeObject('List', 'OLWNodeList', List1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'NodeListTest');
       try
         List2 := aNode.ReadSubNodeObject('List', 'OLWNodeList') as TBoldOLWNodeList;
@@ -295,7 +261,7 @@ end;
 procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_Operation;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Op1, Op2: TBoldOLWOperation;
@@ -305,20 +271,19 @@ begin
     Op1.Args.Add(TBoldOLWIntLiteral.Create(6, 42));
     Op1.Args.Add(TBoldOLWStrLiteral.Create(7, 'test'));
 
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'OperationTest');
       aNode.WriteSubNodeObject('Op', '', Op1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'OperationTest');
       try
         Op2 := aNode.ReadSubNodeObject('Op', '') as TBoldOLWOperation;
@@ -346,27 +311,26 @@ end;
 procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_TypeNode;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   TN1, TN2: TBoldOLWTypeNode;
 begin
   TN1 := TBoldOLWTypeNode.Create(10, 'Person', 5);
   try
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'TypeNodeTest');
       aNode.WriteSubNodeObject('TN', '', TN1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'TypeNodeTest');
       try
         TN2 := aNode.ReadSubNodeObject('TN', '') as TBoldOLWTypeNode;
@@ -392,27 +356,26 @@ end;
 procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_ListCoercion;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   LC1, LC2: TBoldOLWListCoercion;
 begin
   LC1 := TBoldOLWListCoercion.Create(15, TBoldOLWIntLiteral.Create(16, 99));
   try
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'ListCoercionTest');
       aNode.WriteSubNodeObject('LC', '', LC1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'ListCoercionTest');
       try
         LC2 := aNode.ReadSubNodeObject('LC', '') as TBoldOLWListCoercion;
@@ -439,7 +402,7 @@ end;
 procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_Member;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   M1, M2: TBoldOLWMember;
@@ -450,20 +413,19 @@ begin
   try
     M1.Qualifier.Add(TBoldOLWIntLiteral.Create(26, 55));
 
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'MemberTest');
       aNode.WriteSubNodeObject('M', '', M1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'MemberTest');
       try
         M2 := aNode.ReadSubNodeObject('M', '') as TBoldOLWMember;
@@ -496,7 +458,7 @@ end;
 procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_Literals;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   List1, List2: TBoldOLWNodeList;
@@ -516,20 +478,19 @@ begin
     List1.Add(TBoldOLWDateLiteral.Create(5, TestDate));
     List1.Add(TBoldOLWTimeLiteral.Create(6, TestTime));
 
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'LiteralsTest');
       aNode.WriteSubNodeObject('Lits', 'OLWNodeList', List1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'LiteralsTest');
       try
         List2 := aNode.ReadSubNodeObject('Lits', 'OLWNodeList') as TBoldOLWNodeList;
@@ -572,7 +533,7 @@ end;
 procedure TTestBoldOLWNodeXMLStreaming.TestXMLRoundTrip_OclCondition;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Cond1, Cond2: TBoldOclCondition;
@@ -611,21 +572,20 @@ begin
     Cond1.RootNode := Iteration;
 
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'OclCondTest');
       aNode.WriteSubNodeObject('Cond', '', Cond1);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'OclCondTest');
       try
         Cond2 := aNode.ReadSubNodeObject('Cond', '') as TBoldOclCondition;
@@ -668,6 +628,11 @@ begin
 end;
 
 { TTestBoldOclLightWeightNodes }
+
+procedure TTestBoldOclLightWeightNodes.TestVariableBinding_AddRef_NonLoopVar_Raises_Raiser;
+begin
+  TBoldOLWVariableBinding(fRaiseBinding).AddRef; // second call on non-loopvar should raise
+end;
 
 procedure TTestBoldOclLightWeightNodes.TestNodeCreation_AllTypes;
 var
@@ -1429,12 +1394,8 @@ begin
   Binding := TBoldOLWVariableBinding.Create(0, 'ext', 0);
   try
     Binding.AddRef; // first call OK
-    Assert.WillRaiseAny(
-      procedure
-      begin
-        Binding.AddRef; // second call on non-loopvar should raise
-      end
-    );
+    fRaiseBinding := Binding;
+    Assert.WillRaiseAny(TestVariableBinding_AddRef_NonLoopVar_Raises_Raiser);
   finally
     Binding.Free;
   end;
@@ -1514,7 +1475,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldOclLightWeightNodes);
-  TDUnitX.RegisterTestFixture(TTestBoldOLWNodeXMLStreaming);
+  BoldRegisterTest(TTestBoldOclLightWeightNodes);
+  BoldRegisterTest(TTestBoldOLWNodeXMLStreaming);
 
 end.

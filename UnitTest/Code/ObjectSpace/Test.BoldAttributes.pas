@@ -23,18 +23,11 @@ uses
   BoldDefs,
   BoldAttributes,
   BoldAbstractModel,
-  BoldListHandle;
+  BoldListHandle,
+  jehoBoldTestDataModule;
 
 type
   TCompareTypeSet = set of TBoldCompareType;
-
-  TjehodmBoldTest = class(TDataModule)
-    BoldModel1: TBoldModel;
-    BoldSystemHandle1: TBoldSystemHandle;
-    BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle;
-    BoldTypeNameHandle1: TBoldTypeNameHandle;
-    BoldListHandle1: TBoldListHandle;
-  end;
 
   [TestFixture]
   [Category('ObjectSpace')]
@@ -363,8 +356,6 @@ uses
   BoldMLAttributes,
   BoldObjectRepresentationJson,
   dmModel1;
-
-{$R dmjehoBoldTest.dfm}
 
 const
   FLOATCONST: Real = 0.1;

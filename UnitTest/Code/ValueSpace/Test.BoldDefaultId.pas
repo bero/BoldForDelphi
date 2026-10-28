@@ -4,91 +4,59 @@ interface
 
 uses
   Classes,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldBase,
   BoldDefaultId,
   BoldId,
   BoldDefs;
 
 type
-  [TestFixture]
-  TTestBoldDefaultId = class
-  public
+  TTestBoldDefaultId = class(TBoldTestCase)
+  published
     // TBoldDefaultId tests
-    [Test]
     procedure TestDefaultIdCreate;
-    [Test]
     procedure TestDefaultIdAsInteger;
-    [Test]
     procedure TestDefaultIdGetAsString;
-    [Test]
     procedure TestDefaultIdGetHash;
-    [Test]
     procedure TestDefaultIdGetStreamName;
-    [Test]
     procedure TestDefaultIdGetIsEqual_SameValue;
-    [Test]
     procedure TestDefaultIdGetIsEqual_DifferentValue;
-    [Test]
     procedure TestDefaultIdGetIsEqual_Nil;
-    [Test]
     procedure TestDefaultIdGetIsEqual_TimestampedWithMaxTimestamp;
-    [Test]
     procedure TestDefaultIdGetIsEqual_DifferentClass;
-    [Test]
     procedure TestDefaultIdCloneWithClassId;
-    [Test]
     procedure TestDefaultIdCloneWithTimeStamp_MaxTimestamp;
-    [Test]
     procedure TestDefaultIdCloneWithTimeStamp_SpecificTimestamp;
-    [Test]
     procedure TestDefaultIdCloneWithClassIdAndTimeStamp_MaxTimestamp;
-    [Test]
     procedure TestDefaultIdCloneWithClassIdAndTimeStamp_SpecificTimestamp;
 
     // TBoldTimestampedDefaultId tests
-    [Test]
     procedure TestTimestampedIdCreateWithTimeAndClassId;
-    [Test]
     procedure TestTimestampedIdGetTimeStamp;
-    [Test]
     procedure TestTimestampedIdGetHash;
-    [Test]
     procedure TestTimestampedIdGetStreamName;
-    [Test]
     procedure TestTimestampedIdGetIsEqual_SameValue;
-    [Test]
     procedure TestTimestampedIdGetIsEqual_DifferentTimestamp;
-    [Test]
     procedure TestTimestampedIdGetIsEqual_Nil;
-    [Test]
     procedure TestTimestampedIdGetIsEqual_DefaultIdWithMaxTimestamp;
-    [Test]
     procedure TestTimestampedIdGetIsEqual_DifferentClass;
-    [Test]
     procedure TestTimestampedIdCloneWithClassId;
   end;
 
-  [TestFixture]
-  TTestBoldDefaultIdXMLStreaming = class
+  TTestBoldDefaultIdXMLStreaming = class(TBoldTestCase)
   private
     FDataModule: TDataModule;
     // The only places that know the XML back end (MSXML today). A port to
     // another back end replaces these two and keeps the id-list tests.
     function WriteToXML(const ARootName, AAccessor: string; AObject: TBoldInterfacedObject): string;
     function ReadFromXML(const AXML, ARootName, AAccessor: string): TObject;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestXMLRoundTrip_DefaultId;
-    [Test]
     procedure TestXMLRoundTrip_TimestampedDefaultId;
-    [Test]
     procedure TestXMLRoundTrip_ObjectIdList;
-    [Test]
     procedure TestXMLRoundTrip_MemberIdList;
   end;
 
@@ -98,10 +66,9 @@ uses
   SysUtils,
   BoldStreams,
   BoldDefaultStreamNames,
-  Bold_MSXML_TLB,
   BoldXMLStreaming,
   BoldDefaultXMLStreaming,
-  Test.BoldAttributes;
+  jehoBoldTestDataModule;
 
 { TTestBoldDefaultId }
 
@@ -167,7 +134,7 @@ begin
     Streamable := Id as IBoldStreamable;
     Assert.AreEqual(BOLDDEFAULTIDNAME, Streamable.StreamName);
   finally
-    Id.Free;
+    FreeAfterTest(Id);
   end;
 end;
 
@@ -402,7 +369,7 @@ begin
     Streamable := Id as IBoldStreamable;
     Assert.AreEqual(BOLDTIMESTAMPEDDEFAULTIDNAME, Streamable.StreamName);
   finally
-    Id.Free;
+    FreeAfterTest(Id);
   end;
 end;
 
@@ -506,7 +473,7 @@ end;
 
 { TTestBoldDefaultIdXMLStreaming }
 
-procedure TTestBoldDefaultIdXMLStreaming.Setup;
+procedure TTestBoldDefaultIdXMLStreaming.SetUp;
 begin
   FDataModule := TjehodmBoldTest.Create(nil);
 end;
@@ -519,7 +486,7 @@ end;
 procedure TTestBoldDefaultIdXMLStreaming.TestXMLRoundTrip_DefaultId;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   anId, ReadId: TBoldDefaultId;
@@ -529,21 +496,20 @@ begin
     anId.AsInteger := 42;
 
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'DefaultIdTest');
       aNode.WriteSubNodeObject('Id', '', anId);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'DefaultIdTest');
       try
         ReadId := aNode.ReadSubNodeObject('Id', '') as TBoldDefaultId;
@@ -570,7 +536,7 @@ end;
 procedure TTestBoldDefaultIdXMLStreaming.TestXMLRoundTrip_TimestampedDefaultId;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   anId: TBoldTimestampedDefaultId;
@@ -581,21 +547,20 @@ begin
     anId.AsInteger := 99;
 
     // Write to XML
-    aDoc := TDomDocument.Create(nil);
+    aDoc := TBoldXMLDocument.Create;
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
     try
       aNode := aMgr.NewRootNode(aDoc, 'TimestampedIdTest');
       aNode.WriteSubNodeObject('Id', '', anId);
-      anXML := aNode.XMLDomElement.ownerDocument.xml;
+      anXML := aDoc.RootXML;
       aNode.Free;
       aDoc.Free;
 
       // Read back from XML
-      aDoc := TDomDocument.Create(nil);
-      aDoc.async := False;
-      aDoc.loadXML(anXML);
+      aDoc := TBoldXMLDocument.Create;
+      aDoc.LoadXML(anXML);
       aNode := aMgr.GetRootNode(aDoc, 'TimestampedIdTest');
       try
         ReadId := aNode.ReadSubNodeObject('Id', '') as TBoldTimestampedDefaultId;
@@ -624,10 +589,10 @@ function TTestBoldDefaultIdXMLStreaming.WriteToXML(const ARootName, AAccessor: s
   AObject: TBoldInterfacedObject): string;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
 begin
-  aDoc := TDomDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
@@ -635,7 +600,7 @@ begin
     aNode := aMgr.NewRootNode(aDoc, ARootName);
     try
       aNode.WriteSubNodeObject(AAccessor, '', AObject);
-      Result := aNode.XMLDomElement.ownerDocument.xml;
+      Result := aDoc.RootXML;
     finally
       aNode.Free;
     end;
@@ -648,16 +613,15 @@ end;
 function TTestBoldDefaultIdXMLStreaming.ReadFromXML(const AXML, ARootName, AAccessor: string): TObject;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
 begin
-  aDoc := TDomDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     TjehodmBoldTest(FDataModule).BoldModel1.MoldModel);
   try
-    aDoc.async := False;
-    aDoc.loadXML(AXML);
+    aDoc.LoadXML(AXML);
     aNode := aMgr.GetRootNode(aDoc, ARootName);
     try
       Result := aNode.ReadSubNodeObject(AAccessor, '');
@@ -737,7 +701,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldDefaultId);
-  TDUnitX.RegisterTestFixture(TTestBoldDefaultIdXMLStreaming);
+  BoldRegisterTest(TTestBoldDefaultId);
+  BoldRegisterTest(TTestBoldDefaultIdXMLStreaming);
 
 end.

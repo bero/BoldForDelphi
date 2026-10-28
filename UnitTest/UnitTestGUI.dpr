@@ -103,6 +103,7 @@ uses
   Test.BoldDefaultXMLStreaming in 'Code\ValueSpace\Test.BoldDefaultXMLStreaming.pas',
   Test.BoldDefaultId in 'Code\ValueSpace\Test.BoldDefaultId.pas',
   Test.BoldId in 'Code\ValueSpace\Test.BoldId.pas',
+  jehoBoldTestDataModule in 'Code\ObjectSpace\jehoBoldTestDataModule.pas',
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   Test.BoldElements in 'Code\ObjectSpace\Test.BoldElements.pas',
   Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas',
