@@ -5,9 +5,9 @@
 interface
 
 uses
-  System.SysUtils,
-  System.Classes,
-  DUnitX.TestFramework,
+  SysUtils,
+  Classes,
+  BoldTestFramework,
   BoldElements,
   BoldControlPack,
   BoldStringControlPack,
@@ -15,9 +15,10 @@ uses
   BoldAttributes;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldControlPack = class
+  {$ENDIF}
+  TTestBoldControlPack = class(TBoldTestCase)
   private
     FOwnerForm: TComponent;       // plays the role of the form owning everything
     FOwningComponent: TComponent; // plays the role of the Bold-aware control
@@ -29,18 +30,14 @@ type
     FRaiseInGetAsString: Boolean;
     function RaisingGetAsString(aFollower: TBoldFollower): string;
     procedure HandlerDisplayException(E: Exception; Component: TComponent; Elem: TBoldElement);
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // TBoldFollower.Display exception contract:
     // - no TBoldExceptionHandler handles it -> exception must propagate
     // - a TBoldExceptionHandler handled it  -> exception must be swallowed
-    [Test]
     procedure TestDisplayExceptionPropagatesWhenUnhandled;
-    [Test]
     procedure TestDisplayExceptionSwallowedWhenHandled;
   end;
 
@@ -129,5 +126,8 @@ begin
   end;
   Assert.IsTrue(FHandlerCalled, 'The OnDisplayException handler must have been invoked');
 end;
+
+initialization
+  BoldRegisterTest(TTestBoldControlPack);
 
 end.

@@ -3,41 +3,30 @@
 interface
 
 uses
-  System.Classes,
-  DUnitX.TestFramework,
+  Classes,
+  BoldTestFramework,
   BoldCollections;
 
 type
   /// <summary>
   /// Test fixture for BoldCollections - uniquely named collection classes
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldCollections = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldCollections = class(TBoldTestCase)
+  published
     procedure TestCreateCollection;
-    [Test]
     procedure TestAddItem;
-    [Test]
     procedure TestGetItemByName;
-    [Test]
     procedure TestGetItemByNameNotFound;
-    [Test]
     procedure TestDuplicateNameRaises;
-    [Test]
     procedure TestRenameItem;
-    [Test]
     procedure TestGetDisplayName;
-    [Test]
     procedure TestGetNamePathWithCollection;
-    [Test]
     procedure TestGetNamePathWithoutCollection;
-    [Test]
     procedure TestMultipleItems;
-    [Test]
     procedure TestItemIndexLazyCreation;
-    [Test]
     procedure TestUpdateClearsIndex;
   end;
 
@@ -61,7 +50,7 @@ type
 implementation
 
 uses
-  System.SysUtils,
+  SysUtils,
   BoldDefs;
 
 { TTestNamedCollection }
@@ -302,6 +291,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldCollections);
+  BoldRegisterTest(TTestBoldCollections);
 
 end.

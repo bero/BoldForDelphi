@@ -3,22 +3,22 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldGUIDUtils;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldGUIDUtils = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldGUIDUtils = class(TBoldTestCase)
+  published
     procedure TestBoldCreateGUIDAsString;
   end;
 
 implementation
 
 uses
-  System.SysUtils;
+  SysUtils;
 
 { TTestBoldGUIDUtils }
 
@@ -43,6 +43,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldGUIDUtils);
+  BoldRegisterTest(TTestBoldGUIDUtils);
 
 end.

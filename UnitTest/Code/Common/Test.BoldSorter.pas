@@ -3,44 +3,35 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSorter;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldSorter = class
+  {$ENDIF}
+  TTestBoldSorter = class(TBoldTestCase)
   private
     FArray: array of Integer;
     function Compare(Index1, Index2: Integer): Integer;
     procedure Exchange(Index1, Index2: Integer);
-  public
-    [Test]
+  published
     procedure TestSort_EmptyArray;
-    [Test]
     procedure TestSort_SingleElement;
-    [Test]
     procedure TestSort_TwoElements_Ordered;
-    [Test]
     procedure TestSort_TwoElements_Reversed;
-    [Test]
     procedure TestSort_MultipleElements_Random;
-    [Test]
     procedure TestSort_MultipleElements_Reversed;
-    [Test]
     procedure TestSort_MultipleElements_AlreadySorted;
-    [Test]
     procedure TestSort_WithDuplicates;
-    [Test]
     procedure TestSort_AllSameValues;
-    [Test]
     procedure TestSort_LargeArray;
   end;
 
 implementation
 
 uses
-  System.SysUtils;
+  SysUtils;
 
 { TTestBoldSorter }
 
@@ -193,6 +184,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSorter);
+  BoldRegisterTest(TTestBoldSorter);
 
 end.

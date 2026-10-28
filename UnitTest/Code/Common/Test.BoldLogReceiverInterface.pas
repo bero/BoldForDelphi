@@ -3,41 +3,33 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldLogReceiverInterface;
 
 type
   /// <summary>
   /// Test fixture for BoldLogReceiverInterface - Log receiver base class
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldLogReceiverInterface = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldLogReceiverInterface = class(TBoldTestCase)
+  published
     procedure TestLogEnabledDefault;
-    [Test]
     procedure TestSetLogEnabled;
-    [Test]
     procedure TestLogTypeToString_Info;
-    [Test]
     procedure TestLogTypeToString_Detail;
-    [Test]
     procedure TestLogTypeToString_Warning;
-    [Test]
     procedure TestLogTypeToString_Error;
-    [Test]
     procedure TestLogTypeToString_Separator;
-    [Test]
     procedure TestVirtualMethodsDoNotRaise;
-    [Test]
     procedure TestInterfaceImplementation;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
+  SysUtils,
   BoldDefs;
 
 { TTestBoldLogReceiverInterface }
@@ -172,6 +164,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldLogReceiverInterface);
+  BoldRegisterTest(TTestBoldLogReceiverInterface);
 
 end.

@@ -3,36 +3,39 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldUMLTypes;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldUMLTypes = class
+  {$ENDIF}
+  TTestBoldUMLTypes = class(TBoldTestCase)
   private
+    fRange: TBoldUMLRange;
+    procedure SetRangeToReversedBounds;
     procedure AssertRange(Range: TBoldUMLRange; Lower, Upper: Integer; UpperUnlimited: Boolean);
     procedure AssertSetAsString(const SetString: string; Lower, Upper: Integer;
       UpperUnlimited: Boolean; const GetString: string = '');
-  public
-    [Test]
+  published
     procedure TestUMLRange;
-    [Test]
     procedure TestUMLMultiplicity;
-    [Test]
     procedure TestUMLRangeInRange;
-    [Test]
     procedure TestUMLRangeSetAsStringUnlimited;
-    [Test]
     procedure TestUMLMultiplicityInRange;
   end;
 
 implementation
 
 uses
-  System.SysUtils;
+  SysUtils;
 
 { TTestBoldUMLTypes }
+
+procedure TTestBoldUMLTypes.SetRangeToReversedBounds;
+begin
+  fRange.AsString := 'n..1';
+end;
 
 procedure TTestBoldUMLTypes.AssertRange(Range: TBoldUMLRange; Lower, Upper: Integer;
   UpperUnlimited: Boolean);
@@ -92,14 +95,9 @@ begin
     ARange.AsString := '1..n';
     Assert.AreEqual('1..*', ARange.FormatAsString('*'), 'FormatAsString mismatch');
 
-    Assert.WillRaise(
-      procedure
-      begin
-        ARange.AsString := 'n..1';
-      end,
-      EConvertError,
-      'Expected EConvertError for invalid range'
-    );
+    fRange := ARange;
+    Assert.WillRaise(SetRangeToReversedBounds, EConvertError,
+      'Expected EConvertError for invalid range');
   finally
     ARange.Free;
   end;
@@ -206,6 +204,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldUMLTypes);
+  BoldRegisterTest(TTestBoldUMLTypes);
 
 end.

@@ -3,27 +3,26 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDefs;
 
 type
   /// <summary>
   /// Test fixture for BoldDefs - Core type definitions and exceptions
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldDefs = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldDefs = class(TBoldTestCase)
+  published
     procedure TestEBoldDatabaseErrorProperties;
-    [Test]
     procedure TestEBoldDatabaseErrorInheritance;
   end;
 
 implementation
 
 uses
-  System.SysUtils;
+  SysUtils;
 
 { TTestBoldDefs }
 
@@ -73,6 +72,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldDefs);
+  BoldRegisterTest(TTestBoldDefs);
 
 end.

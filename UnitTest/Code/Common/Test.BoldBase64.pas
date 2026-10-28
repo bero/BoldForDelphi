@@ -3,82 +3,71 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldBase64;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldBase64 = class
+  {$ENDIF}
+  TTestBoldBase64 = class(TBoldTestCase)
   private
     FBase64: TBase64;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestCreate_DefaultFilterDecodeInput;
 
-    [Test]
     procedure TestEncodeData_EmptyString;
-    [Test]
     procedure TestEncodeData_SingleChar;
-    [Test]
     procedure TestEncodeData_TwoChars;
-    [Test]
     procedure TestEncodeData_ThreeChars;
-    [Test]
     procedure TestEncodeData_StandardString;
-    [Test]
     procedure TestEncodeData_BinaryData;
 
-    [Test]
     procedure TestDecodeData_EmptyString;
-    [Test]
     procedure TestDecodeData_StandardString;
-    [Test]
     procedure TestDecodeData_WithPadding;
-    [Test]
     procedure TestDecodeData_InvalidLength;
-    [Test]
     procedure TestDecodeData_InvalidCharacter;
-    [Test]
     procedure TestDecodeData_FilteredInput;
 
-    [Test]
     procedure TestRoundTrip_SimpleString;
-    [Test]
     procedure TestRoundTrip_BinaryData;
-    [Test]
     procedure TestRoundTrip_AllBytes;
 
-    [Test]
     procedure TestDecodeData_DataLeftError;
-    [Test]
     procedure TestDecodeData_PaddingError;
 
     { Position-specific decode error tests }
-    [Test]
     procedure TestDecodeData_InvalidFirstChar;
-    [Test]
     procedure TestDecodeData_InvalidSecondChar;
-    [Test]
     procedure TestDecodeData_DataLeftFourthByte;
-    [Test]
     procedure TestDecodeData_InvalidFourthChar;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
+  SysUtils,
   BoldDefs;
+
+// Builds the string byte by byte. Free Pascal converts AnsiChar operands of a
+// concatenation to the default code page, so AnsiChar(0) + AnsiChar(255) would
+// not give the bytes 00 FF there; assignment by index keeps the raw bytes.
+function AnsiBytes(const Bytes: array of Byte): TBoldAnsiString;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(Bytes));
+  for I := 0 to High(Bytes) do
+    Result[I + 1] := AnsiChar(Bytes[I]);
+end;
 
 { TTestBoldBase64 }
 
-procedure TTestBoldBase64.Setup;
+procedure TTestBoldBase64.SetUp;
 begin
   FBase64 := TBase64.Create;
 end;
@@ -154,7 +143,7 @@ var
   ResultCode: Byte;
 begin
   // Binary data with null bytes
-  Input := AnsiChar(#0) + AnsiChar(#1) + AnsiChar(#255);
+  Input := AnsiBytes([0, 1, 255]);
   ResultCode := FBase64.EncodeData(Input, Output);
   Assert.AreEqual(Byte(BASE64_OK), ResultCode);
   Assert.AreEqual(string('AAH/'), Output);
@@ -264,7 +253,7 @@ var
   Encoded: string;
   Decoded: TBoldAnsiString;
 begin
-  Original := AnsiChar(#0) + AnsiChar(#127) + AnsiChar(#128) + AnsiChar(#255);
+  Original := AnsiBytes([0, 127, 128, 255]);
   Assert.AreEqual(Byte(BASE64_OK), FBase64.EncodeData(Original, Encoded));
   Assert.AreEqual(Byte(BASE64_OK), FBase64.DecodeData(Encoded, Decoded));
   Assert.AreEqual(string(Original), string(Decoded));
@@ -340,6 +329,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldBase64);
+  BoldRegisterTest(TTestBoldBase64);
 
 end.
