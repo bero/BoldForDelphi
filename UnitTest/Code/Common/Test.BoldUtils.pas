@@ -3,30 +3,23 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   Classes,
   BoldUtils;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldUtils = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldUtils = class(TBoldTestCase)
+  published
     procedure TestBoldCaseIndependentPosSubstrLongerThanS;
-    [Test]
     procedure TestBoldSeparateStringListEmpty;
-    [Test]
     procedure TestBoldSeparateStringListWithAIndex;
-    [Test]
     procedure TestGetUpperLimitForMultiplicitySimple;
-    [Test]
     procedure TestGetUpperLimitForMultiplicityNegative;
-    [Test]
     procedure TestGetUpperLimitForMultiplicityEmpty;
-    [Test]
     procedure TestBoldAppendToStringsWithCRLF;
-    [Test]
     procedure TestBoldAppendToStringsLineSplit;
   end;
 
@@ -132,6 +125,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldUtils);
+  BoldRegisterTest(TTestBoldUtils);
 
 end.

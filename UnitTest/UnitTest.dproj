@@ -163,6 +163,7 @@
         <DCCReference Include="Code\ObjectSpace\Test.BoldOldValueHandler.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldAbstractObjectUpgrader.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSQLDatabaseConfig.pas"/>
+        <DCCReference Include="Code\Common\BoldTestFramework.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUtils.pas"/>
         <DCCReference Include="Code\Persistence\Test.PersistenceFireDAC.pas"/>
         <DCCReference Include="Code\Persistence\BoldPersistenceScenarios.pas"/>
