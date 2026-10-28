@@ -48,6 +48,7 @@ interface
 
 uses
   Classes,
+  SyncObjs,
   BoldLogInterfaces;
 
 type
@@ -85,7 +86,7 @@ type
     FFileName: string;
     FMaxSize: Integer;
     FFileStream: TFileStream;
-    FLock: TObject;
+    FLock: TCriticalSection;
     procedure EnsureFileOpen;
     procedure CheckFileSize;
   protected
@@ -113,6 +114,7 @@ type
   TBoldMemoryLogSink = class(TBoldBaseLogSink)
   private
     FLines: TStringList;
+    FLock: TCriticalSection;
     FMaxLines: Integer;
   protected
     procedure DoWriteLog(const FormattedMsg: string); override;
@@ -128,7 +130,6 @@ implementation
 
 uses
   SysUtils,
-  SyncObjs,
   Windows;
 
 { TBoldBaseLogSink }
@@ -202,17 +203,17 @@ begin
   inherited Create('FileLogSink:' + AFileName);
   FFileName := AFileName;
   FMaxSize := AMaxSize;
-  FLock := TObject.Create;
+  FLock := TCriticalSection.Create;
   FFileStream := nil;
 end;
 
 destructor TBoldFileLogSink.Destroy;
 begin
-  TMonitor.Enter(FLock);
+  FLock.Enter;
   try
     FreeAndNil(FFileStream);
   finally
-    TMonitor.Exit(FLock);
+    FLock.Leave;
   end;
   FLock.Free;
   inherited;
@@ -248,7 +249,7 @@ var
   Line: string;
   Bytes: TBytes;
 begin
-  TMonitor.Enter(FLock);
+  FLock.Enter;
   try
     EnsureFileOpen;
     CheckFileSize;
@@ -257,7 +258,7 @@ begin
     Bytes := TEncoding.UTF8.GetBytes(Line);
     FFileStream.WriteBuffer(Bytes[0], Length(Bytes));
   finally
-    TMonitor.Exit(FLock);
+    FLock.Leave;
   end;
 end;
 
@@ -291,34 +292,36 @@ constructor TBoldMemoryLogSink.Create(AMaxLines: Integer);
 begin
   inherited Create('MemoryLogSink');
   FLines := TStringList.Create;
+  FLock := TCriticalSection.Create;
   FMaxLines := AMaxLines;
 end;
 
 destructor TBoldMemoryLogSink.Destroy;
 begin
   FLines.Free;
+  FLock.Free;
   inherited;
 end;
 
 procedure TBoldMemoryLogSink.DoWriteLog(const FormattedMsg: string);
 begin
-  TMonitor.Enter(Self);
+  FLock.Enter;
   try
     FLines.Add(FormattedMsg);
     while (FMaxLines > 0) and (FLines.Count > FMaxLines) do
       FLines.Delete(0);
   finally
-    TMonitor.Exit(Self);
+    FLock.Leave;
   end;
 end;
 
 procedure TBoldMemoryLogSink.Clear;
 begin
-  TMonitor.Enter(Self);
+  FLock.Enter;
   try
     FLines.Clear;
   finally
-    TMonitor.Exit(Self);
+    FLock.Leave;
   end;
 end;
 

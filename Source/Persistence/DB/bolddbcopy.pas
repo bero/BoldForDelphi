@@ -5,6 +5,7 @@ interface
 uses
   Classes,
   SysUtils,
+  SyncObjs,
   BoldAbstractPersistenceHandleDB,
   BoldDBInterfaces,
   BoldThreadSafeQueue,
@@ -30,6 +31,7 @@ type
     FOnComplete: TNotifyEvent;
     fProgressEvent: TBoldDbCopyProgressEvent;
     fErrors: TStringList;
+    fErrorLock: TCriticalSection;
     procedure RecordError(const AMessage: string);
     function GetHasErrors: Boolean;
     procedure SetDestinationPersistenceHandle(const Value: TBoldAbstractPersistenceHandleDB);
@@ -150,6 +152,7 @@ begin
   fThreadList := TThreadList.Create;
   fAllTables := TStringList.Create;
   fErrors := TStringList.Create;
+  fErrorLock := TCriticalSection.Create;
 end;
 
 procedure TBoldDbCopy.BeforeDestruction;
@@ -158,6 +161,7 @@ begin
   fAllTables.free;
   fThreadList.Free;
   fErrors.Free;
+  fErrorLock.Free;
   inherited;
 end;
 
@@ -165,21 +169,21 @@ procedure TBoldDbCopy.RecordError(const AMessage: string);
 begin
   BoldLog.Log(AMessage, ltError);
   // Called from the worker threads
-  TMonitor.Enter(fErrors);
+  fErrorLock.Enter;
   try
     fErrors.Add(AMessage);
   finally
-    TMonitor.Exit(fErrors);
+    fErrorLock.Leave;
   end;
 end;
 
 function TBoldDbCopy.GetHasErrors: Boolean;
 begin
-  TMonitor.Enter(fErrors);
+  fErrorLock.Enter;
   try
     result := fErrors.Count > 0;
   finally
-    TMonitor.Exit(fErrors);
+    fErrorLock.Leave;
   end;
 end;
 
