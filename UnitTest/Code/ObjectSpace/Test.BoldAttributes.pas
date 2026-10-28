@@ -6,8 +6,7 @@ interface
 
 uses
   Classes,
-  Forms,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   // TestModel1 is listed before jehoBCBoldTest on purpose: both declare
   // TClassA with the same attribute names, and unqualified TClassA in this
   // unit must keep resolving to jehoBCBoldTest.TClassA (later unit wins).
@@ -29,11 +28,20 @@ uses
 type
   TCompareTypeSet = set of TBoldCompareType;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldAttributes = class
+  {$ENDIF}
+  TTestBoldAttributes = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
+    fRaiseDateTime: TObject;
+    fRaiseDate: TObject;
+    fRaiseTime: TObject;
+    fRaiseObj: TClassA;
+    procedure TestDateTimeGetStringRepresentationNonDefault_Raiser1;
+    procedure TestDateTimeGetStringRepresentationNonDefault_Raiser2;
+    procedure TestDateTimeGetStringRepresentationNonDefault_Raiser3;
+    procedure TestIntegerCompareToAsWithString_Raiser;
   protected
     procedure SetAttributeValues(ObjectClassA: TClassA);
     procedure CheckAttributes(ObjectClassA: TClassA);
@@ -55,257 +63,165 @@ type
     procedure DoTestCompareToAs(Op1, Op2: TBoldAttribute; Expected: Integer);
     procedure DoCheckCompareTypes(OperandA, OperandB: TBoldAttribute; ValidCompareTypes: TCompareTypeSet);
     procedure InternalCheckCompareTypes(OperandA, OperandB: TBoldAttribute; CompareType: TBoldCompareType; WillWork: Boolean);
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure AttributeValueTest;
-    [Test]
     procedure AttributeNullTest;
-    [Test]
     procedure AttributeIndexTest;
-    [Test]
     procedure AttributeDerivationTest;
-    [Test]
     procedure AttributeOclDerivationTest;
-    [Test]
     procedure CheckMultiDerivedAttributes;
-    [Test]
     procedure CompareToAsTest;
-    [Test]
     procedure CompareToAsNullTest;
-    [Test]
     procedure TestCompareTypes;
-    [Test]
     procedure TestBlobContentTypeValidation;
-    [Test]
     procedure TestBlobAssignTypedToPlainBlob;
-    [Test]
     procedure TestBlobContentTypeOnPlainBlobIgnored;
-    [Test]
     procedure TestMLStringBlobContentProxy;
-    [Test]
     procedure TestValueSetValueListFindByText;
-    [Test]
     procedure TestNumericGetStringRepresentation;
-    [Test]
     procedure TestBlobImageGetStringRepresentationInherited;
-    [Test]
     procedure TestDateTimeGetStringRepresentationNonDefault;
-    [Test]
     procedure TestNumericSetStringRepresentation;
-    [Test]
     procedure TestDateTimeSetStringRepresentation;
-    [Test]
     procedure TestDateTimeValidateString;
-    [Test]
     procedure TestCreateWithValueConstructors;
-    [Test]
     procedure TestIsNullOrEmptyAndIsNullOrZero;
-    [Test]
     procedure TestIntegerValidateCharacter;
-    [Test]
     procedure TestCurrencyValidateCharacter;
-    [Test]
     procedure TestFloatValidateCharacter;
-    [Test]
     procedure TestTrimmedStringTrimsWhitespace;
-    [Test]
     procedure TestTextValidateStringNoLengthCheck;
-    [Test]
     procedure TestUnicodeTextValidateString;
-    [Test]
     procedure TestBlobStreamSaveOperations;
-    [Test]
     procedure TestBlobStreamTruncate;
-    [Test]
     procedure TestAnsiStringValidation;
-    [Test]
     procedure TestIntegerGetAsFloat;
-    [Test]
     procedure TestCurrencyGetAsFloat;
-    [Test]
     procedure TestNumericCompareToAsCtDefault;
-    [Test]
     procedure TestBooleanCreateWithValue;
 
     // TBAMoment / TBADateTime / TBADate / TBATime coverage
-    [Test]
     procedure TestMomentGetParts;
-    [Test]
     procedure TestMomentAsVariant;
-    [Test]
     procedure TestMomentAsFloat;
-    [Test]
     procedure TestDateTimeAsDate;
-    [Test]
     procedure TestDateTimeAsTime;
-    [Test]
     procedure TestDateTimeSetAsDatePreservesTime;
-    [Test]
     procedure TestTimeSetAsDatePreservesTime;
-    [Test]
     procedure TestDateTimeSubEpsilonUpdatePersists;
-    [Test]
     procedure TestDateComparesByDayAfterFractionalStore;
 
     // TBAString coverage
-    [Test]
     procedure TestStringAsAnsiAndUnicode;
-    [Test]
     procedure TestStringAssignValue;
 
     // TBABlob coverage
-    [Test]
     procedure TestBlobLoadSaveFile;
-    [Test]
     procedure TestBlobLoadSaveStream;
-    [Test]
     procedure TestBlobAssign;
-    [Test]
     procedure TestBlobSize;
 
     // TBACurrency coverage
-    [Test]
     procedure TestCurrencyAsCurrency;
-    [Test]
     procedure TestCurrencyAsVariant;
-    [Test]
     procedure TestCurrencyAssign;
 
     // TBAFloat coverage
-    [Test]
     procedure TestFloatAsVariant;
-    [Test]
     procedure TestFloatAssign;
 
     // TBAInteger coverage
-    [Test]
     procedure TestIntegerAsVariant;
-    [Test]
     procedure TestIntegerAssign;
 
     // Integer subtype range checks
-    [Test]
     procedure TestByteRangeCheck;
-    [Test]
     procedure TestShortIntRangeCheck;
-    [Test]
     procedure TestSmallIntRangeCheck;
-    [Test]
     procedure TestWordRangeCheck;
-    [Test]
     procedure TestByteGetSetAs;
-    [Test]
     procedure TestShortIntGetSetAs;
-    [Test]
     procedure TestSmallIntGetSetAs;
-    [Test]
     procedure TestWordGetSetAs;
 
     // AnsiString coverage
-    [Test]
     procedure TestAnsiStringSetGetDataValue;
-    [Test]
     procedure TestAnsiStringFreeContent;
 
     // IsEqualToValue coverage
-    [Test]
     procedure TestIntegerIsEqualToValue;
-    [Test]
     procedure TestFloatIsEqualToValue;
-    [Test]
     procedure TestCurrencyIsEqualToValue;
-    [Test]
     procedure TestStringIsEqualToValue;
 
     // Blob byte array variant
-    [Test]
     procedure TestBlobSetAsVariantByteArray;
 
     // Currency CompareToAs with float operand
-    [Test]
     procedure TestCurrencyCompareToAsWithFloat;
 
     // Currency Assign from float/integer
-    [Test]
     procedure TestCurrencyAssignFromNumericTypes;
 
     // Integer ValidateString with range
-    [Test]
     procedure TestIntegerValidateStringRange;
 
     // Moment IsNullOrZero
-    [Test]
     procedure TestMomentIsNullOrZero;
 
     // Moment IsEqualToValue
-    [Test]
     procedure TestMomentIsEqualToValue;
 
     // Float SetAsCurrency
-    [Test]
     procedure TestFloatSetAsCurrency;
 
     // Blob IsEqualToValue
-    [Test]
     procedure TestBlobIsEqualToValue;
 
     // Assign/Clone paths
-    [Test]
     procedure TestStringAssignNull;
-    [Test]
     procedure TestIntegerAssignNull;
-    [Test]
     procedure TestFloatAssignNull;
-    [Test]
     procedure TestCurrencyAssignNull;
-    [Test]
     procedure TestBlobAssignNull;
 
     // CompareToAs with non-matching types
-    [Test]
     procedure TestIntegerCompareToAsWithString;
-    [Test]
     procedure TestStringCompareToAsWithInteger;
 
     // SetEmptyValue paths
-    [Test]
     procedure TestIntegerSetEmptyValue;
-    [Test]
     procedure TestStringSetEmptyValue;
 
     // Variant round-trips
-    [Test]
     procedure TestIntegerAsVariantNull;
-    [Test]
     procedure TestFloatAsVariantNull;
-    [Test]
     procedure TestCurrencyAsVariantNull;
-    [Test]
     procedure TestBlobAsVariantNull;
-    [Test]
     procedure TestDateTimeAsVariantRoundTrip;
 
     // Blob operations
-    [Test]
     procedure TestBlobSetToNullClearsStream;
-    [Test]
     procedure TestBlobCompareToAs;
 
     // JSON serialization (BoldObjectRepresentationJson)
-    [Test]
+    {$IFDEF BoldJson}
     procedure TestBoldElementToJsonString;
-    [Test]
+    {$ENDIF}
+    {$IFDEF BoldJson}
     procedure TestBoldElementToJsonAndBack;
-    [Test]
+    {$ENDIF}
+    {$IFDEF BoldJson}
     procedure TestBoldObjectStringRepresentation;
-    [Test]
+    {$ENDIF}
+    {$IFDEF BoldJson}
     procedure TestBoldElementToJsonWithNulls;
-    [Test]
+    {$ENDIF}
+    {$IFDEF BoldJson}
     procedure TestBoldElementToJsonWithBlob;
+    {$ENDIF}
   end;
 
   // SetEmptyValue must give a non-nullable attribute its empty value even when
@@ -316,30 +232,24 @@ type
   // AsInteger before assigning and raises on a null attribute.
   // Uses TestModel1 because its attributes are non-nullable (no AllowNULL tag,
   // model default is False) - the jeho model above is all AllowNULL=True.
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestSetEmptyValue = class
+  {$ENDIF}
+  TTestSetEmptyValue = class(TBoldTestCase)
   private
     FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
     FSystemHandle: TBoldSystemHandle;
     function CreateClassA: TestModel1.TClassA;
     procedure MakeContentNull(Attribute: TBoldAttribute);
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestSetEmptyValueRepairsNullString;
-    [Test]
     procedure TestSetEmptyValueRepairsNullInteger;
-    [Test]
     procedure TestSetEmptyValueRepairsNullFloat;
-    [Test]
     procedure TestSetEmptyValueRepairsNullCurrency;
-    [Test]
     procedure TestSetEmptyValueRepairsNullValueSet;
-    [Test]
     procedure TestAssignNilRepairsNullNonNullableAttribute;
   end;
 
@@ -354,7 +264,9 @@ uses
   BoldDomainElement,
   BoldValueInterfaces,
   BoldMLAttributes,
-  BoldObjectRepresentationJson,
+  {$IFDEF BoldJson}
+  BoldObjectRepresentationJson, // built on Delphi's System.JSON; off under FPC
+  {$ENDIF}
   dmModel1;
 
 const
@@ -365,7 +277,33 @@ const
   CURRENCYCONST: Currency = 0.1;
   NROFATTRIBUTES = 14;
 
+type
+  // Helper class to access protected GetStringRepresentation
+  TBADateTimeAccess = class(TBADateTime);
+  TBADateAccess = class(TBADate);
+  TBATimeAccess = class(TBATime);
+
 { TTestBoldAttributes }
+
+procedure TTestBoldAttributes.TestDateTimeGetStringRepresentationNonDefault_Raiser1;
+begin
+  TBADateTimeAccess(fRaiseDateTime).GetStringRepresentation(brShort);
+end;
+
+procedure TTestBoldAttributes.TestDateTimeGetStringRepresentationNonDefault_Raiser2;
+begin
+  TBADateAccess(fRaiseDate).GetStringRepresentation(brShort);
+end;
+
+procedure TTestBoldAttributes.TestDateTimeGetStringRepresentationNonDefault_Raiser3;
+begin
+  TBATimeAccess(fRaiseTime).GetStringRepresentation(brShort);
+end;
+
+procedure TTestBoldAttributes.TestIntegerCompareToAsWithString_Raiser;
+begin
+  fRaiseObj.M_aInteger.CompareToAs(ctDefault, fRaiseObj.M_aString);
+end;
 
 procedure TTestBoldAttributes.SetUp;
 begin
@@ -410,7 +348,7 @@ begin
   Assert.AreEqual(STRINGCONST, ObjectClassA.aString, 'String');
   Assert.AreEqual(FLOATCONST, ObjectClassA.aDateTime, 0.0001, 'DateTime');
   Assert.AreEqual(Byte(INTEGERCONST), ObjectClassA.aByte, 'Byte');
-  Assert.AreEqual(Double(INTEGERCONST), Double(ObjectClassA.aDate), 0.0001, 'Date');
+  Assert.AreEqual(INTEGERCONST, Double(ObjectClassA.aDate), 0.0001, 'Date');
   Assert.AreEqual(BOOLEANCONST, ObjectClassA.aBoolean, 'Boolean');
   Assert.AreEqual(ShortInt(INTEGERCONST), ObjectClassA.aShortInt, 'ShortInt');
   Assert.AreEqual(STRINGCONST, ObjectClassA.aBlob, 'Blob');
@@ -1069,7 +1007,7 @@ begin
       'JPEG ContentType should return image/jpeg');
 
     // Set blob data and verify brDefault returns it via inherited
-    BlobJPEG.AsStream.Write(TestData, Length(TestData));
+    BlobJPEG.AsStream.Write(TestData[0], Length(TestData));
     Assert.AreEqual('TestBlobData', BlobJPEG.AsString,
       'JPEG AsString should return blob data via inherited GetStringRepresentation');
   finally
@@ -1083,19 +1021,13 @@ begin
       'BMP ContentType should return image/bitmap');
 
     // Set blob data and verify brDefault returns it via inherited
-    BlobBMP.AsStream.Write(TestData, Length(TestData));
+    BlobBMP.AsStream.Write(TestData[0], Length(TestData));
     Assert.AreEqual('TestBlobData', BlobBMP.AsString,
       'BMP AsString should return blob data via inherited GetStringRepresentation');
   finally
     BlobBMP.Free;
   end;
 end;
-
-type
-  // Helper class to access protected GetStringRepresentation
-  TBADateTimeAccess = class(TBADateTime);
-  TBADateAccess = class(TBADate);
-  TBATimeAccess = class(TBATime);
 
 procedure TTestBoldAttributes.TestDateComparesByDayAfterFractionalStore;
 var
@@ -1135,13 +1067,8 @@ begin
       'TBADateTime brDefault should return DateTimeToStr format');
 
     // brShort path (non-brDefault) - should raise exception via inherited
-    Assert.WillRaise(
-      procedure
-      begin
-        DateTime.GetStringRepresentation(brShort);
-      end,
-      EBold,
-      'TBADateTime brShort should raise exception via inherited');
+    fRaiseDateTime := DateTime;
+    Assert.WillRaise(TestDateTimeGetStringRepresentationNonDefault_Raiser1, EBold, 'TBADateTime brShort should raise exception via inherited');
 
     // Test null value with brDefault
     DateTime.SetToNull;
@@ -1161,13 +1088,8 @@ begin
       'TBADate brDefault should return DateToStr format');
 
     // brShort path (non-brDefault) - should raise exception via inherited
-    Assert.WillRaise(
-      procedure
-      begin
-        Date.GetStringRepresentation(brShort);
-      end,
-      EBold,
-      'TBADate brShort should raise exception via inherited');
+    fRaiseDate := Date;
+    Assert.WillRaise(TestDateTimeGetStringRepresentationNonDefault_Raiser2, EBold, 'TBADate brShort should raise exception via inherited');
 
     // Test null value with brDefault
     Date.SetToNull;
@@ -1187,13 +1109,8 @@ begin
       'TBATime brDefault should return TimeToStr format');
 
     // brShort path (non-brDefault) - should raise exception via inherited
-    Assert.WillRaise(
-      procedure
-      begin
-        Time.GetStringRepresentation(brShort);
-      end,
-      EBold,
-      'TBATime brShort should raise exception via inherited');
+    fRaiseTime := Time;
+    Assert.WillRaise(TestDateTimeGetStringRepresentationNonDefault_Raiser3, EBold, 'TBATime brShort should raise exception via inherited');
 
     // Test null value with brDefault
     Time.SetToNull;
@@ -1640,7 +1557,7 @@ begin
   try
     // Write some test data to the blob
     TestData := TEncoding.Default.GetBytes('SaveToStreamTest');
-    Blob.AsStream.Write(TestData, Length(TestData));
+    Blob.AsStream.Write(TestData[0], Length(TestData));
 
     // Test SaveToStream
     Blob.AsStream.Position := 0;
@@ -1650,7 +1567,7 @@ begin
     Assert.AreEqual(Int64(Length(TestData)), OutputStream.Size, 'SaveToStream size should match');
     OutputStream.Position := 0;
     SetLength(ReadData, OutputStream.Size);
-    OutputStream.ReadBuffer(ReadData, OutputStream.Size);
+    OutputStream.ReadBuffer(ReadData[0], OutputStream.Size);
     Assert.AreEqual(string(TEncoding.Default.GetString(TestData)),
       string(TEncoding.Default.GetString(ReadData)),
       'SaveToStream content should match');
@@ -1669,7 +1586,7 @@ begin
   try
     // Write test data
     TestData := TEncoding.Default.GetBytes('TruncateTestData');
-    Blob.AsStream.Write(TestData, Length(TestData));
+    Blob.AsStream.Write(TestData[0], Length(TestData));
     Assert.AreEqual(Int64(Length(TestData)), Blob.AsStream.Size, 'Initial size should match data length');
 
     // Move position to middle and truncate
@@ -1857,9 +1774,9 @@ begin
   Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
   Obj.aDateTime := EncodeDate(2026, 7, 4) + EncodeTime(9, 0, 0, 0);
   Obj.M_aDateTime.AsDate := EncodeDate(2026, 12, 24);
-  Assert.AreEqual(Extended(EncodeDate(2026, 12, 24)), Extended(Obj.M_aDateTime.AsDate), 1E-9,
+  Assert.AreEqual(EncodeDate(2026, 12, 24), Obj.M_aDateTime.AsDate, 1E-9,
     'SetAsDate should set the date part');
-  Assert.AreEqual(Extended(EncodeTime(9, 0, 0, 0)), Extended(Obj.M_aDateTime.AsTime), 1E-9,
+  Assert.AreEqual(EncodeTime(9, 0, 0, 0), Obj.M_aDateTime.AsTime, 1E-9,
     'SetAsDate must preserve the time-of-day');
 end;
 
@@ -1872,7 +1789,7 @@ begin
   Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
   Obj.M_aTime.AsTime := EncodeTime(10, 30, 0, 0);
   TBATimeAccess(Obj.M_aTime).AsDate := EncodeDate(2026, 12, 24);
-  Assert.AreEqual(Extended(EncodeTime(10, 30, 0, 0)), Extended(Obj.M_aTime.AsTime), 1E-9,
+  Assert.AreEqual(EncodeTime(10, 30, 0, 0), Obj.M_aTime.AsTime, 1E-9,
     'Setting the date of a time-only attribute must not change its time');
 end;
 
@@ -1992,7 +1909,7 @@ var
 begin
   Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
   Obj.M_aCurrency.AsCurrency := 123.45;
-  Assert.AreEqual(Double(123.45), Double(Obj.M_aCurrency.AsCurrency), 0.001, 'AsCurrency should match');
+  Assert.AreEqual(Double(123.45), Obj.M_aCurrency.AsCurrency, 0.001, 'AsCurrency should match');
 end;
 
 procedure TTestBoldAttributes.TestCurrencyAsVariant;
@@ -2016,7 +1933,7 @@ begin
   Obj2 := TClassA.Create(Sys);
   Obj1.M_aCurrency.AsCurrency := 42.50;
   Obj2.M_aCurrency.Assign(Obj1.M_aCurrency);
-  Assert.AreEqual(Double(42.50), Double(Obj2.M_aCurrency.AsCurrency), 0.001, 'Assign should copy currency');
+  Assert.AreEqual(Double(42.50), Obj2.M_aCurrency.AsCurrency, 0.001, 'Assign should copy currency');
 end;
 
 // TBAFloat coverage
@@ -2422,12 +2339,12 @@ begin
     // Assign from TBAFloat
     FloatAttr.AsFloat := 99.5;
     CurrAttr.Assign(FloatAttr);
-    Assert.AreEqual(Double(99.5), Double(CurrAttr.AsCurrency), 0.001, 'Currency should match assigned float');
+    Assert.AreEqual(Double(99.5), CurrAttr.AsCurrency, 0.001, 'Currency should match assigned float');
 
     // Assign from TBAInteger
     IntAttr.AsInteger := 42;
     CurrAttr.Assign(IntAttr);
-    Assert.AreEqual(Double(42.0), Double(CurrAttr.AsCurrency), 0.001, 'Currency should match assigned integer');
+    Assert.AreEqual(Double(42.0), CurrAttr.AsCurrency, 0.001, 'Currency should match assigned integer');
 
     // Assign null from numeric
     FloatAttr.SetToNull;
@@ -2591,17 +2508,17 @@ begin
 
     // One null, one not
     Data := TEncoding.UTF8.GetBytes('Test');
-    Blob1.AsStream.Write(Data, Length(Data));
+    Blob1.AsStream.Write(Data[0], Length(Data));
     Assert.IsFalse(Blob1.IsEqualToValue(Blob2.AsIBoldValue[bdepContents]), 'Non-null vs null blob should not be equal');
 
     // Both with same content
-    Blob2.AsStream.Write(Data, Length(Data));
+    Blob2.AsStream.Write(Data[0], Length(Data));
     Assert.IsTrue(Blob1.IsEqualToValue(Blob2.AsIBoldValue[bdepContents]), 'Blobs with same content should be equal');
 
     // Different content
     Blob2.SetToNull;
     Data := TEncoding.UTF8.GetBytes('Other');
-    Blob2.AsStream.Write(Data, Length(Data));
+    Blob2.AsStream.Write(Data[0], Length(Data));
     Assert.IsFalse(Blob1.IsEqualToValue(Blob2.AsIBoldValue[bdepContents]), 'Blobs with different content should not be equal');
   finally
     Blob1.Free;
@@ -2697,12 +2614,8 @@ begin
   Obj.aInteger := 42;
   Obj.aString := 'Hello';
   // Compare integer to string — should use inherited which raises
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      Obj.M_aInteger.CompareToAs(ctDefault, Obj.M_aString);
-    end
-  );
+  fRaiseObj := Obj;
+  Assert.WillRaiseAny(TestIntegerCompareToAsWithString_Raiser);
 end;
 
 procedure TTestBoldAttributes.TestStringCompareToAsWithInteger;
@@ -2847,6 +2760,7 @@ end;
 
 // JSON serialization (BoldObjectRepresentationJson)
 
+{$IFDEF BoldJson}
 procedure TTestBoldAttributes.TestBoldElementToJsonString;
 var
   Obj: TClassA;
@@ -2865,7 +2779,9 @@ begin
   Assert.IsTrue(Pos('JsonTest', Json) > 0, 'JSON should contain string value');
   Assert.IsTrue(Pos('42', Json) > 0, 'JSON should contain integer value');
 end;
+{$ENDIF}
 
+{$IFDEF BoldJson}
 procedure TTestBoldAttributes.TestBoldElementToJsonAndBack;
 var
   Obj: TClassA;
@@ -2884,7 +2800,9 @@ begin
   Assert.IsTrue(Pos('RoundTrip', Json) > 0, 'Should contain string attr');
   Assert.IsTrue(Pos('100', Json) > 0, 'Should contain integer attr');
 end;
+{$ENDIF}
 
+{$IFDEF BoldJson}
 procedure TTestBoldAttributes.TestBoldObjectStringRepresentation;
 var
   Obj: TClassA;
@@ -2895,7 +2813,9 @@ begin
   Repr := BoldObjectStringRepresentation(Obj);
   Assert.IsTrue(Length(Repr) > 0, 'String representation should be non-empty');
 end;
+{$ENDIF}
 
+{$IFDEF BoldJson}
 procedure TTestBoldAttributes.TestBoldElementToJsonWithNulls;
 var
   Obj: TClassA;
@@ -2906,7 +2826,9 @@ begin
   Json := BoldElementToJsonString(Obj);
   Assert.IsTrue(Length(Json) > 5, 'JSON with nulls should have content');
 end;
+{$ENDIF}
 
+{$IFDEF BoldJson}
 procedure TTestBoldAttributes.TestBoldElementToJsonWithBlob;
 var
   Obj: TClassA;
@@ -2926,6 +2848,7 @@ begin
   Json := BoldElementToJsonString(Obj);
   Assert.IsTrue(Length(Json) > 50, 'JSON with blob should have content');
 end;
+{$ENDIF}
 
 { TTestSetEmptyValue }
 
@@ -3046,7 +2969,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldAttributes);
-  TDUnitX.RegisterTestFixture(TTestSetEmptyValue);
+  BoldRegisterTest(TTestBoldAttributes);
+  BoldRegisterTest(TTestSetEmptyValue);
 
 end.

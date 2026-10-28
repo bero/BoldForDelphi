@@ -191,6 +191,12 @@ begin
     Result := SysUtils.UnicodeCompareStr(Copy(s1, 1, n), Copy(s2, 1, n))
   else
     Result := SysUtils.UnicodeCompareText(Copy(s1, 1, n), Copy(s2, 1, n));
+  // CompareStringEx - CSTR_EQUAL gives -1, 0 or 1 on Windows; the FPC routines
+  // return a difference, so normalise to the same three values.
+  if Result < 0 then
+    Result := -1
+  else if Result > 0 then
+    Result := 1;
 end;
 {$ENDIF}
 

@@ -112,8 +112,18 @@ type
     class var fLastUsed: array[TBoldDomainElementProxyMode] of TBoldMember_Proxy;
     class var fLastUsedAsInterface: array[TBoldDomainElementProxyMode] of IBoldValue;
     function GetProxedMLString: TBAMLString;
+    {$IFDEF FPC}
+    // FPC delegates an interface only to a class that declares it, and
+    // TBAMLString does not, so under FPC the proxy forwards IBoldBlobContent.
+    function GetContentAsBlob: TBoldAnsiString;
+    procedure SetContentAsBlob(const NewValue: TBoldAnsiString);
+    {$ENDIF}
   protected
+    {$IFDEF FPC}
+    property ProxedMLString: TBAMLString read GetProxedMLString;
+    {$ELSE}
     property ProxedMLString: TBAMLString read GetProxedMLString implements IBoldBlobContent;
+    {$ENDIF}
   public
     class function MakeProxy(ProxedMember: TBoldMember; Mode: TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
   end;
@@ -709,6 +719,18 @@ begin
 end;
 
 { TBoldMLString_Proxy }
+
+{$IFDEF FPC}
+function TBAMLString_Proxy.GetContentAsBlob: TBoldAnsiString;
+begin
+  Result := ProxedMLString.GetContentAsBlob;
+end;
+
+procedure TBAMLString_Proxy.SetContentAsBlob(const NewValue: TBoldAnsiString);
+begin
+  ProxedMLString.SetContentAsBlob(NewValue);
+end;
+{$ENDIF}
 
 function TBAMLString_Proxy.GetProxedMLString: TBAMLString;
 begin

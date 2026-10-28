@@ -2625,7 +2625,9 @@ begin
     InternalSetSize(Count, Count = 0);
     if Count <> 0 then
     begin
-      Stream.ReadBuffer(fBlobAttr.AsStream.fData, Count);
+      // The first element, not the array: FPC's TStream has no TBytes overload
+      // and would read over the array reference itself.
+      Stream.ReadBuffer(fBlobAttr.AsStream.fData[0], Count);
     end;
     fBlobAttr.EndModifyOfBlob;
   except
@@ -2650,7 +2652,7 @@ procedure TBoldBlobStream.SaveToStream(Stream: TStream);
 begin
   fBlobAttr.EnsureContentsCurrent;
   if Size <> 0 then
-    Stream.WriteBuffer(fBlobAttr.AsStream.fData, Size);
+    Stream.WriteBuffer(fBlobAttr.AsStream.fData[0], Size); // first element, see LoadFromStream
 end;
 
 procedure TBoldBlobStream.SaveToFile(const FileName: string);
