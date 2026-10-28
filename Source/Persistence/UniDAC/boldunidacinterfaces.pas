@@ -1257,7 +1257,7 @@ begin
   Assert(Query.Implementor is TBoldUniDACQuery);
   lBoldUniDACQuery := Query.Implementor as TBoldUniDACQuery;
   lBoldUniDACQuery.clear;
-  while lBoldUniDACQuery.SQLStrings.Updating do
+  while BoldStringsUpdating(lBoldUniDACQuery.SQLStrings) do
     lBoldUniDACQuery.SQLStrings.EndUpdate;
   while TCollectionAccess(lBoldUniDACQuery.Params).UpdateCount > 0 do
     lBoldUniDACQuery.Params.EndUpdate;
@@ -1289,7 +1289,7 @@ begin
     lBoldUniDACExecQuery.SQLStrings.BeginUpdate;
     lBoldUniDACExecQuery.clear;
   end;
-  while lBoldUniDACExecQuery.SQLStrings.Updating do
+  while BoldStringsUpdating(lBoldUniDACExecQuery.SQLStrings) do
     lBoldUniDACExecQuery.SQLStrings.EndUpdate;
   while TCollectionAccess(lBoldUniDACExecQuery.Params).UpdateCount > 0 do
     lBoldUniDACExecQuery.Params.EndUpdate;

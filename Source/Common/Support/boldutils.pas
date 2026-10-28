@@ -36,6 +36,9 @@ function BoldNamesEqual(const name1, name2: string): Boolean;
 function BoldStrAnsiEqual(P1, P2: PChar; Len: integer): Boolean;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
 function BoldAnsiEqual(const S1, S2: string): Boolean;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
 procedure BoldAppendToStrings(strings: TStrings; const aString: string; const ForceNewLine: Boolean);
+// True while Strings is inside BeginUpdate/EndUpdate. TStrings.Updating is Delphi-only;
+// FPC keeps UpdateCount protected.
+function BoldStringsUpdating(Strings: TStrings): Boolean;
 function BoldSeparateStringList(strings: TStringList; const Separator, PreString, PostString: String; AIndex: integer = -1): String;
 function BoldCaseIndependentPos(const Substr, S: string): Integer;
 function StringToBoolean(StrValue: String): Boolean;
@@ -227,6 +230,20 @@ begin
   finally
     Strings.EndUpdate;
   end;
+end;
+
+{$IFDEF FPC}
+type
+  TBoldStringsAccess = class(TStrings);
+{$ENDIF}
+
+function BoldStringsUpdating(Strings: TStrings): Boolean;
+begin
+{$IFDEF FPC}
+  Result := TBoldStringsAccess(Strings).UpdateCount > 0;
+{$ELSE}
+  Result := Strings.Updating;
+{$ENDIF}
 end;
 
 { TBoldPassThroughNotification }

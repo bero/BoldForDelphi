@@ -1071,7 +1071,7 @@ begin
   begin
     lBoldFireDACQuery := Query.Implementor as TBoldFireDACQuery;
     lBoldFireDACQuery.clear;
-    while lBoldFireDACQuery.SQLStrings.Updating do
+    while BoldStringsUpdating(lBoldFireDACQuery.SQLStrings) do
       lBoldFireDACQuery.SQLStrings.EndUpdate;
     while TCollectionAccess(lBoldFireDACQuery.Params).UpdateCount > 0 do
       lBoldFireDACQuery.Params.EndUpdate;
@@ -1106,7 +1106,7 @@ begin
       lBoldFireDACQuery.SQLStrings.BeginUpdate;
       lBoldFireDACQuery.clear;
     end;
-    while lBoldFireDACQuery.SQLStrings.Updating do
+    while BoldStringsUpdating(lBoldFireDACQuery.SQLStrings) do
       lBoldFireDACQuery.SQLStrings.EndUpdate;
     while TCollectionAccess(lBoldFireDACQuery.Params).UpdateCount > 0 do
       lBoldFireDACQuery.Params.EndUpdate;

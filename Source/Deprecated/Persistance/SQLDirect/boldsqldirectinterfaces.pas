@@ -653,7 +653,7 @@ begin
       if FCachedQuery.Active then
         FCachedQuery.Close;
       FCachedQuery.SQL.Clear;
-      while FCachedQuery.SQL.Updating do
+      while BoldStringsUpdating(FCachedQuery.SQL) do
         FCachedQuery.SQL.EndUpdate;
       FCachedQuery.Params.Clear;
       while TCollectionAccess(FCachedQuery.Params).UpdateCount > 0 do

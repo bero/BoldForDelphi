@@ -1594,7 +1594,7 @@ begin
   finally
     aQuery.SQLStrings.Clear;
     aQuery.ClearParams;
-    if aQuery.SQLStrings.Updating then
+    if BoldStringsUpdating(aQuery.SQLStrings) then
       aQuery.SQLStrings.EndUpdate;
     SystemPersistenceMapper.ReleaseExecQuery(aQuery);
   end;
