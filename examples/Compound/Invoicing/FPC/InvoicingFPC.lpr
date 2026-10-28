@@ -1,4 +1,4 @@
-{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
+﻿{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
 program InvoicingFPC;
 { Free Pascal / Lazarus runner for the shared Invoicing acceptance scenario
   (../Tests/InvoicingScenario.pas), the FPC counterpart of

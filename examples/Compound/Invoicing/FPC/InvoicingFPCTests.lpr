@@ -1,4 +1,4 @@
-{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
+﻿{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
 program InvoicingFPCTests;
 { FPCUnit console runner for the Invoicing tests, the FPC counterpart of
   ../Tests/InvoicingTests.dpr (DUnitX). Run with --all --format=plain.

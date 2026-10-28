@@ -1,4 +1,4 @@
-{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
+﻿{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
 unit TestInvoicingScenarioFPC;
 { FPCUnit twin of ../Tests/Test.InvoicingScenario.pas (DUnitX). The same three
   tests over the shared scenario in InvoicingScenario.pas. Like the DUnitX

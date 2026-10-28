@@ -1,4 +1,4 @@
-{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
+﻿{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
 unit InvoicingSystemFPC;
 { The Bold infrastructure of the Invoicing example for Free Pascal: the FPC
   counterpart of ../Data/dmInvoicing.pas. dmInvoicing stores in SQLite through
