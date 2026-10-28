@@ -19,7 +19,8 @@ unit BoldLogSinks;
     2. 🖥️ TBoldConsoleLogSink: Writes logs to console (stdout)
        - Useful for console applications and debugging
 
-    3. 🐛 TBoldDebugLogSink: Writes logs to OutputDebugString
+    3. 🐛 TBoldDebugLogSink: Writes logs to the debugger output (OutputDebugString on Windows,
+       standard error elsewhere)
        - Visible in IDE debugger
        - Useful during development
 
@@ -130,7 +131,7 @@ implementation
 
 uses
   SysUtils,
-  Windows;
+  BoldPlatform;
 
 { TBoldBaseLogSink }
 
@@ -283,7 +284,7 @@ end;
 
 procedure TBoldDebugLogSink.DoWriteLog(const FormattedMsg: string);
 begin
-  OutputDebugString(PChar(FormattedMsg));
+  BoldOutputDebugString(FormattedMsg);
 end;
 
 { TBoldMemoryLogSink }

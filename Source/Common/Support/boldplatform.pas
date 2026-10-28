@@ -29,6 +29,10 @@ function BoldUnicodeCompareLen(CaseSensitive: Boolean; s1, s2: string; n: Intege
 // No-ops off Windows.
 procedure BoldCoInitialize;
 procedure BoldCoUninitialize;
+// Debugger output: OutputDebugString on Windows, standard error elsewhere.
+procedure BoldOutputDebugString(const s: string);
+// Id of the calling thread, as the log entries report it.
+function BoldCurrentThreadId: Cardinal;
 
 implementation
 
@@ -200,6 +204,16 @@ procedure BoldCoUninitialize;
 begin
   CoUninitialize;
 end;
+
+procedure BoldOutputDebugString(const s: string);
+begin
+  OutputDebugString(PChar(s));
+end;
+
+function BoldCurrentThreadId: Cardinal;
+begin
+  Result := GetCurrentThreadId;
+end;
 {$ELSE}
 procedure BoldCoInitialize;
 begin
@@ -207,6 +221,16 @@ end;
 
 procedure BoldCoUninitialize;
 begin
+end;
+
+procedure BoldOutputDebugString(const s: string);
+begin
+  WriteLn(ErrOutput, s);
+end;
+
+function BoldCurrentThreadId: Cardinal;
+begin
+  Result := Cardinal(TThread.CurrentThread.ThreadID);
 end;
 {$ENDIF}
 

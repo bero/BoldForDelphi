@@ -105,7 +105,7 @@ implementation
 uses
   SysUtils,
   SyncObjs,
-  Windows,
+  BoldPlatform,
   Generics.Collections;
 
 type
@@ -238,7 +238,7 @@ var
   i: Integer;
 begin
   TimeStamp := Now;
-  ThreadID := GetCurrentThreadId;
+  ThreadID := BoldCurrentThreadId;
 
   FLock.Acquire;
   try
