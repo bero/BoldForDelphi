@@ -1,4 +1,4 @@
-unit Test.BoldGUIDUtils;
+﻿unit Test.BoldGUIDUtils;
 
 interface
 
@@ -12,7 +12,6 @@ type
   TTestBoldGUIDUtils = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestBoldCreateGUIDAsString;
   end;
 

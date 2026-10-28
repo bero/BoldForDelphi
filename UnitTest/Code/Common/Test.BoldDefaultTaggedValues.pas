@@ -12,7 +12,6 @@ type
   TTestBoldDefaultTaggedValues = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestTVIsFalse;
   end;
 

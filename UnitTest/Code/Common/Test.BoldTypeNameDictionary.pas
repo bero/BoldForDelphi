@@ -1,4 +1,4 @@
-unit Test.BoldTypeNameDictionary;
+﻿unit Test.BoldTypeNameDictionary;
 
 interface
 
@@ -10,57 +10,57 @@ type
   TTestBoldTypeNameDictionary = class
   public
     // Create and basic structure
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCreate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddDefaultMappings;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddMapping;
 
     // Lookup
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetMapping;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExactMappingForModelName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMappingForModelName_ExactMatch;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMappingForModelName_FallbackToDefault;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMappingForModelName_NotFound;
 
     // Expanded properties
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandedDelphiName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandedContentsName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandedMapperName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandedAccessor;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandedNativeType;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandedComType;
 
     // Serialization
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetAsString;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetAsString;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetAsString_LegacyStreamName;
 
     // AssignTo
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAssignTo;
 
     // File I/O
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSaveAndLoadFile;
 
     // GetOwner
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetOwner;
   end;
 

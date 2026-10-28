@@ -1,4 +1,4 @@
-unit Test.BoldOclError;
+﻿unit Test.BoldOclError;
 
 interface
 
@@ -12,7 +12,6 @@ type
   TTestBoldOclError = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestEBoldOclAbort_FixError_WithPosition;
     [Test]
     procedure TestEBoldOclAbort_FixError_WithoutColon;

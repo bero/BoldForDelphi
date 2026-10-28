@@ -1,4 +1,4 @@
-unit Test.BoldUndoHandler;
+﻿unit Test.BoldUndoHandler;
 
 { DUnitX tests for BoldUndoHandler - Undo/Redo functionality }
 
@@ -140,107 +140,84 @@ type
 
     // Object creation undo tests
     [Test]
-    [Category('Quick')]
     procedure TestNewObjectRecordedWithCorrectExistenceState;
 
     [Test]
-    [Category('Quick')]
 
     procedure TestDeletedObjectRecordedWithCorrectExistenceState;
 
     // Attribute modification tests
     [Test]
-    [Category('Quick')]
     procedure TestModifyAttributeRecordsOldValue;
 
     [Test]
-    [Category('Quick')]
     procedure TestUndoRestoresAttributeValue;
 
     // Undo/Redo cycle tests
     [Test]
-    [Category('Quick')]
 
     procedure TestUndoObjectCreation;
 
     [Test]
-    [Category('Quick')]
     procedure TestRedoObjectCreation;
 
     // Tests migrated from maan_Modify
 
     [Test]
-    [Category('Quick')]
     procedure TestModifyPersistentAttributeCurrent;
 
     [Test]
-    [Category('Quick')]
     procedure TestModifyPersistentAttributeModified;
 
     [Test]
-    [Category('Quick')]
     procedure TestModifyTransientAttribute;
 
     [Test]
-    [Category('Quick')]
 
     procedure TestCreatePersistentObjectRecordsUndoState;
 
     [Test]
-    [Category('Quick')]
 
     procedure TestCreateTransientObjectRecordsUndoState;
 
     [Test]
-    [Category('Quick')]
 
     procedure TestDeleteTransientObjectRecordsUndoState;
 
     [Test]
-    [Category('Quick')]
     procedure TestModifyEmbeddedRoleCurrent;
 
     [Test]
-    [Category('Quick')]
     procedure TestModifyEmbeddedRoleTransient;
 
     [Test]
-    [Category('Quick')]
     procedure TestModifyNonEmbeddedRoleInsertCurrent;
 
     [Test]
-    [Category('Quick')]
     procedure TestModifyNonEmbeddedRoleDeleteCurrent;
 
     [Test]
-    [Category('Quick')]
     procedure TestModifyNonEmbeddedRoleInsertTransient;
 
     [Test]
-    [Category('Quick')]
     procedure TestModifyNonEmbeddedRoleDeleteTransient;
 
     // Tests migrated from maan_Undo
 
     [Test]
-    [Category('Quick')]
     procedure TestUndoTransientAttribute;
 
     [Test]
-    [Category('Quick')]
     procedure TestUndoModifiedAttribute;
 
     [Test]
-    [Category('Quick')]
     procedure TestUndoEmbeddedRoleModified;
 
     [Test]
-    [Category('Quick')]
     procedure TestUndoEmbeddedRoleTransient;
 
     // Additional modify test
     [Test]
-    [Category('Quick')]
     procedure TestModifyEmbeddedRoleModified;
 
     property System: TBoldSystem read GetSystem;
@@ -277,40 +254,32 @@ type
 
     // Indirect multi-link tests (part/partof via Tpartpartof)
     [Test]
-    [Category('Quick')]
 
     procedure TestIndirectMultiModifyInsertCurrent;
 
     [Test]
-    [Category('Quick')]
     procedure TestIndirectMultiModifyDeleteCurrent;
 
     [Test]
-    [Category('Quick')]
 
     procedure TestIndirectMultiUndoInsert;
 
     [Test]
-    [Category('Quick')]
     procedure TestIndirectMultiUndoDelete;
 
     // Indirect single-link tests (one/many via LinkClass)
     [Test]
-    [Category('Quick')]
 
     procedure TestIndirectSingleModifySingleRoleCurrent;
 
     [Test]
-    [Category('Quick')]
 
     procedure TestIndirectSingleModifyMultiRoleInsertCurrent;
 
     [Test]
-    [Category('Quick')]
     procedure TestIndirectSingleModifyMultiRoleDeleteCurrent;
 
     [Test]
-    [Category('Quick')]
 
     procedure TestIndirectSingleUndoSingleRoleModified;
 

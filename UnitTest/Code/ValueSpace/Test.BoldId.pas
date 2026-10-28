@@ -1,4 +1,4 @@
-unit Test.BoldId;
+﻿unit Test.BoldId;
 
 interface
 
@@ -12,159 +12,159 @@ type
   TTestBoldId = class
   public
     // TBoldMemberID tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMemberID_Create;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMemberID_AsString;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMemberID_StreamName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMemberID_Clone;
 
     // TBoldSubMemberID tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSubMemberID_Create;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSubMemberID_Destroy_OwnsPartOf;
 
     // TBoldObjectId base tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectId_TopSortedIndex;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectId_TopSortedIndexExact;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectId_Clone;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectId_GetNonExisting;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectId_GetTimeStamp;
 
     // TBoldInternalObjectId tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInternalId_CreateWithClassID;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInternalId_CreateWithClassIDandInternalId;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInternalId_AsString;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInternalId_Hash;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInternalId_IsStorable;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInternalId_StreamName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInternalId_IsEqual;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInternalId_CloneWithClassId;
 
     // TBoldExternalObjectID tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExternalId_IsStorable;
 
     // TBoldNonExistingObjectId tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNonExistingId_AsString;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNonExistingId_NonExisting;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNonExistingId_IsStorable;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNonExistingId_HashAndStreamName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNonExistingId_IsEqual;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNonExistingId_CloneWithClassId;
 
     // TBoldIdList tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIdList_CommaSeparatedIdList_Empty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIdList_CommaSeparatedIdList_MultipleItems;
 
     // TBoldID base tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestBoldID_GetDebugInfo;
 
     // TBoldObjectIdList tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_Create;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_Add_ClonesId;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_AddAndGetID;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_AddIfNotInList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_AddList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_Insert;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_Clone;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_Remove;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_ReplaceID;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_FirstAndLast;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_IdInList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_GetIDByID_LinearSearch;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_GetIDByID_HashSearch;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_GetIndexByID;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_ContainsSameIDs;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_HasInexactIds;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_HasNonExistingIds;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_RemoveNonExistingIds_KeepsExistingIds;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_RemoveNonExistingIds_RemovesAdjacent;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_RemoveNonExistingIds_RemovesAll;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_StreamName;
 
     // TBoldMemberIdList tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMemberIdList_StreamName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMemberIdList_HasId;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMemberIdList_IsEqual;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMemberIdList_Clone;
 
     // TBoldIDTranslationList tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTranslationList_CreateAndDestroy;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTranslationList_AddTranslation;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTranslationList_AddTranslation_DedupOldId;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTranslationList_AddTranslation_DedupNewId;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTranslationList_AddTranslation_NilSkip;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTranslationList_TranslateToNewAndOld;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTranslationList_Capacity;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTranslationList_StreamName;
 
     // ExactifyIds + ApplyTranslationList tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_ExactifyIds;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectIdList_ApplyTranslationList;
 
     // EBoldOperationFailedForIdList tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOperationFailedForIdList_CreateAndDestroy;
   end;
 

@@ -39,10 +39,8 @@ type
     // - no TBoldExceptionHandler handles it -> exception must propagate
     // - a TBoldExceptionHandler handled it  -> exception must be swallowed
     [Test]
-    [Category('Quick')]
     procedure TestDisplayExceptionPropagatesWhenUnhandled;
     [Test]
-    [Category('Quick')]
     procedure TestDisplayExceptionSwallowedWhenHandled;
   end;
 

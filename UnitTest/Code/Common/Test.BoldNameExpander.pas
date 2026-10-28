@@ -1,4 +1,4 @@
-unit Test.BoldNameExpander;
+﻿unit Test.BoldNameExpander;
 
 interface
 
@@ -10,93 +10,93 @@ type
   TTestBoldNameExpander = class
   public
     // BoldExpandName function (covers all 3 expander creation paths)
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestBoldExpandName_SQL;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestBoldExpandName_Delphi;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestBoldExpandName_Expression;
 
     // BoldExpandPrefix
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestBoldExpandPrefix_ReplacesTag;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestBoldExpandPrefix_NoTag;
 
     // TBoldAbstractNameExpander.ExpandName
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandName_ExactMatch;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandName_Embedded;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandName_Multiple;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandName_NoMatch;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpandName_ShorterThanTag;
 
     // LanguageIsCaseSensitive
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLanguageIsCaseSensitive;
 
     // MapCharacters (base + national char conversion)
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMapCharacters_NoConversion;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMapCharacters_WithConversion;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMapCharacters_DefaultFlagOn;
 
     // GetMapCharacter - specific national characters
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMapCharacter_AccentedChars;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMapCharacter_UnmappedChar;
 
     // TruncateName
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTruncateName_WithinLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTruncateName_ExceedsLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTruncateName_NoLimit;
 
     // ValidateName (base)
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestValidateName_Valid;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestValidateName_InvalidChars;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestValidateName_TooLong;
 
     // SQL expander specifics
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSQLExpandName_UpperCase;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSQLValidCharacters;
 
     // Delphi expander specifics
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDelphiMapCharacters_LeadingDigit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDelphiValidateName_Empty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDelphiValidateName_InvalidFirstChar;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDelphiValidateName_Valid;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDelphiValidCharacters;
 
     // Expression expander specifics
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionMapCharacters_LeadingDigit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionValidateName_Empty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionValidateName_InvalidFirstChar;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionValidateName_Valid;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionValidCharacters;
   end;
 

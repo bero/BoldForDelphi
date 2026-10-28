@@ -1,4 +1,4 @@
-unit Test.BoldIsoDateTime;
+﻿unit Test.BoldIsoDateTime;
 
 interface
 
@@ -13,49 +13,34 @@ type
   TTestBoldIsoDateTime = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestAsISODateTime;
     [Test]
-    [Category('Quick')]
     procedure TestAsISODateTimeMS;
     [Test]
-    [Category('Quick')]
     procedure TestParseISODate;
     [Test]
-    [Category('Quick')]
     procedure TestParseISODateInvalidFormat;
     [Test]
-    [Category('Quick')]
     procedure TestParseISODateInvalidMonth;
     [Test]
-    [Category('Quick')]
     procedure TestParseISODateInvalidDay;
     [Test]
-    [Category('Quick')]
     procedure TestParseISODateTime;
     [Test]
-    [Category('Quick')]
     procedure TestParseISODateTimeWithT;
     [Test]
-    [Category('Quick')]
     procedure TestParseISODateTimeInvalid;
     [Test]
-    [Category('Quick')]
     procedure TestParseISOTime;
     [Test]
-    [Category('Quick')]
     procedure TestParseISOTimeShortFormat;
     [Test]
-    [Category('Quick')]
     procedure TestParseISOTimeInvalidFormat;
     [Test]
-    [Category('Quick')]
     procedure TestParseISOTimeInvalidHour;
     [Test]
-    [Category('Quick')]
     procedure TestParseISOTimeInvalidMinute;
     [Test]
-    [Category('Quick')]
     procedure TestParseISOTimeInvalidSecond;
   end;
 

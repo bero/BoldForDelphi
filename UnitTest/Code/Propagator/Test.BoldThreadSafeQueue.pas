@@ -25,39 +25,39 @@ type
     procedure TearDown;
 
     // Existing ObjectQueue tests
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnqueueDequeue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestQueueNotEmptyEvent;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMultipleEnqueue;
 
     // ObjectQueue: Empty property
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectQueue_EmptyProperty;
     // ObjectQueue: Dequeue from empty returns nil
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectQueue_DequeueEmpty;
     // ObjectQueue: DequeueList
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectQueue_DequeueList;
     // ObjectQueue: DequeueList with max limit
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectQueue_DequeueListWithMax;
     // ObjectQueue: MaxCount tracking
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectQueue_MaxCount;
     // ObjectQueue: SetOwnsObjects
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectQueue_SetOwnsObjects;
     // ObjectQueue: Clear with items (covers Clear while-loop body)
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectQueue_ClearWithItems;
     // ObjectQueue: OnQueueNotEmpty fires only on empty-to-non-empty transition
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectQueue_NotEmptyEventOnlyOnTransition;
     // ObjectQueue: OwnsObjects=false, caller must free
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestObjectQueue_NonOwningDequeue;
   end;
 
@@ -74,27 +74,27 @@ type
     [TearDown]
     procedure TearDown;
 
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnqueueDequeue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDequeueEmpty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnqueueList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnqueueListEmpty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAppendToStringList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCount;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEmpty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestClear;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNotifyOnEnqueue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNotifyOnEnqueueList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFIFOOrder;
   end;
 
@@ -109,15 +109,15 @@ type
     [TearDown]
     procedure TearDown;
 
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnqueueDequeue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDequeueEmpty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMultipleEnqueueDequeue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCount;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestClear;
   end;
 

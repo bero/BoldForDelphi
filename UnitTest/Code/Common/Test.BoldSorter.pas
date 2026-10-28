@@ -1,4 +1,4 @@
-unit Test.BoldSorter;
+﻿unit Test.BoldSorter;
 
 interface
 
@@ -16,7 +16,6 @@ type
     procedure Exchange(Index1, Index2: Integer);
   public
     [Test]
-    [Category('Quick')]
     procedure TestSort_EmptyArray;
     [Test]
     procedure TestSort_SingleElement;

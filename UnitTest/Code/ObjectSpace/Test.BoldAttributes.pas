@@ -1,4 +1,4 @@
-unit Test.BoldAttributes;
+﻿unit Test.BoldAttributes;
 
 { DUnitX version of dmjehoBoldTest - Bold Attribute Tests }
 
@@ -68,350 +68,250 @@ type
     [TearDown]
     procedure TearDown;
     [Test]
-    [Category('Quick')]
     procedure AttributeValueTest;
     [Test]
-    [Category('Quick')]
     procedure AttributeNullTest;
     [Test]
-    [Category('Quick')]
     procedure AttributeIndexTest;
     [Test]
-    [Category('Quick')]
     procedure AttributeDerivationTest;
     [Test]
-    [Category('Quick')]
     procedure AttributeOclDerivationTest;
     [Test]
-    [Category('Quick')]
     procedure CheckMultiDerivedAttributes;
     [Test]
-    [Category('Quick')]
     procedure CompareToAsTest;
     [Test]
-    [Category('Quick')]
     procedure CompareToAsNullTest;
     [Test]
-    [Category('Quick')]
     procedure TestCompareTypes;
     [Test]
-    [Category('Quick')]
     procedure TestBlobContentTypeValidation;
     [Test]
-    [Category('Quick')]
     procedure TestBlobAssignTypedToPlainBlob;
     [Test]
-    [Category('Quick')]
     procedure TestBlobContentTypeOnPlainBlobIgnored;
     [Test]
-    [Category('Quick')]
     procedure TestMLStringBlobContentProxy;
     [Test]
-    [Category('Quick')]
     procedure TestValueSetValueListFindByText;
     [Test]
-    [Category('Quick')]
     procedure TestNumericGetStringRepresentation;
     [Test]
-    [Category('Quick')]
     procedure TestBlobImageGetStringRepresentationInherited;
     [Test]
-    [Category('Quick')]
     procedure TestDateTimeGetStringRepresentationNonDefault;
     [Test]
-    [Category('Quick')]
     procedure TestNumericSetStringRepresentation;
     [Test]
-    [Category('Quick')]
     procedure TestDateTimeSetStringRepresentation;
     [Test]
-    [Category('Quick')]
     procedure TestDateTimeValidateString;
     [Test]
-    [Category('Quick')]
     procedure TestCreateWithValueConstructors;
     [Test]
-    [Category('Quick')]
     procedure TestIsNullOrEmptyAndIsNullOrZero;
     [Test]
-    [Category('Quick')]
     procedure TestIntegerValidateCharacter;
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyValidateCharacter;
     [Test]
-    [Category('Quick')]
     procedure TestFloatValidateCharacter;
     [Test]
-    [Category('Quick')]
     procedure TestTrimmedStringTrimsWhitespace;
     [Test]
-    [Category('Quick')]
     procedure TestTextValidateStringNoLengthCheck;
     [Test]
-    [Category('Quick')]
     procedure TestUnicodeTextValidateString;
     [Test]
-    [Category('Quick')]
     procedure TestBlobStreamSaveOperations;
     [Test]
-    [Category('Quick')]
     procedure TestBlobStreamTruncate;
     [Test]
-    [Category('Quick')]
     procedure TestAnsiStringValidation;
     [Test]
-    [Category('Quick')]
     procedure TestIntegerGetAsFloat;
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyGetAsFloat;
     [Test]
-    [Category('Quick')]
     procedure TestNumericCompareToAsCtDefault;
     [Test]
-    [Category('Quick')]
     procedure TestBooleanCreateWithValue;
 
     // TBAMoment / TBADateTime / TBADate / TBATime coverage
     [Test]
-    [Category('Quick')]
     procedure TestMomentGetParts;
     [Test]
-    [Category('Quick')]
     procedure TestMomentAsVariant;
     [Test]
-    [Category('Quick')]
     procedure TestMomentAsFloat;
     [Test]
-    [Category('Quick')]
     procedure TestDateTimeAsDate;
     [Test]
-    [Category('Quick')]
     procedure TestDateTimeAsTime;
     [Test]
-    [Category('Quick')]
     procedure TestDateTimeSetAsDatePreservesTime;
     [Test]
-    [Category('Quick')]
     procedure TestTimeSetAsDatePreservesTime;
     [Test]
-    [Category('Quick')]
     procedure TestDateTimeSubEpsilonUpdatePersists;
     [Test]
-    [Category('Quick')]
     procedure TestDateComparesByDayAfterFractionalStore;
 
     // TBAString coverage
     [Test]
-    [Category('Quick')]
     procedure TestStringAsAnsiAndUnicode;
     [Test]
-    [Category('Quick')]
     procedure TestStringAssignValue;
 
     // TBABlob coverage
     [Test]
-    [Category('Quick')]
     procedure TestBlobLoadSaveFile;
     [Test]
-    [Category('Quick')]
     procedure TestBlobLoadSaveStream;
     [Test]
-    [Category('Quick')]
     procedure TestBlobAssign;
     [Test]
-    [Category('Quick')]
     procedure TestBlobSize;
 
     // TBACurrency coverage
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyAsCurrency;
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyAsVariant;
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyAssign;
 
     // TBAFloat coverage
     [Test]
-    [Category('Quick')]
     procedure TestFloatAsVariant;
     [Test]
-    [Category('Quick')]
     procedure TestFloatAssign;
 
     // TBAInteger coverage
     [Test]
-    [Category('Quick')]
     procedure TestIntegerAsVariant;
     [Test]
-    [Category('Quick')]
     procedure TestIntegerAssign;
 
     // Integer subtype range checks
     [Test]
-    [Category('Quick')]
     procedure TestByteRangeCheck;
     [Test]
-    [Category('Quick')]
     procedure TestShortIntRangeCheck;
     [Test]
-    [Category('Quick')]
     procedure TestSmallIntRangeCheck;
     [Test]
-    [Category('Quick')]
     procedure TestWordRangeCheck;
     [Test]
-    [Category('Quick')]
     procedure TestByteGetSetAs;
     [Test]
-    [Category('Quick')]
     procedure TestShortIntGetSetAs;
     [Test]
-    [Category('Quick')]
     procedure TestSmallIntGetSetAs;
     [Test]
-    [Category('Quick')]
     procedure TestWordGetSetAs;
 
     // AnsiString coverage
     [Test]
-    [Category('Quick')]
     procedure TestAnsiStringSetGetDataValue;
     [Test]
-    [Category('Quick')]
     procedure TestAnsiStringFreeContent;
 
     // IsEqualToValue coverage
     [Test]
-    [Category('Quick')]
     procedure TestIntegerIsEqualToValue;
     [Test]
-    [Category('Quick')]
     procedure TestFloatIsEqualToValue;
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyIsEqualToValue;
     [Test]
-    [Category('Quick')]
     procedure TestStringIsEqualToValue;
 
     // Blob byte array variant
     [Test]
-    [Category('Quick')]
     procedure TestBlobSetAsVariantByteArray;
 
     // Currency CompareToAs with float operand
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyCompareToAsWithFloat;
 
     // Currency Assign from float/integer
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyAssignFromNumericTypes;
 
     // Integer ValidateString with range
     [Test]
-    [Category('Quick')]
     procedure TestIntegerValidateStringRange;
 
     // Moment IsNullOrZero
     [Test]
-    [Category('Quick')]
     procedure TestMomentIsNullOrZero;
 
     // Moment IsEqualToValue
     [Test]
-    [Category('Quick')]
     procedure TestMomentIsEqualToValue;
 
     // Float SetAsCurrency
     [Test]
-    [Category('Quick')]
     procedure TestFloatSetAsCurrency;
 
     // Blob IsEqualToValue
     [Test]
-    [Category('Quick')]
     procedure TestBlobIsEqualToValue;
 
     // Assign/Clone paths
     [Test]
-    [Category('Quick')]
     procedure TestStringAssignNull;
     [Test]
-    [Category('Quick')]
     procedure TestIntegerAssignNull;
     [Test]
-    [Category('Quick')]
     procedure TestFloatAssignNull;
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyAssignNull;
     [Test]
-    [Category('Quick')]
     procedure TestBlobAssignNull;
 
     // CompareToAs with non-matching types
     [Test]
-    [Category('Quick')]
     procedure TestIntegerCompareToAsWithString;
     [Test]
-    [Category('Quick')]
     procedure TestStringCompareToAsWithInteger;
 
     // SetEmptyValue paths
     [Test]
-    [Category('Quick')]
     procedure TestIntegerSetEmptyValue;
     [Test]
-    [Category('Quick')]
     procedure TestStringSetEmptyValue;
 
     // Variant round-trips
     [Test]
-    [Category('Quick')]
     procedure TestIntegerAsVariantNull;
     [Test]
-    [Category('Quick')]
     procedure TestFloatAsVariantNull;
     [Test]
-    [Category('Quick')]
     procedure TestCurrencyAsVariantNull;
     [Test]
-    [Category('Quick')]
     procedure TestBlobAsVariantNull;
     [Test]
-    [Category('Quick')]
     procedure TestDateTimeAsVariantRoundTrip;
 
     // Blob operations
     [Test]
-    [Category('Quick')]
     procedure TestBlobSetToNullClearsStream;
     [Test]
-    [Category('Quick')]
     procedure TestBlobCompareToAs;
 
     // JSON serialization (BoldObjectRepresentationJson)
     [Test]
-    [Category('Quick')]
     procedure TestBoldElementToJsonString;
     [Test]
-    [Category('Quick')]
     procedure TestBoldElementToJsonAndBack;
     [Test]
-    [Category('Quick')]
     procedure TestBoldObjectStringRepresentation;
     [Test]
-    [Category('Quick')]
     procedure TestBoldElementToJsonWithNulls;
     [Test]
-    [Category('Quick')]
     procedure TestBoldElementToJsonWithBlob;
   end;
 

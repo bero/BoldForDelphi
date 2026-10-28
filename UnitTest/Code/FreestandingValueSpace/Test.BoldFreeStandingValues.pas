@@ -1,4 +1,4 @@
-unit Test.BoldFreeStandingValues;
+﻿unit Test.BoldFreeStandingValues;
 
 interface
 
@@ -449,85 +449,62 @@ type
   public
     // Basic empty state tests
     [Test]
-    [Category('Quick')]
     procedure TestObjectIdRefPairGetId1Empty;
     [Test]
-    [Category('Quick')]
     procedure TestObjectIdRefPairGetId2Empty;
 
     // SetFromIds tests
     [Test]
-    [Category('Quick')]
     procedure TestObjectIdRefPairGetId1WithOneId;
     [Test]
-    [Category('Quick')]
     procedure TestObjectIdRefPairGetId1And2WithTwoIds;
     [Test]
-    [Category('Quick')]
     procedure TestSetFromIdsVerifyActualIdValues;
     [Test]
-    [Category('Quick')]
     procedure TestSetFromIdsClonesIds;
     [Test]
-    [Category('Quick')]
     procedure TestSetFromIdsReplacesExistingIds;
     [Test]
-    [Category('Quick')]
     procedure TestSetFromIdsWithBothNil;
 
     // OrderNo tests
     [Test]
-    [Category('Quick')]
     procedure TestOrderNoDefaultValue;
     [Test]
-    [Category('Quick')]
     procedure TestOrderNoSetAndGet;
 
     // ContentType and StreamName tests
     [Test]
-    [Category('Quick')]
     procedure TestContentTypeReturnsObjectIdRefPair;
     [Test]
-    [Category('Quick')]
     procedure TestGetStreamNameReturnsCorrectValue;
 
     // AssignContentValue tests
     [Test]
-    [Category('Quick')]
     procedure TestAssignContentValueCopiesIds;
     [Test]
-    [Category('Quick')]
     procedure TestAssignContentValueCopiesOrderNo;
     [Test]
-    [Category('Quick')]
     procedure TestAssignContentValueWithNilIds;
 
     // ApplyTranslationList tests
     [Test]
-    [Category('Quick')]
     procedure TestApplyTranslationListTranslatesIds;
     [Test]
-    [Category('Quick')]
     procedure TestApplyTranslationListWithNoMatchingIds;
     [Test]
-    [Category('Quick')]
     procedure TestApplyTranslationListWithNilIdList;
 
     // GetStringRepresentation and GetContentAsString tests (bug fix tests)
     [Test]
-    [Category('Quick')]
     procedure TestGetStringRepresentationWithTwoIds;
     [Test]
-    [Category('Quick')]
     procedure TestGetStringRepresentationWithOneId;
     [Test]
-    [Category('Quick')]
     procedure TestGetStringRepresentationEmpty;
     [Test]
-    [Category('Quick')]
     procedure TestGetContentAsString;
     [Test]
-    [Category('Quick')]
     procedure TestIBoldStringRepresentableInterface;
   end;
 

@@ -43,250 +43,185 @@ type
 
     // Tests for direct multi-link operations (exercises DoPreChangeIfNeeded)
     [Test]
-    [Category('Quick')]
     procedure TestDirectMultiLinkAdd;
     [Test]
-    [Category('Quick')]
     procedure TestDirectMultiLinkAddMultiple;
     [Test]
-    [Category('Quick')]
     procedure TestDirectMultiLinkRemove;
     [Test]
-    [Category('Quick')]
     procedure TestDirectMultiLinkClear;
 
     // Tests for indirect multi-link operations (exercises DoPreChangeIfNeeded in SetFromIDLists)
     [Test]
-    [Category('Quick')]
     procedure TestIndirectMultiLinkAdd;
     [Test]
-    [Category('Quick')]
     procedure TestIndirectMultiLinkAddMultiple;
 
     // Indirect multi-link remove
     [Test]
-    [Category('Quick')]
     procedure TestIndirectMultiLinkRemove;
 
     // Transaction rollback must restore multilinks modified via content
     // assignment (SetFromIdList/SetFromIDLists)
     [Test]
-    [Category('Quick')]
     procedure TestRollbackRestoresDirectMultiLinkAfterContentAssign;
     [Test]
-    [Category('Quick')]
     procedure TestRollbackRestoresIndirectMultiLinkAfterContentAssign;
 
     // Link class attribute access
     [Test]
-    [Category('Quick')]
     procedure TestLinkClassAttribute;
 
     // Self-referencing associations (TSomeClass parent/child)
     [Test]
-    [Category('Quick')]
     procedure TestSelfRefParentChild;
     [Test]
-    [Category('Quick')]
     procedure TestSelfRefNextPrevious;
     [Test]
-    [Category('Quick')]
     procedure TestSelfRefPartPartOf;
 
     // Persistence: save and reload
     [Test]
-    [Category('Quick')]
     procedure TestSaveAndReloadLinks;
     [Test]
-    [Category('Quick')]
     procedure TestSaveAndReloadIndirectLinks;
     [Test]
-    [Category('Quick')]
     procedure TestSaveAndReloadSelfRefLinks;
 
     // Link operations with UpdateDatabase
     [Test]
-    [Category('Quick')]
     procedure TestUpdateDatabaseWithNewObjects;
     [Test]
-    [Category('Quick')]
     procedure TestUpdateDatabaseModifyAttributes;
 
     // Persistence: delete and verify
     [Test]
-    [Category('Quick')]
     procedure TestDeleteObjectAndSave;
     [Test]
-    [Category('Quick')]
     procedure TestDeleteLinkedObjectAndSave;
 
     // Multi-link with link class: add/remove via many
     [Test]
-    [Category('Quick')]
     procedure TestManyToManyViaLinkClass;
 
     // Move operations on ordered links
     [Test]
-    [Category('Quick')]
     procedure TestMultiLinkMoveIndex;
 
     // Fetch after discard
     [Test]
-    [Category('Quick')]
     procedure TestFetchAfterDiscard;
 
     // Modify link and save
     [Test]
-    [Category('Quick')]
     procedure TestModifyLinkAndSave;
     [Test]
-    [Category('Quick')]
     procedure TestReassignSingleLinkAndSave;
     [Test]
-    [Category('Quick')]
     procedure TestClearMultiLinkAndSave;
     [Test]
-    [Category('Quick')]
     procedure TestDeleteWithManyToManyAndSave;
     [Test]
-    [Category('Quick')]
     procedure TestMultipleUpdateDatabaseCycles;
     [Test]
-    [Category('Quick')]
     procedure TestSaveReloadVerifyAttributes;
     [Test]
-    [Category('Quick')]
     procedure TestSaveReloadVerifyLinks;
     [Test]
-    [Category('Quick')]
     procedure TestSaveDeleteReloadVerifyGone;
     [Test]
-    [Category('Quick')]
     procedure TestSaveReloadNavigateLinks;
     [Test]
-    [Category('Quick')]
     procedure TestModifyAttributeAfterFetch;
 
     // Link class CRUD
     [Test]
-    [Category('Quick')]
     procedure TestLinkClassCreateSaveReload;
     [Test]
-    [Category('Quick')]
     procedure TestLinkClassModifyAndSave;
     [Test]
-    [Category('Quick')]
     procedure TestLinkClassDeleteAndSave;
 
     // Multi-link operations with persistence
     [Test]
-    [Category('Quick')]
     procedure TestMultiLinkRemoveByIndex;
     [Test]
-    [Category('Quick')]
     procedure TestMultiLinkInsertAtIndex;
 
     // Complex relationship graphs
     [Test]
-    [Category('Quick')]
     procedure TestDeepParentChildHierarchy;
     [Test]
-    [Category('Quick')]
     procedure TestCircularNextPrevious;
 
     // Batch operations
     [Test]
-    [Category('Quick')]
     procedure TestBatchCreateAndSave;
     [Test]
-    [Category('Quick')]
     procedure TestBatchDeleteAndSave;
 
     // Object reference operations
     [Test]
-    [Category('Quick')]
     procedure TestSingleLinkSetAndClear;
     [Test]
-    [Category('Quick')]
     procedure TestSingleLinkReassignment;
 
     // SQL pipeline / fetch paths
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS;
     [Test]
-    [Category('Quick')]
     procedure TestFetchLinksWithObjects;
     [Test]
-    [Category('Quick')]
     procedure TestFetchMembersWithObjects;
     [Test]
-    [Category('Quick')]
     procedure TestGetAllWithCondition;
     [Test]
-    [Category('Quick')]
     procedure TestInvalidateMembersAndRefetch;
 
     // More CanEvaluateInPS with diverse OCL expressions
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Navigation;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Collection;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Comparison;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_BooleanLogic;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_StringOps;
 
     // SQL condition fetch
     [Test]
-    [Category('Quick')]
     procedure TestGetAllWithSQLCondition;
     [Test]
-    [Category('Quick')]
     procedure TestGetAllWithSQLConditionParams;
 
     // Diverse persistence patterns
     [Test]
-    [Category('Quick')]
     procedure TestSaveReloadModifyDeleteCycle;
     [Test]
-    [Category('Quick')]
     procedure TestFetchMembersForSingleObject;
     [Test]
-    [Category('Quick')]
     procedure TestFetchAfterInvalidateMultipleObjects;
 
     // Regression guard: link member mapper wiring (root cause of the
     // CanEvaluateInPS collect(role) AV is a nil OtherEndObjectMapper)
     [Test]
-    [Category('Quick')]
     procedure TestChildLinkMapperWiring;
 
     // More CanEvaluateInPS — deeper SQL paths
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_OrderBy;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Aggregate;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_SubSelect;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_MultiNavigation;
     // Regression for silent-exit nil guards (b3ef672): when the SQL node
     // pipeline cannot resolve the iteration's Symbol/ObjectMapper,
     // CanEvaluateInPS must return False - not a false True
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_CollectRole_Translates;
     [Test]
     [Category('DB')]
@@ -295,62 +230,44 @@ type
     [Category('DB')]
     procedure TestCanEvaluateInPS_CollectAttribute_IsRejectedWithReason;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Exists;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_TypeFilter;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Arithmetic;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_LinkNavigation;
 
     // More fetch patterns
     [Test]
-    [Category('Quick')]
     procedure TestFetchClassDirectly;
     [Test]
-    [Category('Quick')]
     procedure TestGetAllWithRawSQL;
 
     // Even more CanEvaluateInPS — exhaustive SQL node coverage
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_FailedConversionDoesNotLeak;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_MidExpressionFailureDoesNotLeak;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_ForAll;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Reject;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Collect;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Including;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Excluding;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Union;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Intersection;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_IsEmpty;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_Includes;
     [Test]
-    [Category('Quick')]
     procedure TestCanEvaluateInPS_OclIsKindOf;
   end;
 

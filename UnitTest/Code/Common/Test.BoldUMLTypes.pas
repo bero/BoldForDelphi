@@ -16,19 +16,14 @@ type
       UpperUnlimited: Boolean; const GetString: string = '');
   public
     [Test]
-    [Category('Quick')]
     procedure TestUMLRange;
     [Test]
-    [Category('Quick')]
     procedure TestUMLMultiplicity;
     [Test]
-    [Category('Quick')]
     procedure TestUMLRangeInRange;
     [Test]
-    [Category('Quick')]
     procedure TestUMLRangeSetAsStringUnlimited;
     [Test]
-    [Category('Quick')]
     procedure TestUMLMultiplicityInRange;
   end;
 

@@ -13,7 +13,6 @@ type
   TTestBoldFreeStandingValueFactories = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestCreateInstanceWithInvalidContentNameRaisesException;
   end;
 

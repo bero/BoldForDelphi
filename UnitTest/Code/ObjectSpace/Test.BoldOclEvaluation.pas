@@ -30,521 +30,521 @@ type
     procedure TearDown;
 
     // --- Arithmetic Operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAdd_IntegerPlusInteger;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAdd_FloatPlusFloat;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAdd_StringConcat;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSubtract;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMultiply;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDivide;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDiv_IntegerDivision;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMod;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestUnaryMinus;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAbs;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFloor;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestRound;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestPower;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSqrt;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMin;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMax;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSafeDivNonZero;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSimpleRound;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSimpleRoundTo;
 
     // --- Comparison Operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEqual_Integer;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNotEqual_Integer;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLess;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGreater;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLessEQ;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGreaterEQ;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEqual_String;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLess_String;
 
     // --- String Operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLength;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestConcat;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestToUpper;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestToLower;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSubString;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestContains_True;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestContains_False;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestPad;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestPostPad;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTrim;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStrToInt;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStrToFloat;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSQLLike;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSQLLikeCaseInsensitive;
 
     // --- Boolean / Logic Operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAnd_TrueTrue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAnd_TrueFalse;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOr_FalseFalse;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOr_TrueFalse;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNot;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestXor;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestImplies_TrueFalse;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestImplies_FalseAnything;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIf_TrueCondition;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIf_FalseCondition;
 
     // --- Collection Operations (using allInstances) ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSize;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIsEmpty_True;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIsEmpty_False;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNotEmpty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIncludes;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSum;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMinValue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMaxValue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAverage;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSelect;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestReject;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCollect;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestForAll_True;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestForAll_False;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExists_True;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExists_False;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFirst;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLast;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAt;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIndexOf;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOrderBy;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOrderDescending;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestReverseCollection;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsSequence;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsSet;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCount;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestUnion;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIntersection;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDifference;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSymmetricDifference;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIncluding;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExcluding;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIncludesAll;
 
     // --- Date/Time Operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDay;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMonth;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestYear;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestWeek;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDayOfWeek;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestHoursBetween;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMinutesBetween;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSecondsBetween;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInDateRange;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsISODate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsISODateTime;
 
     // --- Type System Operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsString_Integer;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsFloat_Integer;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOclType;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOclIsKindOf;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOclIsTypeOf;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOclAsType;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAllInstances;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAllLoadedObjects;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFilterOnType;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIsNull_True;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIsNull_False;
 
     // --- Member Access ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSimpleStringAttribute;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSimpleIntegerAttribute;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSimpleBooleanAttribute;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSelfExpression;
 
     // --- Miscellaneous ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsCommaText;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSeparate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFormatFloat;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringRepresentation;
 
     // --- Error Handling ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestUnknownMember_Raises;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSyntaxError_Raises;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDivisionByZero_SafeDiv;
 
     // --- Currency Arithmetic ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCurrencyAdd;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCurrencySubtract;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCurrencyMultiply;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCurrencyNegate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCurrencyAbs;
 
     // --- DateTime Arithmetic ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDateTimeAdd;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDateTimeSubtract;
 
     // --- FormatDateTime ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFormatDateTime;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFormatDateTimeNull;
 
     // --- Null handling ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNullComparison_Less;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNullComparison_Greater;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNullComparison_LessEQ;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNullComparison_GreaterEQ;
 
     // --- Division by zero ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDivisionByZero_Raises;
 
     // --- Pad edge cases ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestPadLongerThanTarget;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestPostPadLongerThanTarget;
 
     // --- AsTime ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsTime;
 
     // --- Collection with currency ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCurrencySum;
 
     // --- String-to-date conversions ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStrToDateTime;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStrToDate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStrToTime;
 
     // --- Format (Delphi format string) ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFormat;
 
     // --- Pad with multi-char padder (truncation path) ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestPadMultiCharPadder;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestPostPadMultiCharPadder;
 
     // --- Min/Max on collections ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMinValueEmpty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMaxValueEmpty;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAverageEmpty;
 
     // --- Collection operations with null elements ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSumWithNullElements;
 
     // --- Boolean comparison with null ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIsNullOnNullString;
 
     // --- Float division ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFloatDivisionByZeroSafeDiv;
 
     // --- More currency operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCurrencyCompare;
 
     // --- String operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestToInteger;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestToReal;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringAsString;
 
     // --- More collection operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIncludesAllTrue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIncludesAllFalse;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCountElement;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFlatten;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCollectWithNulls;
 
     // --- Date operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestHoursBetweenNull;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMinutesBetweenNull;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDaysBetween;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNowFunction;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCurrentDate;
 
     // --- Numeric edge cases ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFloatAbs;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIntegerMod;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFloatFloor;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFloatRound;
 
     // --- String operations (more) ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIndexOfString;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSQLLikePercent;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSQLLikeUnderscore;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSQLLikeEmptyStringMatchesWildcard;
 
     // --- Type operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOclAsTypeInvalid;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOclIsKindOfFalse;
 
     // --- More numeric operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSqrtFloat;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestPowerFloat;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMaxTwoValues;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMinTwoValues;
 
     // --- More collection operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExcludingSelf;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIncludingSelf;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestUnionCollections;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDifferenceCollections;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIntersectionCollections;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSymmetricDifferenceCollections;
 
     // --- String operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestToUpperCase;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestToLowerCase;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestToUpperToLowerNonAscii;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTrimString;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSubStringOcl;
 
     // --- Boolean operations ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestXorOperation;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestImpliesTrueTrue;
 
     // --- Null arithmetic ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNullIntegerAdd;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNullFloatMultiply;
 
     // --- ExpressionType ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionTypeInteger;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionTypeString;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionTypeCollection;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionTypeInvalid;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionTypeEmpty;
 
     // --- RTInfo ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestRTInfoAttribute;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestRTInfoInvalid;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestRTInfoEmpty;
 
     // --- OCL dictionary caching ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOclDictionaryCacheHit;
 
     // --- Evaluate with guillemets (error path) ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGuillemetInExpressionRaises;
 
     // --- Final push ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionTypeBoolean;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestExpressionTypeFloat;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestRTInfoInteger;
 
     // --- More OCL for coverage ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAllLoadedObjectsVsAllInstances;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestFilterOnTypeReturnsSubset;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOclTypeReturnsTypeName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsStringOnInteger;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAsFloatOnInteger;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAtExpression;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIndexOfExpression;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOrderByExpression;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOrderDescendingExpression;
 
     // --- Time variables ---
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNowEvaluatesToCurrentMinute;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTodayEvaluatesToCurrentDate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEvaluatorSchedulesTimeVariableRefreshWhileItLives;
   end;
 

@@ -19,7 +19,6 @@ type
   TTestBoldIndirectElement = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestCreateInitialState;
     [Test]
     procedure TestSetReferenceValue;
@@ -62,7 +61,6 @@ type
   TTestBoldMetaElement = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestCreate;
     [Test]
     procedure TestProperties;
@@ -91,7 +89,6 @@ type
   TTestBoldExternalVariableList = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestCreateDefault;
     [Test]
     procedure TestCreateWithOwnership;
@@ -130,7 +127,6 @@ type
     [TearDown]
     procedure TearDown;
     [Test]
-    [Category('Quick')]
     procedure TestMutableDefault;
     [Test]
     procedure TestMakeImmutable;
@@ -219,7 +215,6 @@ type
   TTestBoldListTypeInfo = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestCreateWithNilElementType;
     [Test]
     procedure TestGetStringRepresentationNilElement;
@@ -246,7 +241,6 @@ type
   TTestBoldElementTypeInfo = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestElementClassReturnsNil;
     [Test]
     procedure TestCreateElementRaises;

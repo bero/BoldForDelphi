@@ -1,4 +1,4 @@
-unit Test.BoldMeta;
+﻿unit Test.BoldMeta;
 
 { DUnitX tests for BoldMeta - Model metadata (TMoldClass, TMoldModel, TMoldAttribute, TMoldRole) }
 
@@ -28,158 +28,112 @@ type
 
     // TMoldModel tests
     [Test]
-    [Category('Quick')]
     procedure TestModelClassCount;
     [Test]
-    [Category('Quick')]
     procedure TestModelRootClass;
     [Test]
-    [Category('Quick')]
     procedure TestModelGetClassByName;
     [Test]
-    [Category('Quick')]
     procedure TestModelGetClassByNameNotFound;
     [Test]
-    [Category('Quick')]
     procedure TestModelOptimisticLocking;
     [Test]
-    [Category('Quick')]
     procedure TestModelUseTimestamp;
 
     // TMoldClass tests
     [Test]
-    [Category('Quick')]
     procedure TestClassProperties;
     [Test]
-    [Category('Quick')]
     procedure TestClassTableName;
     [Test]
-    [Category('Quick')]
     procedure TestClassIsRootClass;
     [Test]
-    [Category('Quick')]
     procedure TestClassSuperClass;
     [Test]
-    [Category('Quick')]
     procedure TestClassAllMembers;
     [Test]
-    [Category('Quick')]
     procedure TestClassEffectivePersistent;
     [Test]
-    [Category('Quick')]
     procedure TestClassLowestCommonSuperClass;
     [Test]
-    [Category('Quick')]
     procedure TestClassStorage;
     [Test]
-    [Category('Quick')]
     procedure TestClassTableMapping;
     [Test]
-    [Category('Quick')]
     procedure TestClassExpandedNames;
 
     // TMoldAttribute tests
     [Test]
-    [Category('Quick')]
     procedure TestAttributeProperties;
     [Test]
-    [Category('Quick')]
     procedure TestAttributeIsAttributeNotRole;
     [Test]
-    [Category('Quick')]
     procedure TestAttributeEffectivePersistent;
 
     // TMoldRole tests
     [Test]
-    [Category('Quick')]
     procedure TestRoleProperties;
     [Test]
-    [Category('Quick')]
     procedure TestRoleIsRoleNotAttribute;
     [Test]
-    [Category('Quick')]
     procedure TestRoleOtherEnd;
     [Test]
-    [Category('Quick')]
     procedure TestRoleEffectiveEmbedded;
 
     // TBoldSystemTypeInfo / TBoldClassTypeInfo tests (BoldSystemRT)
     [Test]
-    [Category('Quick')]
     procedure TestSystemTypeInfoClassCount;
     [Test]
-    [Category('Quick')]
     procedure TestClassTypeInfoByExpressionName;
     [Test]
-    [Category('Quick')]
     procedure TestClassTypeInfoAttributes;
     [Test]
-    [Category('Quick')]
     procedure TestClassTypeInfoRoles;
     [Test]
-    [Category('Quick')]
     procedure TestClassTypeInfoSuperType;
     [Test]
-    [Category('Quick')]
     procedure TestClassTypeInfoAllMembers;
     [Test]
-    [Category('Quick')]
     procedure TestClassTypeInfoIsAbstract;
 
     // BoldSystemRT — Search
     [Test]
-    [Category('Quick')]
     procedure TestSearchByClassName;
     [Test]
-    [Category('Quick')]
     procedure TestSearchByAttributeName;
     [Test]
-    [Category('Quick')]
     procedure TestSearchPartialMatch;
     [Test]
-    [Category('Quick')]
     procedure TestSearchNotFound;
 
     // BoldSystemRT — ValueTypeNames
     [Test]
-    [Category('Quick')]
     procedure TestGetValueTypeNames;
     [Test]
-    [Category('Quick')]
     procedure TestGetValueTypeNameList;
     [Test]
-    [Category('Quick')]
     procedure TestGetElementTypeInfoByExpressionName;
     [Test]
-    [Category('Quick')]
     procedure TestConformsTo;
 
     // BoldSystemRT — MemberRTInfo
     [Test]
-    [Category('Quick')]
     procedure TestMemberRTInfoByExpressionName;
     [Test]
-    [Category('Quick')]
     procedure TestMemberRTInfoIsAttribute;
     [Test]
-    [Category('Quick')]
     procedure TestMemberRTInfoIsRole;
 
     // BoldMeta — additional coverage
     [Test]
-    [Category('Quick')]
     procedure TestClassHasNotNullMembers;
     [Test]
-    [Category('Quick')]
     procedure TestAllNativeAttributes;
     [Test]
-    [Category('Quick')]
     procedure TestModelEnsureTopSorted;
     [Test]
-    [Category('Quick')]
     procedure TestAttributeAllowNull;
     [Test]
-    [Category('Quick')]
     procedure TestClassIncFileName;
   end;
 

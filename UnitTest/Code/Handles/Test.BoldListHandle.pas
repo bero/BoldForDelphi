@@ -28,53 +28,38 @@ type
 
     // Tests for TBoldListHandle using DFM-configured handle
     [Test]
-    [Category('Quick')]
     procedure TestListHandleNotNil;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleCountEmpty;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleCountWithObjects;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleObjectListProperty;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleFirst;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleLast;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleNavigation;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleExpression;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleCurrentElement;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleHandleValue;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleBoldType;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleEnabled;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleCurrentBoldObject;
 
     // The tests above all use the handle streamed from the DFM, which starts
     // out disabled and therefore never derives while it is being constructed.
     // A handle constructed in code starts enabled, so its constructor derives.
     [Test]
-    [Category('Quick')]
     procedure TestListHandleCreatedInCode;
     [Test]
-    [Category('Quick')]
     procedure TestListHandleConstructionDoesNotDerive;
   end;
 

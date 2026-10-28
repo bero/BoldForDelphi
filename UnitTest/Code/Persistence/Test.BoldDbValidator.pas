@@ -18,13 +18,10 @@ type
   TTestBoldDbValidator = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestAddRemedyThreadSafety;
     [Test]
-    [Category('Quick')]
     procedure TestCorruptObjectsActionDefaultsToDelete;
     [Test]
-    [Category('Quick')]
     procedure TestCompletionMessage;
   end;
 

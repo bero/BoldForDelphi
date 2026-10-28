@@ -1,4 +1,4 @@
-unit Test.BoldOclClasses;
+﻿unit Test.BoldOclClasses;
 
 interface
 
@@ -43,91 +43,91 @@ type
   [Category('ObjectSpace')]
   TTestBoldOclClasses = class
   public
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNodeCreation_AllTypes;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_BaseNode;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_TypeNode;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_ListCoercion;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_CollectionLiteral;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_Operation;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_Iteration;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_Member;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_Method;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_Literal;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_StrLiteral;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_NumericLiteral;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_IntLiteral;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_EnumLiteral;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_MomentLiteral;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_DateLiteral;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_TimeLiteral;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_VariableBinding;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAcceptVisitor_VariableReference;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDateLiteral_DateValue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTimeLiteral_TimeValue;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_PushPopBinding;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_ReplaceBinding;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_RemoveBinding;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_Find_InCurrentScope;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_Find_InOuterScope;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_Find_NotFound;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_Lookup_ExistingBinding;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_LookupSelf;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_BindingsAsCommaText;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_MakeGenSymName;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCollectionLiteral_DestroyFreesChildren;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMethod_DestroyFreesMethodOf;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestVisitorBaseStubs_AllCalled;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_ReplaceBinding_NonLastBinding;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestVariableBindingExternal_CreateDestroy;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestVariableBindingExternal_GetBoldType_WithVariable;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestVariableBindingExternal_GetBoldType_WithoutVariable;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_Lookup_ExternalBinding_WithVariable;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_Lookup_ExternalBinding_WithoutVariable;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestVisitorBaseStub_VisitNode_Direct;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_RemoveVariable;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEnvironment_RemoveVariable_SkipsNonMatching;
   end;
 

@@ -1,4 +1,4 @@
-unit Test.BoldLogReceiverInterface;
+﻿unit Test.BoldLogReceiverInterface;
 
 interface
 
@@ -15,7 +15,6 @@ type
   TTestBoldLogReceiverInterface = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestLogEnabledDefault;
     [Test]
     procedure TestSetLogEnabled;

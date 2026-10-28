@@ -1,4 +1,4 @@
-unit Test.BoldBase64;
+﻿unit Test.BoldBase64;
 
 interface
 
@@ -19,7 +19,6 @@ type
     procedure TearDown;
 
     [Test]
-    [Category('Quick')]
     procedure TestCreate_DefaultFilterDecodeInput;
 
     [Test]

@@ -17,7 +17,6 @@
  ║   -h  -?                             Show Usage                            ║
  ╠════════════════════════════════════════════════════════════════════════════╣
  ║ Examples:                                                                  ║
- ║   UnitTest.exe --include:Quick       Run only Quick category tests         ║
  ║   UnitTest.exe --run:TTFoo.TestBar   Run specific test                     ║
  ║   UnitTest.exe --exit:Pause          Pause before exit                     ║
  ╚════════════════════════════════════════════════════════════════════════════╝}

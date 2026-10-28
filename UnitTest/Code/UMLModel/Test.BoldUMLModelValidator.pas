@@ -1,4 +1,4 @@
-unit Test.BoldUMLModelValidator;
+﻿unit Test.BoldUMLModelValidator;
 
 interface
 
@@ -24,27 +24,20 @@ type
 
     // Enum and constant tests
     [Test]
-    [Category('Quick')]
     procedure TestDefaultValidatorSourceLanguageIsDelphi;
     [Test]
-    [Category('Quick')]
     procedure TestSourceLanguageEnumHasDelphiValue;
     [Test]
-    [Category('Quick')]
     procedure TestSourceLanguageEnumHasNoneValue;
     [Test]
-    [Category('Quick')]
     procedure TestSourceLanguageEnumOnlyHasTwoValues;
 
     // Integration tests - exercises IsValidDelphiIdentifier and other validation
     [Test]
-    [Category('Quick')]
     procedure TestValidateWithDelphiLanguage;
     [Test]
-    [Category('Quick')]
     procedure TestValidateWithNoLanguage;
     [Test]
-    [Category('Quick')]
     procedure TestValidatorHighestSeverity;
   end;
 

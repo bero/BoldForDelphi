@@ -1,4 +1,4 @@
-unit Test.BoldLogHandler;
+﻿unit Test.BoldLogHandler;
 
 interface
 
@@ -10,63 +10,63 @@ type
   TTestBoldLogHandler = class
   public
     // Create and basics
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLog;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLogFmt;
 
     // Indent / Dedent
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIndentDedent;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDedentFloor;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLogIndent;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLogDedent;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestLogFmtDedent;
 
     // Separator deduplication
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSeparator;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSeparatorDedup;
 
     // Clear / Show / Hide / Sync
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestClear;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestShow;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestHide;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSync;
 
     // StartLog / EndLog
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStartLogEndLog;
 
     // Progress
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestProgressStep;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestProgressMax;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetProgress;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetLogHeader;
 
     // Interrupt
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestProcessInterruption_NotInterrupted;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInterruptProcess;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestProcessInterruption_HandledOnce;
 
     // RegisterLogReceiver / UnregisterLogReceiver
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestRegisterAndUnregisterLogReceiver;
   end;
 

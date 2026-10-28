@@ -1,4 +1,4 @@
-unit Test.BoldDBInterfacesMock;
+﻿unit Test.BoldDBInterfacesMock;
 
 { Unit tests demonstrating how to use Delphi-Mocks with Bold database interfaces.
 
@@ -37,27 +37,21 @@ type
   TTestBoldDBInterfacesMock = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestMockDatabaseConnection;
 
     [Test]
-    [Category('Quick')]
     procedure TestMockDatabaseTransaction;
 
     [Test]
-    [Category('Quick')]
     procedure TestMockQueryReturnValue;
 
     [Test]
-    [Category('Quick')]
     procedure TestMockFieldAccess;
 
     [Test]
-    [Category('Quick')]
     procedure TestMockExpectations;
 
     [Test]
-    [Category('Quick')]
     procedure TestMockWillExecute;
   end;
 

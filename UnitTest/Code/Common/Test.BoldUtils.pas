@@ -1,4 +1,4 @@
-unit Test.BoldUtils;
+﻿unit Test.BoldUtils;
 
 interface
 
@@ -13,28 +13,20 @@ type
   TTestBoldUtils = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestBoldCaseIndependentPosSubstrLongerThanS;
     [Test]
-    [Category('Quick')]
     procedure TestBoldSeparateStringListEmpty;
     [Test]
-    [Category('Quick')]
     procedure TestBoldSeparateStringListWithAIndex;
     [Test]
-    [Category('Quick')]
     procedure TestGetUpperLimitForMultiplicitySimple;
     [Test]
-    [Category('Quick')]
     procedure TestGetUpperLimitForMultiplicityNegative;
     [Test]
-    [Category('Quick')]
     procedure TestGetUpperLimitForMultiplicityEmpty;
     [Test]
-    [Category('Quick')]
     procedure TestBoldAppendToStringsWithCRLF;
     [Test]
-    [Category('Quick')]
     procedure TestBoldAppendToStringsLineSplit;
   end;
 

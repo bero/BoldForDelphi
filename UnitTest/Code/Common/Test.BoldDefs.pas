@@ -1,4 +1,4 @@
-unit Test.BoldDefs;
+﻿unit Test.BoldDefs;
 
 interface
 
@@ -15,7 +15,6 @@ type
   TTestBoldDefs = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestEBoldDatabaseErrorProperties;
     [Test]
     procedure TestEBoldDatabaseErrorInheritance;

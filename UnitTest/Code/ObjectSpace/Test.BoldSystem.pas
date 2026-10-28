@@ -48,514 +48,374 @@ type
 
     // Object Creation and Deletion
     [Test]
-    [Category('Quick')]
     procedure TestCreateObject;
     [Test]
-    [Category('Quick')]
     procedure TestDeleteObject;
     [Test]
-    [Category('Quick')]
     procedure TestCreateAndDeleteObject;
 
     // Dirty Object Tracking
     [Test]
-    [Category('Quick')]
     procedure TestObjectBecomeDirtyOnAttributeChange;
     [Test]
-    [Category('Quick')]
     procedure TestDirtyObjectsListTracking;
     [Test]
-    [Category('Quick')]
     procedure TestDiscardChanges;
     [Test]
-    [Category('Quick')]
     procedure TestDiscardChangesOnNewObject;
 
     // Object State Transitions
     [Test]
-    [Category('Quick')]
     procedure TestNewObjectIsTransient;
     [Test]
-    [Category('Quick')]
     procedure TestObjectExistenceStates;
 
     // Object List Operations
     [Test]
-    [Category('Quick')]
     procedure TestObjectListAdd;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListRemove;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListDuplicateModeMerge;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListDuplicateModeError;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListCount;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListClear;
 
     // Transaction Handling
     [Test]
-    [Category('Quick')]
     procedure TestInTransactionInitiallyFalse;
     [Test]
-    [Category('Quick')]
     procedure TestStartTransaction;
     [Test]
-    [Category('Quick')]
     procedure TestRollbackTransaction;
     [Test]
-    [Category('Quick')]
     procedure TestNestedRollbackPreventsOuterCommit;
 
     // System Clean/Dirty State
     [Test]
-    [Category('Quick')]
     procedure TestSystemCleanAfterCreation;
     [Test]
-    [Category('Quick')]
     procedure TestSystemDirtyAfterObjectCreation;
 
     // Integrity Tests
     [Test]
-    [Category('Quick')]
     procedure TestCheckIntegrityEmptySystem;
     [Test]
-    [Category('Quick')]
     procedure TestCheckIntegrityWithObjects;
     [Test]
-    [Category('Quick')]
     procedure TestCheckIntegrityWithModifiedObjects;
     [Test]
-    [Category('Quick')]
     procedure TestAssertLinkIntegrityEmptySystem;
     [Test]
-    [Category('Quick')]
     procedure TestAssertLinkIntegrityWithObjects;
     [Test]
-    [Category('Quick')]
     procedure TestAssertLinkIntegrityAfterModifications;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorListAssertIntegrity;
 
     // Locator Tests
     [Test]
-    [Category('Quick')]
     procedure TestLocatorCreatedWithObject;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorBoldObjectReference;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorsListCount;
 
     // DefaultSystem Tests
     [Test]
-    [Category('Quick')]
     procedure TestMakeDefaultSystem;
     [Test]
-    [Category('Quick')]
     procedure TestDefaultSystemAccess;
 
     // Object Creation Variants
     [Test]
-    [Category('Quick')]
     procedure TestCreateNewObjectByExpressionName;
     [Test]
-    [Category('Quick')]
     procedure TestCreateNewObjectByExpressionNameClassB;
 
     // Class Extent Access
     [Test]
-    [Category('Quick')]
     procedure TestClassByExpressionName;
     [Test]
-    [Category('Quick')]
     procedure TestClassByObjectClass;
     [Test]
-    [Category('Quick')]
     procedure TestClassesIndexAccess;
 
     // TBoldObject Properties
     [Test]
-    [Category('Quick')]
     procedure TestBoldMemberCount;
     [Test]
-    [Category('Quick')]
     procedure TestBoldMembersAccess;
     [Test]
-    [Category('Quick')]
     procedure TestBoldMemberByExpressionName;
     [Test]
-    [Category('Quick')]
     procedure TestFindBoldMemberByExpressionName;
     [Test]
-    [Category('Quick')]
     procedure TestBoldMemberIndexByExpressionName;
 
     // Object GetAsList
     [Test]
-    [Category('Quick')]
     procedure TestSystemGetAsList;
     [Test]
-    [Category('Quick')]
     procedure TestObjectGetAsList;
 
     // Object Comparison
     [Test]
-    [Category('Quick')]
     procedure TestObjectCompareToAs;
     [Test]
-    [Category('Quick')]
     procedure TestObjectIsEqualAs;
 
     // System State Flags
     [Test]
-    [Category('Quick')]
     procedure TestSystemStateFlags;
     [Test]
-    [Category('Quick')]
     procedure TestBoldSystemTypeInfo;
 
     // Traverser Tests
     [Test]
-    [Category('Quick')]
     procedure TestLocatorListTraverser;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorListTraverserCurrent;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorListGetEnumerator;
 
     // LocatorList Lookup Tests
     [Test]
-    [Category('Quick')]
     procedure TestLocatorByID;
     [Test]
-    [Category('Quick')]
     procedure TestObjectByID;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorByIdString;
     [Test]
-    [Category('Quick')]
     procedure TestObjectByIdString;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorByIdNotFound;
 
     // TBoldObjectLocator Properties
     [Test]
-    [Category('Quick')]
     procedure TestLocatorAsString;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorBoldSystem;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorBoldObjectID;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorClassTypeInfo;
     [Test]
-    [Category('Quick')]
     procedure TestLocatorEnsuredBoldObject;
 
     // DelayObjectDestruction Pattern
     [Test]
-    [Category('Quick')]
     procedure TestDelayObjectDestruction;
     [Test]
-    [Category('Quick')]
     procedure TestDelayObjectDestructionNested;
 
     // TBoldObjectList.FilterOnType
     [Test]
-    [Category('Quick')]
     procedure TestObjectListFilterOnType;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListFilterOnTypeWithSubclasses;
 
     // TBoldMember.IsNull/SetToNull
     [Test]
-    [Category('Quick')]
     procedure TestMemberIsNullInitially;
     [Test]
-    [Category('Quick')]
     procedure TestMemberSetToNull;
     [Test]
-    [Category('Quick')]
     procedure TestMemberIsNullAfterAssignment;
 
     // TBoldObject.IsReadOnly
     [Test]
-    [Category('Quick')]
     procedure TestObjectIsReadOnlyInitiallyFalse;
     [Test]
-    [Category('Quick')]
     procedure TestObjectSetIsReadOnly;
 
     // StringRepresentation
     [Test]
-    [Category('Quick')]
     procedure TestObjectStringRepresentation;
     [Test]
-    [Category('Quick')]
     procedure TestAttributeStringRepresentation;
     [Test]
-    [Category('Quick')]
     procedure TestSystemStringRepresentation;
 
     // ContainsDirtyObjectsOfClass
     [Test]
-    [Category('Quick')]
     procedure TestContainsDirtyObjectsOfClassEmpty;
     [Test]
-    [Category('Quick')]
     procedure TestContainsDirtyObjectsOfClassWithObjects;
 
     // DiscardPersistent / DiscardTransient
     [Test]
-    [Category('Quick')]
     procedure TestDiscardPersistentEmptySystem;
     [Test]
-    [Category('Quick')]
     procedure TestDiscardPersistentWithObjects;
     [Test]
-    [Category('Quick')]
     procedure TestDiscardTransientEmptySystem;
     [Test]
-    [Category('Quick')]
     procedure TestDiscardTransientWithTransientObjects;
     [Test]
-    [Category('Quick')]
     procedure TestDiscardTransientPreservesPersistent;
     [Test]
-    [Category('Quick')]
     procedure TestCreateTransientObject;
 
     // OCL Collection Operations (tests SQL generation in BoldSqlSymbols)
     [Test]
-    [Category('Quick')]
     procedure TestOCLUnion;
     [Test]
-    [Category('Quick')]
     procedure TestOCLIntersection;
 
     // Constraint AddConstraint Tests (tests EnsureConstraintListAndAdd helper)
     [Test]
-    [Category('Quick')]
     procedure TestClassTypeInfoAddConstraint;
     [Test]
-    [Category('Quick')]
     procedure TestClassTypeInfoAddMultipleConstraints;
 
     // DirtyObjectsAsBoldList Tests
     [Test]
-    [Category('Quick')]
     procedure TestGetDirtyObjectsAsBoldListByClass;
     [Test]
-    [Category('Quick')]
     procedure TestGetDirtyObjectsAsBoldListByClassTypeInfo;
     [Test]
-    [Category('Quick')]
     procedure TestGetDirtyObjectsAsBoldListByClassExpressionName;
     [Test]
-    [Category('Quick')]
     procedure TestGetAllDirtyObjectsAsBoldList;
 
     // CanDelete Tests
     [Test]
-    [Category('Quick')]
     procedure TestObjectCanDelete;
     [Test]
-    [Category('Quick')]
     procedure TestObjectCanDeleteReadOnly;
 
     // BoldList Additional Tests
     [Test]
-    [Category('Quick')]
     procedure TestBoldListEmpty;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListIncludes;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListIndexOf;
 
     // EnsureLocatorByID
     [Test]
-    [Category('Quick')]
     procedure TestEnsureLocatorByIDCreatesNew;
     [Test]
-    [Category('Quick')]
     procedure TestEnsureLocatorByIDReturnsExisting;
 
     // CreateNewObjectFromClassTypeInfo
     [Test]
-    [Category('Quick')]
     procedure TestCreateNewObjectFromClassTypeInfo;
 
     // GetClassTypeForID
     [Test]
-    [Category('Quick')]
     procedure TestGetClassTypeForID;
 
     // Locator UnloadBoldObject
     [Test]
-    [Category('Quick')]
     procedure TestLocatorUnloadBoldObject;
 
     // TBoldObject BoldType
     [Test]
-    [Category('Quick')]
     procedure TestBoldObjectBoldType;
 
     // TBoldObject AsIBoldObjectContents
     [Test]
-    [Category('Quick')]
     procedure TestBoldObjectProxyInterface;
 
     // TBoldObjectList operations
     [Test]
-    [Category('Quick')]
     procedure TestObjectListInsert;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListAddList;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListAssign;
 
     // TBoldAttribute tests
     [Test]
-    [Category('Quick')]
     procedure TestAttributeBoldType;
     [Test]
-    [Category('Quick')]
     procedure TestAttributeOwningObject;
 
     // TBoldObject additional property tests
     [Test]
-    [Category('Quick')]
     procedure TestObjectBoldObjectIsNew;
     [Test]
-    [Category('Quick')]
     procedure TestObjectBoldObjectExists;
     [Test]
-    [Category('Quick')]
     procedure TestObjectCanUpdate;
     [Test]
-    [Category('Quick')]
     procedure TestObjectDisplayName;
     [Test]
-    [Category('Quick')]
     procedure TestObjectInvalidate;
     [Test]
-    [Category('Quick')]
     procedure TestObjectBoldTime;
     [Test]
-    [Category('Quick')]
     procedure TestObjectBoldMemberAssigned;
     [Test]
-    [Category('Quick')]
     procedure TestObjectBoldMemberIfAssigned;
 
     // TBoldList additional tests
     [Test]
-    [Category('Quick')]
     procedure TestBoldListAddAndRemove;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListInsertAndMove;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListFirstAndLast;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListHasDuplicates;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListRemoveByIndex;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListIncludesAll;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListAsCommaText;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListToStrings;
 
     // TBoldMember additional tests
     [Test]
-    [Category('Quick')]
     procedure TestMemberInvalidate;
     [Test]
-    [Category('Quick')]
     procedure TestMemberBoldDirty;
 
     // TBoldObject lifecycle and properties
     [Test]
-    [Category('Quick')]
     procedure TestObjectSubscribeToStringRepresentation;
 
     // TBoldList additional operations
     [Test]
-    [Category('Quick')]
     procedure TestBoldListCapacity;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListGetEnumerator;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListCanOperations;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListRemoveList;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListIntersect;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListAsDebugCommaText;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListSetElement;
     [Test]
-    [Category('Quick')]
     procedure TestBoldListDuplicateModeAllow;
 
     // TBoldObjectList additional
     [Test]
-    [Category('Quick')]
     procedure TestObjectListGetEnumerator;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListEnsureObjects;
     [Test]
-    [Category('Quick')]
     procedure TestObjectListIncludesAny;
 
     // TBoldMember additional
     [Test]
-    [Category('Quick')]
     procedure TestMemberOwnerAndSystem;
     [Test]
-    [Category('Quick')]
     procedure TestMemberDisplayName;
 
     // Evaluator requested by a subscriber during system teardown
     [Test]
-    [Category('Quick')]
     procedure TestEvaluatorRequestDuringTeardownDoesNotLeak;
   end;
 

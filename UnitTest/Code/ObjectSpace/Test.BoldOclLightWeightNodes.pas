@@ -1,4 +1,4 @@
-unit Test.BoldOclLightWeightNodes;
+﻿unit Test.BoldOclLightWeightNodes;
 
 interface
 
@@ -61,79 +61,54 @@ type
   TTestBoldOclLightWeightNodes = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestNodeCreation_AllTypes;
     [Test]
-    [Category('Quick')]
     procedure TestAcceptVisitor_AllNodeTypes;
     [Test]
-    [Category('Quick')]
     procedure TestVisitorBaseStubs_AllCalled;
     [Test]
-    [Category('Quick')]
     procedure TestVisitorBaseStub_VisitNode_Direct;
     [Test]
-    [Category('Quick')]
     procedure TestGetStreamName_AllTypes;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_AddAndCount;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_IndexOf;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_GetItem;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_PutItem;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_TraverseList;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_DestroyOwned;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_DestroyNonOwned;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_GetStreamName;
     [Test]
-    [Category('Quick')]
     procedure TestOperation_DestroyFreesArgs;
     [Test]
-    [Category('Quick')]
     procedure TestIteration_DestroyFreesLoopVar;
     [Test]
-    [Category('Quick')]
     procedure TestMember_CreateAndDestroy;
     [Test]
-    [Category('Quick')]
     procedure TestListCoercion_DestroyFreesChild;
     [Test]
-    [Category('Quick')]
     procedure TestOclCondition_CreateAndDestroy;
     [Test]
-    [Category('Quick')]
     procedure TestVariableBinding_AddRef_FirstCall;
     [Test]
-    [Category('Quick')]
     procedure TestVariableBinding_AddRef_LoopVar_MultipleRefs;
     [Test]
-    [Category('Quick')]
     procedure TestVariableBinding_AddRef_NonLoopVar_Raises;
     [Test]
-    [Category('Quick')]
     procedure TestVariableBinding_Properties;
     [Test]
-    [Category('Quick')]
     procedure TestEnumLiteral_IntValue;
     [Test]
-    [Category('Quick')]
     procedure TestDateLiteral_DateValue;
     [Test]
-    [Category('Quick')]
     procedure TestTimeLiteral_TimeValue;
   end;
 

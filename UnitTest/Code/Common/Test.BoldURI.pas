@@ -1,4 +1,4 @@
-unit Test.BoldURI;
+﻿unit Test.BoldURI;
 
 interface
 
@@ -15,7 +15,6 @@ type
   public
     // ResourceNameToModelName tests - converts plural resource names to singular model names
     [Test]
-    [Category('Quick')]
     procedure TestResourceNameToModelName_RemovesS;
     [Test]
     procedure TestResourceNameToModelName_RemovesSES;

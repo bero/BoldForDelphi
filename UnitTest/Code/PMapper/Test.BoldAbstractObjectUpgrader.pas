@@ -1,4 +1,4 @@
-unit Test.BoldAbstractObjectUpgrader;
+﻿unit Test.BoldAbstractObjectUpgrader;
 
 interface
 
@@ -27,7 +27,6 @@ type
   public
     // TBoldObjectUpgraderConfigurationItem tests
     [Test]
-    [Category('Quick')]
     procedure TestConfigItemCreate;
     [Test]
     procedure TestConfigItemExpressionName;

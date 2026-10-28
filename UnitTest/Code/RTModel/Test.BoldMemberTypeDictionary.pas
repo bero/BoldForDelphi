@@ -1,4 +1,4 @@
-unit Test.BoldMemberTypeDictionary;
+﻿unit Test.BoldMemberTypeDictionary;
 
 interface
 
@@ -12,7 +12,6 @@ type
   TTestBoldMemberTypeDictionary = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestDescriptorsByIndex;
   end;
 

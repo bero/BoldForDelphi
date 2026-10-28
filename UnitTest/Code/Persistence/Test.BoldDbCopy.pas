@@ -17,7 +17,6 @@ type
   TTestBoldDbCopyFireDACTuning = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestSourceQueryTuningAppliesToFireDAC;
   end;
 
@@ -27,10 +26,8 @@ type
   TTestBoldDbCopy = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestStripControlCharsRemovesTrailingControlChar;
     [Test]
-    [Category('Quick')]
     procedure TestStripControlCharsKeepsPlainText;
   end;
 

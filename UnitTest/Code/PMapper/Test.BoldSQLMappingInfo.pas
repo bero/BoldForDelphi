@@ -1,4 +1,4 @@
-unit Test.BoldSQLMappingInfo;
+﻿unit Test.BoldSQLMappingInfo;
 
 interface
 
@@ -26,40 +26,28 @@ type
     [TearDown]
     procedure TearDown;
     [Test]
-    [Category('Quick')]
     procedure TestAddDuplicateAllInstancesMapping;
     [Test]
-    [Category('Quick')]
     procedure TestAddDuplicateMemberMapping;
     [Test]
-    [Category('Quick')]
     procedure TestAddDuplicateObjectStorageMapping;
     [Test]
-    [Category('Quick')]
     procedure TestMemberMappingCompareMapping;
     [Test]
-    [Category('Quick')]
     procedure TestAllInstancesMappingCompareMapping;
     [Test]
-    [Category('Quick')]
     procedure TestObjectStorageMappingCompareMapping;
     [Test]
-    [Category('Quick')]
     procedure TestMemberMappingListFillFromList;
     [Test]
-    [Category('Quick')]
     procedure TestClearMappingInfo;
     [Test]
-    [Category('Quick')]
     procedure TestMemberMappingCompareTypeWithInheritance;
     [Test]
-    [Category('Quick')]
     procedure TestAddTypeIdMappingEmptyClassNameRaisesException;
     [Test]
-    [Category('Quick')]
     procedure TestAddTypeIdMappingDuplicateDifferentTypeRaisesException;
     [Test]
-    [Category('Quick')]
     procedure TestCloneWithoutDbType;
   end;
 

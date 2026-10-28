@@ -1,4 +1,4 @@
-unit Test.BoldSSExcept;
+﻿unit Test.BoldSSExcept;
 
 interface
 
@@ -15,7 +15,6 @@ type
   TTestBoldSSExcept = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestCreate;
     [Test]
     procedure TestCreateName;

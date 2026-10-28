@@ -20,19 +20,15 @@ type
   TTestBoldPMappersDefault = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestMockQueryWithBoldDbTypeField;
 
     [Test]
-    [Category('Quick')]
     procedure TestMockQueryWithObjectIdField;
 
     [Test]
-    [Category('Quick')]
     procedure TestMockQueryWithMultipleFields;
 
     [Test]
-    [Category('Quick')]
     procedure TestBoldMaxTimestampConstant;
   end;
 

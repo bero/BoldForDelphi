@@ -1,4 +1,4 @@
-unit Test.BoldAbstractObjectUpgraderHandle;
+﻿unit Test.BoldAbstractObjectUpgraderHandle;
 
 interface
 
@@ -33,7 +33,6 @@ type
   TTestBoldAbstractObjectUpgraderHandle = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestHandleCreate;
     [Test]
     procedure TestHandleDestroy;

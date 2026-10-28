@@ -44,91 +44,62 @@ type
   TTestBoldSqlNodes = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestNodeCreation_AllTypes;
     [Test]
-    [Category('Quick')]
     procedure TestAcceptVisitor_AllNodeTypes;
     [Test]
-    [Category('Quick')]
     procedure TestVisitorBaseStubs_AllCalled;
     [Test]
-    [Category('Quick')]
     procedure TestLiteral_AsString_AllTypes;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_AddAndCount;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_GetItem;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_PutItem;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_TraverseList;
     [Test]
-    [Category('Quick')]
     procedure TestNodeList_DestroyFreesItems;
     [Test]
-    [Category('Quick')]
     procedure TestOperation_DestroyFreesArgs;
     [Test]
-    [Category('Quick')]
     procedure TestIteration_DestroyFreesLoopVar;
     [Test]
-    [Category('Quick')]
     procedure TestMember_CreateAndDestroy;
     [Test]
-    [Category('Quick')]
     procedure TestListCoercion_DestroyFreesChild;
     [Test]
-    [Category('Quick')]
     procedure TestVariableBinding_AddRef;
     [Test]
-    [Category('Quick')]
     procedure TestVariableBinding_AddRef_NonLoopVar_Raises;
     [Test]
-    [Category('Quick')]
     procedure TestVariableBinding_DecRef;
     [Test]
-    [Category('Quick')]
     procedure TestVariableBinding_DecRef_ZeroRefCount_Raises;
     [Test]
-    [Category('Quick')]
     procedure TestVariableBinding_Properties;
     [Test]
-    [Category('Quick')]
     procedure TestVariableReference_IsExternalVariable;
     [Test]
-    [Category('Quick')]
     procedure TestVariableReference_SetObjectMapper_Raises;
     [Test]
-    [Category('Quick')]
     procedure TestVariableReference_SetQuery_Raises;
     [Test]
-    [Category('Quick')]
     procedure TestVariableReference_GetHasQuery;
     [Test]
-    [Category('Quick')]
     procedure TestNode_HasQuery_HasObjectMapper;
     [Test]
-    [Category('Quick')]
     procedure TestNode_RelinquishWCF_NilCase;
     [Test]
-    [Category('Quick')]
     procedure TestNode_RelinquishWCF_WithWCFAssigned;
     [Test]
-    [Category('Quick')]
     procedure TestVariableReference_RelinquishWCF;
     [Test]
-    [Category('Quick')]
     procedure TestMember_QueryOfMemberOfIsEnclosing;
     [Test]
-    [Category('Quick')]
     procedure TestSymbol_Methods;
     [Test]
-    [Category('Quick')]
     procedure TestWCFVariable_CreateAndDestroy;
   end;
 

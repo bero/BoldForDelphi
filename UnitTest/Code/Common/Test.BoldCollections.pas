@@ -1,4 +1,4 @@
-unit Test.BoldCollections;
+﻿unit Test.BoldCollections;
 
 interface
 
@@ -16,7 +16,6 @@ type
   TTestBoldCollections = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestCreateCollection;
     [Test]
     procedure TestAddItem;

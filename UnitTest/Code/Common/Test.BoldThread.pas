@@ -16,7 +16,6 @@ type
   TTestBoldThread = class
   public
     [Test]
-    [Category('Quick')]
     procedure TestQuitResumesSuspendedThread;
   end;
 

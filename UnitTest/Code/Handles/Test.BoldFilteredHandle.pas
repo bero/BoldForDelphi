@@ -32,7 +32,6 @@ type
 
     // TBoldFilter lifecycle tests
     [Test]
-    [Category('Quick')]
     procedure TestFilterCreate;
     [Test]
     procedure TestFilterDestroy;

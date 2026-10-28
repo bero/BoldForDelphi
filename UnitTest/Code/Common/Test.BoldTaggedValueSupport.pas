@@ -1,4 +1,4 @@
-unit Test.BoldTaggedValueSupport;
+﻿unit Test.BoldTaggedValueSupport;
 
 interface
 
@@ -10,77 +10,77 @@ type
   TTestBoldTaggedValueSupport = class
   public
     // Add*ToStrings methods
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddTableMappings;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddAttributeKinds;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddOptimisticLockingModes;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddDeleteActions;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddDelphiFunctionTypes;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddPropertyAccessKinds;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddEvolutionStates;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddNationalCharConversions;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAddDefaultRegionModes;
 
     // Roundtrip: ToString <-> StringTo
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAttributeKindRoundtrip;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDeleteActionRoundtrip;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDelphiFunctionTypeRoundtrip;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDelphiPropertyAccessKindRoundtrip;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestTableMappingRoundtrip;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOptimisticLockingModeRoundtrip;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEvolutionStateRoundtrip;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestNationalCharConversionRoundtrip;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestDefaultRegionModeRoundtrip;
 
     // StringTo with specific values
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToStorage;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToBoolean;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToBoolean_Invalid;
 
     // StringTo with defaults/fallbacks
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToAttributeKind_Default;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToDeleteAction_Default;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToDelphiFunctionType_AbstractVirtualLegacy;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToDelphiFunctionType_Default;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToDelphiPropertyAccessKind_Default;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToTableMapping_Default;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToOptimisticLockingMode_OldNames;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToOptimisticLockingMode_Default;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToEvolutionState_Default;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToNationalCharConversion_All;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToDefaultRegionMode_Default;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestStringToStorage_Default;
   end;
 

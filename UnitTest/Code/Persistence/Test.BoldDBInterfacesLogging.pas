@@ -30,23 +30,18 @@ type
     procedure TearDown;
 
     [Test]
-    [Category('Quick')]
     procedure QueryLogIncludesParameterValues;
 
     [Test]
-    [Category('Quick')]
     procedure ExecQueryLogIncludesParameterValues;
 
     [Test]
-    [Category('Quick')]
     procedure NullParameterIsLoggedAsNull;
 
     [Test]
-    [Category('Quick')]
     procedure BlobParameterValueIsNotExpanded;
 
     [Test]
-    [Category('Quick')]
     procedure QueryWithoutParametersLogsStatementOnly;
   end;
 

@@ -26,13 +26,10 @@ type
     [TearDown]
     procedure TearDown;
     [Test]
-    [Category('Quick')]
     procedure TestClassEventsCoverSuperclassChain;
     [Test]
-    [Category('Quick')]
     procedure TestExcessMemberSlotsAreNotIndexedIntoModelMembers;
     [Test]
-    [Category('Quick')]
     procedure TestNonEmbeddedEventNamesConcreteClassForInexactId;
   end;
 

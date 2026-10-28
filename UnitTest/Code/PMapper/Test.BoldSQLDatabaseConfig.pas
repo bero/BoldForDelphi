@@ -13,167 +13,167 @@ type
     procedure HandleChange(Sender: TObject);
   public
     // Create and defaults
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCreate_DefaultValues;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCreate_ReservedWordsPopulated;
 
     // InitializeDbEngineSettings - per engine
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_SQLServer;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_SQLServer_MaxParamsInIdList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_SQLServer_MaxParamsInIdListFollowsFetchBlockSize;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_SQLServer_MaxParamsInIdListCappedAtEngineLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_SetsEngine;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetFetchBlockSize_SQLServer_RaisesMaxParamsInIdList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetFetchBlockSize_OtherEngine_KeepsMaxParamsInIdList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetEngine_SQLServer_RaisesMaxParamsInIdListToFetchBlockSize;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetEngine_SQLServer_DefaultBlockSizeRaisesToBlockSize;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetEngine_SQLServer_CapsAtEngineLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetEngine_OtherEngine_KeepsMaxParamsInIdList;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSetMaxParamsInIdList_SQLServer_NeverBelowFetchBlockSize;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestMaxParamsInIdListZero_SwitchesParameterizationOff;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_Postgres;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_MySQL;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_InterbaseDialect3;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_InterbaseDialect1;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_Oracle;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_DBISAM;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_Advantage;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_Paradox;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_Informix;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_GenericANSI;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestInitialize_Unknown;
 
     // Template expansion - Drop queries
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDropColumnQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDropColumnQuery_EmptyTemplate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDropIndexQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDropIndexQuery_EmptyTemplate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDropTableQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDropTableQuery_EmptyTemplate;
 
     // Template expansion - Database queries
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetCreateDatabaseQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetCreateDatabaseQuery_EmptyTemplate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDropDatabaseQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDropDatabaseQuery_EmptyTemplate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDatabaseExistsQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetDatabaseExistsQuery_EmptyTemplate;
 
     // Template expansion - Exists queries
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetColumnExistsQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetColumnExistsQuery_EmptyTemplate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetTableExistsQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetTableExistsQuery_EmptyTemplate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetIndexExistsQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetIndexExistsQuery_EmptyTemplate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetIndexColumnExistsQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetIndexColumnExistsQuery_EmptyTemplate;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetIfColumnNotExistsQuery;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetIfColumnNotExistsQuery_EmptyTemplate;
 
     // Template expansion - IndexInfo
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetIndexInfoQuery;
 
     // GetColumnTypeForString / Unicode / Ansi
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetColumnTypeForString_NoLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetColumnTypeForString_WithinLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetColumnTypeForString_ExceedsLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetColumnTypeForUnicodeString_NoLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetColumnTypeForUnicodeString_ExceedsLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetColumnTypeForAnsiString_NoLimit;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestGetColumnTypeForAnsiString_ExceedsLimit;
 
     // CorrectlyQuotedDefaultValue
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCorrectlyQuotedDefaultValue_NoQuote;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestCorrectlyQuotedDefaultValue_WithQuote;
 
     // EffectiveSQLForNotNull
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEffectiveSQLForNotNull_Normal;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestEffectiveSQLForNotNull_Empty;
 
     // IsSQLServerEngine
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestIsSQLServerEngine;
 
     // SystemTablePrefix empty fallback
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSystemTablePrefix_EmptyFallback;
 
     // SQLforNotNull empty marker
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSQLforNotNull_EmptyUsesMarker;
 
     // Assign / AssignConfig
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAssignConfig;
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestAssign;
 
     // Change notification
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestOnChange;
 
     // Generated evolution script
-    [Test] [Category('Quick')]
+    [Test]
     procedure TestSQLServerEvolutionScript_OneDeclarePerBatch;
   end;
 
