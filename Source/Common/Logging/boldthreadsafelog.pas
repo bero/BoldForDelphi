@@ -140,7 +140,8 @@ uses
   SysUtils,
   BoldUtils,
   BoldDefs,
-  BoldIsoDateTime;
+  BoldIsoDateTime,
+  BoldPlatform;
 
 var
   LogThreadActivities: Boolean;
@@ -313,9 +314,9 @@ begin
       if IncludeThreadId then
       begin
         if ShortThreadId then
-          line := line + Format(':TID=%d', [GetCurrentThreadID])
+          line := line + Format(':TID=%d', [BoldCurrentThreadId])
         else
-          line := line + Format(' (ThreadID=%d)', [GetCurrentThreadID]);
+          line := line + Format(' (ThreadID=%d)', [BoldCurrentThreadId]);
       end;
 
       Line := Line + BOLDCRLF;
