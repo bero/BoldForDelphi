@@ -6,6 +6,7 @@ interface
 
 uses
   Classes,
+  SyncObjs,
   BoldDbInterfaces,
   BoldAbstractPersistenceHandleDB,
   BoldPMappersSQL,
@@ -26,8 +27,10 @@ type
   private
     fSystemMapper: TBoldSystemSQLMapper;
     fRemedyList: TList<String>;
+    fRemedyLock: TCriticalSection;
     fRemedyStrings: TStringList;
     fErrorList: TList<String>;
+    fErrorLock: TCriticalSection;
     fErrorStrings: TStringList;
     fPersistenceHandle: TBoldAbstractPersistenceHandleDB;
     FEnabled: Boolean;
@@ -187,22 +190,22 @@ begin
   // Called concurrently by up to ThreadCount validator threads - TList<String>
   // is not thread-safe (racing Adds lose entries and leak the overwritten
   // string references).
-  TMonitor.Enter(fRemedyList);
+  fRemedyLock.Enter;
   try
     fRemedyList.Add(s);
   finally
-    TMonitor.Exit(fRemedyList);
+    fRemedyLock.Leave;
   end;
 end;
 
 procedure TBoldDbValidator.AddError(const s: string);
 begin
   // Called by the validator threads, concurrently like AddRemedy.
-  TMonitor.Enter(fErrorList);
+  fErrorLock.Enter;
   try
     fErrorList.Add(s);
   finally
-    TMonitor.Exit(fErrorList);
+    fErrorLock.Leave;
   end;
 end;
 
@@ -212,13 +215,13 @@ var
 begin
   result := fErrorStrings;
   fErrorStrings.BeginUpdate;
-  TMonitor.Enter(fErrorList);
+  fErrorLock.Enter;
   try
     fErrorStrings.Clear;
     for i := 0 to fErrorList.Count-1 do
       fErrorStrings.Add(fErrorList[i]);
   finally
-    TMonitor.Exit(fErrorList);
+    fErrorLock.Leave;
     fErrorStrings.EndUpdate;
   end;
 end;
@@ -240,13 +243,13 @@ var
 begin
   result := fRemedyStrings;
   fRemedyStrings.BeginUpdate;
-  TMonitor.Enter(fRemedyList);  // Remedy may be read while worker threads add
+  fRemedyLock.Enter;  // Remedy may be read while worker threads add
   try
     fRemedyStrings.Clear;
     for i := 0 to fRemedyList.Count-1 do
       fRemedyStrings.Add(fRemedyList[i]);
   finally
-    TMonitor.Exit(fRemedyList);
+    fRemedyLock.Leave;
     fRemedyStrings.EndUpdate;
   end;
 end;
@@ -276,8 +279,10 @@ begin
   inherited;
   fRemedyStrings := TStringList.Create;
   fRemedyList := TList<String>.Create;
+  fRemedyLock := TCriticalSection.Create;
   fErrorStrings := TStringList.Create;
   fErrorList := TList<String>.Create;
+  fErrorLock := TCriticalSection.Create;
   fSubscriber := TBoldPassThroughSubscriber.Create(Receive);
   fTableQueue := TBoldThreadSafeObjectQueue.Create('TableValidationQueue');
   fThreadList := TThreadList.Create;
@@ -287,8 +292,10 @@ end;
 destructor TBoldDbValidator.destroy;
 begin
   FreeAndNil(fRemedyList);
+  FreeAndNil(fRemedyLock);
   FreeAndNil(fRemedyStrings);
   FreeAndNil(fErrorList);
+  FreeAndNil(fErrorLock);
   FreeAndNil(fErrorStrings);
   FreeAndNil(fSubscriber);
   FreeAndNil(fTableQueue);
@@ -425,17 +432,17 @@ procedure TBoldDbValidator.Execute;
 begin
   // A validator may be executed again (the DB actions keep theirs), so the
   // results of an earlier run must not carry over into this one.
-  TMonitor.Enter(fErrorList);
+  fErrorLock.Enter;
   try
     fErrorList.Clear;
   finally
-    TMonitor.Exit(fErrorList);
+    fErrorLock.Leave;
   end;
-  TMonitor.Enter(fRemedyList);
+  fRemedyLock.Enter;
   try
     fRemedyList.Clear;
   finally
-    TMonitor.Exit(fRemedyList);
+    fRemedyLock.Leave;
   end;
   // On success the log session is closed by DoOnComplete (validation is
   // asynchronous); the error paths below must close it themselves - the

@@ -1225,8 +1225,10 @@ begin
 end;
 
 function TBoldDbDataValidator.CreateValidatorThread: TBoldDbValidatorThread;
+var
+  thread: TBoldDbDataValidatorThread;
 begin
-  var thread := TBoldDbDataValidatorThread.Create(self);
+  thread := TBoldDbDataValidatorThread.Create(self);
   result := thread;
   thread.ValidatorTestTypes := ValidatorTestTypes;
   thread.CorruptObjectsAction := CorruptObjectsAction;
