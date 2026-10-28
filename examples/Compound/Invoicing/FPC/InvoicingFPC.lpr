@@ -2,10 +2,11 @@
 program InvoicingFPC;
 { Free Pascal / Lazarus runner for the shared Invoicing acceptance scenario
   (../Tests/InvoicingScenario.pas), the FPC counterpart of
-  ../Console/InvoicingConsole.dpr. It loads ../Model/Invoicing.bld, opens an
-  in-memory Bold system (no persistence handle) and prints one line per check.
-  Exit code = number of failed checks.
-  Not run here: VerifyReloadedScenario, which needs a database.
+  ../Console/InvoicingConsole.dpr. It loads ../Model/Invoicing.bld, runs the
+  scenario, saves, closes, reopens and verifies the reloaded objects. The data
+  is stored in an XML file (InvoicingSystemFPC.pas); the Delphi console uses
+  SQLite through FireDAC. One line per check; exit code = number of failed
+  checks.
 
   Build and run on Linux with build.sh next to this file (FPC 3.2.2 or later). }
 
@@ -14,14 +15,9 @@ program InvoicingFPC;
 uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   SysUtils,
-  Classes,
-  BoldDefs,
-  BoldHandles,
-  BoldModel,
-  BoldSystem,
-  BoldSystemHandle,
   InvoicingClasses,
-  InvoicingScenario;
+  InvoicingScenario,
+  InvoicingSystemFPC;
 
 var
   Failures: Integer = 0;
@@ -43,38 +39,39 @@ begin
     Result := ParamStr(1)
   else
     Result := ExpandFileName(ExtractFilePath(ParamStr(0)) +
-      '..' + PathDelim + 'Model' + PathDelim + 'Invoicing.bld');
+      '..' + PathDelim + '..' + PathDelim + 'Model' + PathDelim + 'Invoicing.bld');
+end;
+
+function DataFileName: string;
+begin
+  Result := ChangeFileExt(ParamStr(0), '.xml');
 end;
 
 procedure Run;
 var
-  Model: TBoldModel;
-  TypeInfoHandle: TBoldSystemTypeInfoHandle;
-  SystemHandle: TBoldSystemHandle;
-  Strings: TStringList;
+  Invoicing: TInvoicingSystem;
 begin
-  Model := TBoldModel.Create(nil);
-  TypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
-  SystemHandle := TBoldSystemHandle.Create(nil);
-  Strings := TStringList.Create;
+  if FileExists(DataFileName) then
+    DeleteFile(DataFileName);
+
+  Invoicing := TInvoicingSystem.Create;
   try
     Writeln('Model:    ', ModelFileName);
-    Writeln('Database: none (in-memory system)');
-    Strings.LoadFromFile(ModelFileName);
-    Model.SetFromModelAsString(Strings);
-    TypeInfoHandle.BoldModel := Model;
-    SystemHandle.SystemTypeInfoHandle := TypeInfoHandle;
-    SystemHandle.Active := True;
+    Writeln('Database: ', DataFileName);
+    Invoicing.LoadModelFromFile(ModelFileName);
+    Invoicing.OpenSystem(DataFileName);
     Writeln('Scenario');
-    CheckAbstractCustomerRefused(SystemHandle.System, Check);
-    BuildAndVerifyScenario(SystemHandle.System, Check);
-    SystemHandle.System.Discard;
-    SystemHandle.Active := False;
+    CheckAbstractCustomerRefused(Invoicing.BoldSystem, Check);
+    BuildAndVerifyScenario(Invoicing.BoldSystem, Check);
+    Invoicing.Save;
+    Invoicing.CloseSystem(False);
+
+    Invoicing.OpenSystem(DataFileName);
+    Writeln('After save, close and reopen');
+    VerifyReloadedScenario(Invoicing.BoldSystem, Check);
+    Invoicing.CloseSystem(False);
   finally
-    Strings.Free;
-    SystemHandle.Free;
-    TypeInfoHandle.Free;
-    Model.Free;
+    Invoicing.Free;
   end;
 end;
 
