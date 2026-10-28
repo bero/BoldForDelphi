@@ -116,9 +116,22 @@ type
 
 procedure BoldRegisterTest(AClass: TBoldTestCaseClass);
 
+// File helpers that work the same on every platform; Free Pascal has no
+// IOUtils (TPath, TFile, TDirectory) and no Diagnostics (TStopwatch).
 // The directory for temporary test files, with a trailing path delimiter.
 // Windows has TEMP; Linux and macOS do not, so tests must not read TEMP.
 function BoldTestTempDir: string;
+// A unique file name in BoldTestTempDir. The file is not created.
+function BoldTestTempFileName(const Extension: string = '.tmp'): string;
+// Creates a unique directory in BoldTestTempDir and returns its path
+// (without a trailing delimiter).
+function BoldTestNewTempDir(const Prefix: string): string;
+// Deletes a directory with everything in it; does nothing when it is missing.
+procedure BoldTestDeleteTree(const Dir: string);
+// The whole file as text, decoded as UTF-8.
+function BoldTestReadAllText(const FileName: string): string;
+// Milliseconds from a monotonic clock, for timeouts in tests.
+function BoldTestTickCount: Int64;
 
 implementation
 
@@ -364,6 +377,7 @@ end;
 
 uses
   SysUtils,
+  Classes,
   IOUtils;
 
 procedure BoldRegisterTest(AClass: TBoldTestCaseClass);
@@ -415,5 +429,77 @@ begin
 end;
 
 {$ENDIF}
+
+{ Helpers shared by both compilers }
+
+function UniqueName: string;
+var
+  G: TGUID;
+begin
+  CreateGUID(G);
+  Result := GUIDToString(G);
+  Result := Copy(Result, 2, Length(Result) - 2); // without the braces
+end;
+
+function BoldTestTempFileName(const Extension: string): string;
+begin
+  Result := BoldTestTempDir + 'bold_' + UniqueName + Extension;
+end;
+
+function BoldTestNewTempDir(const Prefix: string): string;
+begin
+  Result := BoldTestTempDir + Prefix + UniqueName;
+  if not ForceDirectories(Result) then
+    raise Exception.CreateFmt('Cannot create directory %s', [Result]);
+end;
+
+procedure BoldTestDeleteTree(const Dir: string);
+var
+  Search: TSearchRec;
+  Path: string;
+begin
+  if not DirectoryExists(Dir) then
+    Exit;
+  Path := IncludeTrailingPathDelimiter(Dir);
+  if FindFirst(Path + '*', faAnyFile, Search) = 0 then
+  try
+    repeat
+      if (Search.Name = '.') or (Search.Name = '..') then
+        Continue;
+      if (Search.Attr and faDirectory) <> 0 then
+        BoldTestDeleteTree(Path + Search.Name)
+      else
+        DeleteFile(Path + Search.Name);
+    until FindNext(Search) <> 0;
+  finally
+    FindClose(Search);
+  end;
+  RemoveDir(Dir);
+end;
+
+function BoldTestReadAllText(const FileName: string): string;
+var
+  Stream: TFileStream;
+  Bytes: TBytes;
+begin
+  Stream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
+  try
+    SetLength(Bytes, Stream.Size);
+    if Length(Bytes) > 0 then
+      Stream.ReadBuffer(Bytes[0], Length(Bytes));
+  finally
+    Stream.Free;
+  end;
+  Result := TEncoding.UTF8.GetString(Bytes);
+end;
+
+function BoldTestTickCount: Int64;
+begin
+  {$IFDEF FPC}
+  Result := GetTickCount64;
+  {$ELSE}
+  Result := TThread.GetTickCount64;
+  {$ENDIF}
+end;
 
 end.

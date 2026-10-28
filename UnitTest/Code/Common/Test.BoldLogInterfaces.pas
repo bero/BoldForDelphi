@@ -3,72 +3,58 @@ unit Test.BoldLogInterfaces;
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldLogInterfaces = class
+  {$ENDIF}
+  TTestBoldLogInterfaces = class(TBoldTestCase)
   private
     FTempDir: string;
     function GetTempLogFile(const Suffix: string): string;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestLogManagerSingleton;
-    [Test]
     procedure TestRegisterSink;
-    [Test]
     procedure TestUnregisterSink;
-    [Test]
     procedure TestMemorySinkBasic;
-    [Test]
     procedure TestMemorySinkLevels;
-    [Test]
     procedure TestMemorySinkDisabled;
-    [Test]
     procedure TestMultipleSinks;
-    [Test]
     procedure TestFileSink;
-    [Test]
     procedure TestLogLevelMethods;
-    [Test]
     procedure TestGlobalBoldLogProcedure;
-    [Test]
     procedure TestMemorySinkMaxLines;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
-  System.IOUtils,
-  System.Classes,
+  SysUtils,
+  Classes,
   BoldLogInterfaces,
   BoldLogSinks;
 
 { TTestBoldLogInterfaces }
 
-procedure TTestBoldLogInterfaces.Setup;
+procedure TTestBoldLogInterfaces.SetUp;
 begin
-  FTempDir := TPath.Combine(TPath.GetTempPath, 'BoldLogTest_' + TGUID.NewGuid.ToString);
-  TDirectory.CreateDirectory(FTempDir);
+  FTempDir := BoldTestNewTempDir('BoldLogTest_');
   BoldLogManager.UnregisterAllSinks;
 end;
 
 procedure TTestBoldLogInterfaces.TearDown;
 begin
   BoldLogManager.UnregisterAllSinks;
-  if TDirectory.Exists(FTempDir) then
-    TDirectory.Delete(FTempDir, True);
+  BoldTestDeleteTree(FTempDir);
 end;
 
 function TTestBoldLogInterfaces.GetTempLogFile(const Suffix: string): string;
 begin
-  Result := TPath.Combine(FTempDir, 'test_' + Suffix + '.log');
+  Result := IncludeTrailingPathDelimiter(FTempDir) + ('test_' + Suffix + '.log');
 end;
 
 procedure TTestBoldLogInterfaces.TestLogManagerSingleton;
@@ -178,7 +164,7 @@ begin
   // Unregister to close file
   BoldLogManager.UnregisterSink(Sink);
 
-  Content := TFile.ReadAllText(LogFile, TEncoding.UTF8);
+  Content := BoldTestReadAllText(LogFile);
   Assert.Contains(Content, 'File log entry');
 end;
 
@@ -238,6 +224,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldLogInterfaces);
+  BoldRegisterTest(TTestBoldLogInterfaces);
 
 end.

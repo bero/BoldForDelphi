@@ -3,65 +3,46 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   Classes,
   BoldIndexCollection;
 
 type
-  [TestFixture]
-  TTestBoldIndexCollection = class
+  TTestBoldIndexCollection = class(TBoldTestCase)
   private
     FCollection: TBoldIndexCollection;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // TBoldIndexCollection tests
-    [Test]
     procedure TestCreate;
-    [Test]
     procedure TestGetOwner;
-    [Test]
     procedure TestAddIndexDefinition;
-    [Test]
     procedure TestIndexDefinitionProperty;
-    [Test]
     procedure TestSaveAndLoadStringList;
-    [Test]
     procedure TestSaveAndLoadFile;
-    [Test]
     procedure TestLoadSkipsEmptyLines;
 
     // TBoldIndexDefintion tests
-    [Test]
     procedure TestDefinitionProperties;
-    [Test]
     procedure TestDefinitionAsString;
-    [Test]
     procedure TestDefinitionSetAsString;
-    [Test]
     procedure TestDefinitionGetDisplayName;
-    [Test]
     procedure TestDefinitionGetDisplayNameUnique;
-    [Test]
     procedure TestDefinitionEquals;
-    [Test]
     procedure TestDefinitionEqualsNotEqual;
-    [Test]
     procedure TestDefinitionAssignTo;
   end;
 
 implementation
 
 uses
-  SysUtils,
-  IOUtils;
+  SysUtils;
 
 { TTestBoldIndexCollection }
 
-procedure TTestBoldIndexCollection.Setup;
+procedure TTestBoldIndexCollection.SetUp;
 begin
   FCollection := TBoldIndexCollection.Create(nil);
 end;
@@ -155,7 +136,7 @@ var
   Def: TBoldIndexDefintion;
   NewCollection: TBoldIndexCollection;
 begin
-  TempFile := TPath.GetTempFileName;
+  TempFile := BoldTestTempFileName;
   try
     // Add items - note: Columns without commas due to CommaText parsing limitation
     Def := FCollection.AddIndexDefintion;
@@ -183,8 +164,8 @@ begin
       NewCollection.Free;
     end;
   finally
-    if TFile.Exists(TempFile) then
-      TFile.Delete(TempFile);
+    if FileExists(TempFile) then
+      DeleteFile(TempFile);
   end;
 end;
 
@@ -193,7 +174,7 @@ var
   TempFile: string;
   Lines: TStringList;
 begin
-  TempFile := TPath.GetTempFileName;
+  TempFile := BoldTestTempFileName;
   try
     // Create file with empty lines
     Lines := TStringList.Create;
@@ -211,8 +192,8 @@ begin
     FCollection.LoadFromFile(TempFile);
     Assert.AreEqual(2, FCollection.Count);
   finally
-    if TFile.Exists(TempFile) then
-      TFile.Delete(TempFile);
+    if FileExists(TempFile) then
+      DeleteFile(TempFile);
   end;
 end;
 
@@ -333,6 +314,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldIndexCollection);
+  BoldRegisterTest(TTestBoldIndexCollection);
 
 end.

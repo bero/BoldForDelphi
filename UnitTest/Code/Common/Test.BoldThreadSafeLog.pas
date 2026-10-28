@@ -3,81 +3,65 @@ unit Test.BoldThreadSafeLog;
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldThreadSafeLog = class
+  {$ENDIF}
+  TTestBoldThreadSafeLog = class(TBoldTestCase)
   private
     FTempDir: string;
     function GetTempLogFile(const Suffix: string): string;
     function ReadLogFile(const FileName: string): string;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestFileLoggingCreate;
-    [Test]
     procedure TestFileLoggingTrace;
-    [Test]
     procedure TestFileLoggingTraceWithArgs;
-    [Test]
     procedure TestFileLoggingIncludeThreadId;
-    [Test]
     procedure TestFileLoggingIncludeDate;
-    [Test]
     procedure TestFileLoggingMaxSize;
-    [Test]
     procedure TestFileLoggingOpenClose;
-    [Test]
     procedure TestBoldLoggerCreate;
-    [Test]
     procedure TestBoldLoggerLog;
-    [Test]
     procedure TestBoldLoggerLogError;
-    [Test]
     procedure TestBoldLoggerLogFmt;
-    [Test]
     procedure TestGlobalBoldLog;
-    [Test]
     procedure TestBoldLoggerLogThread;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
-  System.IOUtils,
-  System.Classes,
+  SysUtils,
+  Classes,
   BoldThreadSafeLog;
 
 { TTestBoldThreadSafeLog }
 
-procedure TTestBoldThreadSafeLog.Setup;
+procedure TTestBoldThreadSafeLog.SetUp;
 begin
-  FTempDir := TPath.Combine(TPath.GetTempPath, 'BoldLogTest_' + TGUID.NewGuid.ToString);
-  TDirectory.CreateDirectory(FTempDir);
+  FTempDir := BoldTestNewTempDir('BoldLogTest_');
 end;
 
 procedure TTestBoldThreadSafeLog.TearDown;
 begin
   BoldDoneLog;
-  if TDirectory.Exists(FTempDir) then
-    TDirectory.Delete(FTempDir, True);
+  BoldTestDeleteTree(FTempDir);
 end;
 
 function TTestBoldThreadSafeLog.GetTempLogFile(const Suffix: string): string;
 begin
-  Result := TPath.Combine(FTempDir, 'test_' + Suffix + '.log');
+  Result := IncludeTrailingPathDelimiter(FTempDir) + ('test_' + Suffix + '.log');
 end;
 
 function TTestBoldThreadSafeLog.ReadLogFile(const FileName: string): string;
 begin
-  if TFile.Exists(FileName) then
-    Result := TFile.ReadAllText(FileName, TEncoding.UTF8)
+  if FileExists(FileName) then
+    Result := BoldTestReadAllText(FileName)
   else
     Result := '';
 end;
@@ -92,7 +76,7 @@ begin
   try
     Assert.AreEqual(LogFile, Log.FileName);
     Assert.IsTrue(Log.Open);
-    Assert.IsTrue(TFile.Exists(LogFile));
+    Assert.IsTrue(FileExists(LogFile));
   finally
     Log.Free;
   end;
@@ -200,7 +184,7 @@ begin
     Log := nil;
 
     // File should exist and be smaller than it would be without flush
-    Assert.IsTrue(TFile.Exists(LogFile));
+    Assert.IsTrue(FileExists(LogFile));
   finally
     Log.Free;
   end;
@@ -218,7 +202,7 @@ begin
 
     Log.Open := True;
     Assert.IsTrue(Log.Open);
-    Assert.IsTrue(TFile.Exists(LogFile));
+    Assert.IsTrue(FileExists(LogFile));
 
     Log.Trace('After opening');
 
@@ -240,9 +224,9 @@ begin
 
   Logger := TBoldLogger.Create(LogFile, ErrorFile, ThreadFile, 1024 * 1024);
   try
-    Assert.IsTrue(TFile.Exists(LogFile));
-    Assert.IsTrue(TFile.Exists(ErrorFile));
-    Assert.IsTrue(TFile.Exists(ThreadFile));
+    Assert.IsTrue(FileExists(LogFile));
+    Assert.IsTrue(FileExists(ErrorFile));
+    Assert.IsTrue(FileExists(ThreadFile));
   finally
     Logger.Free;
   end;
@@ -367,6 +351,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldThreadSafeLog);
+  BoldRegisterTest(TTestBoldThreadSafeLog);
 
 end.

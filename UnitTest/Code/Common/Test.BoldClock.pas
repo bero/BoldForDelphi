@@ -3,12 +3,11 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldClock;
 
 type
-  [TestFixture]
-  TTestBoldClock = class
+  TTestBoldClock = class(TBoldTestCase)
   private
     fClock: TBoldClock;
     fFireCount: Integer;
@@ -18,28 +17,18 @@ type
     procedure CountOtherFire;
     function WaitForFires(ExpectedCount, TimeoutMs: Integer): Boolean;
     procedure PumpFor(Milliseconds: Integer);
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestAlarmFiresOnMainThreadAfterDueTime;
-    [Test]
     procedure TestOverdueAlarmFiresOnNextCheckSynchronize;
-    [Test]
     procedure TestAlarmFiresOnce;
-    [Test]
     procedure TestCancelledAlarmDoesNotFire;
-    [Test]
     procedure TestCancelAfterDueTimeDoesNotFire;
-    [Test]
     procedure TestRescheduleReplacesDueTime;
-    [Test]
     procedure TestAlarmsAreIndependent;
-    [Test]
     procedure TestDestroyWithPendingAlarmDoesNotFire;
-    [Test]
     procedure TestGlobalClockIsShared;
   end;
 
@@ -48,8 +37,7 @@ implementation
 uses
   Classes,
   SysUtils,
-  DateUtils,
-  Diagnostics;
+  DateUtils;
 
 const
   cFireTimeoutMs = 2000;
@@ -72,7 +60,7 @@ end;
 procedure TTestBoldClock.CountFire;
 begin
   Inc(fFireCount);
-  fFiredOnMainThread := TThread.Current.ThreadID = MainThreadID;
+  fFiredOnMainThread := TThread.CurrentThread.ThreadID = MainThreadID;
 end;
 
 procedure TTestBoldClock.CountOtherFire;
@@ -82,11 +70,11 @@ end;
 
 function TTestBoldClock.WaitForFires(ExpectedCount, TimeoutMs: Integer): Boolean;
 var
-  oStopwatch: TStopwatch;
+  StartTicks: Int64;
 begin
-  oStopwatch := TStopwatch.StartNew;
+  StartTicks := BoldTestTickCount;
 
-  while (fFireCount < ExpectedCount) and (oStopwatch.ElapsedMilliseconds < TimeoutMs) do
+  while (fFireCount < ExpectedCount) and ((BoldTestTickCount - StartTicks) < TimeoutMs) do
   begin
     CheckSynchronize(20);
   end;
@@ -96,11 +84,11 @@ end;
 
 procedure TTestBoldClock.PumpFor(Milliseconds: Integer);
 var
-  oStopwatch: TStopwatch;
+  StartTicks: Int64;
 begin
-  oStopwatch := TStopwatch.StartNew;
+  StartTicks := BoldTestTickCount;
 
-  while oStopwatch.ElapsedMilliseconds < Milliseconds do
+  while (BoldTestTickCount - StartTicks) < Milliseconds do
   begin
     CheckSynchronize(20);
   end;
@@ -182,6 +170,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldClock);
+  BoldRegisterTest(TTestBoldClock);
 
 end.
