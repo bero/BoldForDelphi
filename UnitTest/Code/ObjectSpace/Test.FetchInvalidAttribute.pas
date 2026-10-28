@@ -28,7 +28,7 @@ uses
   BoldTypeNameHandle,
   BoldAbstractModel,
   jehoBCBoldTest,
-  Test.BoldAttributes;
+  jehoBoldTestDataModule;
 
 type
   [TestFixture]
@@ -62,7 +62,7 @@ implementation
 uses
   Forms;
 
-// Note: dmjehoBoldTest.dfm is already included by Test.BoldAttributes.pas
+// Note: dmjehoBoldTest.dfm is included by jehoBoldTestDataModule.pas
 
 { TTestFetchInvalidAttribute }
 

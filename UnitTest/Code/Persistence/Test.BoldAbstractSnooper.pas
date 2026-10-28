@@ -11,7 +11,7 @@ uses
   BoldDefs,
   BoldMeta,
   BoldAbstractSnooper,
-  Test.BoldAttributes;  // declares TjehodmBoldTest, the standard test datamodule
+  jehoBoldTestDataModule;  // declares TjehodmBoldTest, the standard test datamodule
 
 type
   [TestFixture]

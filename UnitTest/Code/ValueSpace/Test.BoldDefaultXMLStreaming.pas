@@ -1,4 +1,4 @@
-unit Test.BoldDefaultXMLStreaming;
+﻿unit Test.BoldDefaultXMLStreaming;
 
 { DUnitX tests for BoldDefaultXMLStreaming - XML value space streaming }
 
@@ -21,7 +21,7 @@ uses
   BoldTypeNameHandle,
   jehoBCBoldTest,
   TestModel1,
-  Test.BoldAttributes;
+  jehoBoldTestDataModule;
 
 type
   [TestFixture]

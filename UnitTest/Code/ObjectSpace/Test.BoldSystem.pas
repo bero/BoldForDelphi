@@ -25,7 +25,7 @@ uses
   BoldTypeList,
   TestModel1,
   jehoBCBoldTest,
-  Test.BoldAttributes;
+  jehoBoldTestDataModule;
 
 type
   [TestFixture]
