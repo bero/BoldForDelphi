@@ -39,7 +39,18 @@ begin
   try
     RegExpr.ModifierI := IgnoreCase;
     RegExpr.Expression := Pattern;
-    Result := RegExpr.Exec(Text);
+    if Text = '' then
+    begin
+      // TRegExpr (FPC 3.2.2) never matches an empty input; Delphi's TRegEx does
+      // ('' LIKE '%'). An empty match after the last character is allowed, so
+      // search from position 2 of a one-line-feed input with ^ and $ matching
+      // at line boundaries: that is exactly an empty line.
+      RegExpr.ModifierM := True;
+      RegExpr.InputString := #10;
+      Result := RegExpr.ExecPos(2);
+    end
+    else
+      Result := RegExpr.Exec(Text);
   finally
     RegExpr.Free;
   end;
