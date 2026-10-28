@@ -15,6 +15,20 @@ uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Classes,
   consoletestrunner,
+  Test.BoldBase,
+  Test.BoldContainers,
+  Test.BoldDefaultTaggedValues,
+  Test.BoldExternalizedReferences,
+  Test.BoldGuard,
+  Test.BoldHashIndexes,
+  Test.BoldLogHandler,
+  Test.BoldNamedValueList,
+  Test.BoldSharedStrings,
+  Test.BoldStubs,
+  Test.BoldSubscribableCollection,
+  Test.BoldTaggedValueList,
+  Test.BoldUMLTaggedValues,
+  Test.BoldURI,
   Test.BoldUtils;
 
 var

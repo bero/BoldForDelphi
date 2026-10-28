@@ -3,123 +3,73 @@ unit Test.BoldContainers;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldContainers,
   BoldDefs;
 
 type
-  [TestFixture]
-  TTestBoldContainers = class
-  public
+  TTestBoldContainers = class(TBoldTestCase)
+  published
     // TBoldObjectArray tests
-    [Test]
     procedure TestSortDataOwningArrayKeepsElementsAlive;
-    [Test]
     procedure TestObjectArrayCreate;
-    [Test]
     procedure TestObjectArrayAdd;
-    [Test]
     procedure TestObjectArrayIndexOf;
-    [Test]
     procedure TestObjectArrayInsert;
-    [Test]
     procedure TestObjectArrayDelete;
-    [Test]
     procedure TestObjectArrayRemove;
-    [Test]
     procedure TestObjectArrayRemoveWithNil;
-    [Test]
     procedure TestObjectArrayExchange;
-    [Test]
     procedure TestObjectArrayMove;
-    [Test]
     procedure TestObjectArrayClear;
-    [Test]
     procedure TestObjectArrayPack;
-    [Test]
     procedure TestObjectArrayCapacity;
-    [Test]
     procedure TestObjectArrayCount;
-    [Test]
     procedure TestObjectArrayEnumerator;
-    [Test]
     procedure TestObjectArrayDataOwner;
     // TBoldPointerArray tests
-    [Test]
     procedure TestPointerArrayAdd;
-    [Test]
     procedure TestPointerArrayIndexOf;
-    [Test]
     procedure TestPointerArrayRemove;
-    [Test]
     procedure TestPointerArrayRemoveWithNil;
     // TBoldIntegerArray tests
-    [Test]
     procedure TestIntegerArrayAdd;
-    [Test]
     procedure TestIntegerArrayIndexOf;
-    [Test]
     procedure TestIntegerArrayRemove;
-    [Test]
     procedure TestIntegerArrayInsert;
     // TBoldInterfaceArray tests
-    [Test]
     procedure TestInterfaceArrayAdd;
-    [Test]
     procedure TestInterfaceArrayDataOwner;
     // TBoldObjectArray - Put
-    [Test]
     procedure TestObjectArrayPut;
     // Sorting tests (actual sorting)
-    [Test]
     procedure TestObjectArraySortQuickSort;
-    [Test]
     procedure TestObjectArraySortMergeSort;
-    [Test]
     procedure TestObjectArraySortEmptyAndSingle;
     // DeleteRange tests
-    [Test]
     procedure TestObjectArrayDeleteRange;
-    [Test]
     procedure TestObjectArrayDeleteRangeMiddle;
-    [Test]
     procedure TestObjectArrayDeleteRangeDataOwner;
     // GrowDelta high capacity path
-    [Test]
     procedure TestObjectArrayGrowDeltaHighCapacity;
     // TBoldInterfaceArray extended tests
-    [Test]
     procedure TestInterfaceArrayInsert;
-    [Test]
     procedure TestInterfaceArrayPut;
-    [Test]
     procedure TestInterfaceArrayIndexOf;
-    [Test]
     procedure TestInterfaceArrayRemove;
-    [Test]
     procedure TestInterfaceArrayRemoveWithNil;
     // TBoldIntegerArray extended tests
-    [Test]
     procedure TestIntegerArrayPut;
-    [Test]
     procedure TestIntegerArrayIndexOfBug;
     // TBoldPointerArray - Insert, Put
-    [Test]
     procedure TestPointerArrayInsert;
-    [Test]
     procedure TestPointerArrayPut;
     // Error handling
-    [Test]
     procedure TestObjectArrayIndexOutOfBounds;
-    [Test]
     procedure TestObjectArrayCapacityLessThanCount;
-    [Test]
     procedure TestObjectArrayExchangeOutOfBounds;
-    [Test]
     procedure TestObjectArrayInsertOutOfBounds;
-    [Test]
     procedure TestObjectArraySetCountNegative;
-    [Test]
     procedure TestObjectArrayExchangeSameIndex;
   end;
 
@@ -1374,6 +1324,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldContainers);
+  BoldRegisterTest(TTestBoldContainers);
 
 end.

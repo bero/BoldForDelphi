@@ -3,7 +3,7 @@ unit Test.BoldHashIndexes;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   Classes,
   BoldHashIndexes,
   BoldIndex,
@@ -54,27 +54,19 @@ type
     function PublicFindByCardinal(const KeyCardinal: Cardinal): TObject;
   end;
 
-  [TestFixture]
-  TTestBoldHashIndexes = class
-  public
+  TTestBoldHashIndexes = class(TBoldTestCase)
+  published
     // TBoldStringKey tests
-    [Test]
     procedure TestHashString_CaseIndependent;
 
     // TBoldGUIDHashIndex tests
-    [Test]
     procedure TestGuidHashIndex_AddAndFind;
-    [Test]
     procedure TestGuidHashIndex_FindByGuid_NotFound;
-    [Test]
     procedure TestGuidHashIndex_MultipleItems;
 
     // TBoldCardinalHashIndex tests
-    [Test]
     procedure TestCardinalHashIndex_AddAndFind;
-    [Test]
     procedure TestCardinalHashIndex_FindByCardinal_NotFound;
-    [Test]
     procedure TestCardinalHashIndex_MultipleItems;
   end;
 
@@ -342,6 +334,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldHashIndexes);
+  BoldRegisterTest(TTestBoldHashIndexes);
 
 end.

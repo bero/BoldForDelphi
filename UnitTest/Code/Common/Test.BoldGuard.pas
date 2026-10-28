@@ -3,28 +3,21 @@ unit Test.BoldGuard;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldGuard;
 
 type
-  [TestFixture]
-  TTestBoldGuard = class
+  TTestBoldGuard = class(TBoldTestCase)
   private
     class var FInstanceCount: Integer;
-  public
-    [Setup]
-    procedure Setup;
-    [Test]
+  protected
+    procedure SetUp; override;
+  published
     procedure TestGuardWith6Objects;
-    [Test]
     procedure TestGuardWith7Objects;
-    [Test]
     procedure TestGuardWith8Objects;
-    [Test]
     procedure TestGuardWith9Objects;
-    [Test]
     procedure TestGuardWith10Objects;
-    [Test]
     procedure TestGuardWithNilObjects;
   end;
 
@@ -52,7 +45,7 @@ end;
 
 { TTestBoldGuard }
 
-procedure TTestBoldGuard.Setup;
+procedure TTestBoldGuard.SetUp;
 begin
   FInstanceCount := 0;
 end;
@@ -171,6 +164,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldGuard);
+  BoldRegisterTest(TTestBoldGuard);
 
 end.

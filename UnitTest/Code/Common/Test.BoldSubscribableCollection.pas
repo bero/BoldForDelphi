@@ -3,13 +3,12 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSubscription,
   BoldSubscribableCollection;
 
 type
-  [TestFixture]
-  TTestBoldSubscribableCollection = class
+  TTestBoldSubscribableCollection = class(TBoldTestCase)
   private
     FReceivedOriginators: array of TObject;
     FReceivedOriginalEvents: array of TBoldEvent;
@@ -29,34 +28,22 @@ type
     function HandleAnswer(Originator: TObject; OriginalEvent: TBoldEvent;
       RequestedEvent: TBoldRequestedEvent; const Args: array of const;
       Subscriber: TBoldSubscriber): Boolean;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     { TBoldSubscribableCollectionItem }
-    [Test]
     procedure TestCollectionItem_Create;
-    [Test]
     procedure TestCollectionItem_SubscribeAndReceive;
-    [Test]
     procedure TestCollectionItem_SendExtendedEvent;
-    [Test]
     procedure TestCollectionItem_SendQuery;
-    [Test]
     procedure TestCollectionItem_DestroyNotifiesSubscribers;
-    [Test]
     procedure TestCollectionItem_HasSubscribers;
 
     { Extended TBoldSubscribableCollection coverage }
-    [Test]
     procedure TestCollection_SendExtendedEvent;
-    [Test]
     procedure TestCollection_SendQuery;
-    [Test]
     procedure TestCollection_AddSubscription;
-    [Test]
     procedure TestCollection_FreePublisher;
   end;
 
@@ -68,7 +55,7 @@ uses
 
 { TTestBoldSubscribableCollection }
 
-procedure TTestBoldSubscribableCollection.Setup;
+procedure TTestBoldSubscribableCollection.SetUp;
 begin
   FReceiveCallCount := 0;
   FExtendedCallCount := 0;
@@ -373,6 +360,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSubscribableCollection);
+  BoldRegisterTest(TTestBoldSubscribableCollection);
 
 end.

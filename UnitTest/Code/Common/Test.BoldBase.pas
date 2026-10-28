@@ -3,7 +3,7 @@ unit Test.BoldBase;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldBase;
 
 type
@@ -18,35 +18,25 @@ type
     property TestContextObject: TObject read FContextObj write FContextObj;
   end;
 
-  [TestFixture]
-  TTestBoldBase = class
-  public
+  TTestBoldBase = class(TBoldTestCase)
+  published
     // TBoldMemoryManagedObject tests
-    [Test]
     procedure TestGetDebugInfo_Default;
-    [Test]
     procedure TestGetDebugInfo_WithContextObject;
-    [Test]
     procedure TestContextObject_Default;
 
     // TBoldInterfacedObject tests
-    [Test]
     procedure TestSupportsInterface_IInterface;
-    [Test]
     procedure TestSupportsInterface_UnknownInterface;
 
     // TBoldRefCountedObject tests
-    [Test]
     procedure TestRefCountedObject_RefCounting;
 
     // TBoldNonRefCountedObject tests
-    [Test]
     procedure TestNonRefCountedObject_NoRefCounting;
 
     // TBoldFlaggedObject tests
-    [Test]
     procedure TestFlaggedObject_SetGetFlag;
-    [Test]
     procedure TestFlaggedObject_InternalState;
   end;
 
@@ -268,6 +258,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldBase);
+  BoldRegisterTest(TTestBoldBase);
 
 end.

@@ -3,24 +3,17 @@ unit Test.BoldUMLTaggedValues;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldUMLTaggedValues;
 
 type
-  [TestFixture]
-  TTestBoldUMLTaggedValues = class
-  public
-    [Test]
+  TTestBoldUMLTaggedValues = class(TBoldTestCase)
+  published
     procedure TestUMLTaggedValueListReturnsInstance;
-    [Test]
     procedure TestUMLTaggedValueListReturnsSameInstance;
-    [Test]
     procedure TestClassTaggedValues;
-    [Test]
     procedure TestAssociationTaggedValues;
-    [Test]
     procedure TestAttributeTaggedValues;
-    [Test]
     procedure TestConstants;
   end;
 
@@ -90,6 +83,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldUMLTaggedValues);
+  BoldRegisterTest(TTestBoldUMLTaggedValues);
 
 end.

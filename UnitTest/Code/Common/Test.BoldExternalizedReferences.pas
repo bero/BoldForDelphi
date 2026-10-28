@@ -3,39 +3,26 @@ unit Test.BoldExternalizedReferences;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldExternalizedReferences;
 
 type
-  [TestFixture]
-  TTestBoldExternalizedReferences = class
+  TTestBoldExternalizedReferences = class(TBoldTestCase)
   private
     FList: TBoldExternalizedReferenceList;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestCreate;
-    [Test]
     procedure TestCountEmpty;
-    [Test]
     procedure TestSetAndGetReferencedObject;
-    [Test]
     procedure TestGetReferencedObject_NotFound;
-    [Test]
     procedure TestCountAfterAdd;
-    [Test]
     procedure TestSetReferencedObject_Replace;
-    [Test]
     procedure TestSetReferencedObject_RemoveWithNil;
-    [Test]
     procedure TestManageReferencedObjectProperty;
-    [Test]
     procedure TestSetReferencedObject_SameValueNoOp;
-    [Test]
     procedure TestMultipleReferees;
   end;
 
@@ -47,7 +34,7 @@ uses
 
 { TTestBoldExternalizedReferences }
 
-procedure TTestBoldExternalizedReferences.Setup;
+procedure TTestBoldExternalizedReferences.SetUp;
 begin
   FList := TBoldExternalizedReferenceList.Create;
 end;
@@ -219,6 +206,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldExternalizedReferences);
+  BoldRegisterTest(TTestBoldExternalizedReferences);
 
 end.

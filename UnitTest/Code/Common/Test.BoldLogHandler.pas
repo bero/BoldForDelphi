@@ -3,70 +3,47 @@
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
-  [TestFixture]
-  TTestBoldLogHandler = class
-  public
+  TTestBoldLogHandler = class(TBoldTestCase)
+  published
     // Create and basics
-    [Test]
     procedure TestLog;
-    [Test]
     procedure TestLogFmt;
 
     // Indent / Dedent
-    [Test]
     procedure TestIndentDedent;
-    [Test]
     procedure TestDedentFloor;
-    [Test]
     procedure TestLogIndent;
-    [Test]
     procedure TestLogDedent;
-    [Test]
     procedure TestLogFmtDedent;
 
     // Separator deduplication
-    [Test]
     procedure TestSeparator;
-    [Test]
     procedure TestSeparatorDedup;
 
     // Clear / Show / Hide / Sync
-    [Test]
     procedure TestClear;
-    [Test]
     procedure TestShow;
-    [Test]
     procedure TestHide;
-    [Test]
     procedure TestSync;
 
     // StartLog / EndLog
-    [Test]
     procedure TestStartLogEndLog;
 
     // Progress
-    [Test]
     procedure TestProgressStep;
-    [Test]
     procedure TestProgressMax;
-    [Test]
     procedure TestSetProgress;
-    [Test]
     procedure TestSetLogHeader;
 
     // Interrupt
-    [Test]
     procedure TestProcessInterruption_NotInterrupted;
-    [Test]
     procedure TestInterruptProcess;
-    [Test]
     procedure TestProcessInterruption_HandledOnce;
 
     // RegisterLogReceiver / UnregisterLogReceiver
-    [Test]
     procedure TestRegisterAndUnregisterLogReceiver;
   end;
 
@@ -549,6 +526,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldLogHandler);
+  BoldRegisterTest(TTestBoldLogHandler);
 
 end.

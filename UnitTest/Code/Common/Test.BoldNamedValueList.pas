@@ -3,60 +3,39 @@ unit Test.BoldNamedValueList;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldNamedValueList;
 
 type
-  [TestFixture]
-  TTestBoldNamedValueList = class
+  TTestBoldNamedValueList = class(TBoldTestCase)
   private
     FList: TBoldNamedValueList;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // TBoldNamedValueListEntry tests
-    [Test]
     procedure TestEntryCreate;
-    [Test]
     procedure TestEntryValueModification;
-    [Test]
     procedure TestEntryObjectModification;
 
     // TBoldNamedValueList basic tests
-    [Test]
     procedure TestListCreate;
-    [Test]
     procedure TestAddEntry;
-    [Test]
     procedure TestAddEntryWithObject;
-    [Test]
     procedure TestItemByName;
-    [Test]
     procedure TestValueByName;
-    [Test]
     procedure TestSetValueByName_Existing;
-    [Test]
     procedure TestSetValueByName_New;
 
     // Uncovered method tests
-    [Test]
     procedure TestAddFromStrings;
-    [Test]
     procedure TestAddFromStrings_WithObjects;
-    [Test]
     procedure TestGetCommaText;
-    [Test]
     procedure TestSetCommaText;
-    [Test]
     procedure TestRemoveName_Existing;
-    [Test]
     procedure TestRemoveName_NonExisting;
-    [Test]
     procedure TestSetObjectByName_Existing;
-    [Test]
     procedure TestSetObjectByName_New;
   end;
 
@@ -68,7 +47,7 @@ uses
 
 { TTestBoldNamedValueList }
 
-procedure TTestBoldNamedValueList.Setup;
+procedure TTestBoldNamedValueList.SetUp;
 begin
   FList := TBoldNamedValueList.Create;
 end;
@@ -348,6 +327,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldNamedValueList);
+  BoldRegisterTest(TTestBoldNamedValueList);
 
 end.

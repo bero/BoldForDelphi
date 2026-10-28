@@ -3,15 +3,15 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDefaultTaggedValues;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldDefaultTaggedValues = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldDefaultTaggedValues = class(TBoldTestCase)
+  published
     procedure TestTVIsFalse;
   end;
 
@@ -28,6 +28,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldDefaultTaggedValues);
+  BoldRegisterTest(TTestBoldDefaultTaggedValues);
 
 end.

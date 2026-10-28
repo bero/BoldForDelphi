@@ -3,28 +3,19 @@ unit Test.BoldStubs;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldStubs;
 
 type
-  [TestFixture]
-  TTestBoldStubs = class
-  public
-    [Test]
+  TTestBoldStubs = class(TBoldTestCase)
+  published
     procedure TestTraceLogAssigned;
-    [Test]
     procedure TestTraceLogReturnsInstance;
-    [Test]
     procedure TestTraceLogReturnsSameInstance;
-    [Test]
     procedure TestTraceLogSystemMessage;
-    [Test]
     procedure TestTraceLogSystemMessageWithFormat;
-    [Test]
     procedure TestTraceLogLogFileDir;
-    [Test]
     procedure TestInSpanFetch_ReturnsFalse;
-    [Test]
     procedure TestPrefetchDerivedMember_DoesNotRaise;
   end;
 
@@ -95,6 +86,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldStubs);
+  BoldRegisterTest(TTestBoldStubs);
 
 end.

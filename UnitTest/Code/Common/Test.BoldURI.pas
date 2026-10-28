@@ -3,36 +3,28 @@
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
   /// <summary>
   /// Test fixture for BoldURI - URI and resource name conversion functions
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldURI = class
-  public
+  {$ENDIF}
+  TTestBoldURI = class(TBoldTestCase)
+  published
     // ResourceNameToModelName tests - converts plural resource names to singular model names
-    [Test]
     procedure TestResourceNameToModelName_RemovesS;
-    [Test]
     procedure TestResourceNameToModelName_RemovesSES;
-    [Test]
     procedure TestResourceNameToModelName_ConvertIEStoY;
-    [Test]
     procedure TestResourceNameToModelName_ShortName;
-    [Test]
     procedure TestResourceNameToModelName_NoChange;
 
     // ModelNameToResourceName tests - converts singular model names to plural resource names
-    [Test]
     procedure TestModelNameToResourceName_AddsS;
-    [Test]
     procedure TestModelNameToResourceName_AddsES;
-    [Test]
     procedure TestModelNameToResourceName_ConvertYtoIES;
-    [Test]
     procedure TestModelNameToResourceName_EmptyString;
   end;
 
@@ -117,6 +109,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldURI);
+  BoldRegisterTest(TTestBoldURI);
 
 end.

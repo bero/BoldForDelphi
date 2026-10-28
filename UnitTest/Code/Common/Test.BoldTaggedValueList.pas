@@ -3,45 +3,30 @@ unit Test.BoldTaggedValueList;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldTaggedValueList;
 
 type
-  [TestFixture]
-  TTestBoldTaggedValueList = class
-  public
+  TTestBoldTaggedValueList = class(TBoldTestCase)
+  published
     // TBoldTaggedValueDefinition tests
-    [Test]
     procedure TestTaggedValueDefinitionCreate;
-    [Test]
     procedure TestTaggedValueDefinitionProperties;
 
     // TBoldTaggedValueList tests
-    [Test]
     procedure TestTaggedValueListCreate;
-    [Test]
     procedure TestTaggedValueListAdd;
-    [Test]
     procedure TestTaggedValueListCount;
-    [Test]
     procedure TestTaggedValueListDefinition;
-    [Test]
     procedure TestTaggedValueListDefaultValueForTag;
-    [Test]
     procedure TestTaggedValueListDefaultValueForTag_NotFound;
-    [Test]
     procedure TestTaggedValueListDefinitionForTag;
-    [Test]
     procedure TestTaggedValueListDefinitionForTag_NotFound;
 
     // TBoldTaggedValuePerClassList tests
-    [Test]
     procedure TestPerClassListCreate;
-    [Test]
     procedure TestPerClassListListForClassName_New;
-    [Test]
     procedure TestPerClassListListForClassName_Existing;
-    [Test]
     procedure TestPerClassListDefaultForClassAndTag;
   end;
 
@@ -252,6 +237,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldTaggedValueList);
+  BoldRegisterTest(TTestBoldTaggedValueList);
 
 end.

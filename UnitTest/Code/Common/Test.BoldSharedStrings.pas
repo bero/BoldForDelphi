@@ -3,31 +3,21 @@ unit Test.BoldSharedStrings;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSharedStrings;
 
 type
-  [TestFixture]
-  TTestBoldSharedStrings = class
-  public
+  TTestBoldSharedStrings = class(TBoldTestCase)
+  published
     // TBoldSharedStringManager tests
-    [Test]
     procedure TestBoldSharedStringManagerSingleton;
-    [Test]
     procedure TestGetSharedString_EmptyString;
-    [Test]
     procedure TestGetSharedString_NonEmpty;
-    [Test]
     procedure TestGetSharedString_SameStringReturned;
-    [Test]
     procedure TestGetSharedAnsiString_EmptyString;
-    [Test]
     procedure TestGetSharedAnsiString_NonEmpty;
-    [Test]
     procedure TestGarbageCollect;
-    [Test]
     procedure TestSavedMemory;
-    [Test]
     procedure TestInfoString;
   end;
 
@@ -122,6 +112,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSharedStrings);
+  BoldRegisterTest(TTestBoldSharedStrings);
 
 end.
