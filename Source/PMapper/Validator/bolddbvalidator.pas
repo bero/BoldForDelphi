@@ -116,7 +116,7 @@ uses
   BoldDefs,
   BoldCoreConsts,
   BoldEnvironment,
-  ActiveX;
+  BoldPlatform;
 
 { TBoldDbValidator }
 
@@ -141,20 +141,23 @@ begin
 end;
 
 procedure TBoldDbValidator.DoOnComplete;
+var
+  i: Integer;
+  ErrorLines: TStringList;
 begin
   if Remedy.Count <> 0 then
   begin
     BoldLog.Separator;
     BoldLog.Log(sFoundInconsistencies, ltWarning);
-    for var i := 0 to Remedy.Count - 1 do
+    for i := 0 to Remedy.Count - 1 do
       BoldLog.Log(Remedy[i], ltDetail);
     BoldLog.Separator;
   end;
-  var ErrorLines := Errors;
+  ErrorLines := Errors;
   if ErrorLines.Count <> 0 then
   begin
     BoldLog.Separator;
-    for var i := 0 to ErrorLines.Count - 1 do
+    for i := 0 to ErrorLines.Count - 1 do
       BoldLog.Log(ErrorLines[i], ltError);
     BoldLog.Separator;
     BoldLog.LogFmt(sDBValidationIncomplete, [ErrorLines.Count], ltError);
@@ -204,13 +207,15 @@ begin
 end;
 
 function TBoldDbValidator.GetErrors: TStringList;
+var
+  i: Integer;
 begin
   result := fErrorStrings;
   fErrorStrings.BeginUpdate;
   TMonitor.Enter(fErrorList);
   try
     fErrorStrings.Clear;
-    for var i := 0 to fErrorList.Count-1 do
+    for i := 0 to fErrorList.Count-1 do
       fErrorStrings.Add(fErrorList[i]);
   finally
     TMonitor.Exit(fErrorList);
@@ -230,13 +235,15 @@ begin
 end;
 
 function TBoldDbValidator.GetRemedy: TStringList;
+var
+  i: Integer;
 begin
   result := fRemedyStrings;
   fRemedyStrings.BeginUpdate;
   TMonitor.Enter(fRemedyList);  // Remedy may be read while worker threads add
   try
     fRemedyStrings.Clear;
-    for var i := 0 to fRemedyList.Count-1 do
+    for i := 0 to fRemedyList.Count-1 do
       fRemedyStrings.Add(fRemedyList[i]);
   finally
     TMonitor.Exit(fRemedyList);
@@ -466,15 +473,18 @@ begin
 end;
 
 procedure TBoldDbValidator.Validate;
+var
+  i: Integer;
+  Thread: TBoldDbValidatorThread;
 begin
   fStartTime := now;
   BoldLog.LogHeader := 'Validating...';
   BoldLog.ProgressMax := TableQueue.Count;
   // Start a thread only once it is fully constructed and listed - Execute
   // asserts the listing when it ends.
-  for var i := 0 to ThreadCount-1 do
+  for i := 0 to ThreadCount-1 do
   begin
-    var Thread := CreateValidatorThread;
+    Thread := CreateValidatorThread;
     ThreadList.Add(Thread);
     Thread.Start;
   end;
@@ -531,9 +541,12 @@ begin
 end;
 
 procedure TBoldDbValidatorThread.Execute;
+var
+  List: TList;
+  Count: Integer;
 begin
   NameThreadForDebugging(ClassName);
-  CoInitialize(nil);
+  BoldCoInitialize;
   try
     try
       try
@@ -555,9 +568,8 @@ begin
         AddError(Format('%s: %s', [E.ClassName, E.Message]));
     end;
   finally
-    CoUninitialize;
-    var List := Validator.ThreadList.LockList;
-    var Count: integer;
+    BoldCoUninitialize;
+    List := Validator.ThreadList.LockList;
     try
       Assert(List.IndexOf(self) >-1);
       List.Remove(self);

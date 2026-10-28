@@ -25,12 +25,17 @@ function BoldLoginName: string;
 // Locale-aware comparison of the first n characters of s1 and s2 (<0, 0, >0),
 // case-insensitive unless CaseSensitive. Used for string attribute comparison.
 function BoldUnicodeCompareLen(CaseSensitive: Boolean; s1, s2: string; n: Integer): Integer;
+// COM initialisation for a thread that uses COM-based drivers (ADO, MSXML).
+// No-ops off Windows.
+procedure BoldCoInitialize;
+procedure BoldCoUninitialize;
 
 implementation
 
 uses
 {$IFDEF MSWINDOWS}
   Windows,
+  ActiveX,
 {$ELSE}
   Classes,
 {$ENDIF}
@@ -182,6 +187,26 @@ begin
     Result := SysUtils.UnicodeCompareStr(Copy(s1, 1, n), Copy(s2, 1, n))
   else
     Result := SysUtils.UnicodeCompareText(Copy(s1, 1, n), Copy(s2, 1, n));
+end;
+{$ENDIF}
+
+{$IFDEF MSWINDOWS}
+procedure BoldCoInitialize;
+begin
+  CoInitialize(nil);
+end;
+
+procedure BoldCoUninitialize;
+begin
+  CoUninitialize;
+end;
+{$ELSE}
+procedure BoldCoInitialize;
+begin
+end;
+
+procedure BoldCoUninitialize;
+begin
 end;
 {$ENDIF}
 

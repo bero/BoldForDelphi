@@ -56,19 +56,19 @@ uses
   BoldSQlMappingInfo,
   BoldPMappersDefault,
   BoldPMappersSQL,
-  BoldPMappers,
-  ActiveX;
+  BoldPMappers;
 
 { TBoldDbStructureValidator }
 
 procedure TBoldDbStructureValidatorThread.Validate;
 var
   Table: TBoldSQLTableDescription;
+  vObject: TObject;
 begin
   fCurrentTable := Database.GetTable;
   try
     repeat
-      var vObject := Validator.TableQueue.Dequeue;
+      vObject := Validator.TableQueue.Dequeue;
       if not Assigned(vObject) then
         break;
       Assert(vObject is TBoldSQLTableDescription, vObject.Classname);
@@ -93,8 +93,10 @@ begin
 end;
 
 procedure TBoldDbStructureValidatorThread.ValidateColumnsForTable(BoldSQLTableDescription: TBoldSQLTableDescription);
+var
+  ColumnDescription: TBoldSQLDescriptionElement;
 begin
-  for var ColumnDescription in BoldSQLTableDescription.ColumnsList do
+  for ColumnDescription in BoldSQLTableDescription.ColumnsList do
     ValidateColumn(ColumnDescription as TBoldSQlColumnDescription);
 end;
 
@@ -238,8 +240,10 @@ end;
 
 procedure TBoldDbStructureValidatorThread.ValidateIndicesForTable(
   BoldSQLTableDescription: TBoldSQLTableDescription);
+var
+  LIndexDescription: TObject;
 begin
-  for var LIndexDescription in BoldSQLTableDescription.IndexList do
+  for LIndexDescription in BoldSQLTableDescription.IndexList do
     ValidateIndex(LIndexDescription as TBoldSQLIndexDescription);
 end;
 
