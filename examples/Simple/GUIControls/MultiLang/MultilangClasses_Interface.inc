@@ -30,7 +30,6 @@ uses
   MLTestVSAttributes,
   // other
   Classes,
-  Controls, // for TDate
   SysUtils,
   BoldDefs,
   BoldSubscription,

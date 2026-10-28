@@ -24,7 +24,6 @@ uses
   {InterfaceDependancies}
   BoldAttributes,{Attribute classes}
   Classes,
-  Controls, // for TDate
   SysUtils,
   BoldDefs,
   BoldSubscription,
