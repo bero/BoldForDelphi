@@ -104,6 +104,9 @@ type
   {$M-}
 
   Assert = DUnitX.TestFramework.Assert;
+  // Re-exported so that [Category(...)] in a test unit that uses only this unit resolves;
+  // Delphi silently drops an attribute it cannot resolve (W1074).
+  CategoryAttribute = DUnitX.TestFramework.CategoryAttribute;
 {$ENDIF}
 
   TBoldTestCaseClass = class of TBoldTestCase;
