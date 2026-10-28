@@ -3,7 +3,7 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldId,
   BoldDbInterfaces,
   BoldAbstractObjectUpgrader,
@@ -28,37 +28,28 @@ type
   /// <summary>
   /// Test fixture for BoldAbstractObjectUpgraderHandle - Object upgrader handle component
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Persistence')]
-  TTestBoldAbstractObjectUpgraderHandle = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldAbstractObjectUpgraderHandle = class(TBoldTestCase)
+  published
     procedure TestHandleCreate;
-    [Test]
     procedure TestHandleDestroy;
-    [Test]
     procedure TestGetConfig_LazyInitialization;
-    [Test]
     procedure TestGetConfig_ReturnsSameInstance;
-    [Test]
     procedure TestConfigClass_ReturnsDefault;
-    [Test]
     procedure TestGetObjectUpgrader_LazyInitialization;
-    [Test]
     procedure TestGetObjectUpgrader_ReturnsSameInstance;
-    [Test]
     procedure TestGetHandledObject_ReturnsObjectUpgrader;
-    [Test]
     procedure TestSetConfig_CopiesItems;
-    [Test]
     procedure TestSetConfig_ClearsExisting;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
-  System.Classes;
+  SysUtils,
+  Classes;
 
 { TTestObjectUpgrader }
 
@@ -269,6 +260,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldAbstractObjectUpgraderHandle);
+  BoldRegisterTest(TTestBoldAbstractObjectUpgraderHandle);
 
 end.

@@ -3,15 +3,14 @@ unit Test.BoldSortedHandle;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSortedHandle,
   BoldSubscription,
   BoldSystem,
   BoldElements;
 
 type
-  [TestFixture]
-  TTestBoldSortedHandle = class
+  TTestBoldSortedHandle = class(TBoldTestCase)
   private
     FComparer: TBoldComparer;
     FHandle: TBoldSortedHandle;
@@ -23,38 +22,24 @@ type
     procedure HandleSubscribe(Element: TBoldElement; Subscriber: TBoldSubscriber);
     procedure HandlePrepareSort(List: TBoldList);
     procedure HandleFinishSort(List: TBoldList);
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // TBoldComparer tests
-    [Test]
     procedure TestComparerCreate;
-    [Test]
     procedure TestComparerCompare_NoHandler_ReturnsZero;
-    [Test]
     procedure TestComparerCompare_WithHandler;
-    [Test]
     procedure TestComparerSubscribe_NoHandler;
-    [Test]
     procedure TestComparerSubscribe_WithHandler;
-    [Test]
     procedure TestComparerPrepareSort_NoHandler;
-    [Test]
     procedure TestComparerPrepareSort_WithHandler;
-    [Test]
     procedure TestComparerFinishSort_NoHandler;
-    [Test]
     procedure TestComparerFinishSort_WithHandler;
 
     // TBoldSortedHandle tests
-    [Test]
     procedure TestSortedHandleCreate;
-    [Test]
     procedure TestSortedHandleSetBoldComparer;
-    [Test]
     procedure TestSortedHandleSetBoldComparerSameValue;
   end;
 
@@ -65,7 +50,7 @@ uses
 
 { TTestBoldSortedHandle }
 
-procedure TTestBoldSortedHandle.Setup;
+procedure TTestBoldSortedHandle.SetUp;
 begin
   FComparer := TBoldComparer.Create(nil);
   FHandle := TBoldSortedHandle.Create(nil);
@@ -183,6 +168,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSortedHandle);
+  BoldRegisterTest(TTestBoldSortedHandle);
 
 end.

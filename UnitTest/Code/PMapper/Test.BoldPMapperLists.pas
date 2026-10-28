@@ -3,25 +3,20 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldPMapperLists;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('PMapper')]
-  TTestBoldPMapperLists = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldPMapperLists = class(TBoldTestCase)
+  published
     procedure TestMemberDescriptorsByIndex;
-    [Test]
     procedure TestSystemDescriptorsByIndex;
-    [Test]
     procedure TestObjectDescriptorsByIndex;
-    [Test]
     procedure TestMemberDescriptorCanStore;
-    [Test]
     procedure TestDescriptorForModelNameWithNonDefaultMapper;
-    [Test]
     procedure TestDescriptorForModelNameWithUnknownModelName;
   end;
 
@@ -133,6 +128,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldPMapperLists);
+  BoldRegisterTest(TTestBoldPMapperLists);
 
 end.

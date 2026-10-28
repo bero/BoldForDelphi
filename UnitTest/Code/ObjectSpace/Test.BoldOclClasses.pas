@@ -3,7 +3,7 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldElements,
   BoldOclClasses;
 
@@ -39,95 +39,53 @@ type
     function GetValueType: TBoldElementTypeInfo; override;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldOclClasses = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldOclClasses = class(TBoldTestCase)
+  published
     procedure TestNodeCreation_AllTypes;
-    [Test]
     procedure TestAcceptVisitor_BaseNode;
-    [Test]
     procedure TestAcceptVisitor_TypeNode;
-    [Test]
     procedure TestAcceptVisitor_ListCoercion;
-    [Test]
     procedure TestAcceptVisitor_CollectionLiteral;
-    [Test]
     procedure TestAcceptVisitor_Operation;
-    [Test]
     procedure TestAcceptVisitor_Iteration;
-    [Test]
     procedure TestAcceptVisitor_Member;
-    [Test]
     procedure TestAcceptVisitor_Method;
-    [Test]
     procedure TestAcceptVisitor_Literal;
-    [Test]
     procedure TestAcceptVisitor_StrLiteral;
-    [Test]
     procedure TestAcceptVisitor_NumericLiteral;
-    [Test]
     procedure TestAcceptVisitor_IntLiteral;
-    [Test]
     procedure TestAcceptVisitor_EnumLiteral;
-    [Test]
     procedure TestAcceptVisitor_MomentLiteral;
-    [Test]
     procedure TestAcceptVisitor_DateLiteral;
-    [Test]
     procedure TestAcceptVisitor_TimeLiteral;
-    [Test]
     procedure TestAcceptVisitor_VariableBinding;
-    [Test]
     procedure TestAcceptVisitor_VariableReference;
-    [Test]
     procedure TestDateLiteral_DateValue;
-    [Test]
     procedure TestTimeLiteral_TimeValue;
-    [Test]
     procedure TestEnvironment_PushPopBinding;
-    [Test]
     procedure TestEnvironment_ReplaceBinding;
-    [Test]
     procedure TestEnvironment_RemoveBinding;
-    [Test]
     procedure TestEnvironment_Find_InCurrentScope;
-    [Test]
     procedure TestEnvironment_Find_InOuterScope;
-    [Test]
     procedure TestEnvironment_Find_NotFound;
-    [Test]
     procedure TestEnvironment_Lookup_ExistingBinding;
-    [Test]
     procedure TestEnvironment_LookupSelf;
-    [Test]
     procedure TestEnvironment_BindingsAsCommaText;
-    [Test]
     procedure TestEnvironment_MakeGenSymName;
-    [Test]
     procedure TestCollectionLiteral_DestroyFreesChildren;
-    [Test]
     procedure TestMethod_DestroyFreesMethodOf;
-    [Test]
     procedure TestVisitorBaseStubs_AllCalled;
-    [Test]
     procedure TestEnvironment_ReplaceBinding_NonLastBinding;
-    [Test]
     procedure TestVariableBindingExternal_CreateDestroy;
-    [Test]
     procedure TestVariableBindingExternal_GetBoldType_WithVariable;
-    [Test]
     procedure TestVariableBindingExternal_GetBoldType_WithoutVariable;
-    [Test]
     procedure TestEnvironment_Lookup_ExternalBinding_WithVariable;
-    [Test]
     procedure TestEnvironment_Lookup_ExternalBinding_WithoutVariable;
-    [Test]
     procedure TestVisitorBaseStub_VisitNode_Direct;
-    [Test]
     procedure TestEnvironment_RemoveVariable;
-    [Test]
     procedure TestEnvironment_RemoveVariable_SkipsNonMatching;
   end;
 
@@ -703,6 +661,7 @@ procedure TTestBoldOclClasses.TestEnvironment_ReplaceBinding;
 var
   Env: TBoldOclEnvironment;
   Original, Replacement: TBoldOclVariableBinding;
+  Found: TBoldOclVariableBinding;
 begin
   Env := TBoldOclEnvironment.Create(nil);
   try
@@ -719,7 +678,7 @@ begin
     Env.ReplaceBinding('X', Replacement);
     Assert.AreEqual(1, Env.Count, 'Count should stay 1 after replace');
 
-    var Found := Env.Find('X');
+    Found := Env.Find('X');
     Assert.AreSame(Replacement, Found, 'Find should return the replacement binding');
   finally
     Env.Free;
@@ -1211,6 +1170,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldOclClasses);
+  BoldRegisterTest(TTestBoldOclClasses);
 
 end.

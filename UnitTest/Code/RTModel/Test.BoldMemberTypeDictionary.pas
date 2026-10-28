@@ -3,15 +3,15 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldMemberTypeDictionary;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('RTModel')]
-  TTestBoldMemberTypeDictionary = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldMemberTypeDictionary = class(TBoldTestCase)
+  published
     procedure TestDescriptorsByIndex;
   end;
 
@@ -37,6 +37,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldMemberTypeDictionary);
+  BoldRegisterTest(TTestBoldMemberTypeDictionary);
 
 end.

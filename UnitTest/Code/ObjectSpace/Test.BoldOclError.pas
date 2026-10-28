@@ -3,44 +3,34 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldOclError;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldOclError = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldOclError = class(TBoldTestCase)
+  published
     procedure TestEBoldOclAbort_FixError_WithPosition;
-    [Test]
     procedure TestEBoldOclAbort_FixError_WithoutColon;
-    [Test]
     procedure TestEBoldOclAbort_FixError_InvalidNumber;
-    [Test]
     procedure TestEBoldOclAbort_FixError_AlreadyFixed;
-    [Test]
     procedure TestEBoldOclAbort_ErrorPointer;
 
-    [Test]
     procedure TestEBoldOclError_FixError_WithPosition;
-    [Test]
     procedure TestEBoldOclError_FixError_InvalidNumber;
-    [Test]
     procedure TestEBoldOclError_FixError_AlreadyFixed;
-    [Test]
     procedure TestEBoldOclError_ErrorPointer;
 
-    [Test]
     procedure TestEBoldOclInternalError_IsSubclass;
-    [Test]
     procedure TestEBoldOclRunTimeError_IsSubclass;
   end;
 
 implementation
 
 uses
-  System.SysUtils;
+  SysUtils;
 
 { TTestBoldOclError }
 
@@ -208,6 +198,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldOclError);
+  BoldRegisterTest(TTestBoldOclError);
 
 end.

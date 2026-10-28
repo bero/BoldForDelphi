@@ -3,7 +3,7 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldId,
   BoldDbInterfaces,
   BoldAbstractObjectUpgrader;
@@ -21,58 +21,41 @@ type
   /// <summary>
   /// Test fixture for BoldAbstractObjectUpgrader - Object upgrader configuration
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('PMapper')]
-  TTestBoldAbstractObjectUpgrader = class
-  public
+  {$ENDIF}
+  TTestBoldAbstractObjectUpgrader = class(TBoldTestCase)
+  published
     // TBoldObjectUpgraderConfigurationItem tests
-    [Test]
     procedure TestConfigItemCreate;
-    [Test]
     procedure TestConfigItemExpressionName;
-    [Test]
     procedure TestConfigItemUpgradeOlderThanVersion;
-    [Test]
     procedure TestConfigItemAssign;
-    [Test]
     procedure TestConfigItemGetDisplayName_Empty;
-    [Test]
     procedure TestConfigItemGetDisplayName_WithName;
-    [Test]
     procedure TestConfigItemGetConfig;
 
     // TBoldObjectUpgraderConfiguration tests
-    [Test]
     procedure TestConfigCreate;
-    [Test]
     procedure TestConfigAddItems;
-    [Test]
     procedure TestConfigGetItems;
-    [Test]
     procedure TestConfigItemByName;
-    [Test]
     procedure TestConfigItemByName_NotFound;
-    [Test]
     procedure TestConfigGetConfigOwner;
 
     // TBoldAbstractObjectUpgrader tests
-    [Test]
     procedure TestUpgraderCreate;
-    [Test]
     procedure TestNeedsManualUpdate_ItemNotFound;
-    [Test]
     procedure TestNeedsManualUpdate_VersionOlder;
-    [Test]
     procedure TestNeedsManualUpdate_VersionNewer;
-    [Test]
     procedure TestNeedsManualUpdate_VersionEqual;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
-  System.Classes;
+  SysUtils,
+  Classes;
 
 { TTestObjectUpgrader }
 
@@ -426,6 +409,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldAbstractObjectUpgrader);
+  BoldRegisterTest(TTestBoldAbstractObjectUpgrader);
 
 end.

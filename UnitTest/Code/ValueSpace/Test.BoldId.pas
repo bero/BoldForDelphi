@@ -3,168 +3,102 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldId,
   BoldDefs;
 
 type
-  [TestFixture]
-  TTestBoldId = class
-  public
+  TTestBoldId = class(TBoldTestCase)
+  published
     // TBoldMemberID tests
-    [Test]
     procedure TestMemberID_Create;
-    [Test]
     procedure TestMemberID_AsString;
-    [Test]
     procedure TestMemberID_StreamName;
-    [Test]
     procedure TestMemberID_Clone;
 
     // TBoldSubMemberID tests
-    [Test]
     procedure TestSubMemberID_Create;
-    [Test]
     procedure TestSubMemberID_Destroy_OwnsPartOf;
 
     // TBoldObjectId base tests
-    [Test]
     procedure TestObjectId_TopSortedIndex;
-    [Test]
     procedure TestObjectId_TopSortedIndexExact;
-    [Test]
     procedure TestObjectId_Clone;
-    [Test]
     procedure TestObjectId_GetNonExisting;
-    [Test]
     procedure TestObjectId_GetTimeStamp;
 
     // TBoldInternalObjectId tests
-    [Test]
     procedure TestInternalId_CreateWithClassID;
-    [Test]
     procedure TestInternalId_CreateWithClassIDandInternalId;
-    [Test]
     procedure TestInternalId_AsString;
-    [Test]
     procedure TestInternalId_Hash;
-    [Test]
     procedure TestInternalId_IsStorable;
-    [Test]
     procedure TestInternalId_StreamName;
-    [Test]
     procedure TestInternalId_IsEqual;
-    [Test]
     procedure TestInternalId_CloneWithClassId;
 
     // TBoldExternalObjectID tests
-    [Test]
     procedure TestExternalId_IsStorable;
 
     // TBoldNonExistingObjectId tests
-    [Test]
     procedure TestNonExistingId_AsString;
-    [Test]
     procedure TestNonExistingId_NonExisting;
-    [Test]
     procedure TestNonExistingId_IsStorable;
-    [Test]
     procedure TestNonExistingId_HashAndStreamName;
-    [Test]
     procedure TestNonExistingId_IsEqual;
-    [Test]
     procedure TestNonExistingId_CloneWithClassId;
 
     // TBoldIdList tests
-    [Test]
     procedure TestIdList_CommaSeparatedIdList_Empty;
-    [Test]
     procedure TestIdList_CommaSeparatedIdList_MultipleItems;
 
     // TBoldID base tests
-    [Test]
     procedure TestBoldID_GetDebugInfo;
 
     // TBoldObjectIdList tests
-    [Test]
     procedure TestObjectIdList_Create;
-    [Test]
     procedure TestObjectIdList_Add_ClonesId;
-    [Test]
     procedure TestObjectIdList_AddAndGetID;
-    [Test]
     procedure TestObjectIdList_AddIfNotInList;
-    [Test]
     procedure TestObjectIdList_AddList;
-    [Test]
     procedure TestObjectIdList_Insert;
-    [Test]
     procedure TestObjectIdList_Clone;
-    [Test]
     procedure TestObjectIdList_Remove;
-    [Test]
     procedure TestObjectIdList_ReplaceID;
-    [Test]
     procedure TestObjectIdList_FirstAndLast;
-    [Test]
     procedure TestObjectIdList_IdInList;
-    [Test]
     procedure TestObjectIdList_GetIDByID_LinearSearch;
-    [Test]
     procedure TestObjectIdList_GetIDByID_HashSearch;
-    [Test]
     procedure TestObjectIdList_GetIndexByID;
-    [Test]
     procedure TestObjectIdList_ContainsSameIDs;
-    [Test]
     procedure TestObjectIdList_HasInexactIds;
-    [Test]
     procedure TestObjectIdList_HasNonExistingIds;
-    [Test]
     procedure TestObjectIdList_RemoveNonExistingIds_KeepsExistingIds;
-    [Test]
     procedure TestObjectIdList_RemoveNonExistingIds_RemovesAdjacent;
-    [Test]
     procedure TestObjectIdList_RemoveNonExistingIds_RemovesAll;
-    [Test]
     procedure TestObjectIdList_StreamName;
 
     // TBoldMemberIdList tests
-    [Test]
     procedure TestMemberIdList_StreamName;
-    [Test]
     procedure TestMemberIdList_HasId;
-    [Test]
     procedure TestMemberIdList_IsEqual;
-    [Test]
     procedure TestMemberIdList_Clone;
 
     // TBoldIDTranslationList tests
-    [Test]
     procedure TestTranslationList_CreateAndDestroy;
-    [Test]
     procedure TestTranslationList_AddTranslation;
-    [Test]
     procedure TestTranslationList_AddTranslation_DedupOldId;
-    [Test]
     procedure TestTranslationList_AddTranslation_DedupNewId;
-    [Test]
     procedure TestTranslationList_AddTranslation_NilSkip;
-    [Test]
     procedure TestTranslationList_TranslateToNewAndOld;
-    [Test]
     procedure TestTranslationList_Capacity;
-    [Test]
     procedure TestTranslationList_StreamName;
 
     // ExactifyIds + ApplyTranslationList tests
-    [Test]
     procedure TestObjectIdList_ExactifyIds;
-    [Test]
     procedure TestObjectIdList_ApplyTranslationList;
 
     // EBoldOperationFailedForIdList tests
-    [Test]
     procedure TestOperationFailedForIdList_CreateAndDestroy;
   end;
 
@@ -219,7 +153,7 @@ begin
     Streamable := Id as IBoldStreamable;
     Assert.AreEqual(BOLDMEMBERIDNAME, Streamable.StreamName);
   finally
-    Id.Free;
+    FreeAfterTest(Id);
   end;
 end;
 
@@ -428,7 +362,7 @@ begin
     Streamable := Id as IBoldStreamable;
     Assert.AreEqual(BOLDINTERNALIDNAME, Streamable.StreamName);
   finally
-    Id.Free;
+    FreeAfterTest(Id);
   end;
 end;
 
@@ -539,7 +473,7 @@ begin
     Streamable := Id as IBoldStreamable;
     Assert.AreEqual('', Streamable.StreamName);
   finally
-    Id.Free;
+    FreeAfterTest(Id);
   end;
 end;
 
@@ -1138,7 +1072,7 @@ begin
   try
     Assert.AreEqual(BOLDOBJECTIDLISTNAME, (List as IBoldStreamable).StreamName);
   finally
-    List.Free;
+    FreeAfterTest(List);
   end;
 end;
 
@@ -1152,7 +1086,7 @@ begin
   try
     Assert.AreEqual(BOLDMEMBERIDLISTNAME, (List as IBoldStreamable).StreamName);
   finally
-    List.Free;
+    FreeAfterTest(List);
   end;
 end;
 
@@ -1404,7 +1338,7 @@ begin
   try
     Assert.AreEqual(BOLDIDTRANSLATIONLISTNAME, (TL as IBoldStreamable).StreamName);
   finally
-    TL.Free;
+    FreeAfterTest(TL);
   end;
 end;
 
@@ -1502,6 +1436,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldId);
+  BoldRegisterTest(TTestBoldId);
 
 end.

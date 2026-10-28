@@ -3,7 +3,7 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldFreeStandingValues,
   BoldId,
   BoldValueInterfaces;
@@ -16,495 +16,304 @@ type
   end;
 
   { Tests for TBoldFreeStandingValueSpace and TBoldFreeStandingObjectContents }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('FreeStandingValues')]
-  TTestBoldFreeStandingValueSpace = class
-  public
+  {$ENDIF}
+  TTestBoldFreeStandingValueSpace = class(TBoldTestCase)
+  private
+    function HasValueAt(OC: TBoldFreeStandingObjectContents; Index: Integer): Boolean;
+  published
     // TBoldFreeStandingValueSpace tests
-    [Test]
     procedure TestValueSpaceCreate;
-    [Test]
     procedure TestValueSpaceIsEmptyInitially;
-    [Test]
     procedure TestValueSpaceIdCountZeroInitially;
-    [Test]
     procedure TestValueSpaceEnsureObjectContents;
-    [Test]
     procedure TestValueSpaceGetHasContentsForId;
-    [Test]
     procedure TestValueSpaceGetFSObjectContentsByObjectId;
-    [Test]
     procedure TestValueSpaceRemoveFSObjectContents;
-    [Test]
     procedure TestValueSpaceAllObjectIds;
-    [Test]
     procedure TestValueSpaceClear;
-    [Test]
     procedure TestValueSpaceGetAnyObjectId;
-    [Test]
     procedure TestValueSpaceContentType;
 
     // TBoldFreeStandingObjectContents tests
-    [Test]
     procedure TestObjectContentsCreate;
-    [Test]
     procedure TestObjectContentsIsEmptyInitially;
-    [Test]
     procedure TestObjectContentsMemberCountZero;
-    [Test]
     procedure TestObjectContentsEnsureMemberAndGetValueByIndex;
-    [Test]
     procedure TestObjectContentsGetValueByIndex;
-    [Test]
     procedure TestObjectContentsExistenceState;
-    [Test]
     procedure TestObjectContentsPersistenceState;
-    [Test]
     procedure TestObjectContentsTimeStamp;
-    [Test]
     procedure TestObjectContentsMarkAllMembersCurrent;
-    [Test]
     procedure TestObjectContentsRemoveMemberByIndex;
   end;
 
   { Tests for nullable value types (TBFSInteger, TBFSString, etc.) }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('FreeStandingValues')]
-  TTestBoldFreeStandingNullableValues = class
-  public
+  {$ENDIF}
+  TTestBoldFreeStandingNullableValues = class(TBoldTestCase)
+  published
     // TBFSInteger tests
-    [Test]
     procedure TestIntegerCreate;
-    [Test]
     procedure TestIntegerSetAndGet;
-    [Test]
     procedure TestIntegerIsNullInitially;
-    [Test]
     procedure TestIntegerSetToNonNull;
-    [Test]
     procedure TestIntegerContentType;
-    [Test]
     procedure TestIntegerIsEqualToValue;
-    [Test]
     procedure TestIntegerAssignContent;
 
     // TBFSString tests
-    [Test]
     procedure TestStringCreate;
-    [Test]
     procedure TestStringSetAndGet;
-    [Test]
     procedure TestStringIsNullInitially;
-    [Test]
     procedure TestStringContentType;
-    [Test]
     procedure TestStringIsEqualToValue;
-    [Test]
     procedure TestStringAssignContent;
 
     // TBFSFloat tests
-    [Test]
     procedure TestFloatCreate;
-    [Test]
     procedure TestFloatSetAndGet;
-    [Test]
     procedure TestFloatContentType;
-    [Test]
     procedure TestFloatIsEqualToValue;
 
     // TBFSCurrency tests
-    [Test]
     procedure TestCurrencyCreate;
-    [Test]
     procedure TestCurrencySetAndGet;
-    [Test]
     procedure TestCurrencyContentType;
 
     // TBFSBoolean tests
-    [Test]
     procedure TestBooleanCreate;
-    [Test]
     procedure TestBooleanSetAndGet;
-    [Test]
     procedure TestBooleanContentType;
 
     // TBFSDateTime tests
-    [Test]
     procedure TestDateTimeCreate;
-    [Test]
     procedure TestDateTimeSetAndGet;
-    [Test]
     procedure TestDateTimeContentType;
 
     // TBFSDate tests
-    [Test]
     procedure TestDateCreate;
-    [Test]
     procedure TestDateSetAndGet;
-    [Test]
     procedure TestDateContentType;
 
     // TBFSTime tests
-    [Test]
     procedure TestTimeCreate;
-    [Test]
     procedure TestTimeSetAndGet;
-    [Test]
     procedure TestTimeContentType;
 
     // TBFSBlob tests
-    [Test]
     procedure TestBlobCreate;
-    [Test]
     procedure TestBlobSetAndGet;
-    [Test]
     procedure TestBlobContentType;
 
     // TBFSTypedBlob tests
-    [Test]
     procedure TestTypedBlobCreate;
-    [Test]
     procedure TestTypedBlobContentTypeProperty;
-    [Test]
     procedure TestTypedBlobContentType;
 
     // TBFSAnsiString tests
-    [Test]
     procedure TestAnsiStringSetAndGet;
-    [Test]
     procedure TestAnsiStringContentType;
-    [Test]
     procedure TestAnsiStringAssignContent;
-    [Test]
     procedure TestAnsiStringIsEqualToValue;
-    [Test]
     procedure TestAnsiStringGetContentAsString;
 
     // TBFSUnicodeString tests
-    [Test]
     procedure TestUnicodeStringSetAndGet;
-    [Test]
     procedure TestUnicodeStringContentType;
-    [Test]
     procedure TestUnicodeStringAssignContent;
-    [Test]
     procedure TestUnicodeStringIsEqualToValue;
 
     // AssignContent tests for remaining types
-    [Test]
     procedure TestCurrencyAssignContent;
-    [Test]
     procedure TestCurrencyIsEqualToValue;
-    [Test]
     procedure TestFloatAssignContent;
-    [Test]
     procedure TestBooleanAssignContent;
-    [Test]
     procedure TestBooleanIsEqualToValue;
-    [Test]
     procedure TestDateTimeAssignContent;
-    [Test]
     procedure TestDateTimeIsEqualToValue;
-    [Test]
     procedure TestDateAssignContent;
-    [Test]
     procedure TestDateIsEqualToValue;
-    [Test]
     procedure TestTimeAssignContent;
-    [Test]
     procedure TestTimeIsEqualToValue;
-    [Test]
     procedure TestBlobAssignContent;
-    [Test]
     procedure TestBlobIsEqualToValue;
-    [Test]
     procedure TestTypedBlobAssignContent;
-    [Test]
     procedure TestTypedBlobIsEqualToValue;
 
     // GetStringRepresentation / GetAsVariant
-    [Test]
     procedure TestNullableGetStringRepresentationNull;
-    [Test]
     procedure TestNullableGetStringRepresentationNonNull;
-    [Test]
     procedure TestNullableGetAsVariantNull;
-    [Test]
     procedure TestNullableGetAsVariantNonNull;
 
     // GetStreamName tests via IBoldStreamable
-    [Test]
     procedure TestIntegerGetStreamName;
-    [Test]
     procedure TestStringGetStreamName;
-    [Test]
     procedure TestAnsiStringGetStreamName;
-    [Test]
     procedure TestUnicodeStringGetStreamName;
-    [Test]
     procedure TestCurrencyGetStreamName;
-    [Test]
     procedure TestFloatGetStreamName;
-    [Test]
     procedure TestBooleanGetStreamName;
-    [Test]
     procedure TestDateTimeGetStreamName;
-    [Test]
     procedure TestDateGetStreamName;
-    [Test]
     procedure TestTimeGetStreamName;
-    [Test]
     procedure TestBlobGetStreamName;
-    [Test]
     procedure TestTypedBlobGetStreamName;
 
     // GetValueAsVariant via IBoldVariantReadable
-    [Test]
     procedure TestStringGetValueAsVariant;
-    [Test]
     procedure TestCurrencyGetValueAsVariant;
-    [Test]
     procedure TestFloatGetValueAsVariant;
-    [Test]
     procedure TestBooleanGetValueAsVariant;
-    [Test]
     procedure TestDateTimeGetValueAsVariant;
-    [Test]
     procedure TestDateGetValueAsVariant;
-    [Test]
     procedure TestTimeGetValueAsVariant;
-    [Test]
     procedure TestBlobGetValueAsVariant;
-    [Test]
     procedure TestAnsiStringGetValueAsVariant;
-    [Test]
     procedure TestUnicodeStringGetValueAsVariant;
 
     // AssignContentValue null paths
-    [Test]
     procedure TestStringAssignContentNull;
-    [Test]
     procedure TestAnsiStringAssignContentNull;
-    [Test]
     procedure TestUnicodeStringAssignContentNull;
-    [Test]
     procedure TestIntegerAssignContentNull;
-    [Test]
     procedure TestCurrencyAssignContentNull;
-    [Test]
     procedure TestFloatAssignContentNull;
-    [Test]
     procedure TestBooleanAssignContentNull;
-    [Test]
     procedure TestDateTimeAssignContentNull;
-    [Test]
     procedure TestDateAssignContentNull;
-    [Test]
     procedure TestTimeAssignContentNull;
-    [Test]
     procedure TestBlobAssignContentNull;
-    [Test]
     procedure TestTypedBlobAssignContentNull;
 
     // ContentAsString on nullable base
-    [Test]
     procedure TestNullableBaseGetContentAsString;
   end;
 
   { Tests for TBFSObjectIdRef and list types }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('FreeStandingValues')]
-  TTestBoldFreeStandingIdRefs = class
-  public
+  {$ENDIF}
+  TTestBoldFreeStandingIdRefs = class(TBoldTestCase)
+  published
     // TBFSObjectIdRef tests
-    [Test]
     procedure TestObjectIdRefCreate;
-    [Test]
     procedure TestObjectIdRefSetFromId;
-    [Test]
     procedure TestObjectIdRefSetFromIdAdopt;
-    [Test]
     procedure TestObjectIdRefContentType;
-    [Test]
     procedure TestObjectIdRefGetStringRepresentation;
-    [Test]
     procedure TestObjectIdRefIsEqualToValue;
-    [Test]
     procedure TestObjectIdRefAssignContent;
 
     // TBFSObjectIdListRef tests
-    [Test]
     procedure TestObjectIdListRefCreate;
-    [Test]
     procedure TestObjectIdListRefCountZero;
-    [Test]
     procedure TestObjectIdListRefSetFromIdList;
-    [Test]
     procedure TestObjectIdListRefContentType;
-    [Test]
     procedure TestObjectIdListRefAddAndRemoveId;
 
     // TBFSObjectIdListRefPair tests
-    [Test]
     procedure TestObjectIdListRefPairCreate;
-    [Test]
     procedure TestObjectIdListRefPairSetFromIdLists;
-    [Test]
     procedure TestObjectIdListRefPairContentType;
-    [Test]
     procedure TestObjectIdListRefPairAddIds;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('FreeStandingValues')]
-  TTestBoldFSValueSpaceExtended = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldFSValueSpaceExtended = class(TBoldTestCase)
+  published
     procedure TestRemoveDeletedObjects;
-    [Test]
     procedure TestMarkAllObjectsAndMembersCurrent;
-    [Test]
     procedure TestRemoveAllObjectContents;
-    [Test]
     procedure TestClearWhenObjectContentsEmpty;
-    [Test]
     procedure TestClearWhenObjectContentsNotEmpty;
-    [Test]
     procedure TestGetValueForIdAndMemberIndex;
-    [Test]
     procedure TestGetValueForIdAndMemberIndexNotFound;
-    [Test]
     procedure TestAllObjectIdsOnlyLoaded;
-    [Test]
     procedure TestApplyValueSpace;
-    [Test]
     procedure TestRemoveFSObjectContentsDirect;
-    [Test]
     procedure TestGetEnsuredObjectContentsByObjectIdAndCheckIfCreated;
-    [Test]
     procedure TestAssertLinkIntegrity;
-    [Test]
     procedure TestUpdateOwnValuesFrom;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('FreeStandingValues')]
-  TTestBoldFSObjectContentsExtended = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldFSObjectContentsExtended = class(TBoldTestCase)
+  published
     procedure TestGetValueByMemberId;
-    [Test]
     procedure TestGetFSValueByIndex;
-    [Test]
     procedure TestGetFSValueByIndexOutOfRange;
-    [Test]
     procedure TestGetIsModified;
-    [Test]
     procedure TestIsReadOnly;
-    [Test]
     procedure TestGlobalId;
-    [Test]
     procedure TestObjectContentsContentType;
-    [Test]
     procedure TestGetStreamName;
-    [Test]
     procedure TestIsEmptyWithMembers;
-    [Test]
     procedure TestApplyObjectContentsIgnorePersistenceState;
-    [Test]
     procedure TestObjectIdRefApplyTranslationList; // tests SetFromId replace
-    [Test]
     procedure TestObjectIdListRefApplyTranslationList; // tests GetContentAsString
-    [Test]
     procedure TestObjectIdRefGetContentAsString;
-    [Test]
     procedure TestObjectIdRefGetStringRepresentationNil;
-    [Test]
     procedure TestObjectIdListRefGetStringRepresentation;
-    [Test]
     procedure TestObjectIdListRefSetList;
-    [Test]
     procedure TestObjectIdListRefPairGetIdLists;
-    [Test]
     procedure TestObjectIdListRefPairRemoveId;
-    [Test]
     procedure TestObjectIdListRefPairAssignContent;
-    [Test]
     procedure TestObjectIdListRefAssignContent;
-    [Test]
     procedure TestGetObjectId;
-    [Test]
     procedure TestUpdateObjectContentsFrom;
-    [Test]
     procedure TestObjectIdRefGetStreamName;
-    [Test]
     procedure TestObjectIdListRefGetStreamName;
-    [Test]
     procedure TestObjectIdListRefPairGetStreamName;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('FreeStandingValues')]
-  TTestBoldFreeStandingValues = class
-  public
+  {$ENDIF}
+  TTestBoldFreeStandingValues = class(TBoldTestCase)
+  published
     // Basic empty state tests
-    [Test]
     procedure TestObjectIdRefPairGetId1Empty;
-    [Test]
     procedure TestObjectIdRefPairGetId2Empty;
 
     // SetFromIds tests
-    [Test]
     procedure TestObjectIdRefPairGetId1WithOneId;
-    [Test]
     procedure TestObjectIdRefPairGetId1And2WithTwoIds;
-    [Test]
     procedure TestSetFromIdsVerifyActualIdValues;
-    [Test]
     procedure TestSetFromIdsClonesIds;
-    [Test]
     procedure TestSetFromIdsReplacesExistingIds;
-    [Test]
     procedure TestSetFromIdsWithBothNil;
 
     // OrderNo tests
-    [Test]
     procedure TestOrderNoDefaultValue;
-    [Test]
     procedure TestOrderNoSetAndGet;
 
     // ContentType and StreamName tests
-    [Test]
     procedure TestContentTypeReturnsObjectIdRefPair;
-    [Test]
     procedure TestGetStreamNameReturnsCorrectValue;
 
     // AssignContentValue tests
-    [Test]
     procedure TestAssignContentValueCopiesIds;
-    [Test]
     procedure TestAssignContentValueCopiesOrderNo;
-    [Test]
     procedure TestAssignContentValueWithNilIds;
 
     // ApplyTranslationList tests
-    [Test]
     procedure TestApplyTranslationListTranslatesIds;
-    [Test]
     procedure TestApplyTranslationListWithNoMatchingIds;
-    [Test]
     procedure TestApplyTranslationListWithNilIdList;
 
     // GetStringRepresentation and GetContentAsString tests (bug fix tests)
-    [Test]
     procedure TestGetStringRepresentationWithTwoIds;
-    [Test]
     procedure TestGetStringRepresentationWithOneId;
-    [Test]
     procedure TestGetStringRepresentationEmpty;
-    [Test]
     procedure TestGetContentAsString;
-    [Test]
     procedure TestIBoldStringRepresentableInterface;
   end;
 
@@ -769,7 +578,7 @@ begin
     Assert.IsNotNull(Value, 'EnsureMemberAndGetValueByIndex should create value');
     Assert.AreEqual(1, OC.MemberCount, 'MemberCount should be 1');
   finally
-    OC.Free;
+    FreeAfterTest(OC);
   end;
 end;
 
@@ -783,7 +592,7 @@ begin
     OC.EnsureMemberAndGetValueByIndex(0, 'String');
     Assert.IsNotNull(OC.ValueByIndex[0], 'ValueByIndex should return value after ensure');
   finally
-    OC.Free;
+    FreeAfterTest(OC);
   end;
 end;
 
@@ -844,8 +653,14 @@ begin
     OC.MarkAllMembersCurrent;
     Assert.AreEqual(Ord(bvpsCurrent), Ord(Value.BoldPersistenceState), 'Should be current after MarkAllMembersCurrent');
   finally
-    OC.Free;
+    FreeAfterTest(OC);
   end;
+end;
+
+function TTestBoldFreeStandingValueSpace.HasValueAt(OC: TBoldFreeStandingObjectContents;
+  Index: Integer): Boolean;
+begin
+  Result := Assigned(OC.ValueByIndex[Index]);
 end;
 
 procedure TTestBoldFreeStandingValueSpace.TestObjectContentsRemoveMemberByIndex;
@@ -855,11 +670,13 @@ begin
   OC := TBoldFreeStandingObjectContents.Create;
   try
     OC.EnsureMemberAndGetValueByIndex(0, 'String');
-    Assert.IsNotNull(OC.ValueByIndex[0], 'Value should exist');
+    // Checked through HasValueAt: its interface temporary is released before
+    // RemoveMemberByIndex frees the value.
+    Assert.IsTrue(HasValueAt(OC, 0), 'Value should exist');
     OC.RemoveMemberByIndex(0);
-    Assert.IsNull(OC.ValueByIndex[0], 'Value should be nil after remove');
+    Assert.IsFalse(HasValueAt(OC, 0), 'Value should be nil after remove');
   finally
-    OC.Free;
+    FreeAfterTest(OC);
   end;
 end;
 
@@ -905,7 +722,7 @@ begin
     // Note: Default is NOT null - fIsNull defaults to False (Delphi boolean default)
     Assert.IsFalse(Nullable.IsNull, 'Default is not null (fIsNull defaults to False)');
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -923,7 +740,7 @@ begin
     V.AsInteger := 0;
     Assert.IsFalse(Nullable.IsNull, 'Should not be null after setting value');
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -947,8 +764,8 @@ begin
     V2.AsInteger := 43;
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue), 'Different value integers should not be equal');
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -963,8 +780,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.AreEqual(99, V2.AsInteger, 'Assigned value should be 99');
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1006,7 +823,7 @@ begin
     // Note: Default is NOT null - fIsNull defaults to False (Delphi boolean default)
     Assert.IsFalse(Nullable.IsNull, 'Default is not null (fIsNull defaults to False)');
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -1028,8 +845,8 @@ begin
     V2.AsString := 'Different';
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue), 'Different strings should not be equal');
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1044,8 +861,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.AreEqual('Copied', V2.AsString, 'Assigned value should be Copied');
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1094,8 +911,8 @@ begin
     V2.AsFloat := 1.6;
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue), 'Different floats should not be equal');
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1118,7 +935,7 @@ begin
   V := TBFSCurrency.Create;
   try
     V.AsCurrency := 123.45;
-    Assert.AreEqual(123.45, Double(V.AsCurrency), 0.001, 'AsCurrency should be 123.45');
+    Assert.AreEqual(123.45, V.AsCurrency, 0.001, 'AsCurrency should be 123.45');
   finally
     V.Free;
   end;
@@ -1351,8 +1168,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.AreEqual(string(AnsiString('Test')), string(V2.AsAnsiString));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1369,8 +1186,8 @@ begin
     V2.AsAnsiString := AnsiString('Different');
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1385,7 +1202,7 @@ begin
     StrRep := V as IBoldStringRepresentable;
     Assert.AreEqual('TestStr', StrRep.AsString);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -1420,8 +1237,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.AreEqual('UniTest', string(V2.AsUnicodeString));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1438,8 +1255,8 @@ begin
     V2.AsUnicodeString := 'Different';
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1454,10 +1271,10 @@ begin
   try
     V1.AsCurrency := 99.99;
     V2.AssignContent(V1 as IBoldValue);
-    Assert.AreEqual(Double(99.99), Double(V2.AsCurrency), 0.001);
+    Assert.AreEqual(Double(99.99), V2.AsCurrency, 0.001);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1474,8 +1291,8 @@ begin
     V2.AsCurrency := 50.01;
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1490,8 +1307,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.AreEqual(3.14, V2.AsFloat, 0.001);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1506,8 +1323,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue(V2.AsBoolean);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1524,8 +1341,8 @@ begin
     V2.AsBoolean := False;
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1542,8 +1359,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.AreEqual(DT, V2.AsDateTime);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1562,8 +1379,8 @@ begin
     V2.AsDateTime := DT + 1;
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1580,8 +1397,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.AreEqual(D, V2.AsDate);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1600,8 +1417,8 @@ begin
     V2.AsDate := D + 1;
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1618,8 +1435,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.AreEqual(T, V2.AsTime);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1638,8 +1455,8 @@ begin
     V2.AsTime := EncodeTime(11, 0, 0, 0);
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1654,8 +1471,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.AreEqual(string(AnsiString('BlobData')), string(V2.AsBlob));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1672,8 +1489,8 @@ begin
     V2.AsBlob := AnsiString('Different');
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1690,8 +1507,8 @@ begin
     Assert.AreEqual(string(AnsiString('BlobContent')), string(V2.AsBlob));
     Assert.AreEqual('text/plain', V2.ContentTypeContent);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1710,8 +1527,8 @@ begin
     V2.ContentTypeContent := 'text/html';
     Assert.IsFalse(V1.IsEqualToValue(V2 as IBoldValue));
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1730,7 +1547,7 @@ begin
     StrRep := V as IBoldStringRepresentable;
     Assert.AreEqual('', StrRep.StringRepresentation[0]);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -1745,7 +1562,7 @@ begin
     StrRep := V as IBoldStringRepresentable;
     Assert.AreEqual('42', StrRep.StringRepresentation[0]);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -1760,7 +1577,7 @@ begin
     VarReadable := V as IBoldVariantReadable;
     Assert.IsTrue(VarIsNull(VarReadable.AsVariant));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -1775,7 +1592,7 @@ begin
     VarReadable := V as IBoldVariantReadable;
     Assert.AreEqual(99, Integer(VarReadable.AsVariant));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -1854,7 +1671,7 @@ begin
       ObjId.Free;
     end;
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -1875,8 +1692,8 @@ begin
       ObjId.Free;
     end;
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1898,8 +1715,8 @@ begin
       ObjId.Free;
     end;
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -1977,7 +1794,7 @@ begin
       ObjId.Free;
     end;
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2045,7 +1862,7 @@ begin
       ObjId2.Free;
     end;
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2291,7 +2108,7 @@ begin
     Assert.AreEqual('ObjectIdRefPair', Value.ContentName,
       'StreamName should be "ObjectIdRefPair"');
   finally
-    IdRefPair.Free;
+    FreeAfterTest(IdRefPair);
   end;
 end;
 
@@ -2318,8 +2135,8 @@ begin
       Id2.Free;
     end;
   finally
-    Source.Free;
-    Target.Free;
+    FreeAfterTest(Source);
+    FreeAfterTest(Target);
   end;
 end;
 
@@ -2344,8 +2161,8 @@ begin
       Id2.Free;
     end;
   finally
-    Source.Free;
-    Target.Free;
+    FreeAfterTest(Source);
+    FreeAfterTest(Target);
   end;
 end;
 
@@ -2362,8 +2179,8 @@ begin
     Assert.IsNull(Target.Id1, 'Target Id1 should be nil when Source Id1 is nil');
     Assert.IsNull(Target.Id2, 'Target Id2 should be nil when Source Id2 is nil');
   finally
-    Source.Free;
-    Target.Free;
+    FreeAfterTest(Source);
+    FreeAfterTest(Target);
   end;
 end;
 
@@ -2499,7 +2316,7 @@ begin
       Id2.Free;
     end;
   finally
-    IdRefPair.Free;
+    FreeAfterTest(IdRefPair);
   end;
 end;
 
@@ -2525,7 +2342,7 @@ begin
       Id1.Free;
     end;
   finally
-    IdRefPair.Free;
+    FreeAfterTest(IdRefPair);
   end;
 end;
 
@@ -2544,7 +2361,7 @@ begin
     // Should not crash and should return some meaningful value
     Assert.IsNotNull(S, 'StringRepresentation should not be nil');
   finally
-    IdRefPair.Free;
+    FreeAfterTest(IdRefPair);
   end;
 end;
 
@@ -2572,7 +2389,7 @@ begin
       Id2.Free;
     end;
   finally
-    IdRefPair.Free;
+    FreeAfterTest(IdRefPair);
   end;
 end;
 
@@ -2605,7 +2422,7 @@ begin
       Id2.Free;
     end;
   finally
-    IdRefPair.Free;
+    FreeAfterTest(IdRefPair);
   end;
 end;
 
@@ -2618,7 +2435,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_Integer, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2629,7 +2446,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_String, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2640,7 +2457,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_AnsiString, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2651,7 +2468,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_UnicodeString, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2662,7 +2479,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_Currency, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2673,7 +2490,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_Float, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2684,7 +2501,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_Boolean, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2695,7 +2512,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_DateTime, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2706,7 +2523,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_Date, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2717,7 +2534,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_Time, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2728,7 +2545,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_Blob, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2739,7 +2556,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_TypedBlob, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2753,7 +2570,7 @@ begin
     V.AsString := 'Test';
     Assert.AreEqual('Test', string((V as IBoldVariantReadable).AsVariant));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2763,9 +2580,9 @@ begin
   V := TBFSCurrency.Create;
   try
     V.AsCurrency := 10.50;
-    Assert.AreEqual(Double(10.50), Double(Currency((V as IBoldVariantReadable).AsVariant)), 0.01);
+    Assert.AreEqual(Double(10.50), Currency((V as IBoldVariantReadable).AsVariant), 0.01);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2777,7 +2594,7 @@ begin
     V.AsFloat := 2.5;
     Assert.AreEqual(2.5, Double((V as IBoldVariantReadable).AsVariant), 0.001);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2789,7 +2606,7 @@ begin
     V.AsBoolean := True;
     Assert.IsTrue(Boolean((V as IBoldVariantReadable).AsVariant));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2804,7 +2621,7 @@ begin
     V.AsDateTime := DT;
     Assert.AreEqual(DT, TDateTime((V as IBoldVariantReadable).AsVariant));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2819,7 +2636,7 @@ begin
     V.AsDate := D;
     Assert.AreEqual(D, TDateTime((V as IBoldVariantReadable).AsVariant));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2834,7 +2651,7 @@ begin
     V.AsTime := T;
     Assert.AreEqual(T, TDateTime((V as IBoldVariantReadable).AsVariant));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2846,7 +2663,7 @@ begin
     V.AsBlob := AnsiString('data');
     Assert.IsNotEmpty(string(AnsiString((V as IBoldVariantReadable).AsVariant)));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2858,7 +2675,7 @@ begin
     V.AsAnsiString := AnsiString('test');
     Assert.IsNotEmpty(string((V as IBoldVariantReadable).AsVariant));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2870,7 +2687,7 @@ begin
     V.AsUnicodeString := 'test';
     Assert.AreEqual('test', string((V as IBoldVariantReadable).AsVariant));
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -2886,8 +2703,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -2901,8 +2718,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -2916,8 +2733,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -2931,8 +2748,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -2946,8 +2763,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -2961,8 +2778,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -2976,8 +2793,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -2991,8 +2808,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -3006,8 +2823,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -3021,8 +2838,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -3036,8 +2853,8 @@ begin
     V2.AssignContent(V1 as IBoldValue);
     Assert.IsTrue((V2 as IBoldNullableValue).IsNull);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -3055,8 +2872,8 @@ begin
     // After assign, ContentTypeContent is copied (which calls SetToNonNull)
     Assert.AreEqual('text/plain', V2.ContentTypeContent);
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -3071,7 +2888,7 @@ begin
     StrRep := V as IBoldStringRepresentable;
     Assert.AreEqual('42', StrRep.AsString);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -3127,7 +2944,7 @@ begin
       Id.Free;
     end;
   finally
-    VS.Free;
+    FreeAfterTest(VS);
   end;
 end;
 
@@ -3216,7 +3033,7 @@ begin
       Id.Free;
     end;
   finally
-    VS.Free;
+    FreeAfterTest(VS);
   end;
 end;
 
@@ -3236,7 +3053,7 @@ begin
       Id.Free;
     end;
   finally
-    VS.Free;
+    FreeAfterTest(VS);
   end;
 end;
 
@@ -3297,8 +3114,8 @@ begin
       Id.Free;
     end;
   finally
-    VS1.Free;
-    VS2.Free;
+    FreeAfterTest(VS1);
+    FreeAfterTest(VS2);
   end;
 end;
 
@@ -3345,7 +3162,7 @@ begin
       Id.Free;
     end;
   finally
-    VS.Free;
+    FreeAfterTest(VS);
   end;
 end;
 
@@ -3399,8 +3216,8 @@ begin
       Id.Free;
     end;
   finally
-    VS1.Free;
-    VS2.Free;
+    FreeAfterTest(VS1);
+    FreeAfterTest(VS2);
   end;
 end;
 
@@ -3423,7 +3240,7 @@ begin
       MemberId.Free;
     end;
   finally
-    OC.Free;
+    FreeAfterTest(OC);
   end;
 end;
 
@@ -3462,7 +3279,7 @@ begin
   try
     Assert.IsTrue((OC as IBoldObjectContents).IsModified);
   finally
-    OC.Free;
+    FreeAfterTest(OC);
   end;
 end;
 
@@ -3478,7 +3295,7 @@ begin
     Intf.IsReadOnly := True;
     Assert.IsTrue(Intf.IsReadOnly);
   finally
-    OC.Free;
+    FreeAfterTest(OC);
   end;
 end;
 
@@ -3494,7 +3311,7 @@ begin
     Intf.GlobalId := 'test-global-id';
     Assert.AreEqual('test-global-id', Intf.GlobalId);
   finally
-    OC.Free;
+    FreeAfterTest(OC);
   end;
 end;
 
@@ -3511,7 +3328,7 @@ begin
   try
     Assert.AreEqual(BOLDOBJECTCONTENTSNAME, (OC as IBoldStreamable).StreamName);
   finally
-    OC.Free;
+    FreeAfterTest(OC);
   end;
 end;
 
@@ -3546,8 +3363,8 @@ begin
     StrVal := OC2.ValueByIndex[0] as IBoldStringContent;
     Assert.AreEqual('Test', StrVal.AsString);
   finally
-    OC1.Free;
-    OC2.Free;
+    FreeAfterTest(OC1);
+    FreeAfterTest(OC2);
   end;
 end;
 
@@ -3591,7 +3408,7 @@ begin
       Id2.Free;
     end;
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -3599,11 +3416,12 @@ procedure TTestBoldFSObjectContentsExtended.TestObjectIdRefGetContentAsString;
 var
   V: TBFSObjectIdRef;
   StrRep: IBoldStringRepresentable;
+  Id: TBoldInternalObjectId;
 begin
   V := TBFSObjectIdRef.Create;
   try
     Assert.AreEqual('<nil>', (V as IBoldStringRepresentable).StringRepresentation[0]);
-    var Id := TBoldInternalObjectId.CreateWithClassID(10, True);
+    Id := TBoldInternalObjectId.CreateWithClassID(10, True);
     try
       V.SetFromId(Id, False);
       StrRep := V as IBoldStringRepresentable;
@@ -3612,7 +3430,7 @@ begin
       Id.Free;
     end;
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -3624,7 +3442,7 @@ begin
   try
     Assert.AreEqual('<nil>', (V as IBoldStringRepresentable).StringRepresentation[0]);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -3643,7 +3461,7 @@ begin
       Id.Free;
     end;
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -3701,9 +3519,9 @@ begin
       Id2.Free;
     end;
   finally
-    V.Free;
-    IdList1.Free;
-    IdList2.Free;
+    FreeAfterTest(V);
+    FreeAfterTest(IdList1);
+    FreeAfterTest(IdList2);
   end;
 end;
 
@@ -3728,7 +3546,7 @@ begin
       Id2.Free;
     end;
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -3753,8 +3571,8 @@ begin
       Id2.Free;
     end;
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -3775,8 +3593,8 @@ begin
       Id.Free;
     end;
   finally
-    V1.Free;
-    V2.Free;
+    FreeAfterTest(V1);
+    FreeAfterTest(V2);
   end;
 end;
 
@@ -3822,8 +3640,8 @@ begin
     Assert.AreEqual('Updated', (OC1.ValueByIndex[0] as IBoldStringContent).AsString);
     Assert.AreEqual(Ord(bvpsModified), Ord(OC1.BoldPersistenceState));
   finally
-    OC1.Free;
-    OC2.Free;
+    FreeAfterTest(OC1);
+    FreeAfterTest(OC2);
   end;
 end;
 
@@ -3834,7 +3652,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_ObjectIdRef, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -3845,7 +3663,7 @@ begin
   try
     Assert.AreEqual(BoldContentName_ObjectIdListRef, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
@@ -3856,16 +3674,16 @@ begin
   try
     Assert.AreEqual(BoldContentName_ObjectIdListRefPair, (V as IBoldStreamable).StreamName);
   finally
-    V.Free;
+    FreeAfterTest(V);
   end;
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldFreeStandingValueSpace);
-  TDUnitX.RegisterTestFixture(TTestBoldFreeStandingNullableValues);
-  TDUnitX.RegisterTestFixture(TTestBoldFreeStandingIdRefs);
-  TDUnitX.RegisterTestFixture(TTestBoldFreeStandingValues);
-  TDUnitX.RegisterTestFixture(TTestBoldFSValueSpaceExtended);
-  TDUnitX.RegisterTestFixture(TTestBoldFSObjectContentsExtended);
+  BoldRegisterTest(TTestBoldFreeStandingValueSpace);
+  BoldRegisterTest(TTestBoldFreeStandingNullableValues);
+  BoldRegisterTest(TTestBoldFreeStandingIdRefs);
+  BoldRegisterTest(TTestBoldFreeStandingValues);
+  BoldRegisterTest(TTestBoldFSValueSpaceExtended);
+  BoldRegisterTest(TTestBoldFSObjectContentsExtended);
 
 end.

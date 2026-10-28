@@ -20,6 +20,10 @@ unit BoldTestFramework;
   the attributed method itself, not virtually, so those entry points are not
   virtual and call the virtual hooks. Never declare a hook or helper in a
   published section: it would run as a test.
+  FreeAfterTest(Obj) frees Obj once the test method has returned. Use it instead
+  of Obj.Free when the test casts Obj to an interface: Free Pascal keeps the
+  result of an `as` cast in a hidden temporary until the end of the routine, so
+  a Free inside the routine would leave that reference to a freed object.
   FPC: TBoldTestCase is an FPCUnit TTestCase, whose SetUp and TearDown are the
   same hooks. Assert is a class with the DUnitX method names over FPCUnit's
   failure exception, so test code calls Assert.AreEqual on both compilers. }
@@ -44,8 +48,11 @@ type
 
   { TBoldTestCase }
   TBoldTestCase = class(TTestCase)
+  private
+    fFreeAfterTest: TList;
   protected
     procedure RunTest; override;
+    procedure FreeAfterTest(AObject: TObject);
   end;
 
   { Assert: the DUnitX Assert API used by the Bold tests, for FPCUnit. }
@@ -61,6 +68,8 @@ type
     class procedure AreEqual(Expected, Actual: Cardinal; const Message: string = ''); overload;
     class procedure AreEqual(Expected, Actual: Boolean; const Message: string = ''); overload;
     class procedure AreEqual(Expected, Actual, Tolerance: Extended; const Message: string = ''); overload;
+    class procedure AreEqual(Expected, Actual: TDateTime; const Message: string = ''); overload;
+    class procedure AreEqual(Expected, Actual: Currency; const Message: string = ''); overload;
     class procedure AreEqual(Expected, Actual: TClass; const Message: string = ''); overload;
     // DUnitX compares objects through its generic AreEqual<T>; FPC 3.2.2 cannot infer T.
     class procedure AreEqual(Expected, Actual: TObject; const Message: string = ''); overload;
@@ -78,6 +87,9 @@ type
     class procedure IsNotNull(Value: TObject; const Message: string = ''); overload;
     class procedure IsNotNull(Value: Pointer; const Message: string = ''); overload;
     class procedure IsNotNull(const Value: IInterface; const Message: string = ''); overload;
+    // DUnitX takes a string as a Variant, which is never Null, so this always
+    // passes there; same here.
+    class procedure IsNotNull(const Value: string; const Message: string = ''); overload;
     class procedure IsNotEmpty(const Value: string; const Message: string = ''); overload;
     class procedure Contains(const Text, SubText: string; const Message: string = ''); overload;
     class procedure StartsWith(const SubText, Text: string; const Message: string = '');
@@ -89,7 +101,11 @@ type
   { TBoldTestCase }
   {$M+}
   TBoldTestCase = class
+  private
+    fFreeAfterTest: TObject; // TList, freed with its objects after each test
+    procedure FreeObjectsAfterTest;
   protected
+    procedure FreeAfterTest(AObject: TObject);
     procedure SetUpOnce; virtual;
     procedure TearDownOnce; virtual;
     procedure SetUp; virtual;
@@ -150,13 +166,32 @@ end;
 { TBoldTestCase }
 
 procedure TBoldTestCase.RunTest;
+var
+  i: Integer;
 begin
   try
-    inherited RunTest;
-  except
-    on ETestPass do
-      ; // Assert.Pass ends the test as passed, as in DUnitX
+    try
+      inherited RunTest;
+    except
+      on ETestPass do
+        ; // Assert.Pass ends the test as passed, as in DUnitX
+    end;
+  finally
+    // The test method has returned, so its temporaries are released.
+    if Assigned(fFreeAfterTest) then
+    begin
+      for i := fFreeAfterTest.Count - 1 downto 0 do
+        TObject(fFreeAfterTest[i]).Free;
+      FreeAndNil(fFreeAfterTest);
+    end;
   end;
+end;
+
+procedure TBoldTestCase.FreeAfterTest(AObject: TObject);
+begin
+  if not Assigned(fFreeAfterTest) then
+    fFreeAfterTest := TList.Create;
+  fFreeAfterTest.Add(AObject);
 end;
 
 { Assert }
@@ -215,6 +250,18 @@ class procedure Assert.AreEqual(Expected, Actual, Tolerance: Extended; const Mes
 begin
   if Abs(Expected - Actual) > Tolerance then
     FailNotEquals(FloatToStr(Expected), FloatToStr(Actual), Message);
+end;
+
+class procedure Assert.AreEqual(Expected, Actual: TDateTime; const Message: string);
+begin
+  if Expected <> Actual then
+    FailNotEquals(DateTimeToStr(Expected), DateTimeToStr(Actual), Message);
+end;
+
+class procedure Assert.AreEqual(Expected, Actual: Currency; const Message: string);
+begin
+  if Expected <> Actual then
+    FailNotEquals(CurrToStr(Expected), CurrToStr(Actual), Message);
 end;
 
 class procedure Assert.AreEqual(Expected, Actual: TClass; const Message: string);
@@ -322,6 +369,10 @@ begin
     Fail('Interface is nil ' + Message);
 end;
 
+class procedure Assert.IsNotNull(const Value: string; const Message: string);
+begin
+end;
+
 class procedure Assert.IsNotEmpty(const Value: string; const Message: string);
 begin
   if Value = '' then
@@ -425,7 +476,31 @@ end;
 
 procedure TBoldTestCase.DUnitXTearDown;
 begin
-  TearDown;
+  try
+    TearDown;
+  finally
+    FreeObjectsAfterTest;
+  end;
+end;
+
+procedure TBoldTestCase.FreeAfterTest(AObject: TObject);
+begin
+  if not Assigned(fFreeAfterTest) then
+    fFreeAfterTest := TList.Create;
+  TList(fFreeAfterTest).Add(AObject);
+end;
+
+procedure TBoldTestCase.FreeObjectsAfterTest;
+var
+  i: Integer;
+begin
+  // The test method has returned, so its temporaries are released.
+  if Assigned(fFreeAfterTest) then
+  begin
+    for i := TList(fFreeAfterTest).Count - 1 downto 0 do
+      TObject(TList(fFreeAfterTest)[i]).Free;
+    FreeAndNil(fFreeAfterTest);
+  end;
 end;
 
 {$ENDIF}

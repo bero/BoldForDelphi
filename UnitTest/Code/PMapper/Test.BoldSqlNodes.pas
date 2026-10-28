@@ -3,7 +3,7 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSqlNodes;
 
 type
@@ -40,66 +40,46 @@ type
     constructor Create(const AName: string);
   end;
 
-  [TestFixture]
-  TTestBoldSqlNodes = class
-  public
-    [Test]
+  TTestBoldSqlNodes = class(TBoldTestCase)
+  private
+    fBinding: TBoldSqlVariableBinding;
+    fVarRef: TBoldSqlVariableReference;
+    fSymbol: TBoldSqlSymbol;
+    fOperation: TBoldSqlOperation;
+    procedure AddRefToBinding;
+    procedure DecRefOnBinding;
+    procedure SetVarRefObjectMapperToNil;
+    procedure SetVarRefQueryToNil;
+    procedure BuildSymbolWCFOrQuery;
+  published
     procedure TestNodeCreation_AllTypes;
-    [Test]
     procedure TestAcceptVisitor_AllNodeTypes;
-    [Test]
     procedure TestVisitorBaseStubs_AllCalled;
-    [Test]
     procedure TestLiteral_AsString_AllTypes;
-    [Test]
     procedure TestNodeList_AddAndCount;
-    [Test]
     procedure TestNodeList_GetItem;
-    [Test]
     procedure TestNodeList_PutItem;
-    [Test]
     procedure TestNodeList_TraverseList;
-    [Test]
     procedure TestNodeList_DestroyFreesItems;
-    [Test]
     procedure TestOperation_DestroyFreesArgs;
-    [Test]
     procedure TestIteration_DestroyFreesLoopVar;
-    [Test]
     procedure TestMember_CreateAndDestroy;
-    [Test]
     procedure TestListCoercion_DestroyFreesChild;
-    [Test]
     procedure TestVariableBinding_AddRef;
-    [Test]
     procedure TestVariableBinding_AddRef_NonLoopVar_Raises;
-    [Test]
     procedure TestVariableBinding_DecRef;
-    [Test]
     procedure TestVariableBinding_DecRef_ZeroRefCount_Raises;
-    [Test]
     procedure TestVariableBinding_Properties;
-    [Test]
     procedure TestVariableReference_IsExternalVariable;
-    [Test]
     procedure TestVariableReference_SetObjectMapper_Raises;
-    [Test]
     procedure TestVariableReference_SetQuery_Raises;
-    [Test]
     procedure TestVariableReference_GetHasQuery;
-    [Test]
     procedure TestNode_HasQuery_HasObjectMapper;
-    [Test]
     procedure TestNode_RelinquishWCF_NilCase;
-    [Test]
     procedure TestNode_RelinquishWCF_WithWCFAssigned;
-    [Test]
     procedure TestVariableReference_RelinquishWCF;
-    [Test]
     procedure TestMember_QueryOfMemberOfIsEnclosing;
-    [Test]
     procedure TestSymbol_Methods;
-    [Test]
     procedure TestWCFVariable_CreateAndDestroy;
   end;
 
@@ -207,6 +187,31 @@ begin
 end;
 
 { TTestBoldSqlNodes }
+
+procedure TTestBoldSqlNodes.AddRefToBinding;
+begin
+  fBinding.AddRef;
+end;
+
+procedure TTestBoldSqlNodes.DecRefOnBinding;
+begin
+  fBinding.DecRef;
+end;
+
+procedure TTestBoldSqlNodes.SetVarRefObjectMapperToNil;
+begin
+  fVarRef.ObjectMapper := nil; // calls SetObjectMapper, which raises
+end;
+
+procedure TTestBoldSqlNodes.SetVarRefQueryToNil;
+begin
+  fVarRef.Query := nil; // calls SetQuery, which raises
+end;
+
+procedure TTestBoldSqlNodes.BuildSymbolWCFOrQuery;
+begin
+  fSymbol.BuildWCFOrQuery(fOperation, nil);
+end;
 
 procedure TTestBoldSqlNodes.TestNodeCreation_AllTypes;
 var
@@ -865,17 +870,13 @@ end;
 procedure TTestBoldSqlNodes.TestVariableBinding_AddRef_NonLoopVar_Raises;
 var
   Binding: TBoldSqlVariableBinding;
-  Action: TProc;
 begin
   Binding := TBoldSqlVariableBinding.Create(0, 'ext', 0);
   try
     Binding.AddRef; // first call OK
-    Action :=
-      procedure
-      begin
-        Binding.AddRef; // second call on non-loopvar should raise
-      end;
-    Assert.WillRaise(Action, EBold);
+    // second call on non-loopvar should raise
+    fBinding := Binding;
+    Assert.WillRaise(AddRefToBinding, EBold);
   finally
     Binding.Free;
   end;
@@ -899,17 +900,12 @@ end;
 procedure TTestBoldSqlNodes.TestVariableBinding_DecRef_ZeroRefCount_Raises;
 var
   Binding: TBoldSqlVariableBinding;
-  Action: TProc;
 begin
   Binding := TBoldSqlVariableBinding.Create(0, 'x', 0);
   try
     // RefCount starts at 0, so DecRef should raise
-    Action :=
-      procedure
-      begin
-        Binding.DecRef;
-      end;
-    Assert.WillRaise(Action, EBold);
+    fBinding := Binding;
+    Assert.WillRaise(DecRefOnBinding, EBold);
   finally
     Binding.Free;
   end;
@@ -983,18 +979,14 @@ procedure TTestBoldSqlNodes.TestVariableReference_SetObjectMapper_Raises;
 var
   Binding: TBoldSqlVariableBinding;
   VarRef: TBoldSqlVariableReference;
-  Action: TProc;
 begin
   Binding := TBoldSqlVariableBinding.Create(0, 'x', 0);
   try
     VarRef := TBoldSqlVariableReference.Create(0, Binding);
     try
-      Action :=
-        procedure
-        begin
-          VarRef.ObjectMapper := nil; // calls SetObjectMapper which raises
-        end;
-      Assert.WillRaise(Action, EBoldInternal);
+      // calls SetObjectMapper which raises
+      fVarRef := VarRef;
+      Assert.WillRaise(SetVarRefObjectMapperToNil, EBoldInternal);
     finally
       VarRef.Free;
     end;
@@ -1007,18 +999,14 @@ procedure TTestBoldSqlNodes.TestVariableReference_SetQuery_Raises;
 var
   Binding: TBoldSqlVariableBinding;
   VarRef: TBoldSqlVariableReference;
-  Action: TProc;
 begin
   Binding := TBoldSqlVariableBinding.Create(0, 'x', 0);
   try
     VarRef := TBoldSqlVariableReference.Create(0, Binding);
     try
-      Action :=
-        procedure
-        begin
-          VarRef.Query := nil; // calls SetQuery which raises
-        end;
-      Assert.WillRaise(Action, EBoldInternal);
+      // calls SetQuery which raises
+      fVarRef := VarRef;
+      Assert.WillRaise(SetVarRefQueryToNil, EBoldInternal);
     finally
       VarRef.Free;
     end;
@@ -1185,7 +1173,6 @@ procedure TTestBoldSqlNodes.TestSymbol_Methods;
 var
   Symbol: TTestSqlSymbol;
   Operation: TBoldSqlOperation;
-  Action: TProc;
 begin
   Symbol := TTestSqlSymbol.Create('mySymbol');
   try
@@ -1204,12 +1191,9 @@ begin
     // BuildWCFOrQuery raises EBoldInternal
     Operation := TBoldSqlOperation.Create(0, 'op');
     try
-      Action :=
-        procedure
-        begin
-          Symbol.BuildWCFOrQuery(Operation, nil);
-        end;
-      Assert.WillRaise(Action, EBoldInternal);
+      fSymbol := Symbol;
+      fOperation := Operation;
+      Assert.WillRaise(BuildSymbolWCFOrQuery, EBoldInternal);
     finally
       Operation.Free;
     end;
@@ -1237,6 +1221,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSqlNodes);
+  BoldRegisterTest(TTestBoldSqlNodes);
 
 end.

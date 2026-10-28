@@ -3,17 +3,16 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldGeneratedCodeDictionary;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('RTModel')]
-  TTestBoldGeneratedCodeDictionary = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldGeneratedCodeDictionary = class(TBoldTestCase)
+  published
     procedure TestBoldGeneratedCodesAssigned;
-    [Test]
     procedure TestDescriptorByExpressionName;
   end;
 
@@ -47,6 +46,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldGeneratedCodeDictionary);
+  BoldRegisterTest(TTestBoldGeneratedCodeDictionary);
 
 end.

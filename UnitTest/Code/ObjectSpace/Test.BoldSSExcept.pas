@@ -3,35 +3,30 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSSExcept;
 
 type
   /// <summary>
   /// Test fixture for BoldSSExcept - Parser exception classes
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldSSExcept = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldSSExcept = class(TBoldTestCase)
+  published
     procedure TestCreate;
-    [Test]
     procedure TestCreateName;
-    [Test]
     procedure TestCreateLong;
-    [Test]
     procedure TestCreateLongLongNameLen;
-    [Test]
     procedure TestIdProperty;
-    [Test]
     procedure TestPositionProperty;
   end;
 
 implementation
 
 uses
-  System.SysUtils;
+  SysUtils;
 
 { TTestBoldSSExcept }
 
@@ -99,7 +94,7 @@ var
 begin
   Ex := SSException.Create(SSExceptionOutOfMemory, 'Out of memory');
   try
-    Assert.AreEqual(SSExceptionOutOfMemory, Ex.Id, 'Id should be SSExceptionOutOfMemory');
+    Assert.AreEqual(Ord(SSExceptionOutOfMemory), Ord(Ex.Id), 'Id should be SSExceptionOutOfMemory');
   finally
     Ex.Free;
   end;
@@ -119,6 +114,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSSExcept);
+  BoldRegisterTest(TTestBoldSSExcept);
 
 end.

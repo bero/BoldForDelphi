@@ -3,53 +3,34 @@ unit Test.BoldUpdatePrecondition;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldUpdatePrecondition,
   BoldId,
   BoldDefaultId;
 
 type
-  [TestFixture]
-  TTestBoldUpdatePrecondition = class
-  public
+  TTestBoldUpdatePrecondition = class(TBoldTestCase)
+  published
     // TBoldUpdatePrecondition tests (base class)
-    [Test]
     procedure TestBaseCreate;
-    [Test]
     procedure TestBaseGetFailed_ReturnsFalse;
-    [Test]
     procedure TestBaseGetFailureReason_ReturnsEmpty;
 
     // TBoldOptimisticLockingPrecondition tests
-    [Test]
     procedure TestOptimisticCreate;
-    [Test]
     procedure TestOptimisticGetStreamName;
-    [Test]
     procedure TestOptimisticGetFailed_EmptyList;
-    [Test]
     procedure TestOptimisticGetFailed_WithFailedObject;
-    [Test]
     procedure TestOptimisticAddFailedObject;
-    [Test]
     procedure TestOptimisticAddFailedObject_NoDuplicates;
-    [Test]
     procedure TestOptimisticGetFailureReason_SingleObject;
-    [Test]
     procedure TestOptimisticGetFailureReason_MultipleObjects;
-    [Test]
     procedure TestOptimisticGetFailureList_LazyCreation;
-    [Test]
     procedure TestOptimisticGetValueSpace;
-    [Test]
     procedure TestOptimisticGetHasOptimisticLocks_Empty;
-    [Test]
     procedure TestOptimisticGetHasOptimisticLocks_NotEmpty;
-    [Test]
     procedure TestOptimisticClearValueSpace;
-    [Test]
     procedure TestOptimisticAssignOutValues_FromOptimistic;
-    [Test]
     procedure TestOptimisticAssignOutValues_FromBase;
   end;
 
@@ -128,7 +109,7 @@ begin
     Streamable := Precondition as IBoldStreamable;
     Assert.AreEqual('OptimisticLockingPreCondition', Streamable.StreamName);
   finally
-    Precondition.Free;
+    FreeAfterTest(Precondition);
   end;
 end;
 
@@ -286,7 +267,7 @@ begin
     ValueSpace := Precondition.ValueSpace;
     Assert.IsNotNull(ValueSpace);
   finally
-    Precondition.Free;
+    FreeAfterTest(Precondition);
   end;
 end;
 
@@ -323,7 +304,7 @@ begin
       ObjectId.Free;
     end;
   finally
-    Precondition.Free;
+    FreeAfterTest(Precondition);
   end;
 end;
 
@@ -352,7 +333,7 @@ begin
     // After clearing, HasOptimisticLocks should be false (new empty ValueSpace created on access)
     Assert.IsFalse(Precondition.HasOptimisticLocks);
   finally
-    Precondition.Free;
+    FreeAfterTest(Precondition);
   end;
 end;
 
@@ -420,6 +401,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldUpdatePrecondition);
+  BoldRegisterTest(TTestBoldUpdatePrecondition);
 
 end.
