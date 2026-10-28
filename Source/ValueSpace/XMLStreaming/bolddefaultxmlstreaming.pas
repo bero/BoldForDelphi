@@ -267,7 +267,7 @@ uses
 
   BoldCoreConsts,
   BoldHashIndexes,
-  {$IFDEF OXML}OXmlPDOM{$ELSE}Bold_MSXML_TLB{$ENDIF},
+  {$IFDEF OXML}OXmlPDOM{$ELSE}{$IFDEF FPC}DOM{$ELSE}Bold_MSXML_TLB{$ENDIF}{$ENDIF},
   BoldDefaultStreamNames;
 
 const
@@ -341,10 +341,12 @@ var
   {$IFDEF OXML}
   aNodeListEnumerator: TXMLChildNodeListEnumerator;
   aNode: PXMLNode;
+  {$ELSE}{$IFDEF FPC}
+  aNode: TDOMNode;
   {$ELSE}
   aNodeList: IXMLDomNodeList;
   aNode: IXMLDomNode;
-  {$ENDIF}
+  {$ENDIF}{$ENDIF}
 begin
   if not assigned(ValueSpace) then begin
     exit;
@@ -362,6 +364,14 @@ begin
   finally
     aNodeListEnumerator.Free;
   end;
+  {$ELSE}{$IFDEF FPC}
+  aNode := Node.XMLDomElement.FirstChild;
+  while assigned(aNode) do begin
+    aSubNode := TBoldXMLNode.Create(Node.Manager, aNode as TDOMElement, nil);
+    ClassStreamerByName[aSubNode.Accessor].ReadObject(aSubNode, ValueSpace);
+    aSubNode.Free;
+    aNode := aNode.NextSibling;
+  end;
   {$ELSE}
   aNodeList := Node.XMLDomElement.childNodes;
   aNode := aNodeList.nextNode;
@@ -372,7 +382,7 @@ begin
     aSubNode.Free;
     aNode := aNodeList.nextNode;
   end;
-  {$ENDIF}
+  {$ENDIF}{$ENDIF}
 end;
 
 procedure TBoldDefaultXMLStreamManager.WriteValueSpace(const ValueSpace: IBoldValueSpace; IdList: TBoldObjectIdList;
@@ -749,10 +759,12 @@ var
   {$IFDEF OXML}
   aNodeEnumerator: TXMLChildNodeListEnumerator;
   aNode: PXMLNode;
+  {$ELSE}{$IFDEF FPC}
+  aNode: TDOMNode;
   {$ELSE}
   aNodeList: IXMLDomNodeList;
   aNode: IXMLDomNode;
-  {$ENDIF}
+  {$ENDIF}{$ENDIF}
 begin
   aSubNode := Node.GetSubNode(BoldNodeName_id);
   anId := aSubNode.ReadObject('') as TBoldObjectId;
@@ -810,6 +822,18 @@ begin
     aNodeEnumerator.Free;
     MembersNode.Free;
   end;
+  {$ELSE}{$IFDEF FPC}
+  aNode := MembersNode.XMLDomElement.FirstChild;
+  while assigned(aNode) do
+  begin
+    aSubNode := TBoldXMLNode.Create(Node.Manager, aNode as TDOMElement, nil);
+    aMemberStreamer := MemberStreamerByName[aSubNode.Accessor];
+    ObjectContents.EnsureMember(aMemberStreamer.MemberId, aMemberStreamer.TypeStreamName);
+    aMemberStreamer.ReadValue(aSubNode, ObjectContents.ValueByIndex[aMemberStreamer.Index]);
+    aSubNode.Free;
+    aNode := aNode.NextSibling;
+  end;
+  MembersNode.Free;
   {$ELSE}
   aNodeList := MembersNode.XMLDomElement.childNodes;
   aNode := aNodeList.nextNode;
@@ -823,7 +847,7 @@ begin
     aNode := aNodeList.nextNode;
   end;
   MembersNode.Free;
-  {$ENDIF}
+  {$ENDIF}{$ENDIF}
 end;
 
 procedure TBoldXMLClassStreamer.WriteObject(Node: TBoldXMLNode;
