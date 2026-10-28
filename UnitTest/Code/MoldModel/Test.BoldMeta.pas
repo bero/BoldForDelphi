@@ -5,135 +5,88 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldMeta,
   BoldSystemRT,
   BoldSystem,
   jehoBCBoldTest,
-  Test.BoldAttributes;
+  jehoBoldTestDataModule;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('MoldModel')]
-  TTestBoldMeta = class
+  {$ENDIF}
+  TTestBoldMeta = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
     function GetSystem: TBoldSystem;
     function GetModel: TMoldModel;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // TMoldModel tests
-    [Test]
     procedure TestModelClassCount;
-    [Test]
     procedure TestModelRootClass;
-    [Test]
     procedure TestModelGetClassByName;
-    [Test]
     procedure TestModelGetClassByNameNotFound;
-    [Test]
     procedure TestModelOptimisticLocking;
-    [Test]
     procedure TestModelUseTimestamp;
 
     // TMoldClass tests
-    [Test]
     procedure TestClassProperties;
-    [Test]
     procedure TestClassTableName;
-    [Test]
     procedure TestClassIsRootClass;
-    [Test]
     procedure TestClassSuperClass;
-    [Test]
     procedure TestClassAllMembers;
-    [Test]
     procedure TestClassEffectivePersistent;
-    [Test]
     procedure TestClassLowestCommonSuperClass;
-    [Test]
     procedure TestClassStorage;
-    [Test]
     procedure TestClassTableMapping;
-    [Test]
     procedure TestClassExpandedNames;
 
     // TMoldAttribute tests
-    [Test]
     procedure TestAttributeProperties;
-    [Test]
     procedure TestAttributeIsAttributeNotRole;
-    [Test]
     procedure TestAttributeEffectivePersistent;
 
     // TMoldRole tests
-    [Test]
     procedure TestRoleProperties;
-    [Test]
     procedure TestRoleIsRoleNotAttribute;
-    [Test]
     procedure TestRoleOtherEnd;
-    [Test]
     procedure TestRoleEffectiveEmbedded;
 
     // TBoldSystemTypeInfo / TBoldClassTypeInfo tests (BoldSystemRT)
-    [Test]
     procedure TestSystemTypeInfoClassCount;
-    [Test]
     procedure TestClassTypeInfoByExpressionName;
-    [Test]
     procedure TestClassTypeInfoAttributes;
-    [Test]
     procedure TestClassTypeInfoRoles;
-    [Test]
     procedure TestClassTypeInfoSuperType;
-    [Test]
     procedure TestClassTypeInfoAllMembers;
-    [Test]
     procedure TestClassTypeInfoIsAbstract;
 
     // BoldSystemRT — Search
-    [Test]
     procedure TestSearchByClassName;
-    [Test]
     procedure TestSearchByAttributeName;
-    [Test]
     procedure TestSearchPartialMatch;
-    [Test]
     procedure TestSearchNotFound;
 
     // BoldSystemRT — ValueTypeNames
-    [Test]
     procedure TestGetValueTypeNames;
-    [Test]
     procedure TestGetValueTypeNameList;
-    [Test]
     procedure TestGetElementTypeInfoByExpressionName;
-    [Test]
     procedure TestConformsTo;
 
     // BoldSystemRT — MemberRTInfo
-    [Test]
     procedure TestMemberRTInfoByExpressionName;
-    [Test]
     procedure TestMemberRTInfoIsAttribute;
-    [Test]
     procedure TestMemberRTInfoIsRole;
 
     // BoldMeta — additional coverage
-    [Test]
     procedure TestClassHasNotNullMembers;
-    [Test]
     procedure TestAllNativeAttributes;
-    [Test]
     procedure TestModelEnsureTopSorted;
-    [Test]
     procedure TestAttributeAllowNull;
-    [Test]
     procedure TestClassIncFileName;
   end;
 
@@ -669,6 +622,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldMeta);
+  BoldRegisterTest(TTestBoldMeta);
 
 end.

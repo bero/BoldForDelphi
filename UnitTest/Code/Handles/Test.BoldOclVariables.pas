@@ -5,7 +5,7 @@ interface
 uses
   Classes,
   SysUtils,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSubscription,
   BoldSystem,
   BoldElements,
@@ -16,182 +16,115 @@ uses
   BoldAttributes,
   BoldDefs,
   jehoBCBoldTest,
-  Test.BoldAttributes;  // For TjehodmBoldTest
+  jehoBoldTestDataModule;  // For TjehodmBoldTest
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Handles')]
-  TTestBoldOclVariables = class
+  {$ENDIF}
+  TTestBoldOclVariables = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
     FSystemBeingDestroyed: TBoldSystem;
     FHandleEventDuringTeardown: Boolean;
+    fRaiseOclVars: TObject;
+    fRaiseTuple: TObject;
+    fRaiseP: TObject;
+    procedure TestSetVariableName_RaisesOnDuplicate_Raiser;
+    procedure TestSetVariableName_RaisesOnInvalidChars_Raiser;
+    procedure TestAssign_InheritedBranch_Raiser;
     function GetSystem: TBoldSystem;
     function GetEvaluator: TBoldEvaluator;
     procedure HandleListHandleEventDuringTeardown(Originator: TObject;
       OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // === TBoldVariableTupleList tests ===
-    [Test]
     procedure TestNameIsUnique_True;
-    [Test]
     procedure TestNameIsUnique_FalseCaseInsensitive;
-    [Test]
     procedure TestNameIsValid_Alphanumeric;
-    [Test]
     procedure TestNameIsValid_Underscore;
-    [Test]
     procedure TestNameIsValid_RejectsSpace;
-    [Test]
     procedure TestNameIsValid_RejectsDash;
-    [Test]
     procedure TestNameIsValid_EmptyStringIsValid;
-    [Test]
     procedure TestGetUniqueName_FirstVariable;
-    [Test]
     procedure TestGetUniqueName_SkipsExisting;
-    [Test]
     procedure TestGetVariableByName_Found;
-    [Test]
     procedure TestGetVariableByName_NotFound;
-    [Test]
     procedure TestGetItems_TypedAccess;
-    [Test]
     procedure TestGetEnumerator;
 
     // === TBoldVariableTuple tests ===
-    [Test]
     procedure TestSetVariableName_LowercasesFirstChar;
-    [Test]
     procedure TestSetVariableName_RaisesOnDuplicate;
-    [Test]
     procedure TestSetVariableName_RaisesOnInvalidChars;
-    [Test]
     procedure TestAssign_CopiesProperties;
-    [Test]
     procedure TestGetDisplayName_WithHandle;
-    [Test]
     procedure TestGetDisplayName_NotConnected;
-    [Test]
     procedure TestGetEffectiveUseListElement_TrueWithListHandle;
-    [Test]
     procedure TestGetEffectiveUseListElement_FalseWithoutListHandle;
-    [Test]
     procedure TestGetEffectiveUseListElement_FalseWhenUseListElementFalse;
-    [Test]
     procedure TestLinksToHandle_DirectMatch;
-    [Test]
     procedure TestLinksToHandle_NoMatch;
-    [Test]
     procedure TestTupleListProperty;
 
     // === TBoldOclVariables component tests ===
-    [Test]
     procedure TestCreateDestroy;
-    [Test]
     procedure TestAddVariable_CreatesNew;
-    [Test]
     procedure TestAddVariable_UpdatesExisting;
-    [Test]
     procedure TestAddVariables_MergesFromAnother;
-    [Test]
     procedure TestFindVariableByName_CaseInsensitive;
-    [Test]
     procedure TestFindVariableByName_NotFoundReturnsNil;
-    [Test]
     procedure TestGetVariableValue_ReturnsElement;
-    [Test]
     procedure TestGetVariableValue_NotFoundReturnsNil;
-    [Test]
     procedure TestGetVariableList_LazyCreates;
-    [Test]
     procedure TestLinksToHandle_Component;
-    [Test]
     procedure TestLinksToHandle_Component_NoMatch;
-    [Test]
     procedure TestVariablesChanged_FreesCachedList;
 
     // === TBoldOclVariable typed constructor tests ===
-    [Test]
     procedure TestCreateStringVariable;
-    [Test]
     procedure TestCreateIntegerVariable;
-    [Test]
     procedure TestCreateFloatVariable;
-    [Test]
     procedure TestCreateDateVariable;
-    [Test]
     procedure TestCreateDateTimeVariable;
-    [Test]
     procedure TestCreateTimeVariable;
-    [Test]
     procedure TestCreateWithTypeInfo;
-    [Test]
     procedure TestCreateWithElement;
-    [Test]
     procedure TestGetValueType_WithValue;
-    [Test]
     procedure TestGetValueType_NilValueReturnsTypeInfo;
 
     // === TBoldHandleBasedExternalVariable tests ===
-    [Test]
     procedure TestHandleBasedVariable_CreateWithHandle;
-    [Test]
     procedure TestHandleBasedVariable_GetValueNilHandle;
-    [Test]
     procedure TestHandleBasedVariable_GetValueTypeNilHandle;
-    [Test]
     procedure TestHandleBasedVariable_Destroy;
-    [Test]
     procedure TestHandleBasedVariable_UseListElement_GetValueType;
 
     // === Additional coverage tests ===
-    [Test]
     procedure TestAddVariables_MergesOverlapping;
-    [Test]
     procedure TestGetDisplayName_WithListSuffix;
-    [Test]
     procedure TestLinksToHandle_ViaRootHandle;
-    [Test]
     procedure TestSetGlobalSystemHandle;
-    [Test]
     procedure TestRegisterVariables_WithSystemHandle;
-    [Test]
     procedure TestSubscribeToHandles_WithExpression;
-    [Test]
     procedure TestSubscribeToHandles_ExternalSubscriber;
-    [Test]
     procedure TestCreateFromIndirectElement;
-    [Test]
     procedure TestGetVariableValue_FoundReturnsValue;
-    [Test]
     procedure TestHandleBasedVariable_UseListElement_GetValue;
 
     // === Deep coverage tests (batch 3) ===
-    [Test]
     procedure TestAssign_InheritedBranch;
-    [Test]
     procedure TestTuple_HandleDestroyed_NilsHandle;
-    [Test]
     procedure TestHandleBasedVar_HandleDestroyed;
-    [Test]
     procedure TestEnsureEvaluator_FallbackToDefault;
-    [Test]
     procedure TestRegisterVariables_WithUseListElement;
-    [Test]
     procedure TestReceive_GlobalSystemHandleDestroying;
-    [Test]
     procedure TestLoaded_CallsPlaceSubscriptions;
-    [Test]
     procedure TestSetVariableTupleList_Setter;
-    [Test]
     procedure TestHandleBasedVar_SetHandle;
-    [Test]
     procedure TestSubscribeToHandle_DuringSystemTeardown;
   end;
 
@@ -212,6 +145,21 @@ type
   end;
 
 { TTestBoldOclVariables }
+
+procedure TTestBoldOclVariables.TestSetVariableName_RaisesOnDuplicate_Raiser;
+begin
+  TBoldOclVariables(fRaiseOclVars).Variables[1].VariableName := 'Alpha'; // 'alpha' vs 'Alpha' case-insensitive match
+end;
+
+procedure TTestBoldOclVariables.TestSetVariableName_RaisesOnInvalidChars_Raiser;
+begin
+  TBoldOclVariables(fRaiseOclVars).Variables[0].VariableName := 'my var'; // space is invalid
+end;
+
+procedure TTestBoldOclVariables.TestAssign_InheritedBranch_Raiser;
+begin
+  TBoldVariableTuple(fRaiseTuple).Assign(TPersistent(fRaiseP));
+end;
 
 procedure TTestBoldOclVariables.SetUp;
 begin
@@ -447,12 +395,8 @@ begin
   try
     OclVars.AddVariable('alpha', nil);
     OclVars.AddVariable('beta', nil);
-    Assert.WillRaiseAny(
-      procedure
-      begin
-        OclVars.Variables[1].VariableName := 'Alpha'; // 'alpha' vs 'Alpha' case-insensitive match
-      end,
-      'Setting duplicate name should raise EBold');
+    fRaiseOclVars := OclVars;
+    Assert.WillRaiseAny(TestSetVariableName_RaisesOnDuplicate_Raiser, 'Setting duplicate name should raise EBold');
   finally
     OclVars.Free;
   end;
@@ -465,12 +409,8 @@ begin
   OclVars := TBoldOclVariables.Create(nil);
   try
     OclVars.AddVariable('temp', nil);
-    Assert.WillRaiseAny(
-      procedure
-      begin
-        OclVars.Variables[0].VariableName := 'my var'; // space is invalid
-      end,
-      'Invalid chars in name should raise EBold');
+    fRaiseOclVars := OclVars;
+    Assert.WillRaiseAny(TestSetVariableName_RaisesOnInvalidChars_Raiser, 'Invalid chars in name should raise EBold');
   finally
     OclVars.Free;
   end;
@@ -1259,12 +1199,9 @@ begin
     Tuple := OclVars.AddVariable('test', nil);
     P := TPersistent.Create;
     try
-      Assert.WillRaiseAny(
-        procedure
-        begin
-          Tuple.Assign(P);
-        end,
-        'Assign with non-TBoldVariableTuple should raise');
+      fRaiseTuple := Tuple;
+      fRaiseP := P;
+      Assert.WillRaiseAny(TestAssign_InheritedBranch_Raiser, 'Assign with non-TBoldVariableTuple should raise');
     finally
       P.Free;
     end;
@@ -1473,6 +1410,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldOclVariables);
+  BoldRegisterTest(TTestBoldOclVariables);
 
 end.

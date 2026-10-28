@@ -8,543 +8,334 @@ interface
 uses
   Classes,
   SysUtils,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSystem,
   BoldElements,
   BoldAttributes,
   BoldDefs,
   jehoBCBoldTest,
-  Test.BoldAttributes;
+  jehoBoldTestDataModule;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('OCL')]
-  TTestBoldOclEvaluation = class
+  {$ENDIF}
+  TTestBoldOclEvaluation = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
+    fRaiseObj: TClassA;
+    procedure TestUnknownMember_Raises_Raiser;
+    procedure TestSyntaxError_Raises_Raiser;
+    procedure TestDivisionByZero_SafeDiv_Raiser;
+    procedure TestDivisionByZero_Raises_Raiser;
+    procedure TestFloatDivisionByZeroSafeDiv_Raiser;
+    procedure TestGuillemetInExpressionRaises_Raiser;
     function GetSystem: TBoldSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // --- Arithmetic Operations ---
-    [Test]
     procedure TestAdd_IntegerPlusInteger;
-    [Test]
     procedure TestAdd_FloatPlusFloat;
-    [Test]
     procedure TestAdd_StringConcat;
-    [Test]
     procedure TestSubtract;
-    [Test]
     procedure TestMultiply;
-    [Test]
     procedure TestDivide;
-    [Test]
     procedure TestDiv_IntegerDivision;
-    [Test]
     procedure TestMod;
-    [Test]
     procedure TestUnaryMinus;
-    [Test]
     procedure TestAbs;
-    [Test]
     procedure TestFloor;
-    [Test]
     procedure TestRound;
-    [Test]
     procedure TestPower;
-    [Test]
     procedure TestSqrt;
-    [Test]
     procedure TestMin;
-    [Test]
     procedure TestMax;
-    [Test]
     procedure TestSafeDivNonZero;
-    [Test]
     procedure TestSimpleRound;
-    [Test]
     procedure TestSimpleRoundTo;
 
     // --- Comparison Operations ---
-    [Test]
     procedure TestEqual_Integer;
-    [Test]
     procedure TestNotEqual_Integer;
-    [Test]
     procedure TestLess;
-    [Test]
     procedure TestGreater;
-    [Test]
     procedure TestLessEQ;
-    [Test]
     procedure TestGreaterEQ;
-    [Test]
     procedure TestEqual_String;
-    [Test]
     procedure TestLess_String;
 
     // --- String Operations ---
-    [Test]
     procedure TestLength;
-    [Test]
     procedure TestConcat;
-    [Test]
     procedure TestToUpper;
-    [Test]
     procedure TestToLower;
-    [Test]
     procedure TestSubString;
-    [Test]
     procedure TestContains_True;
-    [Test]
     procedure TestContains_False;
-    [Test]
     procedure TestPad;
-    [Test]
     procedure TestPostPad;
-    [Test]
     procedure TestTrim;
-    [Test]
     procedure TestStrToInt;
-    [Test]
     procedure TestStrToFloat;
-    [Test]
     procedure TestSQLLike;
-    [Test]
     procedure TestSQLLikeCaseInsensitive;
 
     // --- Boolean / Logic Operations ---
-    [Test]
     procedure TestAnd_TrueTrue;
-    [Test]
     procedure TestAnd_TrueFalse;
-    [Test]
     procedure TestOr_FalseFalse;
-    [Test]
     procedure TestOr_TrueFalse;
-    [Test]
     procedure TestNot;
-    [Test]
     procedure TestXor;
-    [Test]
     procedure TestImplies_TrueFalse;
-    [Test]
     procedure TestImplies_FalseAnything;
-    [Test]
     procedure TestIf_TrueCondition;
-    [Test]
     procedure TestIf_FalseCondition;
 
     // --- Collection Operations (using allInstances) ---
-    [Test]
     procedure TestSize;
-    [Test]
     procedure TestIsEmpty_True;
-    [Test]
     procedure TestIsEmpty_False;
-    [Test]
     procedure TestNotEmpty;
-    [Test]
     procedure TestIncludes;
-    [Test]
     procedure TestSum;
-    [Test]
     procedure TestMinValue;
-    [Test]
     procedure TestMaxValue;
-    [Test]
     procedure TestAverage;
-    [Test]
     procedure TestSelect;
-    [Test]
     procedure TestReject;
-    [Test]
     procedure TestCollect;
-    [Test]
     procedure TestForAll_True;
-    [Test]
     procedure TestForAll_False;
-    [Test]
     procedure TestExists_True;
-    [Test]
     procedure TestExists_False;
-    [Test]
     procedure TestFirst;
-    [Test]
     procedure TestLast;
-    [Test]
     procedure TestAt;
-    [Test]
     procedure TestIndexOf;
-    [Test]
     procedure TestOrderBy;
-    [Test]
     procedure TestOrderDescending;
-    [Test]
     procedure TestReverseCollection;
-    [Test]
     procedure TestAsSequence;
-    [Test]
     procedure TestAsSet;
-    [Test]
     procedure TestCount;
-    [Test]
     procedure TestUnion;
-    [Test]
     procedure TestIntersection;
-    [Test]
     procedure TestDifference;
-    [Test]
     procedure TestSymmetricDifference;
-    [Test]
     procedure TestIncluding;
-    [Test]
     procedure TestExcluding;
-    [Test]
     procedure TestIncludesAll;
 
     // --- Date/Time Operations ---
-    [Test]
     procedure TestDay;
-    [Test]
     procedure TestMonth;
-    [Test]
     procedure TestYear;
-    [Test]
     procedure TestWeek;
-    [Test]
     procedure TestDayOfWeek;
-    [Test]
     procedure TestHoursBetween;
-    [Test]
     procedure TestMinutesBetween;
-    [Test]
     procedure TestSecondsBetween;
-    [Test]
     procedure TestInDateRange;
-    [Test]
     procedure TestAsISODate;
-    [Test]
     procedure TestAsISODateTime;
 
     // --- Type System Operations ---
-    [Test]
     procedure TestAsString_Integer;
-    [Test]
     procedure TestAsFloat_Integer;
-    [Test]
     procedure TestOclType;
-    [Test]
     procedure TestOclIsKindOf;
-    [Test]
     procedure TestOclIsTypeOf;
-    [Test]
     procedure TestOclAsType;
-    [Test]
     procedure TestAllInstances;
-    [Test]
     procedure TestAllLoadedObjects;
-    [Test]
     procedure TestFilterOnType;
-    [Test]
     procedure TestIsNull_True;
-    [Test]
     procedure TestIsNull_False;
 
     // --- Member Access ---
-    [Test]
     procedure TestSimpleStringAttribute;
-    [Test]
     procedure TestSimpleIntegerAttribute;
-    [Test]
     procedure TestSimpleBooleanAttribute;
-    [Test]
     procedure TestSelfExpression;
 
     // --- Miscellaneous ---
-    [Test]
     procedure TestAsCommaText;
-    [Test]
     procedure TestSeparate;
-    [Test]
     procedure TestFormatFloat;
-    [Test]
     procedure TestStringRepresentation;
 
     // --- Error Handling ---
-    [Test]
     procedure TestUnknownMember_Raises;
-    [Test]
     procedure TestSyntaxError_Raises;
-    [Test]
     procedure TestDivisionByZero_SafeDiv;
 
     // --- Currency Arithmetic ---
-    [Test]
     procedure TestCurrencyAdd;
-    [Test]
     procedure TestCurrencySubtract;
-    [Test]
     procedure TestCurrencyMultiply;
-    [Test]
     procedure TestCurrencyNegate;
-    [Test]
     procedure TestCurrencyAbs;
 
     // --- DateTime Arithmetic ---
-    [Test]
     procedure TestDateTimeAdd;
-    [Test]
     procedure TestDateTimeSubtract;
 
     // --- FormatDateTime ---
-    [Test]
     procedure TestFormatDateTime;
-    [Test]
     procedure TestFormatDateTimeNull;
 
     // --- Null handling ---
-    [Test]
     procedure TestNullComparison_Less;
-    [Test]
     procedure TestNullComparison_Greater;
-    [Test]
     procedure TestNullComparison_LessEQ;
-    [Test]
     procedure TestNullComparison_GreaterEQ;
 
     // --- Division by zero ---
-    [Test]
     procedure TestDivisionByZero_Raises;
 
     // --- Pad edge cases ---
-    [Test]
     procedure TestPadLongerThanTarget;
-    [Test]
     procedure TestPostPadLongerThanTarget;
 
     // --- AsTime ---
-    [Test]
     procedure TestAsTime;
 
     // --- Collection with currency ---
-    [Test]
     procedure TestCurrencySum;
 
     // --- String-to-date conversions ---
-    [Test]
     procedure TestStrToDateTime;
-    [Test]
     procedure TestStrToDate;
-    [Test]
     procedure TestStrToTime;
 
     // --- Format (Delphi format string) ---
-    [Test]
     procedure TestFormat;
 
     // --- Pad with multi-char padder (truncation path) ---
-    [Test]
     procedure TestPadMultiCharPadder;
-    [Test]
     procedure TestPostPadMultiCharPadder;
 
     // --- Min/Max on collections ---
-    [Test]
     procedure TestMinValueEmpty;
-    [Test]
     procedure TestMaxValueEmpty;
-    [Test]
     procedure TestAverageEmpty;
 
     // --- Collection operations with null elements ---
-    [Test]
     procedure TestSumWithNullElements;
 
     // --- Boolean comparison with null ---
-    [Test]
     procedure TestIsNullOnNullString;
 
     // --- Float division ---
-    [Test]
     procedure TestFloatDivisionByZeroSafeDiv;
 
     // --- More currency operations ---
-    [Test]
     procedure TestCurrencyCompare;
 
     // --- String operations ---
-    [Test]
     procedure TestToInteger;
-    [Test]
     procedure TestToReal;
-    [Test]
     procedure TestStringAsString;
 
     // --- More collection operations ---
-    [Test]
     procedure TestIncludesAllTrue;
-    [Test]
     procedure TestIncludesAllFalse;
-    [Test]
     procedure TestCountElement;
-    [Test]
     procedure TestFlatten;
-    [Test]
     procedure TestCollectWithNulls;
 
     // --- Date operations ---
-    [Test]
     procedure TestHoursBetweenNull;
-    [Test]
     procedure TestMinutesBetweenNull;
-    [Test]
     procedure TestDaysBetween;
-    [Test]
     procedure TestNowFunction;
-    [Test]
     procedure TestCurrentDate;
 
     // --- Numeric edge cases ---
-    [Test]
     procedure TestFloatAbs;
-    [Test]
     procedure TestIntegerMod;
-    [Test]
     procedure TestFloatFloor;
-    [Test]
     procedure TestFloatRound;
 
     // --- String operations (more) ---
-    [Test]
     procedure TestIndexOfString;
-    [Test]
     procedure TestSQLLikePercent;
-    [Test]
     procedure TestSQLLikeUnderscore;
-    [Test]
     procedure TestSQLLikeEmptyStringMatchesWildcard;
 
     // --- Type operations ---
-    [Test]
     procedure TestOclAsTypeInvalid;
-    [Test]
     procedure TestOclIsKindOfFalse;
 
     // --- More numeric operations ---
-    [Test]
     procedure TestSqrtFloat;
-    [Test]
     procedure TestPowerFloat;
-    [Test]
     procedure TestMaxTwoValues;
-    [Test]
     procedure TestMinTwoValues;
 
     // --- More collection operations ---
-    [Test]
     procedure TestExcludingSelf;
-    [Test]
     procedure TestIncludingSelf;
-    [Test]
     procedure TestUnionCollections;
-    [Test]
     procedure TestDifferenceCollections;
-    [Test]
     procedure TestIntersectionCollections;
-    [Test]
     procedure TestSymmetricDifferenceCollections;
 
     // --- String operations ---
-    [Test]
     procedure TestToUpperCase;
-    [Test]
     procedure TestToLowerCase;
-    [Test]
     procedure TestToUpperToLowerNonAscii;
-    [Test]
     procedure TestTrimString;
-    [Test]
     procedure TestSubStringOcl;
 
     // --- Boolean operations ---
-    [Test]
     procedure TestXorOperation;
-    [Test]
     procedure TestImpliesTrueTrue;
 
     // --- Null arithmetic ---
-    [Test]
     procedure TestNullIntegerAdd;
-    [Test]
     procedure TestNullFloatMultiply;
 
     // --- ExpressionType ---
-    [Test]
     procedure TestExpressionTypeInteger;
-    [Test]
     procedure TestExpressionTypeString;
-    [Test]
     procedure TestExpressionTypeCollection;
-    [Test]
     procedure TestExpressionTypeInvalid;
-    [Test]
     procedure TestExpressionTypeEmpty;
 
     // --- RTInfo ---
-    [Test]
     procedure TestRTInfoAttribute;
-    [Test]
     procedure TestRTInfoInvalid;
-    [Test]
     procedure TestRTInfoEmpty;
 
     // --- OCL dictionary caching ---
-    [Test]
     procedure TestOclDictionaryCacheHit;
 
     // --- Evaluate with guillemets (error path) ---
-    [Test]
     procedure TestGuillemetInExpressionRaises;
 
     // --- Final push ---
-    [Test]
     procedure TestExpressionTypeBoolean;
-    [Test]
     procedure TestExpressionTypeFloat;
-    [Test]
     procedure TestRTInfoInteger;
 
     // --- More OCL for coverage ---
-    [Test]
     procedure TestAllLoadedObjectsVsAllInstances;
-    [Test]
     procedure TestFilterOnTypeReturnsSubset;
-    [Test]
     procedure TestOclTypeReturnsTypeName;
-    [Test]
     procedure TestAsStringOnInteger;
-    [Test]
     procedure TestAsFloatOnInteger;
-    [Test]
     procedure TestAtExpression;
-    [Test]
     procedure TestIndexOfExpression;
-    [Test]
     procedure TestOrderByExpression;
-    [Test]
     procedure TestOrderDescendingExpression;
 
     // --- Time variables ---
-    [Test]
     procedure TestNowEvaluatesToCurrentMinute;
-    [Test]
     procedure TestTodayEvaluatesToCurrentDate;
-    [Test]
     procedure TestEvaluatorSchedulesTimeVariableRefreshWhileItLives;
   end;
 
@@ -559,6 +350,36 @@ uses
   BoldSystemRT;
 
 { TTestBoldOclEvaluation }
+
+procedure TTestBoldOclEvaluation.TestUnknownMember_Raises_Raiser;
+begin
+  fRaiseObj.EvaluateExpressionAsString('self.nonExistentMember');
+end;
+
+procedure TTestBoldOclEvaluation.TestSyntaxError_Raises_Raiser;
+begin
+  fRaiseObj.EvaluateExpressionAsString('self...invalid');
+end;
+
+procedure TTestBoldOclEvaluation.TestDivisionByZero_SafeDiv_Raiser;
+begin
+  fRaiseObj.EvaluateExpressionAsFloat('self.aFloat.safediv(0.0)');
+end;
+
+procedure TTestBoldOclEvaluation.TestDivisionByZero_Raises_Raiser;
+begin
+  fRaiseObj.EvaluateExpressionAsInteger('self.aInteger.div(0)');
+end;
+
+procedure TTestBoldOclEvaluation.TestFloatDivisionByZeroSafeDiv_Raiser;
+begin
+  fRaiseObj.EvaluateExpressionAsString('self.aInteger.safediv(0).asString');
+end;
+
+procedure TTestBoldOclEvaluation.TestGuillemetInExpressionRaises_Raiser;
+begin
+  fRaiseObj.EvaluateExpressionAsString('self.aString' + #$AB); // « character
+end;
 
 procedure TTestBoldOclEvaluation.SetUp;
 begin
@@ -1610,12 +1431,8 @@ var
   Obj: TClassA;
 begin
   Obj := TClassA.Create(GetSystem);
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      Obj.EvaluateExpressionAsString('self.nonExistentMember');
-    end
-  );
+  fRaiseObj := Obj;
+  Assert.WillRaiseAny(TestUnknownMember_Raises_Raiser);
 end;
 
 procedure TTestBoldOclEvaluation.TestSyntaxError_Raises;
@@ -1623,12 +1440,8 @@ var
   Obj: TClassA;
 begin
   Obj := TClassA.Create(GetSystem);
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      Obj.EvaluateExpressionAsString('self...invalid');
-    end
-  );
+  fRaiseObj := Obj;
+  Assert.WillRaiseAny(TestSyntaxError_Raises_Raiser);
 end;
 
 procedure TTestBoldOclEvaluation.TestDivisionByZero_SafeDiv;
@@ -1638,12 +1451,8 @@ begin
   Obj := TClassA.Create(GetSystem);
   Obj.aFloat := 10.0;
   // safediv with zero divisor should not raise an exception
-  Assert.WillNotRaiseAny(
-    procedure
-    begin
-      Obj.EvaluateExpressionAsFloat('self.aFloat.safediv(0.0)');
-    end
-  );
+  fRaiseObj := Obj;
+  Assert.WillNotRaiseAny(TestDivisionByZero_SafeDiv_Raiser);
 end;
 
 // === Currency Arithmetic ===
@@ -1782,12 +1591,8 @@ begin
   Obj := TClassA.Create(GetSystem);
   Obj.aInteger := 10;
   // Integer div by zero should raise
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      Obj.EvaluateExpressionAsInteger('self.aInteger.div(0)');
-    end
-  );
+  fRaiseObj := Obj;
+  Assert.WillRaiseAny(TestDivisionByZero_Raises_Raiser);
 end;
 
 // === Pad edge cases ===
@@ -1985,12 +1790,8 @@ begin
   Obj := TClassA.Create(GetSystem);
   Obj.aInteger := 10;
   // safediv with zero should not raise, result is unset
-  Assert.WillNotRaiseAny(
-    procedure
-    begin
-      Obj.EvaluateExpressionAsString('self.aInteger.safediv(0).asString');
-    end
-  );
+  fRaiseObj := Obj;
+  Assert.WillNotRaiseAny(TestFloatDivisionByZeroSafeDiv_Raiser);
 end;
 
 // === Currency compare ===
@@ -2612,12 +2413,8 @@ var
   Obj: TClassA;
 begin
   Obj := TClassA.Create(GetSystem);
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      Obj.EvaluateExpressionAsString('self.aString' + #$AB); // « character
-    end
-  );
+  fRaiseObj := Obj;
+  Assert.WillRaiseAny(TestGuillemetInExpressionRaises_Raiser);
 end;
 
 procedure TTestBoldOclEvaluation.TestExpressionTypeBoolean;
@@ -2807,6 +2604,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldOclEvaluation);
+  BoldRegisterTest(TTestBoldOclEvaluation);
 
 end.

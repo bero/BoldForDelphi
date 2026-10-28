@@ -4,62 +4,46 @@ interface
 
 uses
   Classes,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSystem,
   BoldSystemRT,
   BoldElements,
   BoldListHandle,
   jehoBCBoldTest,
-  Test.BoldAttributes;  // For TjehodmBoldTest
+  jehoBoldTestDataModule;  // For TjehodmBoldTest
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Handles')]
-  TTestBoldListHandle = class
+  {$ENDIF}
+  TTestBoldListHandle = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
     function GetSystem: TBoldSystem;
     function GetListHandle: TBoldListHandle;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // Tests for TBoldListHandle using DFM-configured handle
-    [Test]
     procedure TestListHandleNotNil;
-    [Test]
     procedure TestListHandleCountEmpty;
-    [Test]
     procedure TestListHandleCountWithObjects;
-    [Test]
     procedure TestListHandleObjectListProperty;
-    [Test]
     procedure TestListHandleFirst;
-    [Test]
     procedure TestListHandleLast;
-    [Test]
     procedure TestListHandleNavigation;
-    [Test]
     procedure TestListHandleExpression;
-    [Test]
     procedure TestListHandleCurrentElement;
-    [Test]
     procedure TestListHandleHandleValue;
-    [Test]
     procedure TestListHandleBoldType;
-    [Test]
     procedure TestListHandleEnabled;
-    [Test]
     procedure TestListHandleCurrentBoldObject;
 
     // The tests above all use the handle streamed from the DFM, which starts
     // out disabled and therefore never derives while it is being constructed.
     // A handle constructed in code starts enabled, so its constructor derives.
-    [Test]
     procedure TestListHandleCreatedInCode;
-    [Test]
     procedure TestListHandleConstructionDoesNotDerive;
   end;
 
@@ -276,6 +260,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldListHandle);
+  BoldRegisterTest(TTestBoldListHandle);
 
 end.

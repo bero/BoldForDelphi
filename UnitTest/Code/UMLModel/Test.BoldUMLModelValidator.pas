@@ -3,41 +3,33 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldUMLAbstractModelValidator,
   BoldUMLModelValidator,
   BoldModel,
   BoldTypeNameDictionary,
-  Test.BoldAttributes; // For TjehodmBoldTest
+  jehoBoldTestDataModule; // For TjehodmBoldTest
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('UMLModel')]
-  TTestBoldUMLModelValidator = class
+  {$ENDIF}
+  TTestBoldUMLModelValidator = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // Enum and constant tests
-    [Test]
     procedure TestDefaultValidatorSourceLanguageIsDelphi;
-    [Test]
     procedure TestSourceLanguageEnumHasDelphiValue;
-    [Test]
     procedure TestSourceLanguageEnumHasNoneValue;
-    [Test]
     procedure TestSourceLanguageEnumOnlyHasTwoValues;
 
     // Integration tests - exercises IsValidDelphiIdentifier and other validation
-    [Test]
     procedure TestValidateWithDelphiLanguage;
-    [Test]
     procedure TestValidateWithNoLanguage;
-    [Test]
     procedure TestValidatorHighestSeverity;
   end;
 
@@ -64,7 +56,7 @@ end;
 procedure TTestBoldUMLModelValidator.TestDefaultValidatorSourceLanguageIsDelphi;
 begin
   // Verify the default validator source language is Delphi (not C++)
-  Assert.AreEqual(mvslDelphi, BoldDefaultValidatorSourceLanguage,
+  Assert.AreEqual(Ord(mvslDelphi), Ord(BoldDefaultValidatorSourceLanguage),
     'Default validator source language should be mvslDelphi');
 end;
 
@@ -140,6 +132,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldUMLModelValidator);
+  BoldRegisterTest(TTestBoldUMLModelValidator);
 
 end.

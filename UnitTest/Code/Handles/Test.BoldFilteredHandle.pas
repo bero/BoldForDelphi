@@ -3,8 +3,8 @@
 interface
 
 uses
-  System.Classes,
-  DUnitX.TestFramework,
+  Classes,
+  BoldTestFramework,
   BoldElements,
   BoldSubscription,
   BoldSystem,
@@ -12,50 +12,40 @@ uses
   BoldListHandle,
   BoldFilteredHandle,
   jehoBCBoldTest,
-  Test.BoldAttributes;  // For TjehodmBoldTest
+  jehoBoldTestDataModule;  // For TjehodmBoldTest
 
 type
   /// <summary>
   /// Test fixture for BoldFilteredHandle - Filter component and filtered handle
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Handles')]
-  TTestBoldFilter = class
+  {$ENDIF}
+  TTestBoldFilter = class(TBoldTestCase)
   private
     FFilterCallCount: Integer;
     FSubscribeCallCount: Integer;
     function TestFilter(Element: TBoldElement): Boolean;
     procedure TestSubscribe(BoldElement: TBoldElement; Subscriber: TBoldSubscriber);
-  public
-    [Setup]
-    procedure Setup;
-
+  protected
+    procedure SetUp; override;
+  published
     // TBoldFilter lifecycle tests
-    [Test]
     procedure TestFilterCreate;
-    [Test]
     procedure TestFilterDestroy;
 
     // TBoldFilter.Filter method tests
-    [Test]
     procedure TestFilter_NoOnFilter_ReturnsTrue;
-    [Test]
     procedure TestFilter_WithOnFilter_CallsHandler;
 
     // TBoldFilter.Subscribe method tests
-    [Test]
     procedure TestSubscribe_NoOnSubscribe_DoesNothing;
-    [Test]
     procedure TestSubscribe_WithOnSubscribe_CallsHandler;
 
     // TBoldFilter.PreFetchRoles property tests
-    [Test]
     procedure TestPreFetchRoles_DefaultEmpty;
-    [Test]
     procedure TestPreFetchRoles_SetAndGet;
-    [Test]
     procedure TestStorePreFetchRoles_EmptyReturnsFalse;
-    [Test]
     procedure TestStorePreFetchRoles_NonEmptyReturnsTrue;
   end;
 
@@ -64,9 +54,10 @@ type
   /// without it - on its own and as the filter stage inside a TBoldListHandle.
   /// Filter and handles share an owner, as on a form.
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Handles')]
-  TTestBoldFilteredHandleFilterRemoval = class
+  {$ENDIF}
+  TTestBoldFilteredHandleFilterRemoval = class(TBoldTestCase)
   strict private
     fDataModule: TjehodmBoldTest;
     fOwner: TComponent;
@@ -74,29 +65,25 @@ type
     function CreateRejectAllFilter: TBoldFilter;
     function CreateClassAHandle: TBoldExpressionHandle;
     function CreateClassAObjects: Integer;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestFilteredHandle_ReDerivesUnfilteredWhenFilterIsDestroyed;
-    [Test]
     procedure TestListHandle_ReDerivesUnfilteredWhenFilterIsDestroyed;
   end;
 
 implementation
 
 uses
-  System.SysUtils;
+  SysUtils;
 
 const
   cnClassAInstances = 'ClassA.allInstances';
 
 { TTestBoldFilter }
 
-procedure TTestBoldFilter.Setup;
+procedure TTestBoldFilter.SetUp;
 begin
   FFilterCallCount := 0;
   FSubscribeCallCount := 0;
@@ -345,7 +332,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldFilter);
-  TDUnitX.RegisterTestFixture(TTestBoldFilteredHandleFilterRemoval);
+  BoldRegisterTest(TTestBoldFilter);
+  BoldRegisterTest(TTestBoldFilteredHandleFilterRemoval);
 
 end.
