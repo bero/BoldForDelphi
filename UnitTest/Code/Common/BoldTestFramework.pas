@@ -476,10 +476,12 @@ end;
 
 procedure TBoldTestCase.DUnitXTearDown;
 begin
+  // Deferred test objects first, then the fixture's TearDown: the same order as
+  // FPCUnit, where RunTest frees them before TearDown runs.
   try
-    TearDown;
-  finally
     FreeObjectsAfterTest;
+  finally
+    TearDown;
   end;
 end;
 
