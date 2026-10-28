@@ -3,16 +3,19 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDefs,
   BoldBase,
   BoldSubscription,
   BoldSubscribableCollection;
 
 type
-  [TestFixture]
-  TTestBoldSubscription = class
+  TTestBoldSubscription = class(TBoldTestCase)
   private
+    // State for the methods Assert.WillRaise calls
+    fRaisePublisher: TBoldPublisher;
+    fRaiseSubscriber: TBoldSubscriber;
+    fRaiseOriginator: TObject;
     FReceivedOriginators: array of TObject;
     FReceivedOriginalEvents: array of TBoldEvent;
     FReceivedRequestedEvents: array of TBoldRequestedEvent;
@@ -28,6 +31,8 @@ type
     FDelayedActionCallCount: Integer;
     FDestroyEventReceived: Boolean;
 
+    procedure AddEmptySmallSubscription;
+    procedure CallBaseAnswer;
     procedure HandleReceive(Originator: TObject; OriginalEvent: TBoldEvent;
       RequestedEvent: TBoldRequestedEvent);
     procedure HandleReceive2(Originator: TObject; OriginalEvent: TBoldEvent;
@@ -47,204 +52,126 @@ type
 
     procedure RecordEvent(Originator: TObject; OriginalEvent: TBoldEvent;
       RequestedEvent: TBoldRequestedEvent);
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     { Core Pub/Sub: TBoldPublisher + TBoldPassthroughSubscriber }
-    [Test]
     procedure TestRaisingSubscriberLeavesNotificationBalanced;
-    [Test]
     procedure TestSubscribeAndReceiveSmallEvent;
-    [Test]
     procedure TestSubscribeSmallEventSet;
-    [Test]
     procedure TestNonMatchingEventNotReceived;
-    [Test]
     procedure TestLargeEventSubscription;
-    [Test]
     procedure TestSmallEventDeduplication;
-    [Test]
     procedure TestMultipleSubscribersOnOnePublisher;
-    [Test]
     procedure TestOneSubscriberMultiplePublishers;
-    [Test]
     procedure TestCancelAllSubscriptions;
-    [Test]
     procedure TestCancelSubscriptionTo;
-    [Test]
     procedure TestHasMatchingSubscription;
-    [Test]
     procedure TestDestroyingSubscriberClearsPublisherSide;
-    [Test]
     procedure TestNotifySubscribersAndClearSubscriptions;
-    [Test]
     procedure TestRequestedEventRemapping;
 
     { Extended Events and Queries }
-    [Test]
     procedure TestExtendedPassthroughReceivesArgs;
-    [Test]
     procedure TestQueryVetoPattern;
-    [Test]
     procedure TestQueryApprovePattern;
-    [Test]
     procedure TestQueryNoHandler;
 
     { TBoldSubscribableObject }
-    [Test]
     procedure TestSubscribableObject_LazyPublisher;
-    [Test]
     procedure TestSubscribableObject_SendEventNoSubscribers;
-    [Test]
     procedure TestSubscribableObject_SendEventWithSubscribers;
-    [Test]
     procedure TestSubscribableObject_SendQueryNoSubscribers;
-    [Test]
     procedure TestSubscribableObject_DestroyNotifiesSubscribers;
 
     { TBoldSubscribableCollection }
-    [Test]
     procedure TestSubscribableCollection_EagerPublisher;
-    [Test]
     procedure TestSubscribableCollection_SubscribeAndReceive;
 
     { TBoldSubscribableComponent }
-    [Test]
     procedure TestSubscribableComponent_LazyPublisher;
-    [Test]
     procedure TestSubscribableComponent_SendEventWithSubscribers;
-    [Test]
     procedure TestSubscribableComponent_DestroyNotifiesSubscribers;
 
     { TBoldSubscribablePersistent }
-    [Test]
     procedure TestSubscribablePersistent_SubscribeAndReceive;
-    [Test]
     procedure TestSubscribablePersistent_DestroyNotifiesSubscribers;
 
     { TBoldSubscribableNonRefCountedObject }
-    [Test]
     procedure TestSubscribableNonRefCounted_SubscribeAndReceive;
-    [Test]
     procedure TestSubscribableNonRefCounted_DestroyNotifiesSubscribers;
 
     { Edge cases }
-    [Test]
     procedure TestAddSmallSubscription_EmptySetRaisesException;
-    [Test]
     procedure TestAddSubscription_BigEventDeduplication;
-    [Test]
     procedure TestSubscriber_CancelSubscriptionTo;
-    [Test]
     procedure TestSendExtendedEvent_WithArgs;
-    [Test]
     procedure TestSendQuery_WithOriginator;
-    [Test]
     procedure TestSubscriptionsAsText;
-    [Test]
     procedure TestContextString_Publisher;
 
     { Subscriber Diagnostic Methods }
-    [Test]
     procedure TestSubscriber_ContextString;
-    [Test]
     procedure TestSubscriber_DebugInfo;
-    [Test]
     procedure TestSubscriber_SubscriptionsAsText;
-    [Test]
     procedure TestSubscriber_SubscriptionsAsText_Component;
-    [Test]
     procedure TestSubscriber_SubscriptionsAsText_NoSubscriptions;
-    [Test]
     procedure TestSubscriber_Answer_RaisesEBold;
 
     { Variant SendQuery/SendExtendedEvent }
-    [Test]
     procedure TestSubscribableComponent_SendQuery;
-    [Test]
     procedure TestSubscribableComponent_SendExtendedEvent;
-    [Test]
     procedure TestSubscribableComponent_SubscriptionsAsText;
-    [Test]
     procedure TestSubscribablePersistent_SendQuery;
-    [Test]
     procedure TestSubscribablePersistent_SendExtendedEvent;
-    [Test]
     procedure TestSubscribablePersistent_AddSubscription_BigEvent;
-    [Test]
     procedure TestSubscribablePersistent_SubscriptionsAsText;
-    [Test]
     procedure TestSubscribablePersistent_SubscriptionsAsText_NoPublisher;
-    [Test]
     procedure TestSubscribableNonRefCounted_AddSubscription_BigEvent;
-    [Test]
     procedure TestSubscribableNonRefCounted_SendExtendedEvent;
-    [Test]
     procedure TestSubscribableNonRefCounted_SendQuery;
-    [Test]
     procedure TestSubscribableNonRefCounted_SendQuery_WithOriginator;
-    [Test]
     procedure TestSubscribableNonRefCounted_SubscriptionsAsText;
 
     { Publisher Loop Path Coverage }
-    [Test]
     procedure TestHasMatchingSubscription_PublisherSidePath;
-    [Test]
     procedure TestCancelSubscriptionTo_SubscriberSidePath;
 
     { Statistics }
-    [Test]
     procedure TestGlobalStatistics;
 
     { Post-Notification Queue }
-    [Test]
     procedure TestDelayTillAfterNotification;
-    [Test]
     procedure TestDelayTillAfterNotification_Immediate;
-    [Test]
     procedure TestBoldForcedDequeuePostNotify;
 
     { Deduplication — Subscriber-Side Paths }
-    [Test]
     procedure TestSmallEventDeduplication_SubscriberSidePath;
-    [Test]
     procedure TestBigEventDeduplication_SubscriberSidePath;
 
     { Publisher Diagnostics }
-    [Test]
     procedure TestPublisher_ContextString_WithSubscribableObject;
 
     { Subscriber Diagnostics — Additional Paths }
-    [Test]
     procedure TestSubscriber_ContextString_TComponentOwner;
-    [Test]
     procedure TestSubscriber_BaseContextString;
-    [Test]
     procedure TestSubscriber_SubscriptionsAsText_PlainObject;
 
     { SubscribableObject Diagnostics }
-    [Test]
     procedure TestSubscribableObject_SubscriptionsAsText;
 
     { Array Growth }
-    [Test]
     procedure TestManySubscriptions_TriggersLargeGrowth;
 
     { HasMatchingSubscription — No-Match Paths }
-    [Test]
     procedure TestHasMatchingSubscription_PublisherSide_NoMatch;
-    [Test]
     procedure TestHasMatchingSubscription_SubscriberSide_NoMatch;
 
     { Big Event — New Subscription via Subscriber-Side Path }
-    [Test]
     procedure TestBigEvent_NewSubscription_SubscriberSidePath;
 
     { Publisher Destroy with NeedsPacking }
-    [Test]
     procedure TestPublisher_DestroyWithNeedsPacking;
   end;
 
@@ -297,7 +224,18 @@ end;
 
 { TTestBoldSubscription }
 
-procedure TTestBoldSubscription.Setup;
+procedure TTestBoldSubscription.AddEmptySmallSubscription;
+begin
+  fRaisePublisher.AddSmallSubscription(fRaiseSubscriber, [], beDefaultRequestedEvent);
+end;
+
+procedure TTestBoldSubscription.CallBaseAnswer;
+begin
+  TBoldSubscriberAccess(fRaiseSubscriber).CallAnswer(fRaiseOriginator, beValueChanged,
+    beDefaultRequestedEvent, [], nil);
+end;
+
+procedure TTestBoldSubscription.SetUp;
 begin
   FReceiveCallCount := 0;
   FReceiveCallCount2 := 0;
@@ -1179,12 +1117,9 @@ begin
   try
     PublisherVar := TBoldPublisher.Create(PublisherVar);
     try
-      Assert.WillRaise(
-        procedure
-        begin
-          PublisherVar.AddSmallSubscription(Subscriber, [], beDefaultRequestedEvent);
-        end,
-        EBold,
+      fRaisePublisher := PublisherVar;
+      fRaiseSubscriber := Subscriber;
+      Assert.WillRaise(AddEmptySmallSubscription, EBold,
         'Empty event set should raise EBold');
     finally
       PublisherVar.NotifySubscribersAndClearSubscriptions(nil);
@@ -1467,12 +1402,9 @@ begin
   Subscriber := TBoldSubscriberAccess.Create;
   Originator := TObject.Create;
   try
-    Assert.WillRaise(
-      procedure
-      begin
-        Subscriber.CallAnswer(Originator, beValueChanged, beDefaultRequestedEvent, [], nil);
-      end,
-      EBold,
+    fRaiseSubscriber := Subscriber;
+    fRaiseOriginator := Originator;
+    Assert.WillRaise(CallBaseAnswer, EBold,
       'Base Answer should raise EBold');
   finally
     Originator.Free;
@@ -2389,6 +2321,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSubscription);
+  BoldRegisterTest(TTestBoldSubscription);
 
 end.

@@ -3,84 +3,52 @@
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
-  [TestFixture]
-  TTestBoldTaggedValueSupport = class
-  public
+  TTestBoldTaggedValueSupport = class(TBoldTestCase)
+  private
+    procedure ConvertInvalidBoolean;
+  published
     // Add*ToStrings methods
-    [Test]
     procedure TestAddTableMappings;
-    [Test]
     procedure TestAddAttributeKinds;
-    [Test]
     procedure TestAddOptimisticLockingModes;
-    [Test]
     procedure TestAddDeleteActions;
-    [Test]
     procedure TestAddDelphiFunctionTypes;
-    [Test]
     procedure TestAddPropertyAccessKinds;
-    [Test]
     procedure TestAddEvolutionStates;
-    [Test]
     procedure TestAddNationalCharConversions;
-    [Test]
     procedure TestAddDefaultRegionModes;
 
     // Roundtrip: ToString <-> StringTo
-    [Test]
     procedure TestAttributeKindRoundtrip;
-    [Test]
     procedure TestDeleteActionRoundtrip;
-    [Test]
     procedure TestDelphiFunctionTypeRoundtrip;
-    [Test]
     procedure TestDelphiPropertyAccessKindRoundtrip;
-    [Test]
     procedure TestTableMappingRoundtrip;
-    [Test]
     procedure TestOptimisticLockingModeRoundtrip;
-    [Test]
     procedure TestEvolutionStateRoundtrip;
-    [Test]
     procedure TestNationalCharConversionRoundtrip;
-    [Test]
     procedure TestDefaultRegionModeRoundtrip;
 
     // StringTo with specific values
-    [Test]
     procedure TestStringToStorage;
-    [Test]
     procedure TestStringToBoolean;
-    [Test]
     procedure TestStringToBoolean_Invalid;
 
     // StringTo with defaults/fallbacks
-    [Test]
     procedure TestStringToAttributeKind_Default;
-    [Test]
     procedure TestStringToDeleteAction_Default;
-    [Test]
     procedure TestStringToDelphiFunctionType_AbstractVirtualLegacy;
-    [Test]
     procedure TestStringToDelphiFunctionType_Default;
-    [Test]
     procedure TestStringToDelphiPropertyAccessKind_Default;
-    [Test]
     procedure TestStringToTableMapping_Default;
-    [Test]
     procedure TestStringToOptimisticLockingMode_OldNames;
-    [Test]
     procedure TestStringToOptimisticLockingMode_Default;
-    [Test]
     procedure TestStringToEvolutionState_Default;
-    [Test]
     procedure TestStringToNationalCharConversion_All;
-    [Test]
     procedure TestStringToDefaultRegionMode_Default;
-    [Test]
     procedure TestStringToStorage_Default;
   end;
 
@@ -228,12 +196,12 @@ end;
 
 procedure TTestBoldTaggedValueSupport.TestAttributeKindRoundtrip;
 begin
-  Assert.AreEqual(bastBold,
-    TBoldTaggedValueSupport.StringToAttributeKind(
-      TBoldTaggedValueSupport.AttributeKindToString(bastBold)));
-  Assert.AreEqual(bastDelphi,
-    TBoldTaggedValueSupport.StringToAttributeKind(
-      TBoldTaggedValueSupport.AttributeKindToString(bastDelphi)));
+  Assert.AreEqual(Ord(bastBold),
+    Ord(TBoldTaggedValueSupport.StringToAttributeKind(
+      TBoldTaggedValueSupport.AttributeKindToString(bastBold))));
+  Assert.AreEqual(Ord(bastDelphi),
+    Ord(TBoldTaggedValueSupport.StringToAttributeKind(
+      TBoldTaggedValueSupport.AttributeKindToString(bastDelphi))));
 end;
 
 procedure TTestBoldTaggedValueSupport.TestDeleteActionRoundtrip;
@@ -336,11 +304,14 @@ begin
   Assert.IsFalse(TBoldTaggedValueSupport.StringToBoolean(TV_FALSE));
 end;
 
+procedure TTestBoldTaggedValueSupport.ConvertInvalidBoolean;
+begin
+  TBoldTaggedValueSupport.StringToBoolean('Maybe');
+end;
+
 procedure TTestBoldTaggedValueSupport.TestStringToBoolean_Invalid;
 begin
-  Assert.WillRaise(
-    procedure begin TBoldTaggedValueSupport.StringToBoolean('Maybe'); end,
-    EBold);
+  Assert.WillRaise(ConvertInvalidBoolean, EBold);
 end;
 
 // --- Default/fallback values ---
@@ -432,6 +403,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldTaggedValueSupport);
+  BoldRegisterTest(TTestBoldTaggedValueSupport);
 
 end.

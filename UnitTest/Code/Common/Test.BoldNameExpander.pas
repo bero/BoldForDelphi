@@ -3,100 +3,65 @@
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
-  [TestFixture]
-  TTestBoldNameExpander = class
-  public
+  TTestBoldNameExpander = class(TBoldTestCase)
+  published
     // BoldExpandName function (covers all 3 expander creation paths)
-    [Test]
     procedure TestBoldExpandName_SQL;
-    [Test]
     procedure TestBoldExpandName_Delphi;
-    [Test]
     procedure TestBoldExpandName_Expression;
 
     // BoldExpandPrefix
-    [Test]
     procedure TestBoldExpandPrefix_ReplacesTag;
-    [Test]
     procedure TestBoldExpandPrefix_NoTag;
 
     // TBoldAbstractNameExpander.ExpandName
-    [Test]
     procedure TestExpandName_ExactMatch;
-    [Test]
     procedure TestExpandName_Embedded;
-    [Test]
     procedure TestExpandName_Multiple;
-    [Test]
     procedure TestExpandName_NoMatch;
-    [Test]
     procedure TestExpandName_ShorterThanTag;
 
     // LanguageIsCaseSensitive
-    [Test]
     procedure TestLanguageIsCaseSensitive;
 
     // MapCharacters (base + national char conversion)
-    [Test]
     procedure TestMapCharacters_NoConversion;
-    [Test]
     procedure TestMapCharacters_WithConversion;
-    [Test]
     procedure TestMapCharacters_DefaultFlagOn;
 
     // GetMapCharacter - specific national characters
-    [Test]
     procedure TestMapCharacter_AccentedChars;
-    [Test]
     procedure TestMapCharacter_UnmappedChar;
 
     // TruncateName
-    [Test]
     procedure TestTruncateName_WithinLimit;
-    [Test]
     procedure TestTruncateName_ExceedsLimit;
-    [Test]
     procedure TestTruncateName_NoLimit;
 
     // ValidateName (base)
-    [Test]
     procedure TestValidateName_Valid;
-    [Test]
     procedure TestValidateName_InvalidChars;
-    [Test]
     procedure TestValidateName_TooLong;
 
     // SQL expander specifics
-    [Test]
     procedure TestSQLExpandName_UpperCase;
-    [Test]
     procedure TestSQLValidCharacters;
 
     // Delphi expander specifics
-    [Test]
     procedure TestDelphiMapCharacters_LeadingDigit;
-    [Test]
     procedure TestDelphiValidateName_Empty;
-    [Test]
     procedure TestDelphiValidateName_InvalidFirstChar;
-    [Test]
     procedure TestDelphiValidateName_Valid;
-    [Test]
     procedure TestDelphiValidCharacters;
 
     // Expression expander specifics
-    [Test]
     procedure TestExpressionMapCharacters_LeadingDigit;
-    [Test]
     procedure TestExpressionValidateName_Empty;
-    [Test]
     procedure TestExpressionValidateName_InvalidFirstChar;
-    [Test]
     procedure TestExpressionValidateName_Valid;
-    [Test]
     procedure TestExpressionValidCharacters;
   end;
 
@@ -114,36 +79,46 @@ uses
 // --- BoldExpandName ---
 
 procedure TTestBoldNameExpander.TestBoldExpandName_SQL;
+var
+  Actual: string;
 begin
-  var Result := BoldExpandName('Table_<Name>', 'Customer', xtSQL, -1, nccDefault);
-  Assert.AreEqual('Table_Customer', Result);
+  Actual := BoldExpandName('Table_<Name>', 'Customer', xtSQL, -1, nccDefault);
+  Assert.AreEqual('Table_Customer', Actual);
 end;
 
 procedure TTestBoldNameExpander.TestBoldExpandName_Delphi;
+var
+  Actual: string;
 begin
-  var Result := BoldExpandName('T<Name>', 'Order', xtDelphi, -1, nccDefault);
-  Assert.AreEqual('TOrder', Result);
+  Actual := BoldExpandName('T<Name>', 'Order', xtDelphi, -1, nccDefault);
+  Assert.AreEqual('TOrder', Actual);
 end;
 
 procedure TTestBoldNameExpander.TestBoldExpandName_Expression;
+var
+  Actual: string;
 begin
-  var Result := BoldExpandName('<Name>List', 'Item', xtExpression, -1, nccDefault);
-  Assert.AreEqual('ItemList', Result);
+  Actual := BoldExpandName('<Name>List', 'Item', xtExpression, -1, nccDefault);
+  Assert.AreEqual('ItemList', Actual);
 end;
 
 // --- BoldExpandPrefix ---
 
 procedure TTestBoldNameExpander.TestBoldExpandPrefix_ReplacesTag;
+var
+  Actual: string;
 begin
-  var Result := BoldExpandPrefix(TABLEPREFIXTAG + '_XFILES', 'Obj', 'SYS', -1, nccDefault);
-  Assert.IsTrue(Pos('SYS', Result) > 0, 'Prefix should be inserted');
-  Assert.AreEqual(0, Pos(TABLEPREFIXTAG, Result), 'Tag should be replaced');
+  Actual := BoldExpandPrefix(TABLEPREFIXTAG + '_XFILES', 'Obj', 'SYS', -1, nccDefault);
+  Assert.IsTrue(Pos('SYS', Actual) > 0, 'Prefix should be inserted');
+  Assert.AreEqual(0, Pos(TABLEPREFIXTAG, Actual), 'Tag should be replaced');
 end;
 
 procedure TTestBoldNameExpander.TestBoldExpandPrefix_NoTag;
+var
+  Actual: string;
 begin
-  var Result := BoldExpandPrefix('PlainName', 'Obj', 'SYS', -1, nccDefault);
-  Assert.AreEqual('PlainName', Result);
+  Actual := BoldExpandPrefix('PlainName', 'Obj', 'SYS', -1, nccDefault);
+  Assert.AreEqual('PlainName', Actual);
 end;
 
 // --- ExpandName ---
@@ -432,12 +407,13 @@ end;
 procedure TTestBoldNameExpander.TestDelphiMapCharacters_LeadingDigit;
 var
   Exp: TBoldDelphiNameExpander;
+  Actual: string;
 begin
   Exp := TBoldDelphiNameExpander.Create;
   try
     // Leading digit is not valid for Delphi, gets mapped
-    var Result := Exp.MapCharacters('1abc', nccFalse);
-    Assert.AreEqual('_abc', Result);
+    Actual := Exp.MapCharacters('1abc', nccFalse);
+    Assert.AreEqual('_abc', Actual);
   finally
     Exp.Free;
   end;
@@ -509,11 +485,12 @@ end;
 procedure TTestBoldNameExpander.TestExpressionMapCharacters_LeadingDigit;
 var
   Exp: TBoldExpressionNameExpander;
+  Actual: string;
 begin
   Exp := TBoldExpressionNameExpander.Create;
   try
-    var Result := Exp.MapCharacters('1abc', nccFalse);
-    Assert.AreEqual('_abc', Result);
+    Actual := Exp.MapCharacters('1abc', nccFalse);
+    Assert.AreEqual('_abc', Actual);
   finally
     Exp.Free;
   end;
@@ -579,6 +556,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldNameExpander);
+  BoldRegisterTest(TTestBoldNameExpander);
 
 end.

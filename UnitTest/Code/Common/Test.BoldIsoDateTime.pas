@@ -3,44 +3,35 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldIsoDateTime,
   BoldDefs;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Common')]
-  TTestBoldIsoDateTime = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldIsoDateTime = class(TBoldTestCase)
+  private
+    fInput: string;
+    procedure CallParseISODate;
+    procedure CallParseISODateTime;
+    procedure CallParseISOTime;
+  published
     procedure TestAsISODateTime;
-    [Test]
     procedure TestAsISODateTimeMS;
-    [Test]
     procedure TestParseISODate;
-    [Test]
     procedure TestParseISODateInvalidFormat;
-    [Test]
     procedure TestParseISODateInvalidMonth;
-    [Test]
     procedure TestParseISODateInvalidDay;
-    [Test]
     procedure TestParseISODateTime;
-    [Test]
     procedure TestParseISODateTimeWithT;
-    [Test]
     procedure TestParseISODateTimeInvalid;
-    [Test]
     procedure TestParseISOTime;
-    [Test]
     procedure TestParseISOTimeShortFormat;
-    [Test]
     procedure TestParseISOTimeInvalidFormat;
-    [Test]
     procedure TestParseISOTimeInvalidHour;
-    [Test]
     procedure TestParseISOTimeInvalidMinute;
-    [Test]
     procedure TestParseISOTimeInvalidSecond;
   end;
 
@@ -50,6 +41,21 @@ uses
   SysUtils;
 
 { TTestBoldIsoDateTime }
+
+procedure TTestBoldIsoDateTime.CallParseISODate;
+begin
+  ParseISODate(fInput);
+end;
+
+procedure TTestBoldIsoDateTime.CallParseISODateTime;
+begin
+  ParseISODateTime(fInput);
+end;
+
+procedure TTestBoldIsoDateTime.CallParseISOTime;
+begin
+  ParseISOTime(fInput);
+end;
 
 procedure TTestBoldIsoDateTime.TestAsISODateTime;
 var
@@ -85,53 +91,28 @@ end;
 
 procedure TTestBoldIsoDateTime.TestParseISODateInvalidFormat;
 begin
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISODate('2025/12/31');  // Wrong separator
-    end,
-    EBold
-  );
+  fInput := '2025/12/31';  // Wrong separator
+  Assert.WillRaise(CallParseISODate, EBold);
 end;
 
 procedure TTestBoldIsoDateTime.TestParseISODateInvalidMonth;
 begin
   // Month > 12
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISODate('2025-13-01');
-    end,
-    EBold
-  );
+  fInput := '2025-13-01';
+  Assert.WillRaise(CallParseISODate, EBold);
   // Month < 1
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISODate('2025-00-01');
-    end,
-    EBold
-  );
+  fInput := '2025-00-01';
+  Assert.WillRaise(CallParseISODate, EBold);
 end;
 
 procedure TTestBoldIsoDateTime.TestParseISODateInvalidDay;
 begin
   // Day < 1
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISODate('2025-01-00');
-    end,
-    EBold
-  );
+  fInput := '2025-01-00';
+  Assert.WillRaise(CallParseISODate, EBold);
   // Day > days in month
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISODate('2025-02-30');  // February has max 29 days
-    end,
-    EBold
-  );
+  fInput := '2025-02-30';  // February has max 29 days
+  Assert.WillRaise(CallParseISODate, EBold);
 end;
 
 procedure TTestBoldIsoDateTime.TestParseISODateTime;
@@ -168,13 +149,8 @@ end;
 
 procedure TTestBoldIsoDateTime.TestParseISODateTimeInvalid;
 begin
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISODateTime('2025-12-31X14:30:45');  // Invalid separator
-    end,
-    EBold
-  );
+  fInput := '2025-12-31X14:30:45';  // Invalid separator
+  Assert.WillRaise(CallParseISODateTime, EBold);
 end;
 
 procedure TTestBoldIsoDateTime.TestParseISOTime;
@@ -204,49 +180,29 @@ end;
 
 procedure TTestBoldIsoDateTime.TestParseISOTimeInvalidFormat;
 begin
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISOTime('14-30-45');  // Wrong separator
-    end,
-    EBold
-  );
+  fInput := '14-30-45';  // Wrong separator
+  Assert.WillRaise(CallParseISOTime, EBold);
 end;
 
 procedure TTestBoldIsoDateTime.TestParseISOTimeInvalidHour;
 begin
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISOTime('24:00:00');  // Hour > 23
-    end,
-    EBold
-  );
+  fInput := '24:00:00';  // Hour > 23
+  Assert.WillRaise(CallParseISOTime, EBold);
 end;
 
 procedure TTestBoldIsoDateTime.TestParseISOTimeInvalidMinute;
 begin
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISOTime('12:60:00');  // Minute > 59
-    end,
-    EBold
-  );
+  fInput := '12:60:00';  // Minute > 59
+  Assert.WillRaise(CallParseISOTime, EBold);
 end;
 
 procedure TTestBoldIsoDateTime.TestParseISOTimeInvalidSecond;
 begin
-  Assert.WillRaise(
-    procedure
-    begin
-      ParseISOTime('12:30:60');  // Second > 59
-    end,
-    EBold
-  );
+  fInput := '12:30:60';  // Second > 59
+  Assert.WillRaise(CallParseISOTime, EBold);
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldIsoDateTime);
+  BoldRegisterTest(TTestBoldIsoDateTime);
 
 end.

@@ -3,44 +3,32 @@ unit Test.BoldEventQueue;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldEventQueue;
 
 type
-  [TestFixture]
-  TTestBoldEventQueue = class
+  TTestBoldEventQueue = class(TBoldTestCase)
   private
     FQueue: TBoldEventQueue;
     FEventCalled: Boolean;
     FEventSender: TObject;
     FEventCallCount: Integer;
     procedure HandleEvent(Sender: TObject);
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // TBoldEventQueueItem tests
-    [Test]
     procedure TestEventQueueItemCreate;
-    [Test]
     procedure TestEventQueueItemSendEvent;
 
     // TBoldEventQueue tests
-    [Test]
     procedure TestEventQueueCreate;
-    [Test]
     procedure TestEventQueueAdd;
-    [Test]
     procedure TestEventQueueDequeueOne;
-    [Test]
     procedure TestEventQueueDequeueAll;
-    [Test]
     procedure TestEventQueueRemoveAllForReceiver;
-    [Test]
     procedure TestEventQueueRemoveAllForReceiver_EmptyQueue;
-    [Test]
     procedure TestEventQueueCount;
   end;
 
@@ -51,7 +39,7 @@ uses
 
 { TTestBoldEventQueue }
 
-procedure TTestBoldEventQueue.Setup;
+procedure TTestBoldEventQueue.SetUp;
 begin
   FQueue := TBoldEventQueue.Create;
   FEventCalled := False;
@@ -183,6 +171,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldEventQueue);
+  BoldRegisterTest(TTestBoldEventQueue);
 
 end.

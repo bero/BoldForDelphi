@@ -3,7 +3,7 @@ unit Test.BoldQueue;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   Classes,
   BoldQueue,
   BoldBase;
@@ -43,69 +43,38 @@ type
     procedure OnEvent(Sender: TObject);
   end;
 
-  [TestFixture]
-  TTestBoldQueue = class
-  public
-    [Test]
+  TTestBoldQueue = class(TBoldTestCase)
+  published
     procedure TestQueueableCreate;
-    [Test]
     procedure TestQueueableDestroy;
-    [Test]
     procedure TestQueueableGetDebugInfo;
-    [Test]
     procedure TestQueueableGetDebugInfoWithMatchObject;
-    [Test]
     procedure TestQueueCreate;
-    [Test]
     procedure TestQueueDestroy;
-    [Test]
     procedure TestQueueEmpty;
-    [Test]
     procedure TestQueueCounts;
-    [Test]
     procedure TestAddToDisplayList;
-    [Test]
     procedure TestRemoveFromDisplayList;
-    [Test]
     procedure TestDisplayOne;
-    [Test]
     procedure TestDisplayAll;
-    [Test]
     procedure TestAddToApplyList;
-    [Test]
     procedure TestApplyAll;
-    [Test]
     procedure TestApplyAllMatching;
-    [Test]
     procedure TestDiscardChangeAll;
-    [Test]
     procedure TestDiscardChangeAllMatching;
-    [Test]
     procedure TestPreDisplayQueue;
-    [Test]
     procedure TestPostDisplayQueue;
-    [Test]
     procedure TestIsDisplaying;
-    [Test]
     procedure TestIsDisplayQueueEmpty;
-    [Test]
     procedure TestBoldLogQueue;
-    [Test]
     procedure TestPrioritizedQueueable;
-    [Test]
     procedure TestAfterInPriority;
-    [Test]
     procedure TestStronglyPrioritizedSibbling;
-    [Test]
     procedure TestMostPrioritizedQueuable;
     // Tests using global BoldInstalledQueue
-    [Test]
     procedure TestGlobalQueueApplyAll;
-    [Test]
     procedure TestGlobalQueueApplyAllMatching;
-    [Test]
     procedure TestGlobalQueueDiscardChangeAll;
-    [Test]
     procedure TestGlobalQueueDiscardChangeAllMatching;
   end;
 
@@ -791,6 +760,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldQueue);
+  BoldRegisterTest(TTestBoldQueue);
 
 end.

@@ -62,6 +62,9 @@ type
     class procedure AreEqual(Expected, Actual: Boolean; const Message: string = ''); overload;
     class procedure AreEqual(Expected, Actual, Tolerance: Extended; const Message: string = ''); overload;
     class procedure AreEqual(Expected, Actual: TClass; const Message: string = ''); overload;
+    // DUnitX compares objects through its generic AreEqual<T>; FPC 3.2.2 cannot infer T.
+    class procedure AreEqual(Expected, Actual: TObject; const Message: string = ''); overload;
+    class procedure AreEqual(Expected, Actual: Pointer; const Message: string = ''); overload;
     class procedure AreNotEqual(const Expected, Actual: string; const Message: string = ''); overload;
     class procedure AreNotEqual(Expected, Actual: Integer; const Message: string = ''); overload;
     class procedure AreSame(Expected, Actual: TObject; const Message: string = ''); overload;
@@ -113,6 +116,10 @@ type
 
 procedure BoldRegisterTest(AClass: TBoldTestCaseClass);
 
+// The directory for temporary test files, with a trailing path delimiter.
+// Windows has TEMP; Linux and macOS do not, so tests must not read TEMP.
+function BoldTestTempDir: string;
+
 implementation
 
 {$IFDEF FPC}
@@ -120,6 +127,11 @@ implementation
 procedure BoldRegisterTest(AClass: TBoldTestCaseClass);
 begin
   RegisterTest(AClass);
+end;
+
+function BoldTestTempDir: string;
+begin
+  Result := IncludeTrailingPathDelimiter(GetTempDir);
 end;
 
 { TBoldTestCase }
@@ -205,6 +217,18 @@ class procedure Assert.AreEqual(Expected, Actual: TClass; const Message: string)
 begin
   if Expected <> Actual then
     FailNotEquals(NameOf(Expected), NameOf(Actual), Message);
+end;
+
+class procedure Assert.AreEqual(Expected, Actual: TObject; const Message: string);
+begin
+  if Expected <> Actual then
+    Fail('Objects are not equal ' + Message);
+end;
+
+class procedure Assert.AreEqual(Expected, Actual: Pointer; const Message: string);
+begin
+  if Expected <> Actual then
+    Fail('Pointers are not equal ' + Message);
 end;
 
 class procedure Assert.AreNotEqual(const Expected, Actual: string; const Message: string);
@@ -338,9 +362,18 @@ end;
 
 {$ELSE}
 
+uses
+  SysUtils,
+  IOUtils;
+
 procedure BoldRegisterTest(AClass: TBoldTestCaseClass);
 begin
   TDUnitX.RegisterTestFixture(AClass);
+end;
+
+function BoldTestTempDir: string;
+begin
+  Result := IncludeTrailingPathDelimiter(TPath.GetTempPath);
 end;
 
 { TBoldTestCase }

@@ -3,92 +3,69 @@ unit Test.BoldDeriver;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDeriver,
   BoldSubscription;
 
 type
-  [TestFixture]
-  TTestBoldDeriver = class
+  TTestBoldDeriver = class(TBoldTestCase)
   private
     FDeriver: TBoldDeriver;
+    fReceiveDeriver: TBoldDeriver;
     FDeriveCallCount: Integer;
     FNotifyOutOfDateCalled: Boolean;
     FReverseDeriveCalled: Boolean;
     FReentrantDeriver: TBoldDeriver;
     FReentrantFirstCall: Boolean;
+    procedure ReceiveUnknownEvent;
     procedure HandleDeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
     procedure HandleNotifyOutOfDate;
     procedure HandleReverseDerive(DerivedObject: TObject);
     procedure HandleReentrantDeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     // Basic tests
-    [Test]
     procedure TestCreate;
-    [Test]
     procedure TestSubscribeDefault;
 
     // IsCurrent and IsDeriving tests (uncovered)
-    [Test]
     procedure TestIsCurrent_WhenCurrent;
-    [Test]
     procedure TestIsCurrent_WhenNotCurrent;
-    [Test]
     procedure TestIsDeriving_WhenNotDeriving;
 
     // Derive without subscription (uncovered branch)
-    [Test]
     procedure TestDerive_WithoutSubscription;
 
     // NotifyOutOfDate event
-    [Test]
     procedure TestNotifyOutOfDate_Called;
 
     // GetCanReverseDerive (uncovered)
-    [Test]
     procedure TestGetCanReverseDerive_NoHandler;
-    [Test]
     procedure TestGetCanReverseDerive_WithHandler;
 
     // ReverseDerive tests (uncovered)
-    [Test]
     procedure TestReverseDerive_FromSubscriptionOutOfDate;
-    [Test]
     procedure TestReverseDerive_FromCurrent;
 
     // Reentrant derive (line 128)
-    [Test]
     procedure TestDerive_ReentrantStateChange;
 
     // GetContextString branches
-    [Test]
     procedure TestContextString_WithTComponent;
-    [Test]
     procedure TestContextString_WithSubscribableObject;
-    [Test]
     procedure TestContextString_WithPlainObject;
 
     // Receive unknown event
-    [Test]
     procedure TestReceive_UnknownEvent_RaisesException;
 
     // State machine transitions
-    [Test]
     procedure TestMarkOutOfdate_WhenAlreadyCurrent;
-    [Test]
     procedure TestEnsureCurrent_WhenAlreadyCurrent;
-    [Test]
     procedure TestEnsureCurrent_FromOutOfDate;
-    [Test]
     procedure TestEnsureCurrent_CallsOnDeriveAndSubscribe;
-    [Test]
     procedure TestMarkSubscriptionOutOfdate_FromOutOfDate;
-    [Test]
     procedure TestDeriveState_AfterMultipleMarkOutOfdate;
   end;
 
@@ -121,7 +98,12 @@ end;
 
 { TTestBoldDeriver }
 
-procedure TTestBoldDeriver.Setup;
+procedure TTestBoldDeriver.ReceiveUnknownEvent;
+begin
+  TTestableDeriver(fReceiveDeriver).CallReceive(nil, beValueChanged, 9999);
+end;
+
+procedure TTestBoldDeriver.SetUp;
 begin
   FDeriver := TBoldDeriver.Create(Self);
   FDeriver.OnDeriveAndSubscribe := HandleDeriveAndSubscribe;
@@ -306,13 +288,9 @@ begin
   Deriver := TTestableDeriver.Create(Self);
   try
     Deriver.OnDeriveAndSubscribe := HandleDeriveAndSubscribe;
-    Assert.WillRaise(
-      procedure
-      begin
-        // RequestedEvent 9999 is neither breReEvaluate nor breReSubscribe → raises EBold
-        Deriver.CallReceive(nil, beValueChanged, 9999);
-      end,
-      EBold,
+    fReceiveDeriver := Deriver;
+    // RequestedEvent 9999 is neither breReEvaluate nor breReSubscribe → raises EBold
+    Assert.WillRaise(ReceiveUnknownEvent, EBold,
       'Unknown RequestedEvent should raise EBold');
   finally
     Deriver.Free;
@@ -435,6 +413,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldDeriver);
+  BoldRegisterTest(TTestBoldDeriver);
 
 end.

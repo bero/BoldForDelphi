@@ -3,19 +3,16 @@
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
-  [TestFixture]
-  TTestBoldEnvironment = class
-  public
-    [Test]
+  TTestBoldEnvironment = class(TBoldTestCase)
+  private
+    procedure RegisterFreestandingFramework;
+  published
     procedure TestFreestandingConfigurationHasQueue;
-    [Test]
     procedure TestFreestandingQueueActivationNests;
-    [Test]
     procedure TestVCLEnvironmentIsEffectiveInVCLApplication;
-    [Test]
     procedure TestSecondFrameworkRegistrationRaises;
   end;
 
@@ -25,6 +22,20 @@ uses
   BoldDefs,
   BoldEnvironment,
   BoldQueue;
+
+const
+  // The Delphi test application links Bold VCL units, which register the VCL
+  // environment. The FPC test runner links no GUI framework environment.
+  {$IFDEF FPC}
+  cExpectedEnvironment = 'Freestanding';
+  {$ELSE}
+  cExpectedEnvironment = 'VCL';
+  {$ENDIF}
+
+procedure TTestBoldEnvironment.RegisterFreestandingFramework;
+begin
+  BoldRegisterFrameworkEnvironment(TBoldFreestandingEnvironmentConfiguration);
+end;
 
 procedure TTestBoldEnvironment.TestFreestandingConfigurationHasQueue;
 var
@@ -67,22 +78,21 @@ procedure TTestBoldEnvironment.TestVCLEnvironmentIsEffectiveInVCLApplication;
 begin
   // The test application links Bold VCL units, so the VCL environment must be
   // registered even when BoldEnvironment itself does not import it
-  Assert.AreEqual('VCL', BoldEffectiveEnvironment.Name);
+  Assert.AreEqual(cExpectedEnvironment, BoldEffectiveEnvironment.Name);
 end;
 
 procedure TTestBoldEnvironment.TestSecondFrameworkRegistrationRaises;
 begin
-  // BoldEnvironmentVCL has already registered itself in this application
-  Assert.WillRaise(
-    procedure
-    begin
-      BoldRegisterFrameworkEnvironment(TBoldFreestandingEnvironmentConfiguration);
-    end,
-    EBold);
-  Assert.AreEqual('VCL', BoldEffectiveEnvironment.Name);
+  // BoldEnvironmentVCL has already registered itself in the Delphi test
+  // application. The FPC runner has no framework environment, so it registers a
+  // freestanding one first (same name and behaviour as the fallback).
+  if not Assigned(BoldInternalFrameworkConfiguration) then
+    RegisterFreestandingFramework;
+  Assert.WillRaise(RegisterFreestandingFramework, EBold);
+  Assert.AreEqual(cExpectedEnvironment, BoldEffectiveEnvironment.Name);
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldEnvironment);
+  BoldRegisterTest(TTestBoldEnvironment);
 
 end.

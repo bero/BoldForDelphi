@@ -3,64 +3,43 @@
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
-  [TestFixture]
-  TTestBoldTypeNameDictionary = class
-  public
+  TTestBoldTypeNameDictionary = class(TBoldTestCase)
+  published
     // Create and basic structure
-    [Test]
     procedure TestCreate;
-    [Test]
     procedure TestAddDefaultMappings;
-    [Test]
     procedure TestAddMapping;
 
     // Lookup
-    [Test]
     procedure TestGetMapping;
-    [Test]
     procedure TestExactMappingForModelName;
-    [Test]
     procedure TestMappingForModelName_ExactMatch;
-    [Test]
     procedure TestMappingForModelName_FallbackToDefault;
-    [Test]
     procedure TestMappingForModelName_NotFound;
 
     // Expanded properties
-    [Test]
     procedure TestExpandedDelphiName;
-    [Test]
     procedure TestExpandedContentsName;
-    [Test]
     procedure TestExpandedMapperName;
-    [Test]
     procedure TestExpandedAccessor;
-    [Test]
     procedure TestExpandedNativeType;
-    [Test]
     procedure TestExpandedComType;
 
     // Serialization
-    [Test]
     procedure TestGetAsString;
-    [Test]
     procedure TestSetAsString;
-    [Test]
     procedure TestSetAsString_LegacyStreamName;
 
     // AssignTo
-    [Test]
     procedure TestAssignTo;
 
     // File I/O
-    [Test]
     procedure TestSaveAndLoadFile;
 
     // GetOwner
-    [Test]
     procedure TestGetOwner;
   end;
 
@@ -306,21 +285,24 @@ end;
 procedure TTestBoldTypeNameDictionary.TestGetAsString;
 var
   Dict: TBoldTypeNameDictionary;
+  SL: TStringList;
+  IntLine: string;
+  i: Integer;
 begin
   Dict := TBoldTypeNameDictionary.Create(nil);
   try
     Dict.AddDefaultMappings;
     // GetAsString is accessed indirectly via SaveToStringList.
     // Verify first mapping produces correct CSV format.
-    var SL := TStringList.Create;
+    SL := TStringList.Create;
     try
       // Save uses GetAsString for each mapping
-      Dict.SaveToFile(IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP')) + 'BoldTND_AsString.txt');
-      SL.LoadFromFile(IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP')) + 'BoldTND_AsString.txt');
+      Dict.SaveToFile(BoldTestTempDir + 'BoldTND_AsString.txt');
+      SL.LoadFromFile(BoldTestTempDir + 'BoldTND_AsString.txt');
 
       // Integer mapping should contain all field names
-      var IntLine := '';
-      var i: Integer;
+      IntLine := '';
+
       for i := 0 to SL.Count - 1 do
         if Pos('ModelName=Integer', SL[i]) > 0 then
         begin
@@ -334,7 +316,7 @@ begin
       Assert.IsTrue(Pos('UnitName=BoldAttributes', IntLine) > 0);
     finally
       SL.Free;
-      DeleteFile(IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP')) + 'BoldTND_AsString.txt');
+      DeleteFile(BoldTestTempDir + 'BoldTND_AsString.txt');
     end;
   finally
     Dict.Free;
@@ -349,7 +331,7 @@ var
   M: TBoldTypeNameMapping;
 begin
   // SetAsString is private, test via LoadFromFile which calls LoadFromStringList -> SetAsString
-  TempFile := IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP')) + 'BoldTND_SetAsString.txt';
+  TempFile := BoldTestTempDir + 'BoldTND_SetAsString.txt';
   Dict := TBoldTypeNameDictionary.Create(nil);
   SL := TStringList.Create;
   try
@@ -395,7 +377,7 @@ var
 begin
   // Legacy format used 'StreamName' instead of 'ContentsName'.
   // SetAsString should fall back to StreamName when ContentsName is empty.
-  TempFile := IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP')) + 'BoldTND_Legacy.txt';
+  TempFile := BoldTestTempDir + 'BoldTND_Legacy.txt';
   Dict := TBoldTypeNameDictionary.Create(nil);
   SL := TStringList.Create;
   try
@@ -485,7 +467,7 @@ var
   TempFile: string;
   M1, M2: TBoldTypeNameMapping;
 begin
-  TempFile := IncludeTrailingPathDelimiter(GetEnvironmentVariable('TEMP')) + 'BoldTypeNameDict_Test.txt';
+  TempFile := BoldTestTempDir + 'BoldTypeNameDict_Test.txt';
   Dict1 := TBoldTypeNameDictionary.Create(nil);
   Dict2 := TBoldTypeNameDictionary.Create(nil);
   try
@@ -527,6 +509,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldTypeNameDictionary);
+  BoldRegisterTest(TTestBoldTypeNameDictionary);
 
 end.
