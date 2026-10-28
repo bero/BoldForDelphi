@@ -26,7 +26,7 @@ TBoldHandle = class(TBoldSubscribableComponent)
 
 ## Description
 
-The Delphi/BCB/Kylix IDE allows efficent designtime manipulation of classes decending from TComponent. Subclassing TBoldHandle way for providing access from the IDE to classes that don't decend from TComponent. Since subscriptions are used extensivley in Bold THandle inherits from [TBoldSubscribableComponent](../BoldSubscription/TBoldSubscribableComponent.md). A TBoldHandle is simply a component holding a reference to a handled object. Handles are used extensively in Bold to provide placeable IDE access to various parts of Bold.
+The Delphi IDE allows efficent designtime manipulation of classes decending from TComponent. Subclassing TBoldHandle way for providing access from the IDE to classes that don't decend from TComponent. Since subscriptions are used extensivley in Bold THandle inherits from [TBoldSubscribableComponent](../BoldSubscription/TBoldSubscribableComponent.md). A TBoldHandle is simply a component holding a reference to a handled object. Handles are used extensively in Bold to provide placeable IDE access to various parts of Bold.
 
 | **Note** |
 |---|

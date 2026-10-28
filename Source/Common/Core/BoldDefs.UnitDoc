@@ -161,7 +161,7 @@
       </Const>
       <Const Name="BOLD_HOST_IDE">
          <Summary>Name of host IDE.</Summary>
-         <Desc>This constant is defined to <Strong>Delphi</Strong>, <Strong>C++Builder</Strong> or <Strong>Kylix</Strong>, depending on which platform this release was compiled for.</Desc>
+         <Desc>This constant is <Strong>Delphi</Strong>.</Desc>
       </Const>
       <Const Name="BOLD_HOST_IDE_REGISTRYPATH">
          <Summary>Path to registry settings for host IDE</Summary>

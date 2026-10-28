@@ -23,7 +23,7 @@
             </Property>
          </Properties>
          <Summary>Abstract superclass for wrapping making clases IDE-manipulatable.</Summary>
-         <Desc>The Delphi/BCB/Kylix IDE allows efficent designtime manipulation of classes decending from TComponent. Subclassing TBoldHandle way for providing access from the IDE to classes that don't decend from TComponent. Since subscriptions are used extensivley in Bold THandle inherits from <See Class="TBoldSubscribableComponent"/>. A TBoldHandle is simply a component holding a reference to a handled object. Handles are used extensively in Bold to provide placeable IDE access to various parts of Bold.
+         <Desc>The Delphi IDE allows efficent designtime manipulation of classes decending from TComponent. Subclassing TBoldHandle way for providing access from the IDE to classes that don't decend from TComponent. Since subscriptions are used extensivley in Bold THandle inherits from <See Class="TBoldSubscribableComponent"/>. A TBoldHandle is simply a component holding a reference to a handled object. Handles are used extensively in Bold to provide placeable IDE access to various parts of Bold.
             <Note>A somewhat confusing fact is that not all placeable nonvisual components in Bold descend from <InlineCode>TBoldHandle</InlineCode>. This is particularly true of <See Class="TBoldElementHandle"/> and its subclasses.</Note>
          </Desc>
       </Class>
