@@ -150,6 +150,7 @@ function TBoldUMLMultiplicity.FormatAsString(
 var
   i: integer;
 begin
+  Result := '';
   for i := 0 to Count-1 do
   begin
     if length(Result) > 0 then
