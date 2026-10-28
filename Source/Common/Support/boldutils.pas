@@ -39,6 +39,8 @@ procedure BoldAppendToStrings(strings: TStrings; const aString: string; const Fo
 // True while Strings is inside BeginUpdate/EndUpdate. TStrings.Updating is Delphi-only;
 // FPC keeps UpdateCount protected.
 function BoldStringsUpdating(Strings: TStrings): Boolean;
+// Elapsed time as [d.]hh:nn:ss.zzz, the shape TTimeSpan.ToString gives, without TimeSpan.
+function BoldElapsedToString(const Elapsed: TDateTime): string;
 function BoldSeparateStringList(strings: TStringList; const Separator, PreString, PostString: String; AIndex: integer = -1): String;
 function BoldCaseIndependentPos(const Substr, S: string): Integer;
 function StringToBoolean(StrValue: String): Boolean;
@@ -244,6 +246,16 @@ begin
 {$ELSE}
   Result := Strings.Updating;
 {$ENDIF}
+end;
+
+function BoldElapsedToString(const Elapsed: TDateTime): string;
+var
+  Days: Integer;
+begin
+  Days := Trunc(Elapsed);
+  Result := FormatDateTime('hh:nn:ss.zzz', Elapsed - Days);
+  if Days > 0 then
+    Result := Format('%d.%s', [Days, Result]);
 end;
 
 { TBoldPassThroughNotification }

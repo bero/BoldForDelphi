@@ -8,8 +8,7 @@ uses
   SyncObjs,
   BoldAbstractPersistenceHandleDB,
   BoldDBInterfaces,
-  BoldThreadSafeQueue,
-  TimeSpan;
+  BoldThreadSafeQueue;
 
 type
   TBoldDbCopy = class;
@@ -87,6 +86,7 @@ uses
   // Bold
   BoldDefs,
   BoldLogHandler,
+  BoldUtils,
   BoldPMappersDefault,
   BoldPSDescriptionsSQL;
 { TBoldDbCopy }
@@ -470,8 +470,7 @@ begin
          fThreadList.Remove(TThread.CurrentThread);
          if fThreadList.LockList.Count = 0 then
          begin
-           var Duration := TTimeSpan.Subtract(now, fStartTime);
-           BoldLog.Log(Format('Operation completed after %s', [Duration.ToString]));
+           BoldLog.Log(Format('Operation completed after %s', [BoldElapsedToString(Now - fStartTime)]));
            DoOnComplete;
          end;
          fThreadList.UnlockList;
