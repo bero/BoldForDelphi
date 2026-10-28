@@ -321,10 +321,11 @@ begin
 
       Line := Line + BOLDCRLF;
       Bytes := TEncoding.UTF8.GetBytes(line);
-      // WriteBuffer on the first element: Free Pascal's TStream has no TBytes
-      // overload of Write, and the untyped one would write the array reference.
+      // Untyped Write on the first element: Free Pascal's TStream has no TBytes
+      // overload, and passing the array itself would write its reference. Write,
+      // not WriteBuffer: a short write (full disk) must not raise out of a log call.
       if Length(Bytes) > 0 then
-        fFileStream.WriteBuffer(Bytes[0], Length(Bytes));
+        fFileStream.Write(Bytes[0], Length(Bytes));
     end;
   finally
     fLocker.Release;
