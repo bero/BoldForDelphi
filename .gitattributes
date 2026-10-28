@@ -38,3 +38,5 @@
 *.png binary
 *.jpg binary
 *.gif binary
+# Shell scripts must keep LF to run on Linux and macOS.
+*.sh text eol=lf
