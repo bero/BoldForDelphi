@@ -33,18 +33,6 @@
 // Always Delphi (C++ Builder support removed)
 {$DEFINE BOLD_DELPHI}
 
-
-{$IFDEF LINUX}
-  // Our implementation depends on MSXML and is not supported on Linux
-  {$UNDEF BOLD_XML_SUPPORT}
-  {DEFINE BOLD_IDECLX}
-  {$DEFINE BOLD_CLX}
-{$ENDIF}
-
-{$IFDEF MSWINDOWS}
-  {DEFINE BOLD_IDEVCL}
-{$ENDIF}
-
 // Compiler control
 {$IFDEF BOLD_DEV}
   {$ASSERTIONS ON}
