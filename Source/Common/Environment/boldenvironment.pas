@@ -74,6 +74,9 @@ type
   public
     procedure BringToFront; override;
     procedure FocusMainForm; override;
+    // Logs instead of raising: informing needs no answer, and a freestanding program
+    // (no GUI framework registered) must not fail because it cannot show a message.
+    procedure InformUser(const Text: string); override;
   end;
 
 var
@@ -93,7 +96,8 @@ implementation
 
 uses
   SysUtils,
-  BoldCoreConsts;
+  BoldCoreConsts,
+  BoldLogHandler;
 
 const
   UnsupportedFunction = '%s: function unsupported in environment configuration %s';
@@ -296,6 +300,11 @@ end;
 procedure TBoldFreestandingEnvironmentConfiguration.FocusMainForm;
 begin
 
+end;
+
+procedure TBoldFreestandingEnvironmentConfiguration.InformUser(const Text: string);
+begin
+  BoldLog.Log(Text, ltWarning);
 end;
 
 function TBoldFreestandingEnvironmentConfiguration.GetName: string;
