@@ -44,7 +44,7 @@ uses
   classes,
   SysUtils,
   BoldDefs,
-  {$IFDEF OXML}OXmlPDOM, OTextReadWrite{$ELSE}Bold_MSXML_TLB{$ENDIF},
+  {$IFDEF OXML}OXmlPDOM, OTextReadWrite,{$ENDIF}
   BoldId,
   BoldXMLStreaming,
   BoldDefaultXMLStreaming,
@@ -90,26 +90,21 @@ end;
 {$ELSE}
 var
   aStringList: TStringList;
-  anXMLDoc: TDomDocument;
+  anXMLDoc: TBoldXMLDocument;
   aMgr: TBoldDefaultXMLStreamManager;
   aNode: TBoldXMLNode;
-  ParseError: IXMLDOMParseError;
   BoldGuard: IBoldGuard;
 begin
   BoldGuard := TBoldGuard.Create(aStringList, aMgr, anXMLDoc, aNode);
   aStringList := TStringList.Create;
-  anXMLDoc := TDOMDocument.Create(nil);
+  anXMLDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry, MoldModel);
   aMgr.IgnorePersistenceState := True;
   aMgr.PersistenceStatesToOverwrite := [bvpsInvalid, bvpsCurrent];
   aMgr.PersistenceStatesToBeStreamed := [bvpsInvalid, bvpsModified, bvpsCurrent];
 
   aStringList.LoadFromFile(FileName);
-  anXMLDoc.loadXML(aStringList.Text);
-
-  ParseError := anXMLDoc.parseError;
-  if Assigned(ParseError) and (ParseError.errorCode <> 0) then
-    raise EBold.Create(sXMLParseError);
+  anXMLDoc.LoadXML(aStringList.Text); // raises EBold(sXMLParseError)
 
   aNode := aMgr.GetRootNode(anXMLDoc, 'ValueSpace');
   aMgr.ReadValueSpace(LocalValueSpace, aNode);
@@ -139,7 +134,7 @@ end;
 {$ELSE}
 var
   aStringList: TStringList;
-  anXMLDoc: TDomDocument;
+  anXMLDoc: TBoldXMLDocument;
   aMgr: TBoldDefaultXMLStreamManager;
   aNode: TBoldXMLNode;
   anIdList: TBoldObjectIdList;
@@ -147,7 +142,7 @@ var
 begin
   BoldGuard := TBoldGuard.Create(aStringList, aNode, aMgr, anXMLDoc, anIDList);
   aStringList := TStringList.Create;
-  anXMLDoc := TDOMDocument.Create(nil);
+  anXMLDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry, MoldModel);
   aMgr.IgnorePersistenceState := True;
   aMgr.PersistenceStatesToBeStreamed := [bvpsInvalid, bvpsModified, bvpsCurrent];
@@ -155,7 +150,7 @@ begin
   anIdList := TBoldObjectIdList.Create;
   LocalValueSpace.AllObjectIds(anIdList, True);
   aMgr.WriteValueSpace(LocalValueSpace, anIdList, nil, aNode);
-  aStringList.Text := anXMLDoc.documentElement.xml;
+  aStringList.Text := anXMLDoc.RootXML;
   aStringList.SaveToFile(FileName);
 end;
 {$ENDIF}
