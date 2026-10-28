@@ -20,6 +20,7 @@ type
   published
     procedure TestUMLRange;
     procedure TestUMLMultiplicity;
+    procedure TestUMLMultiplicityFormatIntoReusedString;
     procedure TestUMLRangeInRange;
     procedure TestUMLRangeSetAsStringUnlimited;
     procedure TestUMLMultiplicityInRange;
@@ -100,6 +101,28 @@ begin
       'Expected EConvertError for invalid range');
   finally
     ARange.Free;
+  end;
+end;
+
+procedure TTestBoldUMLTypes.TestUMLMultiplicityFormatIntoReusedString;
+var
+  AMultiplicity: TBoldUMLMultiplicity;
+  S: string;
+begin
+  // Regression for 38b4fde: FormatAsString appended to its result without
+  // clearing it, and a string result is not guaranteed to start empty. With a
+  // reused destination variable, '0' and then 'n' came out as '0,n' on Delphi
+  // and Free Pascal alike.
+  AMultiplicity := TBoldUMLMultiplicity.Create;
+  try
+    AMultiplicity.AsString := '0';
+    S := AMultiplicity.AsString;
+    Assert.AreEqual('0', S);
+    AMultiplicity.AsString := '0..*';
+    S := AMultiplicity.AsString;
+    Assert.AreEqual('n', S);
+  finally
+    AMultiplicity.Free;
   end;
 end;
 
