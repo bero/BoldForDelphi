@@ -2,7 +2,9 @@
 
 {$WARN SYMBOL_PLATFORM OFF}
 {$WARN UNIT_PLATFORM OFF}
-{$WARN UNSUPPORTED_CONSTRUCT OFF}  // dispinterface deprecated in Delphi 12+
+{$IFNDEF FPC}
+{$WARN UNSUPPORTED_CONSTRUCT OFF}  // dispinterface deprecated in Delphi 12+; Free Pascal has no such warning
+{$ENDIF}
 
 {$WARNINGS ON}
 {$HINTS ON}
