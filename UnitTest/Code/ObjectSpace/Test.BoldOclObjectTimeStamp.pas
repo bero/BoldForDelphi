@@ -20,7 +20,7 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSystem,
   BoldSystemHandle,
   BoldHandles,
@@ -30,9 +30,10 @@ uses
   TestModel1;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('OCL')]
-  TTestBoldOclObjectTimeStamp = class
+  {$ENDIF}
+  TTestBoldOclObjectTimeStamp = class(TBoldTestCase)
   private
     FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
     FSystemHandle: TBoldSystemHandle;
@@ -43,25 +44,16 @@ type
     procedure AssertEvaluatesToNull(AObject: TBoldObject; const AOcl: string);
     function EvaluateAsInteger(AObject: TBoldObject; const AOcl: string): Integer;
     procedure Receive(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure NilSingleRole_ObjectTimeStamp_ReturnsNull;
-    [Test]
     procedure NilSingleRole_BoldTime_ReturnsNull;
-    [Test]
     procedure NilSingleRole_MaxChain_DoesNotRaise;
-    [Test]
     procedure NilSingleRole_ObjectTimeStamp_ReEvaluatesWhenRoleIsSet;
-    [Test]
     procedure NilSingleRole_MemberNavigation_IsAlreadySafe;
-    [Test]
     procedure ObjectTimeStamp_OnObject_ReturnsBoldTimeStamp;
-    [Test]
     procedure BoldTime_OnObject_ReturnsIdTimeStamp;
   end;
 
@@ -244,6 +236,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldOclObjectTimeStamp);
+  BoldRegisterTest(TTestBoldOclObjectTimeStamp);
 
 end.

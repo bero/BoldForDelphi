@@ -55,6 +55,7 @@ uses
   Test.BoldOclError,
   Test.BoldOclEvaluation,
   Test.BoldOclLightWeightNodes,
+  Test.BoldOclObjectTimeStamp,
   Test.BoldOclVariables,
   Test.BoldPMapperLists,
   Test.BoldPersistenceController,
