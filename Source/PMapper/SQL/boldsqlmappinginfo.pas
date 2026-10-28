@@ -359,13 +359,13 @@ begin
     // This is hardcoded case that should consider Date and DateTime as compatible.
     // The generic way to do this properly would be to compare the actual ColumnTypes that are specified in TBoldSQLDataBaseConfig
     // But the sql config is hard to reach from here...
-    Result := ((AnsiIndexText(MapperName, CompatibleDateTypes) <> -1) and
-               (AnsiIndexText(Mapping.MapperName, CompatibleDateTypes) <> -1));
+    Result := ((IndexText(MapperName, CompatibleDateTypes) <> -1) and
+               (IndexText(Mapping.MapperName, CompatibleDateTypes) <> -1));
   end;
   if not Result then begin
     // Same for String/AnsiString
-    Result := ((AnsiIndexText(MapperName, CompatibleStringTypes) <> -1) and
-               (AnsiIndexText(Mapping.MapperName, CompatibleStringTypes) <> -1));
+    Result := ((IndexText(MapperName, CompatibleStringTypes) <> -1) and
+               (IndexText(Mapping.MapperName, CompatibleStringTypes) <> -1));
   end;
   if not Result then
 // If new mapper inherits from old mapper we assume they are compatible
