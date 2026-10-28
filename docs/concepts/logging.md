@@ -341,7 +341,7 @@ Use when you need progress bars and hierarchical display:
 All three logging systems are thread-safe:
 
 - **Simple**: Uses `TCriticalSection` for file access
-- **Multi-Sink**: Uses `TMonitor` for sink management
+- **Multi-Sink**: Uses `TCriticalSection` for the sink list and inside the file and memory sinks
 - **UI/Progress**: Uses subscription pattern with thread synchronization
 
 ```pascal
