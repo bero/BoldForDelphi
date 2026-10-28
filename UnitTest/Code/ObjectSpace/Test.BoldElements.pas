@@ -3,7 +3,7 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldElements,
   BoldDefs,
   BoldBase,
@@ -14,41 +14,30 @@ type
   /// Test fixture for TBoldIndirectElement
   /// Tests reference and owned value management
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldIndirectElement = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldIndirectElement = class(TBoldTestCase)
+  private
+    fRaiseIndirect: TObject;
+    fRaiseElement: TObject;
+    procedure TestSetReferenceValueRaisesWhenSameOwnedValue_Raiser;
+  published
     procedure TestCreateInitialState;
-    [Test]
     procedure TestSetReferenceValue;
-    [Test]
     procedure TestSetReferenceValueToNil;
-    [Test]
     procedure TestSetOwnedValue;
-    [Test]
     procedure TestSetOwnedValueToNil;
-    [Test]
     procedure TestTransferValueReference;
-    [Test]
     procedure TestTransferValueOwned;
-    [Test]
     procedure TestTransferValueToNil;
-    [Test]
     procedure TestRelinquishValue;
-    [Test]
     procedure TestRelinquishValueClearsOwnership;
-    [Test]
     procedure TestSetReferenceValueReplacesOwned;
-    [Test]
     procedure TestSetOwnedValueReplacesOwned;
-    [Test]
     procedure TestSetSameReferenceValueTwice;
-    [Test]
     procedure TestSetSameOwnedValueTwice;
-    [Test]
     procedure TestContextObject;
-    [Test]
     procedure TestSetReferenceValueRaisesWhenSameOwnedValue;
   end;
 
@@ -56,27 +45,24 @@ type
   /// Test fixture for TBoldMetaElement
   /// Tests metadata elements with name properties
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldMetaElement = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldMetaElement = class(TBoldTestCase)
+  private
+    fRaiseMeta: TObject;
+    fRaiseResultList: TObject;
+    procedure TestDefaultSubscribeOnMutableRaises_Raiser;
+    procedure TestGetAsListRaises_Raiser;
+  published
     procedure TestCreate;
-    [Test]
     procedure TestProperties;
-    [Test]
     procedure TestGetStringRepresentation;
-    [Test]
     procedure TestDisplayName;
-    [Test]
     procedure TestIsImmutableAfterCreate;
-    [Test]
     procedure TestIsEqualAs_SameObject;
-    [Test]
     procedure TestIsEqualAs_DifferentObject;
-    [Test]
     procedure TestDefaultSubscribeOnMutableRaises;
-    [Test]
     procedure TestGetAsListRaises;
   end;
 
@@ -84,31 +70,21 @@ type
   /// Test fixture for TBoldExternalVariableList
   /// Tests variable list operations
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldExternalVariableList = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldExternalVariableList = class(TBoldTestCase)
+  published
     procedure TestCreateDefault;
-    [Test]
     procedure TestCreateWithOwnership;
-    [Test]
     procedure TestCreateWithoutOwnership;
-    [Test]
     procedure TestGetAsCommaTextEmpty;
-    [Test]
     procedure TestGetEnumerator;
-    [Test]
     procedure TestAddVariable;
-    [Test]
     procedure TestGetVariables;
-    [Test]
     procedure TestGetVariableByName;
-    [Test]
     procedure TestGetVariableByNameNotFound;
-    [Test]
     procedure TestGetAsCommaTextWithVariables;
-    [Test]
     procedure TestEnumeratorWithVariables;
   end;
 
@@ -116,93 +92,78 @@ type
   /// Test fixture for TBoldElement base functionality
   /// Tests common element operations that can be tested without a full system
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldElementBase = class
+  {$ENDIF}
+  TTestBoldElementBase = class(TBoldTestCase)
   private
     FElement: TBoldIndirectElement;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+    fRaiseElement: TObject;
+    fRaiseObserver2: TObject;
+    fRaiseSource: TObject;
+    fRaiseElement1: TObject;
+    fRaiseElement2: TObject;
+    fRaiseOtherComp: TObject;
+    procedure TestRegisterModifiedValueHolderConflict_Raiser;
+    procedure TestAssignRaisesForSource_Raiser;
+    procedure TestAssignRaisesForNil_Raiser;
+    procedure TestCompareToAsRaises_Raiser;
+    procedure TestCompareErrorWithElement_Raiser;
+    procedure TestCompareErrorWithNil_Raiser;
+    procedure TestMutableErrorRaises_Raiser;
+    procedure TestEnsureValidStringRaises_Raiser;
+    procedure TestGetAsVariant_Raiser;
+    procedure TestSetAsVariant_Raiser;
+    procedure TestCompareToWithDifferentElement_Raiser;
+    procedure TestAssignErrorWithElement_Raiser;
+    procedure TestAssignErrorWithNil_Raiser;
+    procedure TestCompareTypeError_Raiser;
+    procedure TestCompareTypeErrorWithNil_Raiser;
+    procedure TestGetStringRepresentationRaises_Raiser;
+    procedure TestSetStringRepresentationRaises_Raiser;
+    procedure TestRegisterModifiedValueHolderWithComponent_Raiser;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestMutableDefault;
-    [Test]
     procedure TestMakeImmutable;
-    [Test]
     procedure TestValidateCharacterDefault;
-    [Test]
     procedure TestValidateStringDefault;
-    [Test]
     procedure TestValidateStringEmpty;
-    [Test]
     procedure TestIsEqualSameObject;
-    [Test]
     procedure TestCompareToSameObject;
-    [Test]
     procedure TestGetAsValueSetsReference;
-    [Test]
     procedure TestObserverMayModifyNoHolder;
-    [Test]
     procedure TestObserverMayModifyImmutable;
-    [Test]
     procedure TestRegisterAndUnregisterModifiedValueHolder;
-    [Test]
     procedure TestRegisterModifiedValueHolderConflict;
-    [Test]
     procedure TestObserverMayModifyAsString;
-    [Test]
     procedure TestValidateVariant;
-    [Test]
     procedure TestValidateStringWithInvalidChar;
-    [Test]
     procedure TestAssignRaisesForSource;
-    [Test]
     procedure TestAssignRaisesForNil;
-    [Test]
     procedure TestCompareToAsRaises;
-    [Test]
     procedure TestCompareErrorWithElement;
-    [Test]
     procedure TestCompareErrorWithNil;
-    [Test]
     procedure TestMutableErrorRaises;
-    [Test]
     procedure TestEnsureValidStringRaises;
-    [Test]
     procedure TestGetAsVariant;
-    [Test]
     procedure TestSetAsVariant;
-    [Test]
     procedure TestGetDisplayNameWithBoldType;
-    [Test]
     procedure TestGetDisplayNameWithoutBoldType;
-    [Test]
     procedure TestGetIsPartOfSystemDefault;
-    [Test]
     procedure TestGetContextString;
-    [Test]
     procedure TestCloneIfPossible;
-    [Test]
     procedure TestCompareToWithDifferentElement;
-    [Test]
     procedure TestSubscribeToStringRepresentation;
-    [Test]
     procedure TestAssignErrorWithElement;
-    [Test]
     procedure TestAssignErrorWithNil;
-    [Test]
     procedure TestCompareTypeError;
-    [Test]
     procedure TestCompareTypeErrorWithNil;
-    [Test]
     procedure TestGetStringRepresentationRaises;
-    [Test]
     procedure TestSetStringRepresentationRaises;
-    [Test]
     procedure TestRegisterModifiedValueHolderWithComponent;
-    [Test]
     procedure TestRegisterSameHolderTwice;
   end;
 
@@ -210,25 +171,18 @@ type
   /// Test fixture for TBoldListTypeInfo
   /// Tests list type information and conformance
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldListTypeInfo = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldListTypeInfo = class(TBoldTestCase)
+  published
     procedure TestCreateWithNilElementType;
-    [Test]
     procedure TestGetStringRepresentationNilElement;
-    [Test]
     procedure TestConformsToWithNilElementType;
-    [Test]
     procedure TestConformsToNonListType;
-    [Test]
     procedure TestGetListTypeInfoReturnsSelf;
-    [Test]
     procedure TestCreateWithElementType;
-    [Test]
     procedure TestGetStringRepresentationWithElement;
-    [Test]
     procedure TestConformsToWithMatchingElementType;
   end;
 
@@ -236,15 +190,17 @@ type
   /// Test fixture for TBoldElementTypeInfo
   /// Tests element type information
   /// </summary>
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldElementTypeInfo = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldElementTypeInfo = class(TBoldTestCase)
+  private
+    fRaiseTypeInfo: TObject;
+    procedure TestCreateElementRaises_Raiser;
+    procedure TestGetListTypeInfoRaises_Raiser;
+  published
     procedure TestElementClassReturnsNil;
-    [Test]
     procedure TestCreateElementRaises;
-    [Test]
     procedure TestGetListTypeInfoRaises;
   end;
 
@@ -345,8 +301,8 @@ type
 implementation
 
 uses
-  System.SysUtils,
-  System.Classes;
+  SysUtils,
+  Classes;
 
 { TTestBoldElement }
 
@@ -394,6 +350,11 @@ begin
 end;
 
 { TTestBoldIndirectElement }
+
+procedure TTestBoldIndirectElement.TestSetReferenceValueRaisesWhenSameOwnedValue_Raiser;
+begin
+  TBoldIndirectElement(fRaiseIndirect).SetReferenceValue(TTestBoldElement(fRaiseElement));
+end;
 
 procedure TTestBoldIndirectElement.TestCreateInitialState;
 var
@@ -689,10 +650,9 @@ begin
   try
     Indirect.SetOwnedValue(Element);
     // Setting the same value as reference when it's owned should raise
-    Assert.WillRaise(procedure
-    begin
-      Indirect.SetReferenceValue(Element);
-    end, EBold);
+    fRaiseIndirect := Indirect;
+    fRaiseElement := Element;
+    Assert.WillRaise(TestSetReferenceValueRaisesWhenSameOwnedValue_Raiser, EBold);
   finally
     Indirect.Free;
     // Element was freed by the raised exception handler or will be freed by Indirect
@@ -700,6 +660,16 @@ begin
 end;
 
 { TTestBoldMetaElement }
+
+procedure TTestBoldMetaElement.TestDefaultSubscribeOnMutableRaises_Raiser;
+begin
+  TTestMutableMetaElement(fRaiseMeta).DefaultSubscribe(nil);
+end;
+
+procedure TTestBoldMetaElement.TestGetAsListRaises_Raiser;
+begin
+  TTestConcreteMetaElement(fRaiseMeta).GetAsList(TBoldIndirectElement(fRaiseResultList));
+end;
 
 procedure TTestBoldMetaElement.TestCreate;
 var
@@ -795,10 +765,8 @@ var
 begin
   Meta := TTestMutableMetaElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      Meta.DefaultSubscribe(nil);
-    end, EBold);
+    fRaiseMeta := Meta;
+    Assert.WillRaise(TestDefaultSubscribeOnMutableRaises_Raiser, EBold);
   finally
     Meta.Free;
   end;
@@ -812,10 +780,9 @@ begin
   Meta := TTestConcreteMetaElement.Create('Model', 'Expr', 'Delphi');
   ResultList := TBoldIndirectElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      Meta.GetAsList(ResultList);
-    end, EBoldFeatureNotImplementedYet);
+    fRaiseMeta := Meta;
+    fRaiseResultList := ResultList;
+    Assert.WillRaise(TestGetAsListRaises_Raiser, EBoldFeatureNotImplementedYet);
   finally
     Meta.Free;
     ResultList.Free;
@@ -896,7 +863,101 @@ end;
 
 { TTestBoldElementBase }
 
-procedure TTestBoldElementBase.Setup;
+procedure TTestBoldElementBase.TestRegisterModifiedValueHolderConflict_Raiser;
+begin
+  TTestBoldElement(fRaiseElement).RegisterModifiedValueHolder(TObject(fRaiseObserver2));
+end;
+
+procedure TTestBoldElementBase.TestAssignRaisesForSource_Raiser;
+begin
+  TTestBoldElement(fRaiseElement).Assign(TTestBoldElement(fRaiseSource));
+end;
+
+procedure TTestBoldElementBase.TestAssignRaisesForNil_Raiser;
+begin
+  TTestBoldElement(fRaiseElement).Assign(nil);
+end;
+
+procedure TTestBoldElementBase.TestCompareToAsRaises_Raiser;
+begin
+  TTestBoldElement(fRaiseElement1).CompareToAs(ctDefault, TTestBoldElement(fRaiseElement2));
+end;
+
+procedure TTestBoldElementBase.TestCompareErrorWithElement_Raiser;
+begin
+  TBoldElementCracker(TTestBoldElement(fRaiseElement1)).CompareError(TTestBoldElement(fRaiseElement2));
+end;
+
+procedure TTestBoldElementBase.TestCompareErrorWithNil_Raiser;
+begin
+  TBoldElementCracker(TTestBoldElement(fRaiseElement)).CompareError(nil);
+end;
+
+procedure TTestBoldElementBase.TestMutableErrorRaises_Raiser;
+begin
+  TBoldElementCracker(TTestBoldElement(fRaiseElement)).MutableError('NewValue');
+end;
+
+procedure TTestBoldElementBase.TestEnsureValidStringRaises_Raiser;
+begin
+  TTestValidatingElement(fRaiseElement).EnsureValidString('Hello123', brDefault);
+end;
+
+procedure TTestBoldElementBase.TestGetAsVariant_Raiser;
+var
+  V: Variant;
+begin
+  V := TTestBoldElement(fRaiseElement).AsVariant;
+end;
+
+procedure TTestBoldElementBase.TestSetAsVariant_Raiser;
+begin
+  TTestBoldElement(fRaiseElement).AsVariant := 'Test';
+end;
+
+procedure TTestBoldElementBase.TestCompareToWithDifferentElement_Raiser;
+begin
+  TTestBoldElement(fRaiseElement1).CompareTo(TTestBoldElement(fRaiseElement2));
+end;
+
+procedure TTestBoldElementBase.TestAssignErrorWithElement_Raiser;
+begin
+  TBoldElementCracker(TTestBoldElement(fRaiseElement1)).AssignError(TTestBoldElement(fRaiseElement2));
+end;
+
+procedure TTestBoldElementBase.TestAssignErrorWithNil_Raiser;
+begin
+  TBoldElementCracker(TTestBoldElement(fRaiseElement)).AssignError(nil);
+end;
+
+procedure TTestBoldElementBase.TestCompareTypeError_Raiser;
+begin
+  TBoldElementCracker(TTestBoldElement(fRaiseElement1)).CompareTypeError(ctDefault, TTestBoldElement(fRaiseElement2));
+end;
+
+procedure TTestBoldElementBase.TestCompareTypeErrorWithNil_Raiser;
+begin
+  TBoldElementCracker(TTestBoldElement(fRaiseElement)).CompareTypeError(ctDefault, nil);
+end;
+
+procedure TTestBoldElementBase.TestGetStringRepresentationRaises_Raiser;
+var
+  S: string;
+begin
+  S := TTestBoldElement(fRaiseElement).StringRepresentation[brDefault];
+end;
+
+procedure TTestBoldElementBase.TestSetStringRepresentationRaises_Raiser;
+begin
+  TTestBoldElement(fRaiseElement).StringRepresentation[brDefault] := 'Test';
+end;
+
+procedure TTestBoldElementBase.TestRegisterModifiedValueHolderWithComponent_Raiser;
+begin
+  TTestBoldElement(fRaiseElement).RegisterModifiedValueHolder(TComponent(fRaiseOtherComp));
+end;
+
+procedure TTestBoldElementBase.SetUp;
 begin
   FElement := TBoldIndirectElement.Create;
 end;
@@ -1158,10 +1219,9 @@ begin
   Observer2 := TObject.Create;
   try
     Element.RegisterModifiedValueHolder(Observer1);
-    Assert.WillRaise(procedure
-    begin
-      Element.RegisterModifiedValueHolder(Observer2);
-    end, EBold);
+    fRaiseElement := Element;
+    fRaiseObserver2 := Observer2;
+    Assert.WillRaise(TestRegisterModifiedValueHolderConflict_Raiser, EBold);
   finally
     Element.UnRegisterModifiedValueHolder(Observer1);
     Element.Free;
@@ -1218,10 +1278,9 @@ begin
   Element := TTestBoldElement.Create;
   Source := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      Element.Assign(Source);
-    end, EBold);
+    fRaiseElement := Element;
+    fRaiseSource := Source;
+    Assert.WillRaise(TestAssignRaisesForSource_Raiser, EBold);
   finally
     Element.Free;
     Source.Free;
@@ -1234,10 +1293,8 @@ var
 begin
   Element := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      Element.Assign(nil);
-    end, EBold);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestAssignRaisesForNil_Raiser, EBold);
   finally
     Element.Free;
   end;
@@ -1250,10 +1307,9 @@ begin
   Element1 := TTestBoldElement.Create;
   Element2 := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      Element1.CompareToAs(ctDefault, Element2);
-    end, EBold);
+    fRaiseElement1 := Element1;
+    fRaiseElement2 := Element2;
+    Assert.WillRaise(TestCompareToAsRaises_Raiser, EBold);
   finally
     Element1.Free;
     Element2.Free;
@@ -1267,10 +1323,9 @@ begin
   Element1 := TTestBoldElement.Create;
   Element2 := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      TBoldElementCracker(Element1).CompareError(Element2);
-    end, EBold);
+    fRaiseElement1 := Element1;
+    fRaiseElement2 := Element2;
+    Assert.WillRaise(TestCompareErrorWithElement_Raiser, EBold);
   finally
     Element1.Free;
     Element2.Free;
@@ -1283,10 +1338,8 @@ var
 begin
   Element := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      TBoldElementCracker(Element).CompareError(nil);
-    end, EBold);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestCompareErrorWithNil_Raiser, EBold);
   finally
     Element.Free;
   end;
@@ -1298,10 +1351,8 @@ var
 begin
   Element := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      TBoldElementCracker(Element).MutableError('NewValue');
-    end, EBold);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestMutableErrorRaises_Raiser, EBold);
   finally
     Element.Free;
   end;
@@ -1316,10 +1367,8 @@ begin
     // This should not raise
     Element.EnsureValidString('Hello', brDefault);
     // This should raise
-    Assert.WillRaise(procedure
-    begin
-      Element.EnsureValidString('Hello123', brDefault);
-    end, EBoldAssertionFailed);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestEnsureValidStringRaises_Raiser, EBoldAssertionFailed);
   finally
     Element.Free;
   end;
@@ -1332,12 +1381,8 @@ begin
   Element := TTestBoldElement.Create;
   try
     // GetAsVariant returns AsString which raises for base TBoldElement
-    Assert.WillRaise(procedure
-    var
-      V: Variant;
-    begin
-      V := Element.AsVariant;
-    end, EBold);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestGetAsVariant_Raiser, EBold);
   finally
     Element.Free;
   end;
@@ -1350,10 +1395,8 @@ begin
   Element := TTestBoldElement.Create;
   try
     // SetAsVariant sets AsString which raises for base TBoldElement
-    Assert.WillRaise(procedure
-    begin
-      Element.AsVariant := 'Test';
-    end, EBold);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestSetAsVariant_Raiser, EBold);
   finally
     Element.Free;
   end;
@@ -1413,6 +1456,18 @@ end;
 
 { TTestBoldElementTypeInfo }
 
+procedure TTestBoldElementTypeInfo.TestCreateElementRaises_Raiser;
+begin
+  TTestElementTypeInfo(fRaiseTypeInfo).CreateElement;
+end;
+
+procedure TTestBoldElementTypeInfo.TestGetListTypeInfoRaises_Raiser;
+var
+  LI: TBoldListTypeInfo;
+begin
+  LI := TTestElementTypeInfo(fRaiseTypeInfo).ListTypeInfo;
+end;
+
 procedure TTestBoldElementTypeInfo.TestElementClassReturnsNil;
 var
   TypeInfo: TTestElementTypeInfo;
@@ -1431,10 +1486,8 @@ var
 begin
   TypeInfo := TTestElementTypeInfo.Create('Model', 'TestType', 'Delphi', nil);
   try
-    Assert.WillRaise(procedure
-    begin
-      TypeInfo.CreateElement;
-    end, EBold);
+    fRaiseTypeInfo := TypeInfo;
+    Assert.WillRaise(TestCreateElementRaises_Raiser, EBold);
   finally
     TypeInfo.Free;
   end;
@@ -1448,10 +1501,8 @@ begin
   TypeInfo := TTestElementTypeInfo.Create('Model', 'TestType', 'Delphi', nil);
   LI := nil;
   try
-    Assert.WillRaise(procedure
-    begin
-      LI := TypeInfo.ListTypeInfo;
-    end, EBold);
+    fRaiseTypeInfo := TypeInfo;
+    Assert.WillRaise(TestGetListTypeInfoRaises_Raiser, EBold);
   finally
     TypeInfo.Free;
   end;
@@ -1703,10 +1754,9 @@ begin
   Element2 := TTestBoldElement.Create;
   try
     // CompareTo with different element calls CompareToAs which raises
-    Assert.WillRaise(procedure
-    begin
-      Element1.CompareTo(Element2);
-    end, EBold);
+    fRaiseElement1 := Element1;
+    fRaiseElement2 := Element2;
+    Assert.WillRaise(TestCompareToWithDifferentElement_Raiser, EBold);
   finally
     Element1.Free;
     Element2.Free;
@@ -1734,10 +1784,9 @@ begin
   Element1 := TTestBoldElement.Create;
   Element2 := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      TBoldElementCracker(Element1).AssignError(Element2);
-    end, EBold);
+    fRaiseElement1 := Element1;
+    fRaiseElement2 := Element2;
+    Assert.WillRaise(TestAssignErrorWithElement_Raiser, EBold);
   finally
     Element1.Free;
     Element2.Free;
@@ -1750,10 +1799,8 @@ var
 begin
   Element := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      TBoldElementCracker(Element).AssignError(nil);
-    end, EBold);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestAssignErrorWithNil_Raiser, EBold);
   finally
     Element.Free;
   end;
@@ -1766,10 +1813,9 @@ begin
   Element1 := TTestBoldElement.Create;
   Element2 := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      TBoldElementCracker(Element1).CompareTypeError(ctDefault, Element2);
-    end, EBold);
+    fRaiseElement1 := Element1;
+    fRaiseElement2 := Element2;
+    Assert.WillRaise(TestCompareTypeError_Raiser, EBold);
   finally
     Element1.Free;
     Element2.Free;
@@ -1782,10 +1828,8 @@ var
 begin
   Element := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      TBoldElementCracker(Element).CompareTypeError(ctDefault, nil);
-    end, EBold);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestCompareTypeErrorWithNil_Raiser, EBold);
   finally
     Element.Free;
   end;
@@ -1797,12 +1841,8 @@ var
 begin
   Element := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    var
-      S: string;
-    begin
-      S := Element.StringRepresentation[brDefault];
-    end, EBold);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestGetStringRepresentationRaises_Raiser, EBold);
   finally
     Element.Free;
   end;
@@ -1814,10 +1854,8 @@ var
 begin
   Element := TTestBoldElement.Create;
   try
-    Assert.WillRaise(procedure
-    begin
-      Element.StringRepresentation[brDefault] := 'Test';
-    end, EBold);
+    fRaiseElement := Element;
+    Assert.WillRaise(TestSetStringRepresentationRaises_Raiser, EBold);
   finally
     Element.Free;
   end;
@@ -1838,10 +1876,9 @@ begin
     Element.RegisterModifiedValueHolder(Comp);
     Assert.AreSame(Comp, Element.ModifiedValueHolder, 'Should register component');
     // Try to register a different component - should raise
-    Assert.WillRaise(procedure
-    begin
-      Element.RegisterModifiedValueHolder(OtherComp);
-    end, EBold);
+    fRaiseElement := Element;
+    fRaiseOtherComp := OtherComp;
+    Assert.WillRaise(TestRegisterModifiedValueHolderWithComponent_Raiser, EBold);
   finally
     Element.Free;
     Comp.Free;
@@ -1895,11 +1932,11 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldIndirectElement);
-  TDUnitX.RegisterTestFixture(TTestBoldMetaElement);
-  TDUnitX.RegisterTestFixture(TTestBoldExternalVariableList);
-  TDUnitX.RegisterTestFixture(TTestBoldElementBase);
-  TDUnitX.RegisterTestFixture(TTestBoldListTypeInfo);
-  TDUnitX.RegisterTestFixture(TTestBoldElementTypeInfo);
+  BoldRegisterTest(TTestBoldIndirectElement);
+  BoldRegisterTest(TTestBoldMetaElement);
+  BoldRegisterTest(TTestBoldExternalVariableList);
+  BoldRegisterTest(TTestBoldElementBase);
+  BoldRegisterTest(TTestBoldListTypeInfo);
+  BoldRegisterTest(TTestBoldElementTypeInfo);
 
 end.

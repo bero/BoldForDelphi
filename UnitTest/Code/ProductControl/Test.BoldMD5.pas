@@ -3,14 +3,16 @@ unit Test.BoldMD5;
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ProductControl')]
-  TTestBoldMD5 = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldMD5 = class(TBoldTestCase)
+  private
+    procedure TestMD5SelfTest_Raiser;
+  published
     procedure TestMD5SelfTest;
   end;
 
@@ -21,18 +23,18 @@ uses
 
 { TTestBoldMD5 }
 
+procedure TTestBoldMD5.TestMD5SelfTest_Raiser;
+begin
+  TBoldMD5.SelfTest;
+end;
+
 procedure TTestBoldMD5.TestMD5SelfTest;
 begin
   // TBoldMD5.SelfTest raises an exception if it fails
-  Assert.WillNotRaiseAny(
-    procedure
-    begin
-      TBoldMD5.SelfTest;
-    end
-  );
+  Assert.WillNotRaiseAny(TestMD5SelfTest_Raiser);
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldMD5);
+  BoldRegisterTest(TTestBoldMD5);
 
 end.

@@ -3,16 +3,18 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldFreeStandingValueFactories,
   BoldDefs;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('FreeStandingValues')]
-  TTestBoldFreeStandingValueFactories = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldFreeStandingValueFactories = class(TBoldTestCase)
+  private
+    procedure TestCreateInstanceWithInvalidContentNameRaisesException_Raiser;
+  published
     procedure TestCreateInstanceWithInvalidContentNameRaisesException;
   end;
 
@@ -20,20 +22,18 @@ implementation
 
 { TTestBoldFreeStandingValueFactories }
 
+procedure TTestBoldFreeStandingValueFactories.TestCreateInstanceWithInvalidContentNameRaisesException_Raiser;
+begin
+  FreeStandingValueFactory.CreateInstance('NonExistentContentName');
+end;
+
 procedure TTestBoldFreeStandingValueFactories.TestCreateInstanceWithInvalidContentNameRaisesException;
 begin
   // This test covers line 66 - the exception path when ContentName is not found
-  Assert.WillRaise(
-    procedure
-    begin
-      FreeStandingValueFactory.CreateInstance('NonExistentContentName');
-    end,
-    EBold,
-    'Should raise EBold for unregistered content name'
-  );
+  Assert.WillRaise(TestCreateInstanceWithInvalidContentNameRaisesException_Raiser, EBold, 'Should raise EBold for unregistered content name' );
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldFreeStandingValueFactories);
+  BoldRegisterTest(TTestBoldFreeStandingValueFactories);
 
 end.

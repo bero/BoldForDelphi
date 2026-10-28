@@ -3,177 +3,121 @@
 interface
 
 uses
-  DUnitX.TestFramework;
+  BoldTestFramework;
 
 type
-  [TestFixture]
-  TTestBoldSQLDatabaseConfig = class
+  TTestBoldSQLDatabaseConfig = class(TBoldTestCase)
   private
     FChangeCount: Integer;
+    fRaiseCfg: TObject;
+    procedure TestGetDropColumnQuery_EmptyTemplate_Raiser;
+    procedure TestGetDropIndexQuery_EmptyTemplate_Raiser;
+    procedure TestGetDropTableQuery_EmptyTemplate_Raiser;
+    procedure TestGetCreateDatabaseQuery_EmptyTemplate_Raiser;
+    procedure TestGetDropDatabaseQuery_EmptyTemplate_Raiser;
+    procedure TestGetDatabaseExistsQuery_EmptyTemplate_Raiser;
+    procedure TestGetColumnExistsQuery_EmptyTemplate_Raiser;
+    procedure TestGetTableExistsQuery_EmptyTemplate_Raiser;
+    procedure TestGetIndexExistsQuery_EmptyTemplate_Raiser;
+    procedure TestGetIndexColumnExistsQuery_EmptyTemplate_Raiser;
+    procedure TestGetIfColumnNotExistsQuery_EmptyTemplate_Raiser;
     procedure HandleChange(Sender: TObject);
-  public
+  published
     // Create and defaults
-    [Test]
     procedure TestCreate_DefaultValues;
-    [Test]
     procedure TestCreate_ReservedWordsPopulated;
 
     // InitializeDbEngineSettings - per engine
-    [Test]
     procedure TestInitialize_SQLServer;
-    [Test]
     procedure TestInitialize_SQLServer_MaxParamsInIdList;
-    [Test]
     procedure TestInitialize_SQLServer_MaxParamsInIdListFollowsFetchBlockSize;
-    [Test]
     procedure TestInitialize_SQLServer_MaxParamsInIdListCappedAtEngineLimit;
-    [Test]
     procedure TestInitialize_SetsEngine;
-    [Test]
     procedure TestSetFetchBlockSize_SQLServer_RaisesMaxParamsInIdList;
-    [Test]
     procedure TestSetFetchBlockSize_OtherEngine_KeepsMaxParamsInIdList;
-    [Test]
     procedure TestSetEngine_SQLServer_RaisesMaxParamsInIdListToFetchBlockSize;
-    [Test]
     procedure TestSetEngine_SQLServer_DefaultBlockSizeRaisesToBlockSize;
-    [Test]
     procedure TestSetEngine_SQLServer_CapsAtEngineLimit;
-    [Test]
     procedure TestSetEngine_OtherEngine_KeepsMaxParamsInIdList;
-    [Test]
     procedure TestSetMaxParamsInIdList_SQLServer_NeverBelowFetchBlockSize;
-    [Test]
     procedure TestMaxParamsInIdListZero_SwitchesParameterizationOff;
-    [Test]
     procedure TestInitialize_Postgres;
-    [Test]
     procedure TestInitialize_MySQL;
-    [Test]
     procedure TestInitialize_InterbaseDialect3;
-    [Test]
     procedure TestInitialize_InterbaseDialect1;
-    [Test]
     procedure TestInitialize_Oracle;
-    [Test]
     procedure TestInitialize_DBISAM;
-    [Test]
     procedure TestInitialize_Advantage;
-    [Test]
     procedure TestInitialize_Paradox;
-    [Test]
     procedure TestInitialize_Informix;
-    [Test]
     procedure TestInitialize_GenericANSI;
-    [Test]
     procedure TestInitialize_Unknown;
 
     // Template expansion - Drop queries
-    [Test]
     procedure TestGetDropColumnQuery;
-    [Test]
     procedure TestGetDropColumnQuery_EmptyTemplate;
-    [Test]
     procedure TestGetDropIndexQuery;
-    [Test]
     procedure TestGetDropIndexQuery_EmptyTemplate;
-    [Test]
     procedure TestGetDropTableQuery;
-    [Test]
     procedure TestGetDropTableQuery_EmptyTemplate;
 
     // Template expansion - Database queries
-    [Test]
     procedure TestGetCreateDatabaseQuery;
-    [Test]
     procedure TestGetCreateDatabaseQuery_EmptyTemplate;
-    [Test]
     procedure TestGetDropDatabaseQuery;
-    [Test]
     procedure TestGetDropDatabaseQuery_EmptyTemplate;
-    [Test]
     procedure TestGetDatabaseExistsQuery;
-    [Test]
     procedure TestGetDatabaseExistsQuery_EmptyTemplate;
 
     // Template expansion - Exists queries
-    [Test]
     procedure TestGetColumnExistsQuery;
-    [Test]
     procedure TestGetColumnExistsQuery_EmptyTemplate;
-    [Test]
     procedure TestGetTableExistsQuery;
-    [Test]
     procedure TestGetTableExistsQuery_EmptyTemplate;
-    [Test]
     procedure TestGetIndexExistsQuery;
-    [Test]
     procedure TestGetIndexExistsQuery_EmptyTemplate;
-    [Test]
     procedure TestGetIndexColumnExistsQuery;
-    [Test]
     procedure TestGetIndexColumnExistsQuery_EmptyTemplate;
-    [Test]
     procedure TestGetIfColumnNotExistsQuery;
-    [Test]
     procedure TestGetIfColumnNotExistsQuery_EmptyTemplate;
 
     // Template expansion - IndexInfo
-    [Test]
     procedure TestGetIndexInfoQuery;
 
     // GetColumnTypeForString / Unicode / Ansi
-    [Test]
     procedure TestGetColumnTypeForString_NoLimit;
-    [Test]
     procedure TestGetColumnTypeForString_WithinLimit;
-    [Test]
     procedure TestGetColumnTypeForString_ExceedsLimit;
-    [Test]
     procedure TestGetColumnTypeForUnicodeString_NoLimit;
-    [Test]
     procedure TestGetColumnTypeForUnicodeString_ExceedsLimit;
-    [Test]
     procedure TestGetColumnTypeForAnsiString_NoLimit;
-    [Test]
     procedure TestGetColumnTypeForAnsiString_ExceedsLimit;
 
     // CorrectlyQuotedDefaultValue
-    [Test]
     procedure TestCorrectlyQuotedDefaultValue_NoQuote;
-    [Test]
     procedure TestCorrectlyQuotedDefaultValue_WithQuote;
 
     // EffectiveSQLForNotNull
-    [Test]
     procedure TestEffectiveSQLForNotNull_Normal;
-    [Test]
     procedure TestEffectiveSQLForNotNull_Empty;
 
     // IsSQLServerEngine
-    [Test]
     procedure TestIsSQLServerEngine;
 
     // SystemTablePrefix empty fallback
-    [Test]
     procedure TestSystemTablePrefix_EmptyFallback;
 
     // SQLforNotNull empty marker
-    [Test]
     procedure TestSQLforNotNull_EmptyUsesMarker;
 
     // Assign / AssignConfig
-    [Test]
     procedure TestAssignConfig;
-    [Test]
     procedure TestAssign;
 
     // Change notification
-    [Test]
     procedure TestOnChange;
 
     // Generated evolution script
-    [Test]
     procedure TestSQLServerEvolutionScript_OneDeclarePerBatch;
   end;
 
@@ -188,6 +132,61 @@ uses
   BoldDbEvolutorScript;
 
 { TTestBoldSQLDatabaseConfig }
+
+procedure TTestBoldSQLDatabaseConfig.TestGetDropColumnQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetDropColumnQuery('T', 'C');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetDropIndexQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetDropIndexQuery('T', 'I');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetDropTableQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetDropTableQuery('T');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetCreateDatabaseQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetCreateDatabaseQuery('DB');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetDropDatabaseQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetDropDatabaseQuery('DB');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetDatabaseExistsQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetDatabaseExistsQuery('DB');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetColumnExistsQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetColumnExistsQuery('T', 'C');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetTableExistsQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetTableExistsQuery('T');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetIndexExistsQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetIndexExistsQuery('T', 'I');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetIndexColumnExistsQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetIndexColumnExistsQuery('T', 'C');
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestGetIfColumnNotExistsQuery_EmptyTemplate_Raiser;
+begin
+  TBoldSQLDataBaseConfig(fRaiseCfg).GetIfColumnNotExistsQuery('T', 'C', 'SQL');
+end;
 
 procedure TTestBoldSQLDatabaseConfig.TestCreate_DefaultValues;
 var
@@ -723,9 +722,8 @@ begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.DropColumnTemplate := '';
-    Assert.WillRaise(
-      procedure begin Cfg.GetDropColumnQuery('T', 'C'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetDropColumnQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -750,9 +748,8 @@ begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.DropIndexTemplate := '';
-    Assert.WillRaise(
-      procedure begin Cfg.GetDropIndexQuery('T', 'I'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetDropIndexQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -777,9 +774,8 @@ begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.DropTableTemplate := '';
-    Assert.WillRaise(
-      procedure begin Cfg.GetDropTableQuery('T'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetDropTableQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -806,9 +802,8 @@ begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.CreateDatabaseTemplate := '';
-    Assert.WillRaise(
-      procedure begin Cfg.GetCreateDatabaseQuery('DB'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetCreateDatabaseQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -833,9 +828,8 @@ begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.DropDatabaseTemplate := '';
-    Assert.WillRaise(
-      procedure begin Cfg.GetDropDatabaseQuery('DB'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetDropDatabaseQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -844,11 +838,12 @@ end;
 procedure TTestBoldSQLDatabaseConfig.TestGetDatabaseExistsQuery;
 var
   Cfg: TBoldSQLDataBaseConfig;
+  Q: string;
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.InitializeDbEngineSettings(dbeSQLServer);
-    var Q := Cfg.GetDatabaseExistsQuery('MyDB');
+    Q := Cfg.GetDatabaseExistsQuery('MyDB');
     Assert.IsTrue(Pos('MyDB', Q) > 0);
   finally
     Cfg.Free;
@@ -862,9 +857,8 @@ begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     // Default has empty DatabaseExistsTemplate
-    Assert.WillRaise(
-      procedure begin Cfg.GetDatabaseExistsQuery('DB'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetDatabaseExistsQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -875,11 +869,12 @@ end;
 procedure TTestBoldSQLDatabaseConfig.TestGetColumnExistsQuery;
 var
   Cfg: TBoldSQLDataBaseConfig;
+  Q: string;
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.InitializeDbEngineSettings(dbeSQLServer);
-    var Q := Cfg.GetColumnExistsQuery('MyTable', 'MyCol');
+    Q := Cfg.GetColumnExistsQuery('MyTable', 'MyCol');
     Assert.IsTrue(Pos('MyTable', Q) > 0);
     Assert.IsTrue(Pos('MyCol', Q) > 0);
   finally
@@ -893,9 +888,8 @@ var
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
-    Assert.WillRaise(
-      procedure begin Cfg.GetColumnExistsQuery('T', 'C'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetColumnExistsQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -904,11 +898,12 @@ end;
 procedure TTestBoldSQLDatabaseConfig.TestGetTableExistsQuery;
 var
   Cfg: TBoldSQLDataBaseConfig;
+  Q: string;
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.InitializeDbEngineSettings(dbeSQLServer);
-    var Q := Cfg.GetTableExistsQuery('MyTable');
+    Q := Cfg.GetTableExistsQuery('MyTable');
     Assert.IsTrue(Pos('MyTable', Q) > 0);
   finally
     Cfg.Free;
@@ -921,9 +916,8 @@ var
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
-    Assert.WillRaise(
-      procedure begin Cfg.GetTableExistsQuery('T'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetTableExistsQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -932,11 +926,12 @@ end;
 procedure TTestBoldSQLDatabaseConfig.TestGetIndexExistsQuery;
 var
   Cfg: TBoldSQLDataBaseConfig;
+  Q: string;
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.InitializeDbEngineSettings(dbeSQLServer);
-    var Q := Cfg.GetIndexExistsQuery('MyTable', 'IX_Test');
+    Q := Cfg.GetIndexExistsQuery('MyTable', 'IX_Test');
     Assert.IsTrue(Pos('IX_Test', Q) > 0);
     Assert.IsTrue(Pos('MyTable', Q) > 0);
   finally
@@ -950,9 +945,8 @@ var
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
-    Assert.WillRaise(
-      procedure begin Cfg.GetIndexExistsQuery('T', 'I'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetIndexExistsQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -961,11 +955,12 @@ end;
 procedure TTestBoldSQLDatabaseConfig.TestGetIndexColumnExistsQuery;
 var
   Cfg: TBoldSQLDataBaseConfig;
+  Q: string;
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.InitializeDbEngineSettings(dbeSQLServer);
-    var Q := Cfg.GetIndexColumnExistsQuery('MyTable', 'MyCol');
+    Q := Cfg.GetIndexColumnExistsQuery('MyTable', 'MyCol');
     Assert.IsTrue(Pos('MyTable', Q) > 0);
     Assert.IsTrue(Pos('MyCol', Q) > 0);
   finally
@@ -979,9 +974,8 @@ var
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
-    Assert.WillRaise(
-      procedure begin Cfg.GetIndexColumnExistsQuery('T', 'C'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetIndexColumnExistsQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -990,11 +984,12 @@ end;
 procedure TTestBoldSQLDatabaseConfig.TestGetIfColumnNotExistsQuery;
 var
   Cfg: TBoldSQLDataBaseConfig;
+  Q: string;
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.InitializeDbEngineSettings(dbeSQLServer);
-    var Q := Cfg.GetIfColumnNotExistsQuery('MyTable', 'MyCol', 'ALTER TABLE MyTable ADD MyCol INT');
+    Q := Cfg.GetIfColumnNotExistsQuery('MyTable', 'MyCol', 'ALTER TABLE MyTable ADD MyCol INT');
     Assert.IsTrue(Pos('NOT EXISTS', Q) > 0);
     Assert.IsTrue(Pos('MyTable', Q) > 0);
     Assert.IsTrue(Pos('MyCol', Q) > 0);
@@ -1011,9 +1006,8 @@ begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     // Default has empty IfTemplate and ColumnExistsTemplate
-    Assert.WillRaise(
-      procedure begin Cfg.GetIfColumnNotExistsQuery('T', 'C', 'SQL'); end,
-      EBold);
+    fRaiseCfg := Cfg;
+    Assert.WillRaise(TestGetIfColumnNotExistsQuery_EmptyTemplate_Raiser, EBold);
   finally
     Cfg.Free;
   end;
@@ -1024,11 +1018,12 @@ end;
 procedure TTestBoldSQLDatabaseConfig.TestGetIndexInfoQuery;
 var
   Cfg: TBoldSQLDataBaseConfig;
+  Q: string;
 begin
   Cfg := TBoldSQLDataBaseConfig.Create;
   try
     Cfg.InitializeDbEngineSettings(dbeSQLServer);
-    var Q := Cfg.GetIndexInfoQuery('MyTable');
+    Q := Cfg.GetIndexInfoQuery('MyTable');
     Assert.IsTrue(Pos('MyTable', Q) > 0);
   finally
     Cfg.Free;
@@ -1364,6 +1359,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSQLDatabaseConfig);
+  BoldRegisterTest(TTestBoldSQLDatabaseConfig);
 
 end.

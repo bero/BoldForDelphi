@@ -3,7 +3,7 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldPersistenceHandleDB;
 
 type
@@ -13,22 +13,24 @@ type
     procedure CallAssertSQLDatabaseconfig;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Persistence')]
-  TTestBoldPersistenceHandleDB = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldPersistenceHandleDB = class(TBoldTestCase)
+  private
+    fRaiseHandle: TObject;
+    procedure TestSetActiveWithoutDatabaseAdapterRaisesException_Raiser;
+    procedure TestAssertSQLDatabaseconfigWithoutAdapterRaisesException_Raiser;
+  published
     procedure TestGettersWithoutDatabaseAdapter;
-    [Test]
     procedure TestSetActiveWithoutDatabaseAdapterRaisesException;
-    [Test]
     procedure TestAssertSQLDatabaseconfigWithoutAdapterRaisesException;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
+  SysUtils,
   BoldDefs;
 
 { TTestableBoldPersistenceHandleDB }
@@ -39,6 +41,16 @@ begin
 end;
 
 { TTestBoldPersistenceHandleDB }
+
+procedure TTestBoldPersistenceHandleDB.TestSetActiveWithoutDatabaseAdapterRaisesException_Raiser;
+begin
+  TBoldPersistenceHandleDB(fRaiseHandle).Active := True;
+end;
+
+procedure TTestBoldPersistenceHandleDB.TestAssertSQLDatabaseconfigWithoutAdapterRaisesException_Raiser;
+begin
+  TTestableBoldPersistenceHandleDB(fRaiseHandle).CallAssertSQLDatabaseconfig;
+end;
 
 procedure TTestBoldPersistenceHandleDB.TestGettersWithoutDatabaseAdapter;
 var
@@ -64,12 +76,8 @@ begin
   try
     // Setting Active without DatabaseAdapter should raise exception
     // Covers line 122
-    Assert.WillRaise(
-      procedure
-      begin
-        Handle.Active := True;
-      end,
-      EBold);
+    fRaiseHandle := Handle;
+    Assert.WillRaise(TestSetActiveWithoutDatabaseAdapterRaisesException_Raiser, EBold);
   finally
     Handle.Free;
   end;
@@ -83,18 +91,14 @@ begin
   try
     // Calling AssertSQLDatabaseconfig without DatabaseAdapter should raise exception
     // Covers line 71
-    Assert.WillRaise(
-      procedure
-      begin
-        Handle.CallAssertSQLDatabaseconfig;
-      end,
-      EBold);
+    fRaiseHandle := Handle;
+    Assert.WillRaise(TestAssertSQLDatabaseconfigWithoutAdapterRaisesException_Raiser, EBold);
   finally
     Handle.Free;
   end;
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldPersistenceHandleDB);
+  BoldRegisterTest(TTestBoldPersistenceHandleDB);
 
 end.

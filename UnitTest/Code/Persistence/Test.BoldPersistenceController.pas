@@ -3,7 +3,7 @@ unit Test.BoldPersistenceController;
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldPersistenceController,
   BoldCondition,
   BoldId,
@@ -28,31 +28,25 @@ type
     function CanEvaluateInPS(sOCL: string; aSystem: TBoldElement; aContext: TBoldElementTypeInfo = nil; const aVariableList: TBoldExternalVariableList = nil): Boolean; override;
   end;
 
-  [TestFixture]
-  TTestBoldPersistenceController = class
+  TTestBoldPersistenceController = class(TBoldTestCase)
   private
     FController: TTestablePersistenceController;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
+    fRaiseClockTime: TDateTime;
+    fRaiseTimestamp: TBoldTimestampType;
+    procedure TestRollbackTransaction_RaisesException_Raiser;
+    procedure TestPMTimeForTimestamp_RaisesException_Raiser;
+    procedure TestPMTimestampForTime_RaisesException_Raiser;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestCreate;
-    [Test]
     procedure TestStartTransaction;
-    [Test]
     procedure TestCommitTransaction;
-    [Test]
     procedure TestRollbackTransaction_RaisesException;
-    [Test]
     procedure TestDatabaseInterface_ReturnsNil;
-    [Test]
     procedure TestMultilinksAreStoredInObject_ReturnsFalse;
-    [Test]
     procedure TestPMTimeForTimestamp_RaisesException;
-    [Test]
     procedure TestPMTimestampForTime_RaisesException;
   end;
 
@@ -125,7 +119,22 @@ end;
 
 { TTestBoldPersistenceController }
 
-procedure TTestBoldPersistenceController.Setup;
+procedure TTestBoldPersistenceController.TestRollbackTransaction_RaisesException_Raiser;
+begin
+  FController.RollbackTransaction;
+end;
+
+procedure TTestBoldPersistenceController.TestPMTimeForTimestamp_RaisesException_Raiser;
+begin
+  FController.PMTimeForTimestamp(0, fRaiseClockTime);
+end;
+
+procedure TTestBoldPersistenceController.TestPMTimestampForTime_RaisesException_Raiser;
+begin
+  FController.PMTimestampForTime(Now, fRaiseTimestamp);
+end;
+
+procedure TTestBoldPersistenceController.SetUp;
 begin
   FController := TTestablePersistenceController.Create;
 end;
@@ -156,13 +165,7 @@ end;
 
 procedure TTestBoldPersistenceController.TestRollbackTransaction_RaisesException;
 begin
-  Assert.WillRaise(
-    procedure
-    begin
-      FController.RollbackTransaction;
-    end,
-    EBoldFeatureNotImplementedYet
-  );
+  Assert.WillRaise(TestRollbackTransaction_RaisesException_Raiser, EBoldFeatureNotImplementedYet );
 end;
 
 procedure TTestBoldPersistenceController.TestDatabaseInterface_ReturnsNil;
@@ -179,29 +182,19 @@ procedure TTestBoldPersistenceController.TestPMTimeForTimestamp_RaisesException;
 var
   ClockTime: TDateTime;
 begin
-  Assert.WillRaise(
-    procedure
-    begin
-      FController.PMTimeForTimestamp(0, ClockTime);
-    end,
-    EBoldFeatureNotImplementedYet
-  );
+  fRaiseClockTime := ClockTime;
+  Assert.WillRaise(TestPMTimeForTimestamp_RaisesException_Raiser, EBoldFeatureNotImplementedYet );
 end;
 
 procedure TTestBoldPersistenceController.TestPMTimestampForTime_RaisesException;
 var
   Timestamp: TBoldTimestampType;
 begin
-  Assert.WillRaise(
-    procedure
-    begin
-      FController.PMTimestampForTime(Now, Timestamp);
-    end,
-    EBoldFeatureNotImplementedYet
-  );
+  fRaiseTimestamp := Timestamp;
+  Assert.WillRaise(TestPMTimestampForTime_RaisesException_Raiser, EBoldFeatureNotImplementedYet );
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldPersistenceController);
+  BoldRegisterTest(TTestBoldPersistenceController);
 
 end.

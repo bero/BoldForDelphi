@@ -3,7 +3,7 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSQLMappingInfo,
   BoldMappingInfo,
   BoldTaggedValueSupport;
@@ -15,39 +15,29 @@ type
     procedure CallClearMappingInfo;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('PMapper')]
-  TTestBoldSQLMappingInfo = class
+  {$ENDIF}
+  TTestBoldSQLMappingInfo = class(TBoldTestCase)
   private
     FMappingInfo: TTestableMappingInfo;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+    procedure TestAddTypeIdMappingEmptyClassNameRaisesException_Raiser;
+    procedure TestAddTypeIdMappingDuplicateDifferentTypeRaisesException_Raiser;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestAddDuplicateAllInstancesMapping;
-    [Test]
     procedure TestAddDuplicateMemberMapping;
-    [Test]
     procedure TestAddDuplicateObjectStorageMapping;
-    [Test]
     procedure TestMemberMappingCompareMapping;
-    [Test]
     procedure TestAllInstancesMappingCompareMapping;
-    [Test]
     procedure TestObjectStorageMappingCompareMapping;
-    [Test]
     procedure TestMemberMappingListFillFromList;
-    [Test]
     procedure TestClearMappingInfo;
-    [Test]
     procedure TestMemberMappingCompareTypeWithInheritance;
-    [Test]
     procedure TestAddTypeIdMappingEmptyClassNameRaisesException;
-    [Test]
     procedure TestAddTypeIdMappingDuplicateDifferentTypeRaisesException;
-    [Test]
     procedure TestCloneWithoutDbType;
   end;
 
@@ -67,7 +57,17 @@ end;
 
 { TTestBoldSQLMappingInfo }
 
-procedure TTestBoldSQLMappingInfo.Setup;
+procedure TTestBoldSQLMappingInfo.TestAddTypeIdMappingEmptyClassNameRaisesException_Raiser;
+begin
+  FMappingInfo.AddTypeIdMapping('', 1);
+end;
+
+procedure TTestBoldSQLMappingInfo.TestAddTypeIdMappingDuplicateDifferentTypeRaisesException_Raiser;
+begin
+  FMappingInfo.AddTypeIdMapping('TestClass', 2);
+end;
+
+procedure TTestBoldSQLMappingInfo.SetUp;
 begin
   FMappingInfo := TTestableMappingInfo.Create('BOLD', 128, nccDefault);
 end;
@@ -254,12 +254,7 @@ end;
 procedure TTestBoldSQLMappingInfo.TestAddTypeIdMappingEmptyClassNameRaisesException;
 begin
   // Covers line 571 - empty ClassExpressionName raises exception
-  Assert.WillRaise(
-    procedure
-    begin
-      FMappingInfo.AddTypeIdMapping('', 1);
-    end,
-    EBoldInternal);
+  Assert.WillRaise(TestAddTypeIdMappingEmptyClassNameRaisesException_Raiser, EBoldInternal);
 end;
 
 procedure TTestBoldSQLMappingInfo.TestAddTypeIdMappingDuplicateDifferentTypeRaisesException;
@@ -269,12 +264,7 @@ begin
 
   // Adding same class with different type should raise exception
   // Covers line 574
-  Assert.WillRaise(
-    procedure
-    begin
-      FMappingInfo.AddTypeIdMapping('TestClass', 2);
-    end,
-    EBold);
+  Assert.WillRaise(TestAddTypeIdMappingDuplicateDifferentTypeRaisesException_Raiser, EBold);
 end;
 
 procedure TTestBoldSQLMappingInfo.TestCloneWithoutDbType;
@@ -302,6 +292,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSQLMappingInfo);
+  BoldRegisterTest(TTestBoldSQLMappingInfo);
 
 end.
