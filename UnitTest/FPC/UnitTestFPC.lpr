@@ -17,6 +17,7 @@ uses
   consoletestrunner,
   Test.BoldAbstractObjectUpgrader,
   Test.BoldAbstractObjectUpgraderHandle,
+  Test.BoldAbstractSnooper,
   Test.BoldAttributes,
   Test.BoldBase,
   Test.BoldBase64,

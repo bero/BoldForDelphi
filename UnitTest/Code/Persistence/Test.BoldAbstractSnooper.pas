@@ -1,35 +1,32 @@
 ﻿unit Test.BoldAbstractSnooper;
 
-{ DUnitX tests for BoldAbstractSnooper - OSS class-event generation (H11) }
+{ Tests for BoldAbstractSnooper - OSS class-event generation (H11) }
 
 interface
 
 uses
   Classes,
   SysUtils,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDefs,
   BoldMeta,
   BoldAbstractSnooper,
   jehoBoldTestDataModule;  // declares TjehodmBoldTest, the standard test datamodule
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Persistence')]
-  TTestBoldAbstractSnooper = class
+  {$ENDIF}
+  TTestBoldAbstractSnooper = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
     function FindClass(AModel: TMoldModel; const AName: string): TMoldClass;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestClassEventsCoverSuperclassChain;
-    [Test]
     procedure TestExcessMemberSlotsAreNotIndexedIntoModelMembers;
-    [Test]
     procedure TestNonEmbeddedEventNamesConcreteClassForInexactId;
   end;
 
@@ -377,6 +374,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldAbstractSnooper);
+  BoldRegisterTest(TTestBoldAbstractSnooper);
 
 end.
