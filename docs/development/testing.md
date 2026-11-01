@@ -35,6 +35,16 @@ The `$(DelphiMocks)` system environment variable must be set to the Delphi-Mocks
 
 Example: `DelphiMocks=C:\Delphi-Mocks\Source`
 
+### Free Pascal: Zeos is mandatory
+
+The Free Pascal build of the tests (`UnitTest/FPC/build.sh`, Linux) **requires
+[Zeos](https://sourceforge.net/projects/zeoslib/) 8.0**: under Free Pascal Bold
+uses its Zeos database adapter, under Delphi FireDAC. Set the `ZEOS` environment
+variable to the Zeos root folder (the one that contains `src/`); `build.sh`
+stops with an error when it is not set. See
+[UnitTest/README.md](https://github.com/bero/BoldForDelphi/blob/develop/UnitTest/README.md#free-pascal--lazarus-linux)
+for setup.
+
 ## Mocking with Delphi-Mocks
 
 Bold uses the **Delphi-Mocks** framework to create mock objects for unit testing. This is particularly valuable for testing database operations without requiring an actual database connection.

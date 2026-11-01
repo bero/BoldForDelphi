@@ -78,6 +78,42 @@ Run a specific fixture or test:
 .\UnitTest.exe --run:Test.BoldUndoHandler.TTestBoldUndoHandler --consolemode:Verbose
 ```
 
+## Free Pascal / Lazarus (Linux)
+
+Most of the suite also builds with Free Pascal through `FPC/build.sh`. The
+FPCUnit runner is `FPC/UnitTestFPC.lpr`, and the test units are shared with
+Delphi through `Code/Common/BoldTestFramework.pas` (GitHub issue #117).
+
+### Dependencies: Zeos is mandatory
+
+| Dependency | Environment variable | Purpose |
+|------------|---------------------|---------|
+| [Free Pascal](https://www.freepascal.org/) 3.2.2 or later | - | Compiler |
+| [Zeos](https://sourceforge.net/projects/zeoslib/) 8.0 | `ZEOS` | Database access: under Free Pascal Bold uses its Zeos adapter, under Delphi FireDAC |
+
+**Zeos is mandatory for the Free Pascal build.** `build.sh` stops with an
+error when `ZEOS` is not set; there is no stub, unlike UniDAC on Delphi. Zeos
+is free (LGPL with a static linking exception), so every Free Pascal run
+includes the database tests. `ZEOS` points to the Zeos root folder, the one
+that contains `src/`. The SQLite tests also need the SQLite library
+(`libsqlite3.so.0`, package `libsqlite3-0` on Debian and Ubuntu).
+
+### Setup and running
+
+```sh
+# zeosdbo-8.0.0-stable.zip from
+# https://sourceforge.net/projects/zeoslib/files/Zeos%20Database%20Objects/zeosdbo-8.0.0-stable/
+unzip zeosdbo-8.0.0-stable.zip -d ~/components/zeosdbo-8.0.0
+export ZEOS=~/components/zeosdbo-8.0.0
+
+sh FPC/build.sh                                        # build, then run all tests
+sh FPC/build.sh --suite=TTestBoldSystem --format=plain # one fixture
+```
+
+`build.sh` compiles Zeos first, in mode Delphi as its Lazarus packages do,
+into `FPC/bin/zeos`, and then the tests in mode DelphiUnicode against those
+units. Output goes to `FPC/bin`; the exit code is 0 when every test passed.
+
 ## Code Coverage
 
 ```powershell
