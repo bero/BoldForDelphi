@@ -132,6 +132,10 @@
             <Form>BoldTestDM</Form>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
+        <DCCReference Include="Code\ObjectSpace\BoldTestDMFireDAC.pas">
+            <Form>BoldTestDMFireDAC</Form>
+            <DesignClass>TDataModule</DesignClass>
+        </DCCReference>
         <DCCReference Include="Code\ObjectSpace\Test.BoldUndoHandler.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclError.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclClasses.pas"/>

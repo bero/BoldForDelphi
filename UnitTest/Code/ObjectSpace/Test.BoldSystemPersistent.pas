@@ -1,33 +1,33 @@
 ﻿unit Test.BoldSystemPersistent;
 
-{ The TBoldSystem tests that need a persistent system: they run on the
-  SQLite-backed BoldTestDM (dmBoldTest), which uses FireDAC. Split from
-  Test.BoldSystem so that unit can be shared with Free Pascal; these follow
-  once dmBoldTest has a database adapter that Free Pascal can compile.
-  Delphi only for now: listed in UnitTest.dpr, not in UnitTestFPC.lpr. }
+{ The TBoldSystem tests that need a persistent system. They run on the
+  SQLite-backed BoldTestDM (dmBoldTest), whose database comes from FireDAC on
+  Delphi and from Zeos under Free Pascal (BoldTestDMFireDAC, BoldTestDMZeos).
+  Each test gets a fresh database: SetUp opens it and TearDown closes it,
+  because the fixture-level hooks exist only on the Delphi side of
+  BoldTestFramework so far. }
 
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSystem;
 
 type
   // Uses the SQLite-backed BoldTestDM: the dirty list is only maintained on a
   // persistent system (MarkObjectDirty is a no-op without a persistence
   // controller), so these tests cannot run on TjehodmBoldTest.
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldSystemDirtyObjectsPersistent = class
+  {$ENDIF}
+  TTestBoldSystemDirtyObjectsPersistent = class(TBoldTestCase)
   private
     function GetSystem: TBoldSystem;
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestDirtyObjectsByClassTypeInfoIncludesSubclasses;
   end;
 
@@ -36,38 +36,36 @@ type
   // deletes a never-persisted object from the batch frees it immediately,
   // leaving a locator with a nil BoldObject in the already-filtered update
   // list.
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldSystemPreUpdatePersistent = class
+  {$ENDIF}
+  TTestBoldSystemPreUpdatePersistent = class(TBoldTestCase)
   private
     fObjectToDelete: TBoldObject;
     function GetSystem: TBoldSystem;
     procedure DeletePendingObjectOnPreUpdate(Sender: TObject);
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestPreUpdateSubscriberDeletesNewObjectInBatch;
   end;
 
   // Uses the SQLite-backed BoldTestDM: when a superclass extent is already
   // current, MakeDbCurrent fills the subclass extent from it (FillFromClassList)
   // instead of fetching from the database. GitHub issue #102.
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldClassListFillFromSuperClass = class
+  {$ENDIF}
+  TTestBoldClassListFillFromSuperClass = class(TBoldTestCase)
   private
     function GetSystem: TBoldSystem;
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestSubclassListFilledFromLoadedSuperClassList;
   end;
 
@@ -75,23 +73,20 @@ type
   // from inside their own discard (the discard of a modified member sends
   // beValueInvalid), so the dirty list never empties on its own and
   // DiscardPersistent has to stop after a bounded number of passes.
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldSystemDiscardPersistentStall = class
+  {$ENDIF}
+  TTestBoldSystemDiscardPersistentStall = class(TBoldTestCase)
   private
     function GetSystem: TBoldSystem;
     procedure DeleteSavedObjects(const AObjects: array of TBoldObject);
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestDiscardPersistent_ReDirtiedDuringDiscard_EscalatesThenGivesUp;
-    [Test]
     procedure TestDiscard_ReDirtiedDuringDiscard_GivesUpWithoutEscalation;
-    [Test]
     procedure TestDiscardPersistent_FanOutReDirty_TerminatesWithinBoundedPasses;
   end;
 
@@ -107,14 +102,16 @@ uses
 
 { TTestBoldSystemDirtyObjectsPersistent }
 
-procedure TTestBoldSystemDirtyObjectsPersistent.SetUpFixture;
+procedure TTestBoldSystemDirtyObjectsPersistent.SetUp;
 begin
+  inherited;
   EnsureBoldTestDM;
 end;
 
-procedure TTestBoldSystemDirtyObjectsPersistent.TearDownFixture;
+procedure TTestBoldSystemDirtyObjectsPersistent.TearDown;
 begin
   CloseBoldTestDM;
+  inherited;
 end;
 
 function TTestBoldSystemDirtyObjectsPersistent.GetSystem: TBoldSystem;
@@ -153,14 +150,16 @@ end;
 
 { TTestBoldSystemPreUpdatePersistent }
 
-procedure TTestBoldSystemPreUpdatePersistent.SetUpFixture;
+procedure TTestBoldSystemPreUpdatePersistent.SetUp;
 begin
+  inherited;
   EnsureBoldTestDM;
 end;
 
-procedure TTestBoldSystemPreUpdatePersistent.TearDownFixture;
+procedure TTestBoldSystemPreUpdatePersistent.TearDown;
 begin
   CloseBoldTestDM;
+  inherited;
 end;
 
 function TTestBoldSystemPreUpdatePersistent.GetSystem: TBoldSystem;
@@ -207,14 +206,16 @@ end;
 
 { TTestBoldClassListFillFromSuperClass }
 
-procedure TTestBoldClassListFillFromSuperClass.SetUpFixture;
+procedure TTestBoldClassListFillFromSuperClass.SetUp;
 begin
+  inherited;
   EnsureBoldTestDM;
 end;
 
-procedure TTestBoldClassListFillFromSuperClass.TearDownFixture;
+procedure TTestBoldClassListFillFromSuperClass.TearDown;
 begin
   CloseBoldTestDM;
+  inherited;
 end;
 
 function TTestBoldClassListFillFromSuperClass.GetSystem: TBoldSystem;
@@ -399,14 +400,16 @@ const
   // a failing test fails fast instead of hanging the test run.
   cMaxRedirties = 40;
 
-procedure TTestBoldSystemDiscardPersistentStall.SetUpFixture;
+procedure TTestBoldSystemDiscardPersistentStall.SetUp;
 begin
+  inherited;
   EnsureBoldTestDM;
 end;
 
-procedure TTestBoldSystemDiscardPersistentStall.TearDownFixture;
+procedure TTestBoldSystemDiscardPersistentStall.TearDown;
 begin
   CloseBoldTestDM;
+  inherited;
 end;
 
 function TTestBoldSystemDiscardPersistentStall.GetSystem: TBoldSystem;
@@ -526,9 +529,9 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSystemDirtyObjectsPersistent);
-  TDUnitX.RegisterTestFixture(TTestBoldSystemPreUpdatePersistent);
-  TDUnitX.RegisterTestFixture(TTestBoldClassListFillFromSuperClass);
-  TDUnitX.RegisterTestFixture(TTestBoldSystemDiscardPersistentStall);
+  BoldRegisterTest(TTestBoldSystemDirtyObjectsPersistent);
+  BoldRegisterTest(TTestBoldSystemPreUpdatePersistent);
+  BoldRegisterTest(TTestBoldClassListFillFromSuperClass);
+  BoldRegisterTest(TTestBoldSystemDiscardPersistentStall);
 
 end.

@@ -1,36 +1,26 @@
 ﻿unit dmBoldTest;
 
-{ Generic DataModule for Bold unit tests.
-  Uses SQLite shared-cache in-memory by default.
-  Override via UnitTest.ini to use SQL Server or other engines. }
+{ The data module with the BoldTestModel model and a persistent system, shared
+  by the Delphi and the Free Pascal test builds.
+
+  dmBoldTest.dfm holds only the Bold handles and the model. The database behind
+  the persistence handle (connection and adapter) comes from the connector that
+  the test runner links in:
+    Delphi:      BoldTestDMFireDAC (UnitTest.dpr): FireDAC, SQLite shared-cache
+                 in-memory by default, another engine through UnitTest.ini
+    Free Pascal: BoldTestDMZeos (FPC/UnitTestFPC.lpr): Zeos, SQLite shared-cache
+                 in-memory
+  Each connector registers itself in its initialization. }
 
 interface
 
 uses
-  System.SysUtils,
-  System.Classes,
-  Vcl.Forms,
-  BoldSystem,
+  Classes,
   BoldSystemHandle,
   BoldModel,
   BoldHandles,
   BoldPersistenceHandle,
-  BoldPersistenceHandleDB,
-  BoldAbstractDatabaseAdapter,
-  BoldDatabaseAdapterFireDAC,
-  FireDAC.Stan.Intf,
-  FireDAC.Stan.Option,
-  FireDAC.Stan.Error,
-  FireDAC.UI.Intf,
-  FireDAC.Phys.Intf,
-  FireDAC.Stan.Def,
-  FireDAC.Stan.Pool,
-  FireDAC.Stan.Async,
-  FireDAC.Phys,
-  FireDAC.Comp.Client,
-  FireDAC.Phys.MSSQL,
-  FireDAC.Phys.MSSQLDef,
-  FireDAC.VCLUI.Wait;
+  BoldPersistenceHandleDB;
 
 type
   TBoldTestDM = class(TDataModule)
@@ -38,15 +28,18 @@ type
     BoldModel1: TBoldModel;
     BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle;
     BoldPersistenceHandleDB1: TBoldPersistenceHandleDB;
-    BoldDatabaseAdapterFireDAC1: TBoldDatabaseAdapterFireDAC;
-    FDConnection1: TFDConnection;
   public
     destructor Destroy; override;
   end;
 
+  { Creates the connection and the database adapter, owned by DataModule,
+    configures them and assigns the adapter to the persistence handle. }
+  TBoldTestDMConnector = procedure(DataModule: TBoldTestDM);
+
 var
   BoldTestDM: TBoldTestDM;
 
+procedure RegisterBoldTestDMConnector(Connector: TBoldTestDMConnector);
 procedure EnsureBoldTestDM;
 procedure CloseBoldTestDM;
 
@@ -55,11 +48,11 @@ implementation
 {$R *.dfm}
 
 uses
-  System.IniFiles,
-  BoldTestDatabaseConfig,
-  BoldSQLDatabaseConfig,
-  FireDAC.Phys.SQLite,
-  FireDAC.Phys.SQLiteDef;
+  SysUtils,
+  BoldTestModel; // links the generated classes, without which the system cannot activate
+
+var
+  RegisteredConnector: TBoldTestDMConnector = nil;
 
 destructor TBoldTestDM.Destroy;
 begin
@@ -68,79 +61,20 @@ begin
   inherited;
 end;
 
-function TryGetIniFilePath(out APath: string): Boolean;
+procedure RegisterBoldTestDMConnector(Connector: TBoldTestDMConnector);
 begin
-  APath := ExtractFilePath(ParamStr(0)) + 'UnitTest.ini';
-  if FileExists(APath) then
-    Exit(True);
-  APath := ExtractFilePath(ParamStr(0)) + '..\UnitTest.ini';
-  Result := FileExists(APath);
-end;
-
-procedure ConfigureSQLiteInMemory;
-begin
-  // SQLite shared-cache in-memory: fast, no setup required.
-  // Named memory URI ensures all Bold internal connections (created via
-  // CreateAnotherDatabaseConnection) share the same in-memory database.
-  BoldTestDM.FDConnection1.Close;
-  BoldTestDM.FDConnection1.Params.Clear;
-  BoldTestDM.FDConnection1.DriverName := 'SQLite';
-  BoldTestDM.FDConnection1.Params.Values['Database'] :=
-    'file:memdb1?mode=memory&cache=shared';
-  BoldTestDM.FDConnection1.LoginPrompt := False;
-  BoldTestDM.FDConnection1.Open;
-
-  BoldTestDM.BoldDatabaseAdapterFireDAC1.DatabaseEngine := dbeGenericANSISQL92;
-  with BoldTestDM.BoldDatabaseAdapterFireDAC1.SQLDatabaseConfig do
-  begin
-    ColumnTypeForText := 'TEXT';
-    ColumnTypeForUnicodeText := 'TEXT';
-    ColumnTypeForAnsiText := 'TEXT';
-    ColumnTypeForInt64 := 'INTEGER';
-  end;
-end;
-
-procedure ConfigureFromIni(const AIniPath: string);
-var
-  Engine: string;
-begin
-  Engine := GetTestDatabaseEngine(AIniPath); // honours BOLD_TEST_ENGINE
-
-  if SameText(Engine, 'SQLite') then
-  begin
-    WriteLn('BoldTestDM: Using SQLite in-memory (from ' + AIniPath + ')');
-    ConfigureSQLiteInMemory;
-  end
-  else
-  begin
-    WriteLn('BoldTestDM: Using ' + Engine + ' (from ' + AIniPath + ')');
-    BoldTestDatabaseConfig.CreateTestDatabase;
-    BoldTestDatabaseConfig.ConfigureConnection(BoldTestDM.FDConnection1,
-      BoldTestDM.BoldDatabaseAdapterFireDAC1);
-    BoldTestDM.FDConnection1.Open;
-  end;
+  RegisteredConnector := Connector;
 end;
 
 procedure EnsureBoldTestDM;
-var
-  IniPath: string;
 begin
   if not Assigned(BoldTestDM) then
   begin
-    if not Assigned(Application) then
-      Application.Initialize;
-
+    if not Assigned(RegisteredConnector) then
+      raise Exception.Create('dmBoldTest: no database connector is registered. The test runner must ' +
+        'use BoldTestDMFireDAC (Delphi) or BoldTestDMZeos (Free Pascal).');
     BoldTestDM := TBoldTestDM.Create(nil);
-
-    // Use UnitTest.ini if available, otherwise default to SQLite in-memory
-    if TryGetIniFilePath(IniPath) then
-      ConfigureFromIni(IniPath)
-    else
-    begin
-      WriteLn('BoldTestDM: Using SQLite in-memory (no UnitTest.ini found)');
-      ConfigureSQLiteInMemory;
-    end;
-
+    RegisteredConnector(BoldTestDM);
     BoldTestDM.BoldPersistenceHandleDB1.CreateDataBaseSchema;
     BoldTestDM.BoldSystemHandle1.Active := True;
   end;

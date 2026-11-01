@@ -1,4 +1,4 @@
-﻿{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
+﻿{$mode delphiunicode}
 program UnitTestFPC;
 { FPCUnit console runner for the Bold unit tests under Free Pascal, the FPC
   counterpart of ../UnitTest.dpr (DUnitX). The test units are the same source
@@ -15,6 +15,7 @@ uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Classes,
   consoletestrunner,
+  BoldTestDMZeos, // the database behind dmBoldTest
   Test.BoldAbstractObjectUpgrader,
   Test.BoldAbstractObjectUpgraderHandle,
   Test.BoldAbstractSnooper,
@@ -75,6 +76,7 @@ uses
   Test.BoldSubscribableCollection,
   Test.BoldSubscription,
   Test.BoldSystem,
+  Test.BoldSystemPersistent,
   Test.BoldTaggedValueList,
   Test.BoldTaggedValueSupport,
   Test.BoldThreadSafeLog,

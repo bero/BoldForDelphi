@@ -42,6 +42,7 @@ uses
   maan_UndoRedoBase in 'Code\ObjectSpace\maan_UndoRedoBase.pas',
   maan_FetchRefetch in 'Code\ObjectSpace\maan_FetchRefetch.pas',
   dmBoldTest in 'Code\ObjectSpace\dmBoldTest.pas' {BoldTestDM: TDataModule},
+  BoldTestDMFireDAC in 'Code\ObjectSpace\BoldTestDMFireDAC.pas' {BoldTestDMFireDAC: TDataModule},
   Test.BoldUndoHandler in 'Code\ObjectSpace\Test.BoldUndoHandler.pas',
   Test.BoldOclError in 'Code\ObjectSpace\Test.BoldOclError.pas',
   Test.BoldOclClasses in 'Code\ObjectSpace\Test.BoldOclClasses.pas',
