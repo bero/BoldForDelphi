@@ -1,12 +1,14 @@
 ﻿unit Test.BoldSystem;
 
-{ DUnitX tests for BoldSystem - Core system functionality }
+{$INCLUDE bold.inc}
+
+{ Tests for BoldSystem - Core system functionality }
 
 interface
 
 uses
   Classes,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSystem,
   BoldSystemHandle,
   BoldSystemRT,
@@ -28,644 +30,386 @@ uses
   jehoBoldTestDataModule;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldSystem = class
+  {$ENDIF}
+  TTestBoldSystem = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
     FSystemBeingDestroyed: TBoldSystem;
     FTeardownEventReceived: Boolean;
     FDebugAssertFired: Boolean;
     FEvaluatorRecreatedDuringDestroy: Boolean;
+    FInvalidateObject: TClassA;
     function GetSystem: TBoldSystem;
     procedure HandleEvaluatorDuringTeardown(Originator: TObject;
       OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+    procedure InvalidateAString;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
     // Object Creation and Deletion
-    [Test]
     procedure TestCreateObject;
-    [Test]
     procedure TestDeleteObject;
-    [Test]
     procedure TestCreateAndDeleteObject;
 
     // Dirty Object Tracking
-    [Test]
     procedure TestObjectBecomeDirtyOnAttributeChange;
-    [Test]
     procedure TestDirtyObjectsListTracking;
-    [Test]
     procedure TestDiscardChanges;
-    [Test]
     procedure TestDiscardChangesOnNewObject;
 
     // Object State Transitions
-    [Test]
     procedure TestNewObjectIsTransient;
-    [Test]
     procedure TestObjectExistenceStates;
 
     // Object List Operations
-    [Test]
     procedure TestObjectListAdd;
-    [Test]
     procedure TestObjectListRemove;
-    [Test]
     procedure TestObjectListDuplicateModeMerge;
-    [Test]
     procedure TestObjectListDuplicateModeError;
-    [Test]
     procedure TestObjectListCount;
-    [Test]
     procedure TestObjectListClear;
 
     // Transaction Handling
-    [Test]
     procedure TestInTransactionInitiallyFalse;
-    [Test]
     procedure TestStartTransaction;
-    [Test]
     procedure TestRollbackTransaction;
-    [Test]
     procedure TestNestedRollbackPreventsOuterCommit;
 
     // System Clean/Dirty State
-    [Test]
     procedure TestSystemCleanAfterCreation;
-    [Test]
     procedure TestSystemDirtyAfterObjectCreation;
 
     // Integrity Tests
-    [Test]
     procedure TestCheckIntegrityEmptySystem;
-    [Test]
     procedure TestCheckIntegrityWithObjects;
-    [Test]
     procedure TestCheckIntegrityWithModifiedObjects;
-    [Test]
     procedure TestAssertLinkIntegrityEmptySystem;
-    [Test]
     procedure TestAssertLinkIntegrityWithObjects;
-    [Test]
     procedure TestAssertLinkIntegrityAfterModifications;
-    [Test]
     procedure TestLocatorListAssertIntegrity;
 
     // Locator Tests
-    [Test]
     procedure TestLocatorCreatedWithObject;
-    [Test]
     procedure TestLocatorBoldObjectReference;
-    [Test]
     procedure TestLocatorsListCount;
 
     // DefaultSystem Tests
-    [Test]
     procedure TestMakeDefaultSystem;
-    [Test]
     procedure TestDefaultSystemAccess;
 
     // Object Creation Variants
-    [Test]
     procedure TestCreateNewObjectByExpressionName;
-    [Test]
     procedure TestCreateNewObjectByExpressionNameClassB;
 
     // Class Extent Access
-    [Test]
     procedure TestClassByExpressionName;
-    [Test]
     procedure TestClassByObjectClass;
-    [Test]
     procedure TestClassesIndexAccess;
 
     // TBoldObject Properties
-    [Test]
     procedure TestBoldMemberCount;
-    [Test]
     procedure TestBoldMembersAccess;
-    [Test]
     procedure TestBoldMemberByExpressionName;
-    [Test]
     procedure TestFindBoldMemberByExpressionName;
-    [Test]
     procedure TestBoldMemberIndexByExpressionName;
 
     // Object GetAsList
-    [Test]
     procedure TestSystemGetAsList;
-    [Test]
     procedure TestObjectGetAsList;
 
     // Object Comparison
-    [Test]
     procedure TestObjectCompareToAs;
-    [Test]
     procedure TestObjectIsEqualAs;
 
     // System State Flags
-    [Test]
     procedure TestSystemStateFlags;
-    [Test]
     procedure TestBoldSystemTypeInfo;
 
     // Traverser Tests
-    [Test]
     procedure TestLocatorListTraverser;
-    [Test]
     procedure TestLocatorListTraverserCurrent;
-    [Test]
     procedure TestLocatorListGetEnumerator;
 
     // LocatorList Lookup Tests
-    [Test]
     procedure TestLocatorByID;
-    [Test]
     procedure TestObjectByID;
-    [Test]
     procedure TestLocatorByIdString;
-    [Test]
     procedure TestObjectByIdString;
-    [Test]
     procedure TestLocatorByIdNotFound;
 
     // TBoldObjectLocator Properties
-    [Test]
     procedure TestLocatorAsString;
-    [Test]
     procedure TestLocatorBoldSystem;
-    [Test]
     procedure TestLocatorBoldObjectID;
-    [Test]
     procedure TestLocatorClassTypeInfo;
-    [Test]
     procedure TestLocatorEnsuredBoldObject;
 
     // DelayObjectDestruction Pattern
-    [Test]
     procedure TestDelayObjectDestruction;
-    [Test]
     procedure TestDelayObjectDestructionNested;
 
     // TBoldObjectList.FilterOnType
-    [Test]
     procedure TestObjectListFilterOnType;
-    [Test]
     procedure TestObjectListFilterOnTypeWithSubclasses;
 
     // TBoldMember.IsNull/SetToNull
-    [Test]
     procedure TestMemberIsNullInitially;
-    [Test]
     procedure TestMemberSetToNull;
-    [Test]
     procedure TestMemberIsNullAfterAssignment;
 
     // TBoldObject.IsReadOnly
-    [Test]
     procedure TestObjectIsReadOnlyInitiallyFalse;
-    [Test]
     procedure TestObjectSetIsReadOnly;
 
     // StringRepresentation
-    [Test]
     procedure TestObjectStringRepresentation;
-    [Test]
     procedure TestAttributeStringRepresentation;
-    [Test]
     procedure TestSystemStringRepresentation;
 
     // ContainsDirtyObjectsOfClass
-    [Test]
     procedure TestContainsDirtyObjectsOfClassEmpty;
-    [Test]
     procedure TestContainsDirtyObjectsOfClassWithObjects;
 
     // DiscardPersistent / DiscardTransient
-    [Test]
     procedure TestDiscardPersistentEmptySystem;
-    [Test]
     procedure TestDiscardPersistentWithObjects;
-    [Test]
     procedure TestDiscardTransientEmptySystem;
-    [Test]
     procedure TestDiscardTransientWithTransientObjects;
-    [Test]
     procedure TestDiscardTransientPreservesPersistent;
-    [Test]
     procedure TestCreateTransientObject;
 
     // OCL Collection Operations (tests SQL generation in BoldSqlSymbols)
-    [Test]
     procedure TestOCLUnion;
-    [Test]
     procedure TestOCLIntersection;
 
     // Constraint AddConstraint Tests (tests EnsureConstraintListAndAdd helper)
-    [Test]
     procedure TestClassTypeInfoAddConstraint;
-    [Test]
     procedure TestClassTypeInfoAddMultipleConstraints;
 
     // DirtyObjectsAsBoldList Tests
-    [Test]
     procedure TestGetDirtyObjectsAsBoldListByClass;
-    [Test]
     procedure TestGetDirtyObjectsAsBoldListByClassTypeInfo;
-    [Test]
     procedure TestGetDirtyObjectsAsBoldListByClassExpressionName;
-    [Test]
     procedure TestGetAllDirtyObjectsAsBoldList;
 
     // CanDelete Tests
-    [Test]
     procedure TestObjectCanDelete;
-    [Test]
     procedure TestObjectCanDeleteReadOnly;
 
     // BoldList Additional Tests
-    [Test]
     procedure TestBoldListEmpty;
-    [Test]
     procedure TestBoldListIncludes;
-    [Test]
     procedure TestBoldListIndexOf;
 
     // EnsureLocatorByID
-    [Test]
     procedure TestEnsureLocatorByIDCreatesNew;
-    [Test]
     procedure TestEnsureLocatorByIDReturnsExisting;
 
     // CreateNewObjectFromClassTypeInfo
-    [Test]
     procedure TestCreateNewObjectFromClassTypeInfo;
 
     // GetClassTypeForID
-    [Test]
     procedure TestGetClassTypeForID;
 
     // Locator UnloadBoldObject
-    [Test]
     procedure TestLocatorUnloadBoldObject;
 
     // TBoldObject BoldType
-    [Test]
     procedure TestBoldObjectBoldType;
 
     // TBoldObject AsIBoldObjectContents
-    [Test]
     procedure TestBoldObjectProxyInterface;
 
     // TBoldObjectList operations
-    [Test]
     procedure TestObjectListInsert;
-    [Test]
     procedure TestObjectListAddList;
-    [Test]
     procedure TestObjectListAssign;
 
     // TBoldAttribute tests
-    [Test]
     procedure TestAttributeBoldType;
-    [Test]
     procedure TestAttributeOwningObject;
 
     // TBoldObject additional property tests
-    [Test]
     procedure TestObjectBoldObjectIsNew;
-    [Test]
     procedure TestObjectBoldObjectExists;
-    [Test]
     procedure TestObjectCanUpdate;
-    [Test]
     procedure TestObjectDisplayName;
-    [Test]
     procedure TestObjectInvalidate;
-    [Test]
     procedure TestObjectBoldTime;
-    [Test]
     procedure TestObjectBoldMemberAssigned;
-    [Test]
     procedure TestObjectBoldMemberIfAssigned;
 
     // TBoldList additional tests
-    [Test]
     procedure TestBoldListAddAndRemove;
-    [Test]
     procedure TestBoldListInsertAndMove;
-    [Test]
     procedure TestBoldListFirstAndLast;
-    [Test]
     procedure TestBoldListHasDuplicates;
-    [Test]
     procedure TestBoldListRemoveByIndex;
-    [Test]
     procedure TestBoldListIncludesAll;
-    [Test]
     procedure TestBoldListAsCommaText;
-    [Test]
     procedure TestBoldListToStrings;
 
     // TBoldMember additional tests
-    [Test]
     procedure TestMemberInvalidate;
-    [Test]
     procedure TestMemberBoldDirty;
 
     // TBoldObject lifecycle and properties
-    [Test]
     procedure TestObjectSubscribeToStringRepresentation;
 
     // TBoldList additional operations
-    [Test]
     procedure TestBoldListCapacity;
-    [Test]
     procedure TestBoldListGetEnumerator;
-    [Test]
     procedure TestBoldListCanOperations;
-    [Test]
     procedure TestBoldListRemoveList;
-    [Test]
     procedure TestBoldListIntersect;
-    [Test]
     procedure TestBoldListAsDebugCommaText;
-    [Test]
     procedure TestBoldListSetElement;
-    [Test]
     procedure TestBoldListDuplicateModeAllow;
 
     // TBoldObjectList additional
-    [Test]
     procedure TestObjectListGetEnumerator;
-    [Test]
     procedure TestObjectListEnsureObjects;
-    [Test]
     procedure TestObjectListIncludesAny;
 
     // TBoldMember additional
-    [Test]
     procedure TestMemberOwnerAndSystem;
-    [Test]
     procedure TestMemberDisplayName;
 
     // Evaluator requested by a subscriber during system teardown
-    [Test]
     procedure TestEvaluatorRequestDuringTeardownDoesNotLeak;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldObjectReference = class
+  {$ENDIF}
+  TTestBoldObjectReference = class(TBoldTestCase)
   private
     FSystemHandle: TBoldSystemHandle;
     FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
+    FSource: TestModel1.TClassA;
+    FTarget: TestModel1.TClassA;
     function GetSystem: TBoldSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+    procedure AssignTargetToSourceNext;
+    procedure CompareSourceParentAsUnknownType;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestIsEqualAs_NilRef_vs_NilRef;
-    [Test]
     procedure TestIsEqualAs_NilRef_vs_AssignedRef;
-    [Test]
     procedure TestIsEqualAs_AssignedRef_SameObject;
-    [Test]
     procedure TestIsEqualAs_AssignedRef_DifferentObject;
-    [Test]
     procedure TestIsEqualAs_UnknownCompareType_Raises;
-    [Test]
     procedure TestSetLocatorRejectsCrossSystemObject;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldSystemTransactions = class
+  {$ENDIF}
+  TTestBoldSystemTransactions = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
     function GetSystem: TBoldSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+    procedure RollbackSystemTransaction;
+    procedure CommitSystemTransaction;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestTransactionRollbackRevertsAttributeChange;
-    [Test]
     procedure TestTransactionCommitKeepsChanges;
-    [Test]
     procedure TestTryCommitTransactionSuccess;
-    [Test]
     procedure TestNestedTransactionCommit;
-    [Test]
     procedure TestNestedTransactionRollback;
-    [Test]
     procedure TestRollbackWithoutTransactionRaises;
-    [Test]
     procedure TestCommitWithoutTransactionRaises;
-    [Test]
     procedure TestTransactionRollbackRevertsObjectCreation;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldDirtyObjectTracker = class
+  {$ENDIF}
+  TTestBoldDirtyObjectTracker = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
     function GetSystem: TBoldSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestTrackerCreateAndDestroy;
-    [Test]
     procedure TestTrackerStopTracking;
   end;
 
-  // Uses the SQLite-backed BoldTestDM: the dirty list is only maintained on a
-  // persistent system (MarkObjectDirty is a no-op without a persistence
-  // controller), so these tests cannot run on TjehodmBoldTest.
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldSystemDirtyObjectsPersistent = class
-  private
-    function GetSystem: TBoldSystem;
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
-
-    [Test]
-    procedure TestDirtyObjectsByClassTypeInfoIncludesSubclasses;
-  end;
-
-  // Uses the SQLite-backed BoldTestDM: UpdateDatabase fires PreUpdate
-  // subscribers before object destruction is delayed, so a subscriber that
-  // deletes a never-persisted object from the batch frees it immediately,
-  // leaving a locator with a nil BoldObject in the already-filtered update
-  // list.
-  [TestFixture]
-  [Category('ObjectSpace')]
-  TTestBoldSystemPreUpdatePersistent = class
-  private
-    fObjectToDelete: TBoldObject;
-    function GetSystem: TBoldSystem;
-    procedure DeletePendingObjectOnPreUpdate(Sender: TObject);
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
-
-    [Test]
-    procedure TestPreUpdateSubscriberDeletesNewObjectInBatch;
-  end;
-
-  // Uses the SQLite-backed BoldTestDM: when a superclass extent is already
-  // current, MakeDbCurrent fills the subclass extent from it (FillFromClassList)
-  // instead of fetching from the database. GitHub issue #102.
-  [TestFixture]
-  [Category('ObjectSpace')]
-  TTestBoldClassListFillFromSuperClass = class
-  private
-    function GetSystem: TBoldSystem;
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
-
-    [Test]
-    procedure TestSubclassListFilledFromLoadedSuperClassList;
-  end;
-
-  // Uses the SQLite-backed BoldTestDM: a subscriber re-dirties saved objects
-  // from inside their own discard (the discard of a modified member sends
-  // beValueInvalid), so the dirty list never empties on its own and
-  // DiscardPersistent has to stop after a bounded number of passes.
-  [TestFixture]
-  [Category('ObjectSpace')]
-  TTestBoldSystemDiscardPersistentStall = class
-  private
-    function GetSystem: TBoldSystem;
-    procedure DeleteSavedObjects(const AObjects: array of TBoldObject);
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
-
-    [Test]
-    procedure TestDiscardPersistent_ReDirtiedDuringDiscard_EscalatesThenGivesUp;
-    [Test]
-    procedure TestDiscard_ReDirtiedDuringDiscard_GivesUpWithoutEscalation;
-    [Test]
-    procedure TestDiscardPersistent_FanOutReDirty_TerminatesWithinBoundedPasses;
-  end;
-
-  [TestFixture]
-  [Category('ObjectSpace')]
-  TTestBoldObjectLifecycle = class
+  {$ENDIF}
+  TTestBoldObjectLifecycle = class(TBoldTestCase)
   private
     FSystemHandle: TBoldSystemHandle;
     FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
+    FCanDeleteObject: TestModel1.TClassA;
     function GetSystem: TBoldSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+    procedure CallCanDelete;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestCheckLinksNoLinks;
-    [Test]
     procedure TestCheckLinksWithLinks;
-    [Test]
     procedure TestObjectDebugInfo;
-    [Test]
     procedure TestLocatorDebugInfo;
-    [Test]
     procedure TestObjectUnlinkAll;
-    [Test]
     procedure TestObjectCanDeleteWithLinks;
-    [Test]
     procedure TestObjectDiscardResetsAttribute;
-    [Test]
     procedure TestNavigateParentChild;
-    [Test]
     procedure TestNavigateNext;
-    [Test]
     procedure TestChildCountAfterMultipleAdds;
-    [Test]
     procedure TestSetParentToNil;
-    [Test]
     procedure TestObjectListOrderBy;
-    [Test]
     procedure TestObjectListReverse;
-    [Test]
     procedure TestObjectListAsSet;
-    [Test]
     procedure TestObjectCopyMembers;
-    [Test]
     procedure TestObjectBoldType;
-    [Test]
     procedure TestObjectStringRepresentationViaOcl;
-    [Test]
     procedure TestObjectEvaluateExpressionNavigation;
-    [Test]
     procedure TestObjectEvaluateExpressionCollect;
-    [Test]
+    {$IFDEF BoldJson}
     procedure TestObjectToJsonWithLinks;
+    {$ENDIF}
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldElementList = class
+  {$ENDIF}
+  TTestBoldElementList = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
     function GetSystem: TBoldSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestCreateAndAddElements;
-    [Test]
     procedure TestRemoveByIndex;
-    [Test]
     procedure TestMoveElements;
-    [Test]
     procedure TestIncludesAndIndexOf;
-    [Test]
     procedure TestClear;
-    [Test]
     procedure TestAssign;
-    [Test]
     procedure TestSetElement;
-    [Test]
     procedure TestTypeListCreateAndAdd;
-    [Test]
     procedure TestTypeListRemoveAndClear;
-    [Test]
     procedure TestTypeListStringRepresentation;
-    [Test]
     procedure TestTypeListMove;
-    [Test]
     procedure TestTypeListIncludes;
   end;
 
@@ -673,10 +417,10 @@ implementation
 
 uses
   SysUtils,
-  dmModel1,
-  dmBoldTest,
-  BoldTestModel,
-  BoldObjectRepresentationJson;
+  {$IFDEF BoldJson}
+  BoldObjectRepresentationJson, // built on Delphi's System.JSON; off under FPC
+  {$ENDIF}
+  dmModel1;
 
 { TTestBoldSystem }
 
@@ -723,8 +467,15 @@ var
 begin
   Obj := TClassA.Create(GetSystem);
   Assert.IsFalse(Obj.BoldObjectIsDeleted, 'Object should not be deleted initially');
-  Obj.Delete;
-  Assert.IsTrue(Obj.BoldObjectIsDeleted, 'Object should be deleted after Delete call');
+  // Deleting a never-saved object frees it before Delete returns; delay the
+  // destruction so the deleted object can still be inspected.
+  GetSystem.DelayObjectDestruction;
+  try
+    Obj.Delete;
+    Assert.IsTrue(Obj.BoldObjectIsDeleted, 'Object should be deleted after Delete call');
+  finally
+    GetSystem.AllowObjectDestruction;
+  end;
 end;
 
 procedure TTestBoldSystem.TestCreateAndDeleteObject;
@@ -830,8 +581,15 @@ begin
   Obj := TClassA.Create(GetSystem);
   Assert.AreEqual(Integer(besExisting), Integer(Obj.BoldExistenceState), 'Created object should be besExisting');
 
-  Obj.Delete;
-  Assert.AreEqual(Integer(besDeleted), Integer(Obj.BoldExistenceState), 'Deleted object should be besDeleted');
+  // Deleting a never-saved object frees it before Delete returns; delay the
+  // destruction so the deleted object can still be inspected.
+  GetSystem.DelayObjectDestruction;
+  try
+    Obj.Delete;
+    Assert.AreEqual(Integer(besDeleted), Integer(Obj.BoldExistenceState), 'Deleted object should be besDeleted');
+  finally
+    GetSystem.AllowObjectDestruction;
+  end;
 end;
 
 { Object List Tests }
@@ -2755,8 +2513,15 @@ begin
   Obj := TClassA.Create(GetSystem);
   // BoldObjectExists is a boolean wrapper (different getter than BoldExistenceState)
   Assert.IsTrue(Obj.BoldObjectExists, 'New object should exist');
-  Obj.Delete;
-  Assert.IsFalse(Obj.BoldObjectExists, 'Deleted object should not exist');
+  // Deleting a never-saved object frees it before Delete returns; delay the
+  // destruction so the deleted object can still be inspected.
+  GetSystem.DelayObjectDestruction;
+  try
+    Obj.Delete;
+    Assert.IsFalse(Obj.BoldObjectExists, 'Deleted object should not exist');
+  finally
+    GetSystem.AllowObjectDestruction;
+  end;
 end;
 
 procedure TTestBoldSystem.TestObjectCanUpdate;
@@ -3003,18 +2768,17 @@ end;
 
 // TBoldMember additional tests
 
-procedure TTestBoldSystem.TestMemberInvalidate;
-var
-  Obj: TClassA;
+procedure TTestBoldSystem.InvalidateAString;
 begin
-  Obj := TClassA.Create(GetSystem);
-  Obj.aString := 'test';
+  FInvalidateObject.M_aString.Invalidate;
+end;
+
+procedure TTestBoldSystem.TestMemberInvalidate;
+begin
+  FInvalidateObject := TClassA.Create(GetSystem);
+  FInvalidateObject.aString := 'test';
   // Transient members cannot be invalidated — verify it raises
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      Obj.M_aString.Invalidate;
-    end);
+  Assert.WillRaiseAny(InvalidateAString);
 end;
 
 procedure TTestBoldSystem.TestMemberBoldDirty;
@@ -3387,10 +3151,14 @@ begin
   FreeAndNil(FSystemTypeInfoHandle);
 end;
 
+procedure TTestBoldObjectReference.AssignTargetToSourceNext;
+begin
+  FSource.next := FTarget;
+end;
+
 procedure TTestBoldObjectReference.TestSetLocatorRejectsCrossSystemObject;
 var
   SystemHandle2: TBoldSystemHandle;
-  A1, A2: TestModel1.TClassA;
 begin
   // TBoldObjectList.CheckAdd/CheckReplace reject a locator from another
   // TBoldSystem, but the single-reference side never did - a cross-system
@@ -3401,14 +3169,10 @@ begin
     SystemHandle2.SystemTypeInfoHandle := FSystemTypeInfoHandle;
     SystemHandle2.Active := True;
     try
-      A1 := TestModel1.TClassA.Create(FSystemHandle.System);
-      A2 := TestModel1.TClassA.Create(SystemHandle2.System);
-      Assert.WillRaiseAny(
-        procedure
-        begin
-          A1.next := A2;
-        end);
-      Assert.IsTrue(A1.next = nil, 'the cross-system link must not be stored');
+      FSource := TestModel1.TClassA.Create(FSystemHandle.System);
+      FTarget := TestModel1.TClassA.Create(SystemHandle2.System);
+      Assert.WillRaiseAny(AssignTargetToSourceNext);
+      Assert.IsTrue(FSource.next = nil, 'the cross-system link must not be stored');
     finally
       SystemHandle2.System.Discard;
       SystemHandle2.Active := False;
@@ -3476,19 +3240,17 @@ begin
     'References to different objects should not be equal');
 end;
 
-procedure TTestBoldObjectReference.TestIsEqualAs_UnknownCompareType_Raises;
-var
-  Obj, Target: TestModel1.TClassA;
+procedure TTestBoldObjectReference.CompareSourceParentAsUnknownType;
 begin
-  Obj := TestModel1.TClassA.Create(GetSystem);
-  Target := TestModel1.TClassA.Create(GetSystem);
-  Obj.parent := Target;
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      Obj.M_parent.IsEqualAs(ctAsString, Obj.M_parent);
-    end
-  );
+  FSource.M_parent.IsEqualAs(ctAsString, FSource.M_parent);
+end;
+
+procedure TTestBoldObjectReference.TestIsEqualAs_UnknownCompareType_Raises;
+begin
+  FSource := TestModel1.TClassA.Create(GetSystem);
+  FTarget := TestModel1.TClassA.Create(GetSystem);
+  FSource.parent := FTarget;
+  Assert.WillRaiseAny(CompareSourceParentAsUnknownType);
 end;
 
 { TTestBoldSystemTransactions }
@@ -3588,24 +3350,24 @@ begin
   Assert.AreEqual('Start', Obj.aString, 'Outer rollback should revert all changes');
 end;
 
+procedure TTestBoldSystemTransactions.RollbackSystemTransaction;
+begin
+  GetSystem.RollbackTransaction;
+end;
+
+procedure TTestBoldSystemTransactions.CommitSystemTransaction;
+begin
+  GetSystem.CommitTransaction;
+end;
+
 procedure TTestBoldSystemTransactions.TestRollbackWithoutTransactionRaises;
 begin
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      GetSystem.RollbackTransaction;
-    end
-  );
+  Assert.WillRaiseAny(RollbackSystemTransaction);
 end;
 
 procedure TTestBoldSystemTransactions.TestCommitWithoutTransactionRaises;
 begin
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      GetSystem.CommitTransaction;
-    end
-  );
+  Assert.WillRaiseAny(CommitSystemTransaction);
 end;
 
 procedure TTestBoldSystemTransactions.TestTransactionRollbackRevertsObjectCreation;
@@ -3761,22 +3523,23 @@ begin
   Assert.IsNull(Child1.parent, 'Child1 parent should be nil after UnlinkAll');
 end;
 
+procedure TTestBoldObjectLifecycle.CallCanDelete;
+begin
+  FCanDeleteObject.CanDelete;
+end;
+
 procedure TTestBoldObjectLifecycle.TestObjectCanDeleteWithLinks;
 var
-  Parent, Child: TestModel1.TClassA;
+  Child: TestModel1.TClassA;
 begin
-  Parent := TestModel1.TClassA.Create(GetSystem);
+  FCanDeleteObject := TestModel1.TClassA.Create(GetSystem);
   Child := TestModel1.TClassA.Create(GetSystem);
-  Child.parent := Parent;
+  Child.parent := FCanDeleteObject;
   // What the outcome of CanDelete should be depends on the delete action of
   // the association, which this test does not pin down. What it does pin down
   // is that evaluating the link constraints of an object that still has links
   // completes instead of raising.
-  Assert.WillNotRaiseAny(
-    procedure
-    begin
-      Parent.CanDelete;
-    end,
+  Assert.WillNotRaiseAny(CallCanDelete,
     'CanDelete must not raise while the object still has links');
 end;
 
@@ -3789,8 +3552,15 @@ begin
   Obj.aInteger := 42;
 
   // Discard should reset the new object
-  Obj.Discard;
-  Assert.IsTrue(Obj.BoldExistenceState = besDeleted, 'New object should be deleted after Discard');
+  // Discarding a never-saved object frees it before Discard returns; delay the
+  // destruction so the deleted object can still be inspected.
+  GetSystem.DelayObjectDestruction;
+  try
+    Obj.Discard;
+    Assert.IsTrue(Obj.BoldExistenceState = besDeleted, 'New object should be deleted after Discard');
+  finally
+    GetSystem.AllowObjectDestruction;
+  end;
 end;
 
 procedure TTestBoldObjectLifecycle.TestNavigateParentChild;
@@ -3942,6 +3712,7 @@ begin
     'collect aString from 2 children should return 2');
 end;
 
+{$IFDEF BoldJson}
 procedure TTestBoldObjectLifecycle.TestObjectToJsonWithLinks;
 var
   Parent, Child: TestModel1.TClassA;
@@ -3959,6 +3730,7 @@ begin
   Assert.IsTrue(Length(Json) > 20, 'JSON with links should have content');
   Assert.IsTrue(Pos('JsonParent', Json) > 0, 'Should contain parent string');
 end;
+{$ENDIF}
 
 { TTestBoldElementList }
 
@@ -4210,436 +3982,12 @@ begin
   end;
 end;
 
-{ TTestBoldSystemDirtyObjectsPersistent }
-
-procedure TTestBoldSystemDirtyObjectsPersistent.SetUpFixture;
-begin
-  EnsureBoldTestDM;
-end;
-
-procedure TTestBoldSystemDirtyObjectsPersistent.TearDownFixture;
-begin
-  CloseBoldTestDM;
-end;
-
-function TTestBoldSystemDirtyObjectsPersistent.GetSystem: TBoldSystem;
-begin
-  Result := BoldTestDM.BoldSystemHandle1.System;
-end;
-
-procedure TTestBoldSystemDirtyObjectsPersistent.TestDirtyObjectsByClassTypeInfoIncludesSubclasses;
-var
-  Book: TBook;
-  DirtyList: TBoldObjectList;
-  RootTypeInfo: TBoldClassTypeInfo;
-begin
-  GetSystem.Discard;
-  try
-    // A new object is dirty. Querying the dirty list by a superclass type
-    // info must include instances of subclasses - the TBoldClassTypeInfo
-    // overload of GetDirtyObjectsAsBoldList compared BoldType with '='
-    // (exact class only), so dirty subclass instances were omitted, while
-    // the TBoldObjectClass overload uses 'is' and includes them.
-    Book := TBook.Create(GetSystem);
-
-    RootTypeInfo := GetSystem.BoldSystemTypeInfo.RootClassTypeInfo;
-    DirtyList := GetSystem.DirtyObjectsAsBoldListByClassTypeInfo[RootTypeInfo];
-    try
-      Assert.IsTrue(DirtyList.Includes(Book),
-        'dirty subclass instance must be included when querying by a superclass type info');
-      Assert.AreEqual(1, DirtyList.Count, 'exactly the one dirty object expected');
-    finally
-      DirtyList.Free;
-    end;
-  finally
-    GetSystem.Discard;
-  end;
-end;
-
-{ TTestBoldSystemPreUpdatePersistent }
-
-procedure TTestBoldSystemPreUpdatePersistent.SetUpFixture;
-begin
-  EnsureBoldTestDM;
-end;
-
-procedure TTestBoldSystemPreUpdatePersistent.TearDownFixture;
-begin
-  CloseBoldTestDM;
-end;
-
-function TTestBoldSystemPreUpdatePersistent.GetSystem: TBoldSystem;
-begin
-  Result := BoldTestDM.BoldSystemHandle1.System;
-end;
-
-procedure TTestBoldSystemPreUpdatePersistent.DeletePendingObjectOnPreUpdate(Sender: TObject);
-begin
-  if Assigned(fObjectToDelete) then
-  begin
-    fObjectToDelete.Delete;
-    fObjectToDelete := nil;
-  end;
-end;
-
-procedure TTestBoldSystemPreUpdatePersistent.TestPreUpdateSubscriberDeletesNewObjectInBatch;
-var
-  SavedBook: TBook;
-begin
-  GetSystem.Discard;
-  SavedBook := TBook.Create(GetSystem);
-  fObjectToDelete := TBook.Create(GetSystem);
-  GetSystem.OnPreUpdate := DeletePendingObjectOnPreUpdate;
-  try
-    // Deleting a never-persisted object frees it on the spot, so the update
-    // batch holds a locator whose BoldObject is nil from this point on. The
-    // update must still complete and save the surviving object.
-    GetSystem.UpdateDatabase;
-    Assert.IsFalse(SavedBook.BoldDirty,
-      'surviving object must be saved when a PreUpdate subscriber deletes a batch sibling');
-  finally
-    GetSystem.OnPreUpdate := nil;
-    fObjectToDelete := nil;
-    if SavedBook.BoldObjectIsNew then
-      GetSystem.Discard
-    else
-    begin
-      SavedBook.Delete;
-      GetSystem.UpdateDatabase;
-    end;
-  end;
-end;
-
-{ TTestBoldClassListFillFromSuperClass }
-
-procedure TTestBoldClassListFillFromSuperClass.SetUpFixture;
-begin
-  EnsureBoldTestDM;
-end;
-
-procedure TTestBoldClassListFillFromSuperClass.TearDownFixture;
-begin
-  CloseBoldTestDM;
-end;
-
-function TTestBoldClassListFillFromSuperClass.GetSystem: TBoldSystem;
-begin
-  Result := BoldTestDM.BoldSystemHandle1.System;
-end;
-
-procedure TTestBoldClassListFillFromSuperClass.TestSubclassListFilledFromLoadedSuperClassList;
-var
-  Book: TBook;
-  Locator1, Locator2: TBoldObjectLocator;
-  RootList, BookList: TBoldObjectList;
-begin
-  GetSystem.Discard;
-  Book := TBook.Create(GetSystem);
-  Book.Title := 'Book 1';
-  Locator1 := Book.BoldObjectLocator;
-  Book := TBook.Create(GetSystem);
-  Book.Title := 'Book 2';
-  Locator2 := Book.BoldObjectLocator;
-  GetSystem.UpdateDatabase;
-  try
-    RootList := GetSystem.Classes[GetSystem.BoldSystemTypeInfo.RootClassTypeInfo.TopSortedIndex];
-    BookList := GetSystem.ClassByExpressionName['Book'];
-
-    // Cold start: neither extent is current and the objects are unloaded, so
-    // the class events cannot have put the books into the Book extent.
-    RootList.Invalidate;
-    BookList.Invalidate;
-    Locator1.UnloadBoldObject;
-    Locator2.UnloadBoldObject;
-
-    // Load the superclass extent first. An extent is current only once every
-    // object in it is loaded, so fetch the objects as well as the ids.
-    RootList.EnsureContentsCurrent;
-    RootList.EnsureObjects;
-    Assert.IsTrue(RootList.BoldPersistenceState = bvpsCurrent,
-      'the root extent must be current once all its objects are loaded');
-    Assert.IsTrue(RootList.LocatorInList(Locator1) and RootList.LocatorInList(Locator2),
-      'the root extent must hold both books');
-
-    // ... then the subclass extent, which is filled from the root extent, not
-    // from the database.
-    Assert.IsTrue(BookList.LocatorInList(Locator1),
-      'book 1 missing from the Book extent filled from the loaded root extent');
-    Assert.IsTrue(BookList.LocatorInList(Locator2),
-      'book 2 missing from the Book extent filled from the loaded root extent');
-    Assert.AreEqual(2, BookList.Count, 'Book extent filled from the loaded root extent');
-  finally
-    Locator1.EnsuredBoldObject.Delete;
-    Locator2.EnsuredBoldObject.Delete;
-    GetSystem.UpdateDatabase;
-  end;
-end;
-
-type
-  // Shared part of the re-dirty helpers: one subscriber for the discard
-  // events, the fuse and the count. Redirty gets one call per event with a
-  // value unique to that call. The fuse keeps an unguarded DiscardPersistent
-  // finite, so a failing test fails instead of hanging the run.
-  TRedirtyOnDiscardBase = class
-  private
-    fSubscriber: TBoldPassthroughSubscriber;
-    fRedirtyCount: Integer;
-    fMaxRedirties: Integer;
-    procedure Receive(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
-  protected
-    procedure SubscribeTo(AMember: TBoldMember);
-    procedure Redirty(Originator: TObject; const AValue: string); virtual; abstract;
-  public
-    constructor Create(AMaxRedirties: Integer);
-    destructor Destroy; override;
-    property RedirtyCount: Integer read fRedirtyCount;
-  end;
-
-  // One object: discarding aString sets aString again, so the object is dirty
-  // again as soon as its discard has finished.
-  TRedirtySelfOnDiscard = class(TRedirtyOnDiscardBase)
-  private
-    fObject: TSomeClass;
-  protected
-    procedure Redirty(Originator: TObject; const AValue: string); override;
-  public
-    constructor Create(AObject: TSomeClass; AMaxRedirties: Integer);
-  end;
-
-  // Hub and spokes: discarding the hub re-dirties both spokes, discarding a
-  // spoke re-dirties the hub. The dirty count swings 1, 2, 1, 2, so a guard
-  // that compares with the previous pass alone sees progress every second
-  // pass and never trips.
-  TFanOutRedirtyOnDiscard = class(TRedirtyOnDiscardBase)
-  private
-    fHub: TSomeClass;
-    fSpoke1: TSomeClass;
-    fSpoke2: TSomeClass;
-  protected
-    procedure Redirty(Originator: TObject; const AValue: string); override;
-  public
-    constructor Create(AHub, ASpoke1, ASpoke2: TSomeClass; AMaxRedirties: Integer);
-  end;
-
-{ TRedirtyOnDiscardBase }
-
-constructor TRedirtyOnDiscardBase.Create(AMaxRedirties: Integer);
-begin
-  inherited Create;
-  fMaxRedirties := AMaxRedirties;
-  fSubscriber := TBoldPassthroughSubscriber.Create(Receive);
-end;
-
-destructor TRedirtyOnDiscardBase.Destroy;
-begin
-  FreeAndNil(fSubscriber);
-  inherited;
-end;
-
-procedure TRedirtyOnDiscardBase.SubscribeTo(AMember: TBoldMember);
-begin
-  AMember.AddSmallSubscription(fSubscriber, [beValueInvalid], beValueInvalid);
-end;
-
-procedure TRedirtyOnDiscardBase.Receive(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
-begin
-  if OriginalEvent <> beValueInvalid then
-  begin
-    Exit;
-  end;
-
-  if fRedirtyCount >= fMaxRedirties then
-  begin
-    Exit;
-  end;
-
-  Inc(fRedirtyCount);
-  Redirty(Originator, 'r' + IntToStr(fRedirtyCount));
-end;
-
-{ TRedirtySelfOnDiscard }
-
-constructor TRedirtySelfOnDiscard.Create(AObject: TSomeClass; AMaxRedirties: Integer);
-begin
-  inherited Create(AMaxRedirties);
-  fObject := AObject;
-  SubscribeTo(fObject.M_aString);
-end;
-
-procedure TRedirtySelfOnDiscard.Redirty(Originator: TObject; const AValue: string);
-begin
-  fObject.aString := AValue;
-end;
-
-{ TFanOutRedirtyOnDiscard }
-
-constructor TFanOutRedirtyOnDiscard.Create(AHub, ASpoke1, ASpoke2: TSomeClass; AMaxRedirties: Integer);
-begin
-  inherited Create(AMaxRedirties);
-  fHub := AHub;
-  fSpoke1 := ASpoke1;
-  fSpoke2 := ASpoke2;
-  SubscribeTo(fHub.M_aString);
-  SubscribeTo(fSpoke1.M_aString);
-  SubscribeTo(fSpoke2.M_aString);
-end;
-
-procedure TFanOutRedirtyOnDiscard.Redirty(Originator: TObject; const AValue: string);
-begin
-  if Originator = TObject(fHub.M_aString) then
-  begin
-    fSpoke1.aString := AValue;
-    fSpoke2.aString := AValue;
-  end
-  else
-  begin
-    fHub.aString := AValue;
-  end;
-end;
-
-{ TTestBoldSystemDiscardPersistentStall }
-
-const
-  // Fuse for the re-dirty helpers: keeps an unguarded discard loop finite so
-  // a failing test fails fast instead of hanging the test run.
-  cMaxRedirties = 40;
-
-procedure TTestBoldSystemDiscardPersistentStall.SetUpFixture;
-begin
-  EnsureBoldTestDM;
-end;
-
-procedure TTestBoldSystemDiscardPersistentStall.TearDownFixture;
-begin
-  CloseBoldTestDM;
-end;
-
-function TTestBoldSystemDiscardPersistentStall.GetSystem: TBoldSystem;
-begin
-  Result := BoldTestDM.BoldSystemHandle1.System;
-end;
-
-procedure TTestBoldSystemDiscardPersistentStall.DeleteSavedObjects(const AObjects: array of TBoldObject);
-var
-  i: Integer;
-begin
-  GetSystem.Discard;
-
-  for i := Low(AObjects) to High(AObjects) do
-  begin
-    AObjects[i].Delete;
-  end;
-
-  GetSystem.UpdateDatabase;
-end;
-
-procedure TTestBoldSystemDiscardPersistentStall.TestDiscardPersistent_ReDirtiedDuringDiscard_EscalatesThenGivesUp;
-const
-  // The guard allows 3 passes without a new low in the dirty count, escalates
-  // to a full discard for 3 more passes, then gives up. Each pass re-dirties
-  // the object once, so 6 re-dirties are expected. Fewer means the guard gave
-  // up without escalating; a count near the fuse means it never stopped the
-  // loop.
-  cMinExpectedRedirties = 6;
-  cMaxAcceptedRedirties = 9;
-var
-  Obj: TSomeClass;
-  Redirty: TRedirtySelfOnDiscard;
-begin
-  GetSystem.Discard;
-  Obj := TSomeClass.Create(GetSystem);
-  GetSystem.UpdateDatabase;
-  Obj.aString := 'r0';
-
-  Redirty := TRedirtySelfOnDiscard.Create(Obj, cMaxRedirties);
-  try
-    GetSystem.DiscardPersistent(False);
-
-    Assert.IsTrue((Redirty.RedirtyCount >= cMinExpectedRedirties) and (Redirty.RedirtyCount <= cMaxAcceptedRedirties),
-      Format('expected %d-%d re-dirties (3 stalled passes, escalation, 3 more), got %d (fuse %d)',
-        [cMinExpectedRedirties, cMaxAcceptedRedirties, Redirty.RedirtyCount, cMaxRedirties]));
-
-    FreeAndNil(Redirty);
-    GetSystem.Discard;
-    Assert.IsFalse(GetSystem.BoldDirty, 'a discard without re-dirtying must leave the system clean');
-  finally
-    Redirty.Free;
-    DeleteSavedObjects([Obj]);
-  end;
-end;
-
-procedure TTestBoldSystemDiscardPersistentStall.TestDiscard_ReDirtiedDuringDiscard_GivesUpWithoutEscalation;
-const
-  // Discard already drops transient links, so there is nothing to escalate
-  // to: the guard gives up after 3 passes without a new low.
-  cMinExpectedRedirties = 3;
-  cMaxAcceptedRedirties = 5;
-var
-  Obj: TSomeClass;
-  Redirty: TRedirtySelfOnDiscard;
-begin
-  GetSystem.Discard;
-  Obj := TSomeClass.Create(GetSystem);
-  GetSystem.UpdateDatabase;
-  Obj.aString := 'r0';
-
-  Redirty := TRedirtySelfOnDiscard.Create(Obj, cMaxRedirties);
-  try
-    GetSystem.Discard;
-
-    Assert.IsTrue((Redirty.RedirtyCount >= cMinExpectedRedirties) and (Redirty.RedirtyCount <= cMaxAcceptedRedirties),
-      Format('expected %d-%d re-dirties (3 stalled passes, no escalation), got %d (fuse %d)',
-        [cMinExpectedRedirties, cMaxAcceptedRedirties, Redirty.RedirtyCount, cMaxRedirties]));
-  finally
-    Redirty.Free;
-    DeleteSavedObjects([Obj]);
-  end;
-end;
-
-procedure TTestBoldSystemDiscardPersistentStall.TestDiscardPersistent_FanOutReDirty_TerminatesWithinBoundedPasses;
-const
-  // The dirty count swings 1, 2, 1, 2 and never drops below its start, so the
-  // guard escalates after 3 passes and gives up after 3 more: 6 passes, 9
-  // re-dirty events (1 in a hub pass, 2 in a spoke pass). Fewer than 8 means
-  // the guard gave up without escalating; a guard that compares with the
-  // previous pass alone runs until the fuse.
-  cMinExpectedRedirties = 8;
-  cMaxAcceptedRedirties = 15;
-var
-  Hub, Spoke1, Spoke2: TSomeClass;
-  Redirty: TFanOutRedirtyOnDiscard;
-begin
-  GetSystem.Discard;
-  Hub := TSomeClass.Create(GetSystem);
-  Spoke1 := TSomeClass.Create(GetSystem);
-  Spoke2 := TSomeClass.Create(GetSystem);
-  GetSystem.UpdateDatabase;
-  Hub.aString := 'r0';
-
-  Redirty := TFanOutRedirtyOnDiscard.Create(Hub, Spoke1, Spoke2, cMaxRedirties);
-  try
-    GetSystem.DiscardPersistent(False);
-
-    Assert.IsTrue((Redirty.RedirtyCount >= cMinExpectedRedirties) and (Redirty.RedirtyCount <= cMaxAcceptedRedirties),
-      Format('expected %d-%d re-dirties on a dirty count swinging 1, 2, 1, 2, got %d (fuse %d); '
-        + 'progress must mean a new low, not a smaller count than the pass before',
-        [cMinExpectedRedirties, cMaxAcceptedRedirties, Redirty.RedirtyCount, cMaxRedirties]));
-  finally
-    Redirty.Free;
-    DeleteSavedObjects([Hub, Spoke1, Spoke2]);
-  end;
-end;
-
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSystem);
-  TDUnitX.RegisterTestFixture(TTestBoldSystemDirtyObjectsPersistent);
-  TDUnitX.RegisterTestFixture(TTestBoldSystemPreUpdatePersistent);
-  TDUnitX.RegisterTestFixture(TTestBoldClassListFillFromSuperClass);
-  TDUnitX.RegisterTestFixture(TTestBoldSystemDiscardPersistentStall);
-  TDUnitX.RegisterTestFixture(TTestBoldObjectReference);
-  TDUnitX.RegisterTestFixture(TTestBoldSystemTransactions);
-  TDUnitX.RegisterTestFixture(TTestBoldDirtyObjectTracker);
-  TDUnitX.RegisterTestFixture(TTestBoldObjectLifecycle);
-  TDUnitX.RegisterTestFixture(TTestBoldElementList);
+  BoldRegisterTest(TTestBoldSystem);
+  BoldRegisterTest(TTestBoldObjectReference);
+  BoldRegisterTest(TTestBoldSystemTransactions);
+  BoldRegisterTest(TTestBoldDirtyObjectTracker);
+  BoldRegisterTest(TTestBoldObjectLifecycle);
+  BoldRegisterTest(TTestBoldElementList);
 
 end.

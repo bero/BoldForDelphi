@@ -73,6 +73,7 @@ uses
   Test.BoldStubs,
   Test.BoldSubscribableCollection,
   Test.BoldSubscription,
+  Test.BoldSystem,
   Test.BoldTaggedValueList,
   Test.BoldTaggedValueSupport,
   Test.BoldThreadSafeLog,

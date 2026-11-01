@@ -139,6 +139,7 @@
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclEvaluation.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclObjectTimeStamp.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldSystem.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldSystemPersistent.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldLinks.pas"/>
         <DCCReference Include="Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas"/>
         <DCCReference Include="Code\FreestandingValueSpace\Test.BoldFreeStandingValues.pas"/>

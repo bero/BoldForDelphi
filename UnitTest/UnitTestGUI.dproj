@@ -112,6 +112,7 @@
         <DCCReference Include="Code\ObjectSpace\maan_FetchRefetch.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldUndoHandler.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldSystem.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldSystemPersistent.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldLinks.pas"/>
         <DCCReference Include="Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas"/>
         <DCCReference Include="Code\Common\Test.BoldDefaultTaggedValues.pas"/>
