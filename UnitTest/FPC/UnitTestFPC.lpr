@@ -48,6 +48,7 @@ uses
   Test.BoldId,
   Test.BoldIndexCollection,
   Test.BoldIsoDateTime,
+  Test.BoldLinks,
   Test.BoldListHandle,
   Test.BoldLogHandler,
   Test.BoldLogInterfaces,

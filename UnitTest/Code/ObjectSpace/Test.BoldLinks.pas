@@ -1,6 +1,6 @@
 ﻿unit Test.BoldLinks;
 
-{ DUnitX tests for BoldLinks - Multi-link controller functionality }
+{ Tests for BoldLinks - Multi-link controller functionality }
 { Tests multi-link operations which exercise DoPreChangeIfNeeded internally }
 
 interface
@@ -8,8 +8,7 @@ interface
 uses
   Classes,
   SysUtils,
-  DUnitX.TestFramework,
-  BoldTestFramework, // BoldTestAllocatedBytes/Blocks
+  BoldTestFramework,
   BoldSystem,
   BoldSystemRT,
   BoldSubscription,
@@ -23,7 +22,6 @@ uses
   BoldPersistenceHandle,
   BoldPersistenceHandleDB,
   BoldTestModel,
-  BoldTestDatabaseConfig,
   BoldDBInterfaces,
   BoldLogHandler,
   Test.BoldBatchQueries,
@@ -31,253 +29,193 @@ uses
   maan_UndoRedoTestCaseUtils;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldLinks = class
+  {$ENDIF}
+  TTestBoldLinks = class(TBoldTestCase)
   private
     FSubscriber: TLoggingSubscriber;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+    // Free Pascal 3.2.2 has no anonymous methods: Assert.WillNotRaiseAny gets
+    // these, and they read the system and class from the two fields.
+    FPSSystem: TBoldSystem;
+    FPSClassTypeInfo: TBoldClassTypeInfo;
+    procedure EvaluateIncludingSelfInPS;
+    procedure EvaluateExcludingSelfInPS;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
     // Tests for direct multi-link operations (exercises DoPreChangeIfNeeded)
-    [Test]
     procedure TestDirectMultiLinkAdd;
-    [Test]
     procedure TestDirectMultiLinkAddMultiple;
-    [Test]
     procedure TestDirectMultiLinkRemove;
-    [Test]
     procedure TestDirectMultiLinkClear;
 
     // Tests for indirect multi-link operations (exercises DoPreChangeIfNeeded in SetFromIDLists)
-    [Test]
     procedure TestIndirectMultiLinkAdd;
-    [Test]
     procedure TestIndirectMultiLinkAddMultiple;
 
     // Indirect multi-link remove
-    [Test]
     procedure TestIndirectMultiLinkRemove;
 
     // Transaction rollback must restore multilinks modified via content
     // assignment (SetFromIdList/SetFromIDLists)
-    [Test]
     procedure TestRollbackRestoresDirectMultiLinkAfterContentAssign;
-    [Test]
     procedure TestRollbackRestoresIndirectMultiLinkAfterContentAssign;
 
     // Link class attribute access
-    [Test]
     procedure TestLinkClassAttribute;
 
     // Self-referencing associations (TSomeClass parent/child)
-    [Test]
     procedure TestSelfRefParentChild;
-    [Test]
     procedure TestSelfRefNextPrevious;
-    [Test]
     procedure TestSelfRefPartPartOf;
 
     // Persistence: save and reload
-    [Test]
     procedure TestSaveAndReloadLinks;
-    [Test]
     procedure TestSaveAndReloadIndirectLinks;
-    [Test]
     procedure TestSaveAndReloadSelfRefLinks;
 
     // Link operations with UpdateDatabase
-    [Test]
     procedure TestUpdateDatabaseWithNewObjects;
-    [Test]
     procedure TestUpdateDatabaseModifyAttributes;
 
     // Persistence: delete and verify
-    [Test]
     procedure TestDeleteObjectAndSave;
-    [Test]
     procedure TestDeleteLinkedObjectAndSave;
 
     // Multi-link with link class: add/remove via many
-    [Test]
     procedure TestManyToManyViaLinkClass;
 
     // Move operations on ordered links
-    [Test]
     procedure TestMultiLinkMoveIndex;
 
     // Fetch after discard
-    [Test]
     procedure TestFetchAfterDiscard;
 
     // Modify link and save
-    [Test]
     procedure TestModifyLinkAndSave;
-    [Test]
     procedure TestReassignSingleLinkAndSave;
-    [Test]
     procedure TestClearMultiLinkAndSave;
-    [Test]
     procedure TestDeleteWithManyToManyAndSave;
-    [Test]
     procedure TestMultipleUpdateDatabaseCycles;
-    [Test]
     procedure TestSaveReloadVerifyAttributes;
-    [Test]
     procedure TestSaveReloadVerifyLinks;
-    [Test]
     procedure TestSaveDeleteReloadVerifyGone;
-    [Test]
     procedure TestSaveReloadNavigateLinks;
-    [Test]
     procedure TestModifyAttributeAfterFetch;
 
     // Link class CRUD
-    [Test]
     procedure TestLinkClassCreateSaveReload;
-    [Test]
     procedure TestLinkClassModifyAndSave;
-    [Test]
     procedure TestLinkClassDeleteAndSave;
 
     // Multi-link operations with persistence
-    [Test]
     procedure TestMultiLinkRemoveByIndex;
-    [Test]
     procedure TestMultiLinkInsertAtIndex;
 
     // Complex relationship graphs
-    [Test]
     procedure TestDeepParentChildHierarchy;
-    [Test]
     procedure TestCircularNextPrevious;
 
     // Batch operations
-    [Test]
     procedure TestBatchCreateAndSave;
-    [Test]
     procedure TestBatchDeleteAndSave;
 
     // Object reference operations
-    [Test]
     procedure TestSingleLinkSetAndClear;
-    [Test]
     procedure TestSingleLinkReassignment;
 
     // SQL pipeline / fetch paths
-    [Test]
     procedure TestCanEvaluateInPS;
-    [Test]
     procedure TestFetchLinksWithObjects;
-    [Test]
     procedure TestFetchMembersWithObjects;
-    [Test]
     procedure TestGetAllWithCondition;
-    [Test]
     procedure TestInvalidateMembersAndRefetch;
 
     // More CanEvaluateInPS with diverse OCL expressions
-    [Test]
     procedure TestCanEvaluateInPS_Navigation;
-    [Test]
     procedure TestCanEvaluateInPS_Collection;
-    [Test]
     procedure TestCanEvaluateInPS_Comparison;
-    [Test]
     procedure TestCanEvaluateInPS_BooleanLogic;
-    [Test]
     procedure TestCanEvaluateInPS_StringOps;
 
     // SQL condition fetch
-    [Test]
     procedure TestGetAllWithSQLCondition;
-    [Test]
     procedure TestGetAllWithSQLConditionParams;
 
     // Diverse persistence patterns
-    [Test]
     procedure TestSaveReloadModifyDeleteCycle;
-    [Test]
     procedure TestFetchMembersForSingleObject;
-    [Test]
     procedure TestFetchAfterInvalidateMultipleObjects;
 
     // Regression guard: link member mapper wiring (root cause of the
     // CanEvaluateInPS collect(role) AV is a nil OtherEndObjectMapper)
-    [Test]
     procedure TestChildLinkMapperWiring;
 
     // More CanEvaluateInPS — deeper SQL paths
-    [Test]
     procedure TestCanEvaluateInPS_OrderBy;
-    [Test]
     procedure TestCanEvaluateInPS_Aggregate;
-    [Test]
     procedure TestCanEvaluateInPS_SubSelect;
-    [Test]
     procedure TestCanEvaluateInPS_MultiNavigation;
     // Regression for silent-exit nil guards (b3ef672): when the SQL node
     // pipeline cannot resolve the iteration's Symbol/ObjectMapper,
     // CanEvaluateInPS must return False - not a false True
-    [Test]
     procedure TestCanEvaluateInPS_CollectRole_Translates;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestCollectRoleInPS_MatchesInMemory;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestCanEvaluateInPS_CollectAttribute_IsRejectedWithReason;
-    [Test]
     procedure TestCanEvaluateInPS_Exists;
-    [Test]
     procedure TestCanEvaluateInPS_TypeFilter;
-    [Test]
     procedure TestCanEvaluateInPS_Arithmetic;
-    [Test]
     procedure TestCanEvaluateInPS_LinkNavigation;
 
     // More fetch patterns
-    [Test]
     procedure TestFetchClassDirectly;
-    [Test]
     procedure TestGetAllWithRawSQL;
 
     // Even more CanEvaluateInPS — exhaustive SQL node coverage
-    [Test]
     procedure TestCanEvaluateInPS_FailedConversionDoesNotLeak;
-    [Test]
     procedure TestCanEvaluateInPS_MidExpressionFailureDoesNotLeak;
-    [Test]
     procedure TestCanEvaluateInPS_ForAll;
-    [Test]
     procedure TestCanEvaluateInPS_Reject;
-    [Test]
     procedure TestCanEvaluateInPS_Collect;
-    [Test]
     procedure TestCanEvaluateInPS_Including;
-    [Test]
     procedure TestCanEvaluateInPS_Excluding;
-    [Test]
     procedure TestCanEvaluateInPS_Union;
-    [Test]
     procedure TestCanEvaluateInPS_Intersection;
-    [Test]
     procedure TestCanEvaluateInPS_IsEmpty;
-    [Test]
     procedure TestCanEvaluateInPS_Includes;
-    [Test]
     procedure TestCanEvaluateInPS_OclIsKindOf;
   end;
 
 implementation
 
+uses
+  TypInfo,
+  BoldSQLDatabaseConfig;
+
 { TTestBoldLinks }
+
+procedure TTestBoldLinks.EvaluateIncludingSelfInPS;
+begin
+  FPSSystem.CanEvaluateInPS('APersistentClass.allInstances->including(self)', FPSClassTypeInfo);
+end;
+
+procedure TTestBoldLinks.EvaluateExcludingSelfInPS;
+begin
+  FPSSystem.CanEvaluateInPS('APersistentClass.allInstances->excluding(self)', FPSClassTypeInfo);
+end;
 
 procedure TTestBoldLinks.SetUp;
 begin
+  inherited;
   EnsureDM;
   FSubscriber := TLoggingSubscriber.Create;
   if not dmUndoRedo.BoldSystemHandle1.Active then
@@ -293,6 +231,7 @@ begin
   end;
   FreeAndNil(FSubscriber);
   FreeAndNil(dmUndoRedo);
+  inherited;
 end;
 
 procedure TTestBoldLinks.TestDirectMultiLinkAdd;
@@ -1010,6 +949,7 @@ var
   Parent, Child: TSomeClass;
   ParentList: TSomeClassList;
   LoadedParent: TSomeClass;
+  i: Integer;
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   Parent := TSomeClass.Create(Sys);
@@ -1031,7 +971,7 @@ begin
     FetchClass(Sys, ParentList, TSomeClass);
     // Find the parent by attribute
     LoadedParent := nil;
-    for var i := 0 to ParentList.Count - 1 do
+    for i := 0 to ParentList.Count - 1 do
       if ParentList[i].aString = 'NavParent' then
       begin
         LoadedParent := ParentList[i];
@@ -1083,6 +1023,7 @@ procedure TTestBoldLinks.TestLinkClassCreateSaveReload;
 var
   Sys: TBoldSystem;
   CWL1, CWL2: TClassWithLink;
+  CWLList: TClassWithLinkList;
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CWL1 := TClassWithLink.Create(Sys);
@@ -1103,7 +1044,7 @@ begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
 
   // Fetch and verify
-  var CWLList := TClassWithLinkList.Create;
+  CWLList := TClassWithLinkList.Create;
   try
     FetchClass(Sys, CWLList, TClassWithLink);
     Assert.IsTrue(CWLList.Count >= 2, 'Should have at least 2 ClassWithLink objects');
@@ -1259,11 +1200,12 @@ procedure TTestBoldLinks.TestBatchCreateAndSave;
 var
   Sys: TBoldSystem;
   i: Integer;
+  Obj: TAPersistentClass;
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   for i := 1 to 20 do
   begin
-    var Obj := TAPersistentClass.Create(Sys);
+    Obj := TAPersistentClass.Create(Sys);
     Obj.aString := 'Batch' + IntToStr(i);
   end;
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
@@ -1275,12 +1217,13 @@ var
   Sys: TBoldSystem;
   ObjList: TAPersistentClassList;
   i: Integer;
+  Obj: TAPersistentClass;
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   // Create batch
   for i := 1 to 10 do
   begin
-    var Obj := TAPersistentClass.Create(Sys);
+    Obj := TAPersistentClass.Create(Sys);
     Obj.aString := 'Del' + IntToStr(i);
   end;
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
@@ -1364,6 +1307,8 @@ var
   Parent: TSomeClass;
   C1, C2: TSomeClass;
   ParentList: TSomeClassList;
+  FoundParent: TSomeClass;
+  i: Integer;
 begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   Parent := TSomeClass.Create(Sys);
@@ -1389,8 +1334,8 @@ begin
     // FetchLinksWithObjects triggers the link mapper SQL pipeline
     Sys.FetchLinksWithObjects(ParentList, 'child');
     // After fetch, navigating should work
-    var FoundParent: TSomeClass := nil;
-    for var i := 0 to ParentList.Count - 1 do
+    FoundParent := nil;
+    for i := 0 to ParentList.Count - 1 do
       if ParentList[i].aString = 'FetchParent' then
       begin
         FoundParent := ParentList[i];
@@ -1800,7 +1745,8 @@ begin
   // translatable on every engine. (Until #96 TBSS_collect was declared but
   // never installed, so this answered False everywhere.)
   Assert.IsTrue(CanEvaluate,
-    'collect(parent) must be translatable to SQL on ' + GetTestDatabaseEngine +
+    'collect(parent) must be translatable to SQL on ' +
+    GetEnumName(TypeInfo(TBoldDataBaseEngine), Ord(dmUndoRedo.BoldPersistenceHandleDB1.DatabaseAdapter.DatabaseEngine)) +
     '. Last failure reason: ' + LastFailureReasonText);
 end;
 
@@ -2089,11 +2035,10 @@ begin
   // including leaves an external SQL variable binding with refcount 0;
   // TBoldSqlNodeMaker.destroy DecRefs it unconditionally and the EBold escapes
   // CanEvaluateInPS through its finally block, masking the real answer.
-  Assert.WillNotRaiseAny(
-    procedure
-    begin
-      Sys.CanEvaluateInPS('APersistentClass.allInstances->including(self)', CTI);
-    end, 'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
+  FPSSystem := Sys;
+  FPSClassTypeInfo := CTI;
+  Assert.WillNotRaiseAny(EvaluateIncludingSelfInPS,
+    'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_Excluding;
@@ -2104,11 +2049,10 @@ begin
   Sys := dmUndoRedo.BoldSystemHandle1.System;
   CTI := Sys.BoldSystemTypeInfo.ClassTypeInfoByExpressionName['APersistentClass'];
   // Regression for H4 — see TestCanEvaluateInPS_Including.
-  Assert.WillNotRaiseAny(
-    procedure
-    begin
-      Sys.CanEvaluateInPS('APersistentClass.allInstances->excluding(self)', CTI);
-    end, 'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
+  FPSSystem := Sys;
+  FPSClassTypeInfo := CTI;
+  Assert.WillNotRaiseAny(EvaluateExcludingSelfInPS,
+    'CanEvaluateInPS must not leak the DecRef EBold from its finally block');
 end;
 
 procedure TTestBoldLinks.TestCanEvaluateInPS_Union;
@@ -2168,6 +2112,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldLinks);
+  BoldRegisterTest(TTestBoldLinks);
 
 end.
