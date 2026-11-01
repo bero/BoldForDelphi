@@ -500,7 +500,7 @@ begin
             if Assigned(Table) then
             begin
               if SB.Length>0 then
-                SB.Append(#13#10); {= "append"}
+                SB.Append(sLineBreak); {= "append"}
               case SQLStyle of
                 ssColumns   : begin
                                 SB.Append(Column.SQLName);
@@ -519,7 +519,7 @@ begin
             else
             begin
               if SB.Length>0 then
-                SB.Append(#13#10); {= "append"}
+                SB.Append(sLineBreak); {= "append"}
               case SQLStyle of               
                 ssColumns: begin
                              // SQL.Append(Format('%s.%s', [TableAlias(Column.TableDescription, useAlias), Column.SQLName]))
@@ -536,7 +536,10 @@ begin
       end;
     end;
   finally
-    SB.Replace(#13#10#13#10, #13#10);
+    // sLineBreak, not #13#10: SQL.Text ends its lines with the platform line
+    // break (#10 on Linux and macOS), and a mixed #10#13#10 would leave an empty
+    // line, i.e. an empty column name in the statement.
+    SB.Replace(sLineBreak + sLineBreak, sLineBreak);
     SQL.Text := SB.ToString;
     FreeAndNil(SB);
   end;
