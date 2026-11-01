@@ -84,7 +84,8 @@ uses
   Test.BoldUMLTypes,
   Test.BoldURI,
   Test.BoldUpdatePrecondition,
-  Test.BoldUtils;
+  Test.BoldUtils,
+  Test.BoldZeosAdapter;
 
 var
   App: TTestRunner;
