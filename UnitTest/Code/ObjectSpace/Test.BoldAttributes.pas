@@ -1,5 +1,7 @@
 ﻿unit Test.BoldAttributes;
 
+{$INCLUDE bold.inc}
+
 { DUnitX version of dmjehoBoldTest - Bold Attribute Tests }
 
 interface
