@@ -119,6 +119,7 @@
         <DCCReference Include="Code\RTModel\Test.BoldMemberTypeDictionary.pas"/>
         <DCCReference Include="Code\RTModel\Test.BoldGeneratedCodeDictionary.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldPersistenceHandleDB.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldDbParameter.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMapperLists.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldSQLMappingInfo.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMappersDefault.pas"/>

@@ -37,6 +37,7 @@ uses
   Test.BoldMemberTypeDictionary in 'Code\RTModel\Test.BoldMemberTypeDictionary.pas',
   Test.BoldGeneratedCodeDictionary in 'Code\RTModel\Test.BoldGeneratedCodeDictionary.pas',
   Test.BoldPersistenceHandleDB in 'Code\Persistence\Test.BoldPersistenceHandleDB.pas',
+  Test.BoldDbParameter in 'Code\Persistence\Test.BoldDbParameter.pas',
   Test.BoldUpdatePrecondition in 'Code\Persistence\Test.BoldUpdatePrecondition.pas',
   Test.BoldPersistenceController in 'Code\Persistence\Test.BoldPersistenceController.pas',
   Test.BoldDbValidator in 'Code\Persistence\Test.BoldDbValidator.pas',

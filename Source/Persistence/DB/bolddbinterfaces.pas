@@ -823,11 +823,7 @@ end;
 
 function TBoldDBParameter.GetAsInt64: Int64;
 begin
-{$IFDEF BOLD_DELPHI15_OR_LATER}
   result := parameter.AsLargeInt;
-{$ELSE}
-  result := parameter.AsInteger;
-{$ENDIF}
 end;
 
 function TBoldDbParameter.GetAsMemo: string;
@@ -923,11 +919,7 @@ end;
 
 procedure TBoldDBParameter.SetAsInt64(const Value: Int64);
 begin
-{$IFDEF BOLD_DELPHI15_OR_LATER}
   Parameter.AsLargeInt := Value;
-{$ELSE}
-  Parameter.AsInteger:= Value;
-{$ENDIF}
 end;
 
 
@@ -1312,11 +1304,7 @@ end;
 
 function TBoldFieldWrapper.GetAsInt64;
 begin
-{$IFDEF BOLD_DELPHI15_OR_LATER}
   Result := fField.AsLargeInt;
-{$ELSE}
-  Result := fField.AsInteger;
-{$ENDIF}
 end;
 
 function TBoldFieldWrapper.GetAsVariant: Variant;
@@ -1347,11 +1335,7 @@ end;
 
 procedure TBoldFieldWrapper.SetAsInt64(const Value: Int64);
 begin
-{$IFDEF BOLD_DELPHI15_OR_LATER}
   Field.AsLargeInt := Value;
-{$ELSE}
-  Field.AsInteger:= Value;
-{$ENDIF}
 end;
 
 procedure TBoldFieldWrapper.SetAsBoolean(const Value: Boolean);

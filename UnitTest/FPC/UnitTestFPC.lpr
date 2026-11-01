@@ -25,6 +25,7 @@ uses
   Test.BoldCollections,
   Test.BoldCondition,
   Test.BoldContainers,
+  Test.BoldDbParameter,
   Test.BoldDefaultId,
   Test.BoldDefaultTaggedValues,
   Test.BoldDefs,
