@@ -33,6 +33,9 @@ type
   TTestBoldUndoBlockListIsolated = class(TBoldTestCase)
   private
     FBlockList: TBoldUndoBlockList;
+    // Receives the getters' results below; a local that is never read draws
+    // H2077 on Delphi, and a property read cannot stand alone as a statement.
+    FBlockRead: TBoldUndoBlock;
     // Free Pascal 3.2.2 has no anonymous methods: WillRaise gets these.
     procedure AddSecondDuplicateBlock;
     procedure GetAssertedBlockByNameNonExistent;
@@ -409,17 +412,13 @@ begin
 end;
 
 procedure TTestBoldUndoBlockListIsolated.GetAssertedBlockByNameNonExistent;
-var
-  Block: TBoldUndoBlock;
 begin
-  Block := TBoldUndoBlockListCracker(FBlockList).AssertedBlockByName['NonExistent'];
+  FBlockRead := TBoldUndoBlockListCracker(FBlockList).AssertedBlockByName['NonExistent'];
 end;
 
 procedure TTestBoldUndoBlockListIsolated.GetAssertedBlockByIndexZero;
-var
-  Block: TBoldUndoBlock;
 begin
-  Block := TBoldUndoBlockListCracker(FBlockList).AssertedBlockByIndex[0];
+  FBlockRead := TBoldUndoBlockListCracker(FBlockList).AssertedBlockByIndex[0];
 end;
 
 procedure TTestBoldUndoBlockListIsolated.GetAssertedIndexOfNonExistent;
