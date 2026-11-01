@@ -3,26 +3,15 @@
 interface
 
 uses
-  Windows,
-  Messages,
   SysUtils,
   Classes,
-  Graphics,
-  Controls,
-  Forms,
-  Dialogs,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   TestModel1,
   BoldDefs,
   BoldSystem,
   BoldDomainElement,
   BoldAttributes,
   BoldId,
-  ActnList,
-  BoldHandleAction,
-  BoldActions,
-  BoldDBActions,
-  BoldHandle,
   BoldPersistenceHandle,
   BoldPersistenceHandleDB,
   BoldSubscription,
@@ -39,19 +28,7 @@ uses
   BoldSQLDatabaseConfig,
   BoldPSDescriptionsSQL,
   maan_UndoRedoTestCaseUtils,
-  BoldAbstractPersistenceHandleDB,
-  DB,
-  BoldAbstractDatabaseAdapter,
-  BoldDatabaseAdapterFireDAC,
-  BoldTestDatabaseConfig,
-  FireDAC.Comp.Client,
-  FireDAC.Stan.Def,
-  FireDAC.Stan.Async,
-  FireDAC.Phys.MSSQL,
-  FireDAC.Phys.MSSQLDef, FireDAC.Stan.Intf, FireDAC.Stan.Option,
-  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Pool,
-  FireDAC.Phys, FireDAC.VCLUI.Wait
-  ;
+  BoldAbstractPersistenceHandleDB;
 
 type
 
@@ -63,10 +40,6 @@ type
     BoldSystemTypeInfoHandle2: TBoldSystemTypeInfoHandle;
     BoldPersistenceHandleDB1: TBoldPersistenceHandleDB;
     BoldPersistenceHandleDB2: TBoldPersistenceHandleDB;
-    BoldDatabaseAdapterFireDAC1: TBoldDatabaseAdapterFireDAC;
-    FDConnection1: TFDConnection;
-    FDConnection2: TFDConnection;
-    BoldDatabaseAdapterFireDAC2: TBoldDatabaseAdapterFireDAC;
   private
     { Private declarations }
   protected
@@ -74,7 +47,7 @@ type
     destructor Destroy; override;
   end;
 
-  Tmaan_UndoRedoAbstractTestCase = class
+  Tmaan_UndoRedoAbstractTestCase = class(TBoldTestCase)
   private
     FUndoHandler: TBoldUndoHandler;
     FFSValueSpace: TBoldFreeStandingValueSpace;
@@ -83,6 +56,8 @@ type
   protected
     FAPersistentClassList: TAPersistentClassList;
     FATransientClassList: TATransientClassList;
+    procedure SetUp; override;
+    procedure TearDown; override;
     procedure StoreValue(const Member: TBoldMember);
     procedure StoreObject(const Obj: TBoldObject);
     function GetStoredValueOfMember(const Member: TBoldMember): IBoldValue;
@@ -96,10 +71,6 @@ type
     FSomeClassList, FSomeClassList2: TSomeClassList;
     FClassWithLinkList, FClassWithLinkList2: TClassWithLinkList;
     FSubscriber: TLoggingSubscriber;
-    [Setup]
-    procedure SetUp; virtual;
-    [TearDown]
-    procedure TearDown; virtual;
     procedure RefreshSystem;
     procedure UpdateDatabase;
     procedure OpenSystem2;
@@ -114,17 +85,48 @@ type
     property UndoHandler: TBoldUndoHandler read GetUndoHandler;
   end;
 
+  { Creates the database behind both persistence handles (connections and
+    adapters, owned by DataModule), configures it and opens the connection of
+    the first system. }
+  TUndoRedoDMConnector = procedure(DataModule: TdmUndoRedo);
+
   procedure CloseAll;
   procedure EnsureDM;
+  { Deactivates and frees dmUndoRedo if it exists. }
+  procedure FreeUndoRedoDM;
+  { The runner links in the connector (maan_UndoRedoFireDAC on Delphi,
+    maan_UndoRedoZeos under Free Pascal), which registers itself. PrepareSystem2,
+    when given, runs before the second system is activated. }
+  procedure RegisterUndoRedoDMConnector(Connector, PrepareSystem2: TUndoRedoDMConnector);
 
 var
   dmUndoRedo: TdmUndoRedo;
 
 implementation
 
-{$R maan_UndoRedo.DFM}
+{$R maan_UndoRedo.dfm}
 
 uses BoldUndoInterfaces;
+
+var
+  RegisteredConnector: TUndoRedoDMConnector = nil;
+  RegisteredPrepareSystem2: TUndoRedoDMConnector = nil;
+
+procedure RegisterUndoRedoDMConnector(Connector, PrepareSystem2: TUndoRedoDMConnector);
+begin
+  RegisteredConnector := Connector;
+  RegisteredPrepareSystem2 := PrepareSystem2;
+end;
+
+procedure FreeUndoRedoDM;
+begin
+  if Assigned(dmUndoRedo) then
+  begin
+    if dmUndoRedo.BoldSystemHandle1.Active then
+      dmUndoRedo.BoldSystemHandle1.Active := False;
+    FreeAndNil(dmUndoRedo);
+  end;
+end;
 
 procedure CloseAll;
 begin
@@ -142,20 +144,17 @@ begin
   try
     if not assigned(dmUndoRedo) then
     begin
-      if not Assigned(Application) then
-        raise Exception.Create('Application is nil');
-      Application.Initialize;
+      if not Assigned(RegisteredConnector) then
+        raise Exception.Create('no database connector is registered. The test runner must use ' +
+          'maan_UndoRedoFireDAC (Delphi) or maan_UndoRedoZeos (Free Pascal).');
 
-      // Create the test database first
-      CreateTestDatabase;
-
-      dmUndoRedo := TdmUndoRedo.Create(Application);
+      dmUndoRedo := TdmUndoRedo.Create(nil);
       if not Assigned(dmUndoRedo) then
         raise Exception.Create('Failed to create dmUndoRedo');
 
-      // Configure database connections from INI file
-      ConfigureConnection(dmUndoRedo.FDConnection1, dmUndoRedo.BoldDatabaseAdapterFireDAC1);
-      ConfigureConnection(dmUndoRedo.FDConnection2, dmUndoRedo.BoldDatabaseAdapterFireDAC2);
+      // The connector creates and configures the database and opens the
+      // connection of the first system.
+      RegisteredConnector(dmUndoRedo);
 
       if not Assigned(dmUndoRedo.BoldSystemHandle1) then
         raise Exception.Create('BoldSystemHandle1 is nil');
@@ -163,11 +162,6 @@ begin
         raise Exception.Create('PersistenceHandle is nil');
 
       PersHandle := dmUndoRedo.BoldSystemHandle1.PersistenceHandle as TBoldPersistenceHandleDb;
-
-      // Open connection and create database schema
-      dmUndoRedo.FDConnection1.Open;
-      if not dmUndoRedo.FDConnection1.Connected then
-        raise Exception.Create('FDConnection1 failed to open');
 
       PersHandle.CreateDataBaseSchema();
       dmUndoRedo.BoldSystemHandle1.Active := True;
@@ -260,9 +254,8 @@ end;
 
 procedure Tmaan_UndoRedoAbstractTestCase.OpenSystem2;
 begin
-  // For SQLite in-memory, both connections share the same database file
-  // Copy connection params from Connection1 to Connection2
-  dmUndoRedo.FDConnection2.Params.Values['Database'] := dmUndoRedo.FDConnection1.Params.Values['Database'];
+  if Assigned(RegisteredPrepareSystem2) then
+    RegisteredPrepareSystem2(dmUndoRedo);
   dmUndoRedo.BoldSystemHandle2.Active := true;
   FetchClass(System2, FSomeClassList2, TSomeClass);
   FetchClass(System2, FTopicList2, TTopic);
@@ -468,8 +461,8 @@ end;
 
 destructor TdmUndoRedo.Destroy;
 begin
-  // Clear global reference so finalization knows we're already destroyed
-  // (Application owns us and frees us during DoneApplication)
+  // Clear the global reference so FreeUndoRedoDM and the finalization know
+  // it is gone (TearDown frees the module directly).
   if dmUndoRedo = Self then
     dmUndoRedo := nil;
   inherited;
@@ -480,14 +473,10 @@ initialization
   BoldCleanDatabaseForced := True;  // Suppress confirmation dialog during automated tests
 
 finalization
+  // The FireDAC connector already frees the module in its own finalization,
+  // before it drops the test database.
   try
-    if Assigned(dmUndoRedo) then
-    begin
-      if dmUndoRedo.BoldSystemHandle1.Active then
-        dmUndoRedo.BoldSystemHandle1.Active := False;
-      FreeAndNil(dmUndoRedo);
-    end;
-    DropTestDatabase;
+    FreeUndoRedoDM;
   except
     // Ignore errors during cleanup
   end;

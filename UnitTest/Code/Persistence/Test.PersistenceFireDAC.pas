@@ -12,7 +12,8 @@
 interface
 
 uses
-  DUnitX.TestFramework;
+  DUnitX.TestFramework,
+  BoldTestFramework; // BoldTestAllocatedBytes/Blocks
 
 type
   [TestFixture]
@@ -197,6 +198,7 @@ uses
   BoldTestDatabaseConfig,
   FireDAC.Comp.Client,
   maan_UndoRedoBase,
+  maan_UndoRedoFireDAC,
   maan_UndoRedoTestCaseUtils,
   BoldTestModel;
 
@@ -2388,11 +2390,11 @@ begin
   // Adapter-neutral disposal of an extra connection - what TBoldDbCopy and the
   // DB validator threads need, since the wrapper is not reference counted and
   // Implementor is the DAC component, not the wrapper.
-  DbInterface := dmUndoRedo.BoldDatabaseAdapterFireDAC1.DatabaseInterface;
+  DbInterface := UndoRedoFireDAC.BoldDatabaseAdapterFireDAC1.DatabaseInterface;
   CreateAndReleaseAnotherConnection; // warm-up for one-time allocations
-  Before := CurrentAllocatedBlocks;
+  Before := BoldTestAllocatedBlocks;
   CreateAndReleaseAnotherConnection;
-  After := CurrentAllocatedBlocks;
+  After := BoldTestAllocatedBlocks;
   Assert.AreEqual(Before, After,
     'Releasing the extra connection must free the wrapper and its connection component ' +
     '(allocated blocks grew by ' + IntToStr(After - Before) + ')');

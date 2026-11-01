@@ -15,7 +15,7 @@ interface
 uses
   Classes,
   SysUtils,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDefs,
   BoldLogHandler,
   BoldSystem,
@@ -48,9 +48,10 @@ type
     function OccurrenceCount(const SubText: string): Integer;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Persistence')]
-  TTestBoldBatchQueries = class
+  {$ENDIF}
+  TTestBoldBatchQueries = class(TBoldTestCase)
   private
     FCapture: TBatchSQLCapture;
     FSavedHandler: TBoldLogHandler;
@@ -70,26 +71,30 @@ type
       implementor, so a test can later verify that the same instance is
       returned to the pool. }
     function PooledExecQueryImplementor: TObject;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestBatchedCreateRoundTrips;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestBatchedMixedUpdateRoundTrips;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestBatchReleasesQueryWithParamCheckRestored;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestFailedBatchLeavesSystemUsable;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestUnverifiedEngineIsRejected;
   end;
 
@@ -189,6 +194,7 @@ end;
 
 procedure TTestBoldBatchQueries.SetUp;
 begin
+  inherited;
   EnsureDM;
   if not dmUndoRedo.BoldSystemHandle1.Active then
     dmUndoRedo.BoldSystemHandle1.Active := True;
@@ -210,6 +216,7 @@ begin
   // The data module owns the adapter config we changed; drop it so the next
   // fixture gets a fresh one from the dfm.
   FreeAndNil(dmUndoRedo);
+  inherited;
 end;
 
 function TTestBoldBatchQueries.GetSystem: TBoldSystem;
@@ -227,7 +234,7 @@ function TTestBoldBatchQueries.Config: TBoldSQLDataBaseConfig;
 begin
   // The adapter's config is the instance TBoldDatabaseWrapper reads through
   // DatabaseWrapper.SQLDatabaseConfig, so changes here reach the batch code.
-  result := dmUndoRedo.BoldDatabaseAdapterFireDAC1.SQLDatabaseConfig;
+  result := dmUndoRedo.BoldPersistenceHandleDB1.DatabaseAdapter.SQLDatabaseConfig;
 end;
 
 function TTestBoldBatchQueries.Database: IBoldDatabase;
@@ -437,6 +444,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldBatchQueries);
+  BoldRegisterTest(TTestBoldBatchQueries);
 
 end.

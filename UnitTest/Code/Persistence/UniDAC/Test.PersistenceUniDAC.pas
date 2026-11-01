@@ -5,6 +5,7 @@ interface
 
 uses
   DUnitX.TestFramework,
+  BoldTestFramework, // BoldTestAllocatedBytes/Blocks
   BoldTestCaseUniDAC;
 
 type
@@ -226,9 +227,9 @@ begin
   // pass must be allocation-neutral: destroying the wrapper has to free the
   // query and exec query it cached, not hand them back to the cache.
   UseAndDestroyWrapper;
-  Before := CurrentAllocatedBlocks;
+  Before := BoldTestAllocatedBlocks;
   UseAndDestroyWrapper;
-  After := CurrentAllocatedBlocks;
+  After := BoldTestAllocatedBlocks;
   Assert.AreEqual(Before, After,
     'Destroying a TBoldUniDACConnection must free its cached query and exec query ' +
     '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
@@ -264,9 +265,9 @@ begin
   // GetTable creates the TUniTable without an owner, so the table wrapper is
   // the only thing that can free it - on both paths that free a wrapper.
   UseTwoTablesAndDestroyWrapper; // warm-up for one-time DAC allocations
-  Before := CurrentAllocatedBlocks;
+  Before := BoldTestAllocatedBlocks;
   UseTwoTablesAndDestroyWrapper;
-  After := CurrentAllocatedBlocks;
+  After := BoldTestAllocatedBlocks;
   Assert.AreEqual(Before, After,
     'Freeing a TBoldUniDACTable must free the TUniTable it wraps ' +
     '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
@@ -293,9 +294,9 @@ begin
   // The extra connection's TUniConnection is created by the wrapper, so the
   // wrapper must own it: freeing the wrapper has to free the component too.
   CreateAndFreeAnotherConnection; // warm-up for one-time DAC allocations
-  Before := CurrentAllocatedBlocks;
+  Before := BoldTestAllocatedBlocks;
   CreateAndFreeAnotherConnection;
-  After := CurrentAllocatedBlocks;
+  After := BoldTestAllocatedBlocks;
   Assert.AreEqual(Before, After,
     'Freeing the wrapper from CreateAnotherDatabaseConnection must free its TUniConnection ' +
     '(allocated blocks grew by ' + IntToStr(After - Before) + ')');

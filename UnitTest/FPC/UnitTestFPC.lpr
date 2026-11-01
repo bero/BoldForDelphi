@@ -16,10 +16,12 @@ uses
   Classes,
   consoletestrunner,
   BoldTestDMZeos, // the database behind dmBoldTest
+  maan_UndoRedoZeos, // the database behind dmUndoRedo
   Test.BoldAbstractObjectUpgrader,
   Test.BoldAbstractObjectUpgraderHandle,
   Test.BoldAbstractSnooper,
   Test.BoldAttributes,
+  Test.BoldBatchQueries,
   Test.BoldBase,
   Test.BoldBase64,
   Test.BoldClock,
@@ -72,6 +74,7 @@ uses
   Test.BoldSortedHandle,
   Test.BoldSorter,
   Test.BoldSqlNodes,
+  Test.BoldSqlParameterization,
   Test.BoldStubs,
   Test.BoldSubscribableCollection,
   Test.BoldSubscription,

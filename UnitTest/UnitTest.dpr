@@ -40,6 +40,7 @@ uses
   BoldTestModel in 'Code\ObjectSpace\BoldTestModel.pas',
   maan_UndoRedoTestCaseUtils in 'Code\ObjectSpace\maan_UndoRedoTestCaseUtils.pas',
   maan_UndoRedoBase in 'Code\ObjectSpace\maan_UndoRedoBase.pas',
+  maan_UndoRedoFireDAC in 'Code\ObjectSpace\maan_UndoRedoFireDAC.pas' {dmUndoRedoFireDAC: TDataModule},
   maan_FetchRefetch in 'Code\ObjectSpace\maan_FetchRefetch.pas',
   dmBoldTest in 'Code\ObjectSpace\dmBoldTest.pas' {BoldTestDM: TDataModule},
   BoldTestDMFireDAC in 'Code\ObjectSpace\BoldTestDMFireDAC.pas' {BoldTestDMFireDAC: TDataModule},

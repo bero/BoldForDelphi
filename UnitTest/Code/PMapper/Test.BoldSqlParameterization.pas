@@ -10,7 +10,7 @@ interface
 uses
   Classes,
   SysUtils,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDefs,
   BoldLogHandler,
   BoldSystem,
@@ -44,22 +44,20 @@ type
     function DistinctStatementCount(const SubText: string): Integer;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('PMapper')]
-  TTestBoldSqlParameterization = class
+  {$ENDIF}
+  TTestBoldSqlParameterization = class(TBoldTestCase)
   private
     FCapture: TSQLCaptureLogHandler;
     FSavedHandler: TBoldLogHandler;
     function GetSystem: TBoldSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestMultilinkFetchUsesParams;
-    [Test]
     procedure TestDeleteUsesParams;
   end;
 
@@ -67,9 +65,10 @@ type
     up to fixed sizes (10, 50, 100, 250, 500) by repeating the last id, so
     fetches of different list sizes produce identical SQL text and SQL Server
     can reuse a handful of cached plans instead of compiling per fetch. }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('PMapper')]
-  TTestBoldIdListWhereFragment = class
+  {$ENDIF}
+  TTestBoldIdListWhereFragment = class(TBoldTestCase)
   private
     FMapper: TBoldObjectDefaultMapper;
     FQuery: IBoldExecQuery;
@@ -79,23 +78,16 @@ type
     function Config: TBoldSQLDataBaseConfig;
     function MakeIdList(Count: Integer): TBoldObjectIdList;
     function BuildFragment(IdList: TBoldObjectIdList): string;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestSingleIdNotPadded;
-    [Test]
     procedure TestTwelveIdsPaddedToBucket50;
-    [Test]
     procedure TestPaddedTailRepeatsLastId;
-    [Test]
     procedure Test250IdsFillBucketExactly;
-    [Test]
     procedure TestNoPaddingWhenBucketExceedsMaxParams;
-    [Test]
     procedure TestLegacyLargeListStaysLiteral;
   end;
 
@@ -214,6 +206,7 @@ end;
 
 procedure TTestBoldSqlParameterization.SetUp;
 begin
+  inherited;
   EnsureDM;
   if not dmUndoRedo.BoldSystemHandle1.Active then
     dmUndoRedo.BoldSystemHandle1.Active := True;
@@ -232,6 +225,7 @@ begin
     dmUndoRedo.BoldSystemHandle1.Active := False;
   end;
   FreeAndNil(dmUndoRedo);
+  inherited;
 end;
 
 function TTestBoldSqlParameterization.GetSystem: TBoldSystem;
@@ -311,6 +305,7 @@ procedure TTestBoldIdListWhereFragment.SetUp;
 var
   TopSortedIndex: Integer;
 begin
+  inherited;
   EnsureDM;
   if not dmUndoRedo.BoldSystemHandle1.Active then
     dmUndoRedo.BoldSystemHandle1.Active := True;
@@ -338,6 +333,7 @@ begin
     dmUndoRedo.BoldSystemHandle1.Active := False;
   end;
   FreeAndNil(dmUndoRedo);
+  inherited;
 end;
 
 function TTestBoldIdListWhereFragment.MakeIdList(Count: Integer): TBoldObjectIdList;
@@ -475,7 +471,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSqlParameterization);
-  TDUnitX.RegisterTestFixture(TTestBoldIdListWhereFragment);
+  BoldRegisterTest(TTestBoldSqlParameterization);
+  BoldRegisterTest(TTestBoldIdListWhereFragment);
 
 end.

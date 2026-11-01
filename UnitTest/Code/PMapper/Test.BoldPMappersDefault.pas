@@ -10,6 +10,7 @@ interface
 
 uses
   DUnitX.TestFramework,
+  BoldTestFramework, // BoldTestAllocatedBytes/Blocks
   Delphi.Mocks,
   BoldDBInterfaces,
   BoldDefs;
@@ -62,6 +63,7 @@ uses
   BoldPMappersSQL,
   BoldTestModel,
   maan_UndoRedoBase,
+  maan_UndoRedoFireDAC,
   maan_UndoRedoTestCaseUtils;
 
 { TTestBoldPMappersDefault }
@@ -177,7 +179,7 @@ begin
 
   TSomeClass.Create(Sys);
   // Sabotage the schema so PMCreate's INSERT fails
-  dmUndoRedo.FDConnection1.ExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
+  UndoRedoFireDAC.FDConnection1.ExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
 
   // Warm-up: two failing attempts get the query pool and FireDAC error
   // machinery allocated.
@@ -195,14 +197,14 @@ begin
   // Measure attempts 3 and 4 - each failing PMCreate leaks one
   // TBoldMemberPersistenceMapperList (plus indexes) and one TStringList.
   FailCount := 0;
-  BytesBefore := CurrentAllocatedBytes;
+  BytesBefore := BoldTestAllocatedBytes;
   for i := 1 to 2 do
     try
       dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
     except
       Inc(FailCount);  // expected - table is gone
     end;
-  BytesAfter := CurrentAllocatedBytes;
+  BytesAfter := BoldTestAllocatedBytes;
 
   Assert.AreEqual(2, FailCount, 'both measured UpdateDatabase attempts must reach the failing INSERT');
   Assert.IsTrue(BytesAfter - BytesBefore < 400,
@@ -230,7 +232,7 @@ begin
 
   TSomeClass.Create(Sys);
   // Sabotage the schema so PMCreate's INSERT fails
-  dmUndoRedo.FDConnection1.ExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
+  UndoRedoFireDAC.FDConnection1.ExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
 
   for Attempt := 1 to 6 do
   begin

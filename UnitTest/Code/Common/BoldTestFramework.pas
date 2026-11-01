@@ -148,6 +148,14 @@ procedure BoldTestDeleteTree(const Dir: string);
 function BoldTestReadAllText(const FileName: string): string;
 // Milliseconds from a monotonic clock, for timeouts in tests.
 function BoldTestTickCount: Int64;
+// Heap measurement for leak regression tests: the bytes the memory manager
+// has handed out and not taken back yet.
+function BoldTestAllocatedBytes: Int64;
+// The number of allocated memory blocks. FastMM (Delphi) counts them, which is
+// more stable than bytes for leak tests: a leaked object is a fixed number of
+// blocks. The Free Pascal heap manager does not count blocks, so under Free
+// Pascal this raises; use BoldTestAllocatedBytes there.
+function BoldTestAllocatedBlocks: Int64;
 
 implementation
 
@@ -576,6 +584,42 @@ begin
   Result := GetTickCount64;
   {$ELSE}
   Result := TThread.GetTickCount64;
+  {$ENDIF}
+end;
+
+function BoldTestAllocatedBytes: Int64;
+{$IFNDEF FPC}
+var
+  st: TMemoryManagerState;
+  i: Integer;
+{$ENDIF}
+begin
+  {$IFDEF FPC}
+  Result := GetFPCHeapStatus.CurrHeapUsed;
+  {$ELSE}
+  GetMemoryManagerState(st);
+  Result := Int64(st.TotalAllocatedMediumBlockSize) + Int64(st.TotalAllocatedLargeBlockSize);
+  for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
+    Result := Result + Int64(st.SmallBlockTypeStates[i].UseableBlockSize) *
+                       Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
+  {$ENDIF}
+end;
+
+function BoldTestAllocatedBlocks: Int64;
+{$IFNDEF FPC}
+var
+  st: TMemoryManagerState;
+  i: Integer;
+{$ENDIF}
+begin
+  {$IFDEF FPC}
+  raise Exception.Create('BoldTestAllocatedBlocks: the Free Pascal heap manager does not count ' +
+    'blocks; use BoldTestAllocatedBytes');
+  {$ELSE}
+  GetMemoryManagerState(st);
+  Result := Int64(st.AllocatedMediumBlockCount) + Int64(st.AllocatedLargeBlockCount);
+  for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
+    Result := Result + Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
   {$ENDIF}
 end;
 

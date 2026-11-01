@@ -109,6 +109,10 @@
         <DCCReference Include="Code\ObjectSpace\BoldTestModel.pas"/>
         <DCCReference Include="Code\ObjectSpace\maan_UndoRedoTestCaseUtils.pas"/>
         <DCCReference Include="Code\ObjectSpace\maan_UndoRedoBase.pas"/>
+        <DCCReference Include="Code\ObjectSpace\maan_UndoRedoFireDAC.pas">
+            <Form>dmUndoRedoFireDAC</Form>
+            <DesignClass>TDataModule</DesignClass>
+        </DCCReference>
         <DCCReference Include="Code\ObjectSpace\maan_FetchRefetch.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldUndoHandler.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldSystem.pas"/>

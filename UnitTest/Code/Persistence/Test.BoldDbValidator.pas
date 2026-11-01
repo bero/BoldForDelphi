@@ -90,7 +90,8 @@ uses
   BoldDBInterfaces,
   BoldPMappersSQL,
   BoldTestModel,
-  maan_UndoRedoBase;
+  maan_UndoRedoBase,
+  maan_UndoRedoFireDAC;
 
 type
   { A validator thread that does one query on its own connection and stops.
@@ -544,8 +545,8 @@ begin
   // The validator activates and deactivates its persistence handle from a
   // worker thread, so it gets the data module's second handle, pointed at
   // the same database (as OpenSystem2 does), and system 1 stays untouched.
-  dmUndoRedo.FDConnection2.Params.Values['Database'] :=
-    dmUndoRedo.FDConnection1.Params.Values['Database'];
+  UndoRedoFireDAC.FDConnection2.Params.Values['Database'] :=
+    UndoRedoFireDAC.FDConnection1.Params.Values['Database'];
   FDone := TEvent.Create(nil, True, False, '');
 end;
 
@@ -671,7 +672,7 @@ begin
   SomeObject := TSomeClass.Create(dmUndoRedo.BoldSystemHandle1.System);
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
   ObjectId := SomeObject.BoldObjectLocator.BoldObjectID.AsString;
-  Assert.AreEqual(1, dmUndoRedo.FDConnection1.ExecSQL('DELETE FROM ' + ParentTable + ' WHERE BOLD_ID = ' + ObjectId),
+  Assert.AreEqual(1, UndoRedoFireDAC.FDConnection1.ExecSQL('DELETE FROM ' + ParentTable + ' WHERE BOLD_ID = ' + ObjectId),
     'precondition: the parent table holds the new object');
 
   OldSeparator := dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator;
@@ -703,7 +704,7 @@ begin
   finally
     Validator.Free;
     dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator := OldSeparator;
-    dmUndoRedo.FDConnection1.ExecSQL('DELETE FROM ' + OwnTable + ' WHERE BOLD_ID = ' + ObjectId);
+    UndoRedoFireDAC.FDConnection1.ExecSQL('DELETE FROM ' + OwnTable + ' WHERE BOLD_ID = ' + ObjectId);
   end;
 end;
 
@@ -854,12 +855,12 @@ begin
   begin
     Orphan := dmUndoRedo.BoldSystemHandle1.System.CreateNewObjectByExpressionName(Mappers[i].ExpressionName);
     dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-    Assert.AreEqual(1, dmUndoRedo.FDConnection1.ExecSQL(
+    Assert.AreEqual(1, UndoRedoFireDAC.FDConnection1.ExecSQL(
       'DELETE FROM ' + (Mappers[i].SuperClass as TBoldObjectSQLMapper).MainTable.SQLName +
       ' WHERE BOLD_ID = ' + Orphan.BoldObjectLocator.BoldObjectID.AsString),
       'precondition: the parent table holds the new ' + Mappers[i].ExpressionName);
   end;
-  dmUndoRedo.FDConnection1.ExecSQL('DROP TABLE ' + Mappers[1].MainTable.SQLName);
+  UndoRedoFireDAC.FDConnection1.ExecSQL('DROP TABLE ' + Mappers[1].MainTable.SQLName);
 
   Validator := TBoldDbDataValidator.Create(nil);
   try
@@ -977,7 +978,7 @@ begin
       SameText(SystemMapper.ObjectPersistenceMappers[i].ExpressionName, ExpressionName) then
       Table := (SystemMapper.ObjectPersistenceMappers[i] as TBoldObjectSQLMapper).MainTable.SQLName;
   Assert.AreNotEqual('', Table, 'precondition: a table for ' + ExpressionName);
-  dmUndoRedo.FDConnection1.ExecSQL('DROP TABLE ' + Table);
+  UndoRedoFireDAC.FDConnection1.ExecSQL('DROP TABLE ' + Table);
 
   Validator := TBoldDbDataValidator.Create(nil);
   try

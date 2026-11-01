@@ -82,7 +82,8 @@ uses
   BoldFreeStandingValues,
   BoldSystem,
   BoldTestModel,
-  maan_UndoRedoBase;
+  maan_UndoRedoBase,
+  maan_UndoRedoFireDAC;
 
 const
   cnSomeClass = 'SomeClass';
@@ -264,7 +265,7 @@ begin
     end).When.GetInTransaction;
   fMapper := TTestableSystemMapper.CreateFromMold(dmUndoRedo.BoldModel1.MoldModel,
     dmUndoRedo.BoldModel1.TypeNameDictionary, nil,
-    dmUndoRedo.BoldDatabaseAdapterFireDAC1.SQLDatabaseConfig, GetMockDatabase);
+    UndoRedoFireDAC.BoldDatabaseAdapterFireDAC1.SQLDatabaseConfig, GetMockDatabase);
 end;
 
 procedure TTestBoldSystemSQLMapperStartTransaction.TearDown;

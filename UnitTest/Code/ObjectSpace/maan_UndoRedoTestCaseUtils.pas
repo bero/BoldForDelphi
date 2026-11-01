@@ -65,40 +65,11 @@ type
 
   procedure GenerateObjects(const System: TBoldSystem; const ExpressionName: string; const Count: integer);
 
-  // Heap measurement for leak regression tests: warm up caches first, then
-  // assert that the delta across the measured window stays below a threshold.
-  function CurrentAllocatedBytes: Int64;
-  { Number of allocated FastMM blocks (small + medium + large). More stable
-    than bytes for leak tests: a leaked object is a fixed number of blocks. }
-  function CurrentAllocatedBlocks: Int64;
 
 implementation
 
 uses
   maan_UndoRedoBase;
-
-function CurrentAllocatedBlocks: Int64;
-var
-  st: TMemoryManagerState;
-  i: Integer;
-begin
-  GetMemoryManagerState(st);
-  Result := Int64(st.AllocatedMediumBlockCount) + Int64(st.AllocatedLargeBlockCount);
-  for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
-    Result := Result + Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
-end;
-
-function CurrentAllocatedBytes: Int64;
-var
-  st: TMemoryManagerState;
-  i: Integer;
-begin
-  GetMemoryManagerState(st);
-  Result := Int64(st.TotalAllocatedMediumBlockSize) + Int64(st.TotalAllocatedLargeBlockSize);
-  for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
-    Result := Result + Int64(st.SmallBlockTypeStates[i].UseableBlockSize) *
-                       Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
-end;
 
 
 function CreateTopic(const System: TBoldSystem; const Subscriber: TLoggingSubscriber; const Persistent: Boolean = True): TTopic;

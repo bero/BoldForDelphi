@@ -9,6 +9,7 @@ uses
   Classes,
   SysUtils,
   DUnitX.TestFramework,
+  BoldTestFramework, // BoldTestAllocatedBytes/Blocks
   BoldSystem,
   BoldSystemRT,
   BoldSubscription,
@@ -2009,10 +2010,10 @@ begin
   Assert.IsFalse(CanEvaluate, 'Boolean-result OCL is not PS-evaluatable');
   for i := 1 to 5 do  // warm up caches (OCL dictionary etc.)
     Sys.CanEvaluateInPS(cExpr, CTI);
-  BytesBefore := CurrentAllocatedBytes;
+  BytesBefore := BoldTestAllocatedBytes;
   for i := 1 to 50 do
     Sys.CanEvaluateInPS(cExpr, CTI);
-  BytesAfter := CurrentAllocatedBytes;
+  BytesAfter := BoldTestAllocatedBytes;
   Assert.IsTrue(BytesAfter - BytesBefore < 16384,
     Format('50 failed CanEvaluateInPS calls grew heap by %d bytes - OLW tree leak', [BytesAfter - BytesBefore]));
 end;
@@ -2036,10 +2037,10 @@ begin
   Assert.IsFalse(CanEvaluate, 'oclIsKindOf(type) is not PS-evaluatable');
   for i := 1 to 5 do
     Sys.CanEvaluateInPS(cExpr, CTI);
-  BytesBefore := CurrentAllocatedBytes;
+  BytesBefore := BoldTestAllocatedBytes;
   for i := 1 to 50 do
     Sys.CanEvaluateInPS(cExpr, CTI);
-  BytesAfter := CurrentAllocatedBytes;
+  BytesAfter := BoldTestAllocatedBytes;
   Assert.IsTrue(BytesAfter - BytesBefore < 16384,
     Format('50 mid-tree-failure calls grew heap by %d bytes - OLW tree leak', [BytesAfter - BytesBefore]));
 end;

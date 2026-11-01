@@ -59,6 +59,7 @@ uses
   BoldTestDatabaseConfig,
   BoldTestModel,
   maan_UndoRedoBase,
+  maan_UndoRedoFireDAC,
   BoldSQLDatabaseConfig,
   FireDAC.Comp.Client,
   FireDAC.Stan.Option;
@@ -148,8 +149,8 @@ begin
     Destination := GetTestDatabaseName + '_DbCopy';
     CreateTestDatabase(Destination);
   end;
-  dmUndoRedo.FDConnection2.Params.Values['Database'] := Destination;
-  dmUndoRedo.FDConnection2.Open;
+  UndoRedoFireDAC.FDConnection2.Params.Values['Database'] := Destination;
+  UndoRedoFireDAC.FDConnection2.Open;
   dmUndoRedo.BoldPersistenceHandleDB2.CreateDataBaseSchema;
   FDone := TEvent.Create(nil, True, False, '');
 end;
@@ -224,8 +225,8 @@ begin
   for i := Low(cValues) to High(cValues) do
     TSomeClass.Create(dmUndoRedo.BoldSystemHandle1.System).aString := cValues[i];
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Source := dmUndoRedo.BoldDatabaseAdapterFireDAC1.DatabaseInterface;
-  Destination := dmUndoRedo.BoldDatabaseAdapterFireDAC2.DatabaseInterface;
+  Source := UndoRedoFireDAC.BoldDatabaseAdapterFireDAC1.DatabaseInterface;
+  Destination := UndoRedoFireDAC.BoldDatabaseAdapterFireDAC2.DatabaseInterface;
   SourceObjects := IntToStr(RowCount(Source, 'BOLD_OBJECT'));
   SourceStrings := StringsOf(Source, 'select aString from SomeClass order by aString');
   Assert.AreEqual(0, RowCount(Destination, 'SomeClass'),
