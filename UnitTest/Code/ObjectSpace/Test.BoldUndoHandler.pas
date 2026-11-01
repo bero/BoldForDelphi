@@ -7,7 +7,7 @@ interface
 uses
   SysUtils,
   Classes,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDefs,
   BoldSystem,
   BoldDomainElement,
@@ -27,87 +27,63 @@ uses
 
 type
   { Isolated tests for TBoldUndoBlockList and TBoldUndoBlock - no database required }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('UndoHandler')]
-  TTestBoldUndoBlockListIsolated = class
+  {$ENDIF}
+  TTestBoldUndoBlockListIsolated = class(TBoldTestCase)
   private
     FBlockList: TBoldUndoBlockList;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+    // Free Pascal 3.2.2 has no anonymous methods: WillRaise gets these.
+    procedure AddSecondDuplicateBlock;
+    procedure GetAssertedBlockByNameNonExistent;
+    procedure GetAssertedBlockByIndexZero;
+    procedure GetAssertedIndexOfNonExistent;
+    procedure RenameFirstToSecond;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
     // TBoldUndoBlockList tests
-    [Test]
     procedure TestBlockListCountInitiallyZero;
-    [Test]
     procedure TestBlockListIsEmptyInitially;
-    [Test]
     procedure TestAddBlockIncreasesCount;
-    [Test]
     procedure TestGetBlockByIndex;
-    [Test]
     procedure TestGetBlockByName;
-    [Test]
     procedure TestIndexOfByName;
-    [Test]
     procedure TestIndexOfByBlock;
-    [Test]
     procedure TestIndexOfNonExistentReturnsMinusOne;
-    [Test]
     procedure TestRemoveBlock;
-    [Test]
     procedure TestRenameBlock;
-    [Test]
     procedure TestClearRemovesAllBlocks;
-    [Test]
     procedure TestGetContainsChangesWhenEmpty;
-    [Test]
     procedure TestGetContainsChangesWithEmptyBlock;
-    [Test]
     procedure TestAddBlockDuplicateNameRaises;
-    [Test]
     procedure TestGetAssertedBlockByNameRaisesWhenNotFound;
-    [Test]
     procedure TestGetAssertedBlockByIndexRaisesWhenOutOfRange;
-    [Test]
     procedure TestAssertedIndexOfRaisesWhenNotFound;
-    [Test]
     procedure TestMergeAllMergesBlocks;
-    [Test]
     procedure TestMoveBlockSameIndex;
-    [Test]
     procedure TestCanMoveBlockSameIndex;
-    [Test]
     procedure TestCanMergeBlockSameIndex;
-    [Test]
     procedure TestRenameBlockToExistingNameRaises;
 
     // TBoldUndoBlock tests
-    [Test]
     procedure TestBlockNameProperty;
-    [Test]
     procedure TestBlockCaptionProperty;
-    [Test]
     procedure TestBlockCreatedProperty;
-    [Test]
     procedure TestBlockContainsChangesInitiallyFalse;
-    [Test]
     procedure TestBlockObjectCountInitiallyZero;
-    [Test]
     procedure TestBlockGetIndex;
-    [Test]
     procedure TestBlockSetFSValueSpace;
-    [Test]
     procedure TestBlockValueExistsReturnsFalseWhenEmpty;
-    [Test]
     procedure TestBlockGetFSValueSpaceCreatesIfNil;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('UndoHandler')]
-  TTestBoldUndoHandler = class
+  {$ENDIF}
+  TTestBoldUndoHandler = class(TBoldTestCase)
   private
     FUndoHandler: TBoldUndoHandler;
     FSomeClassList: TSomeClassList;
@@ -128,96 +104,70 @@ type
     procedure FetchClassSorted(const aSystem: TBoldSystem; const aList: TBoldObjectList; const ObjClass: TBoldObjectClass);
     procedure SetSimpleConfiguration;
     procedure SetTransientConfiguration;
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUpOnce; override;
+    procedure TearDownOnce; override;
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
     // Object creation undo tests
-    [Test]
     procedure TestNewObjectRecordedWithCorrectExistenceState;
 
-    [Test]
 
     procedure TestDeletedObjectRecordedWithCorrectExistenceState;
 
     // Attribute modification tests
-    [Test]
     procedure TestModifyAttributeRecordsOldValue;
 
-    [Test]
     procedure TestUndoRestoresAttributeValue;
 
     // Undo/Redo cycle tests
-    [Test]
 
     procedure TestUndoObjectCreation;
 
-    [Test]
     procedure TestRedoObjectCreation;
 
     // Tests migrated from maan_Modify
 
-    [Test]
     procedure TestModifyPersistentAttributeCurrent;
 
-    [Test]
     procedure TestModifyPersistentAttributeModified;
 
-    [Test]
     procedure TestModifyTransientAttribute;
 
-    [Test]
 
     procedure TestCreatePersistentObjectRecordsUndoState;
 
-    [Test]
 
     procedure TestCreateTransientObjectRecordsUndoState;
 
-    [Test]
 
     procedure TestDeleteTransientObjectRecordsUndoState;
 
-    [Test]
     procedure TestModifyEmbeddedRoleCurrent;
 
-    [Test]
     procedure TestModifyEmbeddedRoleTransient;
 
-    [Test]
     procedure TestModifyNonEmbeddedRoleInsertCurrent;
 
-    [Test]
     procedure TestModifyNonEmbeddedRoleDeleteCurrent;
 
-    [Test]
     procedure TestModifyNonEmbeddedRoleInsertTransient;
 
-    [Test]
     procedure TestModifyNonEmbeddedRoleDeleteTransient;
 
     // Tests migrated from maan_Undo
 
-    [Test]
     procedure TestUndoTransientAttribute;
 
-    [Test]
     procedure TestUndoModifiedAttribute;
 
-    [Test]
     procedure TestUndoEmbeddedRoleModified;
 
-    [Test]
     procedure TestUndoEmbeddedRoleTransient;
 
     // Additional modify test
-    [Test]
     procedure TestModifyEmbeddedRoleModified;
 
     property System: TBoldSystem read GetSystem;
@@ -225,9 +175,10 @@ type
   end;
 
   { Tests for indirect link associations (many-to-many via link class) }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('UndoHandler')]
-  TTestBoldUndoHandlerIndirectLinks = class
+  {$ENDIF}
+  TTestBoldUndoHandlerIndirectLinks = class(TBoldTestCase)
   private
     FUndoHandler: TBoldUndoHandler;
     FSomeClassList: TSomeClassList;
@@ -242,44 +193,33 @@ type
     procedure SetConfigurationForIndirectSingle;
     procedure VerifyState(const Element: TBoldDomainElement; const State: TBoldValuePersistenceState);
     procedure VerifyObjectInBlock(Block: TBoldUndoBlock; aId: TBoldObjectId; State: TBoldExistenceState);
-  public
-    [SetupFixture]
-    procedure SetUpFixture;
-    [TearDownFixture]
-    procedure TearDownFixture;
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUpOnce; override;
+    procedure TearDownOnce; override;
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
     // Indirect multi-link tests (part/partof via Tpartpartof)
-    [Test]
 
     procedure TestIndirectMultiModifyInsertCurrent;
 
-    [Test]
     procedure TestIndirectMultiModifyDeleteCurrent;
 
-    [Test]
 
     procedure TestIndirectMultiUndoInsert;
 
-    [Test]
     procedure TestIndirectMultiUndoDelete;
 
     // Indirect single-link tests (one/many via LinkClass)
-    [Test]
 
     procedure TestIndirectSingleModifySingleRoleCurrent;
 
-    [Test]
 
     procedure TestIndirectSingleModifyMultiRoleInsertCurrent;
 
-    [Test]
     procedure TestIndirectSingleModifyMultiRoleDeleteCurrent;
 
-    [Test]
 
     procedure TestIndirectSingleUndoSingleRoleModified;
 
@@ -288,25 +228,22 @@ type
   end;
 
   { Transient tests for TBoldUndoHandler basic API - no database required }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('UndoHandler')]
-  TTestBoldUndoHandlerTransient = class
+  {$ENDIF}
+  TTestBoldUndoHandlerTransient = class(TBoldTestCase)
   private
     FSystemHandle: TBoldSystemHandle;
     FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
     function GetSystem: TBoldSystem;
     function GetUndoHandler: TBoldUndoHandler;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestUndoHandlerExists;
-    [Test]
     procedure TestUndoHandlerEnabled;
-    [Test]
     procedure TestSetCheckPoint;
   end;
 
@@ -325,6 +262,7 @@ type
 
 procedure TTestBoldUndoBlockListIsolated.SetUp;
 begin
+  inherited;
   // Create block list with nil handler - works for isolated tests
   // that don't need full undo handler functionality
   FBlockList := TBoldUndoBlockList.Create(nil);
@@ -333,6 +271,7 @@ end;
 procedure TTestBoldUndoBlockListIsolated.TearDown;
 begin
   FreeAndNil(FBlockList);
+  inherited;
 end;
 
 procedure TTestBoldUndoBlockListIsolated.TestBlockListCountInitiallyZero;
@@ -461,6 +400,38 @@ begin
   Assert.IsFalse(FBlockList.ContainsChanges, 'ContainsChanges should be False with empty block');
 end;
 
+procedure TTestBoldUndoBlockListIsolated.AddSecondDuplicateBlock;
+var
+  TempName: string;
+begin
+  TempName := 'Duplicate';
+  TBoldUndoBlockListCracker(FBlockList).AddBlock(TempName, 'Cap2');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.GetAssertedBlockByNameNonExistent;
+var
+  Block: TBoldUndoBlock;
+begin
+  Block := TBoldUndoBlockListCracker(FBlockList).AssertedBlockByName['NonExistent'];
+end;
+
+procedure TTestBoldUndoBlockListIsolated.GetAssertedBlockByIndexZero;
+var
+  Block: TBoldUndoBlock;
+begin
+  Block := TBoldUndoBlockListCracker(FBlockList).AssertedBlockByIndex[0];
+end;
+
+procedure TTestBoldUndoBlockListIsolated.GetAssertedIndexOfNonExistent;
+begin
+  TBoldUndoBlockListCracker(FBlockList).AssertedIndexOf('NonExistent');
+end;
+
+procedure TTestBoldUndoBlockListIsolated.RenameFirstToSecond;
+begin
+  FBlockList.RenameBlock('First', 'Second');
+end;
+
 procedure TTestBoldUndoBlockListIsolated.TestAddBlockDuplicateNameRaises;
 var
   BlockName: string;
@@ -469,54 +440,22 @@ begin
   Cracker := TBoldUndoBlockListCracker(FBlockList);
   BlockName := 'Duplicate';
   Cracker.AddBlock(BlockName, 'Cap1');
-  Assert.WillRaise(
-    procedure
-    var
-      TempName: string;
-    begin
-      TempName := 'Duplicate';
-      Cracker.AddBlock(TempName, 'Cap2');
-    end,
-    EBold);
+  Assert.WillRaise(AddSecondDuplicateBlock, EBold);
 end;
 
 procedure TTestBoldUndoBlockListIsolated.TestGetAssertedBlockByNameRaisesWhenNotFound;
-var
-  Cracker: TBoldUndoBlockListCracker;
 begin
-  Cracker := TBoldUndoBlockListCracker(FBlockList);
-  Assert.WillRaise(
-    procedure
-    begin
-      Cracker.AssertedBlockByName['NonExistent'];
-    end,
-    EBold);
+  Assert.WillRaise(GetAssertedBlockByNameNonExistent, EBold);
 end;
 
 procedure TTestBoldUndoBlockListIsolated.TestGetAssertedBlockByIndexRaisesWhenOutOfRange;
-var
-  Cracker: TBoldUndoBlockListCracker;
 begin
-  Cracker := TBoldUndoBlockListCracker(FBlockList);
-  Assert.WillRaise(
-    procedure
-    begin
-      Cracker.AssertedBlockByIndex[0];
-    end,
-    EBold);
+  Assert.WillRaise(GetAssertedBlockByIndexZero, EBold);
 end;
 
 procedure TTestBoldUndoBlockListIsolated.TestAssertedIndexOfRaisesWhenNotFound;
-var
-  Cracker: TBoldUndoBlockListCracker;
 begin
-  Cracker := TBoldUndoBlockListCracker(FBlockList);
-  Assert.WillRaise(
-    procedure
-    begin
-      Cracker.AssertedIndexOf('NonExistent');
-    end,
-    EBold);
+  Assert.WillRaise(GetAssertedIndexOfNonExistent, EBold);
 end;
 
 procedure TTestBoldUndoBlockListIsolated.TestMergeAllMergesBlocks;
@@ -572,12 +511,7 @@ begin
   BlockName2 := 'Second';
   TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName1, 'C1');
   TBoldUndoBlockListCracker(FBlockList).AddBlock(BlockName2, 'C2');
-  Assert.WillRaise(
-    procedure
-    begin
-      FBlockList.RenameBlock('First', 'Second');
-    end,
-    EBold);
+  Assert.WillRaise(RenameFirstToSecond, EBold);
 end;
 
 // TBoldUndoBlock tests
@@ -697,21 +631,24 @@ end;
 
 { TTestBoldUndoHandler }
 
-procedure TTestBoldUndoHandler.SetUpFixture;
+procedure TTestBoldUndoHandler.SetUpOnce;
 begin
+  inherited;
   EnsureBoldTestDM;
   Assert.IsNotNull(BoldTestDM, 'BoldTestDM should be created');
   Assert.IsNotNull(BoldTestDM.BoldSystemHandle1.System, 'System should be active');
 end;
 
-procedure TTestBoldUndoHandler.TearDownFixture;
+procedure TTestBoldUndoHandler.TearDownOnce;
 begin
   // Clean up DataModule at the end of all tests
   CloseBoldTestDM;
+  inherited;
 end;
 
 procedure TTestBoldUndoHandler.SetUp;
 begin
+  inherited;
   if not BoldTestDM.BoldSystemHandle1.Active then
     BoldTestDM.BoldSystemHandle1.Active := True;
 
@@ -736,6 +673,7 @@ begin
     BoldTestDM.BoldSystemHandle1.System.Discard;
     BoldTestDM.BoldSystemHandle1.Active := False;
   end;
+  inherited;
 end;
 
 function TTestBoldUndoHandler.GetSystem: TBoldSystem;
@@ -845,7 +783,7 @@ begin
     CurState := (Element as TBoldMember).BoldPersistenceState
   else
     raise EBold.Create('VerifyState: unsupported element type');
-  Assert.AreEqual(State, CurState,
+  Assert.AreEqual(Ord(State), Ord(CurState),
     Format('%s state should be %d but was %d', [Element.DisplayName, Ord(State), Ord(CurState)]));
 end;
 
@@ -893,7 +831,7 @@ begin
     NewObject.BoldObjectLocator.BoldObjectID);
 
   Assert.IsNotNull(oc, 'Object contents should be recorded in undo block');
-  Assert.AreEqual(besNotCreated, oc.BoldExistenceState,
+  Assert.AreEqual(Ord(besNotCreated), Ord(oc.BoldExistenceState),
     'New object should be recorded with besNotCreated state for proper undo');
 end;
 
@@ -918,7 +856,7 @@ begin
     oc := UndoHandler.UndoBlocks.CurrentBlock.FSValueSpace.GetFSObjectContentsByObjectId(ObjectId);
 
     Assert.IsNotNull(oc, 'Deleted object contents should be recorded in undo block');
-    Assert.AreEqual(besExisting, oc.BoldExistenceState,
+    Assert.AreEqual(Ord(besExisting), Ord(oc.BoldExistenceState),
       'Deleted object should be recorded with besExisting state for proper undo');
   finally
     ObjectId.Free;
@@ -1074,7 +1012,7 @@ begin
   oc := UndoHandler.UndoBlocks.CurrentBlock.FSValueSpace.GetFSObjectContentsByObjectId(
     NewObject.BoldObjectLocator.BoldObjectID);
   Assert.IsNotNull(oc, 'oc should be assigned after CreateSomeClass');
-  Assert.AreEqual(besNotCreated, oc.BoldExistenceState,
+  Assert.AreEqual(Ord(besNotCreated), Ord(oc.BoldExistenceState),
     'oc.BoldExistenceState should be besNotCreated');
 end;
 
@@ -1085,12 +1023,12 @@ var
 begin
   RefreshSystem;
   NewObject := CreateATransientClass(System, nil);
-  Assert.AreEqual(besExisting, NewObject.BoldExistenceState,
+  Assert.AreEqual(Ord(besExisting), Ord(NewObject.BoldExistenceState),
     'NewObject.BoldExistenceState should be besExisting');
   oc := UndoHandler.UndoBlocks.CurrentBlock.FSValueSpace.GetFSObjectContentsByObjectId(
     NewObject.BoldObjectLocator.BoldObjectID);
   Assert.IsNotNull(oc, 'oc should be assigned for transient object');
-  Assert.AreEqual(besNotCreated, oc.BoldExistenceState,
+  Assert.AreEqual(Ord(besNotCreated), Ord(oc.BoldExistenceState),
     'oc.BoldExistenceState should be besNotCreated for transient');
 end;
 
@@ -1102,7 +1040,7 @@ var
 begin
   RefreshSystem;
   NewObject := CreateATransientClass(System, nil);
-  Assert.AreEqual(besExisting, NewObject.BoldExistenceState,
+  Assert.AreEqual(Ord(besExisting), Ord(NewObject.BoldExistenceState),
     'NewObject.BoldExistenceState should be besExisting before Delete');
   oid := NewObject.BoldObjectLocator.BoldObjectID.Clone;
   try
@@ -1110,7 +1048,7 @@ begin
     NewObject.Delete;
     oc := UndoHandler.UndoBlocks.CurrentBlock.FSValueSpace.GetFSObjectContentsByObjectId(oid);
     Assert.IsNotNull(oc, 'oc should be assigned after Delete transient');
-    Assert.AreEqual(besExisting, oc.BoldExistenceState,
+    Assert.AreEqual(Ord(besExisting), Ord(oc.BoldExistenceState),
       'oc.BoldExistenceState should be besExisting after Delete transient');
   finally
     oid.Free;
@@ -1556,20 +1494,23 @@ end;
 
 { TTestBoldUndoHandlerIndirectLinks }
 
-procedure TTestBoldUndoHandlerIndirectLinks.SetUpFixture;
+procedure TTestBoldUndoHandlerIndirectLinks.SetUpOnce;
 begin
+  inherited;
   EnsureBoldTestDM;
   Assert.IsNotNull(BoldTestDM, 'BoldTestDM should be created');
   Assert.IsNotNull(BoldTestDM.BoldSystemHandle1.System, 'System should be active');
 end;
 
-procedure TTestBoldUndoHandlerIndirectLinks.TearDownFixture;
+procedure TTestBoldUndoHandlerIndirectLinks.TearDownOnce;
 begin
   CloseBoldTestDM;
+  inherited;
 end;
 
 procedure TTestBoldUndoHandlerIndirectLinks.SetUp;
 begin
+  inherited;
   // Deactivate to discard all in-memory objects, then reactivate for clean state
   if BoldTestDM.BoldSystemHandle1.Active then
   begin
@@ -1597,6 +1538,7 @@ begin
     BoldTestDM.BoldSystemHandle1.System.Discard;
     BoldTestDM.BoldSystemHandle1.Active := False;
   end;
+  inherited;
 end;
 
 function TTestBoldUndoHandlerIndirectLinks.GetSystem: TBoldSystem;
@@ -1665,7 +1607,7 @@ begin
     CurState := (Element as TBoldMember).BoldPersistenceState
   else
     raise EBold.Create('VerifyState: unsupported element type');
-  Assert.AreEqual(State, CurState,
+  Assert.AreEqual(Ord(State), Ord(CurState),
     Format('%s state should be %d but was %d', [Element.DisplayName, Ord(State), Ord(CurState)]));
 end;
 
@@ -1677,7 +1619,7 @@ begin
   fsObjectContents := Block.FSValueSpace.GetFSObjectContentsByObjectId(aId);
   Assert.IsNotNull(fsObjectContents,
     Format('Object %s should be in undo block', [aId.AsString]));
-  Assert.AreEqual(State, fsObjectContents.BoldExistenceState,
+  Assert.AreEqual(Ord(State), Ord(fsObjectContents.BoldExistenceState),
     Format('Object %s existence state should be %d but was %d',
       [aId.AsString, Ord(State), Ord(fsObjectContents.BoldExistenceState)]));
 end;
@@ -2060,6 +2002,7 @@ end;
 
 procedure TTestBoldUndoHandlerTransient.SetUp;
 begin
+  inherited;
   Ensuredm_Model;
   FSystemTypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
   FSystemTypeInfoHandle.BoldModel := dm_Model1.BoldModel1;
@@ -2080,6 +2023,7 @@ begin
   end;
   FreeAndNil(FSystemHandle);
   FreeAndNil(FSystemTypeInfoHandle);
+  inherited;
 end;
 
 function TTestBoldUndoHandlerTransient.GetSystem: TBoldSystem;
@@ -2117,9 +2061,9 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldUndoBlockListIsolated);
-  TDUnitX.RegisterTestFixture(TTestBoldUndoHandler);
-  TDUnitX.RegisterTestFixture(TTestBoldUndoHandlerIndirectLinks);
-  TDUnitX.RegisterTestFixture(TTestBoldUndoHandlerTransient);
+  BoldRegisterTest(TTestBoldUndoBlockListIsolated);
+  BoldRegisterTest(TTestBoldUndoHandler);
+  BoldRegisterTest(TTestBoldUndoHandlerIndirectLinks);
+  BoldRegisterTest(TTestBoldUndoHandlerTransient);
 
 end.

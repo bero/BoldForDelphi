@@ -35,6 +35,7 @@ uses
   SysUtils,
   Classes,
   fpcunit,
+  testdecorator,
   testregistry
   {$ELSE}
   DUnitX.TestFramework
@@ -53,6 +54,11 @@ type
   protected
     procedure RunTest; override;
     procedure FreeAfterTest(AObject: TObject);
+    { Once per fixture, around all its tests, as on Delphi. FPCUnit creates one
+      instance per test, so these run on an instance of their own: keep
+      fixture-wide state in globals or class variables, not in fields. }
+    procedure SetUpOnce; virtual;
+    procedure TearDownOnce; virtual;
   end;
 
   { Assert: the DUnitX Assert API used by the Bold tests, for FPCUnit. }
@@ -161,9 +167,79 @@ implementation
 
 {$IFDEF FPC}
 
+type
+  { Runs a fixture's SetUpOnce before its tests and TearDownOnce after them. }
+  TBoldFixtureSetup = class(TTestSetup)
+  private
+    fFixtureClass: TBoldTestCaseClass;
+    fFixture: TBoldTestCase;
+  protected
+    procedure OneTimeSetup; override;
+    procedure OneTimeTearDown; override;
+  public
+    constructor CreateFor(AClass: TBoldTestCaseClass);
+  end;
+
+  TFixtureHook = procedure of object;
+
+constructor TBoldFixtureSetup.CreateFor(AClass: TBoldTestCaseClass);
+begin
+  // The decorator takes its name from the suite, so --suite=<class> still works
+  inherited Create(TTestSuite.Create(AClass));
+  fFixtureClass := AClass;
+end;
+
+procedure TBoldFixtureSetup.OneTimeSetup;
+begin
+  fFixture := fFixtureClass.Create;
+  fFixture.SetUpOnce;
+end;
+
+procedure TBoldFixtureSetup.OneTimeTearDown;
+begin
+  try
+    if Assigned(fFixture) then
+      fFixture.TearDownOnce;
+  finally
+    FreeAndNil(fFixture);
+  end;
+end;
+
+{ True when AClass overrides SetUpOnce or TearDownOnce. Only those fixtures
+  get the decorator; the others keep the plain suite. }
+function HasFixtureHooks(AClass: TBoldTestCaseClass): Boolean;
+var
+  Probe: TBoldTestCase;
+  Hook: TFixtureHook;
+begin
+  Probe := AClass.Create;
+  try
+    Hook := Probe.SetUpOnce;
+    Result := TMethod(Hook).Code <> Pointer(@TBoldTestCase.SetUpOnce);
+    if not Result then
+    begin
+      Hook := Probe.TearDownOnce;
+      Result := TMethod(Hook).Code <> Pointer(@TBoldTestCase.TearDownOnce);
+    end;
+  finally
+    Probe.Free;
+  end;
+end;
+
 procedure BoldRegisterTest(AClass: TBoldTestCaseClass);
 begin
-  RegisterTest(AClass);
+  if HasFixtureHooks(AClass) then
+    RegisterTest('', TBoldFixtureSetup.CreateFor(AClass))
+  else
+    RegisterTest(AClass);
+end;
+
+procedure TBoldTestCase.SetUpOnce;
+begin
+end;
+
+procedure TBoldTestCase.TearDownOnce;
+begin
 end;
 
 function BoldTestTempDir: string;

@@ -88,6 +88,7 @@ uses
   Test.BoldUMLTaggedValues,
   Test.BoldUMLTypes,
   Test.BoldURI,
+  Test.BoldUndoHandler,
   Test.BoldUpdatePrecondition,
   Test.BoldUtils,
   Test.BoldZeosAdapter;
