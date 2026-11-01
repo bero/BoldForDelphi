@@ -96,8 +96,13 @@ type
   private
     fQuery: TZQuery;
     fParamsSnapshot: TParams;
+    fScript: TObject; // TZSQLProcessor, created on the first batch
+    fLastExecWasScript: Boolean;
+    fParamCheck: Boolean;
     fReadTransactionStarted: Boolean;
     fUseReadTransactions: Boolean;
+    function IsMultiStatement: Boolean;
+    procedure ExecScript;
     function GetQuery: TZQuery;
     function GetZeosConnection: TBoldZeosConnection;
     procedure AssignParams(SourceParams: TParams);
@@ -515,14 +520,17 @@ constructor TBoldZeosQuery.Create(BoldZeosConnection: TBoldZeosConnection);
 begin
   inherited Create(BoldZeosConnection);
   fUseReadTransactions := true;
+  fParamCheck := true;
   fQuery := TZQuery.Create(nil);
   fQuery.Connection := BoldZeosConnection.ZConnection;
+  fQuery.ParamCheck := true; // stays on, see SetParamCheck
 end;
 
 destructor TBoldZeosQuery.Destroy;
 begin
   if fReadTransactionStarted then
     Close;
+  FreeAndNil(fScript);
   FreeAndNil(fQuery);
   FreeAndNil(fParamsSnapshot);
   inherited;
@@ -545,12 +553,20 @@ end;
 
 function TBoldZeosQuery.GetParamCheck: Boolean;
 begin
-  Result := Query.ParamCheck;
+  Result := fParamCheck;
 end;
 
 procedure TBoldZeosQuery.SetParamCheck(Value: Boolean);
 begin
-  Query.ParamCheck := Value;
+  { Remembered, not passed on. With ParamCheck off, FireDAC leaves the
+    parameters alone when the SQL changes; Zeos drops them all instead. Bold
+    builds a batch with ParamCheck off: it creates the parameters, then
+    finishes the SQL (EndUpdate) and only then switches ParamCheck on, which
+    on Zeos would leave every parameter NULL. With ParamCheck on, Zeos
+    rebuilds the parameters from the markers and keeps the values of those
+    with the same name, which is what FireDAC's behaviour amounts to here.
+    Quoted text is not scanned for markers. }
+  fParamCheck := Value;
 end;
 
 function TBoldZeosQuery.GetParamCount: Integer;
@@ -601,7 +617,11 @@ end;
 
 function TBoldZeosQuery.GetRowsAffected: Integer;
 begin
-  Result := Query.RowsAffected;
+  // TZSQLProcessor does not report rows affected, so a batch reports -1
+  if fLastExecWasScript then
+    Result := -1
+  else
+    Result := Query.RowsAffected;
 end;
 
 function TBoldZeosQuery.GetSQLStrings: TStrings;
@@ -751,7 +771,13 @@ begin
     BoldLogSQLWithParams(Query.SQL, self);
     try
       BeginStatement;
-      Query.ExecSQL;
+      if IsMultiStatement then
+        ExecScript
+      else
+      begin
+        Query.ExecSQL;
+        fLastExecWasScript := False;
+      end;
       EndStatement;
     except
       on E: Exception do
@@ -760,6 +786,40 @@ begin
   finally
     EndExecuteQuery;
   end;
+end;
+
+{ True when the SQL holds more than one statement, as Bold's batches do
+  (SQLDatabaseConfig.BatchQuerySeparator). SQL without a ';' is never parsed. }
+function TBoldZeosQuery.IsMultiStatement: Boolean;
+var
+  Script: TZSQLProcessor;
+begin
+  Result := False;
+  if Pos(';', Query.SQL.Text) = 0 then
+    Exit;
+  if not Assigned(fScript) then
+  begin
+    Script := TZSQLProcessor.Create(nil);
+    Script.Connection := Query.Connection;
+    fScript := Script;
+  end;
+  Script := TZSQLProcessor(fScript);
+  Script.Script.Assign(Query.SQL);
+  Script.Parse;
+  Result := Script.StatementCount > 1;
+end;
+
+{ SQLite prepares only the first statement of a string, and TZQuery runs one
+  statement. TZSQLProcessor runs them one by one and binds each statement's
+  parameters by name, as FireDAC does for a batch. }
+procedure TBoldZeosQuery.ExecScript;
+var
+  Script: TZSQLProcessor;
+begin
+  Script := TZSQLProcessor(fScript);
+  Script.Params.Assign(Query.Params);
+  Script.Execute;
+  fLastExecWasScript := True;
 end;
 
 procedure TBoldZeosQuery.Open;

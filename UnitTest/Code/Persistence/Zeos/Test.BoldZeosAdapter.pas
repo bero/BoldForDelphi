@@ -36,11 +36,14 @@ type
     procedure TestAnotherConnectionSharesTheInMemoryDatabase;
     procedure TestAllTableNamesMatchesPattern;
     procedure TestInvalidSQLRaisesBoldDatabaseError;
+    procedure TestBatchOfStatementsRunsEveryStatement;
+    procedure TestParamValuesSurviveBoldBatchSequence;
   end;
 
 implementation
 
 uses
+  Db,
   BoldDefs,
   BoldSQLDatabaseConfig;
 
@@ -244,6 +247,58 @@ procedure TTestBoldZeosAdapter.TestInvalidSQLRaisesBoldDatabaseError;
 begin
   Assert.WillRaise(ExecInvalidSQL, EBoldDatabaseError, 'a Zeos error surfaces as EBoldDatabaseError');
   Assert.IsFalse(fDatabase.InTransaction, 'the read transaction of the failed statement is rolled back');
+end;
+
+procedure TTestBoldZeosAdapter.TestBatchOfStatementsRunsEveryStatement;
+var
+  ExecQuery: IBoldExecQuery;
+begin
+  // SQLite prepares only the first statement of a string; the adapter runs
+  // each statement of a batch and binds its own parameters.
+  Exec('create table t (id integer not null)');
+  ExecQuery := fDatabase.GetExecQuery;
+  try
+    ExecQuery.AssignSQLText('insert into t values (:a); insert into t values (:b)');
+    ExecQuery.ParamByName('a').AsInteger := 1;
+    ExecQuery.ParamByName('b').AsInteger := 2;
+    ExecQuery.ExecSQL;
+  finally
+    fDatabase.ReleaseExecQuery(ExecQuery);
+  end;
+  Assert.AreEqual(2, CountRows('t'), 'both statements of the batch ran');
+end;
+
+procedure TTestBoldZeosAdapter.TestParamValuesSurviveBoldBatchSequence;
+var
+  ExecQuery: IBoldExecQuery;
+  Query: IBoldQuery;
+begin
+  // TBoldBatchDataSetWrapper.ExecuteBatch: parameters are created while
+  // ParamCheck is off and the SQL is in BeginUpdate; EndUpdate and then
+  // ParamCheck := true follow. Zeos with ParamCheck off would drop them.
+  Exec('create table t (id integer not null)');
+  ExecQuery := fDatabase.GetExecQuery;
+  try
+    ExecQuery.ParamCheck := false;
+    ExecQuery.SQLStrings.BeginUpdate;
+    ExecQuery.CreateParam(ftInteger, 'P1').AsInteger := 42;
+    ExecQuery.SQLStrings.Text := 'insert into t values (:P1)';
+    ExecQuery.SQLStrings.EndUpdate;
+    ExecQuery.ParamCheck := true;
+    ExecQuery.ExecSQL;
+  finally
+    fDatabase.ReleaseExecQuery(ExecQuery);
+  end;
+  Query := fDatabase.GetQuery;
+  try
+    Query.AssignSQLText('select id from t');
+    Query.Open;
+    Assert.IsFalse(Query.Eof, 'the row was inserted');
+    Assert.AreEqual(42, Query.FieldByName('id').AsInteger, 'the parameter kept its value');
+    Query.Close;
+  finally
+    fDatabase.ReleaseQuery(Query);
+  end;
 end;
 
 initialization
