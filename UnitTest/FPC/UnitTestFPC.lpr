@@ -92,7 +92,8 @@ uses
   Test.BoldUndoHandler,
   Test.BoldUpdatePrecondition,
   Test.BoldUtils,
-  Test.BoldZeosAdapter;
+  Test.BoldZeosAdapter,
+  Test.PersistenceScenariosZeos;
 
 var
   App: TTestRunner;

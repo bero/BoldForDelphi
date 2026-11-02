@@ -8,16 +8,17 @@
 {  regression tests, written once against the code-built test system of        }
 {  TBoldTestCasePersistence so that the same bodies run on every adapter the   }
 {  build has: TTestPersistenceScenariosFireDAC in the default configuration,   }
-{  TTestPersistenceScenariosUniDAC under DebugUniDAC. The fixtures are thin -  }
-{  one [Test] per scenario that forwards here.                                 }
+{  TTestPersistenceScenariosUniDAC under DebugUniDAC, and                      }
+{  TTestPersistenceScenariosZeos under Free Pascal. The fixtures are thin -    }
+{  one test per scenario that forwards here.                                   }
 {                                                                              }
 {******************************************************************************}
 
 interface
 
 uses
-  System.SysUtils,
-  DUnitX.TestFramework,
+  SysUtils,
+  BoldTestFramework,
   BoldSystemHandle,
   BoldSystem,
   BoldDBInterfaces,
@@ -65,7 +66,7 @@ type
 implementation
 
 uses
-  System.TypInfo,
+  TypInfo,
   BoldPersistenceControllerDefault;
 
 const
