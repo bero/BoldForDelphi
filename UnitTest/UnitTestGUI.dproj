@@ -101,6 +101,8 @@
         <DCCReference Include="Code\Persistence\BoldTestCasePersistence.pas"/>
         <DCCReference Include="Code\Persistence\BoldTestDatabaseConfig.pas"/>
         <DCCReference Include="Code\Persistence\BoldTestCaseFireDAC.pas"/>
+        <DCCReference Include="Code\Persistence\BoldTestCaseDB.pas"/>
+        <DCCReference Include="Code\Persistence\BoldTestCaseDBFireDAC.pas"/>
         <DCCReference Include="Code\Persistence\BoldTestCaseUniDAC.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUMLTypes.pas"/>
         <DCCReference Include="Code\ObjectSpace\jehoBCBoldTest.pas"/>

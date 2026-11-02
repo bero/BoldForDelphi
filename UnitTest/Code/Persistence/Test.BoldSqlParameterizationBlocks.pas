@@ -17,16 +17,17 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSystem,
   BoldLogHandler,
-  BoldTestCaseFireDAC,
+  BoldTestCaseDB,
   Test.BoldSqlParameterization;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('PMapper')]
-  TTestBoldSqlParameterizationBlocks = class(TBoldTestCaseFireDAC)
+  {$ENDIF}
+  TTestBoldSqlParameterizationBlocks = class(TBoldTestCaseDB)
   private
     FCapture: TSQLCaptureLogHandler;
     FSavedHandler: TBoldLogHandler;
@@ -39,21 +40,17 @@ type
     procedure AssertMemberFetched(AObject: TBoldObject; const AMemberName, AMessage: string);
   protected
     procedure ConfigureModel; override;
-  public
-    [Test]
+  published
     procedure MultilinkFetch_ChildMapped_UnionsSubclassTablesWithParams;
-    [Test]
     procedure MultilinkFetch_CrossesBlockBoundary;
-    [Test]
     procedure ExactIdFetch_CrossesBlockBoundary;
-    [Test]
     procedure Delete_CrossesBlockBoundary;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
+  SysUtils,
   BoldDefs,
   BoldId,
   BoldDBInterfaces,
@@ -450,6 +447,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldSqlParameterizationBlocks);
+  BoldRegisterTest(TTestBoldSqlParameterizationBlocks);
 
 end.

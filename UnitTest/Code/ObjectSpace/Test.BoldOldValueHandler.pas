@@ -8,27 +8,31 @@
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSystem,
-  BoldTestCaseFireDAC;
+  BoldTestCaseDB;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('ObjectSpace')]
-  TTestBoldOldValueHandler = class(TBoldTestCaseFireDAC)
+  {$ENDIF}
+  TTestBoldOldValueHandler = class(TBoldTestCaseDB)
   strict private
     function OldValuesEmpty: Boolean;
     function SavedObject(const aName: string): TBoldObject;
     procedure SaveOnly(aObject: TBoldObject);
-  public
-    [Test]
+  published
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestChangedAttributeKeepsAnOldValue;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestPartialSavePurgesAnAttributeChangedBack;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestPartialSaveKeepsAnAttributeStillChanged;
   end;
 
@@ -105,6 +109,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldOldValueHandler);
+  BoldRegisterTest(TTestBoldOldValueHandler);
 
 end.

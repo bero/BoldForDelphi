@@ -12,6 +12,8 @@ uses
   BoldTestCasePersistence in 'Code\Persistence\BoldTestCasePersistence.pas',
   BoldTestDatabaseConfig in 'Code\Persistence\BoldTestDatabaseConfig.pas',
   BoldTestCaseFireDAC in 'Code\Persistence\BoldTestCaseFireDAC.pas',
+  BoldTestCaseDB in 'Code\Persistence\BoldTestCaseDB.pas',
+  BoldTestCaseDBFireDAC in 'Code\Persistence\BoldTestCaseDBFireDAC.pas',
   BoldTestCaseUniDAC,
   Test.BoldUMLTypes in 'Code\Common\Test.BoldUMLTypes.pas',
   jehoBCBoldTest in 'Code\ObjectSpace\jehoBCBoldTest.pas',

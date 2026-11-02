@@ -17,6 +17,7 @@ uses
   consoletestrunner,
   BoldTestDMZeos, // the database behind dmBoldTest
   maan_UndoRedoZeos, // the database behind dmUndoRedo
+  BoldTestCaseDBZeos, // the database behind TBoldTestCaseDB
   Test.BoldAbstractObjectUpgrader,
   Test.BoldAbstractObjectUpgraderHandle,
   Test.BoldAbstractSnooper,
@@ -64,6 +65,7 @@ uses
   Test.BoldOclLightWeightNodes,
   Test.BoldOclObjectTimeStamp,
   Test.BoldOclVariables,
+  Test.BoldOldValueHandler,
   Test.BoldPMapperLists,
   Test.BoldPersistenceController,
   Test.BoldPersistenceHandleDB,
@@ -76,6 +78,7 @@ uses
   Test.BoldSorter,
   Test.BoldSqlNodes,
   Test.BoldSqlParameterization,
+  Test.BoldSqlParameterizationBlocks,
   Test.BoldStubs,
   Test.BoldSubscribableCollection,
   Test.BoldSubscription,
