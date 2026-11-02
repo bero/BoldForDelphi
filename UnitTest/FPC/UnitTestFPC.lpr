@@ -33,6 +33,7 @@ uses
   Test.BoldDbParameter,
   Test.BoldDefaultId,
   Test.BoldDefaultTaggedValues,
+  Test.BoldDefaultXMLStreaming,
   Test.BoldDefs,
   Test.BoldDeriver,
   Test.BoldElements,

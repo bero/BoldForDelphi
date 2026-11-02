@@ -1,11 +1,16 @@
 ﻿unit Test.BoldDefaultXMLStreaming;
 
-{ DUnitX tests for BoldDefaultXMLStreaming - XML value space streaming }
+{$INCLUDE bold.inc}
+
+{ Tests for BoldDefaultXMLStreaming - XML value space streaming, shared between
+  DUnitX and FPCUnit. The XML goes through TBoldXMLDocument (MSXML on Delphi,
+  fcl-xml under Free Pascal); the JSON tests need BoldJson, which is Delphi
+  only (BoldObjectRepresentationJson is built on System.JSON). }
 
 interface
 
 uses
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldSystem,
   BoldDefs,
   BoldElements,
@@ -24,62 +29,51 @@ uses
   jehoBoldTestDataModule;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('XMLStreaming')]
-  TTestBoldDefaultXMLStreaming = class
+  {$ENDIF}
+  TTestBoldDefaultXMLStreaming = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
+    FUnknownStreamer: TBoldXMLClassStreamer;
     function GetSystem: TBoldSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
+    // Free Pascal 3.2.2 has no anonymous methods: Assert.WillRaiseAny gets this.
+    procedure ReadUnknownClassStreamer;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestWriteAndReadValueSpace;
-    [Test]
     procedure TestWriteAndReadValueSpaceWithNull;
-    [Test]
     procedure TestStreamManagerCreate;
-    [Test]
     procedure TestClassStreamerCount;
-    [Test]
     procedure TestWriteWithPersistenceState;
-    [Test]
     procedure TestWriteMultipleObjects;
-    [Test]
     procedure TestWriteReadWithBlobContent;
-    [Test]
     procedure TestClassStreamerByNameNotFound;
   end;
 
   // Tests with TestModel1 (has associations — exercises IdRef/IdListRef streamers)
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('XMLStreaming')]
-  TTestXMLStreamingWithLinks = class
+  {$ENDIF}
+  TTestXMLStreamingWithLinks = class(TBoldTestCase)
   private
     FSystemHandle: TBoldSystemHandle;
     FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
     function GetSystem: TBoldSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestWriteReadWithSingleLink;
-    [Test]
     procedure TestWriteReadWithMultiLink;
-    [Test]
     procedure TestWriteReadWithParentChild;
-    [Test]
     procedure TestWriteReadMultipleLinkedObjects;
-    [Test]
+    {$IFDEF BoldJson}
     procedure TestJsonWithSingleAndMultiLinks;
-    [Test]
     procedure TestJsonWithPartPartOf;
+    {$ENDIF}
   end;
 
 implementation
@@ -87,12 +81,13 @@ implementation
 uses
   SysUtils,
   Classes,
+  {$IFDEF BoldJson}
   System.JSON,
+  BoldObjectRepresentationJson, // built on Delphi's System.JSON; off under FPC
+  {$ENDIF}
   BoldId,
   BoldDefaultId,
   BoldDomainElement,
-  Bold_MSXML_TLB,
-  BoldObjectRepresentationJson,
   dmModel1;
 
 procedure TTestBoldDefaultXMLStreaming.SetUp;
@@ -113,10 +108,9 @@ end;
 procedure TTestBoldDefaultXMLStreaming.TestWriteAndReadValueSpace;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
-  ParseError: IXMLDOMParseError;
   Obj: jehoBCBoldTest.TClassA;
   anIdList: TBoldObjectIdList;
   FSValueSpace: TBoldFreeStandingValueSpace;
@@ -141,7 +135,7 @@ begin
   Obj.aBlob := 'BlobData';
 
   // Write to XML
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     FDataModule.BoldModel1.MoldModel);
@@ -157,7 +151,7 @@ begin
       anIdList.Free;
     end;
 
-    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    anXML := aDoc.RootXML;
     Assert.IsTrue(Length(anXML) > 100, 'XML output should be substantial: ' + IntToStr(Length(anXML)));
 
     aNode.Free;
@@ -167,12 +161,9 @@ begin
   end;
 
   // Read back from XML
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   try
-    aDoc.async := False;
-    aDoc.loadXML(anXML);
-    ParseError := aDoc.parseError;
-    Assert.IsTrue((not Assigned(ParseError)) or (ParseError.errorCode = 0), 'XML should parse without errors');
+    aDoc.LoadXML(anXML); // raises EBold when the XML does not parse
 
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
@@ -202,7 +193,7 @@ end;
 procedure TTestBoldDefaultXMLStreaming.TestWriteAndReadValueSpaceWithNull;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Obj: jehoBCBoldTest.TClassA;
@@ -211,7 +202,7 @@ begin
   // Create object with null attributes (default)
   Obj := jehoBCBoldTest.TClassA.Create(GetSystem);
 
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     FDataModule.BoldModel1.MoldModel);
@@ -227,7 +218,7 @@ begin
       anIdList.Free;
     end;
 
-    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    anXML := aDoc.RootXML;
     Assert.IsTrue(Length(anXML) > 50, 'XML with nulls should still have content');
 
     aNode.Free;
@@ -271,7 +262,7 @@ end;
 procedure TTestBoldDefaultXMLStreaming.TestWriteWithPersistenceState;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Obj: jehoBCBoldTest.TClassA;
@@ -281,7 +272,7 @@ begin
   Obj.aString := 'WithState';
   Obj.aInteger := 99;
 
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     FDataModule.BoldModel1.MoldModel);
@@ -299,7 +290,7 @@ begin
       anIdList.Free;
     end;
 
-    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    anXML := aDoc.RootXML;
     Assert.IsTrue(Length(anXML) > 50, 'XML with persistence state should have content');
 
     aNode.Free;
@@ -312,13 +303,12 @@ end;
 procedure TTestBoldDefaultXMLStreaming.TestWriteMultipleObjects;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Obj1, Obj2, Obj3: jehoBCBoldTest.TClassA;
   anIdList: TBoldObjectIdList;
   FSValueSpace: TBoldFreeStandingValueSpace;
-  ParseError: IXMLDOMParseError;
 begin
   Obj1 := jehoBCBoldTest.TClassA.Create(GetSystem);
   Obj2 := jehoBCBoldTest.TClassA.Create(GetSystem);
@@ -331,7 +321,7 @@ begin
   Obj3.aCurrency := 3.00;
 
   // Write all 3 objects
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     FDataModule.BoldModel1.MoldModel);
@@ -349,7 +339,7 @@ begin
       anIdList.Free;
     end;
 
-    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    anXML := aDoc.RootXML;
     aNode.Free;
   finally
     aMgr.Free;
@@ -357,12 +347,9 @@ begin
   end;
 
   // Read back and verify all 3 objects
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   try
-    aDoc.async := False;
-    aDoc.loadXML(anXML);
-    ParseError := aDoc.parseError;
-    Assert.IsTrue((not Assigned(ParseError)) or (ParseError.errorCode = 0), 'Should parse');
+    aDoc.LoadXML(anXML); // raises EBold when the XML does not parse
 
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
@@ -393,7 +380,7 @@ end;
 procedure TTestBoldDefaultXMLStreaming.TestWriteReadWithBlobContent;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Obj: jehoBCBoldTest.TClassA;
@@ -404,7 +391,7 @@ begin
   Obj.aBlobContent := 'typed blob';
   Obj.M_aBlobContent.ContentType := 'text/plain';
 
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     FDataModule.BoldModel1.MoldModel);
@@ -420,7 +407,7 @@ begin
       anIdList.Free;
     end;
 
-    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    anXML := aDoc.RootXML;
     Assert.IsTrue(Length(anXML) > 100, 'Blob XML should have content');
 
     aNode.Free;
@@ -431,6 +418,11 @@ begin
 end;
 
 procedure TTestBoldDefaultXMLStreaming.TestClassStreamerByNameNotFound;
+begin
+  Assert.WillRaiseAny(ReadUnknownClassStreamer);
+end;
+
+procedure TTestBoldDefaultXMLStreaming.ReadUnknownClassStreamer;
 var
   aMgr: TBoldDefaultXMLStreamManager;
 begin
@@ -438,12 +430,7 @@ begin
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     FDataModule.BoldModel1.MoldModel);
   try
-    Assert.WillRaiseAny(
-      procedure
-      begin
-        aMgr.ClassStreamerByName['NonExistentClass'];
-      end
-    );
+    FUnknownStreamer := aMgr.ClassStreamerByName['NonExistentClass'];
   finally
     aMgr.Free;
   end;
@@ -480,10 +467,9 @@ end;
 procedure TTestXMLStreamingWithLinks.TestWriteReadWithSingleLink;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
-  ParseError: IXMLDOMParseError;
   Parent, Child: TestModel1.TClassA;
   anIdList: TBoldObjectIdList;
   FSValueSpace: TBoldFreeStandingValueSpace;
@@ -495,7 +481,7 @@ begin
   Child.parent := Parent;
 
   // Write
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     dm_Model1.BoldModel1.MoldModel);
@@ -510,7 +496,7 @@ begin
     finally
       anIdList.Free;
     end;
-    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    anXML := aDoc.RootXML;
     Assert.IsTrue(Length(anXML) > 200, 'XML with links should be substantial');
     aNode.Free;
   finally
@@ -519,12 +505,9 @@ begin
   end;
 
   // Read back
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   try
-    aDoc.async := False;
-    aDoc.loadXML(anXML);
-    ParseError := aDoc.parseError;
-    Assert.IsTrue((not Assigned(ParseError)) or (ParseError.errorCode = 0), 'Should parse');
+    aDoc.LoadXML(anXML); // raises EBold when the XML does not parse
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       dm_Model1.BoldModel1.MoldModel);
@@ -551,7 +534,7 @@ end;
 procedure TTestXMLStreamingWithLinks.TestWriteReadWithMultiLink;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Parent, C1, C2: TestModel1.TClassA;
@@ -564,7 +547,7 @@ begin
   C1.parent := Parent;
   C2.parent := Parent;
 
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     dm_Model1.BoldModel1.MoldModel);
@@ -580,7 +563,7 @@ begin
     finally
       anIdList.Free;
     end;
-    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    anXML := aDoc.RootXML;
     Assert.IsTrue(Length(anXML) > 300, 'XML with multi-link should be large');
     aNode.Free;
   finally
@@ -592,10 +575,9 @@ end;
 procedure TTestXMLStreamingWithLinks.TestWriteReadWithParentChild;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
-  ParseError: IXMLDOMParseError;
   Root, L1, L2: TestModel1.TClassA;
   anIdList: TBoldObjectIdList;
   FSValueSpace: TBoldFreeStandingValueSpace;
@@ -613,7 +595,7 @@ begin
   L2.parent := L1;
 
   // Write
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     dm_Model1.BoldModel1.MoldModel);
@@ -629,7 +611,7 @@ begin
     finally
       anIdList.Free;
     end;
-    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    anXML := aDoc.RootXML;
     aNode.Free;
   finally
     aMgr.Free;
@@ -637,12 +619,9 @@ begin
   end;
 
   // Read back
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   try
-    aDoc.async := False;
-    aDoc.loadXML(anXML);
-    ParseError := aDoc.parseError;
-    Assert.IsTrue((not Assigned(ParseError)) or (ParseError.errorCode = 0), 'Should parse');
+    aDoc.LoadXML(anXML); // raises EBold when the XML does not parse
     aMgr := TBoldDefaultXMLStreamManager.Create(
       TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
       dm_Model1.BoldModel1.MoldModel);
@@ -670,7 +649,7 @@ end;
 procedure TTestXMLStreamingWithLinks.TestWriteReadMultipleLinkedObjects;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: TBoldXMLDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   Obj1, Obj2: TestModel1.TClassA;
@@ -684,7 +663,7 @@ begin
   // Also add part relationship
   Obj1.part.Add(Obj2);
 
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := TBoldXMLDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(
     TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry,
     dm_Model1.BoldModel1.MoldModel);
@@ -702,7 +681,7 @@ begin
     finally
       anIdList.Free;
     end;
-    anXML := aNode.XMLDomElement.ownerDocument.xml;
+    anXML := aDoc.RootXML;
     Assert.IsTrue(Length(anXML) > 200, 'Complex link XML should be substantial');
     aNode.Free;
   finally
@@ -711,6 +690,7 @@ begin
   end;
 end;
 
+{$IFDEF BoldJson}
 procedure TTestXMLStreamingWithLinks.TestJsonWithSingleAndMultiLinks;
 var
   Parent, C1, C2: TestModel1.TClassA;
@@ -754,9 +734,10 @@ begin
   Json := BoldElementToJsonString(Obj1);
   Assert.IsTrue(Length(Json) > 20, 'JSON with part/partof should have content');
 end;
+{$ENDIF}
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldDefaultXMLStreaming);
-  TDUnitX.RegisterTestFixture(TTestXMLStreamingWithLinks);
+  BoldRegisterTest(TTestBoldDefaultXMLStreaming);
+  BoldRegisterTest(TTestXMLStreamingWithLinks);
 
 end.
