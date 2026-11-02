@@ -82,6 +82,7 @@ uses
   Test.BoldLogHandler in 'Code\Common\Test.BoldLogHandler.pas',
   Test.BoldGuard in 'Code\Common\Test.BoldGuard.pas',
   Test.BoldQueue in 'Code\Common\Test.BoldQueue.pas',
+  Test.BoldRegEx in 'Code\Common\Test.BoldRegEx.pas',
   Test.BoldEnvironment in 'Code\Common\Test.BoldEnvironment.pas',
   Test.BoldClock in 'Code\Common\Test.BoldClock.pas',
   Test.BoldContainers in 'Code\Common\Test.BoldContainers.pas',

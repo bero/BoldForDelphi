@@ -70,6 +70,7 @@ uses
   Test.BoldPersistenceController,
   Test.BoldPersistenceHandleDB,
   Test.BoldQueue,
+  Test.BoldRegEx,
   Test.BoldSQLDatabaseConfig,
   Test.BoldSQLMappingInfo,
   Test.BoldSSExcept,
