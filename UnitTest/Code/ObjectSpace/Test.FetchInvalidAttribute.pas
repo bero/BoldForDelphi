@@ -1,6 +1,6 @@
 ﻿unit Test.FetchInvalidAttribute;
 
-{ DUnitX-compatible Test for Fetch Invalid Attribute behavior
+{ Tests for Fetch Invalid Attribute behavior, shared between DUnitX and FPCUnit
 
   Tests the attribute invalidation and refetch mechanisms:
   - TestFetchInvalidAttribute: Verifies that invalidated attributes are refetched correctly
@@ -11,9 +11,9 @@
 interface
 
 uses
-  DUnitX.TestFramework,
-  System.SysUtils,
-  System.Classes,
+  SysUtils,
+  Classes,
+  BoldTestFramework,
   BoldDefs,
   BoldSystem,
   BoldDomainElement,
@@ -31,36 +31,26 @@ uses
   jehoBoldTestDataModule;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('FetchRefetch')]
-  TTestFetchInvalidAttribute = class
+  {$ENDIF}
+  TTestFetchInvalidAttribute = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
     function GetSystem: TBoldSystem;
   protected
     property System: TBoldSystem read GetSystem;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-  public
-    [Test]
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestFetchInvalidAttribute;
-    [Test]
     procedure TestFetchCurrentAttribute;
-    [Test]
     procedure TestFetchModifiedAttribute;
-    [Test]
     procedure TestFetchEmbeddedRoleInvalid;
-    [Test]
     procedure TestInvalidateAndAccess;
   end;
 
 implementation
-
-uses
-  Forms;
 
 // Note: dmjehoBoldTest.dfm is included by jehoBoldTestDataModule.pas
 
@@ -253,6 +243,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestFetchInvalidAttribute);
+  BoldRegisterTest(TTestFetchInvalidAttribute);
 
 end.

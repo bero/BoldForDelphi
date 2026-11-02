@@ -98,6 +98,7 @@ uses
   Test.BoldUpdatePrecondition,
   Test.BoldUtils,
   Test.BoldZeosAdapter,
+  Test.FetchInvalidAttribute,
   Test.PersistenceScenariosZeos;
 
 var
