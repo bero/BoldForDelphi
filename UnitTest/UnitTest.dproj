@@ -162,6 +162,7 @@
         <DCCReference Include="Code\Persistence\Test.BoldPersistenceController.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldDbValidator.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldDbCopy.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldDbCopyFireDAC.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldAbstractSnooper.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldAbstractObjectUpgraderHandle.pas"/>
         <DCCReference Include="Code\PMapper\Test.BoldPMapperLists.pas"/>

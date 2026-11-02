@@ -1,106 +1,57 @@
 ﻿unit Test.BoldDbCopy;
 
-{ DUnitX tests for BoldDbCopy - control character stripping (H9) }
+{ Tests for BoldDbCopy - control character stripping (H9) and an end-to-end
+  copy, shared between DUnitX and FPCUnit. The end-to-end copy runs on
+  dmUndoRedo: FireDAC under Delphi, Zeos under Free Pascal. The FireDAC query
+  tuning is in Test.BoldDbCopyFireDAC (Delphi only). }
 
 interface
 
 uses
   SysUtils,
   SyncObjs,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDBInterfaces,
   BoldDbCopy;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Persistence')]
-  TTestBoldDbCopyFireDACTuning = class
-  public
-    [Test]
-    procedure TestSourceQueryTuningAppliesToFireDAC;
-  end;
-
-type
-  [TestFixture]
-  [Category('Persistence')]
-  TTestBoldDbCopy = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldDbCopy = class(TBoldTestCase)
+  published
     procedure TestStripControlCharsRemovesTrailingControlChar;
-    [Test]
     procedure TestStripControlCharsKeepsPlainText;
   end;
 
   { Copies the test database into a second in-memory database with a real
     TBoldDbCopy run (Run spawns ThreadCount worker threads, each with its own
     source and destination connection) and checks what arrived. }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Persistence')]
-  TTestBoldDbCopyEndToEnd = class
+  {$ENDIF}
+  TTestBoldDbCopyEndToEnd = class(TBoldTestCase)
   private
     FDone: TEvent;
+    FSharedCacheSQLite: Boolean;
     procedure HandleComplete(Sender: TObject);
     function RowCount(const ADatabase: IBoldDatabase; const ATable: string): Integer;
     function StringsOf(const ADatabase: IBoldDatabase; const ASql: string): string;
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestCopiesAllRowsToTheDestination;
   end;
 
 implementation
 
 uses
-  BoldFireDACInterfaces,
-  BoldTestDatabaseConfig,
   BoldTestModel,
-  maan_UndoRedoBase,
-  maan_UndoRedoFireDAC,
-  BoldSQLDatabaseConfig,
-  FireDAC.Comp.Client,
-  FireDAC.Stan.Option;
-
-procedure TTestBoldDbCopyFireDACTuning.TestSourceQueryTuningAppliesToFireDAC;
-var
-  FDConnection: TFDConnection;
-  Config: TBoldSQLDataBaseConfig;
-  BoldConnection: TBoldFireDACConnection;
-  Database: IBoldDataBase;
-  Query: IBoldQuery;
-  FDQuery: TFDQuery;
-begin
-  // Follow-up to the UniDAC-optional change (#51): the bulk-copy read tuning
-  // (streaming, forward-only, read-only, batch-sized fetches) existed only in
-  // the UniDAC branch, leaving the open-source FireDAC path correct but
-  // untuned - unbounded row retention on large source tables.
-  Config := TBoldSQLDataBaseConfig.Create;
-  FDConnection := TFDConnection.Create(nil);
-  BoldConnection := TBoldFireDACConnection.Create(FDConnection, Config);
-  try
-    Database := BoldConnection;
-    Query := Database.GetQuery;
-    TBoldDbCopy.TuneSourceQuery(Query);
-    TBoldDbCopy.SetSourceFetchRows(Query, 123);
-    FDQuery := Query.AsDataSet as TFDQuery;
-    Assert.IsTrue(FDQuery.FetchOptions.Unidirectional, 'source must be forward-only');
-    Assert.IsTrue(FDQuery.UpdateOptions.ReadOnly, 'source must be read-only');
-    Assert.IsTrue(FDQuery.FetchOptions.Mode = fmOnDemand, 'source must stream on demand');
-    Assert.AreEqual(123, FDQuery.FetchOptions.RowsetSize, 'fetch batch must match the insert batch');
-  finally
-    // release in the finally so a failing assertion does not leak the query
-    if Assigned(Query) then
-      Database.ReleaseQuery(Query);
-    Query := nil;
-    Database := nil;
-    BoldConnection.Free;
-    FDConnection.Free;
-    Config.Free;
-  end;
-end;
+  maan_UndoRedoBase;
 
 procedure TTestBoldDbCopy.TestStripControlCharsRemovesTrailingControlChar;
 begin
@@ -128,29 +79,16 @@ end;
 
 { TTestBoldDbCopyEndToEnd }
 
-const
-  cDestinationDatabase = 'file:memdb_dbcopy?mode=memory&cache=shared';
-
 procedure TTestBoldDbCopyEndToEnd.SetUp;
-var
-  Destination: string;
 begin
   EnsureDM;
   if not dmUndoRedo.BoldSystemHandle1.Active then
     dmUndoRedo.BoldSystemHandle1.Active := True;
   // Destination: the data module's second persistence handle, pointed at a
-  // second database with a freshly created (empty) schema. On SQLite that is
-  // a second in-memory database (the connection stays open so the shared
-  // cache stays alive); on server engines a sibling of the test database.
-  if SameText(GetTestDatabaseEngine, 'SQLite') then
-    Destination := cDestinationDatabase
-  else
-  begin
-    Destination := GetTestDatabaseName + '_DbCopy';
-    CreateTestDatabase(Destination);
-  end;
-  UndoRedoFireDAC.FDConnection2.Params.Values['Database'] := Destination;
-  UndoRedoFireDAC.FDConnection2.Open;
+  // second database with a freshly created (empty) schema. The connector
+  // knows how: a second in-memory database on SQLite, a sibling of the test
+  // database on server engines.
+  FSharedCacheSQLite := OpenUndoRedoSecondDatabase;
   dmUndoRedo.BoldPersistenceHandleDB2.CreateDataBaseSchema;
   FDone := TEvent.Create(nil, True, False, '');
 end;
@@ -225,8 +163,12 @@ begin
   for i := Low(cValues) to High(cValues) do
     TSomeClass.Create(dmUndoRedo.BoldSystemHandle1.System).aString := cValues[i];
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-  Source := UndoRedoFireDAC.BoldDatabaseAdapterFireDAC1.DatabaseInterface;
-  Destination := UndoRedoFireDAC.BoldDatabaseAdapterFireDAC2.DatabaseInterface;
+  Source := dmUndoRedo.BoldPersistenceHandleDB1.DatabaseAdapter.DatabaseInterface;
+  Destination := dmUndoRedo.BoldPersistenceHandleDB2.DatabaseAdapter.DatabaseInterface;
+  // CreateDataBaseSchema in SetUp closed the destination connection again.
+  // FireDAC reconnects on the first query; Zeos does not, so open it here.
+  if not Destination.Connected then
+    Destination.Open;
   SourceObjects := IntToStr(RowCount(Source, 'BOLD_OBJECT'));
   SourceStrings := StringsOf(Source, 'select aString from SomeClass order by aString');
   Assert.AreEqual(0, RowCount(Destination, 'SomeClass'),
@@ -239,7 +181,7 @@ begin
     // SQLite's shared-cache mode (the in-memory test database) refuses
     // concurrent writers with SQLITE_LOCKED, so one worker there; the
     // multi-worker path is exercised on server engines.
-    if SameText(GetTestDatabaseEngine, 'SQLite') then
+    if FSharedCacheSQLite then
       DbCopy.ThreadCount := 1
     else
       DbCopy.ThreadCount := 2;
@@ -266,8 +208,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldDbCopy);
-  TDUnitX.RegisterTestFixture(TTestBoldDbCopyFireDACTuning);
-  TDUnitX.RegisterTestFixture(TTestBoldDbCopyEndToEnd);
+  BoldRegisterTest(TTestBoldDbCopy);
+  BoldRegisterTest(TTestBoldDbCopyEndToEnd);
 
 end.

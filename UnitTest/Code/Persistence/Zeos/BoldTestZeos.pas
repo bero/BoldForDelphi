@@ -11,11 +11,15 @@ uses
   ZConnection,
   BoldDatabaseAdapterZeos;
 
-{ A connection, owned by Owner, to the shared in-memory database memdb1. Every
-  connection of the process to it sees the same database, as
-  CreateAnotherDatabaseConnection and the second system of dmUndoRedo need.
-  Not connected yet. }
-function NewTestZeosConnection(Owner: TComponent): TZConnection;
+const
+  { The shared in-memory database of the test data modules. }
+  cTestZeosDatabase = 'file:memdb1';
+
+{ A connection, owned by Owner, to the shared in-memory database Database
+  (memdb1 by default). Every connection of the process to the same name sees
+  the same database, as CreateAnotherDatabaseConnection and the second system
+  of dmUndoRedo need. Not connected yet. }
+function NewTestZeosConnection(Owner: TComponent; const Database: string = cTestZeosDatabase): TZConnection;
 
 { An adapter, owned by Owner, on Connection: dbeGenericANSISQL92 with the
   column types the Delphi test modules use for SQLite. Switching to that engine
@@ -27,7 +31,7 @@ function NewTestZeosAdapter(Owner: TComponent; Connection: TZConnection): TBoldD
   activating the system (TBoldSystemSQLMapper.CloseDataBase, OpenDatabase).
   Returns an opened connection, owned by Owner, that runs no statements and
   keeps the database alive until Owner is freed. }
-function NewTestZeosKeepAlive(Owner: TComponent): TZConnection;
+function NewTestZeosKeepAlive(Owner: TComponent; const Database: string = cTestZeosDatabase): TZConnection;
 
 implementation
 
@@ -44,11 +48,11 @@ const
   SQLITE_OPEN_MEMORY = $80;
   SQLITE_OPEN_SHAREDCACHE = $20000;
 
-function NewTestZeosConnection(Owner: TComponent): TZConnection;
+function NewTestZeosConnection(Owner: TComponent; const Database: string): TZConnection;
 begin
   Result := TZConnection.Create(Owner);
   Result.Protocol := 'sqlite';
-  Result.Database := 'file:memdb1';
+  Result.Database := Database;
   Result.Properties.Values['SQLiteOpen_Flags'] := IntToStr(SQLITE_OPEN_READWRITE or
     SQLITE_OPEN_CREATE or SQLITE_OPEN_URI or SQLITE_OPEN_MEMORY or SQLITE_OPEN_SHAREDCACHE);
   Result.LoginPrompt := False;
@@ -68,9 +72,9 @@ begin
   end;
 end;
 
-function NewTestZeosKeepAlive(Owner: TComponent): TZConnection;
+function NewTestZeosKeepAlive(Owner: TComponent; const Database: string): TZConnection;
 begin
-  Result := NewTestZeosConnection(Owner);
+  Result := NewTestZeosConnection(Owner, Database);
   Result.Connect;
 end;
 

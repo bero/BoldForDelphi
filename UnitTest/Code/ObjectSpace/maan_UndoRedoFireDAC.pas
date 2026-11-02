@@ -94,8 +94,31 @@ begin
   FireDACModule.FDConnection2.Params.Values['Database'] := FireDACModule.FDConnection1.Params.Values['Database'];
 end;
 
+// On SQLite a second in-memory database (the connection stays open, so the
+// shared cache stays alive); on server engines a sibling of the test database.
+function OpenSecondDatabase(DataModule: TdmUndoRedo): Boolean;
+const
+  cSQLiteDatabase = 'file:memdb_dbcopy?mode=memory&cache=shared';
+var
+  FireDACModule: TdmUndoRedoFireDAC;
+  Database: string;
+begin
+  Result := SameText(GetTestDatabaseEngine, 'SQLite');
+  if Result then
+    Database := cSQLiteDatabase
+  else
+  begin
+    Database := GetTestDatabaseName + '_DbCopy';
+    CreateTestDatabase(Database);
+  end;
+  FireDACModule := UndoRedoFireDAC;
+  FireDACModule.FDConnection2.Params.Values['Database'] := Database;
+  FireDACModule.FDConnection2.Open;
+end;
+
 initialization
   RegisterUndoRedoDMConnector(ConnectFireDAC, PrepareSystem2);
+  RegisterUndoRedoSecondDatabase(OpenSecondDatabase);
 
 finalization
   // Runs before the finalization of FireDAC and BoldTestDatabaseConfig, which

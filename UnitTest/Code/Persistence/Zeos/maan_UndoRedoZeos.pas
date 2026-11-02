@@ -12,6 +12,7 @@ implementation
 
 uses
   ZConnection,
+  BoldDatabaseAdapterZeos,
   BoldTestZeos,
   maan_UndoRedoBase;
 
@@ -29,7 +30,25 @@ begin
   Connection1.Connect;
 end;
 
+// A second shared-cache in-memory database, kept alive by a connection that
+// dmUndoRedo owns, so it goes when dmUndoRedo is freed.
+function OpenSecondDatabase(DataModule: TdmUndoRedo): Boolean;
+const
+  cSecondDatabase = 'file:memdb_dbcopy';
+var
+  Connection2: TZConnection;
+begin
+  NewTestZeosKeepAlive(DataModule, cSecondDatabase);
+  Connection2 := (DataModule.BoldPersistenceHandleDB2.DatabaseAdapter as TBoldDatabaseAdapterZeos).Connection;
+  if Connection2.Connected then
+    Connection2.Disconnect;
+  Connection2.Database := cSecondDatabase;
+  Connection2.Connect;
+  Result := True;
+end;
+
 initialization
   RegisterUndoRedoDMConnector(ConnectZeos, nil);
+  RegisterUndoRedoSecondDatabase(OpenSecondDatabase);
 
 end.

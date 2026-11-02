@@ -90,6 +90,12 @@ type
     the first system. }
   TUndoRedoDMConnector = procedure(DataModule: TdmUndoRedo);
 
+  { Points the second persistence handle of DataModule at a second, empty
+    database of the same engine and opens its connection; the caller creates
+    the schema. Returns True when the databases are shared-cache in-memory
+    SQLite databases, which refuse concurrent writers (SQLITE_LOCKED). }
+  TUndoRedoSecondDatabase = function(DataModule: TdmUndoRedo): Boolean;
+
   procedure CloseAll;
   procedure EnsureDM;
   { Deactivates and frees dmUndoRedo if it exists. }
@@ -102,6 +108,12 @@ type
     the second persistence handle itself points it at the first one's database
     as OpenSystem2 does. Does nothing when the connector needs no preparation. }
   procedure PrepareUndoRedoSystem2;
+  { The connector's hook for OpenUndoRedoSecondDatabase. }
+  procedure RegisterUndoRedoSecondDatabase(Hook: TUndoRedoSecondDatabase);
+  { Runs the registered TUndoRedoSecondDatabase on dmUndoRedo; raises when the
+    connector has none. dmUndoRedo is then no longer the data module the
+    other tests expect: free it afterwards (FreeUndoRedoDM). }
+  function OpenUndoRedoSecondDatabase: Boolean;
 
 var
   dmUndoRedo: TdmUndoRedo;
@@ -115,6 +127,7 @@ uses BoldUndoInterfaces;
 var
   RegisteredConnector: TUndoRedoDMConnector = nil;
   RegisteredPrepareSystem2: TUndoRedoDMConnector = nil;
+  RegisteredSecondDatabase: TUndoRedoSecondDatabase = nil;
 
 procedure RegisterUndoRedoDMConnector(Connector, PrepareSystem2: TUndoRedoDMConnector);
 begin
@@ -126,6 +139,18 @@ procedure PrepareUndoRedoSystem2;
 begin
   if Assigned(RegisteredPrepareSystem2) and Assigned(dmUndoRedo) then
     RegisteredPrepareSystem2(dmUndoRedo);
+end;
+
+procedure RegisterUndoRedoSecondDatabase(Hook: TUndoRedoSecondDatabase);
+begin
+  RegisteredSecondDatabase := Hook;
+end;
+
+function OpenUndoRedoSecondDatabase: Boolean;
+begin
+  if not Assigned(RegisteredSecondDatabase) then
+    raise Exception.Create('maan_UndoRedoBase: the database connector registers no second database');
+  Result := RegisteredSecondDatabase(dmUndoRedo);
 end;
 
 procedure FreeUndoRedoDM;
