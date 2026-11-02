@@ -1,4 +1,4 @@
-unit BoldTestCasePersistence;
+﻿unit BoldTestCasePersistence;
 
 {******************************************************************************}
 {                                                                              }
@@ -7,9 +7,12 @@ unit BoldTestCasePersistence;
 {  This unit provides an abstract base class for Bold unit tests that need     }
 {  database persistence. Concrete implementations provide adapter-specific     }
 {  functionality for FireDAC, UniDAC, or other database access libraries.      }
+{  Shared by the Delphi (DUnitX) and the Free Pascal (FPCUnit) test builds     }
+{  through BoldTestFramework.                                                  }
 {                                                                              }
 {  Usage:                                                                      }
-{    1. Inherit from TBoldTestCaseFireDAC or TBoldTestCaseUniDAC               }
+{    1. Inherit from TBoldTestCaseFireDAC or TBoldTestCaseUniDAC (Delphi), or  }
+{       TBoldTestCaseZeos (Free Pascal)                                        }
 {    2. Override ConfigureModel to set up a custom model (optional)            }
 {    3. Override RegisterBusinessClasses if using generated classes            }
 {    4. Use System property to access the active BoldSystem                    }
@@ -19,10 +22,9 @@ unit BoldTestCasePersistence;
 interface
 
 uses
-  DUnitX.TestFramework,
-  System.SysUtils,
-  System.Classes,
-  Data.DB,
+  SysUtils,
+  Classes,
+  BoldTestFramework,
   BoldSystem,
   BoldElements,
   BoldSystemRT,
@@ -93,12 +95,14 @@ const
 type
   /// <summary>
   /// Abstract base class for Bold test cases that require database persistence.
-  /// Subclasses must implement CreateConnection and CreateDatabaseAdapter to
-  /// provide the specific database access library (FireDAC, UniDAC, etc.).
+  /// Subclasses must implement CreateConnection, CreateDatabaseAdapter,
+  /// OpenConnection and CloseConnection for the specific database access
+  /// library (FireDAC, UniDAC, Zeos). The connection is a TComponent because
+  /// Zeos connections do not descend from Data.DB's TCustomConnection.
   /// </summary>
-  TBoldTestCasePersistence = class
+  TBoldTestCasePersistence = class(TBoldTestCase)
   private
-    FConnection: TCustomConnection;
+    FConnection: TComponent;
     FDatabaseAdapter: TBoldAbstractDatabaseAdapter;
     FPersistenceHandle: TBoldPersistenceHandleDB;
     FSystemHandle: TBoldSystemHandle;
@@ -110,25 +114,25 @@ type
 
     /// <summary>
     /// Create and configure the database connection.
-    /// Must return a connected (or ready to connect) TCustomConnection descendant.
+    /// Must return a connected (or ready to connect) connection component.
     /// </summary>
-    function CreateConnection: TCustomConnection; virtual; abstract;
+    function CreateConnection: TComponent; virtual; abstract;
 
     /// <summary>
     /// Create the Bold database adapter for the specific library.
     /// Must configure the adapter with the provided connection.
     /// </summary>
-    function CreateDatabaseAdapter(AConnection: TCustomConnection): TBoldAbstractDatabaseAdapter; virtual; abstract;
+    function CreateDatabaseAdapter(AConnection: TComponent): TBoldAbstractDatabaseAdapter; virtual; abstract;
 
     /// <summary>
-    /// Open the database connection. Override if library needs special handling.
+    /// Open the database connection.
     /// </summary>
-    procedure OpenConnection; virtual;
+    procedure OpenConnection; virtual; abstract;
 
     /// <summary>
-    /// Close the database connection. Override if library needs special handling.
+    /// Close the database connection if it is open.
     /// </summary>
-    procedure CloseConnection; virtual;
+    procedure CloseConnection; virtual; abstract;
 
     /// <summary>
     /// Configure the model. Default loads DefaultTestModel.
@@ -170,17 +174,15 @@ type
     procedure AssertObjectIsPersistent(AObject: TBoldObject; const AMessage: string = '');
     procedure AssertObjectIsNew(AObject: TBoldObject; const AMessage: string = '');
 
-    property Connection: TCustomConnection read FConnection;
+    property Connection: TComponent read FConnection;
     property DatabaseAdapter: TBoldAbstractDatabaseAdapter read FDatabaseAdapter;
     property System: TBoldSystem read GetSystem;
     property UndoHandler: TBoldUndoHandler read GetUndoHandler;
     property SystemHandle: TBoldSystemHandle read FSystemHandle;
     property Model: TBoldModel read FModel;
-  public
-    [Setup]
-    procedure SetUp; virtual;
-    [TearDown]
-    procedure TearDown; virtual;
+
+    procedure SetUp; override;
+    procedure TearDown; override;
   end;
 
 implementation
@@ -192,6 +194,7 @@ uses
 
 procedure TBoldTestCasePersistence.SetUp;
 begin
+  inherited;
   // Create connection (adapter-specific)
   FConnection := CreateConnection;
 
@@ -252,17 +255,7 @@ begin
     CloseConnection;
     FreeAndNil(FConnection);
   end;
-end;
-
-procedure TBoldTestCasePersistence.OpenConnection;
-begin
-  FConnection.Open;
-end;
-
-procedure TBoldTestCasePersistence.CloseConnection;
-begin
-  if FConnection.Connected then
-    FConnection.Close;
+  inherited;
 end;
 
 function TBoldTestCasePersistence.GetSystem: TBoldSystem;

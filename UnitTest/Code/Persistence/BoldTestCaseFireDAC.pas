@@ -1,4 +1,4 @@
-unit BoldTestCaseFireDAC;
+﻿unit BoldTestCaseFireDAC;
 
 {******************************************************************************}
 {                                                                              }
@@ -12,7 +12,6 @@ unit BoldTestCaseFireDAC;
 interface
 
 uses
-  DUnitX.TestFramework,
   System.SysUtils,
   System.Classes,
   Data.DB,
@@ -32,13 +31,14 @@ type
     function GetFDConnection: TFDConnection;
     function GetFireDACAdapter: TBoldDatabaseAdapterFireDAC;
   protected
-    function CreateConnection: TCustomConnection; override;
-    function CreateDatabaseAdapter(AConnection: TCustomConnection): TBoldAbstractDatabaseAdapter; override;
+    function CreateConnection: TComponent; override;
+    function CreateDatabaseAdapter(AConnection: TComponent): TBoldAbstractDatabaseAdapter; override;
+    procedure OpenConnection; override;
+    procedure CloseConnection; override;
 
     property FDConnection: TFDConnection read GetFDConnection;
     property FireDACAdapter: TBoldDatabaseAdapterFireDAC read GetFireDACAdapter;
-  public
-    [Setup]
+
     procedure SetUp; override;
   end;
 
@@ -69,7 +69,7 @@ begin
   inherited;
 end;
 
-function TBoldTestCaseFireDAC.CreateConnection: TCustomConnection;
+function TBoldTestCaseFireDAC.CreateConnection: TComponent;
 var
   LConnection: TFDConnection;
 begin
@@ -78,7 +78,7 @@ begin
   Result := LConnection;
 end;
 
-function TBoldTestCaseFireDAC.CreateDatabaseAdapter(AConnection: TCustomConnection): TBoldAbstractDatabaseAdapter;
+function TBoldTestCaseFireDAC.CreateDatabaseAdapter(AConnection: TComponent): TBoldAbstractDatabaseAdapter;
 var
   LAdapter: TBoldDatabaseAdapterFireDAC;
 begin
@@ -87,6 +87,17 @@ begin
   // Configure connection and adapter from UnitTest.ini
   ConfigureConnection(AConnection as TFDConnection, LAdapter);
   Result := LAdapter;
+end;
+
+procedure TBoldTestCaseFireDAC.OpenConnection;
+begin
+  FDConnection.Open;
+end;
+
+procedure TBoldTestCaseFireDAC.CloseConnection;
+begin
+  if FDConnection.Connected then
+    FDConnection.Close;
 end;
 
 function TBoldTestCaseFireDAC.GetFDConnection: TFDConnection;

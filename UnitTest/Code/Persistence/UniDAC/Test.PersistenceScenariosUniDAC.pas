@@ -18,11 +18,10 @@ type
   TTestPersistenceScenariosUniDAC = class(TBoldTestCaseUniDAC)
   private
     FScenarios: TBoldPersistenceScenarios;
-  public
-    [Setup]
+  protected
     procedure SetUp; override;
-    [TearDown]
     procedure TearDown; override;
+  public
     [Test]
     [Category('DB')]
     procedure ThreeObjectsKeepDistinctValues;

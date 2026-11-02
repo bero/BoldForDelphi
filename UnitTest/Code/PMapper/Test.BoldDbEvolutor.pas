@@ -17,11 +17,10 @@ type
   TTestBoldDbEvolutor = class(TBoldTestCaseFireDAC)
   private
     FScenarios: TBoldDbEvolutorScenarios;
-  public
-    [Setup]
+  protected
     procedure SetUp; override;
-    [TearDown]
     procedure TearDown; override;
+  public
     [Test]
     [Category('DB')]
     procedure TestEvolveOfUpToDateDatabasePlansNoIndexes;

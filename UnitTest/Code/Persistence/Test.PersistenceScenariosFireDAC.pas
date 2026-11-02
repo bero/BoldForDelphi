@@ -16,11 +16,10 @@ type
   TTestPersistenceScenariosFireDAC = class(TBoldTestCaseFireDAC)
   private
     FScenarios: TBoldPersistenceScenarios;
-  public
-    [Setup]
+  protected
     procedure SetUp; override;
-    [TearDown]
     procedure TearDown; override;
+  public
     [Test]
     [Category('DB')]
     procedure ThreeObjectsKeepDistinctValues;

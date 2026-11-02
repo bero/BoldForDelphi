@@ -21,7 +21,6 @@ unit BoldTestCaseUniDAC;
 interface
 
 uses
-  DUnitX.TestFramework,
   System.SysUtils,
   System.Classes,
   Data.DB,
@@ -47,8 +46,10 @@ type
     function GetUniConnection: TUniConnection;
     function GetUniDACAdapter: TBoldDatabaseAdapterUniDAC;
   protected
-    function CreateConnection: TCustomConnection; override;
-    function CreateDatabaseAdapter(AConnection: TCustomConnection): TBoldAbstractDatabaseAdapter; override;
+    function CreateConnection: TComponent; override;
+    function CreateDatabaseAdapter(AConnection: TComponent): TBoldAbstractDatabaseAdapter; override;
+    procedure OpenConnection; override;
+    procedure CloseConnection; override;
     /// <summary>
     /// Configures the connection and adapter from UnitTest.ini. Override to
     /// customize.
@@ -56,10 +57,8 @@ type
     procedure ConfigureConnection(AConnection: TUniConnection; AAdapter: TBoldDatabaseAdapterUniDAC); virtual;
     property UniConnection: TUniConnection read GetUniConnection;
     property UniDACAdapter: TBoldDatabaseAdapterUniDAC read GetUniDACAdapter;
-  public
-    [Setup]
+
     procedure SetUp; override;
-    [TearDown]
     procedure TearDown; override;
   end;
 
@@ -139,7 +138,7 @@ begin
   inherited;
 end;
 
-function TBoldTestCaseUniDAC.CreateConnection: TCustomConnection;
+function TBoldTestCaseUniDAC.CreateConnection: TComponent;
 var
   LConnection: TUniConnection;
 begin
@@ -149,7 +148,7 @@ begin
   Result := LConnection;
 end;
 
-function TBoldTestCaseUniDAC.CreateDatabaseAdapter(AConnection: TCustomConnection): TBoldAbstractDatabaseAdapter;
+function TBoldTestCaseUniDAC.CreateDatabaseAdapter(AConnection: TComponent): TBoldAbstractDatabaseAdapter;
 var
   LAdapter: TBoldDatabaseAdapterUniDAC;
 begin
@@ -157,6 +156,17 @@ begin
   LAdapter.Connection := AConnection as TUniConnection;
   ConfigureConnection(AConnection as TUniConnection, LAdapter);
   Result := LAdapter;
+end;
+
+procedure TBoldTestCaseUniDAC.OpenConnection;
+begin
+  UniConnection.Open;
+end;
+
+procedure TBoldTestCaseUniDAC.CloseConnection;
+begin
+  if UniConnection.Connected then
+    UniConnection.Close;
 end;
 
 procedure TBoldTestCaseUniDAC.ConfigureConnection(AConnection: TUniConnection; AAdapter: TBoldDatabaseAdapterUniDAC);
