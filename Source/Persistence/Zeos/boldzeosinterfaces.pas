@@ -206,6 +206,7 @@ type
     procedure ExecuteScript(const Script: string);
   protected
     procedure AllTableNames(Pattern: string; ShowSystemTables: Boolean; TableNameList: TStrings); override;
+    function GetIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray; override;
     function GetTable: IBoldTable; override;
     function GetQuery: IBoldQuery; override;
     function GetExecQuery: IBoldExecQuery; override;
@@ -230,6 +231,7 @@ implementation
 
 uses
   Variants,
+  StrUtils,
 
   ZExceptions,
   ZSqlProcessor,
@@ -1180,6 +1182,17 @@ begin
   finally
     fZConnection.Database := DatabaseName;
   end;
+end;
+
+// Zeos datasets have no IndexDefs (TBoldZeosTable.GetIndexDefs), so without an
+// IndexInfoTemplate the table path of the base class cannot read indexes. SQLite
+// lists them in its PRAGMA functions (TBoldDatabaseWrapper.GetSQLiteIndexDescriptions).
+function TBoldZeosConnection.GetIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray;
+begin
+  if (SQLDatabaseConfig.IndexInfoTemplate = '') and StartsText('sqlite', fZConnection.Protocol) then
+    Result := GetSQLiteIndexDescriptions(TableName)
+  else
+    Result := inherited GetIndexDescriptions(TableName);
 end;
 
 function TBoldZeosConnection.GetQuery: IBoldQuery;

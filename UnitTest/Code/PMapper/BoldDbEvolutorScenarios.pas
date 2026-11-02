@@ -2,9 +2,10 @@
 
 { The database evolutor scenarios, written once against the code-built test
   system of TBoldTestCasePersistence so that the same bodies run on every
-  adapter the build has: TTestBoldDbEvolutor in the default configuration,
-  TTestBoldDbEvolutorUniDAC under DebugUniDAC. The fixtures are thin - one
-  [Test] per scenario that forwards here.
+  adapter the build has: TTestBoldDbEvolutor on the runner's database (FireDAC
+  under Delphi, Zeos under Free Pascal), TTestBoldDbEvolutorUniDAC under
+  DebugUniDAC. The fixtures are thin - one test per scenario that forwards
+  here.
 
   The evolutor reads the indexes that exist in the database through the
   engine's IndexInfoTemplate and plans a CREATE INDEX for every model index it
@@ -39,10 +40,10 @@ type
 implementation
 
 uses
-  System.SysUtils,
-  System.StrUtils,
-  System.Classes,
-  DUnitX.TestFramework,
+  SysUtils,
+  StrUtils,
+  Classes,
+  BoldTestFramework,
   BoldAbstractPersistenceHandleDB,
   BoldSQLDatabaseConfig,
   BoldPersistenceControllerDefault,

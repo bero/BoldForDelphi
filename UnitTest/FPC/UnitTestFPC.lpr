@@ -29,6 +29,7 @@ uses
   Test.BoldCollections,
   Test.BoldCondition,
   Test.BoldContainers,
+  Test.BoldDbEvolutor,
   Test.BoldDbParameter,
   Test.BoldDefaultId,
   Test.BoldDefaultTaggedValues,

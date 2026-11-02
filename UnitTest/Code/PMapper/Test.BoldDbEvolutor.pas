@@ -1,47 +1,54 @@
 ﻿unit Test.BoldDbEvolutor;
 
-{ The database evolutor scenarios (BoldDbEvolutorScenarios) on the FireDAC
-  adapter and the configured test engine. Twin:
+{ The database evolutor scenarios (BoldDbEvolutorScenarios) on the runner's
+  database (TBoldTestCaseDB): FireDAC and the configured test engine under
+  Delphi, Zeos on in-memory SQLite under Free Pascal. Twin:
   ..\Persistence\UniDAC\Test.BoldDbEvolutorUniDAC. }
 
 interface
 
 uses
-  DUnitX.TestFramework,
-  BoldTestCaseFireDAC,
+  BoldTestFramework,
+  BoldTestCaseDB,
   BoldDbEvolutorScenarios;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('PMapper')]
-  TTestBoldDbEvolutor = class(TBoldTestCaseFireDAC)
+  {$ENDIF}
+  TTestBoldDbEvolutor = class(TBoldTestCaseDB)
   private
     FScenarios: TBoldDbEvolutorScenarios;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
-  public
-    [Test]
+  published
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestEvolveOfUpToDateDatabasePlansNoIndexes;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestIndexDescriptionListsCompositeColumnsInIndexOrder;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestIndexDescriptionsFlagThePrimaryKeyUnderItsModelName;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestIndexDescriptionsListAnIndexedPrimaryKeyOnce;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestIndexDescriptionsIgnoreSameNamedTableInOtherSchema;
   end;
 
 implementation
 
 uses
-  System.SysUtils;
+  SysUtils;
 
 procedure TTestBoldDbEvolutor.SetUp;
 begin
@@ -81,6 +88,6 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldDbEvolutor);
+  BoldRegisterTest(TTestBoldDbEvolutor);
 
 end.

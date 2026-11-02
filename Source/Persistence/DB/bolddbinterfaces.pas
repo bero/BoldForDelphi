@@ -507,6 +507,8 @@ type
     function SupportsDefaultColumnValues: Boolean; virtual;
     procedure AllTableNames(Pattern: String; SystemTables: Boolean; TableNameList: TStrings); virtual; abstract;
     function GetIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray; virtual;
+    // SQLite through its PRAGMA functions, for adapters whose datasets have no IndexDefs
+    function GetSQLiteIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray;
     function GetTable: IBoldTable; virtual; abstract;
     procedure ReleaseTable(var Table: IBoldTable); virtual; abstract;
     function TableExists(const TableName: String): Boolean; virtual;
@@ -604,7 +606,8 @@ uses
 {$ENDIF}
   BoldUtils,
   BoldPlatform,
-  BoldIsoDateTime;
+  BoldIsoDateTime,
+  BoldRegEx;
 
 const
   BlobFieldTypes = [{$IFDEF BOLD_DELPHI15_OR_LATER}db.ftStream,{$ENDIF} db.ftBlob, db.ftGraphic..db.ftTypedBinary, db.ftOraBlob, db.ftOraClob];
@@ -1522,6 +1525,87 @@ begin
   finally
     DbQuery.Close;
     releaseQuery(DbQuery);
+  end;
+end;
+
+// One row per indexed column, grouped by index and in index order. SQLite makes
+// a single INTEGER PRIMARY KEY column an alias of the rowid and keeps no index
+// for it, so that key is added from table_info, under the name Bold gave it in
+// CREATE TABLE - as TBoldFireDACConnection does. Uses only IBoldQuery, so every
+// adapter on SQLite can call it (UniDAC, Zeos).
+function TBoldDatabaseWrapper.GetSQLiteIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray;
+const
+  cIndexColumnsSQL =
+    'SELECT il.name AS indexName, ii.name AS columnName, il.origin = ''pk'' AS isPrimary, il."unique" AS isUnique ' +
+    'FROM pragma_index_list(:TableName) il JOIN pragma_index_info(il.name) ii ' +
+    'ORDER BY il.seq, ii.seqno';
+  cKeyColumnsSQL = 'SELECT name FROM pragma_table_info(:TableName) WHERE pk > 0 ORDER BY pk';
+  cCreateTableSQL = 'SELECT sql FROM sqlite_master WHERE type = ''table'' AND name = :TableName COLLATE NOCASE';
+  cTableName = 'TableName';
+var
+  Query: IBoldQuery;
+  Current: integer;
+  KeyColumns: string;
+  ConstraintName: string;
+begin
+  Result := nil;
+  KeyColumns := '';
+  Query := GetQuery;
+  try
+    Query.AssignSQLText(cIndexColumnsSQL);
+    Query.ParamByName(cTableName).AsString := TableName;
+    Query.Open;
+    Current := -1;
+    while not Query.Eof do
+    begin
+      if (Current < 0) or (Result[Current].IndexName <> Query.FieldByName('indexName').AsString) then
+      begin
+        Inc(Current);
+        SetLength(Result, Current + 1);
+        Result[Current].IndexName := Query.FieldByName('indexName').AsString;
+        Result[Current].IndexedColumns := Query.FieldByName('columnName').AsString;
+        Result[Current].IsPrimary := Query.FieldByName('isPrimary').AsInteger <> 0;
+        Result[Current].IsUnique := Query.FieldByName('isUnique').AsInteger <> 0;
+      end
+      else
+        Result[Current].IndexedColumns := Result[Current].IndexedColumns + ';' + Query.FieldByName('columnName').AsString;
+      Query.Next;
+    end;
+    Query.Close;
+    for Current := 0 to High(Result) do
+      if Result[Current].IsPrimary then
+        Exit;
+
+    Query.AssignSQLText(cKeyColumnsSQL);
+    Query.ParamByName(cTableName).AsString := TableName;
+    Query.Open;
+    while not Query.Eof do
+    begin
+      if KeyColumns <> '' then
+        KeyColumns := KeyColumns + ';';
+      KeyColumns := KeyColumns + Query.FieldByName('name').AsString;
+      Query.Next;
+    end;
+    Query.Close;
+    if KeyColumns = '' then
+      Exit;
+
+    Query.AssignSQLText(cCreateTableSQL);
+    Query.ParamByName(cTableName).AsString := TableName;
+    Query.Open;
+    // ConstraintName stays '' when CREATE TABLE names no constraint
+    BoldRegExCapture(Query.FieldByName('sql').AsString, 'CONSTRAINT\s+"?(\w+)"?\s+PRIMARY\s+KEY', True, ConstraintName);
+    Query.Close;
+    SetLength(Result, Length(Result) + 1);
+    if ConstraintName <> '' then
+      Result[High(Result)].IndexName := ConstraintName
+    else
+      Result[High(Result)].IndexName := 'PRIMARY';
+    Result[High(Result)].IndexedColumns := KeyColumns;
+    Result[High(Result)].IsPrimary := True;
+    Result[High(Result)].IsUnique := True;
+  finally
+    ReleaseQuery(Query);
   end;
 end;
 

@@ -220,7 +220,6 @@ type
     procedure EndExecuteQuery;
     function CreateAnotherDatabaseConnection: IBoldDatabase;
     function GetImplementor: TObject;
-    function GetSQLiteIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray;
   protected
     procedure AllTableNames(Pattern: string; ShowSystemTables: Boolean; TableNameList: TStrings); override;
     function GetIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray; override;
@@ -250,7 +249,6 @@ implementation
 uses
   Variants,
   Masks,
-  RegularExpressions,
 
   BoldUtils,
   BoldGuard,
@@ -1139,7 +1137,7 @@ end;
 
 // UniDAC datasets have no IndexDefs, so without an IndexInfoTemplate the table
 // path of the base class cannot read indexes. SQLite lists them in its PRAGMA
-// functions.
+// functions (TBoldDatabaseWrapper.GetSQLiteIndexDescriptions).
 function TBoldUniDACConnection.GetIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray;
 const
   cSQLite = 'SQLite';
@@ -1148,85 +1146,6 @@ begin
     Result := GetSQLiteIndexDescriptions(TableName)
   else
     Result := inherited GetIndexDescriptions(TableName);
-end;
-
-// One row per indexed column, grouped by index and in index order. SQLite makes
-// a single INTEGER PRIMARY KEY column an alias of the rowid and keeps no index
-// for it, so that key is added from table_info, under the name Bold gave it in
-// CREATE TABLE - as TBoldFireDACConnection does.
-function TBoldUniDACConnection.GetSQLiteIndexDescriptions(const TableName: String): TBoldIndexDescriptionArray;
-const
-  cIndexColumnsSQL =
-    'SELECT il.name AS indexName, ii.name AS columnName, il.origin = ''pk'' AS isPrimary, il."unique" AS isUnique ' +
-    'FROM pragma_index_list(:TableName) il JOIN pragma_index_info(il.name) ii ' +
-    'ORDER BY il.seq, ii.seqno';
-  cKeyColumnsSQL = 'SELECT name FROM pragma_table_info(:TableName) WHERE pk > 0 ORDER BY pk';
-  cCreateTableSQL = 'SELECT sql FROM sqlite_master WHERE type = ''table'' AND name = :TableName COLLATE NOCASE';
-  cTableName = 'TableName';
-var
-  Query: IBoldQuery;
-  Current: integer;
-  KeyColumns: string;
-  Match: TMatch;
-begin
-  SetLength(Result, 0);
-  KeyColumns := '';
-  Query := GetQuery;
-  try
-    Query.AssignSQLText(cIndexColumnsSQL);
-    Query.ParamByName(cTableName).AsString := TableName;
-    Query.Open;
-    Current := -1;
-    while not Query.Eof do
-    begin
-      if (Current < 0) or (Result[Current].IndexName <> Query.FieldByName('indexName').AsString) then
-      begin
-        Inc(Current);
-        SetLength(Result, Current + 1);
-        Result[Current].IndexName := Query.FieldByName('indexName').AsString;
-        Result[Current].IndexedColumns := Query.FieldByName('columnName').AsString;
-        Result[Current].IsPrimary := Query.FieldByName('isPrimary').AsInteger <> 0;
-        Result[Current].IsUnique := Query.FieldByName('isUnique').AsInteger <> 0;
-      end
-      else
-        Result[Current].IndexedColumns := Result[Current].IndexedColumns + ';' + Query.FieldByName('columnName').AsString;
-      Query.Next;
-    end;
-    Query.Close;
-    for Current := 0 to High(Result) do
-      if Result[Current].IsPrimary then
-        Exit;
-
-    Query.AssignSQLText(cKeyColumnsSQL);
-    Query.ParamByName(cTableName).AsString := TableName;
-    Query.Open;
-    while not Query.Eof do
-    begin
-      if KeyColumns <> '' then
-        KeyColumns := KeyColumns + ';';
-      KeyColumns := KeyColumns + Query.FieldByName('name').AsString;
-      Query.Next;
-    end;
-    Query.Close;
-    if KeyColumns = '' then
-      Exit;
-
-    Query.AssignSQLText(cCreateTableSQL);
-    Query.ParamByName(cTableName).AsString := TableName;
-    Query.Open;
-    Match := TRegEx.Match(Query.FieldByName('sql').AsString, 'CONSTRAINT\s+"?(\w+)"?\s+PRIMARY\s+KEY', [roIgnoreCase]);
-    Query.Close;
-    SetLength(Result, Length(Result) + 1);
-    if Match.Success then
-      Result[High(Result)].IndexName := Match.Groups[1].Value
-    else
-      Result[High(Result)].IndexName := 'PRIMARY';
-    Result[High(Result)].IndexedColumns := KeyColumns;
-    Result[High(Result)].IsPrimary := True;
-    Result[High(Result)].IsUnique := True;
-  finally
-    ReleaseQuery(Query);
-  end;
 end;
 
 procedure TBoldUniDACConnection.Open;
