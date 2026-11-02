@@ -90,6 +90,7 @@ uses
   Test.BoldTaggedValueList,
   Test.BoldTaggedValueSupport,
   Test.BoldThreadSafeLog,
+  Test.BoldThreadSafeQueue,
   Test.BoldTypeNameDictionary,
   Test.BoldUMLModelValidator,
   Test.BoldUMLTaggedValues,

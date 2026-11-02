@@ -3,129 +3,100 @@
 interface
 
 uses
-  DUnitX.TestFramework,
-  System.Classes,
-  System.SyncObjs,
-  System.Contnrs,
+  BoldTestFramework,
+  Classes,
+  SyncObjs,
+  Contnrs,
   BoldThreadSafeQueue;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Propagator')]
-  TTestBoldThreadSafeQueue = class
+  {$ENDIF}
+  TTestBoldThreadSafeQueue = class(TBoldTestCase)
   private
     FQueue: TBoldThreadSafeObjectQueue;
     FDequeueCount: Integer;
     FDequeueEvent: TEvent;
     procedure OnQueueNotEmpty(Queue: TBoldThreadSafeQueue);
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
     // Existing ObjectQueue tests
-    [Test]
     procedure TestEnqueueDequeue;
-    [Test]
     procedure TestQueueNotEmptyEvent;
-    [Test]
     procedure TestMultipleEnqueue;
 
     // ObjectQueue: Empty property
-    [Test]
     procedure TestObjectQueue_EmptyProperty;
     // ObjectQueue: Dequeue from empty returns nil
-    [Test]
     procedure TestObjectQueue_DequeueEmpty;
     // ObjectQueue: DequeueList
-    [Test]
     procedure TestObjectQueue_DequeueList;
     // ObjectQueue: DequeueList with max limit
-    [Test]
     procedure TestObjectQueue_DequeueListWithMax;
     // ObjectQueue: MaxCount tracking
-    [Test]
     procedure TestObjectQueue_MaxCount;
     // ObjectQueue: SetOwnsObjects
-    [Test]
     procedure TestObjectQueue_SetOwnsObjects;
     // ObjectQueue: Clear with items (covers Clear while-loop body)
-    [Test]
     procedure TestObjectQueue_ClearWithItems;
     // ObjectQueue: OnQueueNotEmpty fires only on empty-to-non-empty transition
-    [Test]
     procedure TestObjectQueue_NotEmptyEventOnlyOnTransition;
     // ObjectQueue: OwnsObjects=false, caller must free
-    [Test]
     procedure TestObjectQueue_NonOwningDequeue;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Propagator')]
-  TTestBoldThreadSafeStringQueue = class
+  {$ENDIF}
+  TTestBoldThreadSafeStringQueue = class(TBoldTestCase)
   private
     FQueue: TBoldThreadSafeStringQueue;
     FNotifyCount: Integer;
     procedure OnNotEmpty(Queue: TBoldThreadSafeQueue);
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestEnqueueDequeue;
-    [Test]
     procedure TestDequeueEmpty;
-    [Test]
     procedure TestEnqueueList;
-    [Test]
     procedure TestEnqueueListEmpty;
-    [Test]
     procedure TestAppendToStringList;
-    [Test]
     procedure TestCount;
-    [Test]
     procedure TestEmpty;
-    [Test]
     procedure TestClear;
-    [Test]
     procedure TestNotifyOnEnqueue;
-    [Test]
     procedure TestNotifyOnEnqueueList;
-    [Test]
     procedure TestFIFOOrder;
   end;
 
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Propagator')]
-  TTestBoldThreadSafeInterfaceQueue = class
+  {$ENDIF}
+  TTestBoldThreadSafeInterfaceQueue = class(TBoldTestCase)
   private
     FQueue: TBoldThreadSafeInterfaceQueue;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
 
-    [Test]
     procedure TestEnqueueDequeue;
-    [Test]
     procedure TestDequeueEmpty;
-    [Test]
     procedure TestMultipleEnqueueDequeue;
-    [Test]
     procedure TestCount;
-    [Test]
     procedure TestClear;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
-  Winapi.Windows;
+  SysUtils;
 
 type
   // Simple interface for testing interface queue
@@ -204,7 +175,7 @@ begin
     FQueue.Enqueue(Obj);
 
     // Wait for event with timeout
-    Assert.AreEqual(wrSignaled, FDequeueEvent.WaitFor(1000),
+    Assert.AreEqual(Ord(wrSignaled), Ord(FDequeueEvent.WaitFor(1000)),
       'OnQueueNotEmpty event should be triggered');
     Assert.AreEqual(1, FDequeueCount, 'Event should have been called once');
   finally
@@ -648,8 +619,8 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldThreadSafeQueue);
-  TDUnitX.RegisterTestFixture(TTestBoldThreadSafeStringQueue);
-  TDUnitX.RegisterTestFixture(TTestBoldThreadSafeInterfaceQueue);
+  BoldRegisterTest(TTestBoldThreadSafeQueue);
+  BoldRegisterTest(TTestBoldThreadSafeStringQueue);
+  BoldRegisterTest(TTestBoldThreadSafeInterfaceQueue);
 
 end.
