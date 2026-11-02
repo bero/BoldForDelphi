@@ -38,6 +38,7 @@ type
     procedure TestInvalidSQLRaisesBoldDatabaseError;
     procedure TestBatchOfStatementsRunsEveryStatement;
     procedure TestParamValuesSurviveBoldBatchSequence;
+    procedure TestClearParamsThenSameSQLRecreatesTheParams;
   end;
 
 implementation
@@ -299,6 +300,39 @@ begin
   finally
     fDatabase.ReleaseQuery(Query);
   end;
+end;
+
+procedure TTestBoldZeosAdapter.TestClearParamsThenSameSQLRecreatesTheParams;
+const
+  cInsert = 'insert into t (id) values (:p0_0);';
+var
+  ExecQuery: IBoldExecQuery;
+begin
+  // TBoldDbCopy's CalcBatchSize, once per batch: ClearParams, ParamCheck on,
+  // then the INSERT. With a batch of one row the INSERT text does not change,
+  // and Zeos parses the markers only when the SQL changes, so the cleared
+  // parameters did not come back: ParamCount 0, and the copy loop, which
+  // fills ParamCount parameters per statement, never moved on.
+  Exec('create table t (id integer not null)');
+  ExecQuery := fDatabase.GetExecQuery;
+  try
+    ExecQuery.ClearParams;
+    ExecQuery.ParamCheck := true;
+    ExecQuery.SQLText := cInsert;
+    Assert.AreEqual(1, ExecQuery.ParamCount, 'the first INSERT has its parameter');
+    ExecQuery.Param[0].AsInteger := 1;
+    ExecQuery.ExecSQL;
+
+    ExecQuery.ClearParams;
+    ExecQuery.ParamCheck := true;
+    ExecQuery.SQLText := cInsert;
+    Assert.AreEqual(1, ExecQuery.ParamCount, 'the same INSERT again gets its parameter back');
+    ExecQuery.Param[0].AsInteger := 2;
+    ExecQuery.ExecSQL;
+  finally
+    fDatabase.ReleaseExecQuery(ExecQuery);
+  end;
+  Assert.AreEqual(2, CountRows('t'), 'both rows were inserted');
 end;
 
 initialization

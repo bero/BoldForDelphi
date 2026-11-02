@@ -99,6 +99,7 @@ type
     fScript: TObject; // TZSQLProcessor, created on the first batch
     fLastExecWasScript: Boolean;
     fParamCheck: Boolean;
+    fParamsCleared: Boolean;
     fReadTransactionStarted: Boolean;
     fUseReadTransactions: Boolean;
     function IsMultiStatement: Boolean;
@@ -113,6 +114,7 @@ type
     function GetRequestLiveQuery: Boolean;
     procedure SetRequestLiveQuery(NewValue: Boolean);
     procedure AssignSQL(SQL: TStrings);
+    procedure ReparseClearedParams;
     function GetRecordCount: Integer;
     function GetUseReadTransactions: Boolean;
     procedure SetUseReadTransactions(Value: Boolean);
@@ -662,12 +664,27 @@ end;
 
 procedure TBoldZeosQuery.AssignSQL(SQL: TStrings);
 begin
+  ReparseClearedParams;
   Query.SQL.Assign(SQL);
 end;
 
 procedure TBoldZeosQuery.AssignSQLText(const SQL: string);
 begin
+  ReparseClearedParams;
   Query.SQL.Text := SQL;
+end;
+
+{ Zeos creates the parameters from the SQL's markers only when the SQL text
+  changes. After ClearParams the next SQL must bring its parameters back even
+  when it is the text the query already has, as on FireDAC (TBoldDbCopy sets
+  the same INSERT again once per batch). Emptying the SQL first makes the
+  assignment a change. Only when no parameter exists: a caller that created
+  its own since ClearParams (the link mapper's id-list parameters) keeps them. }
+procedure TBoldZeosQuery.ReparseClearedParams;
+begin
+  if fParamsCleared and (Query.Params.Count = 0) then
+    Query.SQL.Clear;
+  fParamsCleared := False;
 end;
 
 procedure TBoldZeosQuery.BeginExecuteQuery;
@@ -692,6 +709,7 @@ end;
 procedure TBoldZeosQuery.ClearParams;
 begin
   Query.Params.Clear;
+  fParamsCleared := True; // see ReparseClearedParams
 end;
 
 procedure TBoldZeosQuery.Close;
