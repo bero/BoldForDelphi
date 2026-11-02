@@ -162,6 +162,11 @@ function BoldTestAllocatedBytes: Int64;
 // blocks. The Free Pascal heap manager does not count blocks, so under Free
 // Pascal this raises; use BoldTestAllocatedBytes there.
 function BoldTestAllocatedBlocks: Int64;
+// Thread-safe counters for tests, returning the new value. Free Pascal 3.2.2 has
+// no AtomicIncrement/AtomicDecrement; its InterLockedIncrement/Decrement are in
+// System, while Delphi has them only in Winapi.Windows.
+function BoldTestAtomicIncrement(var Target: Integer): Integer;
+function BoldTestAtomicDecrement(var Target: Integer): Integer;
 
 implementation
 
@@ -696,6 +701,24 @@ begin
   Result := Int64(st.AllocatedMediumBlockCount) + Int64(st.AllocatedLargeBlockCount);
   for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
     Result := Result + Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
+  {$ENDIF}
+end;
+
+function BoldTestAtomicIncrement(var Target: Integer): Integer;
+begin
+  {$IFDEF FPC}
+  Result := InterLockedIncrement(Target);
+  {$ELSE}
+  Result := AtomicIncrement(Target);
+  {$ENDIF}
+end;
+
+function BoldTestAtomicDecrement(var Target: Integer): Integer;
+begin
+  {$IFDEF FPC}
+  Result := InterLockedDecrement(Target);
+  {$ELSE}
+  Result := AtomicDecrement(Target);
   {$ENDIF}
 end;
 

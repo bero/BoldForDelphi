@@ -98,6 +98,10 @@ type
     maan_UndoRedoZeos under Free Pascal), which registers itself. PrepareSystem2,
     when given, runs before the second system is activated. }
   procedure RegisterUndoRedoDMConnector(Connector, PrepareSystem2: TUndoRedoDMConnector);
+  { Runs the registered PrepareSystem2 on dmUndoRedo, so a test that activates
+    the second persistence handle itself points it at the first one's database
+    as OpenSystem2 does. Does nothing when the connector needs no preparation. }
+  procedure PrepareUndoRedoSystem2;
 
 var
   dmUndoRedo: TdmUndoRedo;
@@ -116,6 +120,12 @@ procedure RegisterUndoRedoDMConnector(Connector, PrepareSystem2: TUndoRedoDMConn
 begin
   RegisteredConnector := Connector;
   RegisteredPrepareSystem2 := PrepareSystem2;
+end;
+
+procedure PrepareUndoRedoSystem2;
+begin
+  if Assigned(RegisteredPrepareSystem2) and Assigned(dmUndoRedo) then
+    RegisteredPrepareSystem2(dmUndoRedo);
 end;
 
 procedure FreeUndoRedoDM;
@@ -254,8 +264,7 @@ end;
 
 procedure Tmaan_UndoRedoAbstractTestCase.OpenSystem2;
 begin
-  if Assigned(RegisteredPrepareSystem2) then
-    RegisteredPrepareSystem2(dmUndoRedo);
+  PrepareUndoRedoSystem2;
   dmUndoRedo.BoldSystemHandle2.Active := true;
   FetchClass(System2, FSomeClassList2, TSomeClass);
   FetchClass(System2, FTopicList2, TTopic);

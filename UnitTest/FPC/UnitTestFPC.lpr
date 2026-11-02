@@ -31,6 +31,7 @@ uses
   Test.BoldContainers,
   Test.BoldDbEvolutor,
   Test.BoldDbParameter,
+  Test.BoldDbValidator,
   Test.BoldDefaultId,
   Test.BoldDefaultTaggedValues,
   Test.BoldDefaultXMLStreaming,

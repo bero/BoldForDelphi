@@ -1,6 +1,8 @@
 ﻿unit Test.BoldDbValidator;
 
-{ DUnitX tests for BoldDbValidator - remedy list thread safety (H8) }
+{ Tests for BoldDbValidator - remedy list thread safety (H8), shared between
+  DUnitX and FPCUnit. The end-to-end fixture runs on dmUndoRedo: FireDAC under
+  Delphi, Zeos under Free Pascal. }
 
 interface
 
@@ -8,70 +10,79 @@ uses
   Classes,
   SysUtils,
   SyncObjs,
-  DUnitX.TestFramework,
+  BoldTestFramework,
   BoldDbValidator,
   BoldDbDataValidator;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Persistence')]
-  TTestBoldDbValidator = class
-  public
-    [Test]
+  {$ENDIF}
+  TTestBoldDbValidator = class(TBoldTestCase)
+  published
     procedure TestAddRemedyThreadSafety;
-    [Test]
     procedure TestCorruptObjectsActionDefaultsToDelete;
-    [Test]
     procedure TestCompletionMessage;
   end;
 
   { Drives a real TBoldDbValidator run: Execute activates the persistence
     handle, spawns ThreadCount validator threads that each open their own
     database connection, and the last thread to finish calls OnComplete. }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Persistence')]
-  TTestBoldDbValidatorEndToEnd = class
+  {$ENDIF}
+  TTestBoldDbValidatorEndToEnd = class(TBoldTestCase)
   private
     FDone: TEvent;
     procedure HandleComplete(Sender: TObject);
     procedure HandleCompleteThenRaise(Sender: TObject);
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-    [Test]
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestValidatorThreadsCompleteAndFreeThemselves;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestDataValidatorThreadEndsCleanly;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestInsertRemedyPutsScriptSeparatorOnItsOwnLine;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestValidatorThreadStartsAfterConstructionAndListing;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestWorkerExceptionIsReported;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestWorkerExceptionIsLoggedAsError;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestBrokenClassDoesNotStopTheOthers;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestRerunReportsOnlyItsOwnResults;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestOnCompleteExceptionIsLoggedAndLogEnded;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestFailingRelationValidationIsReported;
-    [Test]
+    {$IFNDEF FPC}
     [Category('DB')]
+    {$ENDIF}
     procedure TestFailingLinkObjectValidationIsReported;
   private
     procedure RunWithTableDropped(const ExpressionName: string; TestTypes: TBoldDBDataValidatorTestTypes);
@@ -80,8 +91,7 @@ type
 implementation
 
 uses
-  System.StrUtils,
-  FireDAC.Comp.Client,
+  StrUtils,
   BoldDefs,
   BoldCoreConsts,
   BoldLogHandler,
@@ -90,8 +100,7 @@ uses
   BoldDBInterfaces,
   BoldPMappersSQL,
   BoldTestModel,
-  maan_UndoRedoBase,
-  maan_UndoRedoFireDAC;
+  maan_UndoRedoBase;
 
 type
   { A validator thread that does one query on its own connection and stops.
@@ -203,6 +212,7 @@ type
   TCapturingLogReceiver = class(TBoldLogReceiver)
   private
     FLines: TStringList;
+    FLinesLock: TCriticalSection; // the validator threads log concurrently
     FEndLogCount: Integer;
   protected
     procedure Log(const s: string; LogType: TBoldLogType); override;
@@ -216,11 +226,62 @@ type
     property EndLogCount: Integer read FEndLogCount;
   end;
 
+type
+  { The worker of TestAddRemedyThreadSafety: waits for the start signal, then
+    adds Count remedies. A class instead of an anonymous thread, which Free
+    Pascal 3.2.2 cannot build. }
+  TRemedyAddingThread = class(TThread)
+  private
+    FValidator: TBoldDbValidator;
+    FStartSignal: TEvent;
+    FCount: Integer;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(AValidator: TBoldDbValidator; AStartSignal: TEvent; ACount: Integer);
+  end;
+
+constructor TRemedyAddingThread.Create(AValidator: TBoldDbValidator; AStartSignal: TEvent; ACount: Integer);
+begin
+  inherited Create(True); // started by the test once every worker exists
+  FreeOnTerminate := False;
+  FValidator := AValidator;
+  FStartSignal := AStartSignal;
+  FCount := ACount;
+end;
+
+procedure TRemedyAddingThread.Execute;
+var
+  j: Integer;
+begin
+  FStartSignal.WaitFor(INFINITE);
+  for j := 1 to FCount do
+    FValidator.AddRemedy('remedy');
+end;
+
+{ The number of rows a statement changed, run on system 1's database through
+  Bold's database interface, so the same call works on every adapter. }
+function ExecSQLOnSystem1(const SQL: string): Integer;
+var
+  Database: IBoldDatabase;
+  Query: IBoldExecQuery;
+begin
+  Database := dmUndoRedo.BoldPersistenceHandleDB1.DataBaseInterface;
+  Query := Database.GetExecQuery;
+  try
+    Query.AssignSQLText(SQL);
+    Query.ExecSQL;
+    Result := Query.RowsAffected;
+  finally
+    Database.ReleaseExecQuery(Query);
+  end;
+end;
+
 { TRaisingValidatorThread }
 
 constructor TRaisingValidatorThread.Create(AValidator: TBoldDbValidator);
 begin
-  AtomicIncrement(FInstanceCount);
+  BoldTestAtomicIncrement(FInstanceCount);
   inherited;
 end;
 
@@ -229,7 +290,7 @@ begin
   if Assigned(FatalException) then
     FFatalError := FatalException.ClassName;
   inherited;
-  AtomicDecrement(FInstanceCount);
+  BoldTestAtomicDecrement(FInstanceCount);
 end;
 
 procedure TRaisingValidatorThread.Validate;
@@ -256,21 +317,23 @@ constructor TCapturingLogReceiver.Create;
 begin
   inherited Create;
   FLines := TStringList.Create;
+  FLinesLock := TCriticalSection.Create;
 end;
 
 destructor TCapturingLogReceiver.Destroy;
 begin
   FLines.Free;
+  FLinesLock.Free;
   inherited;
 end;
 
 procedure TCapturingLogReceiver.Log(const s: string; LogType: TBoldLogType);
 begin
-  TMonitor.Enter(FLines);
+  FLinesLock.Acquire;
   try
     FLines.Add(Format('%d|%s', [Ord(LogType), Trim(s)]));
   finally
-    TMonitor.Exit(FLines);
+    FLinesLock.Release;
   end;
 end;
 
@@ -279,13 +342,13 @@ var
   i: Integer;
 begin
   result := False;
-  TMonitor.Enter(FLines);
+  FLinesLock.Acquire;
   try
     for i := 0 to FLines.Count - 1 do
       if StartsText(Format('%d|', [Ord(LogType)]), FLines[i]) and ContainsText(FLines[i], Part) then
         Exit(True);
   finally
-    TMonitor.Exit(FLines);
+    FLinesLock.Release;
   end;
 end;
 
@@ -294,28 +357,28 @@ var
   i: Integer;
 begin
   result := False;
-  TMonitor.Enter(FLines);
+  FLinesLock.Acquire;
   try
     for i := 0 to FLines.Count - 1 do
       if SameText(Copy(FLines[i], Pos('|', FLines[i]) + 1, MaxInt), s) then
         Exit(True);
   finally
-    TMonitor.Exit(FLines);
+    FLinesLock.Release;
   end;
 end;
 
 procedure TCapturingLogReceiver.EndLog;
 begin
-  AtomicIncrement(FEndLogCount);
+  BoldTestAtomicIncrement(FEndLogCount);
 end;
 
 function TCapturingLogReceiver.Text: string;
 begin
-  TMonitor.Enter(FLines);
+  FLinesLock.Acquire;
   try
     result := FLines.Text;
   finally
-    TMonitor.Exit(FLines);
+    FLinesLock.Release;
   end;
 end;
 
@@ -323,7 +386,7 @@ end;
 
 constructor TStartupValidatorThread.Create(AValidator: TBoldDbValidator);
 begin
-  AtomicIncrement(FInstanceCount);
+  BoldTestAtomicIncrement(FInstanceCount);
   inherited;
   Sleep(200);
   FConstructed := True;
@@ -332,7 +395,7 @@ end;
 destructor TStartupValidatorThread.Destroy;
 begin
   inherited;
-  AtomicDecrement(FInstanceCount);
+  BoldTestAtomicDecrement(FInstanceCount);
 end;
 
 procedure TStartupValidatorThread.Validate;
@@ -375,7 +438,7 @@ end;
 
 constructor TRecordingDataValidatorThread.Create(AValidator: TBoldDbValidator);
 begin
-  AtomicIncrement(FInstanceCount);
+  BoldTestAtomicIncrement(FInstanceCount);
   inherited;
   ValidatorTestTypes := [ttExistenceInParentTest];
 end;
@@ -392,7 +455,7 @@ begin
         FDestroyError := E.ClassName;
     end;
   finally
-    AtomicDecrement(FInstanceCount);
+    BoldTestAtomicDecrement(FInstanceCount);
   end;
 end;
 
@@ -434,18 +497,7 @@ begin
   StartSignal := TEvent.Create(nil, True, False, '');
   try
     for i := 0 to cThreads - 1 do
-    begin
-      Threads[i] := TThread.CreateAnonymousThread(
-        procedure
-        var
-          j: Integer;
-        begin
-          StartSignal.WaitFor(INFINITE);
-          for j := 1 to cAddsPerThread do
-            Validator.AddRemedy('remedy');
-        end);
-      Threads[i].FreeOnTerminate := False;
-    end;
+      Threads[i] := TRemedyAddingThread.Create(Validator, StartSignal, cAddsPerThread);
     for i := 0 to cThreads - 1 do
       Threads[i].Start;
     StartSignal.SetEvent;  // release all threads at once
@@ -498,14 +550,14 @@ end;
 
 constructor TEndToEndValidatorThread.Create(AValidator: TBoldDbValidator);
 begin
-  AtomicIncrement(FInstanceCount);
+  BoldTestAtomicIncrement(FInstanceCount);
   inherited;
 end;
 
 destructor TEndToEndValidatorThread.Destroy;
 begin
   inherited;
-  AtomicDecrement(FInstanceCount);
+  BoldTestAtomicDecrement(FInstanceCount);
 end;
 
 procedure TEndToEndValidatorThread.Validate;
@@ -545,8 +597,7 @@ begin
   // The validator activates and deactivates its persistence handle from a
   // worker thread, so it gets the data module's second handle, pointed at
   // the same database (as OpenSystem2 does), and system 1 stays untouched.
-  UndoRedoFireDAC.FDConnection2.Params.Values['Database'] :=
-    UndoRedoFireDAC.FDConnection1.Params.Values['Database'];
+  PrepareUndoRedoSystem2;
   FDone := TEvent.Create(nil, True, False, '');
 end;
 
@@ -672,7 +723,7 @@ begin
   SomeObject := TSomeClass.Create(dmUndoRedo.BoldSystemHandle1.System);
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
   ObjectId := SomeObject.BoldObjectLocator.BoldObjectID.AsString;
-  Assert.AreEqual(1, UndoRedoFireDAC.FDConnection1.ExecSQL('DELETE FROM ' + ParentTable + ' WHERE BOLD_ID = ' + ObjectId),
+  Assert.AreEqual(1, ExecSQLOnSystem1('DELETE FROM ' + ParentTable + ' WHERE BOLD_ID = ' + ObjectId),
     'precondition: the parent table holds the new object');
 
   OldSeparator := dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator;
@@ -704,7 +755,7 @@ begin
   finally
     Validator.Free;
     dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator := OldSeparator;
-    UndoRedoFireDAC.FDConnection1.ExecSQL('DELETE FROM ' + OwnTable + ' WHERE BOLD_ID = ' + ObjectId);
+    ExecSQLOnSystem1('DELETE FROM ' + OwnTable + ' WHERE BOLD_ID = ' + ObjectId);
   end;
 end;
 
@@ -855,12 +906,12 @@ begin
   begin
     Orphan := dmUndoRedo.BoldSystemHandle1.System.CreateNewObjectByExpressionName(Mappers[i].ExpressionName);
     dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-    Assert.AreEqual(1, UndoRedoFireDAC.FDConnection1.ExecSQL(
+    Assert.AreEqual(1, ExecSQLOnSystem1(
       'DELETE FROM ' + (Mappers[i].SuperClass as TBoldObjectSQLMapper).MainTable.SQLName +
       ' WHERE BOLD_ID = ' + Orphan.BoldObjectLocator.BoldObjectID.AsString),
       'precondition: the parent table holds the new ' + Mappers[i].ExpressionName);
   end;
-  UndoRedoFireDAC.FDConnection1.ExecSQL('DROP TABLE ' + Mappers[1].MainTable.SQLName);
+  ExecSQLOnSystem1('DROP TABLE ' + Mappers[1].MainTable.SQLName);
 
   Validator := TBoldDbDataValidator.Create(nil);
   try
@@ -978,7 +1029,7 @@ begin
       SameText(SystemMapper.ObjectPersistenceMappers[i].ExpressionName, ExpressionName) then
       Table := (SystemMapper.ObjectPersistenceMappers[i] as TBoldObjectSQLMapper).MainTable.SQLName;
   Assert.AreNotEqual('', Table, 'precondition: a table for ' + ExpressionName);
-  UndoRedoFireDAC.FDConnection1.ExecSQL('DROP TABLE ' + Table);
+  ExecSQLOnSystem1('DROP TABLE ' + Table);
 
   Validator := TBoldDbDataValidator.Create(nil);
   try
@@ -1010,7 +1061,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldDbValidator);
-  TDUnitX.RegisterTestFixture(TTestBoldDbValidatorEndToEnd);
+  BoldRegisterTest(TTestBoldDbValidator);
+  BoldRegisterTest(TTestBoldDbValidatorEndToEnd);
 
 end.
