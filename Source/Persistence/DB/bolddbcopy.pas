@@ -38,6 +38,7 @@ type
     procedure SetThreadCount(const Value: integer);
     procedure DoOnComplete;
     procedure ProcessTables;
+    procedure CopyQueuedTables(var SourceDatabaseInterface, DatabaseInterface: IBoldDatabase);
     procedure SetOnComplete(const Value: TNotifyEvent);
   protected
     procedure DoOnProgress(AProcessedRecords: Integer);
@@ -73,13 +74,15 @@ implementation
 uses
   // VCL
   DB,
+  {$IFNDEF FPC}
+  // The bulk-read tuning below is for FireDAC (and UniDAC) sources; neither
+  // exists under Free Pascal, where the copy reads untuned.
   FireDAC.Comp.Client,
   FireDAC.Stan.Option,
-  Character,
+  {$ENDIF}
   DateUtils,
   Math,
   Types, // Remove inline hint H2443
-  ActiveX,
 
   {$IFDEF UniDAC} Uni,{$ENDIF}
 
@@ -87,8 +90,56 @@ uses
   BoldDefs,
   BoldLogHandler,
   BoldUtils,
+  BoldPlatform,
   BoldPMappersDefault,
   BoldPSDescriptionsSQL;
+
+type
+  { One worker of Run: copies tables from the queue until it is empty. A
+    FreeOnTerminate thread; the last one to finish logs the end and calls
+    OnComplete. A class instead of an anonymous thread, which Free Pascal
+    3.2.2 cannot build. }
+  TBoldDbCopyWorker = class(TThread)
+  private
+    fDbCopy: TBoldDbCopy;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(ADbCopy: TBoldDbCopy);
+  end;
+
+constructor TBoldDbCopyWorker.Create(ADbCopy: TBoldDbCopy);
+begin
+  inherited Create(True); // Run starts it once it is in the thread list
+  FreeOnTerminate := True;
+  fDbCopy := ADbCopy;
+end;
+
+procedure TBoldDbCopyWorker.Execute;
+begin
+  BoldCoInitialize;
+  try
+    try
+      fDbCopy.ProcessTables;
+    except
+      // The worker is a FreeOnTerminate thread: an exception that leaves
+      // it is lost, the run would complete and look successful. Record it
+      // so the caller can see the copy failed.
+      on E: Exception do
+        fDbCopy.RecordError(Format('%s: %s', [E.ClassName, E.Message]));
+    end;
+  finally
+    BoldCoUninitialize;
+    fDbCopy.fThreadList.Remove(Self);
+    if fDbCopy.fThreadList.LockList.Count = 0 then
+    begin
+      BoldLog.Log(Format('Operation completed after %s', [BoldElapsedToString(Now - fDbCopy.fStartTime)]));
+      fDbCopy.DoOnComplete;
+    end;
+    fDbCopy.fThreadList.UnlockList;
+  end;
+end;
+
 { TBoldDbCopy }
 
 class procedure TBoldDbCopy.TuneSourceConnection(const ADatabase: IBoldDatabase);
@@ -97,11 +148,13 @@ begin
   if ADatabase.Implementor is TUniConnection then
     TUniConnection(ADatabase.Implementor).SpecificOptions.Values['ApplicationIntent'] := 'aiReadOnly';
   {$ENDIF}
+  {$IFNDEF FPC}
   // FireDAC understands ApplicationIntent for the MSSQL driver only - an
   // unknown parameter would fail the connect on other drivers.
   if (ADatabase.Implementor is TFDConnection) and
      SameText(TFDConnection(ADatabase.Implementor).DriverName, 'MSSQL') then
     TFDConnection(ADatabase.Implementor).Params.Values['ApplicationIntent'] := 'ReadOnly';
+  {$ENDIF}
 end;
 
 class procedure TBoldDbCopy.TuneSourceQuery(const AQuery: IBoldQuery);
@@ -115,12 +168,14 @@ begin
     TUniQuery(AQuery.AsDataSet).ReadOnly := true;
   end;
   {$ENDIF}
+  {$IFNDEF FPC}
   if AQuery.AsDataSet is TFDQuery then
   begin
     TFDQuery(AQuery.AsDataSet).FetchOptions.Mode := fmOnDemand;
     TFDQuery(AQuery.AsDataSet).FetchOptions.Unidirectional := True;
     TFDQuery(AQuery.AsDataSet).UpdateOptions.ReadOnly := True;
   end;
+  {$ENDIF}
 end;
 
 class procedure TBoldDbCopy.SetSourceFetchRows(const AQuery: IBoldQuery; ARows: Integer);
@@ -129,18 +184,25 @@ begin
   if AQuery.AsDataSet is TUniQuery then
     TUniQuery(AQuery.AsDataSet).FetchRows := ARows;
   {$ENDIF}
+  {$IFNDEF FPC}
   if AQuery.AsDataSet is TFDQuery then
     TFDQuery(AQuery.AsDataSet).FetchOptions.RowsetSize := ARows;
+  {$ENDIF}
 end;
 
 class function TBoldDbCopy.StripControlChars(const s: string): string;
+var
+  x: Integer;
 begin
   Result := s;
   // Delphi strings are 1-based: the last character is at Length(Result).
   // Starting at Length-1 left a trailing control char (e.g. #0) in place -
   // the exact byte PostgreSQL rejects with 'invalid byte sequence'.
-  for var x := Length(Result) downto 1 do
-    if Result[x].IsControl then
+  // A control character is one of the Unicode category Cc, U+0000..U+001F
+  // and U+007F..U+009F - what Char.IsControl tests, spelled out because the
+  // Character unit's helper does not exist under Free Pascal.
+  for x := Length(Result) downto 1 do
+    if (Ord(Result[x]) <= $1F) or ((Ord(Result[x]) >= $7F) and (Ord(Result[x]) <= $9F)) then
       Delete(Result, x, 1);
 end;
 
@@ -199,7 +261,31 @@ begin
     fProgressEvent(self, AProcessedRecords);
 end;
 
+{ A worker's run: two connections of its own, the tables copied by
+  CopyQueuedTables, then the connections freed. They are freed here, after
+  CopyQueuedTables has returned: Free Pascal holds the interfaces that calls
+  return in hidden temporaries until the end of the routine that made the call,
+  so a connection freed inside CopyQueuedTables was still referenced there and
+  the temporaries' release at its end was a use after free. }
 procedure TBoldDbCopy.ProcessTables;
+var
+  SourceDatabaseInterface: IBoldDatabase;
+  DatabaseInterface: IBoldDatabase;
+begin
+  SourceDatabaseInterface := nil;
+  DatabaseInterface := nil;
+  try
+    CopyQueuedTables(SourceDatabaseInterface, DatabaseInterface);
+  finally
+    // Both wrappers came from CreateAnotherDatabaseConnection and are not
+    // reference counted - they used to leak here, one pair per worker.
+    SourcePersistenceHandle.DatabaseInterface.ReleaseAnotherDatabaseConnection(SourceDatabaseInterface);
+    DestinationPersistenceHandle.DatabaseInterface.ReleaseAnotherDatabaseConnection(DatabaseInterface);
+    BoldLog.Log(Format('Thread %d completed', [TThread.CurrentThread.ThreadID]));
+  end;
+end;
+
+procedure TBoldDbCopy.CopyQueuedTables(var SourceDatabaseInterface, DatabaseInterface: IBoldDatabase);
 
 var
   SourceQuery: IBoldQuery;
@@ -212,14 +298,18 @@ var
   ParamIndex: integer;
 
   function CalcBatchSize: integer;
+  var
+    sl, sl2: TStringList;
+    ParamCount, _j, i: Integer;
+    Values, InsertSql: string;
   begin
-    var sl := TStringList.Create;
-    var sl2 := TStringList.Create;
-    var ParamCount:= 0;
+    sl := TStringList.Create;
+    sl2 := TStringList.Create;
+    ParamCount := 0;
     Result := Min(RemainingRecords, MultiRowInsertLimit);
-    for var _j := 0 to Result-1 do
+    for _j := 0 to Result-1 do
     begin
-      for var i := 0 to DestinationTable.ColumnsList.Count-1 do
+      for i := 0 to DestinationTable.ColumnsList.Count-1 do
       begin
         sl.Add(':p'+ _j.ToString + '_' + i.ToString);
         inc(ParamCount);
@@ -235,8 +325,8 @@ var
     SetSourceFetchRows(SourceQuery, result);
     sl2.QuoteChar := ' ';
     sl2.StrictDelimiter := false;
-    var Values := sl2.DelimitedText;
-    var InsertSql := Format('insert into %s (%s) values %s;', [DestinationTable.SQLName, Columns, Values]);
+    Values := sl2.DelimitedText;
+    InsertSql := Format('insert into %s (%s) values %s;', [DestinationTable.SQLName, Columns, Values]);
     DestinationQuery.ClearParams;
     DestinationQuery.ParamCheck := true;
     DestinationQuery.SQLText := InsertSql;
@@ -248,11 +338,23 @@ var
     sl2.free;
   end;
 
+var
+  TestQuery: IBoldQuery;
+  sl, sl2: TStringList;
+  SourceTableName: string;
+  SourceRecordCount: Integer;
+  DestinationPersistenceMapper: TBoldSystemDefaultMapper;
+  SelectSql: string;
+  i, j: integer;
+  ProcessedRecords: Integer;
+  vRecNo: Integer;
+  Batch: Integer;
+  s: string;
+  Bytes: TBytes;
+  Param: IBoldParameter;
+
 begin
-  var InsertSql: string;
-  var Values: string;
-  var Field: IBoldField;
-  var SourceDatabaseInterface := SourcePersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
+  SourceDatabaseInterface := SourcePersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
   TuneSourceConnection(SourceDatabaseInterface);
   SourceDatabaseInterface.Open;
   // Get the query from the connection tuned above - it was fetched from a
@@ -261,31 +363,30 @@ begin
   SourceQuery := SourceDatabaseInterface.GetQuery;
   SourceQuery.UseReadTransactions := false;
   TuneSourceQuery(SourceQuery);
-  var DatabaseInterface := DestinationPersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
+  DatabaseInterface := DestinationPersistenceHandle.DatabaseInterface.CreateAnotherDatabaseConnection;
   DatabaseInterface.Open;
   DestinationQuery := DatabaseInterface.GetExecQuery;
-  var TestQuery := DatabaseInterface.GetQuery;
-  var sl := TStringList.Create;
-  var sl2 := TStringList.Create;
+  TestQuery := DatabaseInterface.GetQuery;
+  sl := TStringList.Create;
+  sl2 := TStringList.Create;
   try
     repeat
-      var SourceTableName := fTableQueue.Dequeue;
+      SourceTableName := fTableQueue.Dequeue;
       if SourceTableName = '' then
         exit;
-      var SourceRecordCount := fAllTables.Values[SourceTableName].ToInteger;
-      var DestinationPersistenceMapper := DestinationPersistenceHandle.PersistenceControllerDefault.PersistenceMapper;
+      SourceRecordCount := fAllTables.Values[SourceTableName].ToInteger;
+      DestinationPersistenceMapper := DestinationPersistenceHandle.PersistenceControllerDefault.PersistenceMapper;
       MultiRowInsertLimit := DestinationPersistenceMapper.SQLDataBaseConfig.MultiRowInsertLimit;
       MaxBatchQueryParams := DestinationPersistenceMapper.SQLDataBaseConfig.MaxBatchQueryParams;
       DestinationTable := DestinationPersistenceMapper.AllTables.ItemsBySQLName[SourceTableName];
       Columns := DestinationTable.ColumnsList.ToString;
-      var SelectSql := Format('select %s from %s', [Columns, SourceTableName]);
+      SelectSql := Format('select %s from %s', [Columns, SourceTableName]);
 //      MultiRowInsertLimit := 20;
 //      MaxBatchQueryParams := 10;
       BoldLog.LogHeader := Format('Loading from %s', [SourceTableName]);
       SetSourceFetchRows(SourceQuery, MultiRowInsertLimit);
       SourceQuery.SQLText := SelectSql;
       SourceQuery.Open;
-      var i,j: integer;
       sl.Clear;
       sl2.Clear;
       j := SourceRecordCount;
@@ -309,11 +410,9 @@ begin
       DatabaseInterface.StartTransaction;
       RemainingRecords := SourceRecordCount;
 
-      var ProcessedRecords := 0;
-      var vRecNo := 0;
-      var s: string;
-      var Bytes: TBytes;
-      var Batch := CalcBatchSize;
+      ProcessedRecords := 0;
+      vRecNo := 0;
+      Batch := CalcBatchSize;
       repeat
         begin
           if RemainingRecords <= batch then
@@ -323,7 +422,7 @@ begin
               break;
             for i := 0 to SourceQuery.FieldCount-1 do
             begin
-              var Param := DestinationQuery.Param[ParamIndex];
+              Param := DestinationQuery.Param[ParamIndex];
               inc(ParamIndex);
               Param.AssignFieldValue(SourceQuery.Fields[i]);
               if Param.DataType = ftWideMemo then
@@ -382,11 +481,7 @@ begin
     DatabaseInterface.ReleaseQuery(TestQuery);
     SourceDatabaseInterface.Close;
     DatabaseInterface.Close;
-    // Both wrappers came from CreateAnotherDatabaseConnection and are not
-    // reference counted - they used to leak here, one pair per worker.
-    SourcePersistenceHandle.DatabaseInterface.ReleaseAnotherDatabaseConnection(SourceDatabaseInterface);
-    DestinationPersistenceHandle.DatabaseInterface.ReleaseAnotherDatabaseConnection(DatabaseInterface);
-    BoldLog.Log(Format('Thread %d completed', [TThread.CurrentThread.ThreadID]));
+    // ProcessTables frees both connections once this routine has returned
   end;
 end;
 
@@ -404,16 +499,20 @@ procedure TBoldDbCopy.Run;
 var
   SourcePersistenceMapper: TBoldSystemDefaultMapper;
   DestinationPersistenceMapper: TBoldSystemDefaultMapper;
+  SourceTable: TBoldSQLTableDescription;
+  DestinationTable: TBoldSQLTableDescription;
+  SourceColumn: TBoldSQLDescriptionElement;
+  DestinationColumn: TBoldSQLDescriptionElement;
+  SourceQuery: IBoldQuery;
+  SelectSql: string;
+  i: Integer;
+  Worker: TBoldDbCopyWorker;
 begin
   fStartTime := now;
   SourcePersistenceHandle.Active := true;
   DestinationPersistenceHandle.Active := true;
   SourcePersistenceMapper := SourcePersistenceHandle.PersistenceControllerDefault.PersistenceMapper;
   DestinationPersistenceMapper := DestinationPersistenceHandle.PersistenceControllerDefault.PersistenceMapper;
-  var SourceTable: TBoldSQLTableDescription;
-  var DestinationTable: TBoldSQLTableDescription;
-  var SourceColumn: TBoldSQLDescriptionElement;
-  var DestinationColumn: TBoldSQLDescriptionElement;
   for SourceTable in SourcePersistenceMapper.AllTables do
   begin
     DestinationTable := DestinationPersistenceMapper.AllTables.ItemsBySQLName[SourceTable.SQLName];
@@ -427,12 +526,11 @@ begin
     end;
   end;
 
-  var SourceQuery: IBoldQuery;
   SourceQuery :=  SourcePersistenceHandle.DatabaseInterface.GetQuery;
   try
     for SourceTable in SourcePersistenceMapper.AllTables do
     begin
-      var SelectSql := Format('select count(*) from %s', [SourceTable.SQLName]);
+      SelectSql := Format('select count(*) from %s', [SourceTable.SQLName]);
       SourceQuery.SQLText := SelectSql;
       SourceQuery.Open;
       if SourceQuery.Fields[0].AsInteger = 0 then
@@ -447,37 +545,14 @@ begin
   fAllTables.CustomSort(SortByDescendingRowCount);
 //  var q := vTables.IndexOfName('Person');
 //    vTables.Move(q, 0);
-  for var i := 0 to fAllTables.Count-1 do
+  for i := 0 to fAllTables.Count-1 do
     fTableQueue.Enqueue(fAllTables.Names[i]);
   fTotalTables := fTableQueue.count;
-  for var I := 0 to ThreadCount-1 do
+  for i := 0 to ThreadCount-1 do
   begin
-    var Thread := TThread.CreateAnonymousThread(procedure
-     begin
-       CoInitialize(nil);
-       try
-         try
-           ProcessTables;
-         except
-           // The worker is a FreeOnTerminate thread: an exception that leaves
-           // it is lost, the run would complete and look successful. Record it
-           // so the caller can see the copy failed.
-           on E: Exception do
-             RecordError(Format('%s: %s', [E.ClassName, E.Message]));
-         end;
-       finally
-         CoUninitialize;
-         fThreadList.Remove(TThread.CurrentThread);
-         if fThreadList.LockList.Count = 0 then
-         begin
-           BoldLog.Log(Format('Operation completed after %s', [BoldElapsedToString(Now - fStartTime)]));
-           DoOnComplete;
-         end;
-         fThreadList.UnlockList;
-       end;
-     end);
-    fThreadList.Add(Thread);
-    Thread.Start;
+    Worker := TBoldDbCopyWorker.Create(Self);
+    fThreadList.Add(Worker);
+    Worker.Start;
   end;
 end;
 
