@@ -117,9 +117,6 @@ procedure ClearInstanceLog;
 implementation
 
 uses
-  {$IFDEF MSWINDOWS}
-  Windows, // InterlockedIncrement/Decrement; Free Pascal has them in System
-  {$ENDIF}
   {$IFDEF DebugInstanceCounter}
   BoldIndexableList,
   BoldHashIndexes,
@@ -191,10 +188,32 @@ begin
   Result := GetInterface(IID,Obj);
 end;
 
+{ Thread-safe reference count changes that return the new count. Delphi has
+  the AtomicIncrement/AtomicDecrement intrinsics on every platform; Free Pascal
+  3.2.2 has none, but InterLockedIncrement/Decrement in System. So the unit
+  needs no Windows unit and compiles for Delphi on macOS and Linux too. }
+function IncrementRefCount(var RefCount: Integer): Integer; inline;
+begin
+  {$IFDEF FPC}
+  Result := InterLockedIncrement(RefCount);
+  {$ELSE}
+  Result := AtomicIncrement(RefCount);
+  {$ENDIF}
+end;
+
+function DecrementRefCount(var RefCount: Integer): Integer; inline;
+begin
+  {$IFDEF FPC}
+  Result := InterLockedDecrement(RefCount);
+  {$ELSE}
+  Result := AtomicDecrement(RefCount);
+  {$ENDIF}
+end;
+
 {-- TBoldRefCountedObject -----------------------------------------------------}
 procedure TBoldRefCountedObject.AfterConstruction;
 begin
-  InterlockedDecrement(fRefCount);  // was set by NewInstace
+  DecrementRefCount(fRefCount);  // was set by NewInstace
 end;
 
 procedure TBoldRefCountedObject.BeforeDestruction;
@@ -211,12 +230,12 @@ end;
 
 function TBoldRefCountedObject._AddRef: Integer;
 begin
-  Result := InterlockedIncrement(FRefCount);
+  Result := IncrementRefCount(FRefCount);
 end;
 
 function TBoldRefCountedObject._Release: Integer;
 begin
-  Result := InterlockedDecrement(FRefCount);
+  Result := DecrementRefCount(FRefCount);
   if Result = 0 then
     Destroy;
 end;
