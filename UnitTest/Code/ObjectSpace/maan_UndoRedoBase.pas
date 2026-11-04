@@ -114,6 +114,10 @@ type
     connector has none. dmUndoRedo is then no longer the data module the
     other tests expect: free it afterwards (FreeUndoRedoDM). }
   function OpenUndoRedoSecondDatabase: Boolean;
+  { Runs SQL on the first system's database through Bold's IBoldExecQuery and
+    returns the number of rows it changed, the same on every adapter. For tests
+    that change the database behind Bold's back. }
+  function UndoRedoExecSQL(const SQL: string): Integer;
 
 var
   dmUndoRedo: TdmUndoRedo;
@@ -122,7 +126,9 @@ implementation
 
 {$R maan_UndoRedo.dfm}
 
-uses BoldUndoInterfaces;
+uses
+  BoldUndoInterfaces,
+  BoldDBInterfaces;
 
 var
   RegisteredConnector: TUndoRedoDMConnector = nil;
@@ -151,6 +157,22 @@ begin
   if not Assigned(RegisteredSecondDatabase) then
     raise Exception.Create('maan_UndoRedoBase: the database connector registers no second database');
   Result := RegisteredSecondDatabase(dmUndoRedo);
+end;
+
+function UndoRedoExecSQL(const SQL: string): Integer;
+var
+  Database: IBoldDatabase;
+  Query: IBoldExecQuery;
+begin
+  Database := dmUndoRedo.BoldPersistenceHandleDB1.DataBaseInterface;
+  Query := Database.GetExecQuery;
+  try
+    Query.AssignSQLText(SQL);
+    Query.ExecSQL;
+    Result := Query.RowsAffected;
+  finally
+    Database.ReleaseExecQuery(Query);
+  end;
 end;
 
 procedure FreeUndoRedoDM;

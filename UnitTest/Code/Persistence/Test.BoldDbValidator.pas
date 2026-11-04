@@ -259,24 +259,6 @@ begin
     FValidator.AddRemedy('remedy');
 end;
 
-{ The number of rows a statement changed, run on system 1's database through
-  Bold's database interface, so the same call works on every adapter. }
-function ExecSQLOnSystem1(const SQL: string): Integer;
-var
-  Database: IBoldDatabase;
-  Query: IBoldExecQuery;
-begin
-  Database := dmUndoRedo.BoldPersistenceHandleDB1.DataBaseInterface;
-  Query := Database.GetExecQuery;
-  try
-    Query.AssignSQLText(SQL);
-    Query.ExecSQL;
-    Result := Query.RowsAffected;
-  finally
-    Database.ReleaseExecQuery(Query);
-  end;
-end;
-
 { TRaisingValidatorThread }
 
 constructor TRaisingValidatorThread.Create(AValidator: TBoldDbValidator);
@@ -723,7 +705,7 @@ begin
   SomeObject := TSomeClass.Create(dmUndoRedo.BoldSystemHandle1.System);
   dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
   ObjectId := SomeObject.BoldObjectLocator.BoldObjectID.AsString;
-  Assert.AreEqual(1, ExecSQLOnSystem1('DELETE FROM ' + ParentTable + ' WHERE BOLD_ID = ' + ObjectId),
+  Assert.AreEqual(1, UndoRedoExecSQL('DELETE FROM ' + ParentTable + ' WHERE BOLD_ID = ' + ObjectId),
     'precondition: the parent table holds the new object');
 
   OldSeparator := dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator;
@@ -755,7 +737,7 @@ begin
   finally
     Validator.Free;
     dmUndoRedo.BoldPersistenceHandleDB2.SQLDataBaseConfig.SqlScriptSeparator := OldSeparator;
-    ExecSQLOnSystem1('DELETE FROM ' + OwnTable + ' WHERE BOLD_ID = ' + ObjectId);
+    UndoRedoExecSQL('DELETE FROM ' + OwnTable + ' WHERE BOLD_ID = ' + ObjectId);
   end;
 end;
 
@@ -906,12 +888,12 @@ begin
   begin
     Orphan := dmUndoRedo.BoldSystemHandle1.System.CreateNewObjectByExpressionName(Mappers[i].ExpressionName);
     dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-    Assert.AreEqual(1, ExecSQLOnSystem1(
+    Assert.AreEqual(1, UndoRedoExecSQL(
       'DELETE FROM ' + (Mappers[i].SuperClass as TBoldObjectSQLMapper).MainTable.SQLName +
       ' WHERE BOLD_ID = ' + Orphan.BoldObjectLocator.BoldObjectID.AsString),
       'precondition: the parent table holds the new ' + Mappers[i].ExpressionName);
   end;
-  ExecSQLOnSystem1('DROP TABLE ' + Mappers[1].MainTable.SQLName);
+  UndoRedoExecSQL('DROP TABLE ' + Mappers[1].MainTable.SQLName);
 
   Validator := TBoldDbDataValidator.Create(nil);
   try
@@ -1029,7 +1011,7 @@ begin
       SameText(SystemMapper.ObjectPersistenceMappers[i].ExpressionName, ExpressionName) then
       Table := (SystemMapper.ObjectPersistenceMappers[i] as TBoldObjectSQLMapper).MainTable.SQLName;
   Assert.AreNotEqual('', Table, 'precondition: a table for ' + ExpressionName);
-  ExecSQLOnSystem1('DROP TABLE ' + Table);
+  UndoRedoExecSQL('DROP TABLE ' + Table);
 
   Validator := TBoldDbDataValidator.Create(nil);
   try
