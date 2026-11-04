@@ -312,6 +312,12 @@ end;
 function TBoldZeosParameter.GetDataType: TFieldType;
 begin
   Result := fZParam.DataType;
+  // SetAsBlob stores the bytes with AsBytes, which makes Zeos report
+  // ftVarBytes. Bold has no byte-array parameters: it is a blob, and callers
+  // such as the SQL log must see a blob type, or they read the bytes AsString
+  // and Zeos raises.
+  if Result in [ftBytes, ftVarBytes] then
+    Result := ftBlob;
 end;
 
 procedure TBoldZeosParameter.SetDataType(Value: TFieldType);
@@ -420,6 +426,9 @@ begin
   begin
     SetLength(Bytes, Length(Value));
     Move(Value[1], Bytes[0], Length(Value));
+    // AsBytes turns the Zeos parameter into ftVarBytes; GetDataType reports
+    // that as ftBlob. Zeos 8.0.0's AsBlob would keep ftBlob, but under FPC its
+    // single-value blob is corrupted and the parameter's destructor crashes.
     fZParam.AsBytes := Bytes;
   end;
 end;

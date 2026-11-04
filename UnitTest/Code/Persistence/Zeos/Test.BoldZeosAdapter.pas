@@ -39,6 +39,7 @@ type
     procedure TestBatchOfStatementsRunsEveryStatement;
     procedure TestParamValuesSurviveBoldBatchSequence;
     procedure TestClearParamsThenSameSQLRecreatesTheParams;
+    procedure TestBlobParameterStaysABlob;
   end;
 
 implementation
@@ -333,6 +334,29 @@ begin
     fDatabase.ReleaseExecQuery(ExecQuery);
   end;
   Assert.AreEqual(2, CountRows('t'), 'both rows were inserted');
+end;
+
+procedure TTestBoldZeosAdapter.TestBlobParameterStaysABlob;
+var
+  ExecQuery: IBoldExecQuery;
+  Param: IBoldParameter;
+begin
+  // SetAsBlob marked the parameter ftBlob and then stored the bytes with
+  // AsBytes, which turns a Zeos parameter into ftVarBytes. The SQL log treats
+  // only blob types as blobs, read AsString of the bytes and Zeos raised
+  // "Unsupported parameter type, SQLType: stUnicodeString/stBytes".
+  ExecQuery := fDatabase.GetExecQuery;
+  try
+    ExecQuery.AssignSQLText('update t set b = :b');
+    Param := ExecQuery.ParamByName('b');
+    Param.AsBlob := 'blob bytes';
+    Assert.AreEqual(Ord(ftBlob), Ord(Param.DataType), 'the parameter is still a blob');
+    Assert.IsTrue(Param.AsBlob = 'blob bytes', 'and holds the bytes');
+    BoldLogSQL(ExecQuery); // must not raise; logs the blob as a placeholder
+  finally
+    Param := nil;
+    fDatabase.ReleaseExecQuery(ExecQuery);
+  end;
 end;
 
 initialization
