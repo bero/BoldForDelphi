@@ -44,9 +44,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Free Pascal and SQLite
+        # Only what the build loads: the compiler and the rtl, base (regexpr)
+        # and fcl (db, fpcunit, xml) units. The fpc metapackage would add the
+        # IDE and the gtk2, db, gfx, math, misc, multimedia and net units, and
+        # took 2 minutes to install. gcc and libc6-dev provide the C runtime
+        # the test runner links against (cthreads, cwstring); the runner image
+        # has them, they are listed so the step also works on a bare image.
         run: |
           sudo apt-get update
-          sudo apt-get install -y fpc libsqlite3-0 unzip
+          sudo apt-get install -y --no-install-recommends \
+            fp-compiler-3.2.2 fp-units-rtl-3.2.2 fp-units-base-3.2.2 fp-units-fcl-3.2.2 \
+            gcc libc6-dev libsqlite3-0 unzip
           fpc -iV
 
       - name: Cache the Zeos archive
