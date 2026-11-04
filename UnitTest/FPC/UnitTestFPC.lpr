@@ -72,6 +72,7 @@ uses
   Test.BoldOclVariables,
   Test.BoldOldValueHandler,
   Test.BoldPMapperLists,
+  Test.BoldPMappersDefault,
   Test.BoldPersistenceController,
   Test.BoldPersistenceHandleDB,
   Test.BoldQueue,

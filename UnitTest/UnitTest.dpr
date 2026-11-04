@@ -74,6 +74,7 @@ uses
   Test.BoldSqlParameterization in 'Code\PMapper\Test.BoldSqlParameterization.pas',
   Test.BoldSqlNodes in 'Code\PMapper\Test.BoldSqlNodes.pas',
   Test.BoldPMappersDefault in 'Code\PMapper\Test.BoldPMappersDefault.pas',
+  Test.BoldPMappersDefaultMocks in 'Code\PMapper\Test.BoldPMappersDefaultMocks.pas',
   Test.BoldPMTransactionGuards in 'Code\PMapper\Test.BoldPMTransactionGuards.pas',
   BoldDbEvolutorScenarios in 'Code\PMapper\BoldDbEvolutorScenarios.pas',
   Test.BoldDbEvolutor in 'Code\PMapper\Test.BoldDbEvolutor.pas',

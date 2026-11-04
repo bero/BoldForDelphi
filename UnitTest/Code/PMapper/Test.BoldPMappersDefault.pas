@@ -1,35 +1,22 @@
 ﻿unit Test.BoldPMappersDefault;
 
-{ Unit tests for BoldPMappersDefault using Delphi-Mocks framework.
-
-  Tests cover mocking patterns for IBoldQuery and IBoldField interfaces
-  that are used by NewIdFromQuery and other persistence mapper methods.
-}
+{ Tests for BoldPMappersDefault, shared between DUnitX and FPCUnit. The
+  error-path fixture runs on dmUndoRedo: FireDAC under Delphi, Zeos under Free
+  Pascal. The Delphi-Mocks patterns for IBoldQuery/IBoldField are in
+  Test.BoldPMappersDefaultMocks (Delphi only). }
 
 interface
 
 uses
-  DUnitX.TestFramework,
-  BoldTestFramework, // BoldTestAllocatedBytes/Blocks
-  Delphi.Mocks,
-  BoldDBInterfaces,
+  BoldTestFramework,
   BoldDefs;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('PMapper')]
-  TTestBoldPMappersDefault = class
-  public
-    [Test]
-    procedure TestMockQueryWithBoldDbTypeField;
-
-    [Test]
-    procedure TestMockQueryWithObjectIdField;
-
-    [Test]
-    procedure TestMockQueryWithMultipleFields;
-
-    [Test]
+  {$ENDIF}
+  TTestBoldPMappersDefault = class(TBoldTestCase)
+  published
     procedure TestBoldMaxTimestampConstant;
   end;
 
@@ -37,98 +24,32 @@ type
     Needs a real SQLite-backed system: the leak sits inside
     TBoldObjectDefaultMapper.PMCreate, which only runs against a fully built
     persistence mapper graph, so mocks cannot reach it. }
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('PMapper')]
-  TTestBoldPMCreateErrorPath = class
-  public
-    [Setup]
-    procedure SetUp;
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
+  {$ENDIF}
+  TTestBoldPMCreateErrorPath = class(TBoldTestCase)
+  private
+    // Free Pascal 3.2.2 has no anonymous methods: Assert.WillRaiseAny gets this.
+    procedure UpdateDatabase;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure TestFailedInsertDoesNotLeakPerTableLists;
-
-    [Test]
     procedure TestRepeatedFailedUpdateNeverReportsSilentSuccess;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
-  System.Classes,
-  System.Rtti,
+  SysUtils,
+  Classes,
   BoldSystem,
   BoldPMappersSQL,
   BoldTestModel,
-  maan_UndoRedoBase,
-  maan_UndoRedoFireDAC,
-  maan_UndoRedoTestCaseUtils;
+  maan_UndoRedoBase;
 
 { TTestBoldPMappersDefault }
-
-procedure TTestBoldPMappersDefault.TestMockQueryWithBoldDbTypeField;
-var
-  MockQuery: TMock<IBoldQuery>;
-  MockField: TMock<IBoldField>;
-begin
-  // Demonstrates mocking IBoldQuery.Fields[index] for BoldDbType column
-  // This pattern is used by NewIdFromQuery when BoldDbTypeColumn <> -1
-  MockQuery := TMock<IBoldQuery>.Create;
-  MockField := TMock<IBoldField>.Create;
-
-  MockField.Setup.WillReturn(5).When.GetAsInteger;  // BoldDbType value
-
-  MockQuery.Setup.WillReturn(TValue.From<IBoldField>(MockField.Instance))
-    .When.GetFields(0);
-
-  // Verify mock returns expected BoldDbType
-  Assert.AreEqual(5, MockQuery.Instance.Fields[0].AsInteger, 'Field 0 should return BoldDbType=5');
-end;
-
-procedure TTestBoldPMappersDefault.TestMockQueryWithObjectIdField;
-var
-  MockQuery: TMock<IBoldQuery>;
-  MockField: TMock<IBoldField>;
-begin
-  // Demonstrates mocking IBoldQuery.Fields[index] for ObjectId column
-  // This pattern is used by NewIdFromQuery to get the object ID value
-  MockQuery := TMock<IBoldQuery>.Create;
-  MockField := TMock<IBoldField>.Create;
-
-  MockField.Setup.WillReturn(42).When.GetAsInteger; // ObjectId value
-
-  MockQuery.Setup.WillReturn(TValue.From<IBoldField>(MockField.Instance))
-    .When.GetFields(1);
-
-  // Verify mock returns expected ObjectId
-  Assert.AreEqual(42, MockQuery.Instance.Fields[1].AsInteger, 'Field 1 should return ObjectId=42');
-end;
-
-procedure TTestBoldPMappersDefault.TestMockQueryWithMultipleFields;
-var
-  MockQuery: TMock<IBoldQuery>;
-  MockField0, MockField1: TMock<IBoldField>;
-begin
-  // Demonstrates mocking multiple fields simultaneously
-  // NewIdFromQuery accesses both BoldDbType and ObjectId columns
-  MockQuery := TMock<IBoldQuery>.Create;
-  MockField0 := TMock<IBoldField>.Create;
-  MockField1 := TMock<IBoldField>.Create;
-
-  MockField0.Setup.WillReturn(3).When.GetAsInteger;   // BoldDbType
-  MockField1.Setup.WillReturn(999).When.GetAsInteger; // ObjectId
-
-  MockQuery.Setup.WillReturn(TValue.From<IBoldField>(MockField0.Instance))
-    .When.GetFields(0);
-  MockQuery.Setup.WillReturn(TValue.From<IBoldField>(MockField1.Instance))
-    .When.GetFields(1);
-
-  // Verify both fields return expected values
-  Assert.AreEqual(3, MockQuery.Instance.Fields[0].AsInteger, 'BoldDbType field should be 3');
-  Assert.AreEqual(999, MockQuery.Instance.Fields[1].AsInteger, 'ObjectId field should be 999');
-end;
 
 procedure TTestBoldPMappersDefault.TestBoldMaxTimestampConstant;
 begin
@@ -139,8 +60,14 @@ end;
 
 { TTestBoldPMCreateErrorPath }
 
+procedure TTestBoldPMCreateErrorPath.UpdateDatabase;
+begin
+  dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
+end;
+
 procedure TTestBoldPMCreateErrorPath.SetUp;
 begin
+  inherited;
   EnsureDM;
   if not dmUndoRedo.BoldSystemHandle1.Active then
     dmUndoRedo.BoldSystemHandle1.Active := True;
@@ -159,6 +86,7 @@ begin
     // the next EnsureDM recreates the database schema from scratch.
     FreeAndNil(dmUndoRedo);
   end;
+  inherited;
 end;
 
 procedure TTestBoldPMCreateErrorPath.TestFailedInsertDoesNotLeakPerTableLists;
@@ -179,20 +107,12 @@ begin
 
   TSomeClass.Create(Sys);
   // Sabotage the schema so PMCreate's INSERT fails
-  UndoRedoFireDAC.FDConnection1.ExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
+  UndoRedoExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
 
   // Warm-up: two failing attempts get the query pool and FireDAC error
   // machinery allocated.
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-    end, 'UpdateDatabase must fail once the class table is gone');
-  Assert.WillRaiseAny(
-    procedure
-    begin
-      dmUndoRedo.BoldSystemHandle1.UpdateDatabase;
-    end, 'second UpdateDatabase attempt must fail too');
+  Assert.WillRaiseAny(UpdateDatabase, 'UpdateDatabase must fail once the class table is gone');
+  Assert.WillRaiseAny(UpdateDatabase, 'second UpdateDatabase attempt must fail too');
 
   // Measure attempts 3 and 4 - each failing PMCreate leaks one
   // TBoldMemberPersistenceMapperList (plus indexes) and one TStringList.
@@ -232,7 +152,7 @@ begin
 
   TSomeClass.Create(Sys);
   // Sabotage the schema so PMCreate's INSERT fails
-  UndoRedoFireDAC.FDConnection1.ExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
+  UndoRedoExecSQL('DROP TABLE ' + ObjectMapper.MainTable.SQLName);
 
   for Attempt := 1 to 6 do
   begin
@@ -250,7 +170,7 @@ begin
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldPMappersDefault);
-  TDUnitX.RegisterTestFixture(TTestBoldPMCreateErrorPath);
+  BoldRegisterTest(TTestBoldPMappersDefault);
+  BoldRegisterTest(TTestBoldPMCreateErrorPath);
 
 end.
