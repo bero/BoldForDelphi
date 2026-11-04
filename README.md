@@ -1,5 +1,7 @@
 # BoldForDelphi
 
+[![FPC tests](https://github.com/bero/BoldForDelphi/actions/workflows/fpc-tests.yml/badge.svg?branch=develop)](https://github.com/bero/BoldForDelphi/actions/workflows/fpc-tests.yml)
+
 Bold is a Model Driven Architecture (MDA) framework and Object-Relational Mapping (ORM) tool for Delphi. It allows you to start with a UML model of your application and execute it with a sophisticated object-relational mapping layer, [OCL](https://en.wikipedia.org/wiki/Object_Constraint_Language) query language, change synchronization, and IDE-integrated tools.
 
 ## Use Cases
