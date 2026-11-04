@@ -129,6 +129,9 @@ var
 begin
   Query := Database.GetExecQuery;
   try
+    // The cached exec query keeps the ParamCheck of its last user: schema
+    // creation turns it off, so set it before the text, as BoldDbCopy does.
+    Query.ParamCheck := True;
     Query.AssignSQLText('UPDATE VEHICLE SET NAME = :NAME1');
     Query.ParamByName('NAME1').AsString := 'Volvo';
     BoldLogSQL(Query);
@@ -166,6 +169,7 @@ var
 begin
   Query := Database.GetExecQuery;
   try
+    Query.ParamCheck := True; // see ExecQueryLogIncludesParameterValues
     Query.AssignSQLText('UPDATE PICTURE SET DATA = :DATA1');
     Query.ParamByName('DATA1').AsBlob := cBlobContent;
     BoldLogSQL(Query);
