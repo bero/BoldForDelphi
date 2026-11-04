@@ -36,36 +36,66 @@ env:
 
 jobs:
   fpc:
-    name: FPC 3.2.2 + Zeos 8.0.0, Linux
-    runs-on: ubuntu-24.04
+    name: FPC 3.2.2 + Zeos 8.0.0, Ubuntu 26.04
+    runs-on: ubuntu-latest
+    # The job runs in an Ubuntu 26.04 container, the OS the Linux development
+    # machine runs, so CI gets the same FPC build (3.2.2+dfsg-49). Steps run as
+    # root there, with no sudo.
+    container:
+      image: ubuntu:26.04
     timeout-minutes: 30
+    env:
+      DEBIAN_FRONTEND: noninteractive
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # The downloaded .deb files are cached, so after the first run the install
+      # needs no apt-get update and no mirror (one run got the 20 MB at
+      # 53 kB/s, 6 minutes). Cached paths are relative to the workspace:
+      # runner.temp may name the host's path in a container job. Bump the
+      # version in the key when FPC_PACKAGES changes.
+      - name: Cache the FPC packages
+        id: fpc-debs
+        uses: actions/cache@v4
+        with:
+          path: .ci-cache/fpc-debs
+          key: fpc-debs-ubuntu-26.04-fpc-3.2.2-v1
+
       - name: Install Free Pascal and SQLite
         # Only what the build loads: the compiler and the rtl, base (regexpr)
         # and fcl (db, fpcunit, xml) units. The fpc metapackage would add the
-        # IDE and the gtk2, db, gfx, math, misc, multimedia and net units, and
-        # took 2 minutes to install. gcc and libc6-dev provide the C runtime
-        # the test runner links against (cthreads, cwstring); the runner image
-        # has them, they are listed so the step also works on a bare image.
+        # IDE and the gtk2, db, gfx, math, misc, multimedia and net units.
+        # gcc and libc6-dev provide the C runtime the test runner links
+        # against (cthreads, cwstring); curl, ca-certificates and unzip get
+        # Zeos. The container image has none of them.
+        env:
+          FPC_PACKAGES: >-
+            fp-compiler-3.2.2 fp-units-rtl-3.2.2 fp-units-base-3.2.2 fp-units-fcl-3.2.2
+            gcc libc6-dev libsqlite3-0 curl ca-certificates unzip
+          CACHE_HIT: ${{ steps.fpc-debs.outputs.cache-hit }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            fp-compiler-3.2.2 fp-units-rtl-3.2.2 fp-units-base-3.2.2 fp-units-fcl-3.2.2 \
-            gcc libc6-dev libsqlite3-0 unzip
+          DEBS="$GITHUB_WORKSPACE/.ci-cache/fpc-debs"
+          mkdir -p "$DEBS/partial"
+          if [ "$CACHE_HIT" = "true" ] && dpkg -i "$DEBS"/*.deb; then
+            echo "Installed from the cached packages"
+          else
+            apt-get update
+            # The downloads land in $DEBS, which the cache step saves
+            apt-get install -y --no-install-recommends \
+              -o Dir::Cache::Archives="$DEBS" $FPC_PACKAGES
+          fi
           fpc -iV
 
       - name: Cache the Zeos archive
         uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}/zeosdbo-8.0.0-stable.zip
+          path: .ci-cache/zeosdbo-8.0.0-stable.zip
           key: zeosdbo-8.0.0-stable-${{ env.ZEOS_ZIP_SHA256 }}
 
       - name: Get Zeos 8.0.0
         run: |
-          ZIP="$RUNNER_TEMP/zeosdbo-8.0.0-stable.zip"
+          ZIP="$GITHUB_WORKSPACE/.ci-cache/zeosdbo-8.0.0-stable.zip"
           if [ ! -f "$ZIP" ]; then
             curl -fsSL --retry 5 --retry-delay 10 -o "$ZIP" "$ZEOS_ZIP_URL"
           fi

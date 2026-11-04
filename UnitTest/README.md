@@ -115,7 +115,8 @@ into `FPC/bin/zeos`, and then the tests in mode DelphiUnicode against those
 units. Output goes to `FPC/bin`; the exit code is 0 when every test passed.
 
 GitHub Actions runs the same build on every push and pull request to
-`develop` (`.github/workflows/fpc-tests.yml`, Ubuntu 24.04, FPC 3.2.2): it
+`develop` (`.github/workflows/fpc-tests.yml`, in an Ubuntu 26.04 container, FPC
+3.2.2, the same as the Linux development machine): it
 downloads the Zeos 8.0.0 release above, checks its SHA-256 and runs
 `FPC/build.sh`, so a change made in Delphi cannot break the Free Pascal build
 unnoticed. The Delphi suite still runs on Windows only.
