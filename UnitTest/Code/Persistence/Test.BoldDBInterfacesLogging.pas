@@ -4,57 +4,51 @@
 
   Statements bind their values as parameters, so the statement text carries
   placeholders (:ID1) rather than literals. A log line built from SQLText alone
-  therefore shows which statement ran but not which values were sent. }
+  therefore shows which statement ran but not which values were sent.
+
+  The queries are real ones from the runner's database (TBoldTestCaseDB:
+  FireDAC under Delphi, Zeos under Free Pascal), with parameters parsed from
+  the statement text. Nothing is executed: BoldLogSQL only reads the text and
+  the parameters, so the tables in the statements need not exist. }
 
 interface
 
 uses
-  System.Classes,
-  DUnitX.TestFramework,
+  Classes,
+  BoldTestFramework,
   BoldLogHandler,
-  BoldLogReceiverInterface;
+  BoldLogReceiverInterface,
+  BoldDBInterfaces,
+  BoldTestCaseDB;
 
 type
-  [TestFixture]
+  {$IFNDEF FPC}
   [Category('Persistence')]
-  TTestBoldDBInterfacesLogging = class
+  {$ENDIF}
+  TTestBoldDBInterfacesLogging = class(TBoldTestCaseDB)
   private
     fLoggedLines: TStringList;
     fReceiver: IBoldLogReceiver;
     fSavedLogHandler: TBoldLogHandler;
     function LoggedText: string;
-  public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
+    function Database: IBoldDatabase;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
     procedure QueryLogIncludesParameterValues;
-
-    [Test]
     procedure ExecQueryLogIncludesParameterValues;
-
-    [Test]
     procedure NullParameterIsLoggedAsNull;
-
-    [Test]
     procedure BlobParameterValueIsNotExpanded;
-
-    [Test]
     procedure QueryWithoutParametersLogsStatementOnly;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
-  System.StrUtils,
-  System.Rtti,
-  Data.DB,
-  Delphi.Mocks,
-  BoldDefs,
-  BoldDBInterfaces;
+  SysUtils,
+  StrUtils,
+  BoldDefs;
 
 const
   cSelectById = 'SELECT BOLD_ID FROM BOLD_OBJECT WHERE BOLD_ID = :ID1';
@@ -80,20 +74,11 @@ begin
   fTarget.Add(s);
 end;
 
-function MockParameter(const AName: string; ADataType: TFieldType;
-  const AAsString: string; AIsNull: Boolean = False): TMock<IBoldParameter>;
-begin
-  Result := TMock<IBoldParameter>.Create;
-  Result.Setup.WillReturn(AName).When.GetName;
-  Result.Setup.WillReturn(AIsNull).When.GetIsNull;
-  Result.Setup.WillReturn(TValue.From<TFieldType>(ADataType)).When.GetDataType;
-  Result.Setup.WillReturn(AAsString).When.GetAsString;
-end;
-
 { TTestBoldDBInterfacesLogging }
 
-procedure TTestBoldDBInterfacesLogging.Setup;
+procedure TTestBoldDBInterfacesLogging.SetUp;
 begin
+  inherited; // the database and its system; their SQL is not captured
   fLoggedLines := TStringList.Create;
   fReceiver := TCapturingLogReceiver.Create(fLoggedLines);
   BoldLog.RegisterLogReceiver(fReceiver);
@@ -107,6 +92,12 @@ begin
   BoldLog.UnregisterLogReceiver(fReceiver);
   fReceiver := nil;
   FreeAndNil(fLoggedLines);
+  inherited;
+end;
+
+function TTestBoldDBInterfacesLogging.Database: IBoldDatabase;
+begin
+  Result := DatabaseAdapter.DatabaseInterface;
 end;
 
 function TTestBoldDBInterfacesLogging.LoggedText: string;
@@ -116,17 +107,16 @@ end;
 
 procedure TTestBoldDBInterfacesLogging.QueryLogIncludesParameterValues;
 var
-  Query: TMock<IBoldQuery>;
-  Param: TMock<IBoldParameter>;
+  Query: IBoldQuery;
 begin
-  Param := MockParameter('ID1', ftInteger, '4711');
-
-  Query := TMock<IBoldQuery>.Create;
-  Query.Setup.WillReturn(cSelectById).When.GetSQLText;
-  Query.Setup.WillReturn(1).When.GetParamCount;
-  Query.Setup.WillReturn(TValue.From<IBoldParameter>(Param.Instance)).When.GetParam(0);
-
-  BoldLogSQL(Query.Instance);
+  Query := Database.GetQuery;
+  try
+    Query.AssignSQLText(cSelectById);
+    Query.ParamByName('ID1').AsInteger := 4711;
+    BoldLogSQL(Query);
+  finally
+    Database.ReleaseQuery(Query);
+  end;
 
   Assert.Contains(LoggedText, ':ID1', 'The statement text must still be logged');
   Assert.Contains(LoggedText, '4711',
@@ -135,17 +125,16 @@ end;
 
 procedure TTestBoldDBInterfacesLogging.ExecQueryLogIncludesParameterValues;
 var
-  Query: TMock<IBoldExecQuery>;
-  Param: TMock<IBoldParameter>;
+  Query: IBoldExecQuery;
 begin
-  Param := MockParameter('NAME1', ftString, 'Volvo');
-
-  Query := TMock<IBoldExecQuery>.Create;
-  Query.Setup.WillReturn('UPDATE VEHICLE SET NAME = :NAME1').When.GetSQLText;
-  Query.Setup.WillReturn(1).When.GetParamCount;
-  Query.Setup.WillReturn(TValue.From<IBoldParameter>(Param.Instance)).When.GetParam(0);
-
-  BoldLogSQL(Query.Instance);
+  Query := Database.GetExecQuery;
+  try
+    Query.AssignSQLText('UPDATE VEHICLE SET NAME = :NAME1');
+    Query.ParamByName('NAME1').AsString := 'Volvo';
+    BoldLogSQL(Query);
+  finally
+    Database.ReleaseExecQuery(Query);
+  end;
 
   Assert.Contains(LoggedText, ':NAME1', 'The statement text must still be logged');
   Assert.Contains(LoggedText, 'Volvo',
@@ -154,17 +143,16 @@ end;
 
 procedure TTestBoldDBInterfacesLogging.NullParameterIsLoggedAsNull;
 var
-  Query: TMock<IBoldQuery>;
-  Param: TMock<IBoldParameter>;
+  Query: IBoldQuery;
 begin
-  Param := MockParameter('ID1', ftInteger, '', True);
-
-  Query := TMock<IBoldQuery>.Create;
-  Query.Setup.WillReturn(cSelectById).When.GetSQLText;
-  Query.Setup.WillReturn(1).When.GetParamCount;
-  Query.Setup.WillReturn(TValue.From<IBoldParameter>(Param.Instance)).When.GetParam(0);
-
-  BoldLogSQL(Query.Instance);
+  Query := Database.GetQuery;
+  try
+    Query.AssignSQLText(cSelectById); // ID1 is never given a value
+    Assert.AreEqual(1, Query.ParamCount, 'precondition: the marker became a parameter');
+    BoldLogSQL(Query);
+  finally
+    Database.ReleaseQuery(Query);
+  end;
 
   Assert.Contains(LoggedText, 'NULL',
     'An unbound parameter must be distinguishable from an empty string');
@@ -174,17 +162,16 @@ procedure TTestBoldDBInterfacesLogging.BlobParameterValueIsNotExpanded;
 const
   cBlobContent = 'BLOB-CONTENT-MUST-NOT-REACH-THE-LOG';
 var
-  Query: TMock<IBoldExecQuery>;
-  Param: TMock<IBoldParameter>;
+  Query: IBoldExecQuery;
 begin
-  Param := MockParameter('DATA1', ftBlob, cBlobContent);
-
-  Query := TMock<IBoldExecQuery>.Create;
-  Query.Setup.WillReturn('UPDATE PICTURE SET DATA = :DATA1').When.GetSQLText;
-  Query.Setup.WillReturn(1).When.GetParamCount;
-  Query.Setup.WillReturn(TValue.From<IBoldParameter>(Param.Instance)).When.GetParam(0);
-
-  BoldLogSQL(Query.Instance);
+  Query := Database.GetExecQuery;
+  try
+    Query.AssignSQLText('UPDATE PICTURE SET DATA = :DATA1');
+    Query.ParamByName('DATA1').AsBlob := cBlobContent;
+    BoldLogSQL(Query);
+  finally
+    Database.ReleaseExecQuery(Query);
+  end;
 
   Assert.Contains(LoggedText, 'DATA1', 'The parameter name must be logged');
   Assert.IsFalse(ContainsText(LoggedText, cBlobContent),
@@ -193,19 +180,21 @@ end;
 
 procedure TTestBoldDBInterfacesLogging.QueryWithoutParametersLogsStatementOnly;
 var
-  Query: TMock<IBoldQuery>;
+  Query: IBoldQuery;
 begin
-  Query := TMock<IBoldQuery>.Create;
-  Query.Setup.WillReturn('SELECT COUNT(*) FROM BOLD_OBJECT').When.GetSQLText;
-  Query.Setup.WillReturn(0).When.GetParamCount;
-
-  BoldLogSQL(Query.Instance);
+  Query := Database.GetQuery;
+  try
+    Query.AssignSQLText('SELECT COUNT(*) FROM BOLD_OBJECT');
+    BoldLogSQL(Query);
+  finally
+    Database.ReleaseQuery(Query);
+  end;
 
   Assert.AreEqual('SELECT COUNT(*) FROM BOLD_OBJECT', Trim(LoggedText),
     'A statement without parameters must be logged unchanged');
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestBoldDBInterfacesLogging);
+  BoldRegisterTest(TTestBoldDBInterfacesLogging);
 
 end.

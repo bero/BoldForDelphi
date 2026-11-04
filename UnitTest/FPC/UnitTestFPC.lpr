@@ -31,6 +31,7 @@ uses
   Test.BoldContainers,
   Test.BoldDbCopy,
   Test.BoldDbEvolutor,
+  Test.BoldDBInterfacesLogging,
   Test.BoldDbParameter,
   Test.BoldDbValidator,
   Test.BoldDefaultId,
