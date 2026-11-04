@@ -1,0 +1,68 @@
+name: FPC tests
+
+# Builds Bold and its unit tests with Free Pascal on Linux and runs the FPCUnit
+# suite (UnitTest/FPC/build.sh), so a change made and tested in Delphi cannot
+# break the Lazarus/Free Pascal build unnoticed (#117). The Delphi suite still
+# runs on Windows only.
+
+on:
+  push:
+    branches:
+      - develop
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  pull_request:
+    branches:
+      - develop
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fpc-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Zeos is required for the FPC build (UnitTest/README.md) and is never
+  # vendored: the official 8.0.0 release from SourceForge, checked against this
+  # SHA-256 before use.
+  ZEOS_ZIP_URL: https://downloads.sourceforge.net/project/zeoslib/Zeos%20Database%20Objects/zeosdbo-8.0.0-stable/zeosdbo-8.0.0-stable.zip
+  ZEOS_ZIP_SHA256: 21398d4015e3fb43c56e9c0b3101ae2a8f9e71fa41c66f826224cee493040e92
+
+jobs:
+  fpc:
+    name: FPC 3.2.2 + Zeos 8.0.0, Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Free Pascal and SQLite
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fpc libsqlite3-0 unzip
+          fpc -iV
+
+      - name: Cache the Zeos archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/zeosdbo-8.0.0-stable.zip
+          key: zeosdbo-8.0.0-stable-${{ env.ZEOS_ZIP_SHA256 }}
+
+      - name: Get Zeos 8.0.0
+        run: |
+          ZIP="$RUNNER_TEMP/zeosdbo-8.0.0-stable.zip"
+          if [ ! -f "$ZIP" ]; then
+            curl -fsSL --retry 5 --retry-delay 10 -o "$ZIP" "$ZEOS_ZIP_URL"
+          fi
+          echo "$ZEOS_ZIP_SHA256  $ZIP" | sha256sum -c -
+          unzip -q "$ZIP" -d "$RUNNER_TEMP/zeosdbo-8.0.0"
+
+      - name: Build and run the FPC test suite
+        run: ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0" sh UnitTest/FPC/build.sh
