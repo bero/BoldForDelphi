@@ -76,6 +76,7 @@ uses
   Test.BoldPMTransactionGuards,
   Test.BoldPersistenceController,
   Test.BoldPersistenceHandleDB,
+  Test.BoldPersistenceZeos,
   Test.BoldQueue,
   Test.BoldRegEx,
   Test.BoldSQLDatabaseConfig,

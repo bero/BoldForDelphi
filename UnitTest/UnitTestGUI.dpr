@@ -129,6 +129,7 @@ uses
   Test.BoldDBInterfacesMock in 'Code\Mocks\Test.BoldDBInterfacesMock.pas',
   { Integration tests with transaction rollback }
   BoldTestPersistence in 'Code\Integration\BoldTestPersistence.pas',
+  BoldDatabaseOperationsTestCase in 'Code\Integration\BoldDatabaseOperationsTestCase.pas',
   Test.BoldPersistence in 'Code\Integration\Test.BoldPersistence.pas',
   Test.BoldMeta in 'Code\MoldModel\Test.BoldMeta.pas',
   Test.BoldHTTPPersistenceControllerClient in 'Code\Persistence\Test.BoldHTTPPersistenceControllerClient.pas';
