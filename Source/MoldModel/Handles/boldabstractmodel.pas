@@ -89,21 +89,30 @@ end;
 
 procedure TBoldAbstractModel.DefineProperties(Filer: TFiler);
 
+  // The model is stored unless it equals the ancestor's model or, without an
+  // ancestor, the empty model a new component holds. So saving a form or data
+  // module whose model is loaded at run time adds no empty model to its file.
   function DoWriteModel: Boolean;
   var
-    ModelAsStrings, AncestorModelAsStrings: TStringList;
+    ModelAsStrings, ReferenceAsStrings: TStringList;
+    DefaultModel: TMoldModel;
     G: IBoldGuard;
   begin
-    G := TBoldGuard.Create(ModelAsStrings, AncestorModelAsStrings);
-    Result := true;
+    Result := True;
+    if not (Filer is TWriter) then
+      Exit;
+    G := TBoldGuard.Create(ModelAsStrings, ReferenceAsStrings, DefaultModel);
+    ModelAsStrings := TStringList.Create;
+    ReferenceAsStrings := TStringList.Create;
+    TMoldBLDRW.ModelToStrings(RawMoldModel, ModelAsStrings);
     if Filer.Ancestor is TBoldAbstractModel then
+      TMoldBLDRW.ModelToStrings((Filer.Ancestor as TBoldAbstractModel).RawMoldModel, ReferenceAsStrings)
+    else
     begin
-      ModelAsStrings := TStringList.Create;
-      AncestorModelAsStrings := TStringList.Create;
-      TMoldBLDRW.ModelToStrings(RawMoldModel, ModelAsStrings);
-      TMoldBLDRW.ModelToStrings((Filer.Ancestor as TBoldAbstractModel).RawMoldModel,AncestorModelAsStrings);
-      Result := not ModelAsStrings.Equals(AncestorModelAsStrings);
-    end
+      DefaultModel := TMoldBLDRW.StringsToModel(ReferenceAsStrings); // no text: the default model
+      TMoldBLDRW.ModelToStrings(DefaultModel, ReferenceAsStrings);
+    end;
+    Result := not ModelAsStrings.Equals(ReferenceAsStrings);
   end;
 
 begin

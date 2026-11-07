@@ -78,6 +78,8 @@ type
     class procedure SetBoldifyTaggedValue(element: TUMLModelElement; const Tag: string; const value: string );
     class function FullTag(const Tag: string): string;
     class function FindClass(Model: TUMLModel; const AClassName: string): TUMLClass;
+    function IsDefaultNavigableMultiplicityStored: Boolean;
+    function IsDefaultNonNavigableMultiplicityStored: Boolean;
    public
      constructor Create;
      procedure Boldify(UMLModel: TUMLModel);
@@ -93,9 +95,11 @@ type
      class function GetDefaultLinkSuperClass(Model: TUMLModel): TUMLClass;
    published
      property PluralSuffix: string read fPluralSuffix write fPluralSuffix;
-     property EnforceDefaultUMLCase: Boolean read fEnforceDefaultUMLCase write fEnforceDefaultUMLCase;
-     property DefaultNavigableMultiplicity: string read fDefaultNavigableMultiplicity write fDefaultNavigableMultiplicity;
-     property DefaultNonNavigableMultiplicity: string read fDefaultNonNavigableMultiplicity write fDefaultNonNavigableMultiplicity;
+     // Stored only when changed from the defaults, so that saving a form does not
+     // write them for every model.
+     property EnforceDefaultUMLCase: Boolean read fEnforceDefaultUMLCase write fEnforceDefaultUMLCase default False;
+     property DefaultNavigableMultiplicity: string read fDefaultNavigableMultiplicity write fDefaultNavigableMultiplicity stored IsDefaultNavigableMultiplicityStored;
+     property DefaultNonNavigableMultiplicity: string read fDefaultNonNavigableMultiplicity write fDefaultNonNavigableMultiplicity stored IsDefaultNonNavigableMultiplicityStored;
      property UnembedMulti: boolean read fUnembedMulti write fUnembedMulti default True;
      property MakeDerivedTransient: boolean read fMakeDerivedTransient write fMakeDerivedTransient default True;
    end;
@@ -726,13 +730,27 @@ begin
   end;
 end;
 
+const
+  cDefaultNavigableMultiplicity = '0..1'; // do not localize
+  cDefaultNonNavigableMultiplicity = '0..*'; // do not localize
+
 constructor TBoldUMLBoldify.Create;
 begin
   fPluralSuffix := '';
-  fDefaultNonNavigableMultiplicity := '0..*'; // do not localize
-  fDefaultNavigableMultiplicity  := '0..1'; // do not localize
+  fDefaultNonNavigableMultiplicity := cDefaultNonNavigableMultiplicity;
+  fDefaultNavigableMultiplicity := cDefaultNavigableMultiplicity;
   fUnembedMulti := True;
   fMakeDerivedTransient := True;
+end;
+
+function TBoldUMLBoldify.IsDefaultNavigableMultiplicityStored: Boolean;
+begin
+  Result := fDefaultNavigableMultiplicity <> cDefaultNavigableMultiplicity;
+end;
+
+function TBoldUMLBoldify.IsDefaultNonNavigableMultiplicityStored: Boolean;
+begin
+  Result := fDefaultNonNavigableMultiplicity <> cDefaultNonNavigableMultiplicity;
 end;
 
 class function TBoldUMLBoldify.FindClass(Model: TUMLModel; const AClassName: string): TUMLClass;

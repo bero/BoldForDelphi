@@ -44,6 +44,7 @@ uses
   BoldModel,
   BoldPersistenceHandleDB,
   BoldSQLDatabaseConfig,
+  BoldSubscription, // declares the components' ancestor; the designer adds it on save otherwise
   BoldSystem,
   BoldSystemHandle;
 

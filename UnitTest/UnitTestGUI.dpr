@@ -116,6 +116,7 @@ uses
   Test.BoldAttributes in 'Code\ObjectSpace\Test.BoldAttributes.pas',
   Test.BoldElements in 'Code\ObjectSpace\Test.BoldElements.pas',
   Test.BoldUMLModelValidator in 'Code\UMLModel\Test.BoldUMLModelValidator.pas',
+  Test.BoldModel in 'Code\UMLModel\Test.BoldModel.pas',
   Test.BoldListHandle in 'Code\Handles\Test.BoldListHandle.pas',
   Test.BoldSortedHandle in 'Code\Handles\Test.BoldSortedHandle.pas',
   Test.BoldFilteredHandle in 'Code\Handles\Test.BoldFilteredHandle.pas',

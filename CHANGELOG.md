@@ -56,6 +56,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- Saving a form or data module in the IDE wrote an empty model and three default
+  `Boldify` settings into the form file for a `TBoldModel` that holds no model,
+  such as one whose model is loaded at run time. `TBoldModel` now stores its
+  model and its `Boldify` settings only when they differ from the defaults; form
+  files that contain them still load (#117)
 - A subclass extent filled from an already loaded superclass extent came back
   empty: `TBoldClassListController.FillFromClassList` added through the list's
   `AddLocator`, which has been a no-op for class lists since 25.12.1. The fill

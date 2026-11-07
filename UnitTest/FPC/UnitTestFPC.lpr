@@ -62,6 +62,7 @@ uses
   Test.BoldMD5,
   Test.BoldMemberTypeDictionary,
   Test.BoldMeta,
+  Test.BoldModel,
   Test.BoldNameExpander,
   Test.BoldNamedValueList,
   Test.BoldOclClasses,
