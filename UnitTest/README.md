@@ -78,6 +78,21 @@ Run a specific fixture or test:
 .\UnitTest.exe --run:Test.BoldUndoHandler.TTestBoldUndoHandler --consolemode:Verbose
 ```
 
+## VCL-free runtime check
+
+The Bold runtime (object space, OCL, handles, persistence, XML streaming) must
+build without the VCL, for console and service applications now and for FMX and
+Free Pascal later (#117). `examples\Compound\Invoicing\Console` is that build:
+`FrameworkType=None` with the `BOLD_NO_VCL` define (see `Source\Common\Include\bold.inc`).
+`check_no_vcl.ps1` builds it with a detailed map file and fails when any `Vcl.*`
+unit is linked, naming the units; with `-Run` it also runs the 101-check scenario.
+Run it after a change under `Source`:
+
+```powershell
+.\check_no_vcl.ps1          # build Debug/Win64, check the map file
+.\check_no_vcl.ps1 -Run     # ... and run the scenario against ..\Model\Invoicing.bld
+```
+
 ## Free Pascal / Lazarus (Linux)
 
 Most of the suite also builds with Free Pascal through `FPC/build.sh`. The
