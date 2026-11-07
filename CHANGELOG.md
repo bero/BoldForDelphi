@@ -39,8 +39,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   VCL into an application, and a console, service or FMX program built on them
   links no VCL unit (#117). In the IDE, saving a VCL form, frame or data module
   that holds a non-visual Bold component adds `BoldEnvironmentVCL` to its uses
-  clause; Bold's VCL controls import it as before. When a function needs a GUI
-  framework and none is registered, the error now names the unit to link.
+  clause; Bold's VCL controls import it as before. The IDE treats a data module
+  without a class group as VCL, so a data module that a console, service or FMX
+  program shares declares `{%CLASSGROUP 'System.Classes.TPersistent'}` in its
+  implementation section, as the Invoicing example's `dmInvoicing` now does.
+  When a function needs a GUI framework and none is registered, the error now
+  names the unit to link.
   **Action needed:** a VCL application with no Bold-aware control whose forms are
   not saved again in the IDE adds `BoldEnvironmentVCL` to one uses clause.
   Without it the application runs on the freestanding environment, where Bold's

@@ -8,6 +8,8 @@ unit dmInvoicing;
   console runner, the unit tests and the FMX client. Each program links its
   own FireDAC wait-cursor unit (FireDAC.ConsoleUI.Wait or FireDAC.FMXUI.Wait);
   FireDAC selects the matching provider from the application type.
+  The CLASSGROUP directive marks the data module as framework neutral for
+  the IDE designer, so saving it there adds no VCL unit to the uses clause.
 
   The model is not stored in the dfm. Call LoadModelFromFile or
   LoadModelFromResource before OpenSystem, so that Invoicing.bld stays the
@@ -89,6 +91,8 @@ const
   cDefaultModelResource = 'InvoicingModel';
 
 implementation
+
+{%CLASSGROUP 'System.Classes.TPersistent'}
 
 {$R *.dfm}
 

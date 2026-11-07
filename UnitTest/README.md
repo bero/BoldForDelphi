@@ -87,7 +87,9 @@ with `FrameworkType=None`: the Bold core links no GUI framework, and a VCL
 application links `BoldEnvironmentVCL` itself.
 `check_no_vcl.ps1` builds it with a detailed map file and fails when any `Vcl.*`
 unit is linked, naming the units; with `-Run` it also runs the 101-check scenario.
-Run it after a change under `Source`:
+Run it after a change under `Source`, and after saving `dmInvoicing` in the IDE
+designer: its `{%CLASSGROUP 'System.Classes.TPersistent'}` keeps the designer
+from adding `BoldEnvironmentVCL` to its uses clause.
 
 ```powershell
 .\check_no_vcl.ps1          # build Debug/Win64, check the map file
