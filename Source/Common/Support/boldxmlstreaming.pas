@@ -7,9 +7,11 @@ interface
 uses
   {$IFDEF FPC}
   DOM,
+  {$ELSE}{$IFDEF BOLD_XMLDOM}
+  Xml.xmldom,
   {$ELSE}
   Bold_MSXML_TLB,
-  {$ENDIF}
+  {$ENDIF}{$ENDIF}
   BoldDefs,
   BoldBase,
   BoldStreams,
@@ -22,18 +24,23 @@ const
   BoldSOAPTypeAttributeName = 'xsi:type';
 
 type
-  // The XML library behind the streaming: MSXML on Delphi (default), OXml when
-  // OXML is defined, the fcl-xml DOM under Free Pascal.
+  // The XML library behind the streaming, as bold.inc chooses it: the fcl-xml
+  // DOM under Free Pascal; for Delphi, MSXML on Windows and Delphi's
+  // Xml.xmldom with the OmniXML vendor elsewhere or when BOLD_XMLDOM is
+  // defined; OXml when OXML is defined.
   {$IFDEF OXML}
   TBoldXMLLibDocument = TXMLDocument;
   TBoldXMLLibElement = PXMLNode;
   {$ELSE}{$IFDEF FPC}
   TBoldXMLLibDocument = TXMLDocument;
   TBoldXMLLibElement = TDOMElement;
+  {$ELSE}{$IFDEF BOLD_XMLDOM}
+  TBoldXMLLibDocument = IDOMDocument;
+  TBoldXMLLibElement = IDOMElement;
   {$ELSE}
   TBoldXMLLibDocument = IXMLDOMDocument;
   TBoldXMLLibElement = IXMLDOMElement;
-  {$ENDIF}{$ENDIF}
+  {$ENDIF}{$ENDIF}{$ENDIF}
 
   { forward declarations }
   TBoldXMLStreamerRegistry = class;
@@ -83,8 +90,8 @@ type
     procedure EnsureType(const DynamicStreamName, StaticStreamName: string);
     function GetType(const StaticStreamName: string): string;
     {$IFNDEF OXML}
-    function GetDocument: {$IFDEF FPC}TDOMDocument{$ELSE}IXMLDOMDocument{$ENDIF};
-    property Document: {$IFDEF FPC}TDOMDocument{$ELSE}IXMLDOMDocument{$ENDIF} read GetDocument;
+    function GetDocument: {$IFDEF FPC}TDOMDocument{$ELSE}TBoldXMLLibDocument{$ENDIF};
+    property Document: {$IFDEF FPC}TDOMDocument{$ELSE}TBoldXMLLibDocument{$ENDIF} read GetDocument;
     {$ENDIF}
     function GetAccessor: string;
     function GetIsNull: Boolean;
@@ -240,6 +247,7 @@ uses
   BoldHashIndexes,
   {$IFDEF OXML}OXmlUtils,{$ENDIF}
   {$IFDEF FPC}XMLRead, XMLWrite,{$ENDIF}
+  {$IFDEF BOLD_XMLDOM}Xml.omnixmldom,{$ENDIF}
   BoldBase64,
   BoldUtils;
 
@@ -257,6 +265,21 @@ type
   protected
     function ItemAsKeyString(Item: TObject): string; override;
   end;
+
+  // The attribute type of the XML library.
+  TBoldXMLLibAttribute = {$IFDEF OXML}PXMLNode{$ELSE}{$IFDEF FPC}TDOMAttr{$ELSE}{$IFDEF BOLD_XMLDOM}IDOMAttr{$ELSE}IXMLDOMAttribute{$ENDIF}{$ENDIF}{$ENDIF};
+
+// All text inside the element.
+function ElementText(Element: TBoldXMLLibElement): string;
+begin
+  {$IFDEF FPC}
+  Result := Element.TextContent;
+  {$ELSE}{$IFDEF BOLD_XMLDOM}
+  Result := (Element as IDOMNodeEx).text;
+  {$ELSE}
+  Result := Element.text;
+  {$ENDIF}{$ENDIF}
+end;
 
 var
   G_MainRegistry: TBoldXMLStreamerRegistry = nil;
@@ -401,6 +424,22 @@ begin
     aNode := aNode.NextSibling;
   end;
 end;
+{$ELSE}{$IFDEF BOLD_XMLDOM}
+var
+  aNode: IDOMNode;
+begin
+  result := nil;
+  aNode := fNode.firstChild;
+  while assigned(aNode) do
+  begin
+    if (aNode.nodeType = ELEMENT_NODE) and ((aNode as IDOMElement).tagName = Accessor) then
+    begin
+      result := TBoldXMLNode.Create(fManager, aNode as IDOMElement, fStatemanager);
+      exit;
+    end;
+    aNode := aNode.nextSibling;
+  end;
+end;
 {$ELSE}
 var
   aList: IXMLDOMNodeList;
@@ -425,7 +464,7 @@ begin
     aNode := aList.nextNode;
   end;
 end;
-{$ENDIF}{$ENDIF}
+{$ENDIF}{$ENDIF}{$ENDIF}
 
 constructor TBoldXMLNode.Create(Manager: TBoldXMLStreamManager; Node:
     TBoldXMLLibElement; StreamStateManager:
@@ -437,7 +476,7 @@ begin
 end;
 
 {$IFNDEF OXML}
-function TBoldXMLNode.GetDocument: {$IFDEF FPC}TDOMDocument{$ELSE}IXMLDOMDocument{$ENDIF};
+function TBoldXMLNode.GetDocument: {$IFDEF FPC}TDOMDocument{$ELSE}TBoldXMLLibDocument{$ENDIF};
 begin
   result := fNode.ownerDocument;
 end;
@@ -467,14 +506,16 @@ end;
 
 function TBoldXMLNode.ReadString: string;
 var
-  aNode: {$IFDEF OXML}PXMLNode{$ELSE}{$IFDEF FPC}TDOMNode{$ELSE}IXMLDOMNode{$ENDIF}{$ENDIF};
+  aNode: {$IFDEF OXML}PXMLNode{$ELSE}{$IFDEF FPC}TDOMNode{$ELSE}{$IFDEF BOLD_XMLDOM}IDOMNode{$ELSE}IXMLDOMNode{$ENDIF}{$ENDIF}{$ENDIF};
 begin
   aNode := {$IFDEF OXML}fNode.ChildNodes.GetFirst
-           {$ELSE}{$IFDEF FPC}fNode.FirstChild{$ELSE}fNode.childNodes.nextNode{$ENDIF}{$ENDIF};
+           {$ELSE}{$IFDEF FPC}fNode.FirstChild
+           {$ELSE}{$IFDEF BOLD_XMLDOM}fNode.firstChild
+           {$ELSE}fNode.childNodes.nextNode{$ENDIF}{$ENDIF}{$ENDIF};
   if assigned(aNode) and (aNode.nodeType =
-     {$IFDEF OXML}ntText{$ELSE}{$IFDEF FPC}TEXT_NODE{$ELSE}NODE_TEXT{$ENDIF}{$ENDIF}) then
+     {$IFDEF OXML}ntText{$ELSE}{$IFDEF FPC}TEXT_NODE{$ELSE}{$IFDEF BOLD_XMLDOM}TEXT_NODE{$ELSE}NODE_TEXT{$ENDIF}{$ENDIF}{$ENDIF}) then
   begin
-    result := aNode.{$IFDEF FPC}NodeValue{$ELSE}Text{$ENDIF};
+    result := aNode.{$IFDEF FPC}NodeValue{$ELSE}{$IFDEF BOLD_XMLDOM}nodeValue{$ELSE}Text{$ENDIF}{$ENDIF};
   end else begin
     result := '';
   end;
@@ -528,7 +569,7 @@ end;
 
 function TBoldXMLNode.GetType(const StaticStreamName: string): string;
 var
-  anAttr: {$IFDEF OXML}PXMLNode{$ELSE}{$IFDEF FPC}TDOMAttr{$ELSE}IXMLDOMAttribute{$ENDIF}{$ENDIF};
+  anAttr: TBoldXMLLibAttribute;
 begin
   anAttr := fNode.getAttributeNode(BoldSOAPTypeAttributeName);
   if assigned(anAttr) then begin
@@ -648,7 +689,7 @@ begin
   try
     PushFloatSettings;
     try
-      result := StrToFloat(fNode.{$IFDEF FPC}TextContent{$ELSE}text{$ENDIF});
+      result := StrToFloat(ElementText(fNode));
     except
       result := 0;
     end;
@@ -730,10 +771,13 @@ var
   {$ELSE}{$IFDEF FPC}
   aNodeList: TDOMNodeList;
   i: Integer;
+  {$ELSE}{$IFDEF BOLD_XMLDOM}
+  aNodeList: IDOMNodeList;
+  i: Integer;
   {$ELSE}
   aNodeList: IXMLDOMNodeList;
   aNode: IXMLDOMNode;
-  {$ENDIF}{$ENDIF}
+  {$ENDIF}{$ENDIF}{$ENDIF}
 begin
   result := TObjectList.Create(True);
   try
@@ -751,6 +795,10 @@ begin
     aNodeList := XMLDomElement.GetElementsByTagName(TagName); // owned by the document
     for i := 0 to Integer(aNodeList.Count) - 1 do
       result.Add(MakeNodeForElement(aNodeList[i] as TDOMElement));
+    {$ELSE}{$IFDEF BOLD_XMLDOM}
+    aNodeList := XMLDomElement.getElementsByTagName(TagName);
+    for i := 0 to aNodeList.length - 1 do
+      result.Add(MakeNodeForElement(aNodeList.item[i] as IDOMElement));
     {$ELSE}
     aNodeList := XMLDomElement.getElementsByTagName(TagName);
     aNode := aNodeList.nextNode;
@@ -759,7 +807,7 @@ begin
       result.Add(MakeNodeForElement(aNode as IXMLDOMElement));
       aNode := aNodeList.nextNode;
     end;
-    {$ENDIF}{$ENDIF}
+    {$ENDIF}{$ENDIF}{$ENDIF}
   except
     result.Free;
     raise;
@@ -773,10 +821,13 @@ var
   {$ELSE}{$IFDEF FPC}
   aNodeList: TDOMNodeList;
   i: Integer;
+  {$ELSE}{$IFDEF BOLD_XMLDOM}
+  aNodeList: IDOMNodeList;
+  i: Integer;
   {$ELSE}
   aNodeList: IXMLDOMNodeList;
   aNode: IXMLDOMNode;
-  {$ENDIF}{$ENDIF}
+  {$ENDIF}{$ENDIF}{$ENDIF}
 begin
   result := TObjectList.Create(True);
   try
@@ -792,6 +843,10 @@ begin
     aNodeList := XMLDomElement.ChildNodes; // owned by the element
     for i := 0 to Integer(aNodeList.Count) - 1 do
       result.Add(MakeNodeForElement(aNodeList[i] as TDOMElement));
+    {$ELSE}{$IFDEF BOLD_XMLDOM}
+    aNodeList := XMLDomElement.childNodes;
+    for i := 0 to aNodeList.length - 1 do
+      result.Add(MakeNodeForElement(aNodeList.item[i] as IDOMElement));
     {$ELSE}
     aNodeList := XMLDomElement.childNodes;
     aNode := aNodeList.nextNode;
@@ -800,7 +855,7 @@ begin
       result.Add(MakeNodeForElement(aNode as IXMLDOMElement));
       aNode := aNodeList.nextNode;
     end;
-    {$ENDIF}{$ENDIF}
+    {$ENDIF}{$ENDIF}{$ENDIF}
   except
     result.Free;
     raise;
@@ -957,7 +1012,7 @@ end;
 
 function TBoldXMLNode.HasBase64Data: Boolean;
 var
-  anAttr: {$IFDEF OXML}PXMLNode{$ELSE}{$IFDEF FPC}TDOMAttr{$ELSE}IXMLDOMAttribute{$ENDIF}{$ENDIF};
+  anAttr: TBoldXMLLibAttribute;
 begin
   anAttr := fNode.getAttributeNode('dt'); // do not localize
   Result := assigned(anAttr) and (
@@ -981,7 +1036,7 @@ end;
 
 function TBoldXMLNode.GetIsNull: Boolean;
 var
-  anAttr: {$IFDEF OXML}PXMLNode{$ELSE}{$IFDEF FPC}TDOMAttr{$ELSE}IXMLDOMAttribute{$ENDIF}{$ENDIF};
+  anAttr: TBoldXMLLibAttribute;
 begin
   anAttr := XMLDomElement.getAttributeNode(BoldSOAPNullAttributeName);
   result := assigned(anAttr) and (
@@ -1022,7 +1077,7 @@ begin
   try
     PushFloatSettings;
     try
-      result := StrToCurr(fNode.{$IFDEF FPC}TextContent{$ELSE}text{$ENDIF});
+      result := StrToCurr(ElementText(fNode));
     except
       result := 0;
     end;
@@ -1057,9 +1112,11 @@ begin
   fDocument := TXMLDocument.Create;
   {$ELSE}{$IFDEF FPC}
   fDocument := TXMLDocument.Create;
+  {$ELSE}{$IFDEF BOLD_XMLDOM}
+  fDocument := GetDOM(sOmniXmlVendor).createDocument('', '', nil);
   {$ELSE}
   fDocument := CoDOMDocument.Create;
-  {$ENDIF}{$ENDIF}
+  {$ENDIF}{$ENDIF}{$ENDIF}
 end;
 
 destructor TBoldXMLDocument.Destroy;
@@ -1100,13 +1157,32 @@ begin
     try
       ReadXMLFile(NewDocument, Stream);
     except
-      raise EBold.Create(sXMLParseError);
+      on E: Exception do
+        raise EBold.CreateFmt('%s: %s', [sXMLParseError, E.Message]);
     end;
   finally
     Stream.Free;
   end;
   fDocument.Free;
   fDocument := NewDocument;
+end;
+{$ELSE}{$IFDEF BOLD_XMLDOM}
+var
+  Loaded: Boolean;
+  ParseError: IDOMParseError;
+begin
+  try
+    Loaded := (fDocument as IDOMPersist).loadxml(XML);
+  except
+    on E: Exception do
+      raise EBold.CreateFmt('%s: %s', [sXMLParseError, E.Message]);
+  end;
+  if not Loaded then
+  begin
+    if Supports(fDocument, IDOMParseError, ParseError) then
+      raise EBold.CreateFmt('%s: %s', [sXMLParseError, Trim(ParseError.reason)]);
+    raise EBold.Create(sXMLParseError);
+  end;
 end;
 {$ELSE}
 var
@@ -1115,9 +1191,9 @@ begin
   fDocument.loadXML(XML);
   ParseError := fDocument.parseError;
   if Assigned(ParseError) and (ParseError.errorCode <> 0) then
-    raise EBold.Create(sXMLParseError);
+    raise EBold.CreateFmt('%s: %s', [sXMLParseError, Trim(ParseError.reason)]);
 end;
-{$ENDIF}{$ENDIF}
+{$ENDIF}{$ENDIF}{$ENDIF}
 
 function TBoldXMLDocument.RootXML: string;
 {$IFDEF FPC}
@@ -1134,15 +1210,17 @@ begin
   finally
     Stream.Free;
   end;
-  Result := TrimRight(UTF8Decode(Utf8));
+  Result := Trim(UTF8Decode(Utf8)); // fcl-xml writes a line break before the element
 end;
 {$ELSE}
 begin
   {$IFDEF OXML}
   Result := fDocument.XML;
+  {$ELSE}{$IFDEF BOLD_XMLDOM}
+  Result := Trim((fDocument.documentElement as IDOMNodeEx).xml);
   {$ELSE}
   Result := fDocument.documentElement.xml;
-  {$ENDIF}
+  {$ENDIF}{$ENDIF}
 end;
 {$ENDIF}
 
@@ -1201,9 +1279,11 @@ begin
 
   {$IFDEF FPC}
   Document.AppendChild(Document.CreateElement(Accessor));
+  {$ELSE}{$IFDEF BOLD_XMLDOM}
+  Document.appendChild(Document.createElement(Accessor));
   {$ELSE}
   Document.documentElement := Document.createElement(Accessor);
-  {$ENDIF}
+  {$ENDIF}{$ENDIF}
   result := TBoldXMLNode.Create(self, Document.documentElement, nil);
   result.XMLDomElement.setAttribute('xmlns:xsi', 'http://www.w3.org/1999/XMLSchema-instance');
   result.XMLDomElement.setAttribute('xml:space', 'preserve');

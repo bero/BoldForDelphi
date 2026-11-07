@@ -245,6 +245,8 @@ Other notable defines:
 ```pascal
 {$DEFINE BoldJson}           // JSON serialization support (always on)
 {$DEFINE BOLD_NO_QUERIES}    // Turns off query mechanism (always on)
+{$DEFINE BOLD_XMLDOM}        // Delphi XML streaming on Xml.xmldom (OmniXML) instead of MSXML;
+                             // set by bold.inc off Windows, define it to test it on Windows
 ```
 
 ## Key Concepts

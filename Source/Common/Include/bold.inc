@@ -101,6 +101,22 @@ Illegal symbol combination
   // Use OXML instead of MSXML for XML operations (faster and can handle larger XML)
 {.$DEFINE OXML}
 
+  // The XML library behind BoldXMLStreaming (#117). Free Pascal uses its own
+  // fcl-xml. Delphi uses MSXML over COM on Windows, and Delphi's cross-platform
+  // Xml.xmldom with the OmniXML vendor elsewhere. Define BOLD_XMLDOM in a
+  // project to use Xml.xmldom on Windows too, for example to test it there; the
+  // Windows-only units that use MSXML themselves (SOAP, XMI, COM) need MSXML.
+{$IFDEF FPC}
+  {$UNDEF BOLD_XMLDOM}
+{$ELSE}
+  {$IFNDEF MSWINDOWS}
+    {$DEFINE BOLD_XMLDOM}
+  {$ENDIF}
+{$ENDIF}
+{$IFDEF OXML}
+  {$UNDEF BOLD_XMLDOM}
+{$ENDIF}
+
   // When fetching an object which class list is loaded then search there instead of going to db.
 {$DEFINE FetchFromClassList}
 

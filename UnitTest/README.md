@@ -96,6 +96,16 @@ from adding `BoldEnvironmentVCL` to its uses clause.
 .\check_no_vcl.ps1 -Run     # ... and run the scenario against ..\Model\Invoicing.bld
 ```
 
+## Cross-platform XML backend check
+
+For Delphi, `BoldXMLStreaming` uses MSXML on Windows and Delphi's own
+`Xml.xmldom` with the OmniXML vendor on other platforms (#117); Free Pascal uses
+fcl-xml. To run the suite on the OmniXML backend without a macOS or Linux
+target, add `BOLD_XMLDOM` to the conditional defines of a UnitTest build. Every
+XML round trip in the suite then goes through it, and `Test.BoldXMLStreaming`
+tests the backend directly. The Windows-only units that use MSXML themselves
+(SOAP, XMI, COM) are not part of UnitTest and need MSXML.
+
 ## Free Pascal / Lazarus (Linux)
 
 Most of the suite also builds with Free Pascal through `FPC/build.sh`. The

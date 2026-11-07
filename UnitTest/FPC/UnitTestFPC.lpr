@@ -106,6 +106,7 @@ uses
   Test.BoldUndoHandler,
   Test.BoldUpdatePrecondition,
   Test.BoldUtils,
+  Test.BoldXMLStreaming,
   Test.BoldZeosAdapter,
   Test.FetchInvalidAttribute,
   Test.PersistenceScenariosZeos;

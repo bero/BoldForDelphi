@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- XML streaming builds on Delphi's cross-platform `Xml.xmldom` with the OmniXML
+  vendor for Delphi targets other than Windows, so the runtime core no longer
+  needs MSXML or COM there. Windows keeps MSXML; defining `BOLD_XMLDOM` selects
+  the new backend on Windows too, for example to test it (#117)
 - `BoldClock`: one-shot alarms delivered on the main thread without a window
   handle or a message loop. A background thread hands each due alarm to the
   main thread with `TThread.Queue`, so it runs on the next `CheckSynchronize`,
@@ -56,6 +60,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldXMLDocument.LoadXML` raised its parse error without the parser's reason;
+  the message now ends with it. Under Free Pascal, `TBoldXMLDocument.RootXML`
+  started with a line break (#117)
 - `TBoldPersistenceOperation.RemoteExecute`, the SOAP client of the persistence
   operations, leaked the XML nodes of a reply that held a SOAP fault or no
   response. It now frees them on every path, and builds its request and reply
