@@ -27,7 +27,7 @@ unit RationalRose98_TLB;
 
 interface
 
-uses Windows, ActiveX, Classes, Graphics, OleCtrls, StdVCL;
+uses Windows, ActiveX, Classes, StdVCL;
 
 const
   LIBID_RationalRose: TGUID = '{860CC660-1C2B-11D0-B1B1-444553540000}';

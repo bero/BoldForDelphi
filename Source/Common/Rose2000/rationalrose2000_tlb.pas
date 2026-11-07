@@ -28,7 +28,7 @@ unit RationalRose2000_TLB;
 {$TYPEDADDRESS OFF}
 interface
 
-uses Windows, ActiveX, Classes, Graphics, OleCtrls, StdVCL;
+uses Windows, ActiveX, Classes, StdVCL;
 
 
 

@@ -34,7 +34,7 @@ unit BoldLockingSupportInterfaces_TLB;
 {$TYPEDADDRESS OFF}
 interface
 
-uses Windows, ActiveX, Classes, Graphics, OleServer, OleCtrls, StdVCL;
+uses Windows, ActiveX, Classes, StdVCL;
 
 
 

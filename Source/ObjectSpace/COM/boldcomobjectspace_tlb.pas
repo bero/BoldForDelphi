@@ -26,7 +26,7 @@ unit BoldComObjectSpace_TLB;
 
 interface
 
-uses Windows, ActiveX, Classes, Graphics, OleCtrls, StdVCL;
+uses Windows, ActiveX, Classes, StdVCL;
 
 
 
