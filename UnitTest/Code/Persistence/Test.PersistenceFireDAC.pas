@@ -204,6 +204,10 @@ uses
 
 { TTestPersistenceFireDAC }
 
+// The tests that hold Adapter.DatabaseInterface clear DbInterface before
+// Adapter.Free: the adapter owns the object behind the interface, and
+// releasing the interface after the free reads freed memory.
+
 procedure TTestPersistenceFireDAC.SetUp;
 begin
   // EnsureDM creates the data module with model, connections, and persistence
@@ -461,6 +465,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -500,6 +505,7 @@ begin
     DbInterface.ReleaseQuery(Query2);
     DbInterface.ReleaseQuery(Query3);
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -536,6 +542,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -576,6 +583,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -606,6 +614,7 @@ begin
     DbInterface.Close;
   finally
     TableNames.Free;
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -641,6 +650,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -680,6 +690,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -716,6 +727,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -783,6 +795,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -820,6 +833,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -857,6 +871,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -928,6 +943,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -966,6 +982,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1006,6 +1023,7 @@ begin
     DbInterface.Close;
   finally
     SourceParams.Free;
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1038,6 +1056,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1078,6 +1097,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1111,6 +1131,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1149,6 +1170,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1202,6 +1224,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1258,6 +1281,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1285,6 +1309,7 @@ begin
     DbInterface.Close;
     Assert.IsFalse(Connection.Connected, 'Should be disconnected');
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1325,6 +1350,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1383,6 +1409,7 @@ begin
     // the TFDConnection it owns) without naming the adapter class.
     DbInterface.ReleaseAnotherDatabaseConnection(AnotherDbInterface);
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1424,6 +1451,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1469,6 +1497,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1508,6 +1537,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1549,6 +1579,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1590,6 +1621,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1633,6 +1665,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1676,6 +1709,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1748,6 +1782,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1792,6 +1827,7 @@ begin
     DbInterface.Close;
   finally
     SourceParams.Free;
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1839,6 +1875,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1882,6 +1919,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1923,6 +1961,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -1963,6 +2002,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -2005,6 +2045,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -2051,6 +2092,7 @@ begin
     DbInterface.Close;
   finally
     SQLLines.Free;
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -2121,6 +2163,7 @@ begin
 
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -2189,6 +2232,7 @@ begin
     Connection.ExecSQL('DROP TABLE Bold_PoolWarm');
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -2228,6 +2272,7 @@ begin
     Connection.ExecSQL('DROP TABLE Bold_TxRelease');
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -2285,6 +2330,7 @@ begin
     Connection.ExecSQL('DROP TABLE Bold_TxExec');
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;
@@ -2331,6 +2377,7 @@ begin
     Connection.ExecSQL('DROP TABLE Bold_TxReopen');
     DbInterface.Close;
   finally
+    DbInterface := nil;
     Adapter.Free;
     Connection.Free;
   end;

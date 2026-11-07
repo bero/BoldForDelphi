@@ -666,10 +666,14 @@ end;
 procedure TTestBoldFreeStandingValueSpace.TestObjectContentsRemoveMemberByIndex;
 var
   OC: TBoldFreeStandingObjectContents;
+  Value: IBoldValue;
 begin
   OC := TBoldFreeStandingObjectContents.Create;
   try
-    OC.EnsureMemberAndGetValueByIndex(0, 'String');
+    // The returned interface is released here, not at the end of the method,
+    // which would be after RemoveMemberByIndex has freed the value.
+    Value := OC.EnsureMemberAndGetValueByIndex(0, 'String');
+    Value := nil;
     // Checked through HasValueAt: its interface temporary is released before
     // RemoveMemberByIndex frees the value.
     Assert.IsTrue(HasValueAt(OC, 0), 'Value should exist');
