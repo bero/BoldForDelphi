@@ -1148,6 +1148,7 @@ var
   Stream: TMemoryStream;
   NewDocument: TXMLDocument;
 begin
+  NewDocument := nil;
   Utf8 := UTF8Encode(XML);
   Stream := TMemoryStream.Create;
   try
@@ -1158,7 +1159,11 @@ begin
       ReadXMLFile(NewDocument, Stream);
     except
       on E: Exception do
+      begin
+        // ReadXMLFile has already handed over the partly read document.
+        NewDocument.Free;
         raise EBold.CreateFmt('%s: %s', [sXMLParseError, E.Message]);
+      end;
     end;
   finally
     Stream.Free;

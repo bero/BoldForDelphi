@@ -62,7 +62,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - `TBoldXMLDocument.LoadXML` raised its parse error without the parser's reason;
   the message now ends with it. Under Free Pascal, `TBoldXMLDocument.RootXML`
-  started with a line break (#117)
+  started with a line break, and `LoadXML` leaked the partly read document of
+  XML that did not parse (#117)
 - `TBoldPersistenceOperation.RemoteExecute`, the SOAP client of the persistence
   operations, leaked the XML nodes of a reply that held a SOAP fault or no
   response. It now frees them on every path, and builds its request and reply

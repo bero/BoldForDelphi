@@ -26,6 +26,7 @@ type
     procedure TestSubNodesByTagNameFindsDescendants;
     procedure TestRootXMLHasNoDeclaration;
     procedure TestMalformedXMLRaisesWithReason;
+    procedure TestMalformedXMLDoesNotLeak;
     procedure TestTextWithoutRootElementRaises;
   end;
 
@@ -40,6 +41,18 @@ uses
 
 const
   cRoot = 'Root';
+  // What AllocatedNow counts: the Free Pascal heap counts bytes, the Delphi
+  // memory manager blocks.
+  cAllocationUnit = {$IFDEF FPC}'bytes'{$ELSE}'blocks'{$ENDIF};
+
+function AllocatedNow: Int64;
+begin
+  {$IFDEF FPC}
+  Result := BoldTestAllocatedBytes;
+  {$ELSE}
+  Result := BoldTestAllocatedBlocks;
+  {$ENDIF}
+end;
 
 // Serialises Source's document and parses the text into a new document, as a
 // receiver of the XML would.
@@ -385,6 +398,39 @@ begin
     end;
     Assert.AreEqual(sXMLParseError, Copy(ErrorText, 1, Length(sXMLParseError)), 'not raised: ' + ErrorText);
     Assert.IsTrue(Length(ErrorText) > Length(sXMLParseError) + 2, 'no reason in: ' + ErrorText);
+  finally
+    Document.Free;
+  end;
+end;
+
+// A document that fails to parse must not leave memory behind. Under Free
+// Pascal, fcl-xml hands the partly read document to the caller when it raises.
+procedure TTestBoldXMLStreaming.TestMalformedXMLDoesNotLeak;
+var
+  Document: TBoldXMLDocument;
+  i: Integer;
+  Before, After: Int64;
+
+  procedure LoadMalformed;
+  begin
+    try
+      Document.LoadXML('<Root><Unclosed></Root>');
+    except
+      on EBold do
+        ; // the parse error is the expected outcome
+    end;
+  end;
+
+begin
+  Document := TBoldXMLDocument.Create;
+  try
+    for i := 1 to 5 do
+      LoadMalformed; // warm up one-time allocations
+    Before := AllocatedNow;
+    for i := 1 to 20 do
+      LoadMalformed;
+    After := AllocatedNow;
+    Assert.IsTrue(After = Before, Format('20 failed loads left %d %s', [After - Before, cAllocationUnit]));
   finally
     Document.Free;
   end;

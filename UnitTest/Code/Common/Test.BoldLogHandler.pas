@@ -512,8 +512,12 @@ end;
 procedure TTestBoldLogHandler.TestRegisterAndUnregisterLogReceiver;
 var
   Receiver: TTestLogReceiver;
+  KeepAlive: IBoldLogReceiver;
 begin
   Receiver := TTestLogReceiver.Create;
+  // The receiver is reference counted. Unregistering drops the log's
+  // reference, so this one keeps the receiver alive for the checks after it.
+  KeepAlive := Receiver;
   BoldLog.RegisterLogReceiver(Receiver);
   BoldLog.Log('Before');
   Assert.AreEqual('Before', Receiver.LastLogMessage);
