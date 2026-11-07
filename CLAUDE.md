@@ -245,6 +245,7 @@ Other notable defines:
 ```pascal
 {$DEFINE BoldJson}           // JSON serialization support (always on)
 {$DEFINE BOLD_NO_QUERIES}    // Turns off query mechanism (always on)
+{$DEFINE BOLD_NO_VCL}        // Project define: the runtime links no VCL unit (console, service, FMX); automatic under Free Pascal
 ```
 
 ## Key Concepts

@@ -44,7 +44,9 @@ uses
   BoldCoreConsts,
   BoldLogHandler,
   BoldDefs,
-{$IFNDEF FPC}
+{$IFNDEF BOLD_NO_VCL}
+  // Imported for its initialization only: it registers the VCL environment, so
+  // that a VCL application needs no import of its own. See BOLD_NO_VCL in bold.inc.
   BoldEnvironmentVCL,
 {$ENDIF}
   BoldEnvironment;
