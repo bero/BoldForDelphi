@@ -44,12 +44,14 @@ type
     fObjectToDelete: TBoldObject;
     function GetSystem: TBoldSystem;
     procedure DeletePendingObjectOnPreUpdate(Sender: TObject);
+    procedure DeletePendingObjectAndRaiseOnPreUpdate(Sender: TObject);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
 
     procedure TestPreUpdateSubscriberDeletesNewObjectInBatch;
+    procedure TestPreUpdateSubscriberDeletesNewObjectAndRaises;
   end;
 
   // Uses the SQLite-backed BoldTestDM: when a superclass extent is already
@@ -173,6 +175,41 @@ begin
   begin
     fObjectToDelete.Delete;
     fObjectToDelete := nil;
+  end;
+end;
+
+procedure TTestBoldSystemPreUpdatePersistent.DeletePendingObjectAndRaiseOnPreUpdate(Sender: TObject);
+begin
+  DeletePendingObjectOnPreUpdate(Sender);
+  raise EBold.Create('PreUpdate refused');
+end;
+
+procedure TTestBoldSystemPreUpdatePersistent.TestPreUpdateSubscriberDeletesNewObjectAndRaises;
+var
+  SavedBook: TBook;
+  ErrorText: string;
+begin
+  GetSystem.Discard;
+  SavedBook := TBook.Create(GetSystem);
+  fObjectToDelete := TBook.Create(GetSystem);
+  GetSystem.OnPreUpdate := DeletePendingObjectAndRaiseOnPreUpdate;
+  try
+    // The subscriber's exception must reach the caller, and the update must
+    // not touch the deleted object's locator on the way out, although the
+    // batch still holds it when the exception leaves PreUpdate.
+    ErrorText := '';
+    try
+      GetSystem.UpdateDatabase;
+    except
+      on E: EBold do
+        ErrorText := E.Message;
+    end;
+    Assert.AreEqual('PreUpdate refused', ErrorText);
+    Assert.IsTrue(SavedBook.BoldObjectIsNew, 'nothing must be saved when PreUpdate raises');
+  finally
+    GetSystem.OnPreUpdate := nil;
+    fObjectToDelete := nil;
+    GetSystem.Discard;
   end;
 end;
 

@@ -538,17 +538,22 @@ begin
       // never persisted object destroys it together with its locator, which
       // this list still holds. So destruction waits until the list has been
       // filtered again: the deleted objects are then still there, marked for
-      // destruction (deleted and not modified), and are left out.
+      // destruction (deleted and not modified), and are left out. The filter
+      // also runs when a subscriber raises, so that the list never holds the
+      // locator of an object that AllowObjectDestruction destroys.
       System.DelayObjectDestruction;
       try
-        DoPreUpdate(ObjectsToUpdate);
-        for i := ObjectsToUpdate.Count-1 downto 0 do
-        begin
-          if not assigned(ObjectsToUpdate.Locators[i].BoldObject) or
-             not ObjectsToUpdate[i].BoldPersistent or
-             ((ObjectsToUpdate[i].BoldExistenceState <> besExisting) and
-              (ObjectsToUpdate[i].BoldPersistenceState <> bvpsModified)) then
-            ObjectsToUpdate.RemoveByIndex(i);
+        try
+          DoPreUpdate(ObjectsToUpdate);
+        finally
+          for i := ObjectsToUpdate.Count-1 downto 0 do
+          begin
+            if not assigned(ObjectsToUpdate.Locators[i].BoldObject) or
+               not ObjectsToUpdate[i].BoldPersistent or
+               ((ObjectsToUpdate[i].BoldExistenceState <> besExisting) and
+                (ObjectsToUpdate[i].BoldPersistenceState <> bvpsModified)) then
+              ObjectsToUpdate.RemoveByIndex(i);
+          end;
         end;
       finally
         System.AllowObjectDestruction;
