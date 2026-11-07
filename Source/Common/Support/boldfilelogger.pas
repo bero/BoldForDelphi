@@ -31,7 +31,7 @@ type
 implementation
 
 uses
-  Windows;
+  BoldPlatform;
 
 { TBoldFileLogger }
 
@@ -50,7 +50,7 @@ end;
 
 procedure TBoldFileLogger.EndLog;
 begin
-  FlushFileBuffers(fFileStream.Handle);
+  BoldFlushFile(fFileStream.Handle);
 end;
 
 procedure TBoldFileLogger.Log(const s: string; LogType: TBoldLogType);

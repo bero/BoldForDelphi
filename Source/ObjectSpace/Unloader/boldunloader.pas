@@ -68,7 +68,7 @@ implementation
 
 uses
   SysUtils,
-  Windows,
+  BoldPlatform,
 
   DateUtils,
   BoldUtils,
@@ -126,7 +126,7 @@ var
   lNow: Int64;
   lTimeOut: boolean;
 begin
-  lStartTime := GetTickCount;
+  lStartTime := BoldTickCount;
   lNow := lStartTime;
   vScanned := Scanned;
   vUnloadedObjectCount := UnloadedObjectCount;
@@ -138,7 +138,7 @@ begin
     if assigned(Locator.BoldObject) and (Locator.BoldObject.BoldExistenceState = besExisting) and not Locator.BoldObject.BoldDirty then
       ScanObject(Locator.BoldObject);
     inc(fScanned);
-    lNow := GetTickCount;
+    lNow := BoldTickCount;
     lTimeOut := (lNow - lStartTime > scanPerTick) or (lNow < lStartTime);
   end;
   IncMilliSecond(ScanTime, lNow-lStartTime);

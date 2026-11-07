@@ -12,8 +12,7 @@ uses
   BoldDefs,
   BoldUMLTypes,
   BoldUnloader,
-  SysUtils,
-  Windows;
+  SysUtils;
 
 const
   cDefaultBatchSize = 1000;
@@ -109,9 +108,6 @@ type
 implementation
 
 uses
-  Vcl.Dialogs,
-  Vcl.Controls,
-  UITypes,
   DateUtils,
 
   BoldLinks,

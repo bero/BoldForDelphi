@@ -33,6 +33,12 @@ procedure BoldCoUninitialize;
 procedure BoldOutputDebugString(const s: string);
 // Id of the calling thread, as the log entries report it.
 function BoldCurrentThreadId: Cardinal;
+// Milliseconds since the system started, from a 64-bit counter that does not
+// wrap. For elapsed-time measurements only.
+function BoldTickCount: Int64;
+// Writes the file's buffered data through to the device (FlushFileBuffers on
+// Windows, fsync elsewhere).
+procedure BoldFlushFile(Handle: THandle);
 
 implementation
 
@@ -41,6 +47,9 @@ uses
   Windows,
   ActiveX,
 {$ELSE}
+  {$IFNDEF FPC}
+  Posix.Unistd,
+  {$ENDIF}
   Classes,
 {$ENDIF}
   SysUtils;
@@ -220,6 +229,16 @@ function BoldCurrentThreadId: Cardinal;
 begin
   Result := GetCurrentThreadId;
 end;
+
+function BoldTickCount: Int64;
+begin
+  Result := Int64(GetTickCount64);
+end;
+
+procedure BoldFlushFile(Handle: THandle);
+begin
+  FlushFileBuffers(Handle);
+end;
 {$ELSE}
 procedure BoldCoInitialize;
 begin
@@ -237,6 +256,20 @@ end;
 function BoldCurrentThreadId: Cardinal;
 begin
   Result := Cardinal(TThread.CurrentThread.ThreadID);
+end;
+
+function BoldTickCount: Int64;
+begin
+  Result := Int64(TThread.GetTickCount64);
+end;
+
+procedure BoldFlushFile(Handle: THandle);
+begin
+  {$IFDEF FPC}
+  FileFlush(Handle);
+  {$ELSE}
+  fsync(Handle);
+  {$ENDIF}
 end;
 {$ENDIF}
 
