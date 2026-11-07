@@ -1,4 +1,6 @@
-﻿unit BoldAggeregates;
+﻿{ Global compiler directives }
+{$include bold.inc}
+unit BoldAggeregates;
 
 interface
 
@@ -18,12 +20,12 @@ type
   protected
     FController: Pointer;
     function GetController: IInterface;
-    function QueryInterface(const IId: TGUID; out Obj): HResult; override;
+    function QueryInterface({$IFDEF FPC}constref{$ELSE}const{$ENDIF} IId: TGUID; out Obj): HResult; override;
     function _AddRef: Integer; override;
     function _Release: Integer; override;
-    function NonDelegatingQueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
-    function NonDelegatingAddRef: Integer; virtual; stdcall;
-    function NonDelegatingRelease: Integer; virtual; stdcall;
+    function NonDelegatingQueryInterface({$IFDEF FPC}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult; virtual; {$IFDEF BOLD_INTF_CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+    function NonDelegatingAddRef: Integer; virtual; {$IFDEF BOLD_INTF_CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+    function NonDelegatingRelease: Integer; virtual; {$IFDEF BOLD_INTF_CDECL}cdecl{$ELSE}stdcall{$ENDIF};
   public
     constructor Create(const Controller: IInterface);
     property Controller: IInterface read GetController;
@@ -44,13 +46,10 @@ type
   {-- TBoldAggregatedObject --}
   TBoldAggregatedObject = class(TBoldContainedObject)
   protected
-    function QueryInterface(const IId: TGUID; out Obj): HResult; override;
+    function QueryInterface({$IFDEF FPC}constref{$ELSE}const{$ENDIF} IId: TGUID; out Obj): HResult; override;
   end;
 
 implementation
-
-uses
-  Windows;
 
 {-- TBoldAggregateableObject --------------------------------------------------}
 
@@ -64,7 +63,7 @@ begin
   Result := IInterface(FController);
 end;
 
-function TBoldAggregateableObject.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TBoldAggregateableObject.QueryInterface({$IFDEF FPC}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult;
 begin
   if Assigned(FController) then
     Result := IInterface(FController).QueryInterface(IID, Obj)
@@ -88,7 +87,7 @@ begin
     Result := NonDelegatingRelease;
 end;
 
-function TBoldAggregateableObject.NonDelegatingQueryInterface(const IID: TGUID; out Obj): HResult;
+function TBoldAggregateableObject.NonDelegatingQueryInterface({$IFDEF FPC}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult;
 begin
   if GetInterface(IID, Obj) then
     Result := S_OK
@@ -98,14 +97,12 @@ end;
 
 function TBoldAggregateableObject.NonDelegatingAddRef: Integer;
 begin
-  Result := InterlockedIncrement(FRefCount);
+  Result := inherited _AddRef;
 end;
 
 function TBoldAggregateableObject.NonDelegatingRelease: Integer;
 begin
-  Result := InterlockedDecrement(FRefCount);
-  if Result = 0 then
-    Destroy;
+  Result := inherited _Release;
 end;
 
 {-- TBoldContainedObject ------------------------------------------------------}
@@ -132,7 +129,7 @@ end;
 
 {-- TBoldAggregatedObject -----------------------------------------------------}
 
-function TBoldAggregatedObject.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TBoldAggregatedObject.QueryInterface({$IFDEF FPC}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult;
 begin
   Result := IInterface(FController).QueryInterface(IID, Obj);
 end;
