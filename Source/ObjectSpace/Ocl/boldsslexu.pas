@@ -43,8 +43,8 @@ type
   SSYaccStackElement = class(SSLexRoot)
   public
     Lexeme: SSLexLexeme;
-    State: Longint;
-    Use: Longint;
+    State: Integer;
+    Use: Integer;
     constructor Create;
     procedure RefInc;
     function RefDec: Boolean;
@@ -66,9 +66,9 @@ type
   end;
 
   TEntry = record
-    StartPoint: Longint;
-    EndPoint: Longint;
-    State: Longint;
+    StartPoint: Integer;
+    EndPoint: Integer;
+    State: Integer;
   end;
 
   TRow = record
@@ -83,7 +83,7 @@ type
   SSLexExpressionList = class(SSYaccStackElement)
   public
     ARows: TRows;
-    function LookupState(TheToken, TheState: Longint): Longint;
+    function LookupState(TheToken, TheState: Integer): Integer;
   end;
 
   SSLexExpressionListStack = class(SSStack)
@@ -97,7 +97,7 @@ type
     LexTab: array[0..1] of TRows;
     constructor Create;
     destructor Destroy; override;
-    function GetExpressionList(TheList: Longint): SSLexExpressionList;
+    function GetExpressionList(TheList: Integer): SSLexExpressionList;
     procedure FullTab;
   end;
 
@@ -105,11 +105,11 @@ type
   public
     Buffer: String;
     Use: Integer;
-    Line: Longint;
-    Offset: Longint;
-    Length: Longint;
+    Line: Integer;
+    Offset: Integer;
+    Length: Integer;
     Token: Cardinal;
-    constructor Create(TheData: String; TheLength, TheLine, TheOffset: Longint);
+    constructor Create(TheData: String; TheLength, TheLine, TheOffset: Integer);
     procedure RefInc;
     function RefDec: Boolean;
     destructor Destroy; override;
@@ -120,30 +120,30 @@ type
   SSLexConsumer = class(SSLexRoot)
   public
     Buffer: String;
-    Bof: Longint;
-    Line: Longint;
-    Offset: Longint;
-    BuffLen: Longint;
-    BuffInc: Longint;
-    Current: Longint;
-    MarkLine: Longint;
-    MarkOffset: Longint;
-    ScanLine: Longint;
-    ScanOffset: Longint;
+    Bof: Integer;
+    Line: Integer;
+    Offset: Integer;
+    BuffLen: Integer;
+    BuffInc: Integer;
+    Current: Integer;
+    MarkLine: Integer;
+    MarkOffset: Integer;
+    ScanLine: Integer;
+    ScanOffset: Integer;
     EndOfData: Boolean;
-    Start: Longint;
+    Start: Integer;
     Index: Integer;
-    DataLen: Longint;
-    Mark: Longint;
-    MarkContext: Longint;
-    MarkContextLine: Longint;
-    MarkContextOffset: Longint;
+    DataLen: Integer;
+    Mark: Integer;
+    MarkContext: Integer;
+    MarkContextLine: Integer;
+    MarkContextOffset: Integer;
     Mode: SSLexConsumerMode;
 
-    constructor Create(TheIncrement: Longint; TheMode: SSLexConsumerMode);
+    constructor Create(TheIncrement: Integer; TheMode: SSLexConsumerMode);
     destructor Destroy; override;
     function Next: Boolean; virtual;
-    function NextBuffer: Longint; virtual;
+    function NextBuffer: Integer; virtual;
     procedure MarkFinal;
     procedure FlushLexeme;
     procedure FlushLexemeAll;
@@ -166,7 +166,7 @@ type
 
   SSLex = class(SSLexRoot)
   public
-    State: Longint;
+    State: Integer;
     Table: SSLexTable;
     Consumer: SSLexConsumer;
     List: SSLexExpressionList;
@@ -176,12 +176,12 @@ type
 
     procedure PopExpressionList;
     function Next: SSLexLexeme;
-    procedure PushExpressionList(TheList: Longint);
-    procedure GotoExpressionList(TheList: Longint);
+    procedure PushExpressionList(TheList: Integer);
+    procedure GotoExpressionList(TheList: Integer);
     procedure ProcessExpressionList(ThePFinal: TRow);
     function Error: SSLexLexeme; virtual;
-    function Complete(TheToken: Longint): SSLexLexeme; virtual;
-    function TokenToString(TheToken: Longint): string; virtual;
+    function Complete(TheToken: Integer): SSLexLexeme; virtual;
+    function TokenToString(TheToken: Integer): string; virtual;
     destructor Destroy; override;
   end;
 
@@ -354,7 +354,7 @@ end;
 
 function SSLexConsumer.Lexeme: SSLexLexeme;
 var
-  Length: Longint;
+  Length: Integer;
 begin
   Length := Mark - Start;
   Result := SSLexLexeme.Create(Buffer, Length, Line, Offset);
@@ -363,7 +363,7 @@ end;
 
 function SSLexConsumer.LexemeAll: SSLexLexeme;
 var
-  Length: Longint;
+  Length: Integer;
 begin
   Length := Mark - Start;
   Result := SSLexLexeme.Create(Copy(Buffer, Start, Length), Index - Start, Line, Offset);
@@ -402,7 +402,7 @@ begin
   inherited;
 end;
 
-function SSLexConsumer.NextBuffer: Longint;
+function SSLexConsumer.NextBuffer: Integer;
 begin
   Result := 0;
 end;
@@ -437,7 +437,7 @@ begin
   Result := ExpressionLists[TheList];
 end;
 
-function SSLexExpressionList.LookupState(TheToken, TheState: Integer): Longint;
+function SSLexExpressionList.LookupState(TheToken, TheState: Integer): Integer;
 var
   i: Integer;
   Row: TRow;
@@ -585,13 +585,13 @@ begin
     PushExpressionList(ThePFinal.Push);
 end;
 
-procedure SSLex.PushExpressionList(TheList: Longint);
+procedure SSLex.PushExpressionList(TheList: Integer);
 begin
   Stack.Push(Table.GetExpressionList(TheList));
   List := Stack.Top;
 end;
 
-procedure SSLex.GotoExpressionList(TheList: Longint);
+procedure SSLex.GotoExpressionList(TheList: Integer);
 begin
   Stack.Pop;
   PushExpressionList(TheList);
@@ -608,12 +608,12 @@ begin
   raise AnException;
 end;
 
-function SSLex.TokenToString(TheToken: Longint): string;
+function SSLex.TokenToString(TheToken: Integer): string;
 begin
   Result := '';
 end;
 
-function SSLex.Complete(TheToken: Longint): SSLexLexeme;
+function SSLex.Complete(TheToken: Integer): SSLexLexeme;
 begin
   Result := Consumer.Lexeme;
   Result.Token := TheToken;
@@ -712,7 +712,7 @@ var
     end;
   end;
 
-  procedure RE(B, E, S: Longint);
+  procedure RE(B, E, S: Integer);
   begin
     with Row.Entries[N] do
     begin

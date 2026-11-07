@@ -60,7 +60,7 @@ type
     function GetAsDateTime: TDateTime;
     function GetAsCurrency: Currency;
     function GetAsFloat: Double;
-    function GetAsInteger: Longint;
+    function GetAsInteger: Integer;
     function GetAsInt64: Int64;
     function GetAsMemo: string;
     function GetAsString: string;
@@ -74,15 +74,15 @@ type
     procedure SetAsDate(const Value: TDateTime);
     procedure SetAsDateTime(const Value: TDateTime);
     procedure SetAsFloat(const Value: Double);
-    procedure SetAsInteger(Value: Longint);
+    procedure SetAsInteger(Value: Integer);
     procedure SetAsInt64(const Value: Int64);
     procedure SetAsMemo(const Value: string);
     procedure SetAsString(const Value: string);
     procedure SetAsAnsiString(const Value: TBoldAnsiString);
     procedure SetAsWideString(const Value: WideString);
-    procedure SetAsSmallInt(Value: Longint);
+    procedure SetAsSmallInt(Value: Integer);
     procedure SetAsTime(const Value: TDateTime);
-    procedure SetAsWord(Value: Longint);
+    procedure SetAsWord(Value: Integer);
     procedure SetText(const Value: string);
     procedure AssignFieldValue(const source: IBoldField);
     procedure Assign(const source: IBoldParameter);
@@ -375,7 +375,7 @@ begin
   Result := fZParam.AsDouble;
 end;
 
-function TBoldZeosParameter.GetAsInteger: Longint;
+function TBoldZeosParameter.GetAsInteger: Integer;
 begin
   Result := fZParam.AsInteger;
 end;
@@ -458,7 +458,7 @@ begin
   fZParam.AsDouble := Value;
 end;
 
-procedure TBoldZeosParameter.SetAsInteger(Value: Longint);
+procedure TBoldZeosParameter.SetAsInteger(Value: Integer);
 begin
   fZParam.AsInteger := Value;
 end;
@@ -494,7 +494,7 @@ begin
     fZParam.AsUnicodeString := Value;
 end;
 
-procedure TBoldZeosParameter.SetAsSmallInt(Value: Longint);
+procedure TBoldZeosParameter.SetAsSmallInt(Value: Integer);
 begin
   fZParam.AsSmallInt := Value;
 end;
@@ -504,7 +504,7 @@ begin
   fZParam.AsTime := Value;
 end;
 
-procedure TBoldZeosParameter.SetAsWord(Value: Longint);
+procedure TBoldZeosParameter.SetAsWord(Value: Integer);
 begin
   fZParam.AsInteger := Value;
 end;

@@ -68,6 +68,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- The runtime core did not compile for Delphi's Linux 64-bit target.
+  `BoldUnicodeCompareLen` called the Windows API on every Delphi target. Several
+  methods were declared with `Longint` and implemented with `Integer`, which on
+  64-bit POSIX Delphi are different types, because `Longint` is 64-bit there.
+  The cross-platform units (the OCL parser, the database interfaces and their
+  adapters, the default PMapper, the thread-safe log) use `Integer` and
+  `Cardinal` now, so every platform has the Windows sizes; `IBoldParameter`'s
+  `AsInteger`, `AsSmallInt` and `AsWord` are `Integer` (#117)
 - When a PreUpdate subscriber deleted a never persisted object of the batch,
   `UpdateDatabase` read that object's locator after it had been freed. It
   worked only because the freed memory still held the old values. Object

@@ -1,7 +1,7 @@
 ﻿type
   ALexClass = class(SSLex)
   public
-  function TokenToString( TheToken : Longint) : string; override;
+  function TokenToString( TheToken : Integer) : string; override;
 end;
 
 type
@@ -27,7 +27,7 @@ type
   public
   finalValue : AYaccStackElement;
   function StackElement : SSYaccStackElement; override;
-  function Reduce( TheProduction, TheSize : Longint) : SSYaccStackElement; override;
+  function Reduce( TheProduction, TheSize : Integer) : SSYaccStackElement; override;
 end;
 
 

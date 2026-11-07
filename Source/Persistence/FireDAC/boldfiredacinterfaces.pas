@@ -47,7 +47,7 @@ type
     function GetAsDateTime: TDateTime;
     function GetAsCurrency: Currency;
     function GetAsFloat: Double;
-    function GetAsInteger: Longint;
+    function GetAsInteger: Integer;
     function GetAsInt64: Int64;
     function GetAsMemo: string;
     function GetAsString: string;
@@ -60,13 +60,13 @@ type
     procedure SetAsDate(const Value: TDateTime);
     procedure SetAsDateTime(const Value: TDateTime);
     procedure SetAsFloat(const Value: Double);
-    procedure SetAsInteger(Value: Longint);
+    procedure SetAsInteger(Value: Integer);
     procedure SetAsInt64(const Value: Int64);
     procedure SetAsMemo(const Value: string);
     procedure SetAsString(const Value: string);
-    procedure SetAsSmallInt(Value: Longint);
+    procedure SetAsSmallInt(Value: Integer);
     procedure SetAsTime(const Value: TDateTime);
-    procedure SetAsWord(Value: Longint);
+    procedure SetAsWord(Value: Integer);
     procedure SetText(const Value: string);
     procedure SetAsWideString(const Value: Widestring);
     function GetAsAnsiString: TBoldAnsiString;
@@ -1198,7 +1198,7 @@ begin
   result := FDParam.AsLargeInt;
 end;
 
-function TBoldFireDACParameter.GetAsInteger: Longint;
+function TBoldFireDACParameter.GetAsInteger: Integer;
 begin
   Result := FDParam.AsInteger;
 end;

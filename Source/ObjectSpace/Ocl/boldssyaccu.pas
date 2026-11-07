@@ -32,19 +32,19 @@ const
   SSYaccMsgSyncErrEof = 'SSYacc0106e: SyncErr failed, eof';
 
 type
-  SSArrayOfLongint = array[0..(SSLexStructMax div SizeOf(Longint))] of Longint;
+  SSArrayOfLongint = array[0..(SSLexStructMax div SizeOf(Integer))] of Integer;
   PSSArrayOfLongint = ^SSArrayOfLongint;
 
   SSSetOfLongint = class(TBoldMemoryManagedObject)
   public
-    Incr: Longint;
-    Size: Longint;
-    Count: Longint;
+    Incr: Integer;
+    Size: Integer;
+    Count: Integer;
     PArray: PSSArrayOfLongint;
 
-    constructor Create(TheSize, TheInc: Longint);
-    function Insert(TheItem: Longint): Boolean;
-    function Contains(TheItem: Longint): Boolean;
+    constructor Create(TheSize, TheInc: Integer);
+    function Insert(TheItem: Integer): Boolean;
+    function Contains(TheItem: Integer): Boolean;
     destructor Destroy; override;
   end;
 
@@ -54,8 +54,8 @@ type
   end;
 
   TYEntry = record
-    Entry: Longint;
-    Token: Longint;
+    Entry: Integer;
+    Token: Integer;
   end;
 
   TYRow = record
@@ -91,7 +91,7 @@ type
     constructor Create;
     function Dequeue: SSLexLexeme;
     procedure Enqueue(TheLexeme: SSLexLexeme);
-    function Get(TheIndex: Longint): SSLexLexeme;
+    function Get(TheIndex: Integer): SSLexLexeme;
     destructor Destroy; override;
   end;
 
@@ -101,12 +101,12 @@ type
     ErrorInd: Boolean;
     AbortInd: Boolean;
     EndOfInput: Boolean;
-    Cache: Longint;
-    State: Longint;
-    ShiftedSinceError: Longint;
-    Leftside: Longint;
-    Production: Longint;
-    ProductionSize: Longint;
+    Cache: Integer;
+    State: Integer;
+    ShiftedSinceError: Integer;
+    Leftside: Integer;
+    Production: Integer;
+    ProductionSize: Integer;
     Table: SSYaccTable;
     Lookahead: SSLexLexeme;
     LarLookahead: SSLexLexeme;
@@ -124,25 +124,25 @@ type
     function DoReduce: Boolean;
     function DoConflict: Boolean;
     function DoLarError: Boolean;
-    procedure Pop(TheNumber: Longint);
-    procedure DoGoto(TheGoto: Longint);
+    procedure Pop(TheNumber: Integer);
+    procedure DoGoto(TheGoto: Integer);
     function GetLexemeCache: SSLexLexeme;
-    procedure LookupGoto(TheGoto: Longint);
-    procedure LookupAction(TheToken: Longint);
+    procedure LookupGoto(TheGoto: Integer);
+    procedure LookupAction(TheToken: Integer);
     function GetLexeme(Look: Boolean): Boolean;
     function DoGetLexeme(Look: Boolean): Boolean;
     procedure SetLookahead(TheLexeme: SSLexLexeme);
     procedure SetLarLookahead(TheLexeme: SSLexLexeme);
     procedure SetElement(TheElement: SSYaccStackElement);
     function GetAction(YEntry: TYEntry): SSYaccAction;
-    function ElementFromProduction(TheIndex: Longint): SSYaccStackElement;
+    function ElementFromProduction(TheIndex: Integer): SSYaccStackElement;
     function NextLexeme: SSLexLexeme; virtual;
     function Shift: SSYaccStackElement; virtual;
     function StackElement: SSYaccStackElement; virtual;
     function LarLook(TheLexeme: SSLexLexeme): Boolean; virtual;
-    function Error(TheState: Longint; TheLookahead: SSLexLexeme): Boolean; virtual;
-    function LarError(TheState: Longint; TheLookahead, TheLarLookahead: SSLexLexeme): Boolean; virtual;
-    function Reduce(TheProduction, TheProductionSize: Longint): SSYaccStackElement; virtual;
+    function Error(TheState: Integer; TheLookahead: SSLexLexeme): Boolean; virtual;
+    function LarError(TheState: Integer; TheLookahead, TheLarLookahead: SSLexLexeme): Boolean; virtual;
+    function Reduce(TheProduction, TheProductionSize: Integer): SSYaccStackElement; virtual;
     destructor Destroy; override;
   end;
 
@@ -453,14 +453,14 @@ end;
 function SSYacc.GetLexemeCache: SSLexLexeme;
 begin
   Result := nil;
-  if Cache <> MaxLongint then
+  if Cache <> MaxInt then
   begin
     Result := LexemeCache.Get(Cache);
     Inc(Cache);
   end;
   if Result = nil then
   begin
-    Cache := MaxLongint;
+    Cache := MaxInt;
     Result := NextLexeme;
     if Result = nil then
     begin
@@ -473,7 +473,7 @@ end;
 
 function SSYacc.DoConflict: Boolean;
 var
-  LarState: Longint;
+  LarState: Integer;
   PFinal: TRow;
   Prod: TYProd;
 begin
@@ -688,7 +688,7 @@ begin
   end;
 end;
 
-function SSYacc.ElementFromProduction(TheIndex: Longint): SSYaccStackElement;
+function SSYacc.ElementFromProduction(TheIndex: Integer): SSYaccStackElement;
 var
   AnException: SSException;
 begin
@@ -724,14 +724,14 @@ begin
   Incr := TheInc;
   Count := 0;
 {$WARN UNSAFE_CODE OFF}
-  GetMem(PArray, Size * SizeOf(Longint));
+  GetMem(PArray, Size * SizeOf(Integer));
 {$WARN UNSAFE_CODE ON}
 end;
 
 function SSSetOfLongint.Insert(TheItem: Integer): Boolean;
 var
   i: Integer;
-  NewSize: Longint;
+  NewSize: Integer;
   PNewArray: PSSArrayOfLongint;
 begin
   Result := True;
@@ -748,12 +748,12 @@ begin
     begin
       NewSize := Size + Incr;
 {$WARN UNSAFE_CODE OFF}
-      GetMem(PNewArray, NewSize * SizeOf(Longint));
+      GetMem(PNewArray, NewSize * SizeOf(Integer));
 {$WARN UNSAFE_CODE ON}
       for i := 0 to Count - 1 do
         PNewArray[i] := PArray[i];
 {$WARN UNSAFE_CODE OFF}
-      FreeMem(PArray, Size * SizeOf(Longint));
+      FreeMem(PArray, Size * SizeOf(Integer));
 {$WARN UNSAFE_CODE ON}
       Size := NewSize;
       PArray := PNewArray;
@@ -779,7 +779,7 @@ end;
 destructor SSSetOfLongint.Destroy;
 begin
 {$WARN UNSAFE_CODE OFF}
-  FreeMem(PArray, Size * SizeOf(Longint));
+  FreeMem(PArray, Size * SizeOf(Integer));
 {$WARN UNSAFE_CODE ON}
   inherited Destroy;
 end;
@@ -814,7 +814,7 @@ end;
 
 function SSYaccLexemeCache.Get(TheIndex: Integer): SSLexLexeme;
 begin
-  if (Count = 0) or (TheIndex = MaxLongint) then
+  if (Count = 0) or (TheIndex = MaxInt) then
     Result := nil
   else
 {$WARN UNSAFE_CAST OFF}
@@ -857,7 +857,7 @@ var
     end;
   end;
 
-  procedure RE(E, T: Longint);
+  procedure RE(E, T: Integer);
   begin
     with Row.Entries[N] do
     begin

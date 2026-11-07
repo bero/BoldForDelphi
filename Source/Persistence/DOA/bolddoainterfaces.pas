@@ -93,7 +93,7 @@ type
     function GetAsDateTime: TDateTime;
     function GetAsCurrency: Currency;
     function GetAsFloat: Double;
-    function GetAsInteger: Longint;
+    function GetAsInteger: Integer;
     function GetAsMemo: string;
     function GetAsString: string;
     function GetIsNull: Boolean;
@@ -104,12 +104,12 @@ type
     procedure SetAsDate(const Value: TDateTime);
     procedure SetAsDateTime(const Value: TDateTime);
     procedure SetAsFloat(const Value: Double);
-    procedure SetAsInteger(Value: Longint);
+    procedure SetAsInteger(Value: Integer);
     procedure SetAsMemo(const Value: string);
     procedure SetAsString(const Value: string);
-    procedure SetAsSmallInt(Value: LongInt);
+    procedure SetAsSmallInt(Value: Integer);
     procedure SetAsTime(const Value: TDateTime);
-    procedure SetAsWord(Value: LongInt);
+    procedure SetAsWord(Value: Integer);
     procedure SetText(const Value: string);
     procedure AssignFieldValue(source: IBoldField);
     function GetDatabaseWrapper: TBoldDatabaseWrapper;
@@ -649,7 +649,7 @@ begin
   result := GetAsVariant;
 end;
 
-function TBoldDOAParameter.GetAsInteger: Longint;
+function TBoldDOAParameter.GetAsInteger: Integer;
 begin
   result := GetAsVariant;
 end;

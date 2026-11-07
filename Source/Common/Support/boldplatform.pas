@@ -183,7 +183,7 @@ end;
 {$ENDIF}
 {$ENDIF}
 
-{$IFNDEF FPC}
+{$IF defined(MSWINDOWS) and not defined(FPC)}
 function BoldUnicodeCompareLen(CaseSensitive: Boolean; s1, s2: string; n: Integer): Integer;
 const
    CSTR_EQUAL = 2;
@@ -194,20 +194,22 @@ begin
     Result:=CompareStringEx(nil, NORM_IGNORECASE, PWideChar(s1), n, PWideChar(s2), n, nil, nil, 0)-CSTR_EQUAL
 end;
 {$ELSE}
+// Free Pascal on every platform, and Delphi off Windows: the RTL's
+// locale-aware comparison.
 function BoldUnicodeCompareLen(CaseSensitive: Boolean; s1, s2: string; n: Integer): Integer;
 begin
   if CaseSensitive then
-    Result := SysUtils.UnicodeCompareStr(Copy(s1, 1, n), Copy(s2, 1, n))
+    Result := {$IFDEF FPC}SysUtils.UnicodeCompareStr{$ELSE}AnsiCompareStr{$ENDIF}(Copy(s1, 1, n), Copy(s2, 1, n))
   else
-    Result := SysUtils.UnicodeCompareText(Copy(s1, 1, n), Copy(s2, 1, n));
-  // CompareStringEx - CSTR_EQUAL gives -1, 0 or 1 on Windows; the FPC routines
+    Result := {$IFDEF FPC}SysUtils.UnicodeCompareText{$ELSE}AnsiCompareText{$ENDIF}(Copy(s1, 1, n), Copy(s2, 1, n));
+  // CompareStringEx - CSTR_EQUAL gives -1, 0 or 1 on Windows; the RTL routines
   // return a difference, so normalise to the same three values.
   if Result < 0 then
     Result := -1
   else if Result > 0 then
     Result := 1;
 end;
-{$ENDIF}
+{$IFEND}
 
 {$IFDEF MSWINDOWS}
 procedure BoldCoInitialize;

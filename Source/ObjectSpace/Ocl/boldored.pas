@@ -76,7 +76,7 @@ avoid any problems, just make function calls to other
 functions that do the real work. NEVER include nested
 case statements in this function.
 }
-function AYaccClass.Reduce(TheProduction, TheSize: Longint): SSYaccStackElement;
+function AYaccClass.Reduce(TheProduction, TheSize: Integer): SSYaccStackElement;
    function Stack(i: integer): AYaccStackElement;
    begin
       result := AYaccStackElement(ElementFromProduction(i));

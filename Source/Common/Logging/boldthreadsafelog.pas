@@ -103,7 +103,7 @@ type
   private
     fFileStream: TFileStream;
     fFileName: string;
-    fMaxSize: LongInt;
+    fMaxSize: Integer;
     fLocker: TCriticalSection;
     fOpen: Boolean;
     FIncludeThreadId: Boolean;
@@ -114,7 +114,7 @@ type
     procedure FlushStream;
     procedure SetOpen(const Value: Boolean);
   public
-    constructor create(const FileName: string; const MaxSize: LongInt; const Open: Boolean); overload;
+    constructor create(const FileName: string; const MaxSize: Integer; const Open: Boolean); overload;
     destructor Destroy; override;
     procedure Trace(const Entry: string); overload;
     procedure Trace(const Msg: string; const Args: array of const); overload;
@@ -245,7 +245,7 @@ end;
 
 { TFileLogging }
 
-constructor TFileLogging.create(const FileName: string; const MaxSize: LongInt; const Open: Boolean);
+constructor TFileLogging.create(const FileName: string; const MaxSize: Integer; const Open: Boolean);
 begin
   inherited Create;
   fFileName := FileName;

@@ -126,6 +126,7 @@ uses
   Test.BoldSSExcept in 'Code\ObjectSpace\Test.BoldSSExcept.pas',
   Test.BoldDefs in 'Code\Common\Test.BoldDefs.pas',
   Test.BoldURI in 'Code\Common\Test.BoldURI.pas',
+  Test.BoldPlatform in 'Code\Common\Test.BoldPlatform.pas',
   Test.BoldXMLStreaming in 'Code\Common\Test.BoldXMLStreaming.pas',
   Test.BoldLogReceiverInterface in 'Code\Common\Test.BoldLogReceiverInterface.pas',
   { Mock tests using Delphi-Mocks framework }

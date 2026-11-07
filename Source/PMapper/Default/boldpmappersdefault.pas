@@ -48,9 +48,9 @@ type
  { TBoldSystemDefaultMapper }
   TBoldSystemDefaultMapper = class(TBoldSystemSQLMapper)
   private
-    fNextDBID: Longint;
-    fLastReservedDBID: Longint;
-    fReservedCount: Longint;
+    fNextDBID: Integer;
+    fLastReservedDBID: Integer;
+    fReservedCount: Integer;
     fCustomIndexes: TBoldIndexCollection;
     fXFilesTimeStampColumn: TBoldSQLColumnDescription;
     fXFilesGlobalIdColumn: TBoldSQLColumnDescription;
@@ -71,9 +71,9 @@ type
     function CreatePSParams: TBoldPSParams; override;
     function CreatePSSystemDescription: TBoldPSSystemDescription; override;
     procedure ReserveID; override;
-    property NextDBID: Longint read fNextDBID write fNextDBID;
-    property LastReservedDBID: Longint read fLastReservedDBID write fLastReservedDBID;
-    property ReservedCount: Longint read fReservedCount write fReservedCount;
+    property NextDBID: Integer read fNextDBID write fNextDBID;
+    property LastReservedDBID: Integer read fLastReservedDBID write fLastReservedDBID;
+    property ReservedCount: Integer read fReservedCount write fReservedCount;
     function NewGlobalIdFromQuery(aQuery: IBoldQuery; BoldDbTypeColumn: Integer): TBoldObjectId;
     procedure GetNewTimeStamp; override;
     procedure FetchDeletedObjects(ObjectIdList: TBoldObjectIdList; const ValueSpace: IBoldValueSpace); override;
@@ -1736,7 +1736,7 @@ var
   aQuery: IBoldQuery;
   TempList: TStringList;
   Block,
-  ObjectCount: Longint;
+  ObjectCount: Integer;
   i: Integer;
   TempId, NewID: TBoldObjectId;
   SQLHits: integer;
@@ -2224,7 +2224,7 @@ function TBoldObjectDefaultMapper.NextExternalObjectId(const ValueSpace: IBoldVa
 var
   aQuery: IBoldQuery;
   aExecQuery: IBoldExecQuery;
-  NewID: Longint;
+  NewID: Integer;
   SystemDefaultMapper: TBoldSystemDefaultMapper;
 begin
   SystemDefaultMapper := SystemPersistenceMapper as TBoldSystemDefaultMapper;
@@ -2312,7 +2312,7 @@ procedure TBoldObjectDefaultMapper.MakeIDsExactUsingTable(
   HandleNonExisting: Boolean);
 var
   Block,
-  ObjectCount: Longint;
+  ObjectCount: Integer;
   topSortedIndex, I, j: Integer;
   tempId: TBoldObjectId;
   aQuery: IBoldQuery;
@@ -2965,7 +2965,7 @@ procedure TBoldSystemDefaultMapper.PMSetReadonlyness(ReadOnlyList, WriteableList
   procedure SetReadOnlyTo(ObjectIdList: TBoldObjectIdList; ReadOnly: Boolean);
   var
     Block,
-    ObjectCount: Longint;
+    ObjectCount: Integer;
     I: Integer;
     aQuery: IBoldExecQuery;
     IdList: TStringList;
@@ -3028,7 +3028,7 @@ procedure TBoldMemberDefaultMapper.PMFetch(ObjectIdList: TBoldObjectIdList;
   TranslationList: TBoldIdTranslationList; FailureList: TBoldObjectIdList);
 var
   Block,
-  ObjectCount: Longint;
+  ObjectCount: Integer;
   BlockSize: Integer;
   TempId, NewID: TBoldObjectId;
   aQuery: IBoldQuery;

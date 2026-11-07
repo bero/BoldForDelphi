@@ -122,7 +122,7 @@ type
     function GetAsDateTime: TDateTime;
     function GetAsCurrency: Currency;
     function GetAsFloat: Double;
-    function GetAsInteger: Longint;
+    function GetAsInteger: Integer;
     function GetAsMemo: string;
     function GetAsString: string;
     function GetAsAnsiString: TBoldAnsiString;
@@ -136,14 +136,14 @@ type
     procedure SetAsDate(const Value: TDateTime);
     procedure SetAsDateTime(const Value: TDateTime);
     procedure SetAsFloat(const Value: Double);
-    procedure SetAsInteger(Value: Longint);
+    procedure SetAsInteger(Value: Integer);
     procedure SetAsMemo(const Value: string);
     procedure SetAsString(const Value: string);
     procedure SetAsAnsiString(const Value: TBoldAnsiString);
     procedure SetAsWideString(const Value: Widestring);
-    procedure SetAsSmallInt(Value: LongInt);
+    procedure SetAsSmallInt(Value: Integer);
     procedure SetAsTime(const Value: TDateTime);
-    procedure SetAsWord(Value: LongInt);
+    procedure SetAsWord(Value: Integer);
     procedure SetAsInt64(const Value: Int64);
     procedure SetText(const Value: string);
     procedure AssignFieldValue(const source: IBoldField);
@@ -158,14 +158,14 @@ type
     property AsDate: TDateTime read GetAsDateTime write SetAsDate;
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
     property AsFloat: Double read GetAsFloat write SetAsFloat;
-    property AsInteger: LongInt read GetAsInteger write SetAsInteger;
+    property AsInteger: Integer read GetAsInteger write SetAsInteger;
     property AsInt64: Int64 read GetAsInt64 write SetAsInt64;
-    property AsSmallInt: LongInt read GetAsInteger write SetAsSmallInt;
+    property AsSmallInt: Integer read GetAsInteger write SetAsSmallInt;
     property AsMemo: string read GetAsMemo write SetAsMemo;
     property AsString: string read GetAsString write SetAsString;
     property AsAnsiString: TBoldAnsiString read GetAsAnsiString write SetAsAnsiString;
     property AsTime: TDateTime read GetAsDateTime write SetAsTime;
-    property AsWord: LongInt read GetAsInteger write SetAsWord;
+    property AsWord: Integer read GetAsInteger write SetAsWord;
     property AsWideString: WideString read GetAsWideString write SetAsWideString;
     property IsNull: Boolean read GetIsNull;
     property Text: string read GetAsString write SetText;
@@ -367,7 +367,7 @@ type
     function GetAsBoolean: Boolean;
     function GetAsCurrency: Currency;
     function GetAsFloat: Double;
-    function GetAsInteger: Longint;
+    function GetAsInteger: Integer;
     function GetAsMemo: string;
     function GetAsString: string;
     function GetAsAnsiString: TBoldAnsiString;
@@ -380,15 +380,15 @@ type
     procedure SetAsCurrency(const Value: Currency);
     procedure SetAsDate(const Value: TDateTime);
     procedure SetAsFloat(const Value: Double);
-    procedure SetAsInteger(Value: Longint);
+    procedure SetAsInteger(Value: Integer);
     procedure SetAsMemo(const Value: string);
     procedure SetAsString(const Value: string);
     procedure SetAsAnsiString(const Value: TBoldAnsiString);
     procedure SetAsWideString(const Value: Widestring);
-    procedure SetAsSmallInt(Value: LongInt);
+    procedure SetAsSmallInt(Value: Integer);
     procedure SetAsTime(const Value: TDateTime);
     procedure SetAsInt64(const Value: Int64);
-    procedure SetAsWord(Value: LongInt);
+    procedure SetAsWord(Value: Integer);
     procedure SetText(const Value: string);
     procedure AssignFieldValue(const source: IBoldField);
     procedure Assign(const source: IBoldParameter);
@@ -819,7 +819,7 @@ begin
   result := Parameter.AsFloat;
 end;
 
-function TBoldDbParameter.GetAsInteger: Longint;
+function TBoldDbParameter.GetAsInteger: Integer;
 begin
   result := Parameter.AsInteger
 end;

@@ -43,9 +43,9 @@ type
     Id: SSExceptionError;
     constructor Create(TheId: SSExceptionError; FmtStr: string);
     constructor CreateName(TheId: SSExceptionError; FmtStr: string; Name: String);
-    constructor CreateLong(TheId: SSExceptionError; TheFmtStr: string; TheLong: Longint);
+    constructor CreateLong(TheId: SSExceptionError; TheFmtStr: string; TheLong: Integer);
     constructor CreateLongLongNameLen(TheId: SSExceptionError; FmtStr: string;
-                  Long0, Long1: Longint; TheName: String; TheLen: Word);
+                  Long0, Long1: Integer; TheName: String; TheLen: Word);
   end;
 
 implementation
