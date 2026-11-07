@@ -14,6 +14,8 @@ type
     procedure TestFreestandingQueueActivationNests;
     procedure TestVCLEnvironmentIsEffectiveInVCLApplication;
     procedure TestSecondFrameworkRegistrationRaises;
+    procedure TestFreestandingAskUserNamesEnvironmentUnit;
+    procedure TestFreestandingQueryUserNamesEnvironmentUnit;
   end;
 
 implementation
@@ -90,6 +92,48 @@ begin
     RegisterFreestandingFramework;
   Assert.WillRaise(RegisterFreestandingFramework, EBold);
   Assert.AreEqual(cExpectedEnvironment, BoldEffectiveEnvironment.Name);
+end;
+
+// The Bold core links no GUI framework (#117). Without a framework environment
+// nothing can ask the user, so the error must name the unit that registers one.
+procedure TTestBoldEnvironment.TestFreestandingAskUserNamesEnvironmentUnit;
+var
+  Configuration: TBoldEnvironmentConfiguration;
+  ErrorText: string;
+begin
+  Configuration := TBoldFreestandingEnvironmentConfiguration.Create;
+  try
+    ErrorText := '';
+    try
+      Configuration.AskUser('Continue?');
+    except
+      on E: EBold do
+        ErrorText := E.Message;
+    end;
+    Assert.IsTrue(Pos('BoldEnvironmentVCL', ErrorText) > 0, 'AskUser error: ' + ErrorText);
+  finally
+    Configuration.Free;
+  end;
+end;
+
+procedure TTestBoldEnvironment.TestFreestandingQueryUserNamesEnvironmentUnit;
+var
+  Configuration: TBoldEnvironmentConfiguration;
+  ErrorText: string;
+begin
+  Configuration := TBoldFreestandingEnvironmentConfiguration.Create;
+  try
+    ErrorText := '';
+    try
+      Configuration.QueryUser('Delete table', 'Delete table X?');
+    except
+      on E: EBold do
+        ErrorText := E.Message;
+    end;
+    Assert.IsTrue(Pos('BoldEnvironmentVCL', ErrorText) > 0, 'QueryUser error: ' + ErrorText);
+  finally
+    Configuration.Free;
+  end;
 end;
 
 initialization

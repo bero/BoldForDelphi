@@ -82,8 +82,9 @@ Run a specific fixture or test:
 
 The Bold runtime (object space, OCL, handles, persistence, XML streaming) must
 build without the VCL, for console and service applications now and for FMX and
-Free Pascal later (#117). `examples\Compound\Invoicing\Console` is that build:
-`FrameworkType=None` with the `BOLD_NO_VCL` define (see `Source\Common\Include\bold.inc`).
+Free Pascal later (#117). `examples\Compound\Invoicing\Console` is that build,
+with `FrameworkType=None`: the Bold core links no GUI framework, and a VCL
+application links `BoldEnvironmentVCL` itself.
 `check_no_vcl.ps1` builds it with a detailed map file and fails when any `Vcl.*`
 unit is linked, naming the units; with `-Run` it also runs the 101-check scenario.
 Run it after a change under `Source`:

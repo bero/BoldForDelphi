@@ -2,6 +2,7 @@ program DBGenerator;
 
 uses
   Forms,
+  BoldEnvironmentVCL,
   DBGeneratorForm in 'DBGeneratorForm.pas' {frmDBGen},
   ModelDM in '..\Common\ModelDM.pas' {dmModel: TDataModule};
 

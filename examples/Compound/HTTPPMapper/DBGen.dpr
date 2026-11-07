@@ -2,6 +2,7 @@ program DBGen;
 
 uses
   Forms,
+  BoldEnvironmentVCL,
   dmCoreUnit in 'Common\dmCoreUnit.pas' {dmCore: TDataModule},
   dmPersistenceUnit in 'Common\dmPersistenceUnit.pas' {dmPersistence: TDataModule},
   dbGenForm in 'DBGenerator\dbGenForm.pas' {frmMainForm};

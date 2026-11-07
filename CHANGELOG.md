@@ -25,15 +25,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `BoldRegisterFrameworkEnvironment`. `BoldEnvironmentVCL` does so, and the
   units that need it import it: the Bold-aware VCL controls, `BoldControlPack`
   (so the DevExpress Bold controls too), `BoldListenerHandle`,
-  `BoldUDPModificationBroadcaster`, `BoldComEventQueue` and
-  `BoldComponentValidator`. Without a framework environment the freestanding
-  environment now provides a queue, which the application drains itself with
+  `BoldUDPModificationBroadcaster` and `BoldComEventQueue`. Without a framework
+  environment the freestanding environment now provides a queue, which the
+  application drains itself with
   `TBoldQueueable.DisplayAll` or `PerformPreDisplayQueue` (#118)
   **Action needed:** a VCL application that queues display work through its own
   `TBoldQueueable` descendants or `AddToPreDisplayQueue`/`AddToPostDisplayQueue`,
   and links none of those units, must add `BoldEnvironmentVCL` to one uses
   clause. `BoldInternalVCLConfiguration` is renamed
   `BoldInternalFrameworkConfiguration`.
+- The Bold core links no GUI framework: `BoldComponentValidator` no longer imports
+  `BoldEnvironmentVCL`, so handles, the model and persistence no longer pull the
+  VCL into an application, and a console, service or FMX program built on them
+  links no VCL unit (#117). In the IDE, saving a VCL form, frame or data module
+  that holds a non-visual Bold component adds `BoldEnvironmentVCL` to its uses
+  clause; Bold's VCL controls import it as before. When a function needs a GUI
+  framework and none is registered, the error now names the unit to link.
+  **Action needed:** a VCL application with no Bold-aware control whose forms are
+  not saved again in the IDE adds `BoldEnvironmentVCL` to one uses clause.
+  Without it the application runs on the freestanding environment, where Bold's
+  questions to the user (deleting tables when the database is created, the
+  database validator) raise that error and informational messages go to the log.
 
 ### Removed
 - `BoldEnvironmentAllowBothUseVCL`, which needed the removed CLX environment and

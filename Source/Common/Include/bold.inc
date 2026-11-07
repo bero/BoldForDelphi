@@ -25,17 +25,6 @@
   {$ENDIF}
 {$ENDIF}
 
-// BOLD_NO_VCL: define it in a project that must not link the VCL (a console,
-// service or FMX application). The Bold runtime then imports no VCL unit; in
-// particular BoldComponentValidator no longer imports BoldEnvironmentVCL for
-// its initialization, the VCL environment registration. Such a project runs
-// on the freestanding environment (see BoldEnvironment) or registers its own.
-// A VCL application defines nothing and keeps the registration as before.
-// Free Pascal has no VCL, so the define is always on there.
-{$IFDEF FPC}
-  {$DEFINE BOLD_NO_VCL}
-{$ENDIF}
-
 {$IFDEF BOLD_DELPHI_PARSER}
   {$DEFINE WIN32}
   {$DEFINE VER130}

@@ -2,6 +2,7 @@ program DbGen;
 
 uses
   Forms,
+  BoldEnvironmentVCL,
   DbGenForm in 'DbGenForm.pas' {frmDBGen},
   ModelDM in '..\Common\ModelDM.pas' {dmModel: TDataModule};
 

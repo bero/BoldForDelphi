@@ -15,8 +15,11 @@ uses
   ActnList,
   Actions,
   Classes,
+  Controls,
   DesignIntf,
+  DesignEditors,
   BoldElements,
+  BoldSubscription,
   BoldDefs,
   BoldIDEConsts,
   BoldDefsDT,
@@ -49,6 +52,25 @@ uses
   BoldUnloaderHandle;
 
 {$R BoldHandleReg.res}
+
+type
+  // The Bold core links no GUI framework (#117), so a VCL application registers
+  // the VCL environment by linking BoldEnvironmentVCL. Bold's VCL controls import
+  // it themselves; for a form, frame or data module whose Bold components are all
+  // non-visual (handles, the model, persistence, adapters) this adds the unit to
+  // the uses clause when the IDE saves it, the way FireDAC adds its VCL wait unit.
+  // Only VCL designers get it; an FMX or framework-neutral designer gets nothing.
+  TBoldVCLEnvironmentSelectionEditor = class(TSelectionEditor)
+  public
+    procedure RequiresUnits(Proc: TGetStrProc); override;
+  end;
+
+procedure TBoldVCLEnvironmentSelectionEditor.RequiresUnits(Proc: TGetStrProc);
+begin
+  if Assigned(Designer) and Assigned(Designer.ActiveClassGroup) and
+    Designer.ActiveClassGroup.InheritsFrom(TControl) then
+    Proc('BoldEnvironmentVCL');
+end;
 
 
 procedure RegisterActionsInDelphi;
@@ -159,6 +181,7 @@ begin
   RegisterComponentsOnPalette;
   RegisterEditors;
   RegisterActionsInDelphi;
+  RegisterSelectionEditor(TBoldSubscribableComponent, TBoldVCLEnvironmentSelectionEditor);
 end;
 
 end.

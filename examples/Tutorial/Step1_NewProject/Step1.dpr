@@ -28,6 +28,7 @@ program Step1;
 
 uses
   Vcl.Forms,
+  BoldEnvironmentVCL,
   Step1Form in 'Step1Form.pas' {frmStep1},
   InvoiceDataModule in '..\Shared\InvoiceDataModule.pas' {dmInvoice: TDataModule},
   InvoiceClasses in '..\Shared\InvoiceClasses.pas';

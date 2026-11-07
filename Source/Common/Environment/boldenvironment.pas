@@ -44,6 +44,8 @@ type
     procedure SetQueue(NewValue: TBoldQueue);
     function GetName: string; virtual; abstract;
     function GetRootComponent: TComponent; virtual;
+    // The exception a function this configuration does not support raises.
+    function UnsupportedError(const FunctionName: string): EBold; virtual;
   public
     constructor Create; virtual;
     procedure AfterConstruction; override;
@@ -71,6 +73,9 @@ type
     function GetName: string; override;
     function GetQueueClass: TBoldQueueClass; override;
     function GetRootComponent: TComponent; override;
+    // Names the unit to link: the usual reason for an unsupported call is a GUI
+    // application whose framework environment is not linked (#117).
+    function UnsupportedError(const FunctionName: string): EBold; override;
   public
     procedure BringToFront; override;
     procedure FocusMainForm; override;
@@ -173,45 +178,50 @@ begin
   G_BoldEffectiveEnvironment := nil;
 end;
 
+function TBoldEnvironmentConfiguration.UnsupportedError(const FunctionName: string): EBold;
+begin
+  Result := EBoldInternal.CreateFmt(UnsupportedFunction, [FunctionName, Name]);
+end;
+
 function TBoldEnvironmentConfiguration.AskUser(const Text: string): Boolean;
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['AskUser', Name]);
+  raise UnsupportedError('AskUser');
 end;
 
 function TBoldEnvironmentConfiguration.QueryUser(const Title, Query: string): TBoldQueryResult;
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['QueryUser', Name]);
+  raise UnsupportedError('QueryUser');
 end;
 
 procedure TBoldEnvironmentConfiguration.InformUser(const Text: string);
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['InformUser', Name]);
+  raise UnsupportedError('InformUser');
 end;
 
 procedure TBoldEnvironmentConfiguration.BringToFront;
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['BringToFront', Name]);
+  raise UnsupportedError('BringToFront');
 end;
 
 function TBoldEnvironmentConfiguration.GetRootComponent: TComponent;
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['GetRootComponentVCL', Name]);
+  raise UnsupportedError('GetRootComponentVCL');
 end;
 
 procedure TBoldEnvironmentConfiguration.HandleDesigntimeException(
   Sender: TObject);
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['HandleDesigntimeException', Name]);
+  raise UnsupportedError('HandleDesigntimeException');
 end;
 
 function TBoldEnvironmentConfiguration.IsFormOrDataModule(Sender: TObject): Boolean;
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['IsFormOrDataModule', Name]);
+  raise UnsupportedError('IsFormOrDataModule');
 end;
 
 procedure TBoldEnvironmentConfiguration.ProcessMessages;
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['ProcessMessages', Name])
+  raise UnsupportedError('ProcessMessages')
 end;
 
 class function TBoldEnvironmentConfiguration.GetRunningInIDE: Boolean;
@@ -221,12 +231,12 @@ end;
 
 procedure TBoldEnvironmentConfiguration.UpdateDesigner(Sender: TObject);
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['UpdateDesigner', Name]);
+  raise UnsupportedError('UpdateDesigner');
 end;
 
 procedure TBoldEnvironmentConfiguration.FocusMainForm;
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['FocusMainForm', Name]);
+  raise UnsupportedError('FocusMainForm');
 end;
 
 function TBoldEnvironmentConfiguration.GetQueue: TBoldQueue;
@@ -275,12 +285,12 @@ end;
 
 function TBoldEnvironmentConfiguration.GetQueueClass: TBoldQueueClass;
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['GetQueueClass', Name]);
+  raise UnsupportedError('GetQueueClass');
 end;
 
 procedure TBoldEnvironmentConfiguration.TriggerQueueMechanism;
 begin
-  raise EBoldInternal.CreateFmt(UnsupportedFunction, ['TriggerQueueMechanism', Name]);
+  raise UnsupportedError('TriggerQueueMechanism');
 end;
 
 procedure TBoldEnvironmentConfiguration._ApplicationDestroyed;
@@ -320,6 +330,11 @@ end;
 function TBoldFreestandingEnvironmentConfiguration.GetRootComponent: TComponent;
 begin
   Result := nil;
+end;
+
+function TBoldFreestandingEnvironmentConfiguration.UnsupportedError(const FunctionName: string): EBold;
+begin
+  Result := EBoldInternal.CreateFmt(sNoFrameworkEnvironment, [FunctionName]);
 end;
 
 { TBoldFreestandingQueue }

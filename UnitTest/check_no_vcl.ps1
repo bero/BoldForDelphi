@@ -2,9 +2,9 @@
 #
 # Builds the Invoicing console example (examples\Compound\Invoicing\Console),
 # which links the Bold runtime closure (object space, OCL, handles, FireDAC
-# persistence, XML streaming) with FrameworkType=None and the BOLD_NO_VCL
-# define, and then fails when the detailed map file of that build names any
-# Vcl.* unit. Run it after a change to Source: the next unit that imports a
+# persistence, XML streaming) with FrameworkType=None, and then fails when the
+# detailed map file of that build names any Vcl.* unit. The Bold core links no
+# GUI framework; a VCL application links BoldEnvironmentVCL itself. Run it after a change to Source: the next unit that imports a
 # VCL unit then stops here instead of going unnoticed until an FMX, service
 # or Free Pascal build breaks.
 #
@@ -50,7 +50,7 @@ if (-not $SkipBuild) {
         exit 1
     }
     Remove-Item $MapFile -ErrorAction SilentlyContinue
-    Write-Host "Building InvoicingConsole ($Config, $Platform) with FrameworkType=None and BOLD_NO_VCL" -ForegroundColor Cyan
+    Write-Host "Building InvoicingConsole ($Config, $Platform) with FrameworkType=None" -ForegroundColor Cyan
     if ($DelphiVersion) {
         & $BuildScript -ProjectFile $ProjectPath -Config $Config -Platform $Platform -DelphiVersion $DelphiVersion
     } else {

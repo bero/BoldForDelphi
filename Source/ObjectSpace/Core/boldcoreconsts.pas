@@ -508,6 +508,7 @@ const
 // BoldEnvironment*
   sNotRunningInIDE = '%s: Not running in IDE';
   sFrameworkEnvironmentAlreadyRegistered = 'BoldRegisterFrameworkEnvironment: Cannot register %s, %s is already registered';
+  sNoFrameworkEnvironment = '%s needs a GUI framework environment, and none is registered. Link the environment unit of the GUI framework from one uses clause: BoldEnvironmentVCL in a VCL application';
   sUnknownDisplayMode = '%s.ApplicationEventsOnIdle: Unknown displaymode';
 
 // BoldObjectSpaceExternalEvents
