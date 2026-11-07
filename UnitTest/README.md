@@ -19,10 +19,13 @@ they are test-only dependencies.
 |------------|---------------------|---------|
 | [DUnitX](https://github.com/VSoftTechnologies/DUnitX) | `DUnitX` | Unit testing framework |
 | [Delphi-Mocks](https://github.com/VSoftTechnologies/Delphi-Mocks) | `DelphiMocks` | Mocking framework for interface testing |
+| [FastMM4](https://github.com/pleriche/FastMM4) (optional) | `FastMM4` | Memory check `check_memory.ps1` only; MPL 1.1 / LGPL 2.1, not distributed with Bold |
 
 The `.dproj` search paths reference them as `$(DUnitX)` and
 `$(DelphiMocks)`. Each variable must point to the framework's **Source**
-subfolder.
+subfolder. `FastMM4` points to the FastMM4 folder itself, the one with
+`FastMM4.pas`; nothing but `check_memory.ps1` needs it (see
+[Memory leaks and freed memory](#memory-leaks-and-freed-memory)).
 
 ## Setup
 
@@ -149,7 +152,45 @@ downloads the Zeos 8.0.0 release above, checks its SHA-256 and runs
 `FPC/build.sh`, so a change made in Delphi cannot break the Free Pascal build
 unnoticed. The Delphi suite still runs on Windows only.
 
-### Memory leaks and freed memory
+## Memory leaks and freed memory
+
+Both suites can run with freed memory overwritten, so that a use of freed
+memory fails instead of passing by luck, and with every block still allocated
+at exit reported together with the line that allocated it.
+
+### Delphi: FastMM4 FullDebugMode (`check_memory.ps1`)
+
+```powershell
+$env:FastMM4 = 'C:\path\to\FastMM4'                # a clone of https://github.com/pleriche/FastMM4
+.\check_memory.ps1                                 # build DebugFastMM4/Win64, run the suite, check the log
+.\check_memory.ps1 --run:Test.BoldXMLStreaming.    # a spot check: runner arguments pass through
+.\check_memory.ps1 -FreedBlocks                    # check writes to freed blocks instead
+```
+
+`check_memory.ps1` builds `UnitTest.dproj` in the configuration `DebugFastMM4`
+(exe, map file and event log in `FastMM4\`) and runs the suite under FastMM4 in
+FullDebugMode. FastMM4 is the first unit of `UnitTest.dpr` under
+`{$IFDEF BOLD_FASTMM4}`, which only that configuration defines, so normal builds
+do not need FastMM4. An interface released after its object was freed, or a
+virtual call on a freed object, is caught and logged with its stack trace, and
+at exit FastMM4 logs every block still allocated with the stack trace of its
+allocation, with unit and line from the detailed map file. The script prints
+those entries and fails on any leak, any memory error and any failed test. The
+full suite takes about a minute and a half. There is no Delphi CI, so run it in
+every cycle, like `check_no_vcl.ps1`.
+
+FastMM4 is optional and not distributed with Bold (MPL 1.1 / LGPL 2.1).
+`FastMM4` points to the folder with `FastMM4.pas`, `FastMM4Options.inc` and
+`FullDebugMode DLL\Precompiled`; the script copies the FullDebugMode DLL for the
+platform next to the exe. It only reads that folder: it copies the units to
+`FastMM4\src` and appends its settings to the copied `FastMM4Options.inc`
+(FullDebugMode, everything logged to the event log, no message boxes), because
+the original defines `RequireDebuggerPresenceForLeakReporting`, which a
+command-line define cannot undo. One build checks either interfaces of freed
+objects (the default) or writes to freed blocks (`-FreedBlocks`): FastMM4's
+`CatchUseOfFreedInterfaces` turns the freed-block check off.
+
+### Free Pascal: heaptrc
 
 ```sh
 BOLD_HEAPTRC=1 sh FPC/build.sh                         # the suite under heaptrc
@@ -160,6 +201,8 @@ info (`-gl`) into `FPC/bin-heaptrc` and runs it. heaptrc fills freed memory with
 `$F0`, so a use of freed memory raises instead of passing by luck, and at exit it
 lists every block still allocated with the line that allocated it. `build.sh`
 then prints that report and fails. CI runs the suite both ways.
+
+### No per-test leak check
 
 There is no per-test leak check: a cache created in one test and freed in a
 later one makes per-test counts noisy. To pin a leak in a code path, a test

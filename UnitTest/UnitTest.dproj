@@ -30,6 +30,12 @@
         <Cfg_1>true</Cfg_1>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='DebugFastMM4' or '$(Cfg_4)'!=''">
+        <Cfg_4>true</Cfg_4>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_1)'!=''">
         <Cfg_1>true</Cfg_1>
         <CfgParent>Base</CfgParent>
@@ -111,6 +117,12 @@
     <!-- UniDAC as compiled units only (the Devart installer): its Source folder holds stubs that need the source archive, so keep it off the path -->
     <PropertyGroup Condition="'$(Cfg_3)'!='' and !Exists('$(UniDAC)\Source\Uni.pas')">
         <DCC_UnitSearchPath>Code\Persistence\UniDAC;..\Source\Persistence\UniDAC;$(UniDAC)\Lib\Win32;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+    </PropertyGroup>
+    <!-- FastMM4 FullDebugMode memory check, built by check_memory.ps1: the FastMM4 units come from the copy that the script stages in FastMM4\src -->
+    <PropertyGroup Condition="'$(Cfg_4)'!=''">
+        <DCC_Define>BOLD_FASTMM4;$(DCC_Define)</DCC_Define>
+        <DCC_ExeOutput>.\FastMM4</DCC_ExeOutput>
+        <DCC_UnitSearchPath>FastMM4\src;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -260,6 +272,10 @@
         </BuildConfiguration>
         <BuildConfiguration Include="DebugUniDAC">
             <Key>Cfg_3</Key>
+            <CfgParent>Debug</CfgParent>
+        </BuildConfiguration>
+        <BuildConfiguration Include="DebugFastMM4">
+            <Key>Cfg_4</Key>
             <CfgParent>Debug</CfgParent>
         </BuildConfiguration>
     </ItemGroup>

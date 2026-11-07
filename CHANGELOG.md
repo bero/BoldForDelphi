@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `UnitTest\check_memory.ps1`: the Delphi suite under FastMM4 in FullDebugMode
+  (build configuration `DebugFastMM4`). It fails on any leak, on an interface
+  of a freed object or a virtual call on one, and on any failed test, printing
+  FastMM4's stack traces with unit and line. FastMM4 is an optional dependency
+  through the `FastMM4` environment variable, not distributed with Bold; normal
+  builds do not need it. The Delphi counterpart of the Free Pascal heaptrc run
+  (#117)
 - XML streaming builds on Delphi's cross-platform `Xml.xmldom` with the OmniXML
   vendor for Delphi targets other than Windows, so the runtime core no longer
   needs MSXML or COM there. Windows keeps MSXML; defining `BOLD_XMLDOM` selects

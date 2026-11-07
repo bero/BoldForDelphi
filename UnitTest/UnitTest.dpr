@@ -28,6 +28,7 @@
 {$STRONGLINKTYPES ON}
 
 uses
+  {$IFDEF BOLD_FASTMM4}FastMM4,{$ENDIF} // first unit; only check_memory.ps1 builds with BOLD_FASTMM4 (configuration DebugFastMM4)
   TestRunner in 'Code\Main\TestRunner.pas',
   BoldTestCasePersistence in 'Code\Persistence\BoldTestCasePersistence.pas',
   BoldTestDatabaseConfig in 'Code\Persistence\BoldTestDatabaseConfig.pas',

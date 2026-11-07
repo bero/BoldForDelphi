@@ -50,6 +50,8 @@ UnitTest/codecov.json
 UnitTest/codecov.exe
 UnitTest/test_codecov.json
 UnitTest/matrix_*.log
+# check_memory.ps1: the DebugFastMM4 exe, its map, the FullDebugMode DLL, the event log and the staged FastMM4 units
+UnitTest/FastMM4/
 # per-project build output (TMS Smart Setup builds packages in place when given a local folder)
 packages/*/Win32/
 packages/*/Win64/

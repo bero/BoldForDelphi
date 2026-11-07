@@ -27,6 +27,9 @@ $m = [regex]::Match($Console, "(?ms)^uses\r?\n(.*?;)\s*\r?\n")
 if (-not $m.Success) { throw "uses clause not found in $ConsoleDpr" }
 $Units = $m.Groups[1].Value
 
+# Console-only: the FastMM4 line that check_memory.ps1's DebugFastMM4 build puts first
+$Units = [regex]::Replace($Units, "(?m)^.*\bBOLD_FASTMM4\b.*\r?\n", "")
+
 # Console-only entry point -> GUI runner units
 $RunnerLine = "  TestRunner in 'Code\Main\TestRunner.pas',"
 if ($Units -notmatch [regex]::Escape($RunnerLine)) { throw "expected '$RunnerLine' as the first unit of $ConsoleDpr" }
