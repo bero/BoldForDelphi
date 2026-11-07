@@ -23,16 +23,16 @@ type
   { TUMLModelToEcoIIIGenerator }
   TUMLModelToEcoIIIGenerator = class(TUMLPlugInFunction)
   private
-    procedure ConvertClass(c: TUmlClass; parentNode: IXMLDOMElement; doc: TDOMDocument);
-    procedure ConvertAssociation(a: TUMLAssociation; parentNode :IXMLDOMElement; doc: TDOMDocument);
-    procedure ConvertAssociationEnd(ae: TUMLAssociationEnd; parentNode :IXMLDOMElement; doc: TDOMDocument);
-    procedure ConvertAttribute(attr: TUMLAttribute; parentNode :IXMLDOMElement; doc: TDOMDocument);
-    procedure ConvertOperation(op: TUMLOperation; parentNode :IXMLDOMElement; doc: TDOMDocument);
+    procedure ConvertClass(c: TUmlClass; parentNode: IXMLDOMElement; doc: IXMLDOMDocument);
+    procedure ConvertAssociation(a: TUMLAssociation; parentNode :IXMLDOMElement; doc: IXMLDOMDocument);
+    procedure ConvertAssociationEnd(ae: TUMLAssociationEnd; parentNode :IXMLDOMElement; doc: IXMLDOMDocument);
+    procedure ConvertAttribute(attr: TUMLAttribute; parentNode :IXMLDOMElement; doc: IXMLDOMDocument);
+    procedure ConvertOperation(op: TUMLOperation; parentNode :IXMLDOMElement; doc: IXMLDOMDocument);
     procedure ConvertPackage(Package: TUmlPackage; path: string);
     function GetId(me: TUMLModelElement): string;
-    function AddNode(parent: IXMLDOMElement; Name: string; doc: TDOMDocument): IXMLDOMElement;
+    function AddNode(parent: IXMLDOMElement; Name: string; doc: IXMLDOMDocument): IXMLDOMElement;
     procedure TransferModelElementSettings(me: TUmlModelElement;
-      node: IXMLDOMElement; doc: TDOMDocument);
+      node: IXMLDOMElement; doc: IXMLDOMDocument);
   protected
     function GetMenuItemName: String; override;
     function GetPlugInType: TPlugInType; override;
@@ -126,7 +126,7 @@ begin
 end;
 
 function TUMLModelToEcoIIIGenerator.AddNode(parent: IXMLDOMElement;
-  Name: string; doc: TDOMDocument): IXMLDOMElement;
+  Name: string; doc: IXMLDOMDocument): IXMLDOMElement;
 begin
   Result := doc.CreateElement(Name);
   parent.AppendChild(Result);
@@ -134,7 +134,7 @@ end;
 {$ENDREGION}
 
 procedure TUMLModelToEcoIIIGenerator.TransferModelElementSettings(me: TUmlModelElement;
-  node: IXMLDOMElement; doc: TDOMDocument);
+  node: IXMLDOMElement; doc: IXMLDOMDocument);
 var
   i: integer;
   tv: TUMLTaggedValue;
@@ -158,7 +158,7 @@ begin
 end;
 
 procedure TUMLModelToEcoIIIGenerator.ConvertOperation(op: TUMLOperation;
-  parentNode: IXMLDOMElement; doc: TDOMDocument);
+  parentNode: IXMLDOMElement; doc: IXMLDOMDocument);
 var
   OpNode,
   ParameterListNode,
@@ -195,7 +195,7 @@ begin
 end;
 
 procedure TUMLModelToEcoIIIGenerator.ConvertAssociationEnd(
-  ae: TUMLAssociationEnd; parentNode: IXMLDOMElement; doc: TDOMDocument);
+  ae: TUMLAssociationEnd; parentNode: IXMLDOMElement; doc: IXMLDOMDocument);
 var
   participantNode, ClassNode, AssocEndNode: IXMLDOMElement;
 begin
@@ -213,7 +213,7 @@ begin
 end;
 
 procedure TUMLModelToEcoIIIGenerator.ConvertAttribute(attr: TUMLAttribute;
-  parentNode: IXMLDOMElement; doc: TDOMDocument);
+  parentNode: IXMLDOMElement; doc: IXMLDOMDocument);
 var
   AttrNode: IXMLDOMElement;
   TypeNode: IXMLDOMElement;
@@ -230,7 +230,7 @@ begin
 end;
 
 procedure TUMLModelToEcoIIIGenerator.ConvertAssociation(a: TUMLAssociation;
-  parentNode: IXMLDOMElement; doc: TDOMDocument);
+  parentNode: IXMLDOMElement; doc: IXMLDOMDocument);
 var
   AssocNode: IXMLDOMElement;
   AssocEndListNode: IXMLDOMElement;
@@ -245,7 +245,7 @@ begin
 end;
 
 procedure TUMLModelToEcoIIIGenerator.ConvertClass(c: TUmlClass;
-  parentNode: IXMLDOMElement; doc: TDOMDocument);
+  parentNode: IXMLDOMElement; doc: IXMLDOMDocument);
 var
   ClassNode,
   SuperClassNode,
@@ -276,12 +276,12 @@ end;
 
 procedure TUMLModelToEcoIIIGenerator.ConvertPackage(Package: TUmlPackage; path: string);
 var
-  Doc: TDOMDocument;
+  Doc: IXMLDOMDocument;
   i: integer;
   OwnedElementNode, PackageNode: IXMLDOMElement;
   aStringList: TStringList;
 begin
-  Doc := TDOMDocument.Create(nil);
+  Doc := CoDOMDocument.Create;
   PackageNode := doc.createElement('Package');
   TransferModelElementSettings(package, packageNode, doc);
 

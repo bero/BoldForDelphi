@@ -363,14 +363,14 @@ end;
 
 procedure TBoldXMLExporter.RawExport(RootObj: IBoldXMLObject; const FileName: string);
 var
-  aDom: TDOMDocument;
+  aDom: IXMLDOMDocument;
 begin
-  aDom := TDOMDocument.Create(nil);
+  aDom := CoDOMDocument.Create;
   aDom.documentElement := aDom.createElement(XML_NODENAME_ROOT);
 
   ProduceHeader(aDom.documentElement);
   ContentsFromRoot(RootObj, aDom.documentElement);
-  aDom.DefaultInterface.save(FileName);
+  aDom.save(FileName);
 end;
 
 procedure TBoldXMLExporter.ReferenceAsElement(Reference: IBoldXMLReference;

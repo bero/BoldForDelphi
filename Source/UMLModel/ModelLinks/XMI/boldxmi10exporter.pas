@@ -301,10 +301,10 @@ end;
 
 procedure TBoldXMI10Exporter.RawExport(RootObj: IBoldMOFObject);
 var
-  aDom: TDOMDocument;
+  aDom: IXMLDOMDocument;
   aStringList: TStringList;
 begin
-  aDom := TDOMDocument.Create(nil);
+  aDom := CoDOMDocument.Create;
   aDom.documentElement := aDom.createElement(XMI_NODENAME_ROOT);
   aDom.documentElement.setAttribute(XMI_ATTRIBUTENAME_VERSION, '1.0');
 
@@ -314,10 +314,9 @@ begin
   aStringList := TStringList.Create;
   aStringList.Add('<?xml version = "1.0"?>');
   aStringList.Add('<!DOCTYPE XMI SYSTEM "uml13.dtd">');
-  aStringList.Add(aDom.DefaultInterface.xml);
+  aStringList.Add(aDom.xml);
   aStringList.SaveToFile(OwningLink.FileName);
 
-  aDom.Free;
   aStringList.Free;
 end;
 

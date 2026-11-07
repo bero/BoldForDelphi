@@ -50,7 +50,7 @@ end;
 procedure TBoldPersistenceControllerSOAPAdapterCore.Get(const request: WideString;
   out reply: WideString; PersistenceController: TBoldPersistenceController);
 var
-  RequestDoc, ReplyDoc: {$IFDEF OXML}TXMLDocument{$ELSE}TDOMDocument{$ENDIF};
+  RequestDoc, ReplyDoc: {$IFDEF OXML}TXMLDocument{$ELSE}IXMLDOMDocument{$ENDIF};
   RequestBodyNode, ReplyBodyNode: TBoldXMLNode;
   anXMLNode: {$IFDEF OXML}PXMLNode{$ELSE}IXMLDOMNode{$ENDIF};
   OpNode: TBoldXMLNode;
@@ -61,8 +61,8 @@ begin
   RequestDoc := TXMLDocument.Create;
   ReplyDoc := TXMLDocument.Create;
   {$ELSE}
-  RequestDoc := TDOMDocument.Create(nil);
-  ReplyDoc := TDOMDocument.Create(nil);
+  RequestDoc := CoDOMDocument.Create;
+  ReplyDoc := CoDOMDocument.Create;
   {$ENDIF}
   RequestBodyNode := nil;
   ReplyBodyNode := nil;
@@ -102,12 +102,17 @@ begin
       raise EBold.CreateFmt('%s.Get: Unrecognized operation %s', [classname, OpName]);
 
     PMOperation.ExecuteStreamed(PersistenceController, RequestBodyNode, ReplyBodyNode);
-    reply := {$IFDEF OXML}ReplyDoc.XML{$ELSE}ReplyDoc.DefaultInterface.xml{$ENDIF};
+    reply := {$IFDEF OXML}ReplyDoc.XML{$ELSE}ReplyDoc.xml{$ENDIF};
   finally
     RequestBodyNode.Free;
     ReplyBodyNode.Free;
+    {$IFDEF OXML}
     RequestDoc.Free;
     ReplyDoc.Free;
+    {$ELSE}
+    RequestDoc := nil;
+    ReplyDoc := nil;
+    {$ENDIF}
     OpNode.Free;
     PMOperation.Free;
   end;

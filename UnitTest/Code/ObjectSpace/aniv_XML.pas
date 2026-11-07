@@ -185,7 +185,7 @@ end;
 procedure TAniv_XMLStreaming.Conditions;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: IXMLDOMDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   ParseError: IXMLDOMParseError;
@@ -194,7 +194,7 @@ var
   TSCond1, TSCond2: TBoldTimestampCondition;
   anId: TBoldDefaultId;
 begin
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := CoDOMDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry, dm_Model1.BoldModel1.MoldModel);
   aNode := aMgr.NewRootNode(aDoc, 'ConditionTest');
 
@@ -227,9 +227,8 @@ begin
   anXML := aNode.XMLDomElement.ownerDocument.xml;
 
   aNode.Free;
-  aDoc.Free;
 
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := CoDOMDocument.Create;
   aDoc.async := false;
   aDoc.loadXML(anXML);
 
@@ -245,7 +244,6 @@ begin
   TSCond2 := aNode.ReadSubNodeObject('TimestampCondition', '') as TBoldTimestampCondition;
   CompareTSConditions(TSCond1, TSCond2);
   // Free
-  aDoc.Free;
   aMgr.Free;
   CPCond1.IdList.Free;
   CPCond1.MemberIdList.Free;
@@ -273,12 +271,12 @@ var
   MemberIdList1, MemberIdList2: TBoldMemberIdList;
 
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: IXMLDOMDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   ParseError: IXMLDOMParseError;
 begin
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := CoDOMDocument.Create;
   anId := TBoldDefaultID.CreateWithClassID(1, True);
   anId.AsInteger := 2;
   aTimestampedId := TBoldTimestampedDefaultId.createWithTimeAndClassId(13, 1, true);
@@ -302,9 +300,8 @@ begin
 
   aNode.Free;
   aMgr.Free;
-  aDoc.Free;
 
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := CoDOMDocument.Create;
   aDoc.async := false;
   aDoc.loadXML(anXML);
 
@@ -323,7 +320,6 @@ begin
   CompareMemberIdLists(MemberIdList1, MemberIdList2);
 
   //Free
-  aDoc.Free;
   aMgr.Free;
   aTimeStampedId.Free;
   IdList1.Free;
@@ -471,7 +467,7 @@ const
   FloatConst: Double = 0.0031;
 var
   aMgr: TBoldDefaultXMLStreamManager;
-  aDoc: TDomDocument;
+  aDoc: IXMLDOMDocument;
   aNode: TBoldXMLNode;
   anXML: string;
   ParseError: IXMLDOMParseError;
@@ -480,7 +476,7 @@ var
   anIdlist: TBoldObjectIdList;
   DateTimeConst: TDateTime;
 begin
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := CoDOMDocument.Create;
   aMgr := TBoldDefaultXMLStreamManager.Create(TBoldDefaultXMLStreamerRegistry.MainStreamerRegistry, dm_Model1.BoldModel1.MoldModel);
   aMgr.IgnorePersistenceState := false;
   aMgr.PersistenceStatesToBeStreamed := [bvpsModified, bvpsCurrent, bvpsInvalid];
@@ -532,8 +528,7 @@ begin
   end;
 }
   aNode.Free;
-  aDoc.Free;
-  aDoc := TDOMDocument.Create(nil);
+  aDoc := CoDOMDocument.Create;
   aDoc.async := false;
   aDoc.loadXML(anXML);
   ParseError := aDoc.parseError;
@@ -570,7 +565,6 @@ begin
   assert(aClassA.M_child.Locators[0].BoldObjectID.IsEqual[aClassA2.M_child.Locators[0].BoldObjectID], 'streaming of many-one association');
 
   //Free
-  aDoc.Free;
   aMgr.Free;
   anIdList.Free;
 end;

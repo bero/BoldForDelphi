@@ -331,7 +331,7 @@ end;
 procedure TBoldPersistenceOperation.RemoteExecute(Stub: IBoldSOAPService);
 var
   RequestDoc,
-  ReplyDoc: {$IFDEF OXML}TXMLDocument{$ELSE}TDOMDocument{$ENDIF};
+  ReplyDoc: {$IFDEF OXML}TXMLDocument{$ELSE}IXMLDOMDocument{$ENDIF};
   BodyNode: TBoldXMLNode;
   OpNode: TBoldXMLNode;
   replyXML: WideString;
@@ -340,8 +340,8 @@ begin
   RequestDoc := TXMLDocument.Create;
   ReplyDoc := TXMLDocument.Create;
   {$ELSE}
-  RequestDoc := TDOMDocument.Create(nil);
-  ReplyDoc := TDOMDocument.Create(nil);
+  RequestDoc := CoDOMDocument.Create;
+  ReplyDoc := CoDOMDocument.Create;
   {$ENDIF}
   try
     BodyNode := StreamManager.NewSOAP(RequestDoc);
@@ -353,7 +353,7 @@ begin
       OpNode.Free;
     end;
     Stub.Get({$IFDEF OXML}RequestDoc.XML{$ELSE}
-        RequestDoc.DefaultInterface.xml{$ENDIF}, replyXML);
+        RequestDoc.xml{$ENDIF}, replyXML);
 
     if not {$IFDEF OXML}ReplyDoc.LoadFromXML(replyXML){$ELSE}
       ReplyDoc.loadXML(replyXML){$ENDIF} then
@@ -390,8 +390,13 @@ begin
       OpNode.Free;
     end;
   finally
+    {$IFDEF OXML}
     RequestDoc.Free;
     ReplyDoc.Free;
+    {$ELSE}
+    RequestDoc := nil;
+    ReplyDoc := nil;
+    {$ENDIF}
   end;
 end;
 

@@ -31,7 +31,7 @@ type
   TBoldXMLLibDocument = TXMLDocument;
   TBoldXMLLibElement = TDOMElement;
   {$ELSE}
-  TBoldXMLLibDocument = TDomDocument;
+  TBoldXMLLibDocument = IXMLDOMDocument;
   TBoldXMLLibElement = IXMLDOMElement;
   {$ENDIF}{$ENDIF}
 
@@ -1058,13 +1058,19 @@ begin
   {$ELSE}{$IFDEF FPC}
   fDocument := TXMLDocument.Create;
   {$ELSE}
-  fDocument := TDomDocument.Create(nil);
+  fDocument := CoDOMDocument.Create;
   {$ENDIF}{$ENDIF}
 end;
 
 destructor TBoldXMLDocument.Destroy;
 begin
+  {$IFDEF OXML}
   FreeAndNil(fDocument);
+  {$ELSE}{$IFDEF FPC}
+  FreeAndNil(fDocument);
+  {$ELSE}
+  fDocument := nil;
+  {$ENDIF}{$ENDIF}
   inherited;
 end;
 

@@ -14,7 +14,7 @@ uses
 type
   TBoldMMTVDefGen = class
   private
-    fDoc: TDOMDocument;
+    fDoc: IXMLDOMDocument;
     fEnumDefElement: IXMLDOMElement;
     function AddElement(Name: string; parent: IXMLDOMElement): IXMLDOMElement;
     procedure GenTV(Parent: IXMLDOMElement; TagName: string; TypeName: string; Default: string); 
@@ -56,7 +56,7 @@ var
   MethodDefElement: IXMLDOMElement;
   ModelDefElement: IXMLDOMElement;
 begin
-  fDoc := TDOMDocument.Create(nil);
+  fDoc := CoDOMDocument.Create;
   fDoc.documentElement := fDoc.createElement('TagDefinitions');
   RootElement := fDoc.documentElement;
 

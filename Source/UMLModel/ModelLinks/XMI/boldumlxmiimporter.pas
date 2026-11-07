@@ -37,7 +37,7 @@ type
   private
     fTheUMLModel: TUMLModel;
     fTheUMLModelFound: Boolean;
-    fDOMDocument: TDOMDocument;
+    fDOMDocument: IXMLDOMDocument;
     fDebugLog: TBoldLogForm;
     fBoldSystem: TBoldSystem;
     fSkipMetaClassList: TStringList;
@@ -50,11 +50,11 @@ type
     function FindMemberRt(ClassTypeInfo: TBoldClassTypeInfo; QualifiedName: string): TBoldMemberRtInfo;
     procedure ImportAttributeFromString(BoldAttribute: TBoldAttribute; Attributevalue: string);
   protected
-    function GetDOMDocument: TDOMDocument;
+    function GetDOMDocument: IXMLDOMDocument;
     property BoldSystem: TBoldSystem read fBoldSystem;
     procedure LoadAndCheck(const Filename: TFilename);
     procedure ImportMetaAssociationEndFromElement(BoldMember: TBoldMember; XMLElement: IXMLDOMElement; Multi: Boolean);
-    property DOMDocument: TDOMDocument read GetDOMDocument;
+    property DOMDocument: IXMLDOMDocument read GetDOMDocument;
     class function GetUMLName(const aText: String): String;
     procedure ImportMetaAttributeFromElement(BoldAttribute: TBoldAttribute; XMLElement: IXMLDOMElement);
     function CreateUMLObjectsForMetaObject(XMLElement: IXMLDOMElement): TBoldUMLElementArray;
@@ -109,7 +109,7 @@ end;
 
 destructor TBoldUMLXMIImporter.Destroy;
 begin
-  FreeAndNil(fDOMDocument);
+  fDOMDocument := nil;
   FreeAndNil(fDebugLog);
   FreeAndNil(fSkipMetaClassList);
   FreeAndNil(fTraverseOnlyMetaClassList);
@@ -117,10 +117,10 @@ begin
   inherited;
 end;
 
-function TBoldUMLXMIImporter.GetDOMDocument: TDOMDocument;
+function TBoldUMLXMIImporter.GetDOMDocument: IXMLDOMDocument;
 begin
   if not Assigned(fDOMDocument) then
-    fDOMDocument := TDOMDocument.Create(nil);
+    fDOMDocument := CoDOMDocument.Create;
   Result := fDOMDocument;
 end;
 
@@ -128,7 +128,7 @@ procedure TBoldUMLXMIImporter.LoadAndCheck(const Filename: TFilename);
 var
   ParseError: IXMLDOMParseError;
 begin
-  FreeAndNil(fDomDocument);
+  fDomDocument := nil;
   DOMDocument.validateOnParse := OwningLink.ValidateInput;
   DOMDocument.load(Filename);
 

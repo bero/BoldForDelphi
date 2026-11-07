@@ -41,7 +41,7 @@ type
     { Private declarations }
     fMMToolService: IMMToolServices;
     fCurrentElement: IMMModelPart;
-    fTagDefinitions: TDOMDocument;
+    fTagDefinitions: IXMLDOMDocument;
     fClassTagDefs: IXMLDOMElement;
     fAttrTagDefs: IXMLDOMElement;
     fMethodTagDefs: IXMLDOMElement;
@@ -161,8 +161,8 @@ begin
   fMMToolService := MMToolService;
 
   ErrorMessage := '';
-  fTagDefinitions := TDOMDocument.Create(nil);
-  fTagDefinitions.DefaultInterface.async := false;
+  fTagDefinitions := CoDOMDocument.Create;
+  fTagDefinitions.async := false;
   if not fTagDefinitions.load('BoldMMTagDefs.xml') then
   begin
     ErrorMessage := fTagDefinitions.parseError.reason;
@@ -318,7 +318,7 @@ begin
   fAttrTagDefs := nil;
   fAssocTagDefs := nil;
   fMethodTagDefs := nil;
-  FreeAndNil(fTagDefinitions);
+  fTagDefinitions := nil;
   FreeAndNil(fEnumDefs);
 end;
 
