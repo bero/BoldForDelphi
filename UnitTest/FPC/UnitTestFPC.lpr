@@ -39,6 +39,7 @@ uses
   Test.BoldDefaultXMLStreaming,
   Test.BoldDefs,
   Test.BoldDeriver,
+  Test.BoldDirectoryTraverser,
   Test.BoldElements,
   Test.BoldEnvironment,
   Test.BoldEventQueue,

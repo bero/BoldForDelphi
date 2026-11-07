@@ -251,6 +251,7 @@
         <DCCReference Include="Code\ObjectSpace\Test.BoldSSExcept.pas"/>
         <DCCReference Include="Code\Common\Test.BoldDefs.pas"/>
         <DCCReference Include="Code\Common\Test.BoldURI.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldDirectoryTraverser.pas"/>
         <DCCReference Include="Code\Common\Test.BoldPlatform.pas"/>
         <DCCReference Include="Code\Common\Test.BoldXMLStreaming.pas"/>
         <DCCReference Include="Code\Common\Test.BoldLogReceiverInterface.pas"/>

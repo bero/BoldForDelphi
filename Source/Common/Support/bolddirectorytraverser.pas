@@ -61,13 +61,18 @@ begin
   ExecuteDirectory(path);
 
   res := findfirst(path+'*', faDirectory, SearchRec);
-  while res = 0 do
-  begin
-    if (searchRec.Name <> '.') and
-       (searchRec.name <> '..') and
-       (SearchRec.Attr and faDirectory = faDirectory) then
-      ExecuteRecursive(Path + SearchRec.Name + PathDelim);
-    res := FindNext(SearchRec);
+  if res = 0 then
+  try
+    while res = 0 do
+    begin
+      if (searchRec.Name <> '.') and
+         (searchRec.name <> '..') and
+         (SearchRec.Attr and faDirectory = faDirectory) then
+        ExecuteRecursive(Path + SearchRec.Name + PathDelim);
+      res := FindNext(SearchRec);
+    end;
+  finally
+    FindClose(SearchRec); // a failed FindFirst closes itself
   end;
   if TraverseAlgorithm = taPostOrder then
     TraverseFiles(Path)
@@ -76,8 +81,12 @@ end;
 procedure TBoldDirectoryTraverser.Execute;
 begin
   Path := IncludeTrailingPathDelimiter(Path);
+  {$IFDEF MSWINDOWS}
+  // A path on a drive letter that does not exist; other platforms have no
+  // drive letters (and Delphi has DiskSize only on Windows).
   if (pos(DriveDelim, Path) = 2) and (DiskSize(ord(upcase(path[1])) - 64) = -1) then
     raise EBold.CreateFmt(sInvalidDrive, [classname, Path]);
+  {$ENDIF}
   if not DirectoryExists(Path) then
     raise EBold.CreateFmt(sPathDoesNotExist, [ClassName, Path]);
 
@@ -90,12 +99,17 @@ var
   SearchRec: TSearchRec;
 begin
   res := FindFirst(Path + Mask, 0, SearchRec);
-  while res = 0 do
-  begin
-    if assigned(OnFile) then
-      OnFile(Path, SearchRec);
-    ExecuteFile(path, SearchRec);
-    res := FindNext(SearchRec);
+  if res = 0 then
+  try
+    while res = 0 do
+    begin
+      if assigned(OnFile) then
+        OnFile(Path, SearchRec);
+      ExecuteFile(path, SearchRec);
+      res := FindNext(SearchRec);
+    end;
+  finally
+    FindClose(SearchRec); // a failed FindFirst closes itself
   end;
 end;
 

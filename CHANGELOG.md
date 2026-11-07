@@ -68,6 +68,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDirectoryTraverser` never closed its directory and file searches,
+  leaking a find handle on Windows and heap memory elsewhere for each search.
+  It also did not compile for Delphi off Windows, because of a drive-letter
+  check through `DiskSize`, which is now Windows-only (#117)
 - The runtime core did not compile for Delphi's Linux 64-bit target.
   `BoldUnicodeCompareLen` called the Windows API on every Delphi target. Several
   methods were declared with `Longint` and implemented with `Integer`, which on
