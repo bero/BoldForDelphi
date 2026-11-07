@@ -30,11 +30,17 @@ type
     procedure TestPreOrderVisitsFilesBeforeSubdirectories;
     procedure TestPostOrderVisitsSubdirectoriesFirst;
     procedure TestTraversalDoesNotLeak;
+    {$IF defined(MSWINDOWS) and not defined(FPC)}
+    procedure TestTraversalReleasesFindHandles;
+    {$IFEND}
   end;
 
 implementation
 
 uses
+  {$IF defined(MSWINDOWS) and not defined(FPC)}
+  Windows,
+  {$IFEND}
   BoldDefs,
   BoldDirectoryTraverser;
 
@@ -141,6 +147,28 @@ begin
   Assert.IsTrue(After <= Before, Format('20 traversals left %d %s',
     [After - Before, {$IFDEF FPC}'bytes'{$ELSE}'blocks'{$ENDIF}]));
 end;
+
+{$IF defined(MSWINDOWS) and not defined(FPC)}
+// On Windows an open search holds a find handle, which the heap count above
+// cannot see. One traversal of the test tree runs four searches, so 20
+// traversals that never closed them would leave 80 handles; the margin leaves
+// room for handles that other threads open meanwhile.
+procedure TTestBoldDirectoryTraverser.TestTraversalReleasesFindHandles;
+var
+  i: Integer;
+  Before, After: DWORD;
+begin
+  Traverse(False); // warm up one-time handles
+  Assert.IsTrue(GetProcessHandleCount(GetCurrentProcess, Before), 'GetProcessHandleCount failed');
+  for i := 1 to 20 do
+  begin
+    Traverse(i mod 2 = 0);
+  end;
+  Assert.IsTrue(GetProcessHandleCount(GetCurrentProcess, After), 'GetProcessHandleCount failed');
+  Assert.IsTrue(Integer(After) - Integer(Before) < 20,
+    Format('20 traversals left %d handles open', [Integer(After) - Integer(Before)]));
+end;
+{$IFEND}
 
 initialization
   BoldRegisterTest(TTestBoldDirectoryTraverser);
