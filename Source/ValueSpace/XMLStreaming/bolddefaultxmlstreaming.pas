@@ -264,10 +264,10 @@ implementation
 
 uses
   SysUtils,
+  Contnrs,
 
   BoldCoreConsts,
   BoldHashIndexes,
-  {$IFDEF OXML}OXmlPDOM{$ELSE}{$IFDEF FPC}DOM{$ELSE}Bold_MSXML_TLB{$ENDIF}{$ENDIF},
   BoldDefaultStreamNames;
 
 const
@@ -337,52 +337,23 @@ end;
 
 procedure TBoldDefaultXMLStreamManager.ReadValueSpace(const ValueSpace: IBoldValueSpace; Node: TBoldXMLNode);
 var
+  SubNodes: TObjectList;
   aSubNode: TBoldXMLNode;
-  {$IFDEF OXML}
-  aNodeListEnumerator: TXMLChildNodeListEnumerator;
-  aNode: PXMLNode;
-  {$ELSE}{$IFDEF FPC}
-  aNode: TDOMNode;
-  {$ELSE}
-  aNodeList: IXMLDomNodeList;
-  aNode: IXMLDomNode;
-  {$ENDIF}{$ENDIF}
+  i: Integer;
 begin
   if not assigned(ValueSpace) then begin
     exit;
   end;
-  {$IFDEF OXML}
-  aNodeListEnumerator := Node.XMLDomElement.ChildNodes.GetEnumerator;
+  SubNodes := Node.NewChildNodes;
   try
-    while aNodeListEnumerator.MoveNext do
+    for i := 0 to SubNodes.Count - 1 do
     begin
-      aNode := aNodeListEnumerator.Current;
-      aSubNode := TBoldXMLNode.Create(Node.Manager, aNode, nil);
+      aSubNode := TBoldXMLNode(SubNodes[i]);
       ClassStreamerByName[aSubNode.Accessor].ReadObject(aSubNode, ValueSpace);
-      aSubNode.Free;
     end;
   finally
-    aNodeListEnumerator.Free;
+    SubNodes.Free;
   end;
-  {$ELSE}{$IFDEF FPC}
-  aNode := Node.XMLDomElement.FirstChild;
-  while assigned(aNode) do begin
-    aSubNode := TBoldXMLNode.Create(Node.Manager, aNode as TDOMElement, nil);
-    ClassStreamerByName[aSubNode.Accessor].ReadObject(aSubNode, ValueSpace);
-    aSubNode.Free;
-    aNode := aNode.NextSibling;
-  end;
-  {$ELSE}
-  aNodeList := Node.XMLDomElement.childNodes;
-  aNode := aNodeList.nextNode;
-  while assigned(aNode) do begin
-    aSubNode := TBoldXMLNode.Create(Node.Manager, aNode as IXMLDOMElement, nil);
-    ClassStreamerByName[aSubNode.Accessor].ReadObject(aSubNode, ValueSpace);
-
-    aSubNode.Free;
-    aNode := aNodeList.nextNode;
-  end;
-  {$ENDIF}{$ENDIF}
 end;
 
 procedure TBoldDefaultXMLStreamManager.WriteValueSpace(const ValueSpace: IBoldValueSpace; IdList: TBoldObjectIdList;
@@ -756,15 +727,8 @@ var
   anId: TboldObjectId;
   ObjectContents: IBoldObjectContents;
   aMemberStreamer: TBoldXMLMemberStreamer;
-  {$IFDEF OXML}
-  aNodeEnumerator: TXMLChildNodeListEnumerator;
-  aNode: PXMLNode;
-  {$ELSE}{$IFDEF FPC}
-  aNode: TDOMNode;
-  {$ELSE}
-  aNodeList: IXMLDomNodeList;
-  aNode: IXMLDomNode;
-  {$ENDIF}{$ENDIF}
+  SubNodes: TObjectList;
+  i: Integer;
 begin
   aSubNode := Node.GetSubNode(BoldNodeName_id);
   anId := aSubNode.ReadObject('') as TBoldObjectId;
@@ -807,47 +771,22 @@ begin
   end;
 
   MembersNode := Node.GetSubNode(BoldNodeName_members);
-  {$IFDEF OXML}
-  aNodeEnumerator := MembersNode.XMLDomElement.ChildNodes.GetEnumerator;
   try
-    while aNodeEnumerator.MoveNext do begin
-      aNode := aNodeEnumerator.Current;
-      aSubNode := TBoldXMLNode.Create(Node.Manager, aNode, nil);
-      aMemberStreamer := MemberStreamerByName[aSubNode.Accessor];
-      ObjectContents.EnsureMember(aMemberStreamer.MemberId, aMemberStreamer.TypeStreamName);
-      aMemberStreamer.ReadValue(aSubNode, ObjectContents.ValueByIndex[aMemberStreamer.Index]);
-      aSubNode.Free;
+    SubNodes := MembersNode.NewChildNodes;
+    try
+      for i := 0 to SubNodes.Count - 1 do
+      begin
+        aSubNode := TBoldXMLNode(SubNodes[i]);
+        aMemberStreamer := MemberStreamerByName[aSubNode.Accessor];
+        ObjectContents.EnsureMember(aMemberStreamer.MemberId, aMemberStreamer.TypeStreamName);
+        aMemberStreamer.ReadValue(aSubNode, ObjectContents.ValueByIndex[aMemberStreamer.Index]);
+      end;
+    finally
+      SubNodes.Free;
     end;
   finally
-    aNodeEnumerator.Free;
     MembersNode.Free;
   end;
-  {$ELSE}{$IFDEF FPC}
-  aNode := MembersNode.XMLDomElement.FirstChild;
-  while assigned(aNode) do
-  begin
-    aSubNode := TBoldXMLNode.Create(Node.Manager, aNode as TDOMElement, nil);
-    aMemberStreamer := MemberStreamerByName[aSubNode.Accessor];
-    ObjectContents.EnsureMember(aMemberStreamer.MemberId, aMemberStreamer.TypeStreamName);
-    aMemberStreamer.ReadValue(aSubNode, ObjectContents.ValueByIndex[aMemberStreamer.Index]);
-    aSubNode.Free;
-    aNode := aNode.NextSibling;
-  end;
-  MembersNode.Free;
-  {$ELSE}
-  aNodeList := MembersNode.XMLDomElement.childNodes;
-  aNode := aNodeList.nextNode;
-  while assigned(aNode) do
-  begin
-    aSubNode := TBoldXMLNode.Create(Node.Manager, aNode as IXMLDOMElement, nil);
-    aMemberStreamer := MemberStreamerByName[aSubNode.Accessor];
-    ObjectContents.EnsureMember(aMemberStreamer.MemberId, aMemberStreamer.TypeStreamName);
-    aMemberStreamer.ReadValue(aSubNode, ObjectContents.ValueByIndex[aMemberStreamer.Index]);
-    aSubNode.Free;
-    aNode := aNodeList.nextNode;
-  end;
-  MembersNode.Free;
-  {$ENDIF}{$ENDIF}
 end;
 
 procedure TBoldXMLClassStreamer.WriteObject(Node: TBoldXMLNode;

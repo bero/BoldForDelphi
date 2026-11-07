@@ -56,6 +56,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldPersistenceOperation.RemoteExecute`, the SOAP client of the persistence
+  operations, leaked the XML nodes of a reply that held a SOAP fault or no
+  response. It now frees them on every path, and builds its request and reply
+  through `TBoldXMLDocument` instead of MSXML directly (#117)
 - Saving a form or data module in the IDE wrote an empty model and three default
   `Boldify` settings into the form file for a `TBoldModel` that holds no model,
   such as one whose model is loaded at run time. `TBoldModel` now stores its

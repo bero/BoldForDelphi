@@ -64,6 +64,7 @@ uses
   Test.BoldDbParameter in 'Code\Persistence\Test.BoldDbParameter.pas',
   Test.BoldUpdatePrecondition in 'Code\Persistence\Test.BoldUpdatePrecondition.pas',
   Test.BoldPersistenceController in 'Code\Persistence\Test.BoldPersistenceController.pas',
+  Test.BoldPersistenceOperationXMLStreaming in 'Code\Persistence\Test.BoldPersistenceOperationXMLStreaming.pas',
   Test.BoldDbValidator in 'Code\Persistence\Test.BoldDbValidator.pas',
   Test.BoldDbCopy in 'Code\Persistence\Test.BoldDbCopy.pas',
   Test.BoldDbCopyFireDAC in 'Code\Persistence\Test.BoldDbCopyFireDAC.pas',

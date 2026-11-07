@@ -160,6 +160,7 @@
         <DCCReference Include="Code\Persistence\Test.BoldDbParameter.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldUpdatePrecondition.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldPersistenceController.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldPersistenceOperationXMLStreaming.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldDbValidator.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldDbCopy.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldDbCopyFireDAC.pas"/>

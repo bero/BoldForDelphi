@@ -204,7 +204,6 @@ type
 implementation
 
 uses
- {$IFDEF OXML}OXmlPDOM{$ELSE}Bold_MSXML_TLB{$ENDIF},
   SysUtils,
   BoldDefaultStreamNames;
 
@@ -329,22 +328,42 @@ begin
 end;
 
 procedure TBoldPersistenceOperation.RemoteExecute(Stub: IBoldSOAPService);
+
+  // The reply has no <Name>Response element, so it should hold a SOAP fault.
+  procedure RaiseFault(BodyNode: TBoldXMLNode);
+  var
+    FaultNode, FaultStringNode: TBoldXMLNode;
+    FaultString: string;
+  begin
+    FaultNode := BodyNode.GetSubNode('SOAP-ENV:Fault');
+    if not Assigned(FaultNode) then
+      raise EBold.Create('Empty SOAP data.');
+    try
+      FaultStringNode := FaultNode.GetSubNode('SOAP-ENV:faultstring');
+      if not Assigned(FaultStringNode) then
+        raise EBold.Create('Error: empty error message');
+      try
+        FaultString := FaultStringNode.ReadString;
+      finally
+        FaultStringNode.Free;
+      end;
+    finally
+      FaultNode.Free;
+    end;
+    raise EBold.CreateFmt('Error: %s', [FaultString]);
+  end;
+
 var
   RequestDoc,
-  ReplyDoc: {$IFDEF OXML}TXMLDocument{$ELSE}IXMLDOMDocument{$ENDIF};
+  ReplyDoc: TBoldXMLDocument;
   BodyNode: TBoldXMLNode;
   OpNode: TBoldXMLNode;
   replyXML: WideString;
 begin
-  {$IFDEF OXML}
-  RequestDoc := TXMLDocument.Create;
-  ReplyDoc := TXMLDocument.Create;
-  {$ELSE}
-  RequestDoc := CoDOMDocument.Create;
-  ReplyDoc := CoDOMDocument.Create;
-  {$ENDIF}
+  RequestDoc := TBoldXMLDocument.Create;
+  ReplyDoc := TBoldXMLDocument.Create;
   try
-    BodyNode := StreamManager.NewSOAP(RequestDoc);
+    BodyNode := StreamManager.NewSOAP(RequestDoc.Document);
     OpNode := BodyNode.NewSubNode(Name);
     try
       WriteInParams(OpNode);
@@ -352,51 +371,35 @@ begin
       BodyNode.Free;
       OpNode.Free;
     end;
-    Stub.Get({$IFDEF OXML}RequestDoc.XML{$ELSE}
-        RequestDoc.xml{$ENDIF}, replyXML);
+    Stub.Get(RequestDoc.RootXML, replyXML);
 
-    if not {$IFDEF OXML}ReplyDoc.LoadFromXML(replyXML){$ELSE}
-      ReplyDoc.loadXML(replyXML){$ENDIF} then
-    begin
-      raise EBoldXMLLoadError.CreateFmt('%s: %s', [Replydoc.parseError.Reason, ReplyXML]) ;
+    try
+      ReplyDoc.LoadXML(replyXML);
+    except
+      on E: EBold do
+        raise EBoldXMLLoadError.CreateFmt('%s: %s', [E.Message, ReplyXML]);
     end;
 
     try
-      BodyNode := StreamManager.GetSOAP(ReplyDoc);
+      BodyNode := StreamManager.GetSOAP(ReplyDoc.Document);
     except
       raise EBoldInvalidSOAP.CreateFmt('Invalid SOAP data : %s', [replyXML]);
     end;
-
-    OpNode := BodyNode.GetSubNode(Name + 'Response');
-    if not Assigned(OpNode) then
-    begin
-      OpNode := BodyNode.GetSubNode('SOAP-ENV:Fault');
-      if not Assigned(OpNode) then
-        raise EBold.Create('Empty SOAP data.')
-      else
-      begin
-        OpNode := OpNode.GetSubNode('SOAP-ENV:faultstring');
-        if Assigned(OpNode) then
-          raise EBold.CreateFmt('Error: %s', [OpNode.XMLDomElement.text])
-        else
-          raise EBold.Create('Error: empty error message') ;
-      end;
-    end;
-    
     try
-      ReadOutParams(OpNode);
+      OpNode := BodyNode.GetSubNode(Name + 'Response');
+      if not Assigned(OpNode) then
+        RaiseFault(BodyNode);
+      try
+        ReadOutParams(OpNode);
+      finally
+        OpNode.Free;
+      end;
     finally
       BodyNode.Free;
-      OpNode.Free;
     end;
   finally
-    {$IFDEF OXML}
-    RequestDoc.Free;
     ReplyDoc.Free;
-    {$ELSE}
-    RequestDoc := nil;
-    ReplyDoc := nil;
-    {$ENDIF}
+    RequestDoc.Free;
   end;
 end;
 
