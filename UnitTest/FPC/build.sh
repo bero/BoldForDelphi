@@ -3,10 +3,21 @@
 # Requires Zeos 8.0: set ZEOS to its root folder (see UnitTest/README.md).
 # Arguments are passed to the test runner (default: all tests, plain output).
 # Output goes to UnitTest/FPC/bin. Exit code 0 when every test passed.
+#
+# BOLD_HEAPTRC=1 builds with heaptrc (-gh) and line info (-gl) into
+# UnitTest/FPC/bin-heaptrc instead, and also fails when the run leaves memory
+# unfreed; heaptrc's report, with the line that allocated each block, is
+# printed then. heaptrc also overwrites freed memory, so a use of freed memory
+# raises instead of passing by luck.
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../.." && pwd)
 OUT="$HERE/bin"
+HEAPTRC_OPTIONS=""
+if [ "$BOLD_HEAPTRC" = "1" ]; then
+  OUT="$HERE/bin-heaptrc"
+  HEAPTRC_OPTIONS="-gh -gl"
+fi
 mkdir -p "$OUT"
 
 # Zeos 8.0 (https://sourceforge.net/projects/zeoslib) is required: under Free
@@ -23,7 +34,7 @@ fi
 # AnsiString), into its own folder. -Mdelphiunicode below would also define
 # UNICODE, which Zeos reads as "String is UnicodeString", and it does not
 # compile that way. The Bold build then uses only these precompiled units.
-ZOUT="$OUT/zeos"
+ZOUT="$HERE/bin/zeos"
 mkdir -p "$ZOUT"
 ZSRC="$ZEOS/src"
 for unit in component/ZConnection component/ZDataset component/ZSqlProcessor dbc/ZDbcSqLite; do
@@ -38,14 +49,27 @@ UNITPATHS=$( { find "$ROOT/Source" -type d \
   find "$ROOT/UnitTest/Code" -type d; } | sed 's/^/-Fu/')
 
 # shellcheck disable=SC2086
-fpc -Mdelphiunicode -vew \
+fpc -Mdelphiunicode -vew $HEAPTRC_OPTIONS \
   -Fi"$ROOT/Source/Common/Include" $UNITPATHS -Fu"$ZOUT" \
   -FE"$OUT" -FU"$OUT" \
   "$HERE/UnitTestFPC.lpr"
 
 set +e
+if [ "$BOLD_HEAPTRC" = "1" ]; then
+  HEAPTRC_LOG="$OUT/heaptrc.log"
+  rm -f "$HEAPTRC_LOG"
+  HEAPTRC="log=$HEAPTRC_LOG"
+  export HEAPTRC
+fi
 if [ $# -eq 0 ]; then
   "$OUT/UnitTestFPC" --all --format=plain
 else
   "$OUT/UnitTestFPC" "$@"
 fi
+RESULT=$?
+if [ "$BOLD_HEAPTRC" = "1" ] && ! grep -q '^0 unfreed memory blocks' "$HEAPTRC_LOG"; then
+  cat "$HEAPTRC_LOG"
+  echo "build.sh: the run left memory unfreed (heaptrc report above)" >&2
+  [ $RESULT -eq 0 ] && RESULT=1
+fi
+exit $RESULT

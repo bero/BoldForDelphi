@@ -2,7 +2,8 @@ name: FPC tests
 
 # Builds Bold and its unit tests with Free Pascal on Linux and runs the FPCUnit
 # suite (UnitTest/FPC/build.sh), so a change made and tested in Delphi cannot
-# break the Lazarus/Free Pascal build unnoticed (#117). The Delphi suite still
+# break the Lazarus/Free Pascal build unnoticed (#117). A second run under
+# heaptrc catches memory leaks and uses of freed memory. The Delphi suite still
 # runs on Windows only.
 
 on:
@@ -104,3 +105,9 @@ jobs:
 
       - name: Build and run the FPC test suite
         run: ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0" sh UnitTest/FPC/build.sh
+
+      # The same suite under heaptrc: freed memory is overwritten, so a use of
+      # freed memory raises instead of passing by luck, and build.sh fails when
+      # the run leaves memory unfreed, printing the line that allocated it.
+      - name: Run the FPC test suite under heaptrc
+        run: BOLD_HEAPTRC=1 ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0" sh UnitTest/FPC/build.sh

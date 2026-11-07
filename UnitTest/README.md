@@ -149,6 +149,25 @@ downloads the Zeos 8.0.0 release above, checks its SHA-256 and runs
 `FPC/build.sh`, so a change made in Delphi cannot break the Free Pascal build
 unnoticed. The Delphi suite still runs on Windows only.
 
+### Memory leaks and freed memory
+
+```sh
+BOLD_HEAPTRC=1 sh FPC/build.sh                         # the suite under heaptrc
+```
+
+`BOLD_HEAPTRC=1` builds the runner with Free Pascal's heaptrc (`-gh`) and line
+info (`-gl`) into `FPC/bin-heaptrc` and runs it. heaptrc fills freed memory with
+`$F0`, so a use of freed memory raises instead of passing by luck, and at exit it
+lists every block still allocated with the line that allocated it. `build.sh`
+then prints that report and fails. CI runs the suite both ways.
+
+There is no per-test leak check: a cache created in one test and freed in a
+later one makes per-test counts noisy. To pin a leak in a code path, a test
+counts the heap around a loop, `BoldTestAllocatedBytes` under Free Pascal or
+`BoldTestAllocatedBlocks` under Delphi, as `TestMalformedXMLDoesNotLeak` and
+`TestFaultDoesNotLeak` do. The leak column of the Delphi runner always shows 0:
+its default DUnitX leak monitor measures nothing.
+
 ## Code Coverage
 
 ```powershell
