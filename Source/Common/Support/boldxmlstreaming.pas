@@ -1183,6 +1183,12 @@ begin
       raise EBold.CreateFmt('%s: %s', [sXMLParseError, Trim(ParseError.reason)]);
     raise EBold.Create(sXMLParseError);
   end;
+
+  // OmniXML loads text without any element and reports success.
+  if not Assigned(fDocument.documentElement) then
+  begin
+    raise EBold.CreateFmt('%s: %s', [sXMLParseError, sXMLNoRootElement]);
+  end;
 end;
 {$ELSE}
 var

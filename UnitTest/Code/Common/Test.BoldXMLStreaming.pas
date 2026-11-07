@@ -26,6 +26,7 @@ type
     procedure TestSubNodesByTagNameFindsDescendants;
     procedure TestRootXMLHasNoDeclaration;
     procedure TestMalformedXMLRaisesWithReason;
+    procedure TestTextWithoutRootElementRaises;
   end;
 
 implementation
@@ -258,7 +259,7 @@ begin
     try
       Children := Node.NewChildNodes;
       try
-        Assert.AreEqual(3, Children.Count);
+        Assert.AreEqual(3, Integer(Children.Count));
         Assert.AreEqual('A', TBoldXMLNode(Children[0]).Accessor);
         Assert.AreEqual('B', TBoldXMLNode(Children[1]).Accessor);
         Assert.AreEqual('C', TBoldXMLNode(Children[2]).Accessor);
@@ -309,7 +310,7 @@ begin
     try
       Found := Node.NewSubNodesByTagName('id');
       try
-        Assert.AreEqual(2, Found.Count);
+        Assert.AreEqual(2, Integer(Found.Count));
         Assert.AreEqual('first', TBoldXMLNode(Found[0]).ReadString);
         Assert.AreEqual('second', TBoldXMLNode(Found[1]).ReadString);
       finally
@@ -360,6 +361,29 @@ begin
     // The message starts with the general text and goes on with the parser's
     // reason, so that whoever reads it can find the fault in the XML.
     Assert.AreEqual(sXMLParseError, Copy(ErrorText, 1, Length(sXMLParseError)), ErrorText);
+    Assert.IsTrue(Length(ErrorText) > Length(sXMLParseError) + 2, 'no reason in: ' + ErrorText);
+  finally
+    Document.Free;
+  end;
+end;
+
+// A well-formed document has exactly one root element. OmniXML loads plain
+// text without complaint and leaves the document without one.
+procedure TTestBoldXMLStreaming.TestTextWithoutRootElementRaises;
+var
+  Document: TBoldXMLDocument;
+  ErrorText: string;
+begin
+  Document := TBoldXMLDocument.Create;
+  try
+    ErrorText := '';
+    try
+      Document.LoadXML('not xml');
+    except
+      on E: EBold do
+        ErrorText := E.Message;
+    end;
+    Assert.AreEqual(sXMLParseError, Copy(ErrorText, 1, Length(sXMLParseError)), 'not raised: ' + ErrorText);
     Assert.IsTrue(Length(ErrorText) > Length(sXMLParseError) + 2, 'no reason in: ' + ErrorText);
   finally
     Document.Free;

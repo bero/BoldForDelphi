@@ -1157,6 +1157,7 @@ const
 
 // BoldPersistenceHandles
   sXMLParseError = 'Error reading/parsing XML file';
+  sXMLNoRootElement = 'the document has no root element';
   sModelRequired = '%s.CreatePersistenceController: Unable to create, model is missing.';
   sObjectNotInFile = '%s.PMFetch: Trying to fetch an object that does not exist in file (%s)';
   sSQLNotSpokenHere = 'This filehandler does not understand SQL, ignoring condition and orderby...';
