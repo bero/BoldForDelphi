@@ -60,6 +60,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- When a PreUpdate subscriber deleted a never persisted object of the batch,
+  `UpdateDatabase` read that object's locator after it had been freed. It
+  worked only because the freed memory still held the old values. Object
+  destruction now waits until the batch has been filtered again (#62)
 - `TBoldXMLDocument.LoadXML` raised its parse error without the parser's reason;
   the message now ends with it. Under Free Pascal, `TBoldXMLDocument.RootXML`
   started with a line break, and `LoadXML` leaked the partly read document of

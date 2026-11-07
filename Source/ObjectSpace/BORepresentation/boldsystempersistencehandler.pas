@@ -534,15 +534,24 @@ begin
   begin
     try
       EnsureEnclosure(ObjectsToUpdate, false);
-      DoPreUpdate(ObjectsToUpdate);
       // A PreUpdate subscriber may delete objects in the batch. Deleting a
-      // never persisted object frees it on the spot, leaving a locator
-      // without an object in the list, so the list must be filtered again.
-      for i := ObjectsToUpdate.Count-1 downto 0 do
-      begin
-        if not assigned(ObjectsToUpdate.Locators[i].BoldObject) or
-           not ObjectsToUpdate[i].BoldPersistent then
-          ObjectsToUpdate.RemoveByIndex(i);
+      // never persisted object destroys it together with its locator, which
+      // this list still holds. So destruction waits until the list has been
+      // filtered again: the deleted objects are then still there, marked for
+      // destruction (deleted and not modified), and are left out.
+      System.DelayObjectDestruction;
+      try
+        DoPreUpdate(ObjectsToUpdate);
+        for i := ObjectsToUpdate.Count-1 downto 0 do
+        begin
+          if not assigned(ObjectsToUpdate.Locators[i].BoldObject) or
+             not ObjectsToUpdate[i].BoldPersistent or
+             ((ObjectsToUpdate[i].BoldExistenceState <> besExisting) and
+              (ObjectsToUpdate[i].BoldPersistenceState <> bvpsModified)) then
+            ObjectsToUpdate.RemoveByIndex(i);
+        end;
+      finally
+        System.AllowObjectDestruction;
       end;
 
       if ObjectsToUpdate.Count > 0 then

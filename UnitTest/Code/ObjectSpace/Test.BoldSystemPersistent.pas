@@ -185,9 +185,11 @@ begin
   fObjectToDelete := TBook.Create(GetSystem);
   GetSystem.OnPreUpdate := DeletePendingObjectOnPreUpdate;
   try
-    // Deleting a never-persisted object frees it on the spot, so the update
-    // batch holds a locator whose BoldObject is nil from this point on. The
-    // update must still complete and save the surviving object.
+    // Deleting a never-persisted object destroys it together with its
+    // locator, which the update batch holds. The update must leave the object
+    // out without reading freed memory and still save the surviving object.
+    // The old code read the freed locator here; that shows only when freed
+    // memory is overwritten, as under heaptrc (FPC) or FastMM FullDebugMode.
     GetSystem.UpdateDatabase;
     Assert.IsFalse(SavedBook.BoldDirty,
       'surviving object must be saved when a PreUpdate subscriber deletes a batch sibling');
