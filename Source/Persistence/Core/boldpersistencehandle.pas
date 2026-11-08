@@ -126,6 +126,12 @@ begin
   PersistenceSubscriber.CancelAllSubscriptions;
   PersistenceController.AddSmallSubscription(fPersistenceSubscriber, [beDestroying]);
   PersistenceController.SubscribeToPersistenceEvents(fPersistenceSubscriber);
+  // The handle passes the controller's events on (ReceiveExtendedEvent); the
+  // subscriber gets all persistence events, or only those in Events
+  if Events = [] then
+    AddSmallSubscription(Subscriber, bePersistenceEvents)
+  else
+    AddSmallSubscription(Subscriber, Events);
 end;
 
 procedure TBoldPersistenceHandle.ReleasePersistenceController;

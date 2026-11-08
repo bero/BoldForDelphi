@@ -73,6 +73,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldPersistenceNotifier` and `TBoldPersistenceProgressNotifier` received no
+  persistence events. Since the 2024 merge,
+  `TBoldPersistenceHandle.AddPersistenceSubscription` subscribed only the
+  handle itself to the controller, never the caller. It subscribes the caller
+  again, to all persistence events or only to those in its `Events` argument,
+  which it ignored before. So the notifiers report fetches and updates, and
+  the progress notifier moves its progress bar again (#117)
 - The FireDAC adapter lowercased the connection's `Database` parameter on every
   `Open`. For a file database such as SQLite that is a path, so on Linux and
   macOS Bold worked on a second file while the application used the first one.

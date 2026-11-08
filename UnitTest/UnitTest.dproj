@@ -168,6 +168,7 @@
         <DCCReference Include="Code\Common\Test.BoldDefaultTaggedValues.pas"/>
         <DCCReference Include="Code\RTModel\Test.BoldMemberTypeDictionary.pas"/>
         <DCCReference Include="Code\RTModel\Test.BoldGeneratedCodeDictionary.pas"/>
+        <DCCReference Include="Code\Persistence\Test.BoldPersistenceHandle.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldPersistenceHandleDB.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldDbParameter.pas"/>
         <DCCReference Include="Code\Persistence\Test.BoldUpdatePrecondition.pas"/>

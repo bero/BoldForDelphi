@@ -77,6 +77,7 @@ uses
   Test.BoldPMappersDefault,
   Test.BoldPMTransactionGuards,
   Test.BoldPersistenceController,
+  Test.BoldPersistenceHandle,
   Test.BoldPersistenceHandleDB,
   Test.BoldPersistenceZeos,
   Test.BoldPlatform,
