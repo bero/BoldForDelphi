@@ -28,6 +28,7 @@ uses
   BoldAttributes,
   BoldOclError,
   BoldDefs,
+  BoldUtils,
   BoldTypeList,
   BoldSystemRT,
   BoldSystem,
@@ -2101,12 +2102,12 @@ end;
 
 procedure TBOS_StrToDateTime.Evaluate(const Params: TBoldOclSymbolParameters);
 begin
-  help.MakeNewDateTime(params.result, StrToDateTime(xString(Params.values[0])));
+  help.MakeNewDateTime(params.result, StrToDateTime(BoldNoBreakSpacesToSpaces(xString(Params.values[0]))));
 end;
 
 procedure TBOS_StrToTime.Evaluate(const Params: TBoldOclSymbolParameters);
 begin
-  help.MakeNewTime(params.result, StrToTime(xString(Params.values[0])));
+  help.MakeNewTime(params.result, StrToTime(BoldNoBreakSpacesToSpaces(xString(Params.values[0]))));
 end;
 
 procedure TBOS_StrToDate.Evaluate(const Params: TBoldOclSymbolParameters);

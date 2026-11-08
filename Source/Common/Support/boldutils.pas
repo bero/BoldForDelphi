@@ -51,6 +51,12 @@ function TimeStampComp(const Time1, Time2: TTimeStamp): Integer;
 function StrToDateFmt(const ADateString: string; const ADateFormat: string;
   const ATimeFormat: string; const ADateSeparatorChar: char = '/';
   const ADateTimeSeperatorChar: char = ' '): TDateTime;
+// Delphi's RTL on Linux takes the locale formats from ICU. Since CLDR 42 the
+// US time format has U+202F NARROW NO-BREAK SPACE before AM/PM, but StrToTime
+// and StrToDateTime accept only an ordinary space there, so they reject what
+// TimeToStr and DateTimeToStr wrote. Pass a date or time string through this
+// before parsing it: it changes U+202F, and U+00A0 NO-BREAK SPACE, to a space.
+function BoldNoBreakSpacesToSpaces(const S: string): string;
 function UserTimeInTicks: Int64;
 function TicksToDateTime(Ticks: Int64): TDateTime;  {$IFDEF BOLD_INLINE} inline; {$ENDIF}
 
@@ -365,6 +371,16 @@ begin
     FormatSettings.LongTimeFormat := sPreviousShortTimeFormat;
     {$ENDIF}
   end;
+end;
+
+function BoldNoBreakSpacesToSpaces(const S: string): string;
+var
+  I: Integer;
+begin
+  Result := S;
+  for I := 1 to Length(Result) do
+    if (Result[I] = #$202F) or (Result[I] = #$00A0) then
+      Result[I] := ' ';
 end;
 
 function BoldVariantToStrings(V: OleVariant; Strings: TStrings): Integer;

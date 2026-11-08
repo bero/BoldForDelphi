@@ -92,6 +92,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- On Delphi for Linux, a date and time that Bold wrote did not parse back with
+  the US English locale: setting `AsString` of a `TBADateTime` or `TBATime`,
+  and the OCL operations `strToDateTime` and `strToTime`, raised "is not a
+  valid time". Delphi's RTL there takes its formats from ICU, whose locale
+  data (CLDR 42 and later) puts U+202F NARROW NO-BREAK SPACE before AM/PM, and
+  its `StrToTime` accepts only an ordinary space. Bold now changes U+202F and
+  U+00A0 NO-BREAK SPACE to a space before it parses, through
+  `BoldNoBreakSpacesToSpaces` in `BoldUtils` (#117)
 - The FireDAC unit tests on SQLite use a temporary database file per run,
   deleted when the run ends, instead of the URI
   `file:memdb1?mode=memory&cache=shared`. FireDAC's SQLite on Windows does not

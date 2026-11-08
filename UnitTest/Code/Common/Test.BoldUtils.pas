@@ -21,6 +21,7 @@ type
     procedure TestGetUpperLimitForMultiplicityEmpty;
     procedure TestBoldAppendToStringsWithCRLF;
     procedure TestBoldAppendToStringsLineSplit;
+    procedure TestBoldNoBreakSpacesToSpaces;
   end;
 
 implementation
@@ -122,6 +123,14 @@ begin
   finally
     Strings.Free;
   end;
+end;
+
+procedure TTestBoldUtils.TestBoldNoBreakSpacesToSpaces;
+begin
+  Assert.AreEqual('2:30:00 PM', BoldNoBreakSpacesToSpaces('2:30:00' + #$202F + 'PM'), 'U+202F');
+  Assert.AreEqual('1/6/2026 2:30 PM', BoldNoBreakSpacesToSpaces('1/6/2026' + #$00A0 + '2:30' + #$00A0 + 'PM'), 'U+00A0');
+  Assert.AreEqual('1/6/2026 2:30 PM', BoldNoBreakSpacesToSpaces('1/6/2026 2:30 PM'), 'ordinary spaces stay');
+  Assert.AreEqual('', BoldNoBreakSpacesToSpaces(''), 'empty string');
 end;
 
 initialization

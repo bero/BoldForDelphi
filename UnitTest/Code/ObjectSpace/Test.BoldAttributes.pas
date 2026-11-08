@@ -88,6 +88,9 @@ type
     procedure TestNumericSetStringRepresentation;
     procedure TestDateTimeSetStringRepresentation;
     procedure TestDateTimeValidateString;
+    // Delphi on Linux writes US times as h:nn:ss<U+202F>PM (ICU's CLDR 42 data)
+    // but parses only an ordinary space there (#117)
+    procedure TestMomentParsesNoBreakSpaces;
     procedure TestCreateWithValueConstructors;
     procedure TestIsNullOrEmptyAndIsNullOrZero;
     procedure TestIntegerValidateCharacter;
@@ -1237,6 +1240,39 @@ begin
     Assert.IsFalse(TimeAttr.IsNull, 'TBATime should not be null after setting <NOW>');
   finally
     TimeAttr.Free;
+  end;
+end;
+
+procedure TTestBoldAttributes.TestMomentParsesNoBreakSpaces;
+const
+  cNarrowNoBreakSpace = #$202F;
+  cNoBreakSpace = #$00A0;
+var
+  SavedFormat: TFormatSettings;
+  DateTimeAttr: TBADateTime;
+  TimeAttr: TBATime;
+  Expected: TDateTime;
+begin
+  Expected := EncodeDate(2026, 1, 6) + EncodeTime(14, 30, 0, 0);
+  DateTimeAttr := nil;
+  TimeAttr := nil;
+  SavedFormat := BoldTestUseUSTwelveHourFormat;
+  try
+    DateTimeAttr := TBADateTime.Create;
+    Assert.IsTrue(DateTimeAttr.ValidateString('1/6/2026 2:30:00' + cNarrowNoBreakSpace + 'PM', brDefault),
+      'TBADateTime should accept U+202F before PM');
+    DateTimeAttr.AsString := '1/6/2026 2:30:00' + cNarrowNoBreakSpace + 'PM';
+    Assert.AreEqual(Expected, DateTimeAttr.AsDateTime, 'TBADateTime with U+202F before PM');
+    DateTimeAttr.AsString := '1/6/2026' + cNoBreakSpace + '2:30:00 PM';
+    Assert.AreEqual(Expected, DateTimeAttr.AsDateTime, 'TBADateTime with U+00A0 between date and time');
+
+    TimeAttr := TBATime.Create;
+    TimeAttr.AsString := '2:30:00' + cNarrowNoBreakSpace + 'PM';
+    Assert.AreEqual(EncodeTime(14, 30, 0, 0), TimeAttr.AsDateTime, 'TBATime with U+202F before PM');
+  finally
+    TimeAttr.Free;
+    DateTimeAttr.Free;
+    FormatSettings := SavedFormat;
   end;
 end;
 

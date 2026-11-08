@@ -38,6 +38,7 @@ uses
   testdecorator,
   testregistry
   {$ELSE}
+  SysUtils,
   DUnitX.TestFramework
   {$ENDIF};
 
@@ -173,6 +174,10 @@ function BoldTestAllocatedBlocks: Int64;
 // System, while Delphi has them only in Winapi.Windows.
 function BoldTestAtomicIncrement(var Target: Integer): Integer;
 function BoldTestAtomicDecrement(var Target: Integer): Integer;
+// Sets the global FormatSettings to US dates and 12-hour times (m/d/yyyy,
+// h:nn:ss AMPM), whatever the platform and locale. Returns the settings it
+// replaced; give them back to FormatSettings in a finally.
+function BoldTestUseUSTwelveHourFormat: TFormatSettings;
 
 implementation
 
@@ -522,7 +527,6 @@ end;
 {$ELSE}
 
 uses
-  SysUtils,
   Classes,
   IOUtils{$IFDEF BOLD_FASTMM4},
   // check_memory.ps1 replaces the memory manager with FastMM4. Last in this
@@ -818,6 +822,18 @@ begin
   {$ELSE}
   Result := AtomicDecrement(Target);
   {$ENDIF}
+end;
+
+function BoldTestUseUSTwelveHourFormat: TFormatSettings;
+begin
+  Result := FormatSettings;
+  FormatSettings.DateSeparator := '/';
+  FormatSettings.ShortDateFormat := 'm/d/yyyy';
+  FormatSettings.TimeSeparator := ':';
+  FormatSettings.ShortTimeFormat := 'h:nn AMPM';
+  FormatSettings.LongTimeFormat := 'h:nn:ss AMPM';
+  FormatSettings.TimeAMString := 'AM';
+  FormatSettings.TimePMString := 'PM';
 end;
 
 {$IF defined(LINUX) and not defined(FPC)}

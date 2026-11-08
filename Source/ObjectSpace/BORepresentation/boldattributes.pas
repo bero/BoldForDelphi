@@ -3455,7 +3455,7 @@ begin
     else if UpperCase(Value) = DEFAULTNOW then
       SetDataValue(Now)
     else
-      SetDataValue(StrToDateTimeValue(Value))
+      SetDataValue(StrToDateTimeValue(BoldNoBreakSpacesToSpaces(Value)))
   else
     inherited SetStringRepresentation(Representation, Value);
 end;
@@ -3720,7 +3720,7 @@ begin
       Result := True
     else
     begin
-      StrToDateTimeValue(Value);
+      StrToDateTimeValue(BoldNoBreakSpacesToSpaces(Value));
       Result := True;
     end;
   except

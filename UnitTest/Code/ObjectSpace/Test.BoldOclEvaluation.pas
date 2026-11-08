@@ -210,6 +210,10 @@ type
     procedure TestStrToDateTime;
     procedure TestStrToDate;
     procedure TestStrToTime;
+    // Delphi on Linux writes US times as h:nn:ss<U+202F>PM (ICU's CLDR 42 data)
+    // but parses only an ordinary space there (#117)
+    procedure TestStrToTimeNarrowNoBreakSpace;
+    procedure TestStrToDateTimeNoBreakSpaces;
 
     // --- Format (Delphi format string) ---
     procedure TestFormat;
@@ -1679,6 +1683,41 @@ begin
   Obj.aString := TimeToStr(EncodeTime(14, 30, 0, 0));
   TimeStr := Obj.EvaluateExpressionAsString('self.aString.strToTime.asString');
   Assert.IsTrue(Length(TimeStr) > 0, 'strToTime should return a value');
+end;
+
+procedure TTestBoldOclEvaluation.TestStrToTimeNarrowNoBreakSpace;
+var
+  Obj: TClassA;
+  SavedFormat: TFormatSettings;
+begin
+  SavedFormat := BoldTestUseUSTwelveHourFormat;
+  try
+    Obj := TClassA.Create(GetSystem);
+    Obj.aString := '2:30:00' + #$202F + 'PM';
+    Assert.AreEqual('2:30:00 PM', Obj.EvaluateExpressionAsString('self.aString.strToTime.asString'),
+      'strToTime with U+202F before PM');
+  finally
+    FormatSettings := SavedFormat;
+  end;
+end;
+
+procedure TTestBoldOclEvaluation.TestStrToDateTimeNoBreakSpaces;
+var
+  Obj: TClassA;
+  SavedFormat: TFormatSettings;
+begin
+  SavedFormat := BoldTestUseUSTwelveHourFormat;
+  try
+    Obj := TClassA.Create(GetSystem);
+    Obj.aString := '6/15/2026 10:30:00' + #$202F + 'AM';
+    Assert.AreEqual('6/15/2026 10:30:00 AM', Obj.EvaluateExpressionAsString('self.aString.strToDateTime.asString'),
+      'strToDateTime with U+202F before AM');
+    Obj.aString := '6/15/2026' + #$00A0 + '10:30:00 AM';
+    Assert.AreEqual('6/15/2026 10:30:00 AM', Obj.EvaluateExpressionAsString('self.aString.strToDateTime.asString'),
+      'strToDateTime with U+00A0 between date and time');
+  finally
+    FormatSettings := SavedFormat;
+  end;
 end;
 
 // === Format ===
