@@ -94,7 +94,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   read URIs, so that was a file named `file` next to `UnitTest.exe` (an NTFS
   stream) that kept its tables from one run to the next. The system SQLite on
   Linux does read them, and its in-memory database was gone whenever Bold
-  closed its connection. The UniDAC tests keep the URI for now (#120, #117)
+  closed its connection. The UniDAC tests keep the URI, which UniDAC's SQLite
+  reads as an in-memory database. Two empty `file` blobs that a test run had
+  left in the repository are removed (#120, #117)
 - `TBoldDirectoryTraverser` missed files without an extension on Linux and macOS:
   its default `Mask` was `*.*`, which there matches only names with a dot. The
   default is now `*`, which matches every name on every platform, as `*.*` does

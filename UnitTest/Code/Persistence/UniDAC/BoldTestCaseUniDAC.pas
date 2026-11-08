@@ -185,8 +185,9 @@ begin
       AConnection.ProviderName := 'SQLite';
       AConnection.Database := Ini.ReadString('SQLite', 'Database', '');
       // An empty value makes the FireDAC tests use a temporary file (#120). The
-      // UniDAC tests keep the URI, and get a new database per test through
-      // FMemoryDbAnchor if UniDAC reads it; whether it does is not verified.
+      // UniDAC tests keep the URI: UniDAC's SQLite reads it (verified with
+      // UniDAC 11 in Direct mode), so the database is in memory, and each test
+      // gets a new one when TearDown frees FMemoryDbAnchor.
       if AConnection.Database = '' then
         AConnection.Database := 'file:memdb1?mode=memory&cache=shared';
       AConnection.SpecificOptions.Values['Direct'] := 'True';
