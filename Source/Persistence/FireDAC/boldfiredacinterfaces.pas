@@ -1044,7 +1044,6 @@ end;
 procedure TBoldFireDACConnection.Open;
 begin
   try
-    FDConnection.Params.Database := LowerCase(FDConnection.Params.Database);
     FDConnection.Open;
   except
     on E: Exception do begin

@@ -68,6 +68,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- The FireDAC adapter lowercased the connection's `Database` parameter on every
+  `Open`. For a file database such as SQLite that is a path, so on Linux and
+  macOS Bold worked on a second file while the application used the first one.
+  `Open` now leaves the name as it is, like the UniDAC and Zeos adapters (#117)
 - `TBoldDirectoryTraverser` never closed its directory and file searches,
   leaking a find handle on Windows and heap memory elsewhere for each search.
   It also did not compile for Delphi off Windows, because of a drive-letter

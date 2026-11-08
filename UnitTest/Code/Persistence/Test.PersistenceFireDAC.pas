@@ -180,12 +180,16 @@ type
     [Test]
     [Category('DB')]
     procedure TestReleaseAnotherDatabaseConnectionFreesWrapper;
+    [Test]
+    [Category('DB')]
+    procedure TestOpenKeepsDatabaseNameCase;
   end;
 
 implementation
 
 uses
   System.SysUtils,
+  System.IOUtils,
   Classes,
   DB,
   BoldSystem,
@@ -2445,6 +2449,49 @@ begin
   Assert.AreEqual(Before, After,
     'Releasing the extra connection must free the wrapper and its connection component ' +
     '(allocated blocks grew by ' + IntToStr(After - Before) + ')');
+end;
+
+procedure TTestPersistenceFireDAC.TestOpenKeepsDatabaseNameCase;
+var
+  Folder, FileName: string;
+  Connection: TFDConnection;
+  Adapter: TBoldDatabaseAdapterFireDAC;
+  DbInterface: IBoldDatabase;
+  Found: TArray<string>;
+begin
+  // The Database parameter of a file database is a path. Lowercasing it on
+  // Open made Bold work on a second file on case-sensitive file systems
+  // (Linux, macOS) while the application, opening the connection itself,
+  // used the first one. On Windows the name of the created file shows it.
+  // Always SQLite, whatever engine the suite is configured for.
+  Folder := TPath.Combine(TPath.GetTempPath, 'BoldOpenCase' + TPath.GetGUIDFileName);
+  TDirectory.CreateDirectory(Folder);
+  FileName := TPath.Combine(Folder, 'MixedCase.db');
+  Connection := TFDConnection.Create(nil);
+  Adapter := TBoldDatabaseAdapterFireDAC.Create(nil);
+  try
+    Connection.DriverName := 'SQLite';
+    Connection.LoginPrompt := False;
+    Connection.Params.Database := FileName;
+    Adapter.Connection := Connection;
+    DbInterface := Adapter.DatabaseInterface;
+    DbInterface.Open;
+    try
+      Assert.AreEqual(FileName, Connection.Params.Database,
+        'Open must not change the Database parameter');
+      Found := TDirectory.GetFiles(Folder, '*.db');
+      Assert.AreEqual(1, Integer(Length(Found)), 'Open must create exactly one database file');
+      Assert.AreEqual('MixedCase.db', ExtractFileName(Found[0]),
+        'The database file must keep the case of the Database parameter');
+    finally
+      DbInterface.Close;
+    end;
+  finally
+    DbInterface := nil;
+    Adapter.Free;
+    Connection.Free;
+    TDirectory.Delete(Folder, True);
+  end;
 end;
 
 initialization
