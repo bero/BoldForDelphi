@@ -88,6 +88,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldExternalObjectSpaceEventHandler` reported an access violation for an
+  event about a class that the local model does not have, for example from a
+  client with a newer model. It now raises `EOSS` "Cannot find the class ... in
+  the system" for that event, as its own handlers already did (#117)
 - `TBoldExternalObjectSpaceEventHandler` raised an access violation instead of
   the real error when an event in a message failed and `OnFailedMessage` was not
   assigned. Without the event, the error reaches the caller again, as it did

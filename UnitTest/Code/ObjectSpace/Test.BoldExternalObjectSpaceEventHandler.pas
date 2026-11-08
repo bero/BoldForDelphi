@@ -55,6 +55,7 @@ type
     procedure TestExpressionSubscriberIgnoresOtherMember;
     procedure TestFailedEventWithoutHandlerRaises;
     procedure TestFailedEventGoesToOnFailedMessage;
+    procedure TestUnknownClassGoesToOnFailedMessage;
   end;
 
 implementation
@@ -277,6 +278,19 @@ begin
   Assert.AreEqual('Failed:L:Lock1:OnLockLost failed for Lock1', fEvents,
     'OnFailedMessage gets the failing event and its error');
   Assert.AreEqual('Lock1,Lock2', fLostLocks, 'The event after the failing one is handled too');
+end;
+
+procedure TTestBoldExternalObjectSpaceEventHandler.TestUnknownClassGoesToOnFailedMessage;
+begin
+  ConnectActiveSystem;
+  fHandler.OnClassChanged := ClassChanged;
+  fHandler.AddSubscription(fSubscriber, boeClassChanged);
+  // Another client may know a class that this model does not have
+  Deliver(ClassChangedMessage('NoSuchClass') + ',' + ClassChangedMessage('ClassA'));
+  Assert.AreEqual('Failed:C:NoSuchClass:Cannot find the class NoSuchClass in the system.,ClassChanged:ClassA',
+    fEvents, 'An unknown class is reported as such, and the next event is still handled');
+  Assert.AreSame(fDataModule.BoldSystemHandle1.System.ClassByExpressionName['ClassA'], fChangedClass,
+    'OnClassChanged gets the class list of ClassA');
 end;
 
 initialization

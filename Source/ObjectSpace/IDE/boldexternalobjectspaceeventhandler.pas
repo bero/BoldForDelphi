@@ -196,6 +196,7 @@ var
   vClassName, vMemberName, vLockName: String;
   vSubsType: TBoldObjectSpaceSubscriptionType;
   vObjectID, vExactId: TBoldDefaultID;
+  vClassTypeInfo: TBoldClassTypeInfo;
   vEvent: string;
   vEvents: TStringList;
   i: integer;
@@ -222,7 +223,13 @@ begin
                                                                         vObjectID);
           try
             if (vClassName <> '') then
-              vExactId := vObjectID.CloneWithClassId(BoldSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName[vClassName].TopSortedIndex, true) as TBoldDefaultID
+            begin
+              // Another client may send a class that this model does not have
+              vClassTypeInfo := BoldSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName[vClassName];
+              if not Assigned(vClassTypeInfo) then
+                raise EOSS.CreateFmt(sClassNotInSystem, [vClassName]);
+              vExactId := vObjectID.CloneWithClassId(vClassTypeInfo.TopSortedIndex, true) as TBoldDefaultID;
+            end
             else
               vExactId := vObjectID.Clone as TBoldDefaultId;
             case vSubsType of
