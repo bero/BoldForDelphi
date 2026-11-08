@@ -88,6 +88,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDirectoryTraverser` missed files without an extension on Linux and macOS:
+  its default `Mask` was `*.*`, which there matches only names with a dot. The
+  default is now `*`, which matches every name on every platform, as `*.*` does
+  on Windows (#117)
 - `TBoldExternalObjectSpaceEventHandler` reported an access violation for an
   event about a class that the local model does not have, for example from a
   client with a newer model. It now raises `EOSS` "Cannot find the class ... in

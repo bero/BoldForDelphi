@@ -29,6 +29,7 @@ type
     procedure TestMissingPathRaises;
     procedure TestPreOrderVisitsFilesBeforeSubdirectories;
     procedure TestPostOrderVisitsSubdirectoriesFirst;
+    procedure TestDefaultMaskFindsFileWithoutExtension;
     procedure TestTraversalDoesNotLeak;
     {$IF defined(MSWINDOWS) and not defined(FPC)}
     procedure TestTraversalReleasesFindHandles;
@@ -128,6 +129,15 @@ procedure TTestBoldDirectoryTraverser.TestPostOrderVisitsSubdirectoriesFirst;
 begin
   Traverse(True);
   Assert.AreEqual('inner.txt,top.txt', fVisited.CommaText);
+end;
+
+// On Linux and macOS the mask *.* matches only names with a dot; on Windows it
+// matches every name. The default mask must find every file on every platform.
+procedure TTestBoldDirectoryTraverser.TestDefaultMaskFindsFileWithoutExtension;
+begin
+  WriteFile(fRoot + 'README');
+  Traverse(False);
+  Assert.IsTrue(fVisited.IndexOf('README') >= 0, 'the default mask finds a file without an extension: ' + string(fVisited.CommaText));
 end;
 
 // Each directory and file search must be closed. Under Free Pascal an open

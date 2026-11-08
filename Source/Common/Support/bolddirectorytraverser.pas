@@ -46,7 +46,8 @@ uses
 constructor TBoldDirectoryTraverser.Create(AOwner: TComponent);
 begin
   inherited;
-  fMask := '*.*';
+  // '*' matches every name on every platform; '*.*' needs a dot on POSIX
+  fMask := '*';
 end;
 
 procedure TBoldDirectoryTraverser.ExecuteRecursive(Path: String);
