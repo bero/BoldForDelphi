@@ -59,7 +59,8 @@ end;
 
 function ModelFileName: string;
 begin
-  Result := TPath.GetFullPath(TPath.Combine(ExtractFilePath(ParamStr(0)), '..\Model\Invoicing.bld'));
+  Result := TPath.GetFullPath(TPath.Combine(ExtractFilePath(ParamStr(0)),
+    '..' + PathDelim + 'Model' + PathDelim + 'Invoicing.bld'));
 end;
 
 { TTestInvoicingScenario }

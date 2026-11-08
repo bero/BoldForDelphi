@@ -71,7 +71,7 @@ function GetIniFilePath: string;
 begin
   Result := ExtractFilePath(ParamStr(0)) + 'UnitTest.ini';
   if not FileExists(Result) then
-    Result := ExtractFilePath(ParamStr(0)) + '..\UnitTest.ini';
+    Result := ExtractFilePath(ParamStr(0)) + '..' + PathDelim + 'UnitTest.ini';
   if not FileExists(Result) then
     raise Exception.Create('UnitTest.ini not found. Expected at: ' + Result);
 end;

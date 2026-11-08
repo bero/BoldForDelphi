@@ -64,7 +64,7 @@ begin
   APath := ExtractFilePath(ParamStr(0)) + 'UnitTest.ini';
   if FileExists(APath) then
     Exit(True);
-  APath := ExtractFilePath(ParamStr(0)) + '..\UnitTest.ini';
+  APath := ExtractFilePath(ParamStr(0)) + '..' + PathDelim + 'UnitTest.ini';
   Result := FileExists(APath);
 end;
 

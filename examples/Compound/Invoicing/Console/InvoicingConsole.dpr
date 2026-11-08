@@ -9,7 +9,8 @@ program InvoicingConsole;
   execute exactly the same checks; this program only opens the system, prints
   one line per check and returns the number of failures as its exit code.
 
-  Usage: InvoicingConsole [path\to\Invoicing.bld]
+  Usage: InvoicingConsole [Invoicing.bld with its path]
+  Without it, it reads Model/Invoicing.bld in the folder above the exe's.
   The database InvoicingConsole.db is recreated next to the exe on every run. }
 
 {$APPTYPE CONSOLE}
@@ -43,7 +44,8 @@ begin
   if ParamCount >= 1 then
     Result := ParamStr(1)
   else
-    Result := TPath.GetFullPath(TPath.Combine(ExtractFilePath(ParamStr(0)), '..\Model\Invoicing.bld'));
+    Result := TPath.GetFullPath(TPath.Combine(ExtractFilePath(ParamStr(0)),
+      '..' + PathDelim + 'Model' + PathDelim + 'Invoicing.bld'));
 end;
 
 function DatabaseFileName: string;
