@@ -89,11 +89,27 @@ Write-Host "  Config:  $Config" -ForegroundColor Gray
 Write-Host "  Platform: $Platform" -ForegroundColor Gray
 Write-Host ""
 
-# Call the universal build script
-if ($DelphiVersion) {
-    & $BuildScript -ProjectFile $ProjectPath -Config $Config -Platform $Platform -DelphiVersion $DelphiVersion
-} else {
-    & $BuildScript -ProjectFile $ProjectPath -Config $Config -Platform $Platform
+# A build for a platform other than Windows regenerates the project's .res
+# without the Windows icon and version information, which the dproj has for
+# Win32 and Win64 only. The .res is tracked, so the Windows one is put back.
+$ResPath = [IO.Path]::ChangeExtension($ProjectPath, ".res")
+$SavedRes = $null
+if ($Platform -notlike "Win*" -and (Test-Path $ResPath)) {
+    $SavedRes = [IO.File]::ReadAllBytes($ResPath)
 }
 
-exit $LASTEXITCODE
+try {
+    # Call the universal build script
+    if ($DelphiVersion) {
+        & $BuildScript -ProjectFile $ProjectPath -Config $Config -Platform $Platform -DelphiVersion $DelphiVersion
+    } else {
+        & $BuildScript -ProjectFile $ProjectPath -Config $Config -Platform $Platform
+    }
+    $BuildExitCode = $LASTEXITCODE
+} finally {
+    if ($null -ne $SavedRes) {
+        [IO.File]::WriteAllBytes($ResPath, $SavedRes)
+    }
+}
+
+exit $BuildExitCode

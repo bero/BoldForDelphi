@@ -120,6 +120,10 @@ to build:
 .\build.ps1 -Platform Linux64   # writes the ELF UnitTest (no extension) next to the script
 ```
 
+A Linux64 build regenerates the tracked `UnitTest.res` without the Windows icon
+and version information. `build.ps1` puts the Windows one back afterwards; after
+a Linux64 build in the IDE, revert `UnitTest.res` before committing.
+
 Copy `UnitTest` and `UnitTest.ini` to a folder on the Linux machine and run it
 there:
 
