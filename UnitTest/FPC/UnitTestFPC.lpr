@@ -44,6 +44,7 @@ uses
   Test.BoldEnvironment,
   Test.BoldEventQueue,
   Test.BoldExternalizedReferences,
+  Test.BoldExternalObjectSpaceEventHandler,
   Test.BoldFilteredHandle,
   Test.BoldFreeStandingValueFactories,
   Test.BoldFreeStandingValues,

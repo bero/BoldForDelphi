@@ -56,6 +56,7 @@ uses
   Test.BoldSystem in 'Code\ObjectSpace\Test.BoldSystem.pas',
   Test.BoldSystemPersistent in 'Code\ObjectSpace\Test.BoldSystemPersistent.pas',
   Test.BoldLinks in 'Code\ObjectSpace\Test.BoldLinks.pas',
+  Test.BoldExternalObjectSpaceEventHandler in 'Code\ObjectSpace\Test.BoldExternalObjectSpaceEventHandler.pas',
   Test.BoldFreeStandingValueFactories in 'Code\FreestandingValueSpace\Test.BoldFreeStandingValueFactories.pas',
   Test.BoldFreeStandingValues in 'Code\FreestandingValueSpace\Test.BoldFreeStandingValues.pas',
   Test.BoldDefaultTaggedValues in 'Code\Common\Test.BoldDefaultTaggedValues.pas',

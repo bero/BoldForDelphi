@@ -20,7 +20,9 @@ uses
   BoldSubscription,
   BoldAbstractDequeuer,
   BoldDefaultID,
-  BoldAbstractPropagatorHandle,
+  {$IFDEF MSWINDOWS}
+  BoldAbstractPropagatorHandle, // COM (BoldPropagatorInterfaces_TLB): Windows only
+  {$ENDIF}
   BoldElementList,
   BoldDomainElement,
   BoldId,
@@ -57,7 +59,9 @@ type
   TBoldExternalObjectSpaceEventHandler = class(TBoldStringDequeuer)
   private
     fBoldSystemHandle: TBoldSystemHandle;
+    {$IFDEF MSWINDOWS}
     fPropagatorHandle: TBoldAbstractPropagatorHandle;
+    {$ENDIF}
     fPTSubscriber: TBoldPassthroughSubscriber;
     fConflictingElements: TBoldElementList;
     {*** User events ***}
@@ -76,7 +80,9 @@ type
     fIdFetchArray: TIdListArray;
     fUseMemberLevelOSS: boolean;
     FOnFailedMessage: TBoldFailedOSSMessageEvent;
+    {$IFDEF MSWINDOWS}
     procedure SetPropagatorHandle(Value: TBoldAbstractPropagatorHandle);
+    {$ENDIF}
     procedure SetBoldSystemHandle(aSystemHandle: TBoldSystemHandle);
     procedure _Receive(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
     function GetObjectByID(ObjectID: TBoldDefaultID): TBoldObject;
@@ -115,7 +121,9 @@ type
     property OnLockLost: TBoldLockLostEvent read fOnLockLost write fOnLockLost;
     property OnConflict: TBoldConflictEvent read fOnConflict write fOnConflict;
     property OnDoDisconnect: TBoldDoDisconnectEvent read fDoDisconnect write fDoDisconnect;
+    {$IFDEF MSWINDOWS}
     property PropagatorHandle: TBoldAbstractPropagatorHandle read fPropagatorHandle write SetPropagatorHandle;
+    {$ENDIF}
     property KeepClassesCurrent: boolean read fKeepClassesCurrent write fKeepClassesCurrent default true;
     property UseMemberLevelOSS: boolean read fUseMemberLevelOSS write fUseMemberLevelOSS;
     property OnFailedMessage: TBoldFailedOSSMessageEvent read FOnFailedMessage write FOnFailedMessage;
@@ -129,7 +137,9 @@ uses
   BoldObjectSpaceExternalEvents,
   BoldValueSpaceInterfaces,
   BoldSystemRT,
+  {$IFDEF MSWINDOWS}
   Windows,
+  {$ENDIF}
   BoldElements,
   BoldMetaElementList,
   BoldIndex,
@@ -610,12 +620,15 @@ begin
   if (Operation = opRemove) then
   begin
     if (AComponent = fBoldSystemHandle) then
-      fBoldSystemHandle := nil
-    else if (AComponent = fPropagatorHandle) then
+      fBoldSystemHandle := nil;
+    {$IFDEF MSWINDOWS}
+    if (AComponent = fPropagatorHandle) then
       fPropagatorHandle := nil;
+    {$ENDIF}
   end;
 end;
 
+{$IFDEF MSWINDOWS}
 procedure TBoldExternalObjectSpaceEventHandler.SetPropagatorHandle(
   Value: TBoldAbstractPropagatorHandle);
 begin
@@ -626,6 +639,7 @@ begin
     Subscribe(True);
   end;
 end;
+{$ENDIF}
 
 procedure TBoldExternalObjectSpaceEventHandler.Subscribe(
   const DoSubscribe: Boolean);
@@ -634,8 +648,10 @@ begin
   begin
     if not (csDesigning in ComponentState) then
     begin
+      {$IFDEF MSWINDOWS}
       if Assigned(fPropagatorHandle) then
         fPropagatorHandle.AddSmallSubscription(fPTSubscriber, [beDestroying], beDestroying);
+      {$ENDIF}
       if Assigned(fBoldSystemHandle) then
         fBoldSystemHandle.AddSmallSubscription(fPTSubscriber, [beDestroying], beDestroying);
     end;

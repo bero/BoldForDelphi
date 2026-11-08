@@ -45,6 +45,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   **Action needed:** a unit that declares a `TBoldPersistenceProgressNotifier`
   adds `BoldPersistenceProgressNotifier` to its uses clause; the IDE does so
   when the form is saved. Forms load unchanged, the class name is the same.
+- `TBoldExternalObjectSpaceEventHandler` has its `PropagatorHandle` property
+  only on Windows, where the COM propagator exists. So `BoldExternalObjectSpaceEventHandler`
+  and `BoldExpressionSubscriber` (`TExpressionSubscriber` listens to the handler)
+  no longer pull in the propagator's COM type library, and they compile for every
+  platform and for Free Pascal (#117). The handler only kept that reference and
+  never used it, so nothing changes on Windows; the UDP broadcaster feeds the
+  handler without a propagator.
 - `BoldEnvironment` no longer links the VCL environment into every application.
   A GUI framework unit registers its environment with
   `BoldRegisterFrameworkEnvironment`. `BoldEnvironmentVCL` does so, and the
