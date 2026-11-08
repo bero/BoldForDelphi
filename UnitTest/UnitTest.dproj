@@ -248,6 +248,7 @@
         <DCCReference Include="Code\UMLModel\Test.BoldUMLModelValidator.pas"/>
         <DCCReference Include="Code\UMLModel\Test.BoldModel.pas"/>
         <DCCReference Include="Code\Handles\Test.BoldListHandle.pas"/>
+        <DCCReference Include="Code\Handles\Test.BoldDataSet.pas"/>
         <DCCReference Include="Code\Handles\Test.BoldSortedHandle.pas"/>
         <DCCReference Include="Code\Handles\Test.BoldFilteredHandle.pas"/>
         <DCCReference Include="Code\Handles\Test.BoldOclVariables.pas"/>

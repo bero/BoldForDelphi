@@ -14,6 +14,7 @@ interface
 
 uses
   Classes,
+  Generics.Collections,
   BoldDefs,
   DB,
   BoldEnvironmentVCL,
@@ -129,15 +130,16 @@ type
     FRecordSize: integer;
     fLastKnownType: TBoldElementTypeInfo;
     fInternalCursorReady: Boolean;
-    function GetIndexForBookmark(Bookmark: Pointer): integer;
-    procedure InsertElement(ABuffer: PChar); virtual;
+    function GetIndexForElement(AElement: TBoldElement): integer;
+    function GetIndexForBookmark(const Bookmark: TBookmark): integer;
+    procedure InsertElement(ABuffer: TRecordBuffer); virtual;
     procedure _ReceiveContext(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
-    procedure BoldToBuffer(ABuffer: PChar);
-    procedure _InsertRow(Follower: TBoldFollower);
+    procedure BoldToBuffer(ABuffer: TRecordBuffer);
+    procedure _InsertRow(index: Integer; OwningFollower: TBoldFollower);
     procedure _DeleteRow(index: Integer; owningFollower: TBoldFollower);
-    procedure BufferToBoldElement(AIndex: integer; ABuffer: PChar);
-    procedure BoldElementToBuffer(AIndex: integer; ABuffer: PChar);
-    function GetBookmarkInfo(Buffer: PChar): PBDSBookmarkInfo;
+    procedure BufferToBoldElement(AIndex: integer; ABuffer: TRecordBuffer);
+    procedure BoldElementToBuffer(AIndex: integer; ABuffer: TRecordBuffer);
+    function GetBookmarkInfo(Buffer: TRecordBuffer): PBDSBookmarkInfo;
     function GetActiveBoldElement: TBoldElement;
     function GetActiveBoldObject: TBoldObject;
     procedure SetAutoOpen(AValue: boolean);
@@ -154,28 +156,29 @@ type
     procedure TypeMayHaveChanged;
     procedure TypeHasChanged; virtual;
     procedure LayoutChanged;
-    procedure ClearCalcFields(Buffer: PChar); override;
+    procedure ClearCalcFields(Buffer: TRecBuf); overload; override;
     procedure DoOnNewRecord; override;
-    function GetActiveRecBuf(var RecBuf: PChar): Boolean;
+    function GetActiveRecBuf(var RecBuf: TRecordBuffer): Boolean;
     function GetListElementType: TBoldElementTypeInfo; virtual;
     procedure DeleteAllFields;
     { Mandatory overrides }
-    function AllocRecordBuffer: PChar; override;
-    procedure FreeRecordBuffer(var Buffer: PChar); override;
-    procedure InternalInitRecord(Buffer: PChar); override;
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
-    procedure SetRecNo(Value: Integer); override;    
+    function AllocRecordBuffer: TRecordBuffer; override;
+    procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
+    procedure InternalInitRecord(Buffer: TRecBuf); overload; override;
+    function GetRecord(Buffer: TRecBuf; GetMode: TGetMode; DoCheck: Boolean): TGetResult; overload; override;
+    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; overload; override;
+    procedure SetRecNo(Value: Integer); override;
     function GetRecordSize: Word; override;
-    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
-    procedure InternalGotoBookmark(Bookmark: Pointer); override;
-    procedure InternalSetToRecord(Buffer: PChar); override;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
+    procedure SetFieldData(Field: TField; Buffer: TValueBuffer); overload; override;
+    procedure GetBookmarkData(Buffer: TRecBuf; Data: TBookmark); overload; override;
+    function GetBookmarkFlag(Buffer: TRecBuf): TBookmarkFlag; overload; override;
+    procedure InternalGotoBookmark(Bookmark: TBookmark); overload; override;
+    procedure InternalSetToRecord(Buffer: TRecBuf); overload; override;
+    procedure SetBookmarkFlag(Buffer: TRecBuf; Value: TBookmarkFlag); overload; override;
+    procedure SetBookmarkData(Buffer: TRecBuf; Data: TBookmark); overload; override;
     procedure InternalFirst; override;
     procedure InternalLast; override;
-    procedure InternalAddRecord(Buffer: Pointer; Append: Boolean); override;
+    procedure InternalAddRecord(Buffer: TRecBuf; Append: Boolean); overload; override;
     procedure InternalDelete; override;
     procedure InternalPost; override;
     procedure InternalClose; override;
@@ -186,7 +189,7 @@ type
     function LocateRecord(const KeyFields: string;
       const KeyValues: Variant; Options: TLocateOptions;
       SyncCursor: Boolean): Boolean;
-    function ValuesInFields(AFields: TList; const KeyValues: Variant; Options: TLocateOptions): Boolean;
+    function ValuesInFields(AFields: TList<TField>; const KeyValues: Variant; Options: TLocateOptions): Boolean;
     { Optional overrides }
     function GetRecordCount: Integer; override;
     function GetRecNo: Integer; override;
@@ -205,7 +208,7 @@ type
     function BookmarkValid(Bookmark: TBookmark): Boolean; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure CreateDefaultFields;
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
+    function GetFieldData(Field: TField; var Buffer: TValueBuffer): Boolean; overload; override;
     function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean; override;
     function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
     procedure TryToOpen;
@@ -238,6 +241,7 @@ implementation
 
 uses
   SysUtils,
+  Math,
   BoldAttributes,
   DBConsts,
   Variants,
@@ -256,7 +260,8 @@ type
 const
   arConvInfo: array [0..14] of TBoldConvInfo =
     (
-    (FBoldType: TBAString; FFieldType: ftString; FBufferSize: 255; FUseSize: True; FUseDecimals: False),
+    // For ftWideString, FBufferSize is the field size in characters; see WideBufferSize
+    (FBoldType: TBAString; FFieldType: ftWideString; FBufferSize: 255; FUseSize: True; FUseDecimals: False),
     (FBoldType: TBANumeric; FFieldType: ftInteger; FBufferSize: sizeof(integer); FUseSize: False; FUseDecimals: True),
     (FBoldType: TBAInteger; FFieldType: ftInteger; FBufferSize: sizeof(integer); FUseSize: False; FUseDecimals: True),
     (FBoldType: TBASmallInt; FFieldType: ftSmallint; FBufferSize: sizeof(smallint); FUseSize: False; FUseDecimals: True),
@@ -272,6 +277,73 @@ const
     (FBoldType: TBAValueSet; FFieldType: ftInteger; FBufferSize: sizeof(integer); FUseSize: false; FUseDecimals: False),
     (FBoldType: TBABoolean; FFieldType: ftBoolean; FBufferSize: sizeof(wordbool); FUseSize: false; FUseDecimals: False)
    );
+
+{ The record buffer of a TWideStringField holds the characters and a #0. }
+function WideBufferSize(Chars: integer): integer;
+begin
+  Result := (Chars + 1) * SizeOf(Char);
+end;
+
+{ At most MaxChars characters from a buffer that may lack its #0. }
+function BufferToString(P: PChar; MaxChars: integer): string;
+var
+  Len: integer;
+begin
+  Len := 0;
+  while (Len < MaxChars) and (P[Len] <> #0) do
+    Inc(Len);
+  SetString(Result, P, Len);
+end;
+
+{ The text and a #0 into a buffer of MaxChars characters plus the #0. }
+procedure StringToBuffer(const S: string; P: PChar; MaxChars: integer);
+var
+  Len: integer;
+begin
+  Len := Min(Length(S), MaxChars);
+  if Len > 0 then
+    Move(PChar(S)^, P^, Len * SizeOf(Char));
+  P[Len] := #0;
+end;
+
+type
+  { What CreateBlobStream returns for writing: a copy of the blob that goes back
+    to the attribute when the caller frees the stream, as TBlobField does. }
+  TBoldDataSetBlobStream = class(TMemoryStream)
+  private
+    fBlob: TBABlob;
+    fWriteBack: Boolean;
+  public
+    constructor Create(ABlob: TBABlob; AMode: TBlobStreamMode);
+    destructor Destroy; override;
+  end;
+
+constructor TBoldDataSetBlobStream.Create(ABlob: TBABlob; AMode: TBlobStreamMode);
+begin
+  inherited Create;
+  fBlob := ABlob;
+  if (AMode <> bmWrite) and not ABlob.IsNull then
+  begin
+    ABlob.AsStream.SaveToStream(Self);
+    Position := 0;
+  end;
+  // Only a complete copy may go back: the destructor also runs when this raises
+  fWriteBack := True;
+end;
+
+destructor TBoldDataSetBlobStream.Destroy;
+begin
+  try
+    if fWriteBack and not fBlob.AsStream.IsDataSame(Memory, Size) then
+    begin
+      // LoadFromStream reads Size bytes from the current position
+      Position := 0;
+      fBlob.AsStream.LoadFromStream(Self);
+    end;
+  finally
+    inherited;
+  end;
+end;
 
 
 {****************************************************************************
@@ -300,12 +372,13 @@ procedure TBoldDataSetFieldDescription.DefineFieldType(aClass: TClass);
 var
   i: integer;
 begin
-  FFieldType := ftString;
+  FFieldType := ftWideString;
   FFieldSize := 255;
-  FBufferSize := 255;
+  FBufferSize := WideBufferSize(FFieldSize);
+  FUseFieldSize := True;
   FRequired := False;
 
-  for i := high(arConvInfo) downto Low(arConvInfo) do    
+  for i := high(arConvInfo) downto Low(arConvInfo) do
   begin
     with arConvInfo[i] do
     begin
@@ -318,6 +391,8 @@ begin
           self.FFieldSize := arConvInfo[i].FBufferSize
         else
           self.FFieldSize := 0;
+        if self.FFieldType = ftWideString then
+          self.FBufferSize := WideBufferSize(self.FFieldSize);
         self.FRequired := False;
         break;
       end;
@@ -328,7 +403,7 @@ end;
 procedure TBoldDataSetFieldDescription.AfterMakeUptoDate(Follower: TBoldFollower);
 var
   LField: TField;
-  ActiveBuf: PChar;
+  ActiveBuf: TRecordBuffer;
 
   function FindFieldNo(ANo: integer): TField;
   var
@@ -366,7 +441,7 @@ begin
         begin
           LField := FindFieldNo(Follower.Index + 1);
           if Assigned(LField) then
-            DataEvent(deFieldChange, LongInt(LField));
+            DataEvent(deFieldChange, NativeInt(LField));
         end;
         SetModified(True);
       end
@@ -384,7 +459,7 @@ begin
   begin
     result := BoldProperties.Expression;
     for i := 1 to length(Result) do
-      if Result[i] in ['.', '(', '-', '>', ')'] then
+      if CharInSet(Result[i], ['.', '(', '-', '>', ')']) then
         result[i] := '_'
   end;
 end;
@@ -416,22 +491,26 @@ begin
          (TBoldAttributeRTInfo(FRTInfo).Length > 0) and
          FUseFieldSize then
       begin
-        FBufferSize := TBoldAttributeRTInfo(FRTInfo).Length + 1;
-        FFieldSize := FBufferSize - 1;
+        FFieldSize := TBoldAttributeRTInfo(FRTInfo).Length;
+        if FFieldType = ftWideString then
+          FBufferSize := WideBufferSize(FFieldSize)
+        else
+          FBufferSize := FFieldSize + 1;
       end;
     end
     else if LFieldType is TBoldClassTypeInfo then
     begin
-      FFieldType := ftInteger;
+      // The field holds the object's locator: a pointer, so 64 bits wide
+      FFieldType := ftLargeint;
       FFieldSize := 0;
-      FBufferSize := sizeof(integer);
+      FBufferSize := SizeOf(Int64);
       FRequired := False;
     end
     else
     begin
-      FFieldType := ftString;
+      FFieldType := ftWideString;
       FFieldSize := 40;
-      FBufferSize := 40;
+      FBufferSize := WideBufferSize(FFieldSize);
       FRequired := False;
     end;
     fInvalid := false;
@@ -649,7 +728,7 @@ end;
 
 procedure TBoldAbstractDataSet.DoOnNewRecord;
 begin
-  InsertElement(ActiveBuffer);
+  InsertElement(TRecordBuffer(ActiveBuffer));
   inherited DoOnNewRecord;
 end;
 
@@ -662,7 +741,7 @@ begin
     result := BoldHandle.List.AddNew;
 end;
 
-procedure TBoldAbstractDataSet.InsertElement(ABuffer: PChar);
+procedure TBoldAbstractDataSet.InsertElement(ABuffer: TRecordBuffer);
 var
   LElement: TBoldElement;
 begin
@@ -731,22 +810,36 @@ var
   BoldDataSetFieldDescription: TBoldDataSetFieldDescription;
   BlobValue: TBABlob;
   IndirectElement: TBoldIndirectElement;
+  LElement: TBoldElement;
 begin
-  if IsEmpty then
+  LElement := ActiveBoldElement;
+  if not Assigned(LElement) then
     Result := TMemoryStream.Create
   else
   begin
     IndirectElement := TBoldIndirectElement.Create;
     try
       BoldDataSetFieldDescription := FieldDescriptions[Field.FieldNo - 1];
-      //List[RecNo - 1].EvaluateExpression(BoldDataSetFieldDescription.Expression, IndirectElement);
-      List[RecNo - 1].EvaluateExpression(BoldDataSetFieldDescription.Expression,
+      LElement.EvaluateExpression(BoldDataSetFieldDescription.Expression,
         IndirectElement, false, BoldDataSetFieldDescription.fBoldProperties.VariableList);
       BlobValue := (IndirectElement.Value as TBABlob);
-      if not assigned(BlobValue) or BlobValue.IsNull then
-        result := TMemoryStream.Create
+      if Mode = bmRead then
+      begin
+        // A copy: the caller frees what it gets, and the blob keeps its own stream
+        Result := TMemoryStream.Create;
+        if Assigned(BlobValue) and not BlobValue.IsNull then
+        begin
+          BlobValue.AsStream.SaveToStream(Result);
+          Result.Position := 0;
+        end;
+      end
       else
-        result := BlobValue.CreateBlobStream(TBoldBlobStreamMode(Mode));
+      begin
+        // A value that IndirectElement owns is gone after the finally below
+        if not Assigned(BlobValue) or IndirectElement.OwnsValue then
+          DatabaseErrorFmt(SFieldReadOnly, [Field.DisplayName]);
+        Result := TBoldDataSetBlobStream.Create(BlobValue, Mode);
+      end;
     finally
       IndirectElement.Free;
     end;
@@ -801,7 +894,7 @@ begin
   inherited ;
 end;
 
-function TBoldAbstractDataSet.ValuesInFields(AFields: TList; const KeyValues: Variant; Options: TLocateOptions): Boolean;
+function TBoldAbstractDataSet.ValuesInFields(AFields: TList<TField>; const KeyValues: Variant; Options: TLocateOptions): Boolean;
 var
   i: Integer;
 
@@ -821,23 +914,21 @@ var
     else
     begin
       if loCaseInsensitive  in Options then
-        Result := AnsiStrIComp(PChar(AField.AsString),
-                               PChar(VarToStr(AValue))) = 0
+        Result := AnsiCompareText(AField.AsString, VarToStr(AValue)) = 0
       else
-        Result := AnsiStrComp(PChar(AField.AsString),
-                              PChar(VarToStr(AValue))) = 0
+        Result := AnsiCompareStr(AField.AsString, VarToStr(AValue)) = 0
     end;
   end;
 
 begin
   if AFields.count = 1 then
-    result := CompareField(TField(AFields[0]), KeyValues)
+    result := CompareField(AFields[0], KeyValues)
   else
   begin
     Result := True;
     for i := 0 to AFields.count - 1 do
     begin
-      Result := Result and CompareField(TField(AFields[i]), KeyValues[i]);
+      Result := Result and CompareField(AFields[i], KeyValues[i]);
       if not Result then
         Exit;
     end;
@@ -847,7 +938,7 @@ function TBoldAbstractDataSet.LocateRecord(const KeyFields: string;
   const KeyValues: Variant; Options: TLocateOptions;
   SyncCursor: Boolean): Boolean;
 var
-  LFields: TList;
+  LFields: TList<TField>;
   Locator: TBoldObjectLocator;
   LocatorPtr: pointer;
   LElement: TBoldElement;
@@ -863,18 +954,19 @@ begin
   try
     if UpperCase(KeyFields) = 'SELF' then
     begin
-      LocatorPtr := Pointer(Integer(KeyValues));
+      // The key is the locator's address, as the object-reference fields hold it
+      LocatorPtr := Pointer(NativeInt(Int64(KeyValues)));
       if Assigned(LocatorPtr) then
       begin
         try
           Locator := TObject(LocatorPtr) as TBoldObjectLocator;
           LElement := Locator.BoldObject;
-          with GetBookmarkInfo(TempBuffer)^ do
+          with GetBookmarkInfo(TRecordBuffer(TempBuffer))^ do
           begin
             Element := LElement;
             Flag := bfCurrent;
           end;
-          BoldToBuffer(TempBuffer);
+          BoldToBuffer(TRecordBuffer(TempBuffer));
           FRecordPos := List.IndexOf(LElement);
           Result := FRecordPos <> -1;
         except
@@ -883,18 +975,18 @@ begin
     end
     else
     begin
-      LFields := TList.Create;
+      LFields := TList<TField>.Create;
       try
         GetFieldList(LFields, KeyFields);
         for i := 0 to List.Count - 1 do
         begin
-          with GetBookmarkInfo(TempBuffer)^ do
+          with GetBookmarkInfo(TRecordBuffer(TempBuffer))^ do
           begin
             Element := List[i];
             Flag := bfCurrent;
           end;
 
-          BoldToBuffer(TempBuffer);
+          BoldToBuffer(TRecordBuffer(TempBuffer));
           if ValuesInFields(LFields, KeyValues, Options) then
           begin
             FRecordPos := i;
@@ -928,14 +1020,14 @@ begin
   Result := GetIndexForBookmark(Bookmark) <> -1;
 end;
 
-procedure TBoldAbstractDataSet.BoldToBuffer(ABuffer: PChar);
+procedure TBoldAbstractDataSet.BoldToBuffer(ABuffer: TRecordBuffer);
 var
   i: integer;
 begin
   for i := 0 to FieldDescriptions.Count - 1 do
     BoldElementToBuffer(i, ABuffer);
 
-  GetCalcFields(ABuffer);
+  GetCalcFields(TRecBuf(ABuffer));
 end;
 
 procedure TBoldAbstractDataSet._DeleteRow(index: Integer; owningFollower: TBoldFollower);
@@ -957,7 +1049,7 @@ begin
 
 end;
 
-procedure TBoldAbstractDataSet._InsertRow(Follower: TBoldFollower);
+procedure TBoldAbstractDataSet._InsertRow(index: Integer; OwningFollower: TBoldFollower);
 begin
   if State in [dsInsert, dsInactive] then
     Exit;
@@ -976,7 +1068,7 @@ begin
     Result := nil;
 end;
 
-procedure TBoldAbstractDataSet.BufferToBoldElement(AIndex: integer; ABuffer: PChar);
+procedure TBoldAbstractDataSet.BufferToBoldElement(AIndex: integer; ABuffer: TRecordBuffer);
 var
   Locator: TBoldObjectLocator;
   LocatorPointer: pointer;
@@ -985,6 +1077,7 @@ var
   IndirectElement: TBoldIndirectElement;
   LValue: TBoldElement;
   LActiveElement: TBoldElement;
+  LTimeStamp: TTimeStamp;
 begin
   LFieldDescr := FieldDescriptions[AIndex];
 
@@ -1008,60 +1101,84 @@ begin
       if Assigned(LValue) and LValue.Mutable then
       case FieldType of
         ftBoolean: begin
-          if Boolean(LFieldAdr^) then
+          // TBooleanField's native format is a WordBool
+          if LValue is TBABoolean then
+            TBABoolean(LValue).AsBoolean := PWordBool(LFieldAdr)^
+          else if PWordBool(LFieldAdr)^ then
             LValue.AsString := 'Y'
           else
             LValue.AsString := 'N'
         end;
 
-        ftString: begin
-          LValue.AsString := Copy(PChar(LFieldAdr), 1, BufferSize - 1);
+        ftWideString: begin
+          LValue.AsString := BufferToString(PChar(LFieldAdr), FieldSize);
         end;
 
-        ftInteger: begin
+        ftLargeint: begin
           if LValue is TBoldObjectReference then
           begin
-            if Integer(LFieldAdr^) <> 0 then
+            LocatorPointer := Pointer(NativeInt(PInt64(LFieldAdr)^));
+            if Assigned(LocatorPointer) then
             begin
-              LocatorPointer := Pointer(LFieldAdr^);
-              if Assigned(LocatorPointer) then
-              begin
-                Locator := TObject(LocatorPointer) as TBoldObjectLocator;
-                Locator.EnsureBoldObject;
-                TBoldObjectReference(LValue).BoldObject := Locator.BoldObject;
-              end
-              else
-                TBoldObjectReference(LValue).BoldObject := nil;
+              Locator := TObject(LocatorPointer) as TBoldObjectLocator;
+              Locator.EnsureBoldObject;
+              TBoldObjectReference(LValue).BoldObject := Locator.BoldObject;
             end
             else
               TBoldObjectReference(LValue).BoldObject := nil;
           end
-          else if lValue is TBAValueSet then
-            (lValue as TBAValueSet).AsInteger := Integer(LFieldAdr^)
           else
-            LValue.AsString := IntToStr(Integer(LFieldAdr^));
+            LValue.AsString := IntToStr(PInt64(LFieldAdr)^);
+        end;
+
+        ftInteger: begin
+          if lValue is TBAValueSet then
+            (lValue as TBAValueSet).AsInteger := PInteger(LFieldAdr)^
+          else
+            LValue.AsString := IntToStr(PInteger(LFieldAdr)^);
         end;
 
         ftCurrency,
         ftFloat: begin
-          LValue.AsString := FloatToStr(Double(LFieldAdr^));
+          LValue.AsString := FloatToStr(PDouble(LFieldAdr)^);
         end;
 
+        // The native formats are TDateTimeRec's: Time and Date are 32-bit
+        // integers, DateTime is a Double of milliseconds
         ftTime:
-          if Double(LFieldAdr^) <> 0 then
-            LValue.AsString := TimeToStr(TimeStampToDateTime(MSecsToTimeStamp(Double(LFieldAdr^))))
+          if PInteger(LFieldAdr)^ <> 0 then
+          begin
+            LTimeStamp.Date := DateDelta;
+            LTimeStamp.Time := PInteger(LFieldAdr)^;
+            if LValue is TBATime then
+              TBATime(LValue).AsTime := TimeStampToDateTime(LTimeStamp)
+            else
+              LValue.AsString := TimeToStr(TimeStampToDateTime(LTimeStamp));
+          end
           else
             LValue.AsString := '';
 
         ftDate:
-          if Double(LFieldAdr^) <> 0 then
-            LValue.AsString := DateToStr(TimeStampToDateTime(MSecsToTimeStamp(Double(LFieldAdr^))))
+          if PInteger(LFieldAdr)^ <> 0 then
+          begin
+            LTimeStamp.Date := PInteger(LFieldAdr)^;
+            LTimeStamp.Time := 0;
+            if LValue is TBADate then
+              TBADate(LValue).AsDate := TimeStampToDateTime(LTimeStamp)
+            else
+              LValue.AsString := DateToStr(TimeStampToDateTime(LTimeStamp));
+          end
           else
             LValue.AsString := '';
 
         ftDateTime:
-          if Double(LFieldAdr^) <> 0 then
-            LValue.AsString := DateTimeToStr(TimeStampToDateTime(MSecsToTimeStamp(Double(LFieldAdr^))))
+          if PDouble(LFieldAdr)^ <> 0 then
+          begin
+            if LValue is TBADateTime then
+              TBADateTime(LValue).AsDateTime := TimeStampToDateTime(MSecsToTimeStamp(PDouble(LFieldAdr)^))
+            else
+              LValue.AsString := DateTimeToStr(TimeStampToDateTime(MSecsToTimeStamp(PDouble(LFieldAdr)^)));
+          end
           else
             LValue.AsString := '';
       end;
@@ -1071,12 +1188,13 @@ begin
   end;
 end;
 
-procedure TBoldAbstractDataSet.BoldElementToBuffer(AIndex: integer; ABuffer: PChar);
+procedure TBoldAbstractDataSet.BoldElementToBuffer(AIndex: integer; ABuffer: TRecordBuffer);
 var
   LDateTime: TDateTime;
   LTimeStamp: TTimeStamp;
   LInteger: integer;
-  LBoolean: boolean;
+  LInt64: Int64;
+  LBoolean: WordBool;
   LFloat: double;
   LFieldAdr: pointer;
   IndirectElement: TBoldIndirectElement;
@@ -1102,35 +1220,36 @@ begin
         if Assigned(IndirectElement.Value) then
           case FieldType of
             ftBoolean: begin
-              if IndirectElement.Value.AsString = 'Y' then
-                LBoolean := True
+              // TBooleanField's native format is a WordBool
+              if IndirectElement.Value is TBABoolean then
+                LBoolean := not TBABoolean(IndirectElement.Value).IsNull and
+                  TBABoolean(IndirectElement.Value).AsBoolean
               else
-                LBoolean := False;
+                LBoolean := IndirectElement.Value.AsString = 'Y';
               Move(LBoolean, LFieldAdr^, SizeOf(LBoolean));
             end;
 
-            ftString: begin
-              StrLCopy(LFieldAdr, PChar(IndirectElement.Value.AsString), BufferSize - 1);
+            ftWideString: begin
+              StringToBuffer(IndirectElement.Value.AsString, PChar(LFieldAdr), FieldSize);
+            end;
+
+            ftLargeint: begin
+              Locator := nil;
+              if IndirectElement.Value is TBoldObjectReference then
+                Locator := TBoldObjectReference(IndirectElement.Value).Locator
+              else if IndirectElement.Value is TBoldObject then
+                Locator := TBoldObject(IndirectElement.Value).BoldObjectLocator;
+              LInt64 := NativeInt(Pointer(Locator));
+              Move(LInt64, LFieldAdr^, SizeOf(LInt64));
             end;
 
             ftInteger: begin
-              if IndirectElement.Value is TBoldObjectReference then
-              begin
-                Locator := TBoldObjectReference(IndirectElement.Value).Locator;
-                Move(Integer(Pointer(Locator)), LFieldAdr^, BufferSize);
-              end
-              else if IndirectElement.Value is TBoldObject then
-              begin
-                Locator := TBoldObject(IndirectElement.Value).BoldObjectLocator;
-                Move(Integer(Pointer(Locator)), LFieldAdr^, BufferSize);
-              end
-              else if IndirectElement.Value is TBAValueSet then
+              if IndirectElement.Value is TBAValueSet then
               begin
                 if (IndirectElement.Value as TBAValueSet).IsNull then
                   LInteger := 0
                 else
                   lInteger := (IndirectElement.Value as TBAValueSet).AsInteger;
-                Move(LInteger, LFieldAdr^, BufferSize);
               end
               else
               begin
@@ -1138,14 +1257,14 @@ begin
                   LInteger := 0
                 else
                   LInteger := StrToInt(IndirectElement.Value.AsString);
-                Move(LInteger, LFieldAdr^, BufferSize);
               end;
+              Move(LInteger, LFieldAdr^, SizeOf(LInteger));
             end;
 
             ftCurrency,
             ftFloat: begin
               LFloat := StrToFloat(IndirectElement.Value.AsString);
-              Move(LFloat, LFieldAdr^, BufferSize);
+              Move(LFloat, LFieldAdr^, SizeOf(LFloat));
             end;
 
             ftDate: begin
@@ -1158,7 +1277,7 @@ begin
                 if LString <> '' then
                   LTimeStamp := DateTimeToTimeStamp(StrToDate(IndirectElement.Value.AsString));
               end;
-              Move(LTimeStamp.Date, LFieldAdr^, BufferSize);
+              Move(LTimeStamp.Date, LFieldAdr^, SizeOf(LTimeStamp.Date));
             end;
 
             ftTime: begin
@@ -1171,7 +1290,7 @@ begin
                 if LString <> '' then
                   LTimestamp := DateTimeToTimeStamp(StrToTime(IndirectElement.Value.AsString));
               end;
-              Move(LTimeStamp.Time, LFieldAdr^, BufferSize);
+              Move(LTimeStamp.Time, LFieldAdr^, SizeOf(LTimeStamp.Time));
             end;
 
             ftDateTime: begin
@@ -1190,13 +1309,12 @@ begin
                   LFloat := TimeStampToMSecs(DateTimeToTimeStamp(LDateTime));
                 end
               end;
-              Move(LFloat, LFieldAdr^, BufferSize);
+              Move(LFloat, LFieldAdr^, SizeOf(LFloat));
             end;
 
-            ftBlob,
-            ftMemo: begin
-              StrLCopy(LFieldAdr, PChar(IndirectElement.Value.AsString), BufferSize - 1);
-            end;
+            // ftBlob: TBlobField reads the content through CreateBlobStream, so
+            // its buffer stays zero (the old text copy wrote two bytes per
+            // character into a buffer sized in bytes)
           end;
       except
       end;
@@ -1208,7 +1326,7 @@ end;
 
 function TBoldAbstractDataSet.GetActiveBoldElement: TBoldElement;
 var
-  ActiveBuf: PChar;
+  ActiveBuf: TRecordBuffer;
 begin
   if Active and GetActiveRecBuf(ActiveBuf) then
     result := GetBookmarkInfo(ActiveBuf)^.Element
@@ -1221,25 +1339,26 @@ begin
   result := (ActiveBoldElement as TBoldObject);
 end;
 
-function TBoldAbstractDataSet.GetBookmarkInfo(Buffer: PChar): PBDSBookmarkInfo;
+function TBoldAbstractDataSet.GetBookmarkInfo(Buffer: TRecordBuffer): PBDSBookmarkInfo;
 begin
   result := PBDSBookmarkInfo(Buffer + FBookmarkOfs);
 end;
 
-function TBoldAbstractDataSet.AllocRecordBuffer: PChar;
+function TBoldAbstractDataSet.AllocRecordBuffer: TRecordBuffer;
 begin
   GetMem(Result, FBufferSize);
 end;
 
-procedure TBoldAbstractDataSet.FreeRecordBuffer(var Buffer: PChar);
+procedure TBoldAbstractDataSet.FreeRecordBuffer(var Buffer: TRecordBuffer);
 begin
   FreeMem(Buffer);
+  Buffer := nil;
 end;
 
 
-procedure TBoldAbstractDataSet.InternalInitRecord(Buffer: PChar);
+procedure TBoldAbstractDataSet.InternalInitRecord(Buffer: TRecBuf);
 begin
-  FillChar(Buffer^, FBufferSize, 0);
+  FillChar(TRecordBuffer(Buffer)^, FBufferSize, 0);
 end;
 
 
@@ -1256,18 +1375,31 @@ end;
 
 
 
-function TBoldAbstractDataSet.GetRecord(Buffer: PChar; GetMode: TGetMode;
+function TBoldAbstractDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
 begin
-  Result := grError;
+  // Still abstract in TDataSet, so implemented; the TRecBuf overload does the work
+  Result := GetRecord(TRecBuf(Buffer), GetMode, DoCheck);
+end;
+
+function TBoldAbstractDataSet.GetRecord(Buffer: TRecBuf; GetMode: TGetMode;
+  DoCheck: Boolean): TGetResult;
+begin
   if not Assigned(List) then
   begin
     Result := grEOF;
     exit;
   end;
 
+  // An empty list is an empty dataset: TDataSet then sets Bof and Eof
   if RecordCount = 0 then
+  begin
+    if GetMode = gmPrior then
+      Result := grBOF
+    else
+      Result := grEOF;
     Exit;
+  end;
 
   result := grOk;
   case GetMode of
@@ -1297,12 +1429,12 @@ begin
   if result = grOk then
   begin
     GetCalcFields(Buffer);
-    with GetBookmarkInfo(Buffer)^ do
+    with GetBookmarkInfo(TRecordBuffer(Buffer))^ do
     begin
       Element := List[FRecordPos];
       Flag := bfCurrent;
     end;
-    BoldToBuffer(Buffer);
+    BoldToBuffer(TRecordBuffer(Buffer));
   end
   else
     if (result = grError) and (DoCheck) then
@@ -1316,22 +1448,22 @@ begin
   Result := FRecordSize;
 end;
 
-function TBoldAbstractDataSet.GetActiveRecBuf(var RecBuf: PChar): Boolean;
+function TBoldAbstractDataSet.GetActiveRecBuf(var RecBuf: TRecordBuffer): Boolean;
 begin
   case State of
     dsBrowse: if IsEmpty then
       RecBuf := nil
     else
-      RecBuf := ActiveBuffer;
+      RecBuf := TRecordBuffer(ActiveBuffer);
 
     dsEdit,
-    dsInsert: RecBuf := ActiveBuffer;
+    dsInsert: RecBuf := TRecordBuffer(ActiveBuffer);
 
     dsSetKey: RecBuf := nil;
 
-    dsCalcFields: RecBuf := CalcBuffer;
+    dsCalcFields: RecBuf := TRecordBuffer(CalcBuffer);
 
-    dsFilter: RecBuf := TempBuffer;
+    dsFilter: RecBuf := TRecordBuffer(TempBuffer);
 
     dsNewValue: RecBuf := nil;
 
@@ -1342,16 +1474,16 @@ begin
   Result := RecBuf <> nil;
 end;
 
-procedure TBoldAbstractDataSet.ClearCalcFields(Buffer: PChar);
+procedure TBoldAbstractDataSet.ClearCalcFields(Buffer: TRecBuf);
 begin
-  FillChar(Buffer[RecordSize], CalcFieldsSize, 0);
+  FillChar((TRecordBuffer(Buffer) + RecordSize)^, CalcFieldsSize, 0);
 end;
 
-function TBoldAbstractDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
+function TBoldAbstractDataSet.GetFieldData(Field: TField; var Buffer: TValueBuffer): Boolean;
 var
   LActiveElement: TBoldElement;
   IndirectElement: TBoldIndirectElement;
-  LRecBuf: PChar;
+  LRecBuf: TRecordBuffer;
   Attr: TBoldAttribute;
 begin
   Result := False;
@@ -1374,8 +1506,8 @@ begin
           begin
             Attr := TBoldAttribute(IndirectElement.Value);
             result := not Attr.IsNull;
-            if Assigned(Buffer) and (Field.DataType=ftVariant) then
-              Variant(Buffer^) := IndirectElement.Value.GetAsVariant;
+            if (Length(Buffer) >= SizeOf(Variant)) and (Field.DataType=ftVariant) then
+              PVariant(@Buffer[0])^ := IndirectElement.Value.GetAsVariant;
             Field.readOnly := not Attr.CanModify;
           end
           else
@@ -1383,30 +1515,29 @@ begin
         finally
           IndirectElement.Free;
         end;
-        if Assigned(Buffer) then
-        begin
-          Move((LRecBuf + FieldOfs)^, Buffer^ , Field.Datasize);
-        end;
+        if Length(Buffer) > 0 then
+          Move((LRecBuf + FieldOfs)^, Buffer[0], Min(Min(Length(Buffer), Field.DataSize), BufferSize));
       end;
     end
     else
     begin
       if State in [dsBrowse, dsEdit, dsInsert, dsCalcFields] then
       begin
+        // A calculated field: a null flag byte, then the value
         Inc(LRecBuf, FRecordSize + Offset);
-        Result := Boolean(LRecBuf[0]);
-        if Result and (Buffer <> nil) then
-          Move(LRecBuf[1], Buffer^, DataSize);
+        Result := Byte(LRecBuf^) <> 0;
+        if Result and (Length(Buffer) > 0) then
+          Move((LRecBuf + 1)^, Buffer[0], Min(Length(Buffer), DataSize));
       end;
     end;
-    if (DataType = ftString) and (fRecordSize > 30) then
+    if (DataType = ftWideString) and (fRecordSize > 30) then
       DisplayWidth := 30;
   end;
 end;
 
-procedure TBoldAbstractDataSet.SetFieldData(Field: TField; Buffer: Pointer);
+procedure TBoldAbstractDataSet.SetFieldData(Field: TField; Buffer: TValueBuffer);
 var
-  LRecBuf: PChar;
+  LRecBuf: TRecordBuffer;
 begin
   with Field do
   begin
@@ -1427,30 +1558,32 @@ begin
       begin
         with FieldDescriptions[Field.FieldNo - 1] do
         begin
-          if not Assigned(Buffer) then
-            FillChar((LRecBuf + FieldOfs)^, BufferSize, #0)
-          else
-            Move(Buffer^, (LRecBuf + FieldOfs)^, BufferSize);
+          FillChar((LRecBuf + FieldOfs)^, BufferSize, 0);
+          if Length(Buffer) > 0 then
+            Move(Buffer[0], (LRecBuf + FieldOfs)^, Min(Length(Buffer), BufferSize));
         end;
         BufferToBoldElement(Field.FieldNo - 1, LRecBuf);
       end;
     end
     else {fkCalculated, fkLookup}
     begin
+      // A null flag byte, then the value
       Inc(LRecBuf, FRecordSize + Offset);
-      Boolean(LRecBuf[0]) := LongBool(Buffer);
-      if Boolean(LRecBuf[0]) then
-        Move(Buffer^, LRecBuf[1], DataSize);
+      PByte(LRecBuf)^ := Ord(Length(Buffer) > 0);
+      if Length(Buffer) > 0 then
+        Move(Buffer[0], (LRecBuf + 1)^, Min(Length(Buffer), DataSize));
     end;
     if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
-      DataEvent(deFieldChange, Longint(Field));
+      DataEvent(deFieldChange, NativeInt(Field));
   end;
 end;
 
 
-procedure TBoldAbstractDataSet.GetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TBoldAbstractDataSet.GetBookmarkData(Buffer: TRecBuf; Data: TBookmark);
 begin
-  TBoldElement(Data^) := GetBookmarkInfo(Buffer)^.Element;
+  // A bookmark holds the record's element
+  if Length(Data) >= SizeOf(Pointer) then
+    PPointer(@Data[0])^ := Pointer(GetBookmarkInfo(TRecordBuffer(Buffer))^.Element);
 end;
 
 
@@ -1460,44 +1593,58 @@ end;
 
 
 
-function TBoldAbstractDataSet.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+function TBoldAbstractDataSet.GetBookmarkFlag(Buffer: TRecBuf): TBookmarkFlag;
 begin
-  Result := GetBookmarkInfo(Buffer)^.Flag;
+  Result := GetBookmarkInfo(TRecordBuffer(Buffer))^.Flag;
 end;
-procedure TBoldAbstractDataSet.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+procedure TBoldAbstractDataSet.SetBookmarkFlag(Buffer: TRecBuf; Value: TBookmarkFlag);
 begin
-  GetBookmarkInfo(Buffer)^.Flag := Value;
+  GetBookmarkInfo(TRecordBuffer(Buffer))^.Flag := Value;
 end;
 
-function TBoldAbstractDataSet.GetIndexForBookmark(Bookmark: Pointer): integer;
+function TBoldAbstractDataSet.GetIndexForElement(AElement: TBoldElement): integer;
 begin
-  //if Assigned(Bookmark) then
-  if Assigned(Bookmark) and Assigned(List) then
+  if Assigned(AElement) and Assigned(List) then
     try
-      result := List.IndexOf(TBoldElement(Bookmark^))
+      result := List.IndexOf(AElement)
     except
       result := -1;
     end
   else
     result := -1;
 end;
-procedure TBoldAbstractDataSet.InternalGotoBookmark(Bookmark: Pointer);
+
+function TBoldAbstractDataSet.GetIndexForBookmark(const Bookmark: TBookmark): integer;
+begin
+  if Length(Bookmark) >= SizeOf(Pointer) then
+    result := GetIndexForElement(TBoldElement(PPointer(@Bookmark[0])^))
+  else
+    result := -1;
+end;
+procedure TBoldAbstractDataSet.InternalGotoBookmark(Bookmark: TBookmark);
 var
   LIndex: integer;
 begin
   LIndex := GetIndexForBookmark(Bookmark);
   if LIndex >= 0 then
-    FRecordPos := LIndex;  
+    FRecordPos := LIndex;
 end;
 
-procedure TBoldAbstractDataSet.InternalSetToRecord(Buffer: PChar);
+procedure TBoldAbstractDataSet.InternalSetToRecord(Buffer: TRecBuf);
+var
+  LIndex: integer;
 begin
-  InternalGotoBookmark(@GetBookmarkInfo(Buffer)^.Element); 
+  LIndex := GetIndexForElement(GetBookmarkInfo(TRecordBuffer(Buffer))^.Element);
+  if LIndex >= 0 then
+    FRecordPos := LIndex;
 end;
 
-procedure TBoldAbstractDataSet.SetBookmarkData(Buffer: PChar; Data: Pointer);
+procedure TBoldAbstractDataSet.SetBookmarkData(Buffer: TRecBuf; Data: TBookmark);
 begin
-  GetBookmarkInfo(Buffer)^.Element := Data;
+  if Length(Data) >= SizeOf(Pointer) then
+    GetBookmarkInfo(TRecordBuffer(Buffer))^.Element := TBoldElement(PPointer(@Data[0])^)
+  else
+    GetBookmarkInfo(TRecordBuffer(Buffer))^.Element := nil;
 end;
 procedure TBoldAbstractDataSet.InternalFirst;
 begin
@@ -1513,7 +1660,8 @@ end;
 procedure TBoldAbstractDataSet.InternalClose;
 begin
   BindFields(False);
-  if DefaultFields then DestroyFields;
+  // DestroyFields frees only the fields TDataSet created itself
+  DestroyFields;
   fInternalCursorReady := false;
 end;
 
@@ -1530,23 +1678,11 @@ end;
 
 
 
-procedure TBoldAbstractDataSet.InternalAddRecord(Buffer: Pointer; Append: Boolean);
-var
-  RecPos: Integer;
+procedure TBoldAbstractDataSet.InternalAddRecord(Buffer: TRecBuf; Append: Boolean);
 begin
-  if Append then
-  begin
-    List.AddNew;
-    InternalLast;
-  end
-  else
-  begin
-    if FRecordPos = -1 then
-      RecPos := 0
-    else
-      RecPos := FRecordPos;
-    List.InsertNew(RecPos);
-  end;
+  // TDataSet.AddRecord (AppendRecord, InsertRecord) calls DoOnNewRecord first,
+  // which created the element already; a second AddNew would add a second one
+  FRecordPos := List.IndexOf(GetBookmarkInfo(TRecordBuffer(Buffer))^.Element);
 end;
 
 
@@ -1558,10 +1694,15 @@ begin
   fInternalCursorReady := Assigned(BoldHandle) and BoldHandle.Enabled;
   if not fInternalCursorReady then Exit;
   FRecordPos := -1;
+  // The type the fields are built for. Without it the first beValueIdentityChanged
+  // (the handle's current element moving, as DoAfterScroll does) looks like a new
+  // type and LayoutChanged closes and reopens the dataset on its first record.
+  fLastKnownType := ListElementType;
 
   if Assigned(BoldHandle.ListElementType) then
     InternalInitFieldDefs;
-  if DefaultFields then CreateFields;
+  // CreateFields keeps persistent fields, as FieldOptions.AutoCreateMode says
+  CreateFields;
 
   BindFields(True);
 
@@ -1604,7 +1745,7 @@ end;
 
 function TBoldAbstractDataSet.GetRecNo: Integer;
 var
-  ActiveBuf: PChar;
+  ActiveBuf: TRecordBuffer;
   LIndex: integer;
 begin
   Result := 0;

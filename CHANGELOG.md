@@ -92,6 +92,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet` compiles again with Delphi 11-13. It still overrode the
+  `TDataSet` methods from before Delphi 2009 and is now ported to the current
+  API, with `Test.BoldDataSet` (Windows for now). The port also fixes text
+  fields that wrote past their record buffer and lost non-ASCII text, object
+  references cut to 32 bits on Win64, date and time fields that were read
+  back wrong, `AppendRecord`/`InsertRecord` creating two objects, the dataset
+  reopening on its first record after the first scroll, and an empty list that
+  could not be opened. Text fields are now `ftWideString` (were `ftString`),
+  and object-reference fields `ftLargeint` (were `ftInteger`). It is still in
+  no package (#117)
 - On Delphi for Linux, a date and time that Bold wrote did not parse back with
   the US English locale: setting `AsString` of a `TBADateTime` or `TBATime`,
   and the OCL operations `strToDateTime` and `strToTime`, raised "is not a
