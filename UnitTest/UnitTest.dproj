@@ -220,6 +220,7 @@
         <DCCReference Include="Code\Common\Test.BoldControlPack.pas"/>
         <DCCReference Include="Code\Common\Test.BoldExternalizedReferences.pas"/>
         <DCCReference Include="Code\Common\Test.BoldStubs.pas"/>
+        <DCCReference Include="Code\Common\Test.BoldTestFramework.pas"/>
         <DCCReference Include="Code\Common\Test.BoldUMLTaggedValues.pas"/>
         <DCCReference Include="Code\Common\Test.BoldIndexCollection.pas"/>
         <DCCReference Include="Code\Common\Test.BoldEventQueue.pas"/>

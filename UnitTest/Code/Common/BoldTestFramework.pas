@@ -155,14 +155,17 @@ function BoldTestReadAllText(const FileName: string): string;
 // Milliseconds from a monotonic clock, for timeouts in tests.
 function BoldTestTickCount: Int64;
 // Heap measurement for leak regression tests: the bytes the memory manager
-// has handed out and not taken back yet.
-// Delphi outside Windows has no GetMemoryManagerState, so both functions raise
-// there for now.
+// has handed out and not taken back yet. Only the difference between two
+// readings means something.
+// Delphi on Windows reads FastMM's GetMemoryManagerState. Delphi on Linux has
+// no such statistics, so this unit counts them itself (see
+// InstallCountingMemoryManager). Delphi on other platforms raises.
 function BoldTestAllocatedBytes: Int64;
-// The number of allocated memory blocks. FastMM (Delphi) counts them, which is
-// more stable than bytes for leak tests: a leaked object is a fixed number of
-// blocks. The Free Pascal heap manager does not count blocks, so under Free
-// Pascal this raises; use BoldTestAllocatedBytes there.
+// The number of allocated memory blocks. Delphi counts them (FastMM on
+// Windows, the counting wrapper on Linux), which is more stable than bytes for
+// leak tests: a leaked object is a fixed number of blocks. The Free Pascal
+// heap manager does not count blocks, so under Free Pascal this raises; use
+// BoldTestAllocatedBytes there.
 function BoldTestAllocatedBlocks: Int64;
 // Thread-safe counters for tests, returning the new value. Free Pascal 3.2.2 has
 // no AtomicIncrement/AtomicDecrement; its InterLockedIncrement/Decrement are in
@@ -670,6 +673,84 @@ begin
   {$ENDIF}
 end;
 
+{$IF defined(LINUX) and not defined(FPC)}
+{ Delphi on Linux: System's memory manager is libc's malloc, calloc, realloc
+  and free, and GetMem returns their pointers unchanged (System.pas, the POSIX
+  SysGetMem and the functions next to it). It keeps no statistics, so this unit
+  wraps it in its initialization and counts the blocks, and their usable bytes
+  through glibc's malloc_usable_size. Blocks allocated before the wrapper was
+  installed are freed through it too, so the counts can fall below where they
+  started; only differences between two readings mean something. System's
+  _ReallocMem hands a nil pointer or a size of 0 to GetMem or FreeMem, so
+  ReallocMem changes only the bytes. }
+
+function malloc_usable_size(P: Pointer): NativeUInt; cdecl;
+  external 'libc.so.6' name 'malloc_usable_size';
+
+var
+  WrappedMemoryManager: TMemoryManagerEx;
+  CountedBlocks: Int64;
+  CountedBytes: Int64;
+
+function CountingGetMem(Size: NativeInt): Pointer;
+begin
+  Result := WrappedMemoryManager.GetMem(Size);
+  if Result <> nil then
+  begin
+    AtomicIncrement(CountedBlocks);
+    AtomicIncrement(CountedBytes, Int64(malloc_usable_size(Result)));
+  end;
+end;
+
+function CountingAllocMem(Size: NativeInt): Pointer;
+begin
+  Result := WrappedMemoryManager.AllocMem(Size);
+  if Result <> nil then
+  begin
+    AtomicIncrement(CountedBlocks);
+    AtomicIncrement(CountedBytes, Int64(malloc_usable_size(Result)));
+  end;
+end;
+
+function CountingFreeMem(P: Pointer): Integer;
+var
+  Bytes: Int64;
+begin
+  Bytes := malloc_usable_size(P); // before the block is gone
+  Result := WrappedMemoryManager.FreeMem(P);
+  if Result = 0 then
+  begin
+    AtomicDecrement(CountedBlocks);
+    AtomicDecrement(CountedBytes, Bytes);
+  end;
+end;
+
+function CountingReallocMem(P: Pointer; Size: NativeInt): Pointer;
+var
+  OldBytes: Int64;
+begin
+  OldBytes := malloc_usable_size(P); // before realloc may free it
+  Result := WrappedMemoryManager.ReallocMem(P, Size);
+  if Result <> nil then
+    AtomicIncrement(CountedBytes, Int64(malloc_usable_size(Result)) - OldBytes);
+end;
+
+// SetMemoryManager copies the record without a lock, so this runs in the
+// initialization, before there is a second thread.
+procedure InstallCountingMemoryManager;
+var
+  Counting: TMemoryManagerEx;
+begin
+  GetMemoryManager(WrappedMemoryManager);
+  Counting := WrappedMemoryManager;
+  Counting.GetMem := CountingGetMem;
+  Counting.FreeMem := CountingFreeMem;
+  Counting.ReallocMem := CountingReallocMem;
+  Counting.AllocMem := CountingAllocMem;
+  SetMemoryManager(Counting);
+end;
+{$IFEND}
+
 function BoldTestAllocatedBytes: Int64;
 {$IF defined(MSWINDOWS) and not defined(FPC)}
 var
@@ -677,20 +758,20 @@ var
   i: Integer;
 {$IFEND}
 begin
-  {$IFDEF FPC}
+  {$IF defined(FPC)}
   Result := GetFPCHeapStatus.CurrHeapUsed;
-  {$ELSE}
-  {$IFDEF MSWINDOWS}
+  {$ELSEIF defined(MSWINDOWS)}
   GetMemoryManagerState(st);
   Result := Int64(st.TotalAllocatedMediumBlockSize) + Int64(st.TotalAllocatedLargeBlockSize);
   for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
     Result := Result + Int64(st.SmallBlockTypeStates[i].UseableBlockSize) *
                        Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
+  {$ELSEIF defined(LINUX)}
+  Result := CountedBytes;
   {$ELSE}
-  raise Exception.Create('BoldTestAllocatedBytes: Delphi has no GetMemoryManagerState ' +
+  raise Exception.Create('BoldTestAllocatedBytes: no memory statistics for Delphi ' +
     'on this platform');
-  {$ENDIF}
-  {$ENDIF}
+  {$IFEND}
 end;
 
 function BoldTestAllocatedBlocks: Int64;
@@ -700,20 +781,20 @@ var
   i: Integer;
 {$IFEND}
 begin
-  {$IFDEF FPC}
+  {$IF defined(FPC)}
   raise Exception.Create('BoldTestAllocatedBlocks: the Free Pascal heap manager does not count ' +
     'blocks; use BoldTestAllocatedBytes');
-  {$ELSE}
-  {$IFDEF MSWINDOWS}
+  {$ELSEIF defined(MSWINDOWS)}
   GetMemoryManagerState(st);
   Result := Int64(st.AllocatedMediumBlockCount) + Int64(st.AllocatedLargeBlockCount);
   for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
     Result := Result + Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
+  {$ELSEIF defined(LINUX)}
+  Result := CountedBlocks;
   {$ELSE}
-  raise Exception.Create('BoldTestAllocatedBlocks: Delphi has no GetMemoryManagerState ' +
+  raise Exception.Create('BoldTestAllocatedBlocks: no memory statistics for Delphi ' +
     'on this platform');
-  {$ENDIF}
-  {$ENDIF}
+  {$IFEND}
 end;
 
 function BoldTestAtomicIncrement(var Target: Integer): Integer;
@@ -733,5 +814,13 @@ begin
   Result := AtomicDecrement(Target);
   {$ENDIF}
 end;
+
+{$IF defined(LINUX) and not defined(FPC)}
+initialization
+  InstallCountingMemoryManager;
+
+finalization
+  SetMemoryManager(WrappedMemoryManager);
+{$IFEND}
 
 end.

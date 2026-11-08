@@ -95,6 +95,7 @@ uses
   Test.BoldControlPack in 'Code\Common\Test.BoldControlPack.pas',
   Test.BoldExternalizedReferences in 'Code\Common\Test.BoldExternalizedReferences.pas',
   Test.BoldStubs in 'Code\Common\Test.BoldStubs.pas',
+  Test.BoldTestFramework in 'Code\Common\Test.BoldTestFramework.pas',
   Test.BoldUMLTaggedValues in 'Code\Common\Test.BoldUMLTaggedValues.pas',
   Test.BoldIndexCollection in 'Code\Common\Test.BoldIndexCollection.pas',
   Test.BoldEventQueue in 'Code\Common\Test.BoldEventQueue.pas',

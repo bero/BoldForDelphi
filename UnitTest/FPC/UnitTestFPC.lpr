@@ -101,6 +101,7 @@ uses
   Test.BoldSystemPersistent,
   Test.BoldTaggedValueList,
   Test.BoldTaggedValueSupport,
+  Test.BoldTestFramework,
   Test.BoldThreadSafeLog,
   Test.BoldThreadSafeQueue,
   Test.BoldTypeNameDictionary,
