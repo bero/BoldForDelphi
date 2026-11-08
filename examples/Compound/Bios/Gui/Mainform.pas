@@ -33,6 +33,7 @@ uses
   BoldElements,
   BoldListHandle,
   BoldPersistenceNotifier,
+  BoldPersistenceProgressNotifier,
   BoldAbstractListHandle,
   BoldCursorHandle,
   BoldExpressionHandle,

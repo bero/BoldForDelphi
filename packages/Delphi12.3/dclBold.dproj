@@ -422,6 +422,7 @@
         <DCCReference Include="..\..\Source\Persistence\IDE\BoldPersistenceHandleSystem.pas"/>
         <DCCReference Include="..\..\Source\Persistence\IDE\BoldPersistenceHandleSystemReg.pas"/>
         <DCCReference Include="..\..\Source\Persistence\Core\BoldPersistenceNotifier.pas"/>
+        <DCCReference Include="..\..\Source\Persistence\UtilsGUI\BoldPersistenceProgressNotifier.pas"/>
         <DCCReference Include="..\..\Source\Persistence\IDE\BoldPersistenceNotifierReg.pas"/>
         <DCCReference Include="..\..\Source\Persistence\SOAP\BoldPersistenceOperationXMLStreaming.pas"/>
         <DCCReference Include="..\..\Source\Common\Subscription\BoldPlaceableListSubscriber.pas"/>

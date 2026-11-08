@@ -331,6 +331,7 @@ contains
   BoldPersistenceHandleSystem in '..\..\Source\Persistence\IDE\BoldPersistenceHandleSystem.pas',
   BoldPersistenceHandleSystemReg in '..\..\Source\Persistence\IDE\BoldPersistenceHandleSystemReg.pas',
   BoldPersistenceNotifier in '..\..\Source\Persistence\Core\BoldPersistenceNotifier.pas',
+  BoldPersistenceProgressNotifier in '..\..\Source\Persistence\UtilsGUI\BoldPersistenceProgressNotifier.pas',
   BoldPersistenceNotifierReg in '..\..\Source\Persistence\IDE\BoldPersistenceNotifierReg.pas',
   BoldPersistenceOperationXMLStreaming in '..\..\Source\Persistence\SOAP\BoldPersistenceOperationXMLStreaming.pas',
   BoldPlaceableListSubscriber in '..\..\Source\Common\Subscription\BoldPlaceableListSubscriber.pas',

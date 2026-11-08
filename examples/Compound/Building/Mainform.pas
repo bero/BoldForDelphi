@@ -28,6 +28,7 @@ uses
   BoldExpressionHandle,
   BoldRootedHandles,
   BoldPersistenceNotifier,
+  BoldPersistenceProgressNotifier,
   BoldControlPack,
   BoldStringControlPack,
   BoldCheckBox,

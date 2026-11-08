@@ -15,6 +15,7 @@ uses
   DesignIntf,
   Classes,
   BoldPersistenceNotifier,
+  BoldPersistenceProgressNotifier,
   BoldPersistenceHandle,
   BoldAbstractPropertyEditors,
   BoldIDEConsts;

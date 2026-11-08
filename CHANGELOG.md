@@ -37,6 +37,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   unloader now also runs in console programs and services that call
   `CheckSynchronize`, on Linux too (#117). The handle schedules a tick only
   while its unloader is active.
+- `TBoldPersistenceProgressNotifier`, which shows fetch and update progress in
+  VCL controls, moved from `BoldPersistenceNotifier` to the new unit
+  `BoldPersistenceProgressNotifier` (`Source\Persistence\UtilsGUI`, part of
+  `dclBold`). `BoldPersistenceNotifier` with `TBoldPersistenceNotifier` imports
+  no VCL unit now and compiles for every platform and for Free Pascal (#117).
+  **Action needed:** a unit that declares a `TBoldPersistenceProgressNotifier`
+  adds `BoldPersistenceProgressNotifier` to its uses clause; the IDE does so
+  when the form is saved. Forms load unchanged, the class name is the same.
 - `BoldEnvironment` no longer links the VCL environment into every application.
   A GUI framework unit registers its environment with
   `BoldRegisterFrameworkEnvironment`. `BoldEnvironmentVCL` does so, and the

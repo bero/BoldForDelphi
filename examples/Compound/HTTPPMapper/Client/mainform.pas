@@ -25,6 +25,7 @@ uses
   BoldExpressionHandle,
   BoldRootedHandles,
   BoldPersistenceNotifier,
+  BoldPersistenceProgressNotifier,
   BoldAFP,
   BoldAFPDefault,
   BoldControlPack,

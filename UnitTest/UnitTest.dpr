@@ -63,6 +63,7 @@ uses
   Test.BoldGeneratedCodeDictionary in 'Code\RTModel\Test.BoldGeneratedCodeDictionary.pas',
   Test.BoldPersistenceHandle in 'Code\Persistence\Test.BoldPersistenceHandle.pas',
   Test.BoldPersistenceHandleDB in 'Code\Persistence\Test.BoldPersistenceHandleDB.pas',
+  Test.BoldPersistenceNotifier in 'Code\Persistence\Test.BoldPersistenceNotifier.pas',
   Test.BoldDbParameter in 'Code\Persistence\Test.BoldDbParameter.pas',
   Test.BoldUpdatePrecondition in 'Code\Persistence\Test.BoldUpdatePrecondition.pas',
   Test.BoldPersistenceController in 'Code\Persistence\Test.BoldPersistenceController.pas',

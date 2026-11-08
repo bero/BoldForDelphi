@@ -79,6 +79,7 @@ uses
   Test.BoldPersistenceController,
   Test.BoldPersistenceHandle,
   Test.BoldPersistenceHandleDB,
+  Test.BoldPersistenceNotifier,
   Test.BoldPersistenceZeos,
   Test.BoldPlatform,
   Test.BoldQueue,

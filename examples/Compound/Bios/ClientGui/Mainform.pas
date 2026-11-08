@@ -30,6 +30,7 @@ uses
   BoldComObjectSpace_TLB, BoldClientElementSupport, BoldComClient,
   BoldListHandleCom,
   BoldPersistenceNotifier,
+  BoldPersistenceProgressNotifier,
   BoldAbstractListHandleCom,
   BoldCursorHandleCom,
   BoldExpressionHandleCom,
