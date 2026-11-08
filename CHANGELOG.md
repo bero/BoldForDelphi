@@ -88,6 +88,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TExpressionSubscriber` could crash when another client changed a member that
+  its expression does not use: `MemberChanged` ended by reading an
+  uninitialized local variable. It also read the class and member names of the
+  handler's events from the wrong `TVarRec` field, which worked on Delphi only
+  because of the record layout and gave wrong names under Free Pascal (#117)
 - `TBoldPersistenceNotifier` and `TBoldPersistenceProgressNotifier` received no
   persistence events. Since the 2024 merge,
   `TBoldPersistenceHandle.AddPersistenceSubscription` subscribed only the

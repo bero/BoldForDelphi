@@ -524,8 +524,6 @@ var
   ClassTypeInfo: TBoldClassTypeInfo;
   MemberRTInfo: TBoldMemberRTInfo;
   Span: TBoldObjectSpan;
-  Locator: TBoldObjectLocator;
-  bo: TBoldObject;
   Element: TBoldElement;
   sl: TStringList;
   i,j: integer;
@@ -561,22 +559,36 @@ begin
   finally
     sl.free;
   end;
-  bo := Locator.EnsuredBoldObject;
 end;
 
 procedure TExpressionSubscriber.Receive(Originator: TObject;
   OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent;
   const Args: array of const);
+
+  // The handler sends its names as string, which arrives as vtUnicodeString.
+  // Reading VString instead works on Delphi only because both fields share
+  // the same place in TVarRec; Free Pascal converts it as a ShortString.
+  function ArgAsString(const Arg: TVarRec): string;
+  begin
+    case Arg.VType of
+      vtUnicodeString: Result := string(Arg.VUnicodeString);
+      vtAnsiString: Result := string(AnsiString(Arg.VAnsiString));
+      vtString: Result := string(Arg.VString^);
+    else
+      Result := '';
+    end;
+  end;
+
 begin
   case OriginalEvent of
-    boeObjectCreated:  // [ClassName, ObjectId]
-      ObjectCreated(String(Args[0].VString), Args[1].VObject as TBoldObjectId);
+    boeObjectCreated:  // [ClassName, ObjectId, BoldObject]
+      ObjectCreated(ArgAsString(Args[0]), Args[1].VObject as TBoldObjectId);
 
-    boeObjectDeleted:  // [ClassName, ObjectId]
-      ObjectDeleted(String(Args[0].VString), Args[1].VObject as TBoldObjectId);
+    boeObjectDeleted:  // [ClassName, ObjectId, BoldObject]
+      ObjectDeleted(ArgAsString(Args[0]), Args[1].VObject as TBoldObjectId);
 
-    boeMemberChanged:  // [className, memberName, ObjectId]);
-      MemberChanged(String(Args[0].VString), String(Args[1].VString), Args[2].VObject as TBoldObjectId, Args[3].VObject as TBoldObject);
+    boeMemberChanged:  // [ClassName, MemberName, ObjectId, BoldObject]
+      MemberChanged(ArgAsString(Args[0]), ArgAsString(Args[1]), Args[2].VObject as TBoldObjectId, Args[3].VObject as TBoldObject);
   end;
 end;
 

@@ -51,6 +51,7 @@ type
     procedure TestLockLostMessage;
     procedure TestFreedSystemHandleIsReleased;
     procedure TestExpressionSubscriberListens;
+    procedure TestExpressionSubscriberIgnoresOtherMember;
   end;
 
 implementation
@@ -210,6 +211,33 @@ begin
     Subscriber.Free;
   end;
   Assert.IsFalse(fHandler.HasSubscribers, 'A freed expression subscriber no longer listens');
+end;
+
+procedure TTestBoldExternalObjectSpaceEventHandler.TestExpressionSubscriberIgnoresOtherMember;
+var
+  Subscriber: TExpressionSubscriber;
+  Raised: string;
+begin
+  ConnectActiveSystem;
+  Subscriber := TExpressionSubscriber.Create(nil);
+  try
+    Subscriber.StaticSystemHandle := fDataModule.BoldSystemHandle1;
+    Subscriber.RootHandle := fDataModule.BoldSystemHandle1;
+    Subscriber.EvaluateInPS := True;
+    Subscriber.Expression := 'ClassA.allInstances->select(aString = ''x'')';
+    Subscriber.BoldExternalObjectSpaceEventHandler := fHandler;
+    Raised := '';
+    try
+      // Another client changed ClassA.aInteger, which the expression does not use
+      fHandler.SendExtendedEvent(fHandler, boeMemberChanged, ['ClassA', 'aInteger', nil, nil]);
+    except
+      on E: Exception do
+        Raised := string(E.ClassName) + ': ' + string(E.Message);
+    end;
+    Assert.AreEqual('', Raised, 'A change of a member the expression does not use is ignored');
+  finally
+    Subscriber.Free;
+  end;
 end;
 
 initialization
