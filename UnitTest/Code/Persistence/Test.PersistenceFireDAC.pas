@@ -2477,11 +2477,12 @@ begin
     DbInterface := Adapter.DatabaseInterface;
     DbInterface.Open;
     try
-      Assert.AreEqual(FileName, Connection.Params.Database,
+      // DUnitX compares strings case-insensitively unless ignoreCase is False
+      Assert.AreEqual(FileName, Connection.Params.Database, False,
         'Open must not change the Database parameter');
       Found := TDirectory.GetFiles(Folder, '*.db');
       Assert.AreEqual(1, Integer(Length(Found)), 'Open must create exactly one database file');
-      Assert.AreEqual('MixedCase.db', ExtractFileName(Found[0]),
+      Assert.AreEqual('MixedCase.db', ExtractFileName(Found[0]), False,
         'The database file must keep the case of the Database parameter');
     finally
       DbInterface.Close;
