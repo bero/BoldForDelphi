@@ -109,6 +109,37 @@ XML round trip in the suite then goes through it, and `Test.BoldXMLStreaming`
 tests the backend directly. The Windows-only units that use MSXML themselves
 (SOAP, XMI, COM) are not part of UnitTest and need MSXML.
 
+## Delphi on Linux64
+
+The console runner also builds for Linux64 (#117), with Delphi 12.3 or 13 and a
+Linux SDK imported through the SDK Manager. The command-line build needs only
+the imported SDK files; PAServer is needed to deploy and run from the IDE, not
+to build:
+
+```powershell
+.\build.ps1 -Platform Linux64   # writes the ELF UnitTest (no extension) next to the script
+```
+
+Copy `UnitTest` and `UnitTest.ini` to a folder on the Linux machine and run it
+there:
+
+```sh
+chmod +x UnitTest
+./UnitTest --exit:Continue
+```
+
+FireDAC loads the unversioned `libsqlite3.so`, which most distributions ship
+only in the development package (`sudo apt install libsqlite3-dev` on Ubuntu).
+The results also go to `dunitx-results.xml` (NUnit format) in the current
+folder.
+
+The runner has one unit list for every platform. Test units whose subject is
+Windows only (COM, WinInet, the Windows message loop of `BoldThread`, the VCL
+control packs) are empty on other platforms, and so are the Delphi-Mocks
+fixtures, because Delphi-Mocks does not compile for Linux64. The leak checks
+read a counting wrapper around libc's `malloc` that `BoldTestFramework` installs
+on Linux.
+
 ## Free Pascal / Lazarus (Linux)
 
 Most of the suite also builds with Free Pascal through `FPC/build.sh`. The

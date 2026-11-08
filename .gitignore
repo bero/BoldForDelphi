@@ -45,6 +45,9 @@ __recovery/
 dunitx-results.xml
 UnitTest/coverage_report/
 UnitTest/Win32/
+# build.ps1 -Platform Linux64: the units and the ELF (no extension)
+UnitTest/Linux64/
+UnitTest/UnitTest
 UnitTest/cobertura.xml
 UnitTest/codecov.json
 UnitTest/codecov.exe

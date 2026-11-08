@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- The Delphi test suite builds and runs on Linux64: `UnitTest\build.ps1
+  -Platform Linux64` builds the console runner, and `UnitTest/README.md` says
+  how to run it. Test units whose subject is Windows only are empty there, and
+  the leak checks count through a wrapper around libc's `malloc` (#117)
 - Memory checks for both test suites, each failing on a leak or a use of freed
   memory with the stack trace or line that caused it (#117):
   - `UnitTest\check_memory.ps1` runs the Delphi suite under FastMM4 in

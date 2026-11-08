@@ -2,11 +2,13 @@
 # Uses DelphiBuildDPROJ.ps1 for flexible Delphi version detection
 #
 # USAGE:
-#   .\build.ps1 [-Config "Debug|Release"] [-Platform "Win32|Win64"] [-GUI]
+#   .\build.ps1 [-Config "Debug|Release"] [-Platform "Win32|Win64|Linux64"] [-GUI]
 #
 # PARAMETERS:
 #   -Config    : Build configuration (default: "Debug")
-#   -Platform  : Target platform (default: "Win64")
+#   -Platform  : Target platform (default: "Win64"). Linux64 needs an imported Linux SDK
+#                (SDK Manager), not a running PAServer, and writes the ELF UnitTest, without
+#                an extension, next to this script; see README.md, "Delphi on Linux64".
 #   -GUI       : Build UnitTestGUI.dproj instead of UnitTest.dproj
 #   -DelphiVersion : Registry version of the Delphi to use (e.g. 23.0 = 12 Athens).
 #                Default: newest installed. The vendored UniDAC 10.4 does not compile with
@@ -19,6 +21,7 @@
 # EXAMPLES:
 #   .\build.ps1
 #   .\build.ps1 -Config Release -Platform Win32
+#   .\build.ps1 -Platform Linux64
 #   .\build.ps1 -GUI
 
 param(
