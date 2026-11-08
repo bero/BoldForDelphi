@@ -183,7 +183,12 @@ begin
       // connection Bold opens in this process (CreateAnotherDatabaseConnection) sees
       // the same tables. Direct = the embedded engine, no sqlite3.dll needed.
       AConnection.ProviderName := 'SQLite';
-      AConnection.Database := Ini.ReadString('SQLite', 'Database', 'file:memdb1?mode=memory&cache=shared');
+      AConnection.Database := Ini.ReadString('SQLite', 'Database', '');
+      // An empty value makes the FireDAC tests use a temporary file (#120). The
+      // UniDAC tests keep the URI, and get a new database per test through
+      // FMemoryDbAnchor if UniDAC reads it; whether it does is not verified.
+      if AConnection.Database = '' then
+        AConnection.Database := 'file:memdb1?mode=memory&cache=shared';
       AConnection.SpecificOptions.Values['Direct'] := 'True';
       AConnection.SpecificOptions.Values['EnableSharedCache'] := 'True';
       AConnection.SpecificOptions.Values['ForceCreateDatabase'] := 'True';

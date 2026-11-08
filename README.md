@@ -97,7 +97,7 @@ Results are generated in `UnitTest/coverage_report/`. Open `CodeCoverage_summary
 
 ### Running Tests Against Several Database Engines
 
-`UnitTest/UnitTest.ini` selects the engine (`SQLite` in-memory by default; `SQLServer`, `Interbase`, `Firebird`
+`UnitTest/UnitTest.ini` selects the engine (`SQLite` by default, in a temporary file per run; `SQLServer`, `Interbase`, `Firebird`
 and `PostgreSQL` sections are provided). The environment variable `BOLD_TEST_ENGINE` overrides the ini, and
 `UnitTest/run_matrix.ps1` uses it to run the suite on each engine in turn, plus the UniDAC build when
 UniDAC is installed. PostgreSQL runs on the UniDAC build only: FireDAC needs libpq, which current PostgreSQL

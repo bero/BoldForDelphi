@@ -97,24 +97,22 @@ procedure PrepareSystem2(DataModule: TdmUndoRedo);
 var
   FireDACModule: TdmUndoRedoFireDAC;
 begin
-  // For SQLite in-memory, both connections share the same database file
+  // On SQLite both connections share the same database file
   // Copy connection params from Connection1 to Connection2
   FireDACModule := UndoRedoFireDAC;
   FireDACModule.FDConnection2.Params.Values['Database'] := FireDACModule.FDConnection1.Params.Values['Database'];
 end;
 
-// On SQLite a second in-memory database (the connection stays open, so the
-// shared cache stays alive); on server engines a sibling of the test database.
+// On SQLite a second database file of the test run; on server engines a
+// sibling of the test database.
 function OpenSecondDatabase(DataModule: TdmUndoRedo): Boolean;
-const
-  cSQLiteDatabase = 'file:memdb_dbcopy?mode=memory&cache=shared';
 var
   FireDACModule: TdmUndoRedoFireDAC;
   Database: string;
 begin
   Result := SameText(GetTestDatabaseEngine, 'SQLite');
   if Result then
-    Database := cSQLiteDatabase
+    Database := GetTestSQLiteDatabase('dbcopy')
   else
   begin
     Database := GetTestDatabaseName + '_DbCopy';

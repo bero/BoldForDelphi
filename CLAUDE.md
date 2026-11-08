@@ -58,7 +58,7 @@ powershell -Command "& { $env:DUnitX = '...'; ... }"
 
 ### Choosing the database engine
 
-`UnitTest.ini` `[Database] Engine=` selects the engine (SQLite in-memory by default). The environment
+`UnitTest.ini` `[Database] Engine=` selects the engine (SQLite by default, in a temporary file per run). The environment
 variable `BOLD_TEST_ENGINE` overrides it without editing the file, which is how a script runs the same exe
 against several engines:
 

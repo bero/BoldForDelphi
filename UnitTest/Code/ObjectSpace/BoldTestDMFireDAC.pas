@@ -68,16 +68,15 @@ begin
   Result := FileExists(APath);
 end;
 
-procedure ConfigureSQLiteInMemory(Connection: TFDConnection; Adapter: TBoldDatabaseAdapterFireDAC);
+procedure ConfigureSQLite(Connection: TFDConnection; Adapter: TBoldDatabaseAdapterFireDAC);
 begin
-  // SQLite shared-cache in-memory: fast, no setup required.
-  // Named memory URI ensures all Bold internal connections (created via
-  // CreateAnotherDatabaseConnection) share the same in-memory database.
+  // The SQLite database file of this test run (#120), no setup required. All
+  // Bold internal connections (created via CreateAnotherDatabaseConnection)
+  // open the same file.
   Connection.Close;
   Connection.Params.Clear;
   Connection.DriverName := 'SQLite';
-  Connection.Params.Values['Database'] :=
-    'file:memdb1?mode=memory&cache=shared';
+  Connection.Params.Values['Database'] := GetTestSQLiteDatabase;
   Connection.LoginPrompt := False;
   Connection.Open;
 
@@ -99,8 +98,8 @@ begin
 
   if SameText(Engine, 'SQLite') then
   begin
-    WriteLn('BoldTestDM: Using SQLite in-memory (from ' + AIniPath + ')');
-    ConfigureSQLiteInMemory(Connection, Adapter);
+    WriteLn('BoldTestDM: Using SQLite, a temporary file (from ' + AIniPath + ')');
+    ConfigureSQLite(Connection, Adapter);
   end
   else
   begin
@@ -130,8 +129,8 @@ begin
     ConfigureFromIni(IniPath, FireDACModule.FDConnection1, FireDACModule.BoldDatabaseAdapterFireDAC1)
   else
   begin
-    WriteLn('BoldTestDM: Using SQLite in-memory (no UnitTest.ini found)');
-    ConfigureSQLiteInMemory(FireDACModule.FDConnection1, FireDACModule.BoldDatabaseAdapterFireDAC1);
+    WriteLn('BoldTestDM: Using SQLite, a temporary file (no UnitTest.ini found)');
+    ConfigureSQLite(FireDACModule.FDConnection1, FireDACModule.BoldDatabaseAdapterFireDAC1);
   end;
 end;
 

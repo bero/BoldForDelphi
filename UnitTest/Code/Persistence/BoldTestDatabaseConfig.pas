@@ -34,13 +34,26 @@ function GetTestDatabaseEngine(const AIniPath: string): string; overload;
 { The database name from UnitTest.ini for the configured engine. }
 function GetTestDatabaseName: string;
 function GetIniFilePath: string;
+{ The SQLite database of this test run for AName (#120): a temporary file,
+  which SQLite creates on the first open. Every connection of the run that asks
+  for the same name opens the same file, as CreateAnotherDatabaseConnection and
+  the database copy tests need, and every run starts with new files.
+  DropTestDatabase deletes them. They used to be
+  file:<name>?mode=memory&cache=shared URIs. FireDAC's SQLite on Windows does
+  not read URIs and opened a file named "file" (an NTFS stream) next to the
+  exe, which kept its tables from run to run; the system SQLite on Linux does
+  read them, and its in-memory database was gone each time Bold closed its
+  connection. }
+function GetTestSQLiteDatabase(const AName: string = 'main'): string;
 
 implementation
 
 uses
   System.SysUtils,
+  System.Classes,
   System.IniFiles,
   BoldSQLDatabaseConfig,
+  BoldTestFramework,
   FireDAC.Stan.Def,
   FireDAC.Stan.Async,
   FireDAC.Phys.MSSQL,
@@ -61,6 +74,40 @@ begin
     Result := ExtractFilePath(ParamStr(0)) + '..\UnitTest.ini';
   if not FileExists(Result) then
     raise Exception.Create('UnitTest.ini not found. Expected at: ' + Result);
+end;
+
+var
+  SQLiteDatabases: TStringList; // Name=File, see GetTestSQLiteDatabase
+
+function GetTestSQLiteDatabase(const AName: string): string;
+begin
+  if not Assigned(SQLiteDatabases) then
+    SQLiteDatabases := TStringList.Create;
+  Result := SQLiteDatabases.Values[AName];
+  if Result = '' then
+  begin
+    Result := BoldTestTempFileName('.db');
+    SQLiteDatabases.Values[AName] := Result;
+  end;
+end;
+
+// Deletes the files of GetTestSQLiteDatabase. On Windows a file that a
+// connection still has open cannot be deleted; it stays listed, so the
+// finalization below tries again.
+procedure DeleteTestSQLiteDatabases;
+var
+  i: Integer;
+  FileName: string;
+begin
+  if not Assigned(SQLiteDatabases) then
+    Exit;
+  for i := SQLiteDatabases.Count - 1 downto 0 do
+  begin
+    FileName := SQLiteDatabases.ValueFromIndex[i];
+    System.SysUtils.DeleteFile(FileName + '-journal');
+    if not FileExists(FileName) or System.SysUtils.DeleteFile(FileName) then
+      SQLiteDatabases.Delete(i);
+  end;
 end;
 
 const
@@ -126,7 +173,9 @@ begin
     end
     else if SameText(Engine, 'SQLite') then
     begin
-      Database := Ini.ReadString('SQLite', 'Database', 'file:memdb1?mode=memory&cache=shared');
+      Database := Ini.ReadString('SQLite', 'Database', '');
+      if Database = '' then
+        Database := GetTestSQLiteDatabase;
       Connection.DriverName := 'SQLite';
       Connection.Params.Values['Database'] := Database;
       Adapter.DatabaseEngine := dbeGenericANSISQL92;
@@ -203,7 +252,11 @@ begin
   try
     Engine := GetTestDatabaseEngine;
     if SameText(Engine, 'SQLite') then
-      Result := Ini.ReadString('SQLite', 'Database', 'file:memdb1?mode=memory&cache=shared')
+    begin
+      Result := Ini.ReadString('SQLite', 'Database', '');
+      if Result = '' then
+        Result := GetTestSQLiteDatabase;
+    end
     else
       Result := Ini.ReadString(Engine, 'Database', 'BoldUnitTest');
   finally
@@ -305,9 +358,10 @@ begin
     end
     else if SameText(Engine, 'SQLite') then
     begin
-      Database := Ini.ReadString('SQLite', 'Database', 'unittest.db');
-      if (Database <> ':memory:') and FileExists(Database) then
+      Database := Ini.ReadString('SQLite', 'Database', '');
+      if (Database <> '') and (Database <> ':memory:') and FileExists(Database) then
         DeleteFile(Database);
+      DeleteTestSQLiteDatabases;
     end;
     // For Firebird/Interbase, manual cleanup may be needed
   finally
@@ -315,5 +369,13 @@ begin
     Ini.Free;
   end;
 end;
+
+initialization
+
+finalization
+  // The files DropTestDatabase could not delete because a connection still
+  // had them open
+  DeleteTestSQLiteDatabases;
+  FreeAndNil(SQLiteDatabases);
 
 end.
