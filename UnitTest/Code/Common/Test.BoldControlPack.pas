@@ -1,9 +1,13 @@
 ﻿unit Test.BoldControlPack;
 
-{ DUnitX tests for BoldControlPack - follower/renderer display exception contract }
+{ DUnitX tests for BoldControlPack - follower/renderer display exception contract
+
+  Windows only: BoldControlPack uses the VCL (Controls). On other platforms
+  the unit is empty. }
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses
   SysUtils,
   Classes,
@@ -40,9 +44,11 @@ type
     procedure TestDisplayExceptionPropagatesWhenUnhandled;
     procedure TestDisplayExceptionSwallowedWhenHandled;
   end;
+{$ENDIF}
 
 implementation
 
+{$IFDEF MSWINDOWS}
 { TTestBoldControlPack }
 
 function TTestBoldControlPack.RaisingGetAsString(aFollower: TBoldFollower): string;
@@ -129,5 +135,6 @@ end;
 
 initialization
   BoldRegisterTest(TTestBoldControlPack);
+{$ENDIF}
 
 end.

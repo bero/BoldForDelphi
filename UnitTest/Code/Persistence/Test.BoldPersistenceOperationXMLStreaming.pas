@@ -2,11 +2,13 @@
 
 { TBoldPersistenceOperation.RemoteExecute, the client side of a persistence
   operation over SOAP. A stub IBoldSOAPService records the request and returns
-  a canned reply, so no SOAP server is needed. Delphi only: the service
-  interface comes from a COM type library (BoldSOAP_TLB). }
+  a canned reply, so no SOAP server is needed. Delphi on Windows only: the
+  service interface comes from a COM type library (BoldSOAP_TLB). On other
+  platforms the unit is empty. }
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses
   BoldTestFramework;
 
@@ -20,9 +22,11 @@ type
     procedure TestReplyThatIsNotXMLRaisesLoadError;
     procedure TestFaultDoesNotLeak;
   end;
+{$ENDIF}
 
 implementation
 
+{$IFDEF MSWINDOWS}
 uses
   Windows,
   SysUtils,
@@ -248,5 +252,6 @@ end;
 
 initialization
   BoldRegisterTest(TTestBoldPersistenceOperationRemoteExecute);
+{$ENDIF}
 
 end.

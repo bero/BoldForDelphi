@@ -20,10 +20,14 @@
     "<Delphi>\bin\tregsvr.exe" -c <repo>\Source\Common\SOAP\BoldSOAP.tlb
 
   Without it the tests fail with "Unable to load type library LIBID_BoldSOAP"
-  rather than on their own assertions. }
+  rather than on their own assertions.
+
+  Windows only: the client uses COM and WinInet. On other platforms the unit
+  is empty. }
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses
   System.SysUtils,
   DUnitX.TestFramework,
@@ -72,9 +76,11 @@ type
     procedure RoundTripFromAnObjectAbove2GB;
     {$ENDIF}
   end;
+{$ENDIF}
 
 implementation
 
+{$IFDEF MSWINDOWS}
 uses
   System.Classes,
   Winapi.Windows,
@@ -291,5 +297,6 @@ end;
 
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldHTTPPersistenceControllerClient);
+{$ENDIF}
 
 end.

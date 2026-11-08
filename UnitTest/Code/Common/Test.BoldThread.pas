@@ -1,9 +1,13 @@
 ﻿unit Test.BoldThread;
 
-{ DUnitX tests for BoldThread - suspended-thread wakeup (H10) }
+{ DUnitX tests for BoldThread - suspended-thread wakeup (H10)
+
+  Windows only: TBoldNotifiableThread runs a Windows message loop. On other
+  platforms the unit is empty. }
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses
   Classes,
   SysUtils,
@@ -18,9 +22,11 @@ type
     [Test]
     procedure TestQuitResumesSuspendedThread;
   end;
+{$ENDIF}
 
 implementation
 
+{$IFDEF MSWINDOWS}
 procedure TTestBoldThread.TestQuitResumesSuspendedThread;
 var
   T: TBoldNotifiableThread;
@@ -53,5 +59,6 @@ end;
 
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldThread);
+{$ENDIF}
 
 end.

@@ -17,7 +17,9 @@ interface
 uses
   System.SysUtils,
   System.Classes,
+  {$IFDEF MSWINDOWS}
   Vcl.Forms,
+  {$ENDIF}
   BoldDatabaseAdapterFireDAC,
   FireDAC.Comp.Client,
   FireDAC.Stan.Def,
@@ -25,7 +27,12 @@ uses
   FireDAC.Phys.MSSQL,
   FireDAC.Phys.MSSQLDef, FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Pool,
-  FireDAC.Phys, FireDAC.VCLUI.Wait;
+  FireDAC.Phys,
+  {$IFDEF MSWINDOWS}
+  FireDAC.VCLUI.Wait;
+  {$ELSE}
+  FireDAC.ConsoleUI.Wait; // no VCL off Windows
+  {$ENDIF}
 
 type
   TdmUndoRedoFireDAC = class(TDataModule)
@@ -62,9 +69,11 @@ procedure ConnectFireDAC(DataModule: TdmUndoRedo);
 var
   FireDACModule: TdmUndoRedoFireDAC;
 begin
+  {$IFDEF MSWINDOWS}
   if not Assigned(Application) then
     raise Exception.Create('Application is nil');
   Application.Initialize;
+  {$ENDIF}
 
   // Create the test database first
   CreateTestDatabase;

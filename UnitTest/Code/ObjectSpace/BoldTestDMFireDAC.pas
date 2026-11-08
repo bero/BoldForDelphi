@@ -18,7 +18,9 @@ interface
 uses
   System.SysUtils,
   System.Classes,
+  {$IFDEF MSWINDOWS}
   Vcl.Forms,
+  {$ENDIF}
   BoldAbstractDatabaseAdapter,
   BoldDatabaseAdapterFireDAC,
   FireDAC.Stan.Intf,
@@ -33,7 +35,11 @@ uses
   FireDAC.Comp.Client,
   FireDAC.Phys.MSSQL,
   FireDAC.Phys.MSSQLDef,
+  {$IFDEF MSWINDOWS}
   FireDAC.VCLUI.Wait;
+  {$ELSE}
+  FireDAC.ConsoleUI.Wait; // no VCL off Windows
+  {$ENDIF}
 
 type
   TBoldTestDMFireDAC = class(TDataModule)
@@ -110,8 +116,10 @@ var
   FireDACModule: TBoldTestDMFireDAC;
   IniPath: string;
 begin
+  {$IFDEF MSWINDOWS}
   if not Assigned(Application) then
     Application.Initialize;
+  {$ENDIF}
 
   // Owned by the test data module, so it goes when BoldTestDM is freed.
   FireDACModule := TBoldTestDMFireDAC.Create(DataModule);
