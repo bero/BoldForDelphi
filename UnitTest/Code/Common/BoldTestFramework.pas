@@ -157,7 +157,8 @@ function BoldTestTickCount: Int64;
 // Heap measurement for leak regression tests: the bytes the memory manager
 // has handed out and not taken back yet. Only the difference between two
 // readings means something.
-// Delphi on Windows reads FastMM's GetMemoryManagerState. Delphi on Linux has
+// Delphi on Windows reads FastMM's GetMemoryManagerState (FastMM4's own under
+// check_memory.ps1, which installs FastMM4). Delphi on Linux has
 // no such statistics, so this unit counts them itself (see
 // InstallCountingMemoryManager). Delphi on other platforms raises.
 function BoldTestAllocatedBytes: Int64;
@@ -523,7 +524,11 @@ end;
 uses
   SysUtils,
   Classes,
-  IOUtils;
+  IOUtils{$IFDEF BOLD_FASTMM4},
+  // check_memory.ps1 replaces the memory manager with FastMM4. Last in this
+  // list, its GetMemoryManagerState and TMemoryManagerState hide System's,
+  // which would read the idle built-in manager, whose counts never move.
+  FastMM4{$ENDIF};
 
 procedure BoldRegisterTest(AClass: TBoldTestCaseClass);
 begin
