@@ -106,6 +106,7 @@ uses
   Test.BoldUMLTypes,
   Test.BoldURI,
   Test.BoldUndoHandler,
+  Test.BoldUnloaderHandle,
   Test.BoldUpdatePrecondition,
   Test.BoldUtils,
   Test.BoldXMLStreaming,

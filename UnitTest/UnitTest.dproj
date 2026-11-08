@@ -247,6 +247,7 @@
         <DCCReference Include="Code\Handles\Test.BoldSortedHandle.pas"/>
         <DCCReference Include="Code\Handles\Test.BoldFilteredHandle.pas"/>
         <DCCReference Include="Code\Handles\Test.BoldOclVariables.pas"/>
+        <DCCReference Include="Code\Handles\Test.BoldUnloaderHandle.pas"/>
         <DCCReference Include="Code\Common\Test.BoldCollections.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldSSExcept.pas"/>
         <DCCReference Include="Code\Common\Test.BoldDefs.pas"/>

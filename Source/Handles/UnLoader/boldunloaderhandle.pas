@@ -13,8 +13,7 @@ uses
   BoldSystem,
   BoldSystemHandle,
   BoldHandles,
-  Classes,
-  ExtCtrls;
+  Classes;
 
 const
   cTickInterval = 60 * 1000; // 1 minute
@@ -30,7 +29,8 @@ type
   private
     fActive: Boolean;
     fUnloader: TBoldUnloader;
-    fTimer: TTimer;
+    fTickInterval: Integer;
+    fTickScheduled: Boolean;
     function GetUnloadDelayedFetch: boolean;
     function GetMinAgeForUnload: integer;
     function GetScanPerTick: integer;
@@ -45,7 +45,9 @@ type
     function GetUnloadFromCurrentClassList: boolean;
     procedure SetUnloadFromCurrentClassList(const Value: boolean);
     property Unloader: TBoldUnloader read fUnloader;
-    procedure Tick(Sender: Tobject);
+    procedure Tick;
+    procedure ScheduleTick;
+    procedure CancelTick;
     procedure PropagateToUnloder;
     function GetTickInterval: integer;
     procedure SetTickInterval(const Value: integer);
@@ -76,6 +78,8 @@ implementation
 
 uses
   SysUtils,
+  DateUtils,
+  BoldClock,
   BoldUtils;
 const
   breHandleDestroyed = 42;
@@ -87,19 +91,16 @@ constructor TBoldUnloaderHandle.Create(AOwner: TComponent);
 begin
   inherited;
   fUnLoader := TBoldUnloader.Create;
-  fTimer := TTimer.Create(Self);
-  fTimer.Enabled := True;
   TickInterval := cTickInterval;
   ScanPertick := cScanPertick;
   MinAgeForUnload := cMinAgeForUnload;
-  fTimer.OnTimer := Tick;
   Active := True;
 end;
 
 destructor TBoldUnloaderHandle.Destroy;
 begin
+  CancelTick;
   FreeAndNil(fUnLoader);
-  FreeAndNil(fTimer);
   inherited;
 end;
 
@@ -125,7 +126,7 @@ end;
 
 function TBoldUnloaderHandle.GetTickInterval: integer;
 begin
-  Result := fTimer.Interval;
+  Result := fTickInterval;
 end;
 
 procedure TBoldUnloaderHandle.PropagateToUnloder;
@@ -140,6 +141,7 @@ begin
   end
   else
     fUnLoader.Active := False;
+  ScheduleTick;
 end;
 
 procedure TBoldUnloaderHandle.SetActive(const Value: boolean);
@@ -182,11 +184,47 @@ end;
 
 procedure TBoldUnloaderHandle.SetTickInterval(const Value: integer);
 begin
-  fTimer.Interval := Value;
+  fTickInterval := Value;
+  ScheduleTick;
 end;
 
-procedure TBoldUnloaderHandle.Tick(Sender: TObject);
+// The tick comes from BoldSharedClock, not from a VCL TTimer, so it arrives in
+// every application that calls CheckSynchronize: VCL and FMX from their idle
+// loops, a console program or service itself. The handle schedules a tick only
+// while its unloader is active.
+procedure TBoldUnloaderHandle.ScheduleTick;
+var
+  Clock: TBoldClock;
 begin
+  Clock := BoldSharedClock; // nil once BoldClock is finalized
+  if Assigned(fUnloader) and fUnloader.Active and (fTickInterval > 0) and Assigned(Clock) then
+  begin
+    Clock.Schedule(IncMilliSecond(Now, fTickInterval), Tick);
+    fTickScheduled := True;
+  end
+  else
+    CancelTick;
+end;
+
+procedure TBoldUnloaderHandle.CancelTick;
+var
+  Clock: TBoldClock;
+begin
+  if fTickScheduled then
+  begin
+    fTickScheduled := False;
+    Clock := BoldSharedClock;
+    if Assigned(Clock) then
+      Clock.Cancel(Tick);
+  end;
+end;
+
+procedure TBoldUnloaderHandle.Tick;
+begin
+  // The alarm has fired. Schedule the next one first, so that an exception in
+  // the unloader does not end the ticking, as it did not with the timer.
+  fTickScheduled := False;
+  ScheduleTick;
   UnLoader.Tick;
 end;
 
