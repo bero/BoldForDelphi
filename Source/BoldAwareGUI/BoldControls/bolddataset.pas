@@ -17,7 +17,6 @@ uses
   Generics.Collections,
   BoldDefs,
   DB,
-  BoldEnvironmentVCL,
   BoldSystem,
   BoldSystemRT,
   BoldElements,
@@ -27,7 +26,7 @@ uses
   BoldControlPack,
   BoldControllerListControlPack,
   BoldStringControlPack,
-  BoldListHandleFollower, ExtCtrls;
+  BoldListHandleFollower;
 
 type
   TBDSBookmarkInfo = record
@@ -117,7 +116,9 @@ type
   { TBoldAbstractDataSet }
   TBoldAbstractDataSet = class(TDataSet)
   private
-    FTimer: TTimer;
+    // The debounced refresh after Bold-side changes; see DebouncedResync
+    fRefreshWindowOpen: Boolean;
+    fRefreshPending: Boolean;
     FAutoOpen: boolean;
     FBookmarkOfs: integer;
     FContextSubscriber: TBoldPassthroughSubscriber;
@@ -148,8 +149,8 @@ type
     procedure SetBoldHandle(NewValue: TBoldAbstractListHandle);
     procedure SetFieldDescriptions(const Value: TBoldDataSetFieldDescriptions);
     procedure EnsureRecordPosInValidRange;
-    procedure TimerTrigger(Sender: TObject);
-    procedure DoTimer;
+    procedure DebouncedResync;
+    procedure DebouncedResyncDue;
   protected
     procedure Loaded; override;
     function CreateNewElement: TBoldElement; virtual;
@@ -245,7 +246,12 @@ uses
   BoldAttributes,
   DBConsts,
   Variants,
+  BoldClock,
   BoldEnvironment;
+
+const
+  // How long DebouncedResync collects further changes before it re-reads again
+  cRefreshInterval = 100 / MSecsPerDay;
 
 
 type
@@ -428,7 +434,7 @@ begin
 
     if not (Dataset.State in dsWriteModes) then
     begin
-      DoTimer;
+      DebouncedResync;
       //UpdateCursorPos;
       //Resync([]);
     end
@@ -664,10 +670,6 @@ end;
 constructor TBoldAbstractDataSet.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fTimer:= TTimer.Create(nil);
-  fTimer.Interval := 100;
-  fTimer.Enabled:= False;
-  fTimer.OnTimer:= TimerTrigger;
   fLastKnownType := nil;
   fInternalCursorReady := false;
   FContextSubscriber := TBoldPassthroughSubscriber.Create(_ReceiveContext);
@@ -688,7 +690,10 @@ end;
 destructor TBoldAbstractDataSet.Destroy;
 begin
   Close;
-  FreeAndNil(fTimer);
+  // A refresh that is still due must not reach the freed dataset
+  // BoldSharedClock is a function (nil after BoldClock's finalization), so no Assigned()
+  if fRefreshWindowOpen and (BoldSharedClock <> nil) then
+    BoldSharedClock.Cancel(DebouncedResyncDue);
   FRecordPos := -1;
   FreeAndNil(FContextSubscriber);
   FreeAndNil(FListFollower);
@@ -1055,7 +1060,7 @@ begin
     Exit;
   if (State in dsWriteModes) then
     UpdateRecord;
-  DoTimer;
+  DebouncedResync;
   //UpdateCursorPos;
   //Resync([]);
 end;
@@ -1887,24 +1892,38 @@ procedure TBoldAbstractDataSet.SetRecNo(Value: Integer);
 begin
 end;
 
-procedure TBoldAbstractDataSet.DoTimer;
+{ Re-reads the records after a Bold-side change: the first change at once,
+  and the ones that follow within cRefreshInterval together, once the interval
+  is over. BoldSharedClock delivers that on the main thread through
+  CheckSynchronize, which VCL and FMX call from their idle loops and a console
+  application calls itself. It used to be a VCL TTimer, which needs a message
+  loop. }
+procedure TBoldAbstractDataSet.DebouncedResync;
 begin
-  if not fTimer.Enabled then
+  if not fRefreshWindowOpen then
   begin
-    fTimer.Tag:= 0;
-    TimerTrigger(nil);
-    fTimer.Tag:= 1;
+    fRefreshPending := False;
+    UpdateCursorPos;
+    Resync([]);
   end
   else
-    fTimer.Tag:= 0;
-  fTimer.Enabled:= false;
-  fTimer.Enabled:= true;
+    fRefreshPending := True;
+  if BoldSharedClock <> nil then
+  begin
+    fRefreshWindowOpen := True;
+    BoldSharedClock.Schedule(Now + cRefreshInterval, DebouncedResyncDue);
+  end;
 end;
 
-procedure TBoldAbstractDataSet.TimerTrigger(Sender: TObject);
+procedure TBoldAbstractDataSet.DebouncedResyncDue;
 begin
-  fTimer.Enabled:= False;
-  if fTimer.Tag = 1 then Exit;
+  fRefreshWindowOpen := False;
+  if not fRefreshPending then
+    Exit;
+  fRefreshPending := False;
+  // The dataset may have been closed while the refresh was due
+  if not Active then
+    Exit;
   UpdateCursorPos;
   Resync([]);
 end;

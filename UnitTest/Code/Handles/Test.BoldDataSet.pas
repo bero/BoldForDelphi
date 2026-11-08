@@ -27,6 +27,9 @@ type
     FDataSet: TBoldDataSet;
     procedure AddField(const AExpression: string);
     function ListObject(AIndex: Integer): TClassA;
+    procedure ChangeTwiceOnTheBoldSide(ATarget: TClassA);
+    function WaitForFieldValue(const AFieldName, AExpected: string; ATimeoutMs: Integer): Boolean;
+    procedure ProcessQueuedCallsFor(AMilliseconds: Integer);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -45,6 +48,11 @@ type
     procedure TestAppendRecordCreatesOneObject;
     procedure TestDateAndTimeFieldsRoundTrip;
     procedure TestBlobFieldReadsAndWrites;
+    // A Bold-side change refreshes the dataset through BoldSharedClock, which
+    // needs only CheckSynchronize, not a VCL message loop (#117 step 9)
+    procedure TestBoldSideChangesShowWithoutAMessageLoop;
+    procedure TestCloseWithAPendingRefresh;
+    procedure TestFreeWithAPendingRefresh;
   end;
 {$ENDIF}
 
@@ -53,7 +61,9 @@ implementation
 {$IFDEF MSWINDOWS}
 uses
   SysUtils,
-  DB;
+  Classes,
+  DB,
+  BoldQueue;
 
 const
   cNames: array[0..2] of string = ('one', 'two', 'three');
@@ -107,6 +117,42 @@ end;
 function TTestBoldDataSet.ListObject(AIndex: Integer): TClassA;
 begin
   Result := FDataModule.BoldListHandle1.List[AIndex] as TClassA;
+end;
+
+{ Two changes in a row, each displayed as the VCL's idle loop would. The
+  dataset refreshes at once on the first; the second falls into its 100 ms
+  debounce interval and shows only when that is over. }
+procedure TTestBoldDataSet.ChangeTwiceOnTheBoldSide(ATarget: TClassA);
+begin
+  ATarget.aString := 'first';
+  TBoldQueueable.DisplayAll;
+  ATarget.aString := 'second';
+  TBoldQueueable.DisplayAll;
+end;
+
+function TTestBoldDataSet.WaitForFieldValue(const AFieldName, AExpected: string; ATimeoutMs: Integer): Boolean;
+var
+  StartTicks: Int64;
+begin
+  StartTicks := BoldTestTickCount;
+  repeat
+    TBoldQueueable.DisplayAll;
+    CheckSynchronize(20);
+    if FDataSet.FieldByName(AFieldName).AsString = AExpected then
+      Exit(True);
+  until (BoldTestTickCount - StartTicks) >= ATimeoutMs;
+  Result := False;
+end;
+
+{ Runs what other threads handed to the main thread with TThread.Queue, as
+  VCL and FMX do from their idle loops. }
+procedure TTestBoldDataSet.ProcessQueuedCallsFor(AMilliseconds: Integer);
+var
+  StartTicks: Int64;
+begin
+  StartTicks := BoldTestTickCount;
+  while (BoldTestTickCount - StartTicks) < AMilliseconds do
+    CheckSynchronize(20);
 end;
 
 procedure TTestBoldDataSet.TestOpenShowsOneRecordPerObject;
@@ -320,6 +366,41 @@ begin
   FDataSet.FieldByName('aBlob').AsString := 'blob two';
   FDataSet.Post;
   Assert.AreEqual('blob two', Target.aBlob, 'the blob written through CreateBlobStream should reach the object');
+end;
+
+procedure TTestBoldDataSet.TestBoldSideChangesShowWithoutAMessageLoop;
+begin
+  FDataSet.Open;
+  FDataSet.First;
+  ChangeTwiceOnTheBoldSide(ListObject(0));
+  Assert.IsTrue(WaitForFieldValue('aString', 'second', 3000),
+    'the second change should show after the debounce, through CheckSynchronize alone');
+end;
+
+procedure TTestBoldDataSet.TestCloseWithAPendingRefresh;
+begin
+  FDataSet.Open;
+  FDataSet.First;
+  ChangeTwiceOnTheBoldSide(ListObject(0));
+  FDataSet.Close;
+  // The pending refresh comes due on a closed dataset and must do nothing.
+  // Delphi's TDataSet.Resync already does nothing there (it checks
+  // IsCursorOpen); Free Pascal's does not, so under Free Pascal this guards
+  // the Active check in DebouncedResyncDue.
+  ProcessQueuedCallsFor(300);
+  Assert.IsFalse(FDataSet.Active, 'the dataset should stay closed');
+end;
+
+procedure TTestBoldDataSet.TestFreeWithAPendingRefresh;
+begin
+  FDataSet.Open;
+  FDataSet.First;
+  ChangeTwiceOnTheBoldSide(ListObject(0));
+  // The pending refresh must not reach the freed dataset (check_memory and
+  // heaptrc see it if it does)
+  FreeAndNil(FDataSet);
+  ProcessQueuedCallsFor(300);
+  Assert.IsTrue(FDataSet = nil, 'the dataset should be gone');
 end;
 
 initialization

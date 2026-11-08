@@ -41,6 +41,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   unloader now also runs in console programs and services that call
   `CheckSynchronize`, on Linux too (#117). The handle schedules a tick only
   while its unloader is active.
+- `TBoldDataSet` refreshes after Bold-side changes through `BoldSharedClock`
+  instead of a VCL `TTimer`, so `BoldDataSet` no longer imports `ExtCtrls` or
+  `BoldEnvironmentVCL` (#117). As before, the first change re-reads the
+  records at once, and the ones within the next 100 ms together after that;
+  the delayed refresh now runs on `CheckSynchronize`, so also without a
+  message loop.
 - `TBoldPersistenceProgressNotifier`, which shows fetch and update progress in
   VCL controls, moved from `BoldPersistenceNotifier` to the new unit
   `BoldPersistenceProgressNotifier` (`Source\Persistence\UtilsGUI`, part of
