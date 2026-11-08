@@ -26,13 +26,14 @@ uses
   BoldQueue;
 
 const
-  // The Delphi test application links Bold VCL units, which register the VCL
-  // environment. The FPC test runner links no GUI framework environment.
-  {$IFDEF FPC}
+  // The Delphi test application on Windows links Bold VCL units, which
+  // register the VCL environment. The FPC test runner and Delphi on other
+  // platforms link no GUI framework environment.
+  {$IF defined(FPC) or not defined(MSWINDOWS)}
   cExpectedEnvironment = 'Freestanding';
   {$ELSE}
   cExpectedEnvironment = 'VCL';
-  {$ENDIF}
+  {$IFEND}
 
 procedure TTestBoldEnvironment.RegisterFreestandingFramework;
 begin
@@ -86,8 +87,9 @@ end;
 procedure TTestBoldEnvironment.TestSecondFrameworkRegistrationRaises;
 begin
   // BoldEnvironmentVCL has already registered itself in the Delphi test
-  // application. The FPC runner has no framework environment, so it registers a
-  // freestanding one first (same name and behaviour as the fallback).
+  // application on Windows. The FPC runner and Delphi on other platforms have
+  // no framework environment, so they register a freestanding one first (same
+  // name and behaviour as the fallback).
   if not Assigned(BoldInternalFrameworkConfiguration) then
     RegisterFreestandingFramework;
   Assert.WillRaise(RegisterFreestandingFramework, EBold);
