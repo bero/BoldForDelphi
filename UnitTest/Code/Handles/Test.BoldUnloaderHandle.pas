@@ -76,6 +76,10 @@ begin
   fHandle.TickInterval := cTestTickMs;
   fHandle.OnMayStart := RefuseStart;
   fHandle.StaticSystemHandle := fDataModule.BoldSystemHandle1;
+  // Activating the unloader runs one Tick at once (TBoldUnloader.SetActive),
+  // so an active handle has asked OnMayStart once before any alarm fired.
+  // The tests count only the ticks that come from the clock.
+  fStartRequests := 0;
 end;
 
 function TTestBoldUnloaderHandle.PumpUntilStartRequests(Count: Integer): Boolean;
@@ -109,6 +113,7 @@ procedure TTestBoldUnloaderHandle.TestTicksWithoutMessageLoop;
 begin
   CreateHandle(True);
   // The handle holds one alarm at a time, so the pump stops at exactly two
+  // ticks; the second shows that each tick schedules the next one
   PumpUntilStartRequests(2);
   Assert.AreEqual(2, fStartRequests,
     'An active handle on an active system must tick repeatedly from CheckSynchronize (OnMayStart requests in 2 s)');
