@@ -156,6 +156,8 @@ function BoldTestReadAllText(const FileName: string): string;
 function BoldTestTickCount: Int64;
 // Heap measurement for leak regression tests: the bytes the memory manager
 // has handed out and not taken back yet.
+// Delphi outside Windows has no GetMemoryManagerState, so both functions raise
+// there for now.
 function BoldTestAllocatedBytes: Int64;
 // The number of allocated memory blocks. FastMM (Delphi) counts them, which is
 // more stable than bytes for leak tests: a leaked object is a fixed number of
@@ -669,38 +671,48 @@ begin
 end;
 
 function BoldTestAllocatedBytes: Int64;
-{$IFNDEF FPC}
+{$IF defined(MSWINDOWS) and not defined(FPC)}
 var
   st: TMemoryManagerState;
   i: Integer;
-{$ENDIF}
+{$IFEND}
 begin
   {$IFDEF FPC}
   Result := GetFPCHeapStatus.CurrHeapUsed;
   {$ELSE}
+  {$IFDEF MSWINDOWS}
   GetMemoryManagerState(st);
   Result := Int64(st.TotalAllocatedMediumBlockSize) + Int64(st.TotalAllocatedLargeBlockSize);
   for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
     Result := Result + Int64(st.SmallBlockTypeStates[i].UseableBlockSize) *
                        Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
+  {$ELSE}
+  raise Exception.Create('BoldTestAllocatedBytes: Delphi has no GetMemoryManagerState ' +
+    'on this platform');
+  {$ENDIF}
   {$ENDIF}
 end;
 
 function BoldTestAllocatedBlocks: Int64;
-{$IFNDEF FPC}
+{$IF defined(MSWINDOWS) and not defined(FPC)}
 var
   st: TMemoryManagerState;
   i: Integer;
-{$ENDIF}
+{$IFEND}
 begin
   {$IFDEF FPC}
   raise Exception.Create('BoldTestAllocatedBlocks: the Free Pascal heap manager does not count ' +
     'blocks; use BoldTestAllocatedBytes');
   {$ELSE}
+  {$IFDEF MSWINDOWS}
   GetMemoryManagerState(st);
   Result := Int64(st.AllocatedMediumBlockCount) + Int64(st.AllocatedLargeBlockCount);
   for i := Low(st.SmallBlockTypeStates) to High(st.SmallBlockTypeStates) do
     Result := Result + Int64(st.SmallBlockTypeStates[i].AllocatedBlockCount);
+  {$ELSE}
+  raise Exception.Create('BoldTestAllocatedBlocks: Delphi has no GetMemoryManagerState ' +
+    'on this platform');
+  {$ENDIF}
   {$ENDIF}
 end;
 

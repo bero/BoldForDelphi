@@ -4,10 +4,14 @@
   NewIdFromQuery. These tests exercise the mocks themselves, not Bold code, and
   Delphi-Mocks needs Delphi's extended RTTI (TVirtualInterface), so they are
   Delphi only. The PMapper tests that run on both compilers are in
-  Test.BoldPMappersDefault. }
+  Test.BoldPMappersDefault.
+
+  Windows only: Delphi-Mocks (upstream 9db73c2) does not compile for Linux64.
+  On other platforms the unit is empty. }
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses
   DUnitX.TestFramework,
   Delphi.Mocks,
@@ -25,9 +29,11 @@ type
     [Test]
     procedure TestMockQueryWithMultipleFields;
   end;
+{$ENDIF}
 
 implementation
 
+{$IFDEF MSWINDOWS}
 uses
   System.Rtti;
 
@@ -97,5 +103,6 @@ end;
 
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldPMappersDefaultMocks);
+{$ENDIF}
 
 end.

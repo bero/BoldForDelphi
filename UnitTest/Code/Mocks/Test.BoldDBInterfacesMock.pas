@@ -22,10 +22,14 @@
       var Query := Db.GetQuery;
       ...
     end;
+
+  Windows only: Delphi-Mocks (upstream 9db73c2) does not compile for Linux64.
+  On other platforms the unit is empty.
 }
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses
   DUnitX.TestFramework,
   Delphi.Mocks,
@@ -54,9 +58,11 @@ type
     [Test]
     procedure TestMockWillExecute;
   end;
+{$ENDIF}
 
 implementation
 
+{$IFDEF MSWINDOWS}
 uses
   SysUtils,
   System.Rtti;
@@ -211,5 +217,6 @@ end;
 
 initialization
   TDUnitX.RegisterTestFixture(TTestBoldDBInterfacesMock);
+{$ENDIF}
 
 end.
