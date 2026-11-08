@@ -37,6 +37,7 @@ type
       RequestedEvent: TBoldRequestedEvent; const Args: array of const);
     procedure ClassChanged(TheClass: TBoldObjectList);
     procedure LockLost(LockName: String);
+    procedure LockLostRaises(LockName: String);
     procedure FailedMessage(AMessage: String; AException: Exception);
     procedure ConnectActiveSystem;
     procedure Deliver(const aMessage: string);
@@ -52,6 +53,8 @@ type
     procedure TestFreedSystemHandleIsReleased;
     procedure TestExpressionSubscriberListens;
     procedure TestExpressionSubscriberIgnoresOtherMember;
+    procedure TestFailedEventWithoutHandlerRaises;
+    procedure TestFailedEventGoesToOnFailedMessage;
   end;
 
 implementation
@@ -125,6 +128,13 @@ begin
   if fLostLocks <> '' then
     fLostLocks := fLostLocks + ',';
   fLostLocks := fLostLocks + LockName;
+end;
+
+procedure TTestBoldExternalObjectSpaceEventHandler.LockLostRaises(LockName: String);
+begin
+  LockLost(LockName);
+  if LockName = 'Lock1' then
+    raise EBold.CreateFmt('OnLockLost failed for %s', [LockName]);
 end;
 
 procedure TTestBoldExternalObjectSpaceEventHandler.FailedMessage(AMessage: String; AException: Exception);
@@ -238,6 +248,35 @@ begin
   finally
     Subscriber.Free;
   end;
+end;
+
+procedure TTestBoldExternalObjectSpaceEventHandler.TestFailedEventWithoutHandlerRaises;
+var
+  Raised: string;
+begin
+  ConnectActiveSystem;
+  fHandler.OnFailedMessage := nil;
+  fHandler.OnLockLost := LockLostRaises;
+  Raised := '';
+  try
+    Deliver(LockLostMessage('Lock1'));
+  except
+    on E: Exception do
+      Raised := string(E.ClassName) + ': ' + string(E.Message);
+  end;
+  Assert.AreEqual('EBold: OnLockLost failed for Lock1', Raised,
+    'Without OnFailedMessage the error of a failing event reaches the caller');
+end;
+
+procedure TTestBoldExternalObjectSpaceEventHandler.TestFailedEventGoesToOnFailedMessage;
+begin
+  ConnectActiveSystem;
+  fHandler.OnLockLost := LockLostRaises;
+  // One message with two events: the first one fails, the second one is still handled
+  Deliver(LockLostMessage('Lock1') + ',' + LockLostMessage('Lock2'));
+  Assert.AreEqual('Failed:L:Lock1:OnLockLost failed for Lock1', fEvents,
+    'OnFailedMessage gets the failing event and its error');
+  Assert.AreEqual('Lock1,Lock2', fLostLocks, 'The event after the failing one is handled too');
 end;
 
 initialization

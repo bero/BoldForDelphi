@@ -239,7 +239,12 @@ begin
           end;
         except
           on e: exception do
-            FOnFailedMessage(vEvent, e);
+            // With OnFailedMessage the handler reports the failing event and
+            // goes on with the next one; without it the error reaches the caller
+            if Assigned(FOnFailedMessage) then
+              FOnFailedMessage(vEvent, e)
+            else
+              raise;
         end;
       end;
     end;

@@ -88,6 +88,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldExternalObjectSpaceEventHandler` raised an access violation instead of
+  the real error when an event in a message failed and `OnFailedMessage` was not
+  assigned. Without the event, the error reaches the caller again, as it did
+  before the per-event error handling came in 2024; with it, the handler reports
+  the failing event and goes on with the next one (#117)
 - `TExpressionSubscriber` could crash when another client changed a member that
   its expression does not use: `MemberChanged` ended by reading an
   uninitialized local variable. It also read the class and member names of the
