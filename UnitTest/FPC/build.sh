@@ -44,8 +44,14 @@ for unit in component/ZConnection component/ZDataset component/ZSqlProcessor dbc
     -FU"$ZOUT" "$ZSRC/$unit.pas"
 done
 
+# BoldAwareGUI holds the VCL controls; of it only the control packs, BoldGUI and
+# TBoldDataSet build without the VCL (BOLD_VCL in bold.inc), so only their
+# folders are on the path.
 UNITPATHS=$( { find "$ROOT/Source" -type d \
     -not -path '*/Deprecated*' -not -path '*/BoldAwareGUI*' -not -path '*/Unassigned*'; \
+  echo "$ROOT/Source/BoldAwareGUI/ControlPacks"; \
+  echo "$ROOT/Source/BoldAwareGUI/Core"; \
+  echo "$ROOT/Source/BoldAwareGUI/BoldControls"; \
   find "$ROOT/UnitTest/Code" -type d; } | sed 's/^/-Fu/')
 
 # shellcheck disable=SC2086

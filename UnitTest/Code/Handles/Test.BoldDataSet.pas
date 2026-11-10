@@ -42,8 +42,10 @@ type
     procedure TestAppendCreatesOneObject;
     procedure TestDeleteDeletesTheObject;
     procedure TestLocateFindsByFieldValue;
+    procedure TestLocateByPartialKey;
     procedure TestBookmarkReturnsToTheRecord;
     procedure TestEmptyListOpensEmpty;
+    procedure TestPersistentFieldsAreKept;
     procedure TestAppendRecordCreatesOneObject;
     procedure TestDateAndTimeFieldsRoundTrip;
     procedure TestBlobFieldReadsAndWrites;
@@ -284,6 +286,17 @@ begin
   Assert.IsFalse(FDataSet.Locate('aString', 'none', []), 'Locate should not find none');
 end;
 
+procedure TTestBoldDataSet.TestLocateByPartialKey;
+begin
+  FDataSet.Open;
+  Assert.IsTrue(FDataSet.Locate('aString', 'th', [loPartialKey]), 'th should find three');
+  Assert.AreEqual(3, FDataSet.FieldByName('aInteger').AsInteger, 'Locate should move to the record of three');
+  Assert.IsFalse(FDataSet.Locate('aString', 'TW', [loPartialKey]), 'a partial key is case sensitive by default');
+  Assert.IsTrue(FDataSet.Locate('aString', 'TW', [loPartialKey, loCaseInsensitive]), 'TW should find two without case');
+  Assert.AreEqual(2, FDataSet.FieldByName('aInteger').AsInteger, 'Locate should move to the record of two');
+  Assert.IsFalse(FDataSet.Locate('aString', 'twox', [loPartialKey]), 'a key longer than the value should not match');
+end;
+
 procedure TTestBoldDataSet.TestBookmarkReturnsToTheRecord;
 var
   Mark: TBookmark;
@@ -299,6 +312,25 @@ begin
   FDataSet.Bookmark := Mark;
   Assert.AreEqual(Expected, FDataSet.FieldByName('aString').AsString, 'the bookmark should return to the second record');
   Assert.AreEqual(2, FDataSet.RecNo, 'RecNo after going to the bookmark');
+end;
+
+{ A field created before Open, as the IDE's fields editor does: the dataset
+  uses it instead of creating its own, and Close leaves it alone. }
+procedure TTestBoldDataSet.TestPersistentFieldsAreKept;
+var
+  Field: TIntegerField;
+begin
+  Field := TIntegerField.Create(FDataSet);
+  Field.FieldName := 'aInteger';
+  Field.DataSet := FDataSet;
+  FDataSet.Open;
+  FDataSet.First;
+  Assert.AreEqual(1, FDataSet.FieldCount, 'only the persistent field');
+  Assert.AreEqual(ListObject(0).aInteger, Field.AsInteger, 'the persistent field should read aInteger');
+  FDataSet.Close;
+  FDataSet.Open;
+  Assert.AreEqual(1, FDataSet.FieldCount, 'Close and Open should keep the persistent field, and only it');
+  Assert.IsTrue(FDataSet.FindField('aInteger') = Field, 'the same field object after Close and Open');
 end;
 
 procedure TTestBoldDataSet.TestEmptyListOpensEmpty;

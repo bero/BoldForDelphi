@@ -14,7 +14,9 @@ interface
 
 uses
   Classes,
+  {$IFNDEF FPC}
   Generics.Collections,
+  {$ENDIF}
   BoldDefs,
   DB,
   BoldSystem,
@@ -29,6 +31,18 @@ uses
   BoldListHandleFollower;
 
 type
+{$IFDEF FPC}
+  { Free Pascal's TDataSet passes record buffers as TRecordBuffer (PAnsiChar)
+    where Delphi's passes TRecBuf (NativeInt), and field and bookmark data as
+    untyped pointers where Delphi's uses TValueBuffer and TBookmark (#117).
+    The aliases let the shared code read the same for both compilers; the
+    pointer overrides below are thin wrappers around it. }
+  TRecBuf = TRecordBuffer;
+  TValueBuffer = array of Byte;
+{$ENDIF}
+  { The list TDataSet.GetFieldList fills: a TList on Free Pascal }
+  TBoldDataSetFieldList = {$IFDEF FPC}Classes.TList{$ELSE}TList<TField>{$ENDIF};
+
   TBDSBookmarkInfo = record
     Flag: TBookmarkFlag;
     Element: TBoldElement;
@@ -167,19 +181,32 @@ type
     procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
     procedure InternalInitRecord(Buffer: TRecBuf); overload; override;
     function GetRecord(Buffer: TRecBuf; GetMode: TGetMode; DoCheck: Boolean): TGetResult; overload; override;
+    {$IFNDEF FPC}
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; overload; override;
+    {$ENDIF}
     procedure SetRecNo(Value: Integer); override;
     function GetRecordSize: Word; override;
+    {$IFDEF FPC}
+    procedure SetFieldDataValue(Field: TField; Buffer: TValueBuffer);
+    procedure GetBookmarkData(Buffer: TRecBuf; Data: Pointer); override;
+    procedure InternalGotoBookmark(ABookmark: Pointer); override;
+    procedure SetBookmarkData(Buffer: TRecBuf; Data: Pointer); override;
+    {$ELSE}
     procedure SetFieldData(Field: TField; Buffer: TValueBuffer); overload; override;
     procedure GetBookmarkData(Buffer: TRecBuf; Data: TBookmark); overload; override;
-    function GetBookmarkFlag(Buffer: TRecBuf): TBookmarkFlag; overload; override;
     procedure InternalGotoBookmark(Bookmark: TBookmark); overload; override;
+    procedure SetBookmarkData(Buffer: TRecBuf; Data: TBookmark); overload; override;
+    {$ENDIF}
+    function GetBookmarkFlag(Buffer: TRecBuf): TBookmarkFlag; overload; override;
     procedure InternalSetToRecord(Buffer: TRecBuf); overload; override;
     procedure SetBookmarkFlag(Buffer: TRecBuf; Value: TBookmarkFlag); overload; override;
-    procedure SetBookmarkData(Buffer: TRecBuf; Data: TBookmark); overload; override;
     procedure InternalFirst; override;
     procedure InternalLast; override;
+    {$IFNDEF FPC}
+    // Free Pascal's TDataSet never calls InternalAddRecord (its AppendRecord is
+    // Append and Post), so only Delphi gets the override
     procedure InternalAddRecord(Buffer: TRecBuf; Append: Boolean); overload; override;
+    {$ENDIF}
     procedure InternalDelete; override;
     procedure InternalPost; override;
     procedure InternalClose; override;
@@ -190,7 +217,7 @@ type
     function LocateRecord(const KeyFields: string;
       const KeyValues: Variant; Options: TLocateOptions;
       SyncCursor: Boolean): Boolean;
-    function ValuesInFields(AFields: TList<TField>; const KeyValues: Variant; Options: TLocateOptions): Boolean;
+    function ValuesInFields(AFields: TBoldDataSetFieldList; const KeyValues: Variant; Options: TLocateOptions): Boolean;
     { Optional overrides }
     function GetRecordCount: Integer; override;
     function GetRecNo: Integer; override;
@@ -209,9 +236,17 @@ type
     function BookmarkValid(Bookmark: TBookmark): Boolean; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure CreateDefaultFields;
+    {$IFDEF FPC}
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; override;
+    // Public in Free Pascal's TDataSet, protected in Delphi's
+    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; override;
+    function GetFieldDataValue(Field: TField; var Buffer: TValueBuffer): Boolean;
+    {$ELSE}
     function GetFieldData(Field: TField; var Buffer: TValueBuffer): Boolean; overload; override;
-    function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean; override;
-    function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
+    {$ENDIF}
+    // TBoldRTLString: Free Pascal's TDataSet declares these with AnsiString
+    function Locate(const KeyFields: TBoldRTLString; const KeyValues: Variant; Options: TLocateOptions): Boolean; override;
+    function Lookup(const KeyFields: TBoldRTLString; const KeyValues: Variant; const ResultFields: TBoldRTLString): Variant; override;
     procedure TryToOpen;
     property ActiveBoldElement: TBoldElement read GetActiveBoldElement ;
     property ActiveBoldObject: TBoldObject read GetActiveBoldObject;
@@ -244,7 +279,11 @@ uses
   SysUtils,
   Math,
   BoldAttributes,
+  {$IFDEF FPC}
+  DBConst,
+  {$ELSE}
   DBConsts,
+  {$ENDIF}
   Variants,
   BoldClock,
   BoldEnvironment;
@@ -252,6 +291,16 @@ uses
 const
   // How long DebouncedResync collects further changes before it re-reads again
   cRefreshInterval = 100 / MSecsPerDay;
+
+procedure NotEditingError(DataSet: TDataSet);
+begin
+  {$IFDEF FPC}
+  // Free Pascal's message has the dataset name in it
+  DatabaseErrorFmt(SNotEditing, [DataSet.Name]);
+  {$ELSE}
+  DatabaseError(SNotEditing);
+  {$ENDIF}
+end;
 
 
 type
@@ -842,7 +891,7 @@ begin
       begin
         // A value that IndirectElement owns is gone after the finally below
         if not Assigned(BlobValue) or IndirectElement.OwnsValue then
-          DatabaseErrorFmt(SFieldReadOnly, [Field.DisplayName]);
+          DatabaseErrorFmt({$IFDEF FPC}SReadOnlyField{$ELSE}SFieldReadOnly{$ENDIF}, [Field.DisplayName]);
         Result := TBoldDataSetBlobStream.Create(BlobValue, Mode);
       end;
     finally
@@ -876,8 +925,8 @@ begin
   inherited;
 end;
 
-function TBoldAbstractDataSet.Lookup(const KeyFields: string; const KeyValues: Variant;
-  const ResultFields: string): Variant;
+function TBoldAbstractDataSet.Lookup(const KeyFields: TBoldRTLString; const KeyValues: Variant;
+  const ResultFields: TBoldRTLString): Variant;
 begin
   Result := null;
   if LocateRecord(KeyFields, KeyValues, [loCaseInsensitive], false) then
@@ -899,22 +948,23 @@ begin
   inherited ;
 end;
 
-function TBoldAbstractDataSet.ValuesInFields(AFields: TList<TField>; const KeyValues: Variant; Options: TLocateOptions): Boolean;
+function TBoldAbstractDataSet.ValuesInFields(AFields: TBoldDataSetFieldList; const KeyValues: Variant; Options: TLocateOptions): Boolean;
 var
   i: Integer;
 
   function CompareField(AField: TField; AValue: variant): boolean;
+  var
+    Key: string;
   begin
     if (loPartialKey in Options) then
     begin
+      // The field starts with the key. Strings, not PChar: Free Pascal's
+      // AnsiStrLComp takes PAnsiChar
+      Key := VarToStr(AValue);
       if (loCaseInsensitive in Options) then
-        Result := AnsiStrLIComp(PChar(AField.AsString),
-                                PChar(VarToStr(AValue)),
-                                Length(AValue)) = 0
+        Result := AnsiCompareText(Copy(AField.AsString, 1, Length(Key)), Key) = 0
       else
-        Result := AnsiStrLComp(PChar(AField.AsString),
-                               PChar(VarToStr(AValue)),
-                               Length(AValue)) = 0
+        Result := AnsiCompareStr(Copy(AField.AsString, 1, Length(Key)), Key) = 0
     end
     else
     begin
@@ -927,13 +977,13 @@ var
 
 begin
   if AFields.count = 1 then
-    result := CompareField(AFields[0], KeyValues)
+    result := CompareField(TField(AFields[0]), KeyValues)
   else
   begin
     Result := True;
     for i := 0 to AFields.count - 1 do
     begin
-      Result := Result and CompareField(AFields[i], KeyValues[i]);
+      Result := Result and CompareField(TField(AFields[i]), KeyValues[i]);
       if not Result then
         Exit;
     end;
@@ -943,7 +993,7 @@ function TBoldAbstractDataSet.LocateRecord(const KeyFields: string;
   const KeyValues: Variant; Options: TLocateOptions;
   SyncCursor: Boolean): Boolean;
 var
-  LFields: TList<TField>;
+  LFields: TBoldDataSetFieldList;
   Locator: TBoldObjectLocator;
   LocatorPtr: pointer;
   LElement: TBoldElement;
@@ -980,7 +1030,7 @@ begin
     end
     else
     begin
-      LFields := TList<TField>.Create;
+      LFields := TBoldDataSetFieldList.Create;
       try
         GetFieldList(LFields, KeyFields);
         for i := 0 to List.Count - 1 do
@@ -1008,7 +1058,7 @@ begin
   end;
 end;
 
-function TBoldAbstractDataSet.Locate(const KeyFields: string; const KeyValues: Variant;
+function TBoldAbstractDataSet.Locate(const KeyFields: TBoldRTLString; const KeyValues: Variant;
   Options: TLocateOptions): Boolean;
 begin
   DoBeforeScroll;
@@ -1380,12 +1430,14 @@ end;
 
 
 
+{$IFNDEF FPC}
 function TBoldAbstractDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
 begin
   // Still abstract in TDataSet, so implemented; the TRecBuf overload does the work
   Result := GetRecord(TRecBuf(Buffer), GetMode, DoCheck);
 end;
+{$ENDIF}
 
 function TBoldAbstractDataSet.GetRecord(Buffer: TRecBuf; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
@@ -1484,7 +1536,34 @@ begin
   FillChar((TRecordBuffer(Buffer) + RecordSize)^, CalcFieldsSize, 0);
 end;
 
-function TBoldAbstractDataSet.GetFieldData(Field: TField; var Buffer: TValueBuffer): Boolean;
+{$IFDEF FPC}
+function TBoldAbstractDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
+var
+  Value: TValueBuffer;
+begin
+  // A nil Buffer only asks whether the field has a value
+  if Assigned(Buffer) then
+    SetLength(Value, Field.DataSize);
+  Result := GetFieldDataValue(Field, Value);
+  if Result and Assigned(Buffer) and (Length(Value) > 0) then
+    Move(Value[0], Buffer^, Length(Value));
+end;
+
+procedure TBoldAbstractDataSet.SetFieldData(Field: TField; Buffer: Pointer);
+var
+  Value: TValueBuffer;
+begin
+  // A nil Buffer sets the field to null
+  if Assigned(Buffer) and (Field.DataSize > 0) then
+  begin
+    SetLength(Value, Field.DataSize);
+    Move(Buffer^, Value[0], Length(Value));
+  end;
+  SetFieldDataValue(Field, Value);
+end;
+{$ENDIF}
+
+function TBoldAbstractDataSet.{$IFDEF FPC}GetFieldDataValue{$ELSE}GetFieldData{$ENDIF}(Field: TField; var Buffer: TValueBuffer): Boolean;
 var
   LActiveElement: TBoldElement;
   IndirectElement: TBoldIndirectElement;
@@ -1540,14 +1619,14 @@ begin
   end;
 end;
 
-procedure TBoldAbstractDataSet.SetFieldData(Field: TField; Buffer: TValueBuffer);
+procedure TBoldAbstractDataSet.{$IFDEF FPC}SetFieldDataValue{$ELSE}SetFieldData{$ENDIF}(Field: TField; Buffer: TValueBuffer);
 var
   LRecBuf: TRecordBuffer;
 begin
   with Field do
   begin
     if not (State in dsWriteModes) then
-      DatabaseError(SNotEditing);
+      NotEditingError(Self);
 
     if not GetActiveRecBuf(LRecBuf) then
       Exit;
@@ -1555,10 +1634,10 @@ begin
     if FieldNo > 0 then
     begin
       if State = dsCalcFields then
-        DatabaseError(SNotEditing);
+        NotEditingError(Self);
       if ReadOnly and not (State in [dsSetKey, dsFilter]) then
-        DatabaseErrorFmt(SFieldReadOnly, [DisplayName]);
-      Validate(Buffer);
+        DatabaseErrorFmt({$IFDEF FPC}SReadOnlyField{$ELSE}SFieldReadOnly{$ENDIF}, [DisplayName]);
+      Validate({$IFDEF FPC}Pointer(Buffer){$ELSE}Buffer{$ENDIF});
       if FieldKind <> fkInternalCalc then
       begin
         with FieldDescriptions[Field.FieldNo - 1] do
@@ -1584,12 +1663,40 @@ begin
 end;
 
 
+{$IFDEF FPC}
+procedure TBoldAbstractDataSet.GetBookmarkData(Buffer: TRecBuf; Data: Pointer);
+begin
+  // A bookmark holds the record's element
+  PPointer(Data)^ := Pointer(GetBookmarkInfo(TRecordBuffer(Buffer))^.Element);
+end;
+
+procedure TBoldAbstractDataSet.SetBookmarkData(Buffer: TRecBuf; Data: Pointer);
+begin
+  if Assigned(Data) then
+    GetBookmarkInfo(TRecordBuffer(Buffer))^.Element := TBoldElement(PPointer(Data)^)
+  else
+    GetBookmarkInfo(TRecordBuffer(Buffer))^.Element := nil;
+end;
+
+procedure TBoldAbstractDataSet.InternalGotoBookmark(ABookmark: Pointer);
+var
+  LIndex: integer;
+begin
+  if Assigned(ABookmark) then
+    LIndex := GetIndexForElement(TBoldElement(PPointer(ABookmark)^))
+  else
+    LIndex := -1;
+  if LIndex >= 0 then
+    FRecordPos := LIndex;
+end;
+{$ELSE}
 procedure TBoldAbstractDataSet.GetBookmarkData(Buffer: TRecBuf; Data: TBookmark);
 begin
   // A bookmark holds the record's element
   if Length(Data) >= SizeOf(Pointer) then
     PPointer(@Data[0])^ := Pointer(GetBookmarkInfo(TRecordBuffer(Buffer))^.Element);
 end;
+{$ENDIF}
 
 
 
@@ -1626,6 +1733,8 @@ begin
   else
     result := -1;
 end;
+
+{$IFNDEF FPC}
 procedure TBoldAbstractDataSet.InternalGotoBookmark(Bookmark: TBookmark);
 var
   LIndex: integer;
@@ -1634,6 +1743,8 @@ begin
   if LIndex >= 0 then
     FRecordPos := LIndex;
 end;
+
+{$ENDIF}
 
 procedure TBoldAbstractDataSet.InternalSetToRecord(Buffer: TRecBuf);
 var
@@ -1644,6 +1755,7 @@ begin
     FRecordPos := LIndex;
 end;
 
+{$IFNDEF FPC}
 procedure TBoldAbstractDataSet.SetBookmarkData(Buffer: TRecBuf; Data: TBookmark);
 begin
   if Length(Data) >= SizeOf(Pointer) then
@@ -1651,6 +1763,7 @@ begin
   else
     GetBookmarkInfo(TRecordBuffer(Buffer))^.Element := nil;
 end;
+{$ENDIF}
 procedure TBoldAbstractDataSet.InternalFirst;
 begin
   FRecordPos := -1;
@@ -1665,8 +1778,13 @@ end;
 procedure TBoldAbstractDataSet.InternalClose;
 begin
   BindFields(False);
+  {$IFDEF FPC}
+  if DefaultFields then
+    DestroyFields;
+  {$ELSE}
   // DestroyFields frees only the fields TDataSet created itself
   DestroyFields;
+  {$ENDIF}
   fInternalCursorReady := false;
 end;
 
@@ -1683,12 +1801,14 @@ end;
 
 
 
+{$IFNDEF FPC}
 procedure TBoldAbstractDataSet.InternalAddRecord(Buffer: TRecBuf; Append: Boolean);
 begin
   // TDataSet.AddRecord (AppendRecord, InsertRecord) calls DoOnNewRecord first,
   // which created the element already; a second AddNew would add a second one
   FRecordPos := List.IndexOf(GetBookmarkInfo(TRecordBuffer(Buffer))^.Element);
 end;
+{$ENDIF}
 
 
 
@@ -1706,8 +1826,13 @@ begin
 
   if Assigned(BoldHandle.ListElementType) then
     InternalInitFieldDefs;
+  {$IFDEF FPC}
+  if DefaultFields then
+    CreateFields;
+  {$ELSE}
   // CreateFields keeps persistent fields, as FieldOptions.AutoCreateMode says
   CreateFields;
+  {$ENDIF}
 
   BindFields(True);
 
