@@ -117,6 +117,23 @@ Illegal symbol combination
   {$UNDEF BOLD_XMLDOM}
 {$ENDIF}
 
+  // The VCL parts of Bold's control packs (#117). BOLD_VCL is defined for
+  // Delphi on Windows, and only then do BoldControlPack, BoldStringControlPack
+  // and BoldGUI compile what needs the VCL: drawing on a TCanvas, the font and
+  // colour events, the popup menu and the lookup of the hosting form. Without
+  // it the followers, and TBoldDataSet on them, link no VCL unit. Define
+  // BOLD_NO_VCL in a project to leave the VCL parts out on Windows too, for
+  // example in an FMX application or to test the VCL-free build there. Free
+  // Pascal and the other Delphi targets never have them.
+{$UNDEF BOLD_VCL}
+{$IFNDEF FPC}
+  {$IFDEF MSWINDOWS}
+    {$IFNDEF BOLD_NO_VCL}
+      {$DEFINE BOLD_VCL}
+    {$ENDIF}
+  {$ENDIF}
+{$ENDIF}
+
   // When fetching an object which class list is loaded then search there instead of going to db.
 {$DEFINE FetchFromClassList}
 

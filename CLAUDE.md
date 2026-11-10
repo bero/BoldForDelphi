@@ -247,6 +247,9 @@ Other notable defines:
 {$DEFINE BOLD_NO_QUERIES}    // Turns off query mechanism (always on)
 {$DEFINE BOLD_XMLDOM}        // Delphi XML streaming on Xml.xmldom (OmniXML) instead of MSXML;
                              // set by bold.inc off Windows, define it to test it on Windows
+{$DEFINE BOLD_VCL}           // The VCL parts of BoldControlPack, BoldStringControlPack and BoldGUI
+                             // (canvas, font/colour events, popup menu, hosting form); set by
+                             // bold.inc for Delphi on Windows unless the project defines BOLD_NO_VCL
 ```
 
 ## Key Concepts

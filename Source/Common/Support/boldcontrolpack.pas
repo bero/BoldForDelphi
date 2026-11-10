@@ -10,7 +10,9 @@ interface
 uses
   Classes,
   SysUtils,
+  {$IFDEF BOLD_VCL}
   Controls,
+  {$ENDIF}
   {$IFDEF BOLD_DELPH6_OR_LATER}
   Types,
   {$ENDIF}
@@ -18,9 +20,13 @@ uses
   BoldSystemRT,
   BoldSystem,
 {$ENDIF}
+  {$IFDEF BOLD_VCL}
+  // DrawOnCanvas and TBoldPopup.GetMenu; without BOLD_VCL (bold.inc) the
+  // followers link no VCL unit
   Menus,
   Graphics,
   Windows,
+  {$ENDIF}
   BoldDefs,
   BoldControlPackDefs,
   BoldBase,
@@ -147,7 +153,9 @@ type
     procedure DefaultEndDrag(DragMode: TBoldDragMode; InternalDrag: Boolean); virtual;
     function DefaultDragOver(Element: TBoldElement; DropMode: TBoldDropMode; InternalDrag: Boolean; RendererData: TBoldRendererData; dropindex: Integer): Boolean; virtual;
     procedure DefaultDragDrop(Element: TBoldElement; DropMode: TBoldDropMode; dropindex: Integer); virtual;
+    {$IFDEF BOLD_VCL}
     procedure DrawOnCanvas(Follower: TBoldFollower; Canvas: TCanvas; Rect: TRect; Aligment: TAlignment; Margins: TPoint); virtual;
+    {$ENDIF}
     function HasSetValueEventOverrides: boolean; virtual;
     function ValidateCharacter(aFollower: TBoldFollower; C: Char): Boolean; virtual;
     function GetDefaultRepresentationStringList: TStringList; virtual;
@@ -336,7 +344,9 @@ type
     procedure MultiMakeUptodateAndSubscribe(Followers: TBoldFollowerArray);
     function DragOver(Follower: TBoldFollower; ReceivingElement: TBoldElement; dropindex: Integer): Boolean; virtual;
     procedure DragDrop(Follower: TBoldFollower; ReceivingElement: TBoldElement; dropindex: Integer); virtual;
+    {$IFDEF BOLD_VCL}
     procedure DrawOnCanvas(Follower: TBoldFollower; Canvas: TCanvas; Rect: TRect; Alignment: TAlignment; Margins: TPoint); virtual;
+    {$ENDIF}
     function SubFollowersActive: boolean; virtual;
     property OwningComponent: TComponent read FOwningComponent;    
     property ApplyPolicy: TBoldApplyPolicy read FApplyPolicy write FApplyPolicy default bapExit;
@@ -387,7 +397,9 @@ type
     FDelete: TBoldPopupDeleteType;
     FMove: Boolean;
   public
+    {$IFDEF BOLD_VCL}
     function GetMenu(CONTROL: TControl; Element: TBoldElement): TPopupMenu;
+    {$ENDIF}
     procedure Assign(Source: TPersistent); override;
   published
     property Enable: Boolean read FEnable write FEnable default False;
@@ -422,8 +434,10 @@ uses
 {$ENDIF}
   BoldGuard,
   BoldListControlPack,
-  BoldDomainElement,
-  BoldEnvironmentVCL; // The followers need the VCL environment to drain the display queue
+  BoldDomainElement{$IFDEF BOLD_VCL},
+  // A VCL application's followers need the VCL environment to drain the display
+  // queue. Without the VCL the application drains it: TBoldQueueable.DisplayAll
+  BoldEnvironmentVCL{$ENDIF};
 
 const
   breVariablesRemoved = 42;
@@ -693,10 +707,12 @@ begin
   end;
 end;
 
+{$IFDEF BOLD_VCL}
 procedure TBoldFollowerController.DrawOnCanvas(Follower: TBoldFollower; Canvas: TCanvas; Rect: TRect; Alignment: TAlignment; Margins: TPoint);
 begin
   EffectiveRenderer.DrawOnCanvas(Follower, Canvas, Rect, Alignment, Margins);
 end;
+{$ENDIF}
 
 function TBoldFollowerController.MayModify(Follower: TBoldFollower): Boolean;
 begin
@@ -1135,9 +1151,11 @@ begin
     DefaultDragDrop(Element, DropMode, dropindex)
 end;
 
+{$IFDEF BOLD_VCL}
 procedure TBoldRenderer.DrawOnCanvas(Follower: TBoldFollower; Canvas: TCanvas; Rect: TRect; Aligment: TAlignment; Margins: TPoint);
 begin
 end;
+{$ENDIF}
 
 function TBoldRenderer.HasSetValueEventOverrides: boolean;
 begin
@@ -1671,6 +1689,7 @@ begin
 end;
 
 { TBoldPopUp }
+{$IFDEF BOLD_VCL}
 function TBoldPopup.GetMenu(CONTROL: TControl; Element: TBoldElement): TPopupMenu;
 begin
   Result := nil;
@@ -1681,6 +1700,7 @@ begin
     Result := BoldPopupMenu;
   {$ENDIF}
 end;
+{$ENDIF}
 
 procedure TBoldPopup.Assign(Source: TPersistent);
 begin

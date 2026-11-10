@@ -32,6 +32,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   itself. `BoldSharedClock` is the instance shared by the application (#119)
 
 ### Changed
+- The parts of `BoldControlPack`, `BoldStringControlPack` and `BoldGUI` that
+  need the VCL (`DrawOnCanvas`, the renderer's `OnSetFont`/`OnSetColor`, the
+  popup menu, the lookup of the hosting form) are compiled only under the new
+  define `BOLD_VCL`, which `bold.inc` sets for Delphi on Windows. Without it
+  the followers and `TBoldDataSet` link no VCL unit, so `TBoldDataSet` now
+  builds and passes its tests on Linux64 too. A Windows project defines
+  `BOLD_NO_VCL` to leave the VCL parts out, for example an FMX application.
+  Without the VCL the application drains the display queue itself
+  (`TBoldQueueable.DisplayAll`), and `FindHostingForm` returns nil, so
+  `ApplyAllMatching`/`DiscardChangeAllMatching` match no form. `BOLD_NO_VCL`
+  was removed in 956a3ad, when the core stopped needing it; it is back with
+  this narrower meaning (#117)
 - `TBoldOcl` refreshes its `today` and `now` variables through `BoldSharedClock`
   instead of two VCL `TTimer`s, so `BoldOcl` no longer imports `ExtCtrls` (#119).
   An application that never calls `CheckSynchronize` keeps the values from

@@ -6,11 +6,12 @@ unit BoldGUI;
 interface
 
 uses
-  // VCL
   Classes,
+  {$IFDEF BOLD_VCL}
   Controls,
   Forms,
   Menus,
+  {$ENDIF}
 
   // Bold
   BoldBase,
@@ -22,29 +23,45 @@ type
   TBoldGUIHandler = class;
 
   {---TBoldGUIHandler---}
+  { The drag-and-drop state and the popup element are plain Bold and exist
+    everywhere. The popup control and the hosting form need the VCL (BOLD_VCL
+    in bold.inc). }
   TBoldGUIHandler = class(TBoldMemoryManagedObject)
   private
     FPopupElement: TBoldElement;
+    {$IFDEF BOLD_VCL}
     FPopupControl: TControl;
+    {$ENDIF}
     FDraggedObjects: TBoldObjectList;
     fActivateTargetFormOnDrop: Boolean;
   public
     constructor Create;
     destructor Destroy; override;
     procedure DoPopUp(sender: TObject);
+    {$IFDEF BOLD_VCL}
     function FindHostingForm(Component: TComponent): TForm;
+    {$ELSE}
+    // Without the VCL there is no form framework to ask: always nil. The
+    // followers then match no form (ApplyAllMatching, DiscardChangeAllMatching).
+    function FindHostingForm(Component: TComponent): TComponent;
+    {$ENDIF}
+    // Without the VCL: False, there is no form to focus
     function TryToFocusHostingForm(Component: TComponent): Boolean;
     function DraggedObjectsAssignable(element: TBoldElement; dropMode: TBoldDropMode): Boolean;
     property DraggedObjects: TBoldObjectList read FDraggedObjects;
     property PopupElement: TBoldElement read FPopupElement write FPopupElement;
+    {$IFDEF BOLD_VCL}
     property PopupControl: TControl read FPopupControl write FPopupControl;
+    {$ENDIF}
     property ActivateTargetFormOnDrop: Boolean read fActivateTargetFormOnDrop write fActivateTargetFormOnDrop;
   end;
 
 function BoldGUIHandler: TBoldGUIHandler;
 
+{$IFDEF BOLD_VCL}
 var
   BoldPopupMenu: TPopupMenu;
+{$ENDIF}
 
 implementation
 
@@ -123,6 +140,7 @@ procedure TBoldGUIHandler.DoPopUp;
 begin
 end;
 
+{$IFDEF BOLD_VCL}
 function TBoldGUIHandler.FindHostingForm(Component: TComponent): TForm;
 var
   temp: TComponent;
@@ -165,13 +183,30 @@ begin
     result := true;
   end;
 end;
+{$ELSE}
+function TBoldGUIHandler.FindHostingForm(Component: TComponent): TComponent;
+begin
+  Result := nil;
+end;
 
+function TBoldGUIHandler.TryToFocusHostingForm(Component: TComponent): Boolean;
+begin
+  Result := False;
+end;
+{$ENDIF}
+
+// Delphi accepts a finalization section only after an initialization
+// section, so the keyword stays outside BOLD_VCL; without the VCL it is empty
 initialization
+  {$IFDEF BOLD_VCL}
   BoldPopupMenu := TPopupMenu.Create(nil);
   BoldPopupMenu.OnPopup := BoldGUIHandler.DoPopUp;
+  {$ENDIF}
 
 finalization
   FreeAndNil(G_BoldGUIHandler);
+  {$IFDEF BOLD_VCL}
   FreeAndNil(BoldPopupMenu);
+  {$ENDIF}
 
 end.

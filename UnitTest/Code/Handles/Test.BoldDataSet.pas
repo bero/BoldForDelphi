@@ -4,13 +4,12 @@
   step 9). TBoldDataSet is the bridge that lets FMX (through LiveBindings) and
   Lazarus data-aware controls show Bold objects.
 
-  Windows only for now: TBoldDataSet still reaches the VCL through the control
-  packs (BoldControlPack, BoldStringControlPack) and BoldEnvironmentVCL. On
-  other platforms the unit is empty until step 9 removes that. }
+  Every Delphi target: without BOLD_VCL (Linux, macOS, or BOLD_NO_VCL on
+  Windows) TBoldDataSet and its control packs link no VCL unit. Not in the
+  Free Pascal runner yet: TBoldDataSet overrides Delphi's TDataSet API. }
 
 interface
 
-{$IFDEF MSWINDOWS}
 uses
   BoldTestFramework,
   BoldDataSet,
@@ -54,11 +53,9 @@ type
     procedure TestCloseWithAPendingRefresh;
     procedure TestFreeWithAPendingRefresh;
   end;
-{$ENDIF}
 
 implementation
 
-{$IFDEF MSWINDOWS}
 uses
   SysUtils,
   Classes,
@@ -405,6 +402,5 @@ end;
 
 initialization
   BoldRegisterTest(TTestBoldDataSet);
-{$ENDIF}
 
 end.

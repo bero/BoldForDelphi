@@ -7,9 +7,15 @@ unit BoldStringControlPack;
 interface
 
 uses
+  // Graphics and Windows: the font and colour events and DrawOnCanvas; without
+  // BOLD_VCL (bold.inc) this unit links no VCL unit
+  {$IFDEF BOLD_VCL}
   Graphics,
+  {$ENDIF}
   Classes,
+  {$IFDEF BOLD_VCL}
   Windows,
+  {$ENDIF}
   BoldDefs,
   BoldContainers,
   BoldElements,
@@ -26,8 +32,10 @@ type
   TBoldGetAsString = function (aFollower: TBoldFollower): string of object;
   TBoldSetAsString = procedure (aFollower: TBoldFollower; const NewValue: string) of object;
   TBoldValidateString = function (aFollower: TBoldFollower; const Value: string): Boolean of object;
+  {$IFDEF BOLD_VCL}
   TBoldSetFont = procedure (aFollower: TBoldFollower; AFont: TFont) of object;
   TBoldSetColor = procedure (aFollower: TBoldFollower; var AColor: TColor) of object;
+  {$ENDIF}
   TBoldStringIsChanged = function (aFollower: TBoldFollower; const NewValue: string): Boolean of object;
 
   { TBoldStringRendererData }
@@ -51,8 +59,10 @@ type
     FOnSetAsString: TBoldSetAsString;
     FOnValidateCharacter: TBoldValidateString;
     FOnValidateString: TBoldValidateString;
+    {$IFDEF BOLD_VCL}
     fOnSetFont: TBoldSetFont;
     fOnSetColor: TBoldSetColor;
+    {$ENDIF}
     fOnIsChanged: TBoldStringIsChanged;
     function DefaultDisplayString: string;    
   protected
@@ -60,10 +70,14 @@ type
     function GetRendererDataClass: TBoldRendererDataClass; override;
     function GetAsStringAndSubscribe(aFollower: TBoldFollower; Subscriber: TBoldSubscriber): string; virtual;
     procedure SetAsString(aFollower: TBoldFollower; const Value: string); virtual;
+    {$IFDEF BOLD_VCL}
     procedure DrawOnCanvas(Follower: TBoldFollower; Canvas: TCanvas; Rect: TRect; Alignment: TAlignment; Margins: TPoint); override;
+    {$ENDIF}
   public
     class function DefaultRenderer: TBoldAsStringRenderer;
+    {$IFDEF BOLD_VCL}
     class procedure DrawStringOnCanvas(Canvas: TCanvas; Rect: TRect; Alignment: TAlignment; Margins: TPoint; S: string);
+    {$ENDIF}
     function DefaultGetAsStringAndSubscribe(aFollower: TBoldFollower; Subscriber: TBoldSubscriber): string; virtual;
     procedure DefaultSetAsString(aFollower: TBoldFollower; const Value: string); virtual;
     function DefaultValidateCharacter(aFollower: TBoldFollower; C: Char): Boolean; override;
@@ -72,8 +86,10 @@ type
     function ValidateCharacter(aFollower: TBoldFollower; C: Char): Boolean; override;
     function ValidateString(aFollower: TBoldFollower; const Value: string): Boolean; virtual;
     function IsChanged(aFollower: TBoldFollower; const NewValue: string): Boolean;
+    {$IFDEF BOLD_VCL}
     procedure SetFont(aFollower: TBoldFollower; EffectiveFont, Font: TFont);
     procedure SetColor(aFollower: TBoldFollower; var EffectiveColor: TColor; Color: TColor);
+    {$ENDIF}
     procedure MakeUptodateAndSubscribe(aFollower: TBoldFollower; Subscriber: TBoldSubscriber); override;
     procedure MultiMakeUpToDateAndSubscribe(Elements: TBoldClientableList; Subscribers: TBoldObjectArray; RendererData: TBoldObjectArray; FollowerController: TBoldFollowerController);
     procedure DefaultMakeUptodateAndSetMayModifyAndSubscribe(aFollower: TBoldFollower; Subscriber: TBoldSubscriber); virtual;
@@ -82,8 +98,10 @@ type
     property OnSetAsString: TBoldSetAsString read FOnSetAsString write FOnSetAsString;
     property OnValidateCharacter: TBoldValidateString read FOnValidateCharacter write FOnValidateCharacter;
     property OnValidateString: TBoldValidateString read FOnValidateString write FOnValidateString;
+    {$IFDEF BOLD_VCL}
     property OnSetFont: TBoldSetFont read fOnSetFont write fOnSetFont;
     property OnSetColor: TBoldSetColor read fOnSetColor write fOnSetColor;
+    {$ENDIF}
     property OnIsChanged: TBoldStringIsChanged read fOnIsChanged write fOnIsChanged;
   end;
 
@@ -106,8 +124,10 @@ type
     procedure SetAsString(Value: string; Follower: TBoldFollower);
     function ValidateCharacter(C: Char; Follower: TBoldFollower): Boolean;
     function ValidateString(Value: string; Follower: TBoldFollower): Boolean;
+    {$IFDEF BOLD_VCL}
     procedure SetFont(EffectiveFont, Font: tFont; Follower: TBoldFollower);
     procedure SetColor(var EffectiveColor: tColor; COLOR: tColor; Follower: TBoldFollower);
+    {$ENDIF}
     function MayHaveChanged(const NewValue: string; Follower: TBoldFollower): boolean;
     procedure DoMakeUptodateAndSubscribe(Follower: TBoldFollower; Subscribe: Boolean); override;
     function GetAsString(aFollower: TBoldFollower): string;
@@ -177,6 +197,7 @@ begin
   Result := EffectiveAsStringRenderer.ValidateString(Follower, Value);
 end;
 
+{$IFDEF BOLD_VCL}
 procedure TBoldStringFollowerController.SetFont(EffectiveFont, Font: tFont; Follower: TBoldFollower);
 begin
   EffectiveAsStringRenderer.SetFont(Follower, EffectiveFont, Font);
@@ -186,6 +207,7 @@ procedure TBoldStringFollowerController.SetColor(var EffectiveColor: tColor; COL
 begin
   EffectiveAsStringRenderer.SetColor(Follower, EffectiveColor, Color);
 end;
+{$ENDIF}
 
 function TBoldStringFollowerController.MayHaveChanged(const NewValue: string; Follower: TBoldFollower): boolean;
 var
@@ -262,6 +284,7 @@ begin
 end;
 
 {---TBoldAsStringRenderer---}
+{$IFDEF BOLD_VCL}
   class procedure TBoldAsStringRenderer.DrawStringOnCanvas(Canvas: TCanvas; Rect: TRect; Alignment: TAlignment; Margins: TPoint; S: string);
 var
   Left: Integer;
@@ -279,6 +302,7 @@ procedure TBoldAsStringRenderer.DrawOnCanvas(Follower: TBoldFollower; Canvas: TC
 begin
   DrawStringOnCanvas(Canvas, Rect, Alignment, Margins, TBoldStringRendererData(Follower.RendererData).CurrentStringValue);
 end;
+{$ENDIF}
 
 procedure TBoldAsStringRenderer.MakeUpToDateAndSubscribe(aFollower: TBoldFollower; Subscriber: TBoldSubscriber);
 var
@@ -520,6 +544,7 @@ begin
     Result := DefaultValidateString(aFollower, Value);
 end;
 
+{$IFDEF BOLD_VCL}
 procedure TBoldAsStringRenderer.SetFont(aFollower: TBoldFollower; EffectiveFont, Font: TFont);
 begin
   EffectiveFont.Assign(Font);
@@ -533,6 +558,7 @@ begin
   if Assigned(fOnSetColor) then
     fOnSetColor(aFollower, EffectiveColor);
 end;
+{$ENDIF}
 
 class function TBoldAsStringRenderer.DefaultRenderer: TBoldAsStringRenderer;
 begin
