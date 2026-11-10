@@ -13,6 +13,12 @@ interface
 uses
   BoldTestFramework,
   BoldDataSet,
+  BoldHandles,
+  BoldSystemHandle,
+  BoldListHandle,
+  // TestModel1 before jehoBCBoldTest: both declare TClassA, and the
+  // unqualified TClassA here is jehoBCBoldTest's (the later unit wins)
+  TestModel1,
   jehoBCBoldTest,
   jehoBoldTestDataModule;
 
@@ -56,13 +62,42 @@ type
     procedure TestFreeWithAPendingRefresh;
   end;
 
+  { Two TBoldDataSets on chained list handles, as a master-detail form has
+    them: the detail handle is rooted on the master handle, and scrolling the
+    master dataset moves the master handle's current element (#117 step 10,
+    the FMX client shows Invoicing this way). TestModel1: Own has ChildMapped,
+    whose class is abstract; the children are Child1. }
+  {$IFNDEF FPC}
+  [Category('Handles')]
+  {$ENDIF}
+  TTestBoldDataSetMasterDetail = class(TBoldTestCase)
+  private
+    FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
+    FSystemHandle: TBoldSystemHandle;
+    FMasterHandle: TBoldListHandle;
+    FDetailHandle: TBoldListHandle;
+    FMaster: TBoldDataSet;
+    FDetail: TBoldDataSet;
+    function AddOwn(const AChildren: array of string): TOwn;
+    function DetailValues: string;
+    function ExpectedDetailValues: string;
+    function WaitForDetail(ATimeoutMs: Integer): Boolean;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestDetailFollowsTheMaster;
+    procedure TestDetailFollowsANewChild;
+  end;
+
 implementation
 
 uses
   SysUtils,
   Classes,
   DB,
-  BoldQueue;
+  BoldQueue,
+  dmModel1;
 
 const
   cNames: array[0..2] of string = ('one', 'two', 'three');
@@ -432,7 +467,164 @@ begin
   Assert.IsTrue(FDataSet = nil, 'the dataset should be gone');
 end;
 
+{ TTestBoldDataSetMasterDetail }
+
+procedure TTestBoldDataSetMasterDetail.SetUp;
+var
+  Description: TBoldDataSetFieldDescription;
+begin
+  inherited;
+  Ensuredm_Model;
+  FSystemTypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
+  FSystemTypeInfoHandle.BoldModel := dm_Model1.BoldModel1;
+  FSystemHandle := TBoldSystemHandle.Create(nil);
+  FSystemHandle.SystemTypeInfoHandle := FSystemTypeInfoHandle;
+  FSystemHandle.Active := True;
+
+  FMasterHandle := TBoldListHandle.Create(nil);
+  FMasterHandle.RootHandle := FSystemHandle;
+  FMasterHandle.StaticSystemHandle := FSystemHandle;
+  FMasterHandle.Expression := 'Own.allInstances';
+  FDetailHandle := TBoldListHandle.Create(nil);
+  FDetailHandle.RootHandle := FMasterHandle;
+  FDetailHandle.StaticSystemHandle := FSystemHandle;
+  // The role's OCL name; 'ChildMapped' would be the class
+  FDetailHandle.Expression := 'childMapped';
+
+  FMaster := TBoldDataSet.Create(nil);
+  FMaster.BoldHandle := FMasterHandle;
+  Description := FMaster.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'childMapped->size';
+  Description.FieldName := 'ChildCount';
+  FDetail := TBoldDataSet.Create(nil);
+  FDetail.BoldHandle := FDetailHandle;
+  Description := FDetail.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'c';
+  Description.FieldName := 'c';
+end;
+
+procedure TTestBoldDataSetMasterDetail.TearDown;
+begin
+  FreeAndNil(FDetail);
+  FreeAndNil(FMaster);
+  FreeAndNil(FDetailHandle);
+  FreeAndNil(FMasterHandle);
+  if Assigned(FSystemHandle) and FSystemHandle.Active then
+  begin
+    FSystemHandle.System.Discard;
+    FSystemHandle.Active := False;
+  end;
+  FreeAndNil(FSystemHandle);
+  FreeAndNil(FSystemTypeInfoHandle);
+  inherited;
+end;
+
+function TTestBoldDataSetMasterDetail.AddOwn(const AChildren: array of string): TOwn;
+var
+  i: Integer;
+  Child: TChildMapped;
+begin
+  Result := TOwn.Create(FSystemHandle.System);
+  for i := 0 to High(AChildren) do
+  begin
+    Child := TChild1.Create(FSystemHandle.System);
+    Child.c := AChildren[i];
+    Child.Own := Result;
+  end;
+end;
+
+{ The detail records' c values, sorted and comma separated }
+function TTestBoldDataSetMasterDetail.DetailValues: string;
+var
+  Values: TStringList;
+begin
+  Values := TStringList.Create;
+  try
+    FDetail.First;
+    while not FDetail.Eof do
+    begin
+      Values.Add(FDetail.FieldByName('c').AsString);
+      FDetail.Next;
+    end;
+    Values.Sort;
+    Result := Values.CommaText;
+  finally
+    Values.Free;
+  end;
+end;
+
+{ The c values of the master's current Own, sorted and comma separated }
+function TTestBoldDataSetMasterDetail.ExpectedDetailValues: string;
+var
+  Values: TStringList;
+  Own: TOwn;
+  i: Integer;
+begin
+  Values := TStringList.Create;
+  try
+    Own := FMaster.ActiveBoldObject as TOwn;
+    for i := 0 to Own.ChildMapped.Count - 1 do
+      Values.Add(Own.ChildMapped[i].c);
+    Values.Sort;
+    Result := Values.CommaText;
+  finally
+    Values.Free;
+  end;
+end;
+
+{ Drains the display queue and runs what TThread.Queue handed to the main
+  thread, as the VCL's and FMX's idle loops do, until the detail dataset shows
+  the master's current Own }
+function TTestBoldDataSetMasterDetail.WaitForDetail(ATimeoutMs: Integer): Boolean;
+var
+  StartTicks: Int64;
+begin
+  StartTicks := BoldTestTickCount;
+  repeat
+    TBoldQueueable.DisplayAll;
+    CheckSynchronize(20);
+    if DetailValues = ExpectedDetailValues then
+      Exit(True);
+  until (BoldTestTickCount - StartTicks) >= ATimeoutMs;
+  Result := False;
+end;
+
+procedure TTestBoldDataSetMasterDetail.TestDetailFollowsTheMaster;
+begin
+  AddOwn(['a1', 'a2']);
+  AddOwn(['b1']);
+  FMaster.Open;
+  FDetail.Open;
+  FMaster.First;
+  Assert.IsTrue(WaitForDetail(3000), 'the detail should show the first Own''s children, got ' + DetailValues);
+  Assert.AreEqual(FMaster.FieldByName('ChildCount').AsInteger, FDetail.RecordCount, 'the detail count on the first Own');
+  FMaster.Next;
+  Assert.IsTrue(WaitForDetail(3000), 'the detail should follow to the second Own, got ' + DetailValues);
+  Assert.AreEqual(FMaster.FieldByName('ChildCount').AsInteger, FDetail.RecordCount, 'the detail count on the second Own');
+  FMaster.First;
+  Assert.IsTrue(WaitForDetail(3000), 'the detail should follow back to the first Own, got ' + DetailValues);
+end;
+
+procedure TTestBoldDataSetMasterDetail.TestDetailFollowsANewChild;
+var
+  Own: TOwn;
+  Child: TChildMapped;
+begin
+  Own := AddOwn(['a1']);
+  FMaster.Open;
+  FDetail.Open;
+  FMaster.First;
+  Assert.IsTrue(WaitForDetail(3000), 'the detail should show a1, got ' + DetailValues);
+  // A child added on the Bold side, as another form or code would do
+  Child := TChild1.Create(FSystemHandle.System);
+  Child.c := 'a2';
+  Child.Own := Own;
+  Assert.IsTrue(WaitForDetail(3000), 'the detail should show the new child, got ' + DetailValues);
+  Assert.AreEqual(2, FDetail.RecordCount, 'two children');
+end;
+
 initialization
   BoldRegisterTest(TTestBoldDataSet);
+  BoldRegisterTest(TTestBoldDataSetMasterDetail);
 
 end.
