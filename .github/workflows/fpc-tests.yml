@@ -3,8 +3,9 @@ name: FPC tests
 # Builds Bold and its unit tests with Free Pascal on Linux and runs the FPCUnit
 # suite (UnitTest/FPC/build.sh), so a change made and tested in Delphi cannot
 # break the Lazarus/Free Pascal build unnoticed (#117). A second run under
-# heaptrc catches memory leaks and uses of freed memory. The Delphi suite still
-# runs on Windows only.
+# heaptrc catches memory leaks and uses of freed memory. A second job builds the
+# Lazarus package and the LCL client of the Invoicing example with lazbuild and
+# runs the client's self-test. The Delphi suite still runs on Windows only.
 
 on:
   push:
@@ -111,3 +112,70 @@ jobs:
       # the run leaves memory unfreed, printing the line that allocated it.
       - name: Run the FPC test suite under heaptrc
         run: BOLD_HEAPTRC=1 ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0" sh UnitTest/FPC/build.sh
+
+      # The Invoicing example's scenario runner and FPCUnit tests, on XML file
+      # persistence (no Zeos).
+      - name: Build and run the Invoicing example
+        run: sh examples/Compound/Invoicing/FPC/build.sh
+
+  lazarus:
+    name: Lazarus 4.4, Bold.lpk and the LCL client, Ubuntu 26.04
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:26.04
+    # The first run, and a run after the cache was evicted, download about
+    # 270 MB; a slow mirror must not time out before the cache is saved.
+    timeout-minutes: 60
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Lazarus with the Qt5 widgetset is about 280 packages (270 MB), so the
+      # downloaded .deb files are cached together with apt's package lists:
+      # with both, apt installs with no mirror and still orders the packages
+      # itself (dpkg -i on the folder stops at a pre-dependency). Bump the
+      # version in the key when LAZARUS_PACKAGES changes.
+      - name: Cache the Lazarus packages
+        id: lazarus-debs
+        uses: actions/cache@v4
+        with:
+          path: .ci-cache/lazarus
+          key: lazarus-debs-ubuntu-26.04-lazarus-4.4-qt5-v1
+
+      - name: Install Lazarus
+        # lcl-utils has lazbuild, lcl-units the compiled LCL, lcl-qt5 and
+        # libqt5pas-dev the widgetset the client is built for, and
+        # fp-units-misc a unit the LCL's clipboard support uses. gcc and
+        # libc6-dev provide the C runtime to link against.
+        env:
+          LAZARUS_PACKAGES: >-
+            lcl-utils-4.4 lcl-units-4.4 lcl-qt5-4.4 libqt5pas-dev fp-units-misc-3.2.2
+            gcc libc6-dev
+          CACHE_HIT: ${{ steps.lazarus-debs.outputs.cache-hit }}
+        run: |
+          CACHE="$GITHUB_WORKSPACE/.ci-cache/lazarus"
+          mkdir -p "$CACHE/debs/partial" "$CACHE/lists/partial"
+          APT="-o Dir::Cache::Archives=$CACHE/debs -o Dir::State::Lists=$CACHE/lists -o Acquire::Retries=5"
+          if [ "$CACHE_HIT" = "true" ] && apt-get install -y --no-install-recommends --no-download $APT $LAZARUS_PACKAGES; then
+            echo "Installed from the cached packages"
+          else
+            if [ "$CACHE_HIT" = "true" ]; then
+              # The cache is saved under a key that already exists, so it stays as it is
+              echo "::warning::The cached Lazarus packages were unusable and came from the mirror instead; bump the cache key"
+            fi
+            apt-get update $APT
+            apt-get install -y --no-install-recommends $APT $LAZARUS_PACKAGES
+          fi
+          lazbuild --version
+
+      # build.sh builds InvoicingLCL.lpi, which requires packages/Lazarus/Bold.lpk,
+      # so lazbuild compiles the package first. The Lazarus configuration folder
+      # is a new one, so the build cannot lean on a configuration that already
+      # knows the package. The self-test shows no window; Qt's offscreen
+      # platform stands in for the display the runner does not have.
+      - name: Build Bold.lpk and the Invoicing LCL client, run its self-test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config" sh examples/Compound/Invoicing/LCL/build.sh

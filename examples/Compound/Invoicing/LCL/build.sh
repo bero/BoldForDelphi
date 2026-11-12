@@ -6,10 +6,13 @@
 #
 # LCL_WS chooses the widgetset (default qt5; gtk2 needs the GTK 2 development
 # libraries). The self-test shows no window, but the widgetset still needs a
-# display to start.
+# display to start; without one, QT_QPA_PLATFORM=offscreen does for Qt5.
+# LAZBUILD_OPTIONS adds lazbuild options, e.g. --pcp=<dir> for a Lazarus
+# configuration of its own.
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
-lazbuild --ws="${LCL_WS:-qt5}" "$HERE/InvoicingLCL.lpi"
+# shellcheck disable=SC2086
+lazbuild --ws="${LCL_WS:-qt5}" $LAZBUILD_OPTIONS "$HERE/InvoicingLCL.lpi"
 
 set +e
 "$HERE/bin/InvoicingLCL" --selftest
