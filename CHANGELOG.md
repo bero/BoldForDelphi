@@ -9,6 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Lazarus packages in `packages/Lazarus` (#117): `Bold.lpk`, the
+  framework-neutral runtime that builds with Free Pascal; `BoldLCL.lpk` with
+  `BoldEnvironmentLCL`, the LCL twin of `BoldEnvironmentVCL`; and
+  `BoldZeos.lpk` with the Zeos database adapter. The Invoicing example shows
+  them: an LCL client with `TDBGrid`s over `TBoldDataSet`
+  (`examples/Compound/Invoicing/LCL`) and a console runner on SQLite through
+  Zeos (`examples/Compound/Invoicing/Zeos`). GitHub Actions builds both with
+  lazbuild and runs them on every push. The packages are runtime only: Bold's
+  components are not on the Lazarus palette yet
 - The Delphi test suite builds and runs on Linux64: `UnitTest\build.ps1
   -Platform Linux64` builds the console runner, and `UnitTest/README.md` says
   how to run it. Test units whose subject is Windows only are empty there, and
@@ -127,6 +136,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   them, and the dataset never did, so nothing subscribed to the attributes.
   It now creates them for the rows it reads into its record buffers, and only
   for those, so a long list costs no more than the rows shown (#117)
+- The Zeos adapter wrote a currency attribute to SQLite 10,000 times too
+  large (120.50 as 1205000): Zeos binds a currency parameter for SQLite as its
+  scaled integer, which suits a column declared CURRENCY or MONEY, and Bold's
+  column is DOUBLE PRECISION. The adapter now binds it as a Double for SQLite,
+  which stores the same value as FireDAC does under Delphi (#117)
 - On Delphi for Linux, a date and time that Bold wrote did not parse back with
   the US English locale: setting `AsString` of a `TBADateTime` or `TBATime`,
   and the OCL operations `strToDateTime` and `strToTime`, raised "is not a

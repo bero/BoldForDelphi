@@ -4,8 +4,9 @@ name: FPC tests
 # suite (UnitTest/FPC/build.sh), so a change made and tested in Delphi cannot
 # break the Lazarus/Free Pascal build unnoticed (#117). A second run under
 # heaptrc catches memory leaks and uses of freed memory. A second job builds the
-# Lazarus package and the LCL client of the Invoicing example with lazbuild and
-# runs the client's self-test. The Delphi suite still runs on Windows only.
+# Lazarus packages with lazbuild through the Invoicing example's LCL client,
+# whose self-test it runs, and its runner on SQLite through Zeos. The Delphi
+# suite still runs on Windows only.
 
 on:
   push:
@@ -119,7 +120,7 @@ jobs:
         run: sh examples/Compound/Invoicing/FPC/build.sh
 
   lazarus:
-    name: Lazarus 4.4, Bold.lpk and the LCL client, Ubuntu 26.04
+    name: Lazarus 4.4, the Bold packages, the LCL client and the Zeos runner, Ubuntu 26.04
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04
@@ -142,17 +143,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .ci-cache/lazarus
-          key: lazarus-debs-ubuntu-26.04-lazarus-4.4-qt5-v1
+          key: lazarus-debs-ubuntu-26.04-lazarus-4.4-qt5-v2
 
       - name: Install Lazarus
         # lcl-utils has lazbuild, lcl-units the compiled LCL, lcl-qt5 and
         # libqt5pas-dev the widgetset the client is built for, and
         # fp-units-misc a unit the LCL's clipboard support uses. gcc and
-        # libc6-dev provide the C runtime to link against.
+        # libc6-dev provide the C runtime to link against. libsqlite3-0 is
+        # what the Zeos runner loads; curl, ca-certificates and unzip get Zeos.
         env:
           LAZARUS_PACKAGES: >-
             lcl-utils-4.4 lcl-units-4.4 lcl-qt5-4.4 libqt5pas-dev fp-units-misc-3.2.2
-            gcc libc6-dev
+            gcc libc6-dev libsqlite3-0 curl ca-certificates unzip
           CACHE_HIT: ${{ steps.lazarus-debs.outputs.cache-hit }}
         run: |
           CACHE="$GITHUB_WORKSPACE/.ci-cache/lazarus"
@@ -179,3 +181,29 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config" sh examples/Compound/Invoicing/LCL/build.sh
+
+      # The same archive and cache as in the fpc job.
+      - name: Cache the Zeos archive
+        uses: actions/cache@v4
+        with:
+          path: .ci-cache/zeosdbo-8.0.0-stable.zip
+          key: zeosdbo-8.0.0-stable-${{ env.ZEOS_ZIP_SHA256 }}
+
+      - name: Get Zeos 8.0.0
+        run: |
+          ZIP="$GITHUB_WORKSPACE/.ci-cache/zeosdbo-8.0.0-stable.zip"
+          if [ ! -f "$ZIP" ]; then
+            curl -fsSL --retry 5 --retry-delay 10 -o "$ZIP" "$ZEOS_ZIP_URL"
+          fi
+          echo "$ZEOS_ZIP_SHA256  $ZIP" | sha256sum -c -
+          unzip -q "$ZIP" -d "$RUNNER_TEMP/zeosdbo-8.0.0"
+
+      # build.sh registers Zeos's Lazarus packages and builds InvoicingZeos.lpi,
+      # which requires BoldZeos.lpk, so lazbuild compiles the Zeos packages and
+      # BoldZeos first. The runner then runs the Invoicing scenario on a SQLite
+      # file through Zeos, with a save, a close and a reopen.
+      - name: Build BoldZeos.lpk and the Invoicing runner on SQLite through Zeos, run it
+        run: >-
+          ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0"
+          LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config"
+          sh examples/Compound/Invoicing/Zeos/build.sh

@@ -1,7 +1,7 @@
 # Bold for Lazarus
 
-Two runtime packages: `Bold.lpk`, the framework-neutral core, and
-`BoldLCL.lpk`, what an LCL application adds to it.
+Three runtime packages: `Bold.lpk`, the framework-neutral core, `BoldLCL.lpk`,
+what an LCL application adds to it, and `BoldZeos.lpk`, the database adapter.
 
 `Bold.lpk` is the runtime package of Bold for Lazarus / Free Pascal (#117 step
 17). It holds the framework-neutral units that build with Free Pascal: object
@@ -18,6 +18,13 @@ The queue is drained when the application is idle. Under the VCL Bold drains
 it before every message, so also inside a loop that calls
 `Application.ProcessMessages`; code that loops that way in an LCL application
 calls `TBoldQueueable.DisplayAll` itself.
+
+`BoldZeos.lpk` requires `Bold` and Zeos's package `zcomponent` (ZeosLib 8.0,
+not part of this repository). It holds `TBoldDatabaseAdapterZeos`
+(`Source/Persistence/Zeos`), which Bold uses for SQL databases under Free
+Pascal, where Delphi uses FireDAC. Lazarus must know the Zeos packages first:
+open `zcomponent.lpk` from Zeos's `packages/lazarus` folder once, or see
+`examples/Compound/Invoicing/Zeos/build.sh` for the command line.
 
 ## Using it
 
@@ -37,12 +44,13 @@ units that way; a project that uses Bold's types in its own units should add
 
 The units are the ones that the Free Pascal test suite (`UnitTest/FPC`) and the
 Free Pascal examples compile, so every unit in the package is built and tested
-on each push. `Bold.pas` and `BoldLCL.pas` are the packages' main units, which
-Lazarus writes.
+on each push. `Bold.pas`, `BoldLCL.pas` and `BoldZeos.pas` are the packages'
+main units, which Lazarus writes.
 
-Not in it yet:
+`BoldZeos` is built and run on each push too, by the Invoicing runner in
+`examples/Compound/Invoicing/Zeos`.
 
-- The Zeos database adapter (`Source/Persistence/Zeos`), which needs the Zeos
-  packages; it will get a package of its own.
+Not there yet:
+
 - Component registration: the packages are runtime only, so Bold's components
   are not on the Lazarus palette.
