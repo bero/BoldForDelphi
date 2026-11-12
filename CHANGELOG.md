@@ -140,7 +140,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   large (120.50 as 1205000): Zeos binds a currency parameter for SQLite as its
   scaled integer, which suits a column declared CURRENCY or MONEY, and Bold's
   column is DOUBLE PRECISION. The adapter now binds it as a Double for SQLite,
-  which stores the same value as FireDAC does under Delphi (#117)
+  which stores the same value as FireDAC does under Delphi, also when a
+  currency is copied from a field or another parameter, as DbCopy does (#117)
 - On Delphi for Linux, a date and time that Bold wrote did not parse back with
   the US English locale: setting `AsString` of a `TBADateTime` or `TBATime`,
   and the OCL operations `strToDateTime` and `strToTime`, raised "is not a

@@ -41,11 +41,13 @@ type
     procedure TestClearParamsThenSameSQLRecreatesTheParams;
     procedure TestBlobParameterStaysABlob;
     procedure TestCurrencyParameterRoundTrip;
+    procedure TestCurrencyFieldAssignedToAParameter;
   end;
 
 implementation
 
 uses
+  Variants,
   Db,
   BoldDefs,
   BoldSQLDatabaseConfig;
@@ -401,6 +403,44 @@ begin
     Query.Close;
   finally
     fDatabase.ReleaseQuery(Query);
+  end;
+end;
+
+procedure TTestBoldZeosAdapter.TestCurrencyFieldAssignedToAParameter;
+var
+  Source, Check: IBoldQuery;
+  ExecQuery: IBoldExecQuery;
+begin
+  // AssignFieldValue copies a field into a parameter, as DbCopy and the
+  // update of old data do. A field of a column declared MONEY is a currency
+  // in Zeos, and must not be bound as its scaled integer either.
+  Exec('create table src (id integer primary key, m money)');
+  Exec('insert into src (id, m) values (1, 120.5)');
+  Exec('create table t (id integer primary key, c double precision)');
+  Source := fDatabase.GetQuery;
+  ExecQuery := fDatabase.GetExecQuery;
+  try
+    Source.AssignSQLText('select m from src where id = 1');
+    Source.Open;
+    // Zeos reports the MONEY column as ftBCD, whose Variant is a currency
+    Assert.AreEqual(varCurrency, Integer(VarType(Source.FieldByName('m').AsVariant)), 'the source value is a currency');
+    ExecQuery.AssignSQLText('insert into t (id, c) values (1, :c)');
+    ExecQuery.ParamByName('c').AssignFieldValue(Source.FieldByName('m'));
+    ExecQuery.ExecSQL;
+    Source.Close;
+  finally
+    fDatabase.ReleaseExecQuery(ExecQuery);
+    fDatabase.ReleaseQuery(Source);
+  end;
+
+  Check := fDatabase.GetQuery;
+  try
+    Check.AssignSQLText('select c from t where id = 1');
+    Check.Open;
+    Assert.AreEqual(120.5, Check.FieldByName('c').AsFloat, 0, 'the copied value');
+    Check.Close;
+  finally
+    fDatabase.ReleaseQuery(Check);
   end;
 end;
 

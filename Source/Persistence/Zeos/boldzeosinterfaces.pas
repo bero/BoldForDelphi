@@ -545,15 +545,22 @@ end;
 
 procedure TBoldZeosParameter.Assign(const source: IBoldParameter);
 begin
-  fZParam.Value := source.AsVariant;
+  // Through SetAsVariant, for a currency; see SetCurrencyValue
+  SetAsVariant(source.AsVariant);
 end;
 
 procedure TBoldZeosParameter.AssignFieldValue(const source: IBoldField);
 begin
   // Type and value only, as on FireDAC: Zeos binds by name, so the field's
   // name must not be copied onto the parameter.
-  fZParam.DataType := source.Field.DataType;
-  fZParam.Value := source.AsVariant;
+  // A currency goes through SetCurrencyValue, which chooses the type too
+  if VarType(source.AsVariant) = varCurrency then
+    SetCurrencyValue(source.AsVariant)
+  else
+  begin
+    fZParam.DataType := source.Field.DataType;
+    fZParam.Value := source.AsVariant;
+  end;
 end;
 
 { TBoldZeosQuery }
