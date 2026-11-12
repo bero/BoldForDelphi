@@ -16,11 +16,21 @@ handle's current element, and the grids below follow with no code. The derived
 attributes of the model, such as `openBalance`, `grossTotal` and `status`, are
 ordinary columns, and a change made on the Bold side shows in the grids.
 
-The Bold system is the one the Free Pascal runner and tests use
-(`..\FPC\InvoicingSystemFPC.pas`): it stores in an XML file, so the client
-needs no database library. The model is `..\Model\Invoicing.bld`, and on the
-first run `InvoicingLCL.xml` next to the program is filled with the scenario
-from `..\Tests\InvoicingScenario.pas`.
+All of it is in the form file, `fInvoicingMain.lfm`, as the form designer
+writes it with the design-time package `dclBold` installed
+(`packages\Lazarus`): a `TBoldModel`, the system, type info and persistence
+handles, the three list handles, the three datasets with their fields, the
+data sources and the grids are components on the form, wired through their
+properties. The code in `fInvoicingMain.pas` names the data file, opens the
+system and the datasets, and fills an empty database.
+
+`BoldModel1` holds the model in the form file, as in a Delphi data module, so
+the handles' OCL expressions are checked against it as soon as the form is
+read. It is a copy of `..\Model\Invoicing.bld`, which the Delphi clients load;
+the self-test compares the two. The data is stored in an XML file
+(`TBoldPersistenceHandleFileXML`), so the client needs no database library,
+and on the first run `InvoicingLCL.xml` next to the program is filled with the
+scenario from `..\Tests\InvoicingScenario.pas`.
 
 The form names `BoldEnvironmentLCL` in a uses clause, which registers Bold's
 LCL environment: Bold's display queue is drained from the LCL's idle handling,
@@ -54,9 +64,9 @@ without a window, so the row checks read the dataset behind each grid.
 
 ## Not yet
 
-- The handles, datasets and grids are created in code (`fInvoicingMain.pas`).
-  The design-time package `dclBold` (`packages\Lazarus`) now puts them on the
-  palette; the client has not been redone in the form designer yet.
+- The form file was written to match what the components write, and checked
+  by running it; it has not been opened and saved in the Lazarus form designer
+  yet.
 - The grids are read-only here. `TBoldDataSet` can edit (Edit and Post write
   into the Bold objects), which a later version of the client can show.
 - Built and run on Linux only so far.

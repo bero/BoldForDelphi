@@ -13,13 +13,19 @@ unit fInvoicingMain;
   follow with no code. Derived attributes such as openBalance, grossTotal and
   status are ordinary columns.
 
+  All of that is in the form file (fInvoicingMain.lfm): the model, the system
+  and persistence handles, the list handles, the datasets with their fields,
+  the data sources and the grids are components on the form, wired through
+  their properties, as the form designer writes them with the design-time
+  package dclBold installed (packages/Lazarus). The model is in the form file
+  too, in BoldModel1, as it is in a Delphi data module: the handles' OCL
+  expressions are checked against it as soon as the form is read. The code
+  only names the data file, opens the system and the datasets, and fills an
+  empty database with the scenario.
+
   BoldEnvironmentLCL, named in the uses clause below, makes Bold run on its
   LCL environment: Bold's display queue is drained from the LCL's idle
-  handling, with no code in the form.
-
-  The handles, datasets and grids are created in code. The design-time package
-  dclBold (packages/Lazarus) puts Bold's components on the palette; the client
-  has not been redone in the form designer yet. }
+  handling, with no code in the form. }
 
 interface
 
@@ -35,33 +41,43 @@ uses
   DBGrids,
   BoldHandles,
   BoldListHandle,
-  BoldDataSet,
-  InvoicingSystemFPC;
+  BoldSystemHandle,
+  BoldModel,
+  BoldPersistenceHandleFileXML,
+  BoldDataSet;
 
 type
   TfrmInvoicingMain = class(TForm)
+    BoldModel1: TBoldModel;
+    BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle;
+    BoldPersistenceHandleFileXML1: TBoldPersistenceHandleFileXML;
+    BoldSystemHandle1: TBoldSystemHandle;
+    blhCustomers: TBoldListHandle;
+    blhInvoices: TBoldListHandle;
+    blhLines: TBoldListHandle;
+    bdsCustomers: TBoldDataSet;
+    bdsInvoices: TBoldDataSet;
+    bdsLines: TBoldDataSet;
+    dsCustomers: TDataSource;
+    dsInvoices: TDataSource;
+    dsLines: TDataSource;
+    lblCustomers: TLabel;
+    grdCustomers: TDBGrid;
+    lblInvoices: TLabel;
+    grdInvoices: TDBGrid;
+    lblLines: TLabel;
+    grdLines: TDBGrid;
+    pnlBar: TPanel;
+    btnSave: TButton;
+    lblStatus: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
   private
-    FData: TInvoicingSystem;
     FDatabase: string;
     FSelfTest: Boolean;
     FSelfTestException: Boolean;
-    FCustomerHandle: TBoldListHandle;
-    FInvoiceHandle: TBoldListHandle;
-    FLineHandle: TBoldListHandle;
-    FCustomers: TBoldDataSet;
-    FInvoices: TBoldDataSet;
-    FLines: TBoldDataSet;
-    FCustomerGrid: TDBGrid;
-    FInvoiceGrid: TDBGrid;
-    FLineGrid: TDBGrid;
-    FStatus: TLabel;
-    function AddListHandle(ARoot: TBoldElementHandle; const AExpression: string): TBoldListHandle;
-    function AddDataSet(AHandle: TBoldListHandle; const AColumns: array of string): TBoldDataSet;
-    function AddGrid(const ACaption: string; ADataSet: TDataSet; AAlign: TAlign; AHeight: Integer): TDBGrid;
     procedure AppIdle(Sender: TObject; var Done: Boolean);
-    procedure SaveClick(Sender: TObject);
     procedure OpenData;
     procedure ShowStatus;
     procedure Settle;
@@ -153,12 +169,30 @@ begin
     '..' + PathDelim + '..' + PathDelim + 'Model' + PathDelim + 'Invoicing.bld');
 end;
 
+{ The form file holds a copy of ../Model/Invoicing.bld, which the Delphi
+  clients load; the self-test compares the two, so that a change of the model
+  is not forgotten here }
+function ClassCountOfModelFile: Integer;
+var
+  Model: TBoldModel;
+  ModelText: TStringList;
+begin
+  Model := TBoldModel.Create(nil);
+  ModelText := TStringList.Create;
+  try
+    ModelText.LoadFromFile(ModelFileName);
+    Model.SetFromModelAsString(ModelText);
+    Result := Model.MoldModel.Classes.Count;
+  finally
+    ModelText.Free;
+    Model.Free;
+  end;
+end;
+
 { TfrmInvoicingMain }
 
 procedure TfrmInvoicingMain.FormCreate(Sender: TObject);
 var
-  Bar: TPanel;
-  Save: TButton;
   Guid: TGUID;
 begin
   FSelfTest := IsSelfTestRun;
@@ -175,39 +209,10 @@ begin
   OpenData;
   SelfTestTrace('system open');
 
-  // customers -> their invoices -> the invoice's lines
-  FCustomerHandle := AddListHandle(FData.SystemHandle, 'Customer.allInstances');
-  FInvoiceHandle := AddListHandle(FCustomerHandle, 'invoices');
-  FLineHandle := AddListHandle(FInvoiceHandle, 'lines');
-  FCustomers := AddDataSet(FCustomerHandle,
-    ['number|Number', 'name|Name', 'email|Email', 'invoicedTotal|Invoiced', 'openBalance|Open balance', 'overdueCount|Overdue']);
-  FInvoices := AddDataSet(FInvoiceHandle,
-    ['number|Number', 'invoiceDate|Date', 'dueDate|Due', 'status|Status', 'grossTotal|Total', 'balance|Balance']);
-  FLines := AddDataSet(FLineHandle,
-    ['description|Description', 'quantity|Quantity', 'unitPrice|Unit price', 'vatPercent|VAT %', 'grossAmount|Amount']);
-
-  Bar := TPanel.Create(Self);
-  Bar.Parent := Self;
-  Bar.Align := alBottom;
-  Bar.Height := 36;
-  Bar.BevelOuter := bvNone;
-  Bar.Caption := '';
-  Save := TButton.Create(Self);
-  Save.Parent := Bar;
-  Save.Align := alRight;
-  Save.Width := 120;
-  Save.BorderSpacing.Around := 4;
-  Save.Caption := 'Save changes';
-  Save.OnClick := SaveClick;
-  FStatus := TLabel.Create(Self);
-  FStatus.Parent := Bar;
-  FStatus.Align := alClient;
-  FStatus.Layout := tlCenter;
-  FStatus.BorderSpacing.Left := 8;
-
-  FCustomerGrid := AddGrid('Customers', FCustomers, alTop, 220);
-  FInvoiceGrid := AddGrid('Invoices of the selected customer', FInvoices, alTop, 200);
-  FLineGrid := AddGrid('Lines of the selected invoice', FLines, alClient, 0);
+  // The handles are chained in the form file; the datasets open on them
+  bdsCustomers.Open;
+  bdsInvoices.Open;
+  bdsLines.Open;
 
   Application.OnIdle := AppIdle;
   ShowStatus;
@@ -217,90 +222,41 @@ end;
 procedure TfrmInvoicingMain.FormDestroy(Sender: TObject);
 begin
   Application.OnIdle := nil;
-  // Details before masters, datasets before their handles, all before the system
-  FreeAndNil(FLines);
-  FreeAndNil(FInvoices);
-  FreeAndNil(FCustomers);
-  FreeAndNil(FLineHandle);
-  FreeAndNil(FInvoiceHandle);
-  FreeAndNil(FCustomerHandle);
-  FreeAndNil(FData);
+  // The form would free its components in the order of the form file, the
+  // model first. Bold's components are freed here instead, each before what
+  // it refers to: the datasets (details before masters), the list handles,
+  // and only then is the system closed.
+  FreeAndNil(bdsLines);
+  FreeAndNil(bdsInvoices);
+  FreeAndNil(bdsCustomers);
+  FreeAndNil(blhLines);
+  FreeAndNil(blhInvoices);
+  FreeAndNil(blhCustomers);
+  if BoldSystemHandle1.Active then
+  begin
+    if BoldSystemHandle1.System.BoldDirty then
+      BoldSystemHandle1.System.Discard;
+    BoldSystemHandle1.Active := False;
+  end;
+  FreeAndNil(BoldSystemHandle1);
+  FreeAndNil(BoldPersistenceHandleFileXML1);
+  FreeAndNil(BoldSystemTypeInfoHandle1);
+  FreeAndNil(BoldModel1);
   if FSelfTest then
     DeleteFile(FDatabase);
 end;
 
 procedure TfrmInvoicingMain.OpenData;
 begin
-  FData := TInvoicingSystem.Create;
-  FData.LoadModelFromFile(ModelFileName);
-  SelfTestTrace('model loaded from ' + ModelFileName);
-  FData.OpenSystem(FDatabase);
-  if FData.BoldSystem.EvaluateExpressionAsInteger('Customer.allInstances->size') = 0 then
+  // The model came with the form file. A data file that does not exist yet
+  // is an empty database.
+  BoldPersistenceHandleFileXML1.FileName := FDatabase;
+  BoldSystemHandle1.Active := True;
+  if BoldSystemHandle1.System.EvaluateExpressionAsInteger('Customer.allInstances->size') = 0 then
   begin
-    BuildAndVerifyScenario(FData.BoldSystem, CountSeedFailure);
-    FData.Save;
+    BuildAndVerifyScenario(BoldSystemHandle1.System, CountSeedFailure);
+    BoldSystemHandle1.System.UpdateDatabase;
   end;
-end;
-
-function TfrmInvoicingMain.AddListHandle(ARoot: TBoldElementHandle; const AExpression: string): TBoldListHandle;
-begin
-  Result := TBoldListHandle.Create(Self);
-  Result.StaticSystemHandle := FData.SystemHandle;
-  Result.RootHandle := ARoot;
-  Result.Expression := AExpression;
-end;
-
-{ AColumns: 'ocl expression|column caption' }
-function TfrmInvoicingMain.AddDataSet(AHandle: TBoldListHandle; const AColumns: array of string): TBoldDataSet;
-var
-  I, Bar: Integer;
-  Description: TBoldDataSetFieldDescription;
-begin
-  Result := TBoldDataSet.Create(Self);
-  Result.BoldHandle := AHandle;
-  for I := Low(AColumns) to High(AColumns) do
-  begin
-    Bar := Pos('|', AColumns[I]);
-    Description := Result.FieldDescriptions.Add;
-    Description.BoldProperties.Expression := Copy(AColumns[I], 1, Bar - 1);
-    Description.FieldName := Copy(AColumns[I], Bar + 1, MaxInt);
-  end;
-  Result.Open;
-end;
-
-function TfrmInvoicingMain.AddGrid(const ACaption: string; ADataSet: TDataSet; AAlign: TAlign;
-  AHeight: Integer): TDBGrid;
-var
-  Caption: TLabel;
-  Source: TDataSource;
-begin
-  Caption := TLabel.Create(Self);
-  Caption.Parent := Self;
-  // Top-aligned controls stack by their position, so each new one goes below
-  Caption.Top := ClientHeight;
-  Caption.Align := alTop;
-  Caption.BorderSpacing.Left := 8;
-  Caption.BorderSpacing.Top := 6;
-  Caption.BorderSpacing.Bottom := 2;
-  Caption.Caption := ACaption;
-
-  Source := TDataSource.Create(Self);
-  Source.DataSet := ADataSet;
-
-  Result := TDBGrid.Create(Self);
-  Result.Parent := Self;
-  if AHeight > 0 then
-  begin
-    Result.Height := AHeight;
-    Result.Top := ClientHeight;
-  end;
-  Result.Align := AAlign;
-  Result.BorderSpacing.Left := 8;
-  Result.BorderSpacing.Right := 8;
-  Result.BorderSpacing.Bottom := 4;
-  Result.ReadOnly := True;
-  Result.Options := Result.Options + [dgRowSelect, dgAlwaysShowSelection] - [dgEditing];
-  Result.DataSource := Source;
 end;
 
 procedure TfrmInvoicingMain.AppIdle(Sender: TObject; var Done: Boolean);
@@ -309,9 +265,9 @@ begin
   ShowStatus;
 end;
 
-procedure TfrmInvoicingMain.SaveClick(Sender: TObject);
+procedure TfrmInvoicingMain.btnSaveClick(Sender: TObject);
 begin
-  FData.Save;
+  BoldSystemHandle1.System.UpdateDatabase;
   ShowStatus;
 end;
 
@@ -319,14 +275,14 @@ procedure TfrmInvoicingMain.ShowStatus;
 var
   Status: string;
 begin
-  if Assigned(FStatus) and Assigned(FData) and FData.IsOpen then
+  if BoldSystemHandle1.Active then
   begin
-    Status := FData.DataFile + '  -  ' +
-      IntToStr(FData.BoldSystem.EvaluateExpressionAsInteger('Customer.allInstances->size')) + ' customers, ' +
-      IntToStr(FData.BoldSystem.EvaluateExpressionAsInteger('Invoice.allInstances->size')) + ' invoices';
-    if FData.BoldSystem.BoldDirty then
+    Status := FDatabase + '  -  ' +
+      IntToStr(BoldSystemHandle1.System.EvaluateExpressionAsInteger('Customer.allInstances->size')) + ' customers, ' +
+      IntToStr(BoldSystemHandle1.System.EvaluateExpressionAsInteger('Invoice.allInstances->size')) + ' invoices';
+    if BoldSystemHandle1.System.BoldDirty then
       Status := Status + '  -  unsaved changes';
-    FStatus.Caption := Status;
+    lblStatus.Caption := Status;
   end;
 end;
 
@@ -385,47 +341,50 @@ begin
   Log := TStringList.Create;
   try
     SelfTestTrace('checks start');
+    Check('the model in the form file has the classes of ' + ExtractFileName(ModelFileName),
+      BoldModel1.MoldModel.Classes.Count = ClassCountOfModelFile,
+      IntToStr(BoldModel1.MoldModel.Classes.Count) + ' classes in the form, ' + IntToStr(ClassCountOfModelFile) + ' in the file');
     Check('scenario checks while seeding', SeedFailures = 0, IntToStr(SeedFailures) + ' failed');
     Settle;
-    Check('customer grid columns', FCustomerGrid.Columns.Count = FCustomers.FieldCount,
-      IntToStr(FCustomerGrid.Columns.Count) + ' columns, ' + IntToStr(FCustomers.FieldCount) + ' fields');
-    Check('title of the second customer column', FCustomerGrid.Columns[1].Title.Caption = 'Name',
-      FCustomerGrid.Columns[1].Title.Caption);
-    Check('customers', Rows(FCustomerGrid) > 0, IntToStr(Rows(FCustomerGrid)));
+    Check('customer grid columns', grdCustomers.Columns.Count = bdsCustomers.FieldCount,
+      IntToStr(grdCustomers.Columns.Count) + ' columns, ' + IntToStr(bdsCustomers.FieldCount) + ' fields');
+    Check('title of the second customer column', grdCustomers.Columns[1].Title.Caption = 'Name',
+      grdCustomers.Columns[1].Title.Caption);
+    Check('customers', Rows(grdCustomers) > 0, IntToStr(Rows(grdCustomers)));
     InvoicesShown := 0;
     LinesShown := 0;
-    FCustomers.First;
-    while not FCustomers.Eof do
+    bdsCustomers.First;
+    while not bdsCustomers.Eof do
     begin
       Settle;
-      Customer := FCustomers.ActiveBoldObject as TCustomer;
-      NameShown := FCustomerGrid.Columns[1].Field.AsUnicodeString;
+      Customer := bdsCustomers.ActiveBoldObject as TCustomer;
+      NameShown := grdCustomers.Columns[1].Field.AsUnicodeString;
       Check('name of customer ' + IntToStr(Customer.Number) + ' in its row', NameShown = Customer.Name, NameShown);
       Check('invoice rows of customer ' + IntToStr(Customer.Number),
-        Rows(FInvoiceGrid) = Customer.Invoices.Count,
-        IntToStr(Rows(FInvoiceGrid)) + ' rows, ' + IntToStr(Customer.Invoices.Count) + ' invoices');
-      Inc(InvoicesShown, Rows(FInvoiceGrid));
-      FInvoices.First;
-      while not FInvoices.Eof do
+        Rows(grdInvoices) = Customer.Invoices.Count,
+        IntToStr(Rows(grdInvoices)) + ' rows, ' + IntToStr(Customer.Invoices.Count) + ' invoices');
+      Inc(InvoicesShown, Rows(grdInvoices));
+      bdsInvoices.First;
+      while not bdsInvoices.Eof do
       begin
         Settle;
-        Invoice := FInvoices.ActiveBoldObject as TInvoice;
+        Invoice := bdsInvoices.ActiveBoldObject as TInvoice;
         Check('line rows of invoice ' + IntToStr(Invoice.Number),
-          Rows(FLineGrid) = Invoice.Lines.Count,
-          IntToStr(Rows(FLineGrid)) + ' rows, ' + IntToStr(Invoice.Lines.Count) + ' lines');
-        Inc(LinesShown, Rows(FLineGrid));
-        FInvoices.Next;
+          Rows(grdLines) = Invoice.Lines.Count,
+          IntToStr(Rows(grdLines)) + ' rows, ' + IntToStr(Invoice.Lines.Count) + ' lines');
+        Inc(LinesShown, Rows(grdLines));
+        bdsInvoices.Next;
       end;
-      FCustomers.Next;
+      bdsCustomers.Next;
     end;
     Check('invoices shown over all customers',
-      InvoicesShown = FData.BoldSystem.EvaluateExpressionAsInteger('Invoice.allInstances->size'), IntToStr(InvoicesShown));
+      InvoicesShown = BoldSystemHandle1.System.EvaluateExpressionAsInteger('Invoice.allInstances->size'), IntToStr(InvoicesShown));
     Check('some lines shown', LinesShown > 0, IntToStr(LinesShown));
 
     // Nothing here calls TBoldQueueable.DisplayAll: the LCL environment drains
     // Bold's display queue from the idle handling, which Settle runs
     Check('Bold environment', BoldEffectiveEnvironment.Name = 'LCL', BoldEffectiveEnvironment.Name);
-    FCustomers.First;
+    bdsCustomers.First;
     Check('moving the customer dataset queues followers to display', not BoldInstalledQueue.Empty,
       IntToStr(BoldInstalledQueue.DisplayCount) + ' queued');
     Settle;
@@ -433,10 +392,10 @@ begin
       IntToStr(BoldInstalledQueue.DisplayCount) + ' queued');
 
     // Only an attribute changes, on the Bold side; the change is not saved
-    Customer := FCustomers.ActiveBoldObject as TCustomer;
+    Customer := bdsCustomers.ActiveBoldObject as TCustomer;
     Customer.Name := Customer.Name + ' (renamed)';
     Settle;
-    NameShown := FCustomerGrid.Columns[1].Field.AsUnicodeString;
+    NameShown := grdCustomers.Columns[1].Field.AsUnicodeString;
     Check('a rename on the Bold side shows in the grid', NameShown = Customer.Name, NameShown);
     Log.Add(IntToStr(Failures) + ' failed');
     SelfTestTrace(Log.Text);
