@@ -133,6 +133,8 @@ type
     // The debounced refresh after Bold-side changes; see DebouncedResync
     fRefreshWindowOpen: Boolean;
     fRefreshPending: Boolean;
+    // True while EnsureCellFollowers creates the followers of a row being read
+    fEnsuringCellFollowers: Boolean;
     FAutoOpen: boolean;
     FBookmarkOfs: integer;
     FContextSubscriber: TBoldPassthroughSubscriber;
@@ -150,6 +152,7 @@ type
     procedure InsertElement(ABuffer: TRecordBuffer); virtual;
     procedure _ReceiveContext(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
     procedure BoldToBuffer(ABuffer: TRecordBuffer);
+    procedure EnsureCellFollowers(ARow: Integer; AElement: TBoldElement);
     procedure _InsertRow(index: Integer; OwningFollower: TBoldFollower);
     procedure _DeleteRow(index: Integer; owningFollower: TBoldFollower);
     procedure BufferToBoldElement(AIndex: integer; ABuffer: TRecordBuffer);
@@ -168,6 +171,9 @@ type
   protected
     procedure Loaded; override;
     function CreateNewElement: TBoldElement; virtual;
+    // How many field followers exist over all rows; see EnsureCellFollowers.
+    // For tests: it shows that only the rows read are followed.
+    function CellFollowerCount: Integer;
     procedure TypeMayHaveChanged;
     procedure TypeHasChanged; virtual;
     procedure LayoutChanged;
@@ -479,6 +485,11 @@ begin
   with Dataset do
   begin
     if not Active then
+      Exit;
+
+    // The follower was just created for a row that is being read into its
+    // record buffer: the buffer gets this value, so there is nothing to refresh
+    if fEnsuringCellFollowers then
       Exit;
 
     if not (Dataset.State in dsWriteModes) then
@@ -1085,6 +1096,70 @@ begin
   GetCalcFields(TRecBuf(ABuffer));
 end;
 
+{ Makes the dataset follow the fields of a row it reads. The control packs
+  create the followers of a row's cells only when a control asks for them, as
+  a grid does for the cells it draws. The dataset reads its values straight
+  from the element, so without this no cell follower exists, nothing
+  subscribes to the row's attributes, and a change of an attribute alone
+  never reaches TBoldDataSetFieldDescription.AfterMakeUptoDate.
+
+  Only the rows that are read get followers: with a grid attached those are
+  the rows it shows and has shown, not the whole list. A row that was never
+  read needs none, because reading it takes the current values.
+
+  The row followers themselves appear when the list follower is displayed,
+  which ends in _InsertRow and a refresh that reads the rows again; a row
+  read before that is picked up then. }
+procedure TBoldAbstractDataSet.EnsureCellFollowers(ARow: Integer; AElement: TBoldElement);
+var
+  ListFollower, RowFollower: TBoldFollower;
+  i, CellCount: Integer;
+begin
+  if fEnsuringCellFollowers then
+    Exit;
+  ListFollower := FListFollower.Follower;
+  if not Assigned(ListFollower) or (ARow < 0) or (ARow >= ListFollower.SubFollowerCount) or
+    not ListFollower.SubFollowerAssigned[ARow] then
+    Exit;
+  RowFollower := ListFollower.SubFollowers[ARow];
+  // After a change of the list the row follower may still be another element's
+  if not Assigned(RowFollower) or (RowFollower.Element <> AElement) or not RowFollower.Active then
+    Exit;
+  CellCount := RowFollower.SubFollowerCount;
+  if CellCount > FieldDescriptions.Count then
+    CellCount := FieldDescriptions.Count;
+  fEnsuringCellFollowers := True;
+  try
+    for i := 0 to CellCount - 1 do
+      if not RowFollower.SubFollowerAssigned[i] then
+        // Reading SubFollowers creates the follower, which evaluates its
+        // expression and subscribes
+        RowFollower.SubFollowers[i].Active := True;
+  finally
+    fEnsuringCellFollowers := False;
+  end;
+end;
+
+function TBoldAbstractDataSet.CellFollowerCount: Integer;
+var
+  ListFollower, RowFollower: TBoldFollower;
+  Row, i: Integer;
+begin
+  Result := 0;
+  ListFollower := FListFollower.Follower;
+  if not Assigned(ListFollower) then
+    Exit;
+  for Row := 0 to ListFollower.SubFollowerCount - 1 do
+    if ListFollower.SubFollowerAssigned[Row] then
+    begin
+      RowFollower := ListFollower.SubFollowers[Row];
+      if Assigned(RowFollower) then
+        for i := 0 to RowFollower.SubFollowerCount - 1 do
+          if RowFollower.SubFollowerAssigned[i] then
+            Inc(Result);
+    end;
+end;
+
 procedure TBoldAbstractDataSet._DeleteRow(index: Integer; owningFollower: TBoldFollower);
 begin
   if not Active then
@@ -1492,6 +1567,7 @@ begin
       Flag := bfCurrent;
     end;
     BoldToBuffer(TRecordBuffer(Buffer));
+    EnsureCellFollowers(FRecordPos, List[FRecordPos]);
   end
   else
     if (result = grError) and (DoCheck) then

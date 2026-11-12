@@ -120,6 +120,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   could not be opened. Text fields are now `ftWideString` (were `ftString`),
   and object-reference fields `ftLargeint` (were `ftInteger`). It is still in
   no package (#117)
+- `TBoldDataSet` shows a changed attribute. A value changed on the Bold side,
+  with no row added, removed or moved, stayed as it was in the dataset and in
+  every control bound to it until something else refreshed it. The control
+  packs create the followers of a row's cells only when a control asks for
+  them, and the dataset never did, so nothing subscribed to the attributes.
+  It now creates them for the rows it reads into its record buffers, and only
+  for those, so a long list costs no more than the rows shown (#117)
 - On Delphi for Linux, a date and time that Bold wrote did not parse back with
   the US English locale: setting `AsString` of a `TBADateTime` or `TBATime`,
   and the OCL operations `strToDateTime` and `strToTime`, raised "is not a

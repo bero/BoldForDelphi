@@ -431,6 +431,13 @@ begin
     Settle;
     Check('the idle handling drains Bold''s display queue', BoldInstalledQueue.Empty,
       IntToStr(BoldInstalledQueue.DisplayCount) + ' queued');
+
+    // Only an attribute changes, on the Bold side; the change is not saved
+    Customer := FCustomers.ActiveBoldObject as TCustomer;
+    Customer.Name := Customer.Name + ' (renamed)';
+    Settle;
+    NameShown := FCustomerGrid.Columns[1].Field.AsUnicodeString;
+    Check('a rename on the Bold side shows in the grid', NameShown = Customer.Name, NameShown);
     Log.Add(IntToStr(Failures) + ' failed');
     SelfTestTrace(Log.Text);
   finally

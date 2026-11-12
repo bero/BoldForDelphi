@@ -58,6 +58,16 @@ type
     // A Bold-side change refreshes the dataset through BoldSharedClock, which
     // needs only CheckSynchronize, not a VCL message loop (#117 step 9)
     procedure TestBoldSideChangesShowWithoutAMessageLoop;
+    // Only an attribute changes: no row is added, removed or moved, and the
+    // dataset has been quiet for longer than its debounce interval
+    procedure TestAttributeChangeAloneShows;
+    // Twice: the first change must not use up the subscription
+    procedure TestSecondAttributeChangeShowsToo;
+    // The dataset follows only the rows it has read; a row it has not read
+    // yet must still show its current value when the cursor gets there
+    procedure TestAttributeChangeOnAnUnreadRowShowsAfterScrolling;
+    procedure TestAttributeChangeShowsAfterScrollingAwayAndBack;
+    procedure TestOnlyRowsReadAreFollowed;
     procedure TestCloseWithAPendingRefresh;
     procedure TestFreeWithAPendingRefresh;
   end;
@@ -98,6 +108,10 @@ uses
   DB,
   BoldQueue,
   dmModel1;
+
+type
+  // Reaches the protected CellFollowerCount
+  TBoldDataSetAccess = class(TBoldDataSet);
 
 const
   cNames: array[0..2] of string = ('one', 'two', 'three');
@@ -439,6 +453,87 @@ begin
   ChangeTwiceOnTheBoldSide(ListObject(0));
   Assert.IsTrue(WaitForFieldValue('aString', 'second', 3000),
     'the second change should show after the debounce, through CheckSynchronize alone');
+end;
+
+procedure TTestBoldDataSet.TestAttributeChangeAloneShows;
+begin
+  FDataSet.Open;
+  FDataSet.First;
+  // Let everything that Open and First queued be displayed, and the
+  // debounce interval of the refresh it caused pass
+  Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling');
+  ListObject(0).aString := 'changed';
+  Assert.IsTrue(WaitForFieldValue('aString', 'changed', 1000),
+    'a changed attribute should show in the dataset without a Resync from the application');
+end;
+
+procedure TTestBoldDataSet.TestSecondAttributeChangeShowsToo;
+begin
+  FDataSet.Open;
+  FDataSet.First;
+  Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling');
+  ListObject(0).aString := 'changed';
+  Assert.IsTrue(WaitForFieldValue('aString', 'changed', 1000), 'the first change');
+  Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling again');
+  ListObject(0).aString := 'changed again';
+  Assert.IsTrue(WaitForFieldValue('aString', 'changed again', 1000), 'the second change');
+  ListObject(0).aInteger := 4711;
+  Assert.IsTrue(WaitForFieldValue('aInteger', '4711', 1000), 'a change of another field');
+end;
+
+procedure TTestBoldDataSet.TestAttributeChangeOnAnUnreadRowShowsAfterScrolling;
+begin
+  FDataSet.Open;
+  FDataSet.First;
+  Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling');
+  ListObject(2).aString := 'changed';
+  Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling again');
+  Assert.AreEqual(cNames[0], FDataSet.FieldByName('aString').AsString, 'the first row is untouched');
+  FDataSet.Last;
+  Assert.AreEqual('changed', FDataSet.FieldByName('aString').AsString);
+end;
+
+procedure TTestBoldDataSet.TestAttributeChangeShowsAfterScrollingAwayAndBack;
+begin
+  FDataSet.Open;
+  FDataSet.First;
+  Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling');
+  FDataSet.Last;
+  Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling on the last row');
+  // The first row was read before and is not the current one now
+  ListObject(0).aString := 'changed';
+  ListObject(2).aString := 'last changed';
+  Assert.IsTrue(WaitForFieldValue('aString', 'last changed', 1000), 'the current row');
+  FDataSet.First;
+  Assert.AreEqual('changed', FDataSet.FieldByName('aString').AsString, 'the row scrolled back to');
+end;
+
+procedure TTestBoldDataSet.TestOnlyRowsReadAreFollowed;
+const
+  cExtraRows = 200;
+var
+  i, FieldCount, Buffered, AfterOpen, AfterLast: Integer;
+begin
+  for i := 1 to cExtraRows do
+    TClassA.Create(FDataModule.BoldSystemHandle1.System).aString := 'extra';
+  FDataSet.Open;
+  FDataSet.First;
+  Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling');
+  FieldCount := FDataSet.FieldCount;
+  // TDataSet reads as many rows as it has buffers (one in Delphi and ten in
+  // Free Pascal without a control attached), and one more when it looks ahead
+  Buffered := TBoldDataSetAccess(FDataSet).BufferCount + 1;
+  AfterOpen := TBoldDataSetAccess(FDataSet).CellFollowerCount;
+  Assert.IsTrue(AfterOpen >= FieldCount, 'the current row is followed: ' + IntToStr(AfterOpen));
+  Assert.IsTrue(AfterOpen <= Buffered * FieldCount,
+    Format('only the rows read are followed: %d followers, %d rows buffered, %d rows in all',
+    [AfterOpen, Buffered, FDataSet.RecordCount]));
+  FDataSet.Last;
+  Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling at the end');
+  AfterLast := TBoldDataSetAccess(FDataSet).CellFollowerCount;
+  Assert.IsTrue(AfterLast <= 2 * Buffered * FieldCount,
+    Format('jumping to the end does not follow the rows between: %d followers', [AfterLast]));
+  Assert.IsTrue(AfterLast > AfterOpen, 'the rows read at the end are followed too');
 end;
 
 procedure TTestBoldDataSet.TestCloseWithAPendingRefresh;
