@@ -40,6 +40,7 @@ type
     procedure TestParamValuesSurviveBoldBatchSequence;
     procedure TestClearParamsThenSameSQLRecreatesTheParams;
     procedure TestBlobParameterStaysABlob;
+    procedure TestCurrencyParameterRoundTrip;
   end;
 
 implementation
@@ -356,6 +357,50 @@ begin
   finally
     Param := nil;
     fDatabase.ReleaseExecQuery(ExecQuery);
+  end;
+end;
+
+procedure TTestBoldZeosAdapter.TestCurrencyParameterRoundTrip;
+const
+  Price: Currency = 120.5;
+  // Four decimals, the most a currency has: the Double on the way must not round it
+  Exact: Currency = 1234.5678;
+var
+  ExecQuery: IBoldExecQuery;
+  Query: IBoldQuery;
+begin
+  // Bold's column type for a currency attribute is DOUBLE PRECISION, and
+  // TBoldPMCurrency writes it with Param.AsCurrency. Zeos binds a currency
+  // parameter for SQLite as its scaled 64-bit integer (1205000), which only
+  // reads back right from a column declared CURRENCY or MONEY.
+  Exec('create table t (id integer primary key, c double precision, d double precision, ' +
+    'e double precision, v double precision)');
+  ExecQuery := fDatabase.GetExecQuery;
+  try
+    ExecQuery.AssignSQLText('insert into t (id, c, d, e, v) values (:id, :c, :d, :e, :v)');
+    ExecQuery.ParamByName('id').AsInteger := 1;
+    ExecQuery.ParamByName('c').AsCurrency := Price;
+    ExecQuery.ParamByName('d').AsBCD := Price;
+    ExecQuery.ParamByName('e').AsCurrency := Exact;
+    ExecQuery.ParamByName('v').AsVariant := Exact;
+    ExecQuery.ExecSQL;
+  finally
+    fDatabase.ReleaseExecQuery(ExecQuery);
+  end;
+
+  Query := fDatabase.GetQuery;
+  try
+    Query.AssignSQLText('select c, d, e, v, typeof(c) as ctype from t where id = 1');
+    Query.Open;
+    Assert.AreEqual(120.5, Query.FieldByName('c').AsFloat, 0, 'AsCurrency, read as a float');
+    Assert.IsTrue(Query.FieldByName('c').AsCurrency = Price, 'AsCurrency, read as a currency');
+    Assert.AreEqual(120.5, Query.FieldByName('d').AsFloat, 0, 'AsBCD, read as a float');
+    Assert.IsTrue(Query.FieldByName('e').AsCurrency = Exact, 'four decimals survive');
+    Assert.IsTrue(Query.FieldByName('v').AsCurrency = Exact, 'a currency in a Variant');
+    Assert.AreEqual('real', Query.FieldByName('ctype').AsString, 'stored as a REAL, as FireDAC''s ends up');
+    Query.Close;
+  finally
+    fDatabase.ReleaseQuery(Query);
   end;
 end;
 

@@ -48,6 +48,8 @@ type
   private
     fZParam: TZParam;
     function EmptyStringMarker: string;
+    function CurrencyIsBoundAsScaledInteger: Boolean;
+    procedure SetCurrencyValue(const Value: Currency);
     function GetAsVariant: Variant;
     procedure SetAsVariant(const NewValue: Variant);
     function GetName: string;
@@ -299,6 +301,29 @@ begin
   Result := DatasetWrapper.DatabaseWrapper.SQLDataBaseConfig.EmptyStringMarker;
 end;
 
+{ Zeos binds a currency parameter for SQLite as its scaled 64-bit integer
+  (120.5 as 1205000), which reads back right only from a column declared
+  CURRENCY or MONEY. Bold's column for a currency is DOUBLE PRECISION, where
+  that integer is stored as it is. }
+function TBoldZeosParameter.CurrencyIsBoundAsScaledInteger: Boolean;
+begin
+  Result := (DatasetWrapper.DatabaseWrapper is TBoldZeosConnection) and
+    StartsText('sqlite', TBoldZeosConnection(DatasetWrapper.DatabaseWrapper).fZConnection.Protocol);
+end;
+
+{ For SQLite the value goes as a Double, which the column stores as the same
+  REAL that FireDAC's decimal text ends up as, so a database written under
+  Delphi and one written under Free Pascal hold the same values. A Double
+  carries the four decimals of a currency up to about 15 significant digits.
+  Other protocols take the currency itself. }
+procedure TBoldZeosParameter.SetCurrencyValue(const Value: Currency);
+begin
+  if CurrencyIsBoundAsScaledInteger then
+    fZParam.AsDouble := Value
+  else
+    fZParam.AsCurrency := Value;
+end;
+
 procedure TBoldZeosParameter.Clear;
 begin
   fZParam.Clear;
@@ -332,7 +357,11 @@ end;
 
 procedure TBoldZeosParameter.SetAsVariant(const NewValue: Variant);
 begin
-  fZParam.Value := NewValue;
+  // A currency in a Variant would take the same path as AsCurrency
+  if VarType(NewValue) = varCurrency then
+    SetCurrencyValue(NewValue)
+  else
+    fZParam.Value := NewValue;
 end;
 
 function TBoldZeosParameter.GetIsNull: Boolean;
@@ -411,7 +440,7 @@ end;
 
 procedure TBoldZeosParameter.SetAsBCD(const Value: Currency);
 begin
-  fZParam.AsCurrency := Value;
+  SetCurrencyValue(Value);
 end;
 
 procedure TBoldZeosParameter.SetAsBlob(const Value: TBoldBlobData);
@@ -440,7 +469,7 @@ end;
 
 procedure TBoldZeosParameter.SetAsCurrency(const Value: Currency);
 begin
-  fZParam.AsCurrency := Value;
+  SetCurrencyValue(Value);
 end;
 
 procedure TBoldZeosParameter.SetAsDate(const Value: TDateTime);
