@@ -388,6 +388,16 @@ begin
     Check('invoices shown over all customers',
       InvoicesShown = FData.BoldSystem.EvaluateExpressionAsInteger('Invoice.allInstances->size'), IntToStr(InvoicesShown));
     Check('some lines shown', LinesShown > 0, IntToStr(LinesShown));
+
+    // Only an attribute changes, on the Bold side; the change is not saved.
+    // TBoldDataSet's cell followers hear it, and LiveBindings fill the cell.
+    FCustomers.First;
+    Settle;
+    Customer := FCustomers.ActiveBoldObject as TCustomer;
+    Customer.Name := Customer.Name + ' (renamed)';
+    Settle;
+    Check('a rename on the Bold side shows in the grid',
+      FCustomerGrid.Cells[1, FCustomers.RecNo - 1] = Customer.Name, FCustomerGrid.Cells[1, FCustomers.RecNo - 1]);
     Log.Add(Format('%d failed', [Failures]));
     SelfTestTrace(Log.Text);
   finally
