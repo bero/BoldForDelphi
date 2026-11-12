@@ -1,0 +1,10 @@
+object frmInvoicingMain: TfrmInvoicingMain
+  Left = 300
+  Height = 680
+  Top = 150
+  Width = 1000
+  Caption = 'Bold Invoicing - LCL'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+end

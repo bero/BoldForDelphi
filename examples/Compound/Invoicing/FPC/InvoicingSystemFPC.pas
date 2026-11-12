@@ -40,6 +40,8 @@ type
     procedure CloseSystem(ASaveChanges: Boolean);
     procedure Save;
     property BoldSystem: TBoldSystem read GetBoldSystem;
+    { For handles rooted on the system, as the LCL client's list handles }
+    property SystemHandle: TBoldSystemHandle read FSystemHandle;
     property IsOpen: Boolean read GetIsOpen;
     property ModelLoaded: Boolean read FModelLoaded;
     property DataFile: string read GetDataFile;
