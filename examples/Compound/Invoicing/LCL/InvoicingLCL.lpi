@@ -25,6 +25,10 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="BoldLCL"/>
+        <DefaultFilename Value="../../../../packages/Lazarus/BoldLCL.lpk" Prefer="True"/>
+      </Item>
+      <Item>
         <PackageName Value="Bold"/>
         <DefaultFilename Value="../../../../packages/Lazarus/Bold.lpk" Prefer="True"/>
       </Item>

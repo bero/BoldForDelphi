@@ -13,12 +13,13 @@ unit fInvoicingMain;
   follow with no code. Derived attributes such as openBalance, grossTotal and
   status are ordinary columns.
 
-  Bold runs on its freestanding environment here, so nothing drains Bold's
-  display queue by itself: AppIdle does it from the LCL's idle loop.
+  BoldEnvironmentLCL, named in the uses clause below, makes Bold run on its
+  LCL environment: Bold's display queue is drained from the LCL's idle
+  handling, with no code in the form.
 
-  The handles, datasets and grids are created in code: the Lazarus package
-  (packages/Lazarus/Bold.lpk) is runtime only, so Bold's components are not on
-  the palette yet. }
+  The handles, datasets and grids are created in code: the Lazarus packages
+  (packages/Lazarus) are runtime only, so Bold's components are not on the
+  palette yet. }
 
 interface
 
@@ -87,7 +88,8 @@ implementation
 {$R *.lfm}
 
 uses
-  BoldQueue,
+  BoldEnvironment,
+  BoldEnvironmentLCL, // registers Bold's LCL environment
   InvoicingClasses,
   InvoicingScenario;
 
@@ -303,10 +305,8 @@ end;
 
 procedure TfrmInvoicingMain.AppIdle(Sender: TObject; var Done: Boolean);
 begin
-  // Brings the Bold-aware followers, TBoldDataSet's among them, up to date
-  TBoldQueueable.DisplayAll;
+  // Done is left alone: Bold's queue has an idle handler of its own
   ShowStatus;
-  Done := True;
 end;
 
 procedure TfrmInvoicingMain.SaveClick(Sender: TObject);
@@ -340,12 +340,14 @@ procedure TfrmInvoicingMain.Settle;
 var
   Start: QWord;
 begin
-  // TBoldDataSet refreshes after a Bold-side change through BoldSharedClock,
-  // which arrives on the main thread: ProcessMessages delivers it
+  // What Application.Run does, for a while and without waiting: messages,
+  // then the idle handlers, where the LCL environment drains Bold's display
+  // queue. TBoldDataSet refreshes after a Bold-side change through
+  // BoldSharedClock, which arrives on the main thread with the messages.
   Start := GetTickCount64;
   repeat
-    TBoldQueueable.DisplayAll;
     Application.ProcessMessages;
+    Application.Idle(False);
     Sleep(10);
   until GetTickCount64 - Start > 300;
 end;
@@ -419,6 +421,16 @@ begin
     Check('invoices shown over all customers',
       InvoicesShown = FData.BoldSystem.EvaluateExpressionAsInteger('Invoice.allInstances->size'), IntToStr(InvoicesShown));
     Check('some lines shown', LinesShown > 0, IntToStr(LinesShown));
+
+    // Nothing here calls TBoldQueueable.DisplayAll: the LCL environment drains
+    // Bold's display queue from the idle handling, which Settle runs
+    Check('Bold environment', BoldEffectiveEnvironment.Name = 'LCL', BoldEffectiveEnvironment.Name);
+    FCustomers.First;
+    Check('moving the customer dataset queues followers to display', not BoldInstalledQueue.Empty,
+      IntToStr(BoldInstalledQueue.DisplayCount) + ' queued');
+    Settle;
+    Check('the idle handling drains Bold''s display queue', BoldInstalledQueue.Empty,
+      IntToStr(BoldInstalledQueue.DisplayCount) + ' queued');
     Log.Add(IntToStr(Failures) + ' failed');
     SelfTestTrace(Log.Text);
   finally
