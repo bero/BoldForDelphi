@@ -212,7 +212,7 @@ type
   TMoldElementList = class(TBoldIndexableList)
   private
     class var IX_Name: integer;
-    function GetItem(index: TListIndex): TMoldElement;
+    function GetItem(index: Integer): TMoldElement;
     function GetItemByName(const name: string): TMoldElement;
   protected
     function TraverserClass: TBoldIndexableListTraverserClass; override;
@@ -222,7 +222,7 @@ type
     procedure RemoveEntryReference(Item: TMoldElement);
     function MakeUniqueName(const prefix: string): string;
     procedure Add(MoldElement: TMoldElement);
-    property Items[index: TListIndex]: TMoldElement read GetItem; default;
+    property Items[index: Integer]: TMoldElement read GetItem; default;
     property ItemsByName[const name: string]: TMoldElement read GetItemByName;
   end;
 
@@ -231,7 +231,7 @@ type
   private
     class var IX_ExpressionName: integer;
     class var IX_DelphiName: integer;
-    function GetItem(index: TListIndex): TMoldClass;
+    function GetItem(index: Integer): TMoldClass;
     function GetItemByName(const name: string): TMoldClass;
     function GetItemByExpressionName(const ExpressionName: String): TMoldClass;
     function GetItemByDelphiName(const DelphiName: String): TMoldClass;
@@ -240,7 +240,7 @@ type
   public
     function GetEnumerator: TMoldClassListTraverser;
     constructor Create;
-    property Items[index: TListIndex]: TMoldClass read GetItem; default;
+    property Items[index: Integer]: TMoldClass read GetItem; default;
     property ItemsByName[const name: string]: TMoldClass read GetItemByName;
     property ItemsByExpressionName[const ExpressionName: String]: TMoldClass read GetItemByExpressionName;
     property ItemsByDelphiName[const DelphiName: String]: TMoldClass read GetItemByDelphiName;
@@ -249,78 +249,78 @@ type
   { TMoldMemberList }
   TMoldMemberList = class(TMoldElementList)
   private
-    function GetItem(index: TListIndex): TMoldMember;
+    function GetItem(index: Integer): TMoldMember;
     function GetItemByName(const name: string): TMoldMember;
   protected
     function TraverserClass: TBoldIndexableListTraverserClass; override;
   public
     function GetEnumerator: TMoldMemberListTraverser;
-    property Items[index: TListIndex]: TMoldMember read GetItem; default;
+    property Items[index: Integer]: TMoldMember read GetItem; default;
     property ItemsByName[const name: string]: TMoldMember read GetItemByName;
   end;
 
   {---TMoldRoleList---}
   TMoldRoleList = class(TMoldMemberList)
   private
-    function GetItem(index: TListIndex): TMoldRole;
+    function GetItem(index: Integer): TMoldRole;
     function GetItemByName(const name: string): TMoldRole;
   protected
     function TraverserClass: TBoldIndexableListTraverserClass; override;
   public
     function GetEnumerator: TMoldRoleListTraverser;
-    property Items[index: TListIndex]: TMoldRole read GetItem; default;
+    property Items[index: Integer]: TMoldRole read GetItem; default;
     property ItemsByName[const name: string]: TMoldRole read GetItemByName;
   end;
 
   {---TMoldMethodList---}
   TMoldMethodList = class(TMoldElementList)
   private
-    function GetItem(index: TListIndex): TMoldMethod;
+    function GetItem(index: Integer): TMoldMethod;
     function GetItemByName(const name: string): TMoldMethod;
   protected
     function TraverserClass: TBoldIndexableListTraverserClass; override;
   public
     function GetEnumerator: TMoldMethodListTraverser;
-    property Items[index: TListIndex]: TMoldMethod read GetItem; default;
+    property Items[index: Integer]: TMoldMethod read GetItem; default;
     property ItemsByName[const name: string]: TMoldMethod read GetItemByName;
   end;
 
   {---TMoldAssociationList---}
   TMoldAssociationList = class(TMoldElementList)
   private
-    function GetItem(index: TListIndex): TMoldAssociation;
+    function GetItem(index: Integer): TMoldAssociation;
     function GetItemByName(const name: string): TMoldAssociation;
   protected
     function TraverserClass: TBoldIndexableListTraverserClass; override;
   public
     function GetEnumerator: TMoldAssociationListTraverser;
-    property Items[index: TListIndex]: TMoldAssociation read GetItem; default;
+    property Items[index: Integer]: TMoldAssociation read GetItem; default;
     property ItemsByName[const name: string]: TMoldAssociation read GetItemByName;
   end;
 
   {---TMoldAttributeList---}
   TMoldAttributeList = class(TMoldMemberList)
   private
-    function GetItem(index: TListIndex): TMoldAttribute;
+    function GetItem(index: Integer): TMoldAttribute;
     function GetItemByName(const name: string): TMoldAttribute;
   protected
     function TraverserClass: TBoldIndexableListTraverserClass; override;
   public
     function GetEnumerator: TMoldAttributeListTraverser;
-    property Items[index: TListIndex]: TMoldAttribute read GetItem; default;
+    property Items[index: Integer]: TMoldAttribute read GetItem; default;
     property ItemsByName[const name: string]: TMoldAttribute read GetItemByName;
   end;
 
   {---TMoldQualifierList---}
   TMoldQualifierList = class(TMoldElementList)
   private
-    function GetItem(index: TListIndex): TMoldQualifier;
+    function GetItem(index: Integer): TMoldQualifier;
     function GetItemByName(const name: string): TMoldQualifier;
   protected
     function TraverserClass: TBoldIndexableListTraverserClass; override;
   public
     function GetEnumerator: TMoldQualifierListTraverser;
-    property Items[index: TListIndex]: TMoldQualifier read GetItem; default;
+    property Items[index: Integer]: TMoldQualifier read GetItem; default;
     property ItemsByName[const name: string]: TMoldQualifier read GetItemByName;
   end;
 
@@ -989,7 +989,7 @@ begin
   result := CreateTraverser as TMoldAssociationListTraverser;
 end;
 
-function TMoldAssociationList.GetItem(index: TListIndex): TMoldAssociation;
+function TMoldAssociationList.GetItem(index: Integer): TMoldAssociation;
 begin
   Result := TMoldAssociation(inherited Items[index]);
 end;
@@ -999,7 +999,7 @@ begin
   result := CreateTraverser as TMoldRoleListTraverser;
 end;
 
-function TMoldRoleList.GetItem(index: TListIndex): TMoldRole;
+function TMoldRoleList.GetItem(index: Integer): TMoldRole;
 begin
   Result := TMoldRole(inherited Items[index]);
 end;
@@ -1137,7 +1137,7 @@ begin
   result := CreateTraverser as TMoldClassListTraverser;
 end;
 
-function TMoldClassList.GetItem(index: TListIndex): TMoldClass;
+function TMoldClassList.GetItem(index: Integer): TMoldClass;
 begin
   Result := TMoldClass(inherited Items[index]);
 end;
@@ -1244,7 +1244,7 @@ begin
   result := CreateTraverser as TMoldAttributeListTraverser;
 end;
 
-function TMoldAttributeList.GetItem(index: TListIndex): TMoldAttribute;
+function TMoldAttributeList.GetItem(index: Integer): TMoldAttribute;
 begin
   Result := TMoldAttribute(inherited Items[index]);
 end;
@@ -1345,7 +1345,7 @@ begin
   result := CreateTraverser as TMoldElementListTraverser;
 end;
 
-function TMoldElementList.GetItem(index: TListIndex): TMoldElement;
+function TMoldElementList.GetItem(index: Integer): TMoldElement;
 begin
   Result := TMoldElement(inherited Items[index]);
 end;
@@ -1417,7 +1417,7 @@ begin
   result := CreateTraverser as TMoldMethodListTraverser;
 end;
 
-function TMoldMethodList.GetItem(index: TListIndex): TMoldMethod;
+function TMoldMethodList.GetItem(index: Integer): TMoldMethod;
 begin
   Result := TMoldMethod(inherited Items[index]);
 end;
@@ -1462,7 +1462,7 @@ begin
   result := CreateTraverser as TMoldQualifierListTraverser;
 end;
 
-function TMoldQualifierList.GetItem(index: TListIndex): TMoldQualifier;
+function TMoldQualifierList.GetItem(index: Integer): TMoldQualifier;
 begin
   Result := TMoldQualifier(inherited Items[index]);
 end;
@@ -2430,7 +2430,7 @@ begin
   result := CreateTraverser as TMoldMemberListTraverser;
 end;
 
-function TMoldMemberList.GetItem(index: TListIndex): TMoldMember;
+function TMoldMemberList.GetItem(index: Integer): TMoldMember;
 begin
   result := TMoldMember(Inherited GetItem(index));
   Assert(result is TMoldMember);

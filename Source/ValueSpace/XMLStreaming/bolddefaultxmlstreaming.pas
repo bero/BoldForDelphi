@@ -264,6 +264,7 @@ implementation
 
 uses
   SysUtils,
+  Classes,
   Contnrs,
 
   BoldCoreConsts,

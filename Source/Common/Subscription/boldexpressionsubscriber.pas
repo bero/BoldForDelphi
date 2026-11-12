@@ -50,7 +50,7 @@ type
     procedure ObjectCreated(const AClassName: string; AObjectId: TBoldObjectId);
     procedure ObjectDeleted(const AClassName: string; AObjectId: TBoldObjectId);
     procedure MemberChanged(const AClassName, AMemberName: string; AObjectId: TBoldObjectId; ABoldObject: TBoldObject);
-    function GetBoldSystem: TBoldSystem;
+    function GetBoldSystem: TBoldSystem; reintroduce;
     property Subscriber: TBoldSubscriber read GetSubscriber;
     property BoldSystem: TBoldSystem read GetBoldSystem;
     property Condition: TBoldExpression read fCondition;
@@ -305,9 +305,7 @@ end;
 procedure TExpressionSubscriber.EvaluateCondition(AContext: TBoldElement);
 var
   IE,IE2: TBoldIndirectElement;
-  TempList: TBoldList;
   ResultList: TBoldList;
-  InList: TBoldList;
 begin
   if Assigned(AContext) and Assigned(Value) then
   begin
@@ -315,7 +313,6 @@ begin
     ie2 := TBoldIndirectElement.Create;
     try
       AContext.GetAsList(IE);
-      InList :=  IE.Value as TBoldList;
       IE.Value.EvaluateAndSubscribeToExpression(Condition, Subscriber, ie2, false, false, VariableList);
       ResultList := (IE2.Value as TBoldList);
       if ResultList.Empty and (self.Value as TBoldList).Includes(AContext) then
@@ -362,10 +359,6 @@ begin
 end;
 
 procedure TExpressionSubscriber.DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
-var
-  ClassTypeInfo: TBoldClassTypeInfo;
-  InPs: boolean;
-  Span: TBoldObjectSpan;
 begin
   inherited;
   if EffectiveRootValue = nil then
@@ -433,11 +426,9 @@ procedure TExpressionSubscriber.ObjectCreated(const AClassName: string;
   AObjectId: TBoldObjectId);
 var
   ClassTypeInfo: TBoldClassTypeInfo;
-  Span: TBoldObjectSpan;
   Locator: TBoldObjectLocator;
   bo: TBoldObject;
 begin
-  Span := fSpan as TBoldObjectSpan;
   ClassTypeInfo := BoldSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName[AClassName];
   if Assigned(resultType) and ClassTypeInfo.ConformsTo(resultType) then
   begin
@@ -460,11 +451,8 @@ procedure TExpressionSubscriber.ObjectDeleted(const AClassName: string;
   AObjectId: TBoldObjectId);
 var
   ClassTypeInfo: TBoldClassTypeInfo;
-  Span: TBoldObjectSpan;
   Locator: TBoldObjectLocator;
-  bo: TBoldObject;
 begin
-  Span := fSpan as TBoldObjectSpan;
   ClassTypeInfo := BoldSystem.BoldSystemTypeInfo.ClassTypeInfoByExpressionName[AClassName];
 //  if IsClassRelevant(ClassTypeInfo) then
   if ClassTypeInfo.ConformsTo(resultType) then
@@ -472,7 +460,9 @@ begin
   begin
     Locator := BoldSystem.EnsuredLocatorByID[AObjectId];
     Assert(Assigned(Locator), 'Locator not found for ID' +AObjectId.AsString);
-    bo := Locator.EnsuredBoldObject;
+    // Loads the object, as the EnsuredBoldObject read here always did; the
+    // object itself is not needed any more
+    Locator.EnsureBoldObject;
     MarkOutOfDate;//EvaluateCondition(BO);
   end;
   if IsClassRelevant(ClassTypeInfo) then
@@ -489,8 +479,6 @@ var
   Span: TBoldObjectSpan;
 
   function ExtractConditionFromExpression: string;
-  var
-    i: integer;
   begin
     if (Span.SubnodeCount = 1) and (Span.SubNode[0] is TBoldAllInstancesNode) then
       result :=  StringReplace(expression, Span.UmlClass.ExpressionName + '.allInstances', 'self', [rfIgnoreCase])
@@ -523,12 +511,9 @@ procedure TExpressionSubscriber.MemberChanged(const AClassName,
 var
   ClassTypeInfo: TBoldClassTypeInfo;
   MemberRTInfo: TBoldMemberRTInfo;
-  Span: TBoldObjectSpan;
-  Element: TBoldElement;
   sl: TStringList;
   i,j: integer;
 begin
-  Span := fSpan as TBoldObjectSpan;
   if Assigned(ABoldObject) then
     ClassTypeInfo := ABoldObject.BoldClassTypeInfo
   else

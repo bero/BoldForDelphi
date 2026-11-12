@@ -90,9 +90,9 @@ type
 
   TBoldTemplateList = class(TList)
   private
-    function GetItems(index: integer): TBoldTemplateHolder;
+    function GetItems(index: TListIndex): TBoldTemplateHolder;
   public
-    property items[index: integer]: TBoldTemplateHolder read GetItems; default;
+    property items[index: TListIndex]: TBoldTemplateHolder read GetItems; default;
   end;
 
 
@@ -521,7 +521,7 @@ end;
 
 { TBoldTemplateList }
 
-function TBoldTemplateList.GetItems(index: integer): TBoldTemplateHolder;
+function TBoldTemplateList.GetItems(index: TListIndex): TBoldTemplateHolder;
 begin
   result := TBoldTemplateHolder(inherited items[index]);
 end;

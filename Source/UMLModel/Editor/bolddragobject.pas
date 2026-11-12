@@ -9,6 +9,7 @@ uses
   Classes,
   Controls,
   Forms,
+  BoldDefs,
   BoldHandle,
   BoldUMLModel;
 
@@ -45,11 +46,11 @@ type
   TBoldControlProviderList = class(TList)
   private
     function GetControlProviders(
-      const index: integer): TBoldControlProvider;
+      const index: TListIndex): TBoldControlProvider;
   public
     destructor Destroy; override;
     procedure Add(ControlProvider: TBoldControlProvider);
-    property Items[const index: integer]: TBoldControlProvider read GetControlProviders;
+    property Items[const index: TListIndex]: TBoldControlProvider read GetControlProviders;
     function MatchingProvider(UMLElement: TUMLModelElement): TBoldControlProvider;
   end;
 
@@ -391,7 +392,7 @@ begin
 end;
 
 function TBoldControlProviderList.GetControlProviders(
-  const index: integer): TBoldControlProvider;
+  const index: TListIndex): TBoldControlProvider;
 begin
   Result := TBoldControlProvider(inherited Items[Index]);
 end;

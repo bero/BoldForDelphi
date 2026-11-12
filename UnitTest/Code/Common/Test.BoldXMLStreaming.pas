@@ -34,6 +34,7 @@ implementation
 
 uses
   SysUtils,
+  Classes,
   Contnrs,
   BoldDefs,
   BoldCoreConsts,

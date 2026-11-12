@@ -133,7 +133,6 @@ var
   i: Integer;
   P: Pointer;
 begin
-  P := nil;
   for i := Low(cCandidates) to High(cCandidates) do
   begin
     P := VirtualAlloc(Pointer(cCandidates[i]), InstanceSize, MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE);

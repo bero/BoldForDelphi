@@ -1462,10 +1462,9 @@ begin
 end;
 
 procedure TTestBoldElementTypeInfo.TestGetListTypeInfoRaises_Raiser;
-var
-  LI: TBoldListTypeInfo;
 begin
-  LI := TTestElementTypeInfo(fRaiseTypeInfo).ListTypeInfo;
+  // ListTypeInfo raises; reaching the check means it did not
+  Assert.IsNull(TTestElementTypeInfo(fRaiseTypeInfo).ListTypeInfo, 'ListTypeInfo should raise');
 end;
 
 procedure TTestBoldElementTypeInfo.TestElementClassReturnsNil;
@@ -1496,10 +1495,8 @@ end;
 procedure TTestBoldElementTypeInfo.TestGetListTypeInfoRaises;
 var
   TypeInfo: TTestElementTypeInfo;
-  LI: TBoldListTypeInfo;
 begin
   TypeInfo := TTestElementTypeInfo.Create('Model', 'TestType', 'Delphi', nil);
-  LI := nil;
   try
     fRaiseTypeInfo := TypeInfo;
     Assert.WillRaise(TestGetListTypeInfoRaises_Raiser, EBold);

@@ -1,4 +1,4 @@
-unit Test.BoldPersistenceController;
+﻿unit Test.BoldPersistenceController;
 
 interface
 
@@ -179,18 +179,15 @@ begin
 end;
 
 procedure TTestBoldPersistenceController.TestPMTimeForTimestamp_RaisesException;
-var
-  ClockTime: TDateTime;
 begin
-  fRaiseClockTime := ClockTime;
+  // Any value: the base controller raises before it looks at it
+  fRaiseClockTime := 0;
   Assert.WillRaise(TestPMTimeForTimestamp_RaisesException_Raiser, EBoldFeatureNotImplementedYet );
 end;
 
 procedure TTestBoldPersistenceController.TestPMTimestampForTime_RaisesException;
-var
-  Timestamp: TBoldTimestampType;
 begin
-  fRaiseTimestamp := Timestamp;
+  fRaiseTimestamp := 0;
   Assert.WillRaise(TestPMTimestampForTime_RaisesException_Raiser, EBoldFeatureNotImplementedYet );
 end;
 

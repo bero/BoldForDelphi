@@ -240,6 +240,7 @@ implementation
 
 uses
   SysUtils,
+  Classes,
   Contnrs,
   BoldDefaultXMLStreaming,
   BoldDefaultStreamNames,
