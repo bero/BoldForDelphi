@@ -16,8 +16,9 @@ unit fInvoicingMain;
   Bold runs on its freestanding environment here, so nothing drains Bold's
   display queue by itself: AppIdle does it from the LCL's idle loop.
 
-  The handles, datasets and grids are created in code: there is no Lazarus
-  package that puts Bold's components on the palette yet. }
+  The handles, datasets and grids are created in code: the Lazarus package
+  (packages/Lazarus/Bold.lpk) is runtime only, so Bold's components are not on
+  the palette yet. }
 
 interface
 

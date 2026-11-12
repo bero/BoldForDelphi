@@ -1,0 +1,777 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="5">
+    <Name Value="Bold"/>
+    <Type Value="RunTime"/>
+    <Author Value="Bold for Delphi contributors"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <SearchPaths>
+        <IncludeFiles Value="../../Source/Common/Include"/>
+        <OtherUnitFiles Value="../../Source/BoldAwareGUI/BoldControls;../../Source/BoldAwareGUI/ControlPacks;../../Source/BoldAwareGUI/Core;../../Source/Common/Core;../../Source/Common/Environment;../../Source/Common/Logging;../../Source/Common/Queue;../../Source/Common/Stubs;../../Source/Common/Subscription;../../Source/Common/Support;../../Source/Common/TaggedValues;../../Source/Common/UML;../../Source/FreestandingValueSpace/Core;../../Source/Handles/Core;../../Source/Handles/UnLoader;../../Source/MoldModel/Bld;../../Source/MoldModel/Core;../../Source/MoldModel/Handles;../../Source/MoldModel/IDE;../../Source/MoldModel/TypeNameDictionary;../../Source/ObjectSpace/BORepresentation;../../Source/ObjectSpace/COM;../../Source/ObjectSpace/Core;../../Source/ObjectSpace/IDE;../../Source/ObjectSpace/Interfaces;../../Source/ObjectSpace/Ocl;../../Source/ObjectSpace/PessimisticLocking;../../Source/ObjectSpace/RTModel;../../Source/ObjectSpace/Undo;../../Source/ObjectSpace/Unloader;../../Source/PMapper/Core;../../Source/PMapper/DBEvolutor;../../Source/PMapper/Default;../../Source/PMapper/SQL;../../Source/PMapper/Validator;../../Source/Persistence/Core;../../Source/Persistence/DB;../../Source/Persistence/File;../../Source/Persistence/IDE;../../Source/Persistence/ObjectUpgrading;../../Source/Persistence/Propagation;../../Source/UMLModel/Core;../../Source/UMLModel/Handles;../../Source/ValueSpace/Condition;../../Source/ValueSpace/ExternalEvents;../../Source/ValueSpace/Id;../../Source/ValueSpace/Interfaces;../../Source/ValueSpace/XMLStreaming"/>
+        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Other>
+        <CustomOptions Value="-Mdelphiunicode"/>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Bold for Delphi, runtime: the framework-neutral units that build with Free Pascal (object space, OCL, handles, persistence, TBoldDataSet). No LCL unit and no database library."/>
+    <License Value="MIT"/>
+    <Version Major="26" Minor="9" Release="1"/>
+    <Files>
+      <Item>
+        <Filename Value="../../Source/BoldAwareGUI/BoldControls/bolddataset.pas"/>
+        <UnitName Value="BoldDataSet"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/BoldAwareGUI/ControlPacks/boldcontrollerlistcontrolpack.pas"/>
+        <UnitName Value="BoldControllerListControlPack"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/BoldAwareGUI/ControlPacks/boldlistcontrolpack.pas"/>
+        <UnitName Value="BoldListControlPack"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/BoldAwareGUI/ControlPacks/boldlisthandlefollower.pas"/>
+        <UnitName Value="BoldListHandleFollower"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/BoldAwareGUI/ControlPacks/boldlistlistcontrolpack.pas"/>
+        <UnitName Value="BoldListListControlPack"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/BoldAwareGUI/ControlPacks/boldstringcontrolpack.pas"/>
+        <UnitName Value="BoldStringControlPack"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/BoldAwareGUI/Core/boldexceptionhandlers.pas"/>
+        <UnitName Value="BoldExceptionHandlers"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/BoldAwareGUI/Core/boldgui.pas"/>
+        <UnitName Value="BoldGUI"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/BoldAwareGUI/Core/boldguiresourcestrings.pas"/>
+        <UnitName Value="BoldGuiResourceStrings"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Core/boldbase.pas"/>
+        <UnitName Value="BoldBase"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Core/boldcontainers.pas"/>
+        <UnitName Value="BoldContainers"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Core/bolddefs.pas"/>
+        <UnitName Value="BoldDefs"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Core/boldstreams.pas"/>
+        <UnitName Value="BoldStreams"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Core/boldthreadsafequeue.pas"/>
+        <UnitName Value="BoldThreadSafeQueue"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Environment/boldenvironment.pas"/>
+        <UnitName Value="BoldEnvironment"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Logging/boldloghandler.pas"/>
+        <UnitName Value="BoldLogHandler"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Logging/boldloginterfaces.pas"/>
+        <UnitName Value="BoldLogInterfaces"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Logging/boldlogreceiverinterface.pas"/>
+        <UnitName Value="BoldLogReceiverInterface"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Logging/boldlogsinks.pas"/>
+        <UnitName Value="BoldLogSinks"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Logging/boldthreadsafelog.pas"/>
+        <UnitName Value="BoldThreadSafeLog"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Queue/boldabstractdequeuer.pas"/>
+        <UnitName Value="BoldAbstractDequeuer"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Queue/boldeventqueue.pas"/>
+        <UnitName Value="BoldEventQueue"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Queue/boldqueue.pas"/>
+        <UnitName Value="BoldQueue"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Stubs/boldperformancestub.pas"/>
+        <UnitName Value="BoldPerformanceStub"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Stubs/boldstubdefs.pas"/>
+        <UnitName Value="BoldStubDefs"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Stubs/boldstubs.pas"/>
+        <UnitName Value="BoldStubs"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Stubs/boldtracelog.pas"/>
+        <UnitName Value="BoldTraceLog"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Subscription/boldderiver.pas"/>
+        <UnitName Value="BoldDeriver"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Subscription/boldexpressionsubscriber.pas"/>
+        <UnitName Value="BoldExpressionSubscriber"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Subscription/boldsubscribablecollection.pas"/>
+        <UnitName Value="BoldSubscribableCollection"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Subscription/boldsubscription.pas"/>
+        <UnitName Value="BoldSubscription"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldbase64.pas"/>
+        <UnitName Value="BoldBase64"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldclock.pas"/>
+        <UnitName Value="BoldClock"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldcollections.pas"/>
+        <UnitName Value="BoldCollections"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldcontrolpack.pas"/>
+        <UnitName Value="BoldControlPack"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldcontrolpackdefs.pas"/>
+        <UnitName Value="BoldControlPackDefs"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/bolddirectorytraverser.pas"/>
+        <UnitName Value="BoldDirectoryTraverser"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldexternalizedreferences.pas"/>
+        <UnitName Value="BoldExternalizedReferences"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldguard.pas"/>
+        <UnitName Value="BoldGuard"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldguidutils.pas"/>
+        <UnitName Value="BoldGUIDUtils"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldhashindexes.pas"/>
+        <UnitName Value="BoldHashIndexes"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldindex.pas"/>
+        <UnitName Value="BoldIndex"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldindexablelist.pas"/>
+        <UnitName Value="BoldIndexableList"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldindexcollection.pas"/>
+        <UnitName Value="BoldIndexCollection"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldisodatetime.pas"/>
+        <UnitName Value="BoldIsoDateTime"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldloggablecriticalsection.pas"/>
+        <UnitName Value="BoldLoggableCriticalSection"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldmd5.pas"/>
+        <UnitName Value="BoldMD5"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldnamedvaluelist.pas"/>
+        <UnitName Value="BoldNamedValueList"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldplatform.pas"/>
+        <UnitName Value="BoldPlatform"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldregex.pas"/>
+        <UnitName Value="BoldRegEx"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldrev.pas"/>
+        <UnitName Value="BoldRev"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldsharedstrings.pas"/>
+        <UnitName Value="BoldSharedStrings"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldsorter.pas"/>
+        <UnitName Value="BoldSorter"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/bolduri.pas"/>
+        <UnitName Value="BoldURI"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldutils.pas"/>
+        <UnitName Value="BoldUtils"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldxmlstreaming.pas"/>
+        <UnitName Value="BoldXMLStreaming"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/TaggedValues/bolddefaulttaggedvalues.pas"/>
+        <UnitName Value="BoldDefaultTaggedValues"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/TaggedValues/boldtaggedvaluelist.pas"/>
+        <UnitName Value="BoldTaggedValueList"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/TaggedValues/boldtaggedvaluesupport.pas"/>
+        <UnitName Value="BoldTaggedValueSupport"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/TaggedValues/boldumltaggedvalues.pas"/>
+        <UnitName Value="BoldUMLTaggedValues"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/UML/boldumltypes.pas"/>
+        <UnitName Value="BoldUMLTypes"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/FreestandingValueSpace/Core/boldfreestandingvaluefactories.pas"/>
+        <UnitName Value="BoldFreeStandingValueFactories"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/FreestandingValueSpace/Core/boldfreestandingvalues.pas"/>
+        <UnitName Value="BoldFreeStandingValues"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/FreestandingValueSpace/Core/freestandingvaluesconst.pas"/>
+        <UnitName Value="FreeStandingValuesConst"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldabstractlisthandle.pas"/>
+        <UnitName Value="BoldAbstractListHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldcursorhandle.pas"/>
+        <UnitName Value="BoldCursorHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldexpressionhandle.pas"/>
+        <UnitName Value="BoldExpressionHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldfilteredhandle.pas"/>
+        <UnitName Value="BoldFilteredHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldhandle.pas"/>
+        <UnitName Value="BoldHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldhandles.pas"/>
+        <UnitName Value="BoldHandles"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldlisthandle.pas"/>
+        <UnitName Value="BoldListHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldoclvariables.pas"/>
+        <UnitName Value="BoldOclVariables"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldrootedhandles.pas"/>
+        <UnitName Value="BoldRootedHandles"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldsortedhandle.pas"/>
+        <UnitName Value="BoldSortedHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldsystemhandle.pas"/>
+        <UnitName Value="BoldSystemHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/UnLoader/boldunloaderhandle.pas"/>
+        <UnitName Value="BoldUnloaderHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/Bld/boldbld.pas"/>
+        <UnitName Value="BoldBld"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/Core/boldmeta.pas"/>
+        <UnitName Value="BoldMeta"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/Core/boldmetasupport.pas"/>
+        <UnitName Value="BoldMetaSupport"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/Core/boldnameexpander.pas"/>
+        <UnitName Value="BoldNameExpander"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/Handles/boldabstractmodel.pas"/>
+        <UnitName Value="BoldAbstractModel"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/IDE/boldtypenamehandle.pas"/>
+        <UnitName Value="BoldTypeNameHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/TypeNameDictionary/boldtypenamedictionary.pas"/>
+        <UnitName Value="BoldTypeNameDictionary"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldattributes.pas"/>
+        <UnitName Value="BoldAttributes"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldderivedvalueset.pas"/>
+        <UnitName Value="BoldDerivedValueSet"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/bolddomainelement.pas"/>
+        <UnitName Value="BoldDomainElement"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldelementlist.pas"/>
+        <UnitName Value="BoldElementList"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldlinks.pas"/>
+        <UnitName Value="BoldLinks"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldmlattributes.pas"/>
+        <UnitName Value="BoldMLAttributes"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldobjectlistcontrollers.pas"/>
+        <UnitName Value="BoldObjectListControllers"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldobjectspacelists.pas"/>
+        <UnitName Value="BoldObjectSpaceLists"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldoptimisticlockingsupport.pas"/>
+        <UnitName Value="BoldOptimisticLockingSupport"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldsystem.pas"/>
+        <UnitName Value="BoldSystem"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldsystemoldvaluehandler.pas"/>
+        <UnitName Value="BoldSystemOldValuehandler"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldsystempersistencehandler.pas"/>
+        <UnitName Value="BoldSystemPersistenceHandler"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/BORepresentation/boldtypelist.pas"/>
+        <UnitName Value="BoldTypeList"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/COM/boldcomponentvalidator.pas"/>
+        <UnitName Value="BoldComponentValidator"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Core/boldcoreconsts.pas"/>
+        <UnitName Value="BoldCoreConsts"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Core/boldelements.pas"/>
+        <UnitName Value="BoldElements"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Core/boldmetaelementlist.pas"/>
+        <UnitName Value="BoldMetaElementList"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/IDE/boldexternalobjectspaceeventhandler.pas"/>
+        <UnitName Value="BoldExternalObjectSpaceEventHandler"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Interfaces/boldundointerfaces.pas"/>
+        <UnitName Value="BoldUndoInterfaces"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldocl.pas"/>
+        <UnitName Value="BoldOcl"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldoclclasses.pas"/>
+        <UnitName Value="BoldOclClasses"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldoclerror.pas"/>
+        <UnitName Value="BoldOclError"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldoclevaluator.pas"/>
+        <UnitName Value="BoldOclEvaluator"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldocllightweightnodemaker.pas"/>
+        <UnitName Value="BoldOclLightWeightNodeMaker"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldocllightweightnodes.pas"/>
+        <UnitName Value="BoldOclLightWeightNodes"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldoclrtdebug.pas"/>
+        <UnitName Value="BoldOclRTDebug"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldoclsemantics.pas"/>
+        <UnitName Value="BoldOclSemantics"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldoclsymbolimplementations.pas"/>
+        <UnitName Value="BoldOclSymbolImplementations"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldored.pas"/>
+        <UnitName Value="BoldORed"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldssexcept.pas"/>
+        <UnitName Value="BoldSSExcept"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldsslexu.pas"/>
+        <UnitName Value="BoldSSLexU"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldssyaccu.pas"/>
+        <UnitName Value="BoldSSYaccU"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/PessimisticLocking/boldlockregions.pas"/>
+        <UnitName Value="BoldLockRegions"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/PessimisticLocking/boldregiondefinitionparser.pas"/>
+        <UnitName Value="BoldRegionDefinitionParser"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/PessimisticLocking/boldregiondefinitions.pas"/>
+        <UnitName Value="BoldRegionDefinitions"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/RTModel/boldgeneratedcodedictionary.pas"/>
+        <UnitName Value="BoldGeneratedCodeDictionary"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/RTModel/boldmembertypedictionary.pas"/>
+        <UnitName Value="BoldMemberTypeDictionary"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/RTModel/boldsystemrt.pas"/>
+        <UnitName Value="BoldSystemRT"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Undo/boldundohandler.pas"/>
+        <UnitName Value="BoldUndoHandler"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/Unloader/boldunloader.pas"/>
+        <UnitName Value="BoldUnloader"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Core/boldabstractobjectupgrader.pas"/>
+        <UnitName Value="BoldAbstractObjectUpgrader"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Core/boldpmapper.pas"/>
+        <UnitName Value="BoldPMapper"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Core/boldpmapperlists.pas"/>
+        <UnitName Value="BoldPMapperLists"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Core/boldpmappers.pas"/>
+        <UnitName Value="BoldPMappers"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Core/boldpsdescriptions.pas"/>
+        <UnitName Value="BoldPSDescriptions"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Core/boldpsparams.pas"/>
+        <UnitName Value="BoldPSParams"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/DBEvolutor/bolddbevolutor.pas"/>
+        <UnitName Value="BoldDbEvolutor"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/DBEvolutor/bolddbevolutorscript.pas"/>
+        <UnitName Value="BoldDbEvolutorScript"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Default/boldmappinginfo.pas"/>
+        <UnitName Value="BoldMappingInfo"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Default/boldpmappersattributedefault.pas"/>
+        <UnitName Value="BoldPMappersAttributeDefault"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Default/boldpmappersdefault.pas"/>
+        <UnitName Value="BoldPMappersDefault"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Default/boldpmapperslinkdefault.pas"/>
+        <UnitName Value="BoldPMappersLinkDefault"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Default/boldpsdescriptionsdefault.pas"/>
+        <UnitName Value="BoldPSDescriptionsDefault"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Default/boldpsparamsdefault.pas"/>
+        <UnitName Value="BoldPSParamsDefault"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldpmapperssql.pas"/>
+        <UnitName Value="BoldPMappersSQL"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldpsdescriptionssql.pas"/>
+        <UnitName Value="BoldPSDescriptionsSQL"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldpsparamssql.pas"/>
+        <UnitName Value="BoldPSParamsSQL"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldsqldatabaseconfig.pas"/>
+        <UnitName Value="BoldSQLDatabaseConfig"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldsqlmappinginfo.pas"/>
+        <UnitName Value="BoldSQLMappingInfo"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldsqlnodemaker.pas"/>
+        <UnitName Value="BoldSqlNodeMaker"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldsqlnodes.pas"/>
+        <UnitName Value="BoldSqlNodes"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldsqlnodesresolver.pas"/>
+        <UnitName Value="BoldSqlNodesResolver"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldsqlquery.pas"/>
+        <UnitName Value="BoldSQLQuery"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldsqlquerygenerator.pas"/>
+        <UnitName Value="BoldSqlQueryGenerator"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/SQL/boldsqlsymbols.pas"/>
+        <UnitName Value="BoldSqlSymbols"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Validator/bolddbdatavalidator.pas"/>
+        <UnitName Value="BoldDbDataValidator"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/PMapper/Validator/bolddbvalidator.pas"/>
+        <UnitName Value="BoldDbValidator"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/Core/boldabstractsnooper.pas"/>
+        <UnitName Value="BoldAbstractSnooper"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/Core/boldpersistencecontroller.pas"/>
+        <UnitName Value="BoldPersistenceController"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/Core/boldpersistencehandle.pas"/>
+        <UnitName Value="BoldPersistenceHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/Core/boldpersistencehandlepassthrough.pas"/>
+        <UnitName Value="BoldPersistenceHandlePassthrough"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/Core/boldpersistencenotifier.pas"/>
+        <UnitName Value="BoldPersistenceNotifier"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/Core/boldupdateprecondition.pas"/>
+        <UnitName Value="BoldUpdatePrecondition"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/DB/boldabstractdatabaseadapter.pas"/>
+        <UnitName Value="BoldAbstractDatabaseAdapter"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/DB/boldabstractpersistencehandledb.pas"/>
+        <UnitName Value="BoldAbstractPersistenceHandleDB"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/DB/bolddbcopy.pas"/>
+        <UnitName Value="BoldDbCopy"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/DB/bolddbinterfaces.pas"/>
+        <UnitName Value="BoldDBInterfaces"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/DB/boldpersistencecontrollerdefault.pas"/>
+        <UnitName Value="BoldPersistenceControllerDefault"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/DB/boldpersistencehandledb.pas"/>
+        <UnitName Value="BoldPersistenceHandleDB"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/File/boldpersistencehandlefilexml.pas"/>
+        <UnitName Value="BoldPersistenceHandleFileXML"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/IDE/boldpersistencehandlefile.pas"/>
+        <UnitName Value="BoldPersistenceHandleFile"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/ObjectUpgrading/boldabstractobjectupgraderhandle.pas"/>
+        <UnitName Value="BoldAbstractObjectUpgraderHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Persistence/Propagation/boldpersistencecontrollerpassthrough.pas"/>
+        <UnitName Value="BoldPersistenceControllerPassthrough"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Core/boldumlabstractmodelvalidator.pas"/>
+        <UnitName Value="BoldUMLAbstractModelValidator"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Core/boldumlattributes.pas"/>
+        <UnitName Value="BoldUMLAttributes"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Core/boldumlmodel.pas"/>
+        <UnitName Value="BoldUMLModel"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Core/boldumlmodelconverter.pas"/>
+        <UnitName Value="BoldUMLModelConverter"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Core/boldumlmodeldatamodule.pas"/>
+        <UnitName Value="BoldUMLModelDataModule"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Core/boldumlmodelsupport.pas"/>
+        <UnitName Value="BoldUMLModelSupport"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Core/boldumlmodelvalidator.pas"/>
+        <UnitName Value="BoldUMLModelValidator"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Core/boldumlutils.pas"/>
+        <UnitName Value="BoldUMLUtils"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Handles/boldmodel.pas"/>
+        <UnitName Value="BoldModel"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/UMLModel/Handles/boldumlmodelstreamer.pas"/>
+        <UnitName Value="BoldUMLModelStreamer"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ValueSpace/Condition/boldcondition.pas"/>
+        <UnitName Value="BoldCondition"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ValueSpace/ExternalEvents/boldobjectspaceexternalevents.pas"/>
+        <UnitName Value="BoldObjectSpaceExternalEvents"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ValueSpace/Id/bolddefaultid.pas"/>
+        <UnitName Value="BoldDefaultId"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ValueSpace/Id/boldglobalid.pas"/>
+        <UnitName Value="BoldGlobalId"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ValueSpace/Id/boldid.pas"/>
+        <UnitName Value="BoldId"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ValueSpace/Interfaces/boldvalueinterfaces.pas"/>
+        <UnitName Value="BoldValueInterfaces"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ValueSpace/Interfaces/boldvaluespaceinterfaces.pas"/>
+        <UnitName Value="BoldValueSpaceInterfaces"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ValueSpace/XMLStreaming/bolddefaultstreamnames.pas"/>
+        <UnitName Value="BoldDefaultStreamNames"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ValueSpace/XMLStreaming/bolddefaultxmlstreaming.pas"/>
+        <UnitName Value="BoldDefaultXMLStreaming"/>
+      </Item>
+    </Files>
+    <RequiredPkgs>
+      <Item>
+        <PackageName Value="FCL"/>
+      </Item>
+    </RequiredPkgs>
+    <UsageOptions>
+      <IncludePath Value="../../Source/Common/Include"/>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

@@ -37,9 +37,10 @@ bin/InvoicingLCL      # the client
 ```
 
 `build.sh` builds for the Qt5 widgetset; `LCL_WS=gtk2 ./build.sh` chooses
-another. The project compiles Bold from `Source` in the mode
-`delphiunicode` (Project Options, Custom Options: `-Mdelphiunicode`), and its
-unit path names the Bold source folders it needs.
+another. The project requires the package `Bold`
+(`packages\Lazarus\Bold.lpk`), which lazbuild compiles first, and compiles its
+own units in the mode `delphiunicode` (Project Options, Custom Options:
+`-Mdelphiunicode`).
 
 **Save changes** writes to the data file.
 
@@ -52,8 +53,8 @@ without a window, so the row checks read the dataset behind each grid.
 ## Not yet
 
 - The handles, datasets and grids are created in code (`fInvoicingMain.pas`),
-  because there is no Lazarus package that puts Bold's components on the
-  palette yet.
+  because the Lazarus package is runtime only: Bold's components are not on
+  the palette yet.
 - The grids are read-only here. `TBoldDataSet` can edit (Edit and Post write
   into the Bold objects), which a later version of the client can show.
 - Built and run on Linux only so far.

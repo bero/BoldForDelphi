@@ -25,6 +25,10 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="Bold"/>
+        <DefaultFilename Value="../../../../packages/Lazarus/Bold.lpk" Prefer="True"/>
+      </Item>
+      <Item>
         <PackageName Value="LCL"/>
       </Item>
     </RequiredPackages>
@@ -48,8 +52,8 @@
       <Filename Value="bin/InvoicingLCL"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="../../../../Source/Common/Include;../Model;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../Model;../Tests;../FPC;../../../../Source/BoldAwareGUI/BoldControls;../../../../Source/BoldAwareGUI/ControlPacks;../../../../Source/BoldAwareGUI/Core;../../../../Source/Common/Core;../../../../Source/Common/Environment;../../../../Source/Common/Logging;../../../../Source/Common/Queue;../../../../Source/Common/Stubs;../../../../Source/Common/Subscription;../../../../Source/Common/Support;../../../../Source/Common/TaggedValues;../../../../Source/Common/UML;../../../../Source/FreestandingValueSpace/Core;../../../../Source/Handles/Core;../../../../Source/MoldModel/Bld;../../../../Source/MoldModel/Core;../../../../Source/MoldModel/Handles;../../../../Source/MoldModel/IDE;../../../../Source/MoldModel/TypeNameDictionary;../../../../Source/ObjectSpace/BORepresentation;../../../../Source/ObjectSpace/COM;../../../../Source/ObjectSpace/Core;../../../../Source/ObjectSpace/Interfaces;../../../../Source/ObjectSpace/Ocl;../../../../Source/ObjectSpace/PessimisticLocking;../../../../Source/ObjectSpace/RTModel;../../../../Source/ObjectSpace/Undo;../../../../Source/PMapper/Core;../../../../Source/PMapper/Default;../../../../Source/PMapper/SQL;../../../../Source/Persistence/Core;../../../../Source/Persistence/DB;../../../../Source/Persistence/File;../../../../Source/Persistence/IDE;../../../../Source/Persistence/ObjectUpgrading;../../../../Source/Persistence/Propagation;../../../../Source/UMLModel/Core;../../../../Source/UMLModel/Handles;../../../../Source/ValueSpace/Condition;../../../../Source/ValueSpace/Id;../../../../Source/ValueSpace/Interfaces;../../../../Source/ValueSpace/XMLStreaming"/>
+      <IncludeFiles Value="../Model;$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../Model;../Tests;../FPC"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
