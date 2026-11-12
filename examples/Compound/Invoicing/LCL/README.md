@@ -54,9 +54,9 @@ without a window, so the row checks read the dataset behind each grid.
 
 ## Not yet
 
-- The handles, datasets and grids are created in code (`fInvoicingMain.pas`),
-  because the Lazarus packages are runtime only: Bold's components are not on
-  the palette yet.
+- The handles, datasets and grids are created in code (`fInvoicingMain.pas`).
+  The design-time package `dclBold` (`packages\Lazarus`) now puts them on the
+  palette; the client has not been redone in the form designer yet.
 - The grids are read-only here. `TBoldDataSet` can edit (Edit and Post write
   into the Bold objects), which a later version of the client can show.
 - Built and run on Linux only so far.

@@ -12,7 +12,7 @@ mkdir -p "$OUT"
 
 UNITPATHS=$(find "$ROOT/Source" -type d \
   -not -path '*/Deprecated*' -not -path '*/BoldAwareGUI*' -not -path '*/Unassigned*' \
-  -not -path '*/EnvironmentLCL*' \
+  -not -path '*/EnvironmentLCL*' -not -path '*/IDELazarus*' \
   | sed 's/^/-Fu/')
 
 # shellcheck disable=SC2086

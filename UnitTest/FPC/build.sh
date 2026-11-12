@@ -45,13 +45,14 @@ for unit in component/ZConnection component/ZDataset component/ZSqlProcessor dbc
 done
 
 # Source/Common/EnvironmentLCL needs the LCL, which this build does not have:
-# leaving it off the path also proves that nothing in the core uses it.
+# leaving it off the path also proves that nothing in the core uses it. The
+# same goes for Source/Common/IDELazarus, the design-time registration.
 # BoldAwareGUI holds the VCL controls; of it only the control packs, BoldGUI and
 # TBoldDataSet build without the VCL (BOLD_VCL in bold.inc), so only their
 # folders are on the path.
 UNITPATHS=$( { find "$ROOT/Source" -type d \
     -not -path '*/Deprecated*' -not -path '*/BoldAwareGUI*' -not -path '*/Unassigned*' \
-    -not -path '*/EnvironmentLCL*'; \
+    -not -path '*/EnvironmentLCL*' -not -path '*/IDELazarus*'; \
   echo "$ROOT/Source/BoldAwareGUI/ControlPacks"; \
   echo "$ROOT/Source/BoldAwareGUI/Core"; \
   echo "$ROOT/Source/BoldAwareGUI/BoldControls"; \

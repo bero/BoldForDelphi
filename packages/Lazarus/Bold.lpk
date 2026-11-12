@@ -308,6 +308,22 @@
         <UnitName Value="BoldOclVariables"/>
       </Item>
       <Item>
+        <Filename Value="../../Source/Handles/Core/boldderivedhandle.pas"/>
+        <UnitName Value="BoldDerivedHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldvariablehandle.pas"/>
+        <UnitName Value="BoldVariableHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldreferencehandle.pas"/>
+        <UnitName Value="BoldReferenceHandle"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Handles/Core/boldplaceablesubscriber.pas"/>
+        <UnitName Value="BoldPlaceableSubscriber"/>
+      </Item>
+      <Item>
         <Filename Value="../../Source/Handles/Core/boldrootedhandles.pas"/>
         <UnitName Value="BoldRootedHandles"/>
       </Item>

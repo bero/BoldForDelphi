@@ -16,8 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   them: an LCL client with `TDBGrid`s over `TBoldDataSet`
   (`examples/Compound/Invoicing/LCL`) and a console runner on SQLite through
   Zeos (`examples/Compound/Invoicing/Zeos`). GitHub Actions builds both with
-  lazbuild and runs them on every push. The packages are runtime only: Bold's
-  components are not on the Lazarus palette yet
+  lazbuild and runs them on every push. The design-time package `dclBold.lpk`
+  puts the handles, the model, the persistence handles and `TBoldDataSet` on
+  the Lazarus component palette; the property and component editors of the
+  Delphi package are not ported
 - The Delphi test suite builds and runs on Linux64: `UnitTest\build.ps1
   -Platform Linux64` builds the console runner, and `UnitTest/README.md` says
   how to run it. Test units whose subject is Windows only are empty there, and

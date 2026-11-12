@@ -17,9 +17,9 @@ unit fInvoicingMain;
   LCL environment: Bold's display queue is drained from the LCL's idle
   handling, with no code in the form.
 
-  The handles, datasets and grids are created in code: the Lazarus packages
-  (packages/Lazarus) are runtime only, so Bold's components are not on the
-  palette yet. }
+  The handles, datasets and grids are created in code. The design-time package
+  dclBold (packages/Lazarus) puts Bold's components on the palette; the client
+  has not been redone in the form designer yet. }
 
 interface
 
