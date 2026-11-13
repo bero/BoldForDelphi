@@ -88,16 +88,22 @@ type
     FDetailHandle: TBoldListHandle;
     FMaster: TBoldDataSet;
     FDetail: TBoldDataSet;
+    FHandleNotifications: Integer;
     function AddOwn(const AChildren: array of string): TOwn;
     function DetailValues: string;
     function ExpectedDetailValues: string;
     function WaitForDetail(ATimeoutMs: Integer): Boolean;
+    procedure CountHandleNotification(Sender: TObject);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
     procedure TestDetailFollowsTheMaster;
     procedure TestDetailFollowsANewChild;
+    // A form's OnDestroy runs when its components are already marked as
+    // being destroyed; what it does to the objects then (Discard, say) still
+    // reaches the handles and the datasets
+    procedure TestObjectSpaceChangeWhileTheFormIsBeingDestroyed;
   end;
 
 implementation
@@ -112,8 +118,13 @@ uses
 type
   // Reaches the protected CellFollowerCount
   TBoldDataSetAccess = class(TBoldDataSet);
+  // Reaches the protected Destroying
+  TComponentAccess = class(TComponent);
 
 const
+  // A Discard of one new object makes the two list handles tell four times
+  // that their value changed; this is well above that
+  cNotificationLimit = 12;
   cNames: array[0..2] of string = ('one', 'two', 'three');
 
 function ExpectedDateTime(AIndex: Integer): TDateTime;
@@ -716,6 +727,58 @@ begin
   Child.Own := Own;
   Assert.IsTrue(WaitForDetail(3000), 'the detail should show the new child, got ' + DetailValues);
   Assert.AreEqual(2, FDetail.RecordCount, 'two children');
+end;
+
+procedure TTestBoldDataSetMasterDetail.CountHandleNotification(Sender: TObject);
+begin
+  Inc(FHandleNotifications);
+  // Without a limit the notifications would go on until the stack overflows,
+  // which takes the test runner down with it. Taking the datasets off their
+  // handles ends it: they are what answers each notification by asking the
+  // handle for its list again.
+  if FHandleNotifications = cNotificationLimit then
+  begin
+    FMaster.BoldHandle := nil;
+    FDetail.BoldHandle := nil;
+  end;
+end;
+
+procedure TTestBoldDataSetMasterDetail.TestObjectSpaceChangeWhileTheFormIsBeingDestroyed;
+var
+  Failure: string;
+begin
+  AddOwn(['a1']);
+  FMaster.Open;
+  FMaster.First;
+  Assert.AreEqual(1, FMaster.RecordCount, 'one Own before');
+
+  // What TCustomForm.BeforeDestruction does to the form's components before
+  // it calls OnDestroy (the VCL, FMX and the LCL alike)
+  TComponentAccess(FMasterHandle).Destroying;
+  TComponentAccess(FDetailHandle).Destroying;
+  TComponentAccess(FMaster).Destroying;
+  TComponentAccess(FDetail).Destroying;
+  FHandleNotifications := 0;
+  FMasterHandle.OnBeginValueIdentityChanged := CountHandleNotification;
+  FDetailHandle.OnBeginValueIdentityChanged := CountHandleNotification;
+  Failure := '';
+  try
+    try
+      // The Own is new, so this deletes it: Own.allInstances changes
+      FSystemHandle.System.Discard;
+    except
+      on E: Exception do
+        Failure := E.ClassName + ': ' + E.Message;
+    end;
+  finally
+    FMasterHandle.OnBeginValueIdentityChanged := nil;
+    FDetailHandle.OnBeginValueIdentityChanged := nil;
+  end;
+  Assert.IsTrue(FHandleNotifications < cNotificationLimit,
+    'the list handles should not keep telling that their value changed; stopped after ' +
+    IntToStr(FHandleNotifications) + ' times, Discard then raised ' + Failure);
+  Assert.AreEqual('', Failure, 'Discard should not raise');
+  Assert.IsFalse(FSystemHandle.System.BoldDirty, 'nothing should be left to save');
 end;
 
 initialization

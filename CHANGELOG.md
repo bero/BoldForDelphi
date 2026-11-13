@@ -121,6 +121,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet` no longer overflows the stack when the object space changes
+  while its form is being destroyed, for example a `Discard` in the form's
+  `OnDestroy`. The form's list handles then raise when asked for their list
+  and tell again that their value changed, and the dataset asked again each
+  time. It now leaves a handle alone that is being destroyed, as it does when
+  it is being destroyed itself (#117)
 - `TBoldDataSet` compiles again with Delphi 11-13. It still overrode the
   `TDataSet` methods from before Delphi 2009 and is now ported to the current
   API, with `Test.BoldDataSet` (Windows for now). The port also fixes text

@@ -151,6 +151,7 @@ type
     function GetIndexForBookmark(const Bookmark: TBookmark): integer;
     procedure InsertElement(ABuffer: TRecordBuffer); virtual;
     procedure _ReceiveContext(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
+    function BeingDestroyed: Boolean;
     procedure BoldToBuffer(ABuffer: TRecordBuffer);
     procedure EnsureCellFollowers(ARow: Integer; AElement: TBoldElement);
     procedure _InsertRow(index: Integer; OwningFollower: TBoldFollower);
@@ -857,17 +858,30 @@ begin
     fRecordPos := -1;
 end;
 
+{ A form marks its components as being destroyed before it calls OnDestroy.
+  A list handle in that state raises when it is asked for its list, and then
+  tells again that its value changed; asking it from _ReceiveContext would
+  repeat that until the stack overflows. }
+function TBoldAbstractDataSet.BeingDestroyed: Boolean;
+begin
+  Result := (csDestroying in ComponentState) or
+    (Assigned(BoldHandle) and (csDestroying in BoldHandle.ComponentState));
+end;
+
 procedure TBoldAbstractDataSet._ReceiveContext(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
 begin
   case RequestedEvent of
     beDestroying: Close;
     beValueIdentityChanged:
-    begin
-      TypeMayHaveChanged;
-      EnsureRecordPosInValidRange;
-    end;
-    beItemDeleted: EnsureRecordPosInValidRange;
-  end; 
+      if not BeingDestroyed then
+      begin
+        TypeMayHaveChanged;
+        EnsureRecordPosInValidRange;
+      end;
+    beItemDeleted:
+      if not BeingDestroyed then
+        EnsureRecordPosInValidRange;
+  end;
 end;
 
 function TBoldAbstractDataSet.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
