@@ -4,7 +4,7 @@ program BoldRegistrationCheck;
   IDE (#117): it catches the calls of BoldLazarusReg.Register, and for every
   registered component class creates an instance, writes it as the text of a
   form file and reads it back, as the form designer does when it saves and
-  opens a form. It then does the same with a small data module: a TBoldModel
+  opens a form, and checks that it has its palette icon. It then does the same with a small data module: a TBoldModel
   holding the Invoicing example's model, a system handle, chained list
   handles, a persistence handle and a TBoldDataSet with fields, which refer
   to each other.
@@ -20,6 +20,7 @@ uses
   BoldHandles,
   BoldSystemHandle,
   BoldListHandle,
+  BoldFilteredHandle,
   BoldModel,
   BoldPersistenceHandleFileXML,
   BoldDataSet,
@@ -148,6 +149,50 @@ begin
       Reloaded.Free;
       Original.Free;
     end;
+  end;
+end;
+
+{ The palette icon of a component is a PNG in a resource named after the
+  class, which the unit BoldLazarusReg links in. Returns its size as
+  'width x height', or why there is none. }
+function PaletteIconSize(AClass: TComponentClass): string;
+const
+  PNGSignature: array[0..7] of Byte = ($89, $50, $4E, $47, $0D, $0A, $1A, $0A);
+var
+  Stream: TResourceStream;
+  Header: array[0..23] of Byte;
+begin
+  try
+    Stream := TResourceStream.Create(HInstance, string(AClass.ClassName), RT_RCDATA);
+    try
+      if (Stream.Read(Header, SizeOf(Header)) <> SizeOf(Header)) or
+        not CompareMem(@Header[0], @PNGSignature[0], SizeOf(PNGSignature)) then
+        Result := 'not a PNG'
+      else
+        // The IHDR chunk follows the signature: width and height, big-endian
+        Result := IntToStr(Header[18] shl 8 + Header[19]) + ' x ' + IntToStr(Header[22] shl 8 + Header[23]);
+    finally
+      Stream.Free;
+    end;
+  except
+    on E: Exception do
+      Result := 'no resource (' + string(E.ClassName) + ')';
+  end;
+end;
+
+procedure CheckEveryComponentHasItsPaletteIcon;
+var
+  i: Integer;
+  Size: string;
+begin
+  for i := 0 to High(Registered) do
+  begin
+    Size := PaletteIconSize(Registered[i].ComponentClass);
+    // As in Delphi, where TBoldFilteredHandle has no bitmap and shows the default icon
+    if Registered[i].ComponentClass = TBoldFilteredHandle then
+      Check('TBoldFilteredHandle has no palette icon of its own', Pos('no resource', Size) = 1, Size)
+    else
+      Check(string(Registered[i].ComponentClass.ClassName) + ' has its palette icon', Size = '24 x 24', Size);
   end;
 end;
 
@@ -301,6 +346,9 @@ begin
 
     Writeln('Every component, written as form text and read back');
     CheckEveryComponentRoundTrips;
+
+    Writeln('Every component has its palette icon');
+    CheckEveryComponentHasItsPaletteIcon;
 
     Writeln('A data module with handles, a persistence handle and a dataset');
     CheckModuleRoundTrips;

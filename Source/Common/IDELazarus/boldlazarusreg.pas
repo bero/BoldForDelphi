@@ -10,6 +10,9 @@ unit BoldLazarusReg;
   palette pages, and is in the Lazarus design-time package dclBold
   (packages/Lazarus/dclBold.lpk).
 
+  The palette icons are the bitmaps of the Delphi package (Images/Components)
+  as PNG, in boldlazarusreg.res; images/make_res.sh makes that file.
+
   Only registration so far: the property and component editors of the Delphi
   package are written against Delphi's design-time API and are not ported. }
 
@@ -18,6 +21,8 @@ interface
 procedure Register;
 
 implementation
+
+{$R boldlazarusreg.res}
 
 uses
   Classes,

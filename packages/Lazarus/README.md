@@ -42,11 +42,16 @@ registers, on the same pages as the Delphi package of that name:
 - **Bold Misc**: `TBoldFilter`, `TBoldComparer`, `TBoldPlaceableSubscriber`,
   `TBoldExceptionHandler`, `TBoldDataSet`
 
+The components have the icons of the Delphi palette (`TBoldFilteredHandle`
+has none there either and shows the default icon). The icons are PNG files in
+`Source/Common/IDELazarus/images`; `make_res.sh` there makes them from the
+bitmaps in `Images/Components` and packs them into `boldlazarusreg.res`.
+
 A project never requires `dclBold`: it requires `Bold` (and `BoldLCL`), so an
 application links no registration code. `tests/BoldRegistrationCheck` checks
-without the IDE what the package registers, and that every component, and a
+without the IDE what the package registers, that every component, and a
 data module of them that refer to each other, is written as form text and
-read back.
+read back, and that every component has its icon.
 
 ## Using it
 
@@ -81,5 +86,4 @@ Not there yet:
   editor, the model editor, the field editor of `TBoldDataSet`): they are
   written against Delphi's design-time API. Properties are edited in the
   Object Inspector as text.
-- Palette icons: the components show Lazarus's default icon.
 - `TBoldDatabaseAdapterZeos` on the palette, and Bold's visual controls.
