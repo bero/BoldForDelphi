@@ -2,8 +2,9 @@
 
 Three runtime packages: `Bold.lpk`, the framework-neutral core, `BoldLCL.lpk`,
 what an LCL application adds to it, and `BoldZeos.lpk`, the database adapter.
-And one design-time package, `dclBold.lpk`, which puts Bold's non-visual
-components on the component palette.
+And two design-time packages: `dclBold.lpk`, which puts Bold's non-visual
+components on the component palette, and `dclBoldZeos.lpk`, which adds the
+Zeos database adapter to it.
 
 `Bold.lpk` is the runtime package of Bold for Lazarus / Free Pascal (#117 step
 17). It holds the framework-neutral units that build with Free Pascal: object
@@ -47,6 +48,18 @@ has none there either and shows the default icon). The icons are PNG files in
 `Source/Common/IDELazarus/images`; `make_res.sh` there makes them from the
 bitmaps in `Images/Components` and packs them into `boldlazarusreg.res`.
 
+`dclBoldZeos.lpk` is installed the same way, by those who use Zeos. It
+requires `dclBold` and `BoldZeos` and puts `TBoldDatabaseAdapterZeos` on the
+page **Bold Persistence**, so a form or data module can hold the whole
+database setup: a `TZConnection` (from Zeos's own design-time package
+`zcomponentdesign`), the adapter with its `Connection`, and a
+`TBoldPersistenceHandleDB` with its `DatabaseAdapter`. Its icon is the one of
+Bold's general database adapter. `tests/BoldZeosRegistrationCheck`
+(`tests/build-zeos.sh`, needs `ZEOS`) checks the registration and such a data
+module. A `TZConnection` read from a form writes four more of its format
+settings than a new one, so a form with one changes once, the first time it
+is saved again.
+
 A project never requires `dclBold`: it requires `Bold` (and `BoldLCL`), so an
 application links no registration code. `tests/BoldRegistrationCheck` checks
 without the IDE what the package registers, that every component, and a
@@ -74,8 +87,8 @@ The units of `Bold` are the ones that the Free Pascal test suite
 tested on each push. Four more are there for the palette and are built, and
 written and read as components, but have no tests under Free Pascal yet:
 `BoldDerivedHandle`, `BoldVariableHandle`, `BoldReferenceHandle` and
-`BoldPlaceableSubscriber`. `Bold.pas`, `BoldLCL.pas`, `BoldZeos.pas` and `dclBold.pas` are
-the packages' main units, which Lazarus writes.
+`BoldPlaceableSubscriber`. `Bold.pas`, `BoldLCL.pas`, `BoldZeos.pas`, `dclBold.pas` and
+`dclBoldZeos.pas` are the packages' main units, which Lazarus writes.
 
 `BoldZeos` is built and run on each push too, by the Invoicing runner in
 `examples/Compound/Invoicing/Zeos`.
@@ -86,4 +99,4 @@ Not there yet:
   editor, the model editor, the field editor of `TBoldDataSet`): they are
   written against Delphi's design-time API. Properties are edited in the
   Object Inspector as text.
-- `TBoldDatabaseAdapterZeos` on the palette, and Bold's visual controls.
+- Bold's visual controls.

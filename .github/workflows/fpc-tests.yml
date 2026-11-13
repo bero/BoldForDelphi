@@ -213,3 +213,12 @@ jobs:
           ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0"
           LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config"
           sh examples/Compound/Invoicing/Zeos/build.sh
+
+      # The design-time package dclBoldZeos, and BoldZeosRegistrationCheck:
+      # TBoldDatabaseAdapterZeos on the palette, and a data module with a
+      # TZConnection, the adapter and a persistence handle as form text.
+      - name: Build dclBoldZeos.lpk and check what it registers
+        run: >-
+          ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0"
+          LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config"
+          sh packages/Lazarus/tests/build-zeos.sh
