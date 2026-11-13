@@ -121,6 +121,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet` no longer loses a Bold-side change of one row that is
+  displayed while it reads another row and creates that row's cell followers
+  (a log window that pumps messages during a fetch does that). The dataset
+  ignored every follower in that moment; it now ignores only those of the
+  row being read and refreshes for the others once the row is read (#117)
 - `TBoldDataSet` no longer overflows the stack when the object space changes
   while its form is being destroyed, for example a `Discard` in the form's
   `OnDestroy`. The form's list handles then raise when asked for their list

@@ -133,8 +133,9 @@ type
     // The debounced refresh after Bold-side changes; see DebouncedResync
     fRefreshWindowOpen: Boolean;
     fRefreshPending: Boolean;
-    // True while EnsureCellFollowers creates the followers of a row being read
-    fEnsuringCellFollowers: Boolean;
+    // The row follower whose cell followers EnsureCellFollowers is creating,
+    // while a row is read; nil otherwise
+    fEnsuringRowFollower: TBoldFollower;
     FAutoOpen: boolean;
     FBookmarkOfs: integer;
     FContextSubscriber: TBoldPassthroughSubscriber;
@@ -168,6 +169,7 @@ type
     procedure SetFieldDescriptions(const Value: TBoldDataSetFieldDescriptions);
     procedure EnsureRecordPosInValidRange;
     procedure DebouncedResync;
+    procedure ResyncLater;
     procedure DebouncedResyncDue;
   protected
     procedure Loaded; override;
@@ -488,10 +490,19 @@ begin
     if not Active then
       Exit;
 
-    // The follower was just created for a row that is being read into its
-    // record buffer: the buffer gets this value, so there is nothing to refresh
-    if fEnsuringCellFollowers then
+    if Assigned(fEnsuringRowFollower) then
+    begin
+      // The follower was just created for the row that is being read into its
+      // record buffer: the buffer gets this value, so there is nothing to
+      // refresh. A follower of another row comes here when the display queue
+      // is drained meanwhile (a log window that pumps messages does that):
+      // its change needs a refresh, but not now, in the middle of GetRecord.
+      // In a write mode only the active record matters, and that is handled
+      // when the next change comes.
+      if (Follower.OwningFollower <> fEnsuringRowFollower) and not (Dataset.State in dsWriteModes) then
+        ResyncLater;
       Exit;
+    end;
 
     if not (Dataset.State in dsWriteModes) then
     begin
@@ -1129,7 +1140,7 @@ var
   ListFollower, RowFollower: TBoldFollower;
   i, CellCount: Integer;
 begin
-  if fEnsuringCellFollowers then
+  if Assigned(fEnsuringRowFollower) then
     Exit;
   ListFollower := FListFollower.Follower;
   if not Assigned(ListFollower) or (ARow < 0) or (ARow >= ListFollower.SubFollowerCount) or
@@ -1142,7 +1153,7 @@ begin
   CellCount := RowFollower.SubFollowerCount;
   if CellCount > FieldDescriptions.Count then
     CellCount := FieldDescriptions.Count;
-  fEnsuringCellFollowers := True;
+  fEnsuringRowFollower := RowFollower;
   try
     for i := 0 to CellCount - 1 do
       if not RowFollower.SubFollowerAssigned[i] then
@@ -1150,7 +1161,7 @@ begin
         // expression and subscribes
         RowFollower.SubFollowers[i].Active := True;
   finally
-    fEnsuringCellFollowers := False;
+    fEnsuringRowFollower := nil;
   end;
 end;
 
@@ -2124,6 +2135,20 @@ begin
   else
     fRefreshPending := True;
   if BoldSharedClock <> nil then
+  begin
+    fRefreshWindowOpen := True;
+    BoldSharedClock.Schedule(Now + cRefreshInterval, DebouncedResyncDue);
+  end;
+end;
+
+{ As DebouncedResync, for a caller that is in the middle of reading a record:
+  never at once, always when the interval is over. }
+procedure TBoldAbstractDataSet.ResyncLater;
+begin
+  if BoldSharedClock = nil then
+    Exit;
+  fRefreshPending := True;
+  if not fRefreshWindowOpen then
   begin
     fRefreshWindowOpen := True;
     BoldSharedClock.Schedule(Now + cRefreshInterval, DebouncedResyncDue);

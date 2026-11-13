@@ -11,7 +11,10 @@
 interface
 
 uses
+  DB,
   BoldTestFramework,
+  BoldControlPack,
+  BoldStringControlPack,
   BoldDataSet,
   BoldHandles,
   BoldSystemHandle,
@@ -35,6 +38,15 @@ type
     procedure ChangeTwiceOnTheBoldSide(ATarget: TClassA);
     function WaitForFieldValue(const AFieldName, AExpected: string; ATimeoutMs: Integer): Boolean;
     procedure ProcessQueuedCallsFor(AMilliseconds: Integer);
+  private
+    // TestChangeOfAnotherRowWhileARowIsRead
+    FHookArmed: Boolean;
+    FHookTarget: TClassA;
+    FHookRenderer: TBoldAsStringRenderer;
+    FRefreshes: Integer;
+    function ChangeAnotherRowWhileACellIsCreated(aFollower: TBoldFollower): string;
+    procedure CountRefresh(Sender: TObject; Field: TField);
+    function RefreshesWhileWaiting(AMilliseconds: Integer): Integer;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -68,6 +80,11 @@ type
     procedure TestAttributeChangeOnAnUnreadRowShowsAfterScrolling;
     procedure TestAttributeChangeShowsAfterScrollingAwayAndBack;
     procedure TestOnlyRowsReadAreFollowed;
+    // While a row is read and its cell followers are created, the display
+    // queue is drained (a log window that pumps messages does that) and
+    // brings a change of another, followed row: the dataset must refresh
+    // for it, after the row is read
+    procedure TestChangeOfAnotherRowWhileARowIsRead;
     procedure TestCloseWithAPendingRefresh;
     procedure TestFreeWithAPendingRefresh;
   end;
@@ -111,7 +128,6 @@ implementation
 uses
   SysUtils,
   Classes,
-  DB,
   BoldQueue,
   dmModel1;
 
@@ -545,6 +561,77 @@ begin
   Assert.IsTrue(AfterLast <= 2 * Buffered * FieldCount,
     Format('jumping to the end does not follow the rows between: %d followers', [AfterLast]));
   Assert.IsTrue(AfterLast > AfterOpen, 'the rows read at the end are followed too');
+end;
+
+function TTestBoldDataSet.ChangeAnotherRowWhileACellIsCreated(aFollower: TBoldFollower): string;
+begin
+  Result := FHookRenderer.DefaultGetAsStringAndSubscribe(aFollower, nil);
+  if FHookArmed then
+  begin
+    FHookArmed := False;
+    FHookTarget.aString := 'changed meanwhile';
+    TBoldQueueable.DisplayAll;
+  end;
+end;
+
+procedure TTestBoldDataSet.CountRefresh(Sender: TObject; Field: TField);
+begin
+  // Field = nil: the records were read again, or the cursor moved
+  if Field = nil then
+    Inc(FRefreshes);
+end;
+
+function TTestBoldDataSet.RefreshesWhileWaiting(AMilliseconds: Integer): Integer;
+begin
+  FRefreshes := 0;
+  WaitForFieldValue('aString', 'never', AMilliseconds);
+  Result := FRefreshes;
+end;
+
+procedure TTestBoldDataSet.TestChangeOfAnotherRowWhileARowIsRead;
+const
+  cExtraRows = 200;
+  cStep = 50;
+var
+  i, FollowersBefore: Integer;
+  DataSource: TDataSource;
+begin
+  for i := 1 to cExtraRows do
+    TClassA.Create(FDataModule.BoldSystemHandle1.System).aString := 'extra';
+  DataSource := TDataSource.Create(nil);
+  FHookRenderer := TBoldAsStringRenderer.Create(nil);
+  try
+    FHookRenderer.OnGetAsString := ChangeAnotherRowWhileACellIsCreated;
+    // aInteger, the second field
+    FDataSet.FieldDescriptions[1].BoldProperties.Renderer := FHookRenderer;
+    DataSource.DataSet := FDataSet;
+    DataSource.OnDataChange := CountRefresh;
+    FDataSet.Open;
+    FDataSet.First;
+    FDataSet.Last;
+    Assert.IsFalse(WaitForFieldValue('aString', 'never', 400), 'settling at the end');
+
+    // The control: reading rows that were not read before causes no refresh
+    FDataSet.MoveBy(-cStep);
+    Assert.AreEqual(0, RefreshesWhileWaiting(400), 'refreshes after moving to rows not read before');
+
+    FollowersBefore := TBoldDataSetAccess(FDataSet).CellFollowerCount;
+    // The row the cursor is on now was read and is followed
+    FHookTarget := FDataSet.ActiveBoldObject as TClassA;
+    FHookArmed := True;
+    FDataSet.MoveBy(-cStep);
+    Assert.IsFalse(FHookArmed, 'a cell follower should have been created while moving');
+    Assert.IsTrue(TBoldDataSetAccess(FDataSet).CellFollowerCount > FollowersBefore, 'rows not read before');
+    Assert.IsTrue(RefreshesWhileWaiting(400) > 0,
+      'the change of the other row, displayed while a row was read, should refresh the dataset');
+    FDataSet.MoveBy(cStep);
+    Assert.AreEqual('changed meanwhile', FDataSet.FieldByName('aString').AsString, 'back on the changed row');
+  finally
+    FDataSet.Close;
+    FDataSet.FieldDescriptions[1].BoldProperties.Renderer := nil;
+    FreeAndNil(FHookRenderer);
+    DataSource.Free;
+  end;
 end;
 
 procedure TTestBoldDataSet.TestCloseWithAPendingRefresh;
