@@ -57,6 +57,18 @@ does not vanish from view, the form then follows it (`InvoiceCustomerChange`,
 invoice selected and the combo box ready for another pick. While the invoice
 grid is empty the combo box is disabled.
 
+## The look of the LCL client
+
+The form has the font size, the column widths and the selection of the LCL
+client, so that the two look alike. The font size and the column widths are
+properties in the form file (the grid links have their columns listed). The
+selection is drawn by the form: FMX's default style shows the selected row
+with a tinted control laid over the cells, in the style's accent colour; the
+form makes that control invisible and draws the cells itself
+(`GridDrawColumnBackground`, `GridDrawColumnCell`), a blue row with white
+text. `ApplyTheLook` gives the column headers and the combo box's items the
+font size, which are made while the program runs.
+
 ## No VCL
 
 The project defines `BOLD_NO_VCL` (Project Options, Delphi Compiler, Conditional

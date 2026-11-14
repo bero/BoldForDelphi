@@ -19,8 +19,10 @@ object frmInvoicingMain: TfrmInvoicingMain
     Position.X = 8.000000000000000000
     Position.Y = 6.000000000000000000
     Size.Width = 984.000000000000000000
-    Size.Height = 17.000000000000000000
+    Size.Height = 20.000000000000000000
     Size.PlatformDefault = False
+    StyledSettings = [Family, Style, FontColor]
+    TextSettings.Font.Size = 15.000000000000000000
     Text = 'Customers'
   end
   object grdCustomers: TStringGrid
@@ -36,7 +38,13 @@ object frmInvoicingMain: TfrmInvoicingMain
     Size.Height = 220.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
+    StyledSettings = [Family, Style, FontColor]
+    TextSettings.Font.Size = 15.000000000000000000
+    RowHeight = 24.000000000000000000
     RowCount = 0
+    DefaultDrawing = False
+    OnDrawColumnBackground = GridDrawColumnBackground
+    OnDrawColumnCell = GridDrawColumnCell
     Options = [ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
   end
   object lblInvoices: TLabel
@@ -48,8 +56,10 @@ object frmInvoicingMain: TfrmInvoicingMain
     Position.X = 8.000000000000000000
     Position.Y = 255.000000000000000000
     Size.Width = 984.000000000000000000
-    Size.Height = 17.000000000000000000
+    Size.Height = 20.000000000000000000
     Size.PlatformDefault = False
+    StyledSettings = [Family, Style, FontColor]
+    TextSettings.Font.Size = 15.000000000000000000
     Text = 'Invoices of the selected customer'
   end
   object grdInvoices: TStringGrid
@@ -65,7 +75,13 @@ object frmInvoicingMain: TfrmInvoicingMain
     Size.Height = 164.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
+    StyledSettings = [Family, Style, FontColor]
+    TextSettings.Font.Size = 15.000000000000000000
+    RowHeight = 24.000000000000000000
     RowCount = 0
+    DefaultDrawing = False
+    OnDrawColumnBackground = GridDrawColumnBackground
+    OnDrawColumnCell = GridDrawColumnCell
     Options = [ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
   end
   object layInvoice: TLayout
@@ -82,6 +98,8 @@ object frmInvoicingMain: TfrmInvoicingMain
       Size.Width = 250.000000000000000000
       Size.Height = 36.000000000000000000
       Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
       Text = 'Customer of the selected invoice:'
     end
     object cmbInvoiceCustomer: TComboBox
@@ -108,8 +126,10 @@ object frmInvoicingMain: TfrmInvoicingMain
     Position.X = 8.000000000000000000
     Position.Y = 484.000000000000000000
     Size.Width = 984.000000000000000000
-    Size.Height = 17.000000000000000000
+    Size.Height = 20.000000000000000000
     Size.PlatformDefault = False
+    StyledSettings = [Family, Style, FontColor]
+    TextSettings.Font.Size = 15.000000000000000000
     Text = 'Lines of the selected invoice'
   end
   object grdLines: TStringGrid
@@ -125,7 +145,13 @@ object frmInvoicingMain: TfrmInvoicingMain
     Size.Height = 137.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 3
+    StyledSettings = [Family, Style, FontColor]
+    TextSettings.Font.Size = 15.000000000000000000
+    RowHeight = 24.000000000000000000
     RowCount = 0
+    DefaultDrawing = False
+    OnDrawColumnBackground = GridDrawColumnBackground
+    OnDrawColumnCell = GridDrawColumnCell
     Options = [ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
   end
   object layBar: TLayout
@@ -141,6 +167,8 @@ object frmInvoicingMain: TfrmInvoicingMain
       Size.Width = 736.000000000000000000
       Size.Height = 36.000000000000000000
       Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
     end
     object btnEditOcl: TButton
       Align = Right
@@ -154,6 +182,8 @@ object frmInvoicingMain: TfrmInvoicingMain
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
       Text = 'Edit OCL...'
       OnClick = EditOclClick
     end
@@ -169,6 +199,8 @@ object frmInvoicingMain: TfrmInvoicingMain
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
       Text = 'Save changes'
       OnClick = SaveClick
     end
@@ -332,7 +364,31 @@ object frmInvoicingMain: TfrmInvoicingMain
       Category = 'Quick Bindings'
       DataSource = bsCustomers
       GridControl = grdCustomers
-      Columns = <>
+      Columns = <
+        item
+          MemberName = 'Number'
+          Width = 110
+        end
+        item
+          MemberName = 'Name'
+          Width = 330
+        end
+        item
+          MemberName = 'Email'
+          Width = 330
+        end
+        item
+          MemberName = 'Invoiced'
+          Width = 110
+        end
+        item
+          MemberName = 'Open balance'
+          Width = 130
+        end
+        item
+          MemberName = 'Overdue'
+          Width = 110
+        end>
     end
     object lnkInvoices: TLinkGridToDataSource
       Category = 'Quick Bindings'
@@ -341,28 +397,54 @@ object frmInvoicingMain: TfrmInvoicingMain
       Columns = <
         item
           MemberName = 'Number'
+          Width = 110
         end
         item
           MemberName = 'Date'
+          Width = 110
         end
         item
           MemberName = 'Due'
+          Width = 110
         end
         item
           MemberName = 'Status'
+          Width = 330
         end
         item
           MemberName = 'Total'
+          Width = 110
         end
         item
           MemberName = 'Balance'
+          Width = 110
         end>
     end
     object lnkLines: TLinkGridToDataSource
       Category = 'Quick Bindings'
       DataSource = bsLines
       GridControl = grdLines
-      Columns = <>
+      Columns = <
+        item
+          MemberName = 'Description'
+          Width = 330
+        end
+        item
+          MemberName = 'Quantity'
+          Width = 110
+        end
+        item
+          MemberName = 'Unit price'
+          Width = 110
+        end
+        item
+          MemberName = 'VAT %'
+          Width = 110
+        end
+        item
+          MemberName = 'Amount'
+          Width = 110
+        end>
     end
     object lnkInvoiceCustomer: TLinkFillControlToField
       Category = 'Quick Bindings'

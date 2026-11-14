@@ -44,6 +44,7 @@ uses
   System.UITypes,
   System.Rtti,
   FMX.Types,
+  FMX.Graphics,
   FMX.Controls,
   FMX.Forms,
   FMX.StdCtrls,
@@ -104,6 +105,10 @@ type
     procedure SaveClick(Sender: TObject);
     procedure EditOclClick(Sender: TObject);
     procedure InvoiceCustomerChange(Sender: TObject);
+    procedure GridDrawColumnBackground(Sender: TObject; const Canvas: TCanvas; const Column: TColumn;
+      const Bounds: TRectF; const Row: Integer; const Value: TValue; const State: TGridDrawStates);
+    procedure GridDrawColumnCell(Sender: TObject; const Canvas: TCanvas; const Column: TColumn;
+      const Bounds: TRectF; const Row: Integer; const Value: TValue; const State: TGridDrawStates);
   private
     FData: TdmInvoicing;
     FDatabase: string;
@@ -115,6 +120,7 @@ type
     { What Edit OCL opens with: the expression of the last OK }
     FOclExpression: string;
     procedure FollowTheInvoice;
+    procedure ApplyTheLook;
     procedure AppIdle(Sender: TObject; var Done: Boolean);
     procedure OpenData;
     procedure ShowStatus;
@@ -226,6 +232,7 @@ begin
   bdsInvoices.Open;
   bdsLines.Open;
 
+  ApplyTheLook;
   FOclExpression := 'Customer.allInstances';
   Application.OnIdle := AppIdle;
   ShowStatus;
@@ -303,10 +310,99 @@ begin
   end;
 end;
 
+{ The look of the LCL client (../LCL), which FMX's default style does not
+  have: its font size, in the form file for the labels, buttons and grid
+  cells and here for what is made while the program runs (the column headers
+  and the items of the combo box), and its selection, a blue row with white
+  text. FMX's grid shows the selected row with a control of its style laid
+  over the cells; that one is made invisible, and the two grid events below
+  draw the cells. Called from the idle loop: the style's parts are made when
+  a control is first shown, and the items when the list is filled. }
+
+const
+  cFontSize = 15;
+  cSelectionColor = $FF308CC6;
+  cSelectionTextColor = TAlphaColors.White;
+  cTextColor = TAlphaColors.Black;
+
+procedure TfrmInvoicingMain.ApplyTheLook;
+
+  procedure HideTheStyleSelection(AObject: TFmxObject);
+  var
+    i: Integer;
+  begin
+    // 'focus' is the frame around the current cell, which a row that is
+    // selected as a whole does not need
+    if (AObject is TControl) and
+      (SameText(AObject.StyleName, 'selection') or SameText(AObject.StyleName, 'focus')) then
+      TControl(AObject).Opacity := 0;
+    for i := 0 to AObject.ChildrenCount - 1 do
+      HideTheStyleSelection(AObject.Children[i]);
+  end;
+
+  procedure LookOfGrid(AGrid: TStringGrid);
+  var
+    i: Integer;
+  begin
+    for i := 0 to AGrid.ColumnCount - 1 do
+      if AGrid.Columns[i].HeaderSettings.TextSettings.Font.Size <> cFontSize then
+      begin
+        AGrid.Columns[i].HeaderSettings.StyledSettings :=
+          AGrid.Columns[i].HeaderSettings.StyledSettings - [TStyledSetting.Size];
+        AGrid.Columns[i].HeaderSettings.TextSettings.Font.Size := cFontSize;
+      end;
+    HideTheStyleSelection(AGrid);
+  end;
+
+var
+  i: Integer;
+begin
+  LookOfGrid(grdCustomers);
+  LookOfGrid(grdInvoices);
+  LookOfGrid(grdLines);
+  for i := 0 to cmbInvoiceCustomer.Count - 1 do
+    if cmbInvoiceCustomer.ListItems[i].TextSettings.Font.Size <> cFontSize then
+    begin
+      cmbInvoiceCustomer.ListItems[i].StyledSettings :=
+        cmbInvoiceCustomer.ListItems[i].StyledSettings - [TStyledSetting.Size];
+      cmbInvoiceCustomer.ListItems[i].TextSettings.Font.Size := cFontSize;
+    end;
+end;
+
+procedure TfrmInvoicingMain.GridDrawColumnBackground(Sender: TObject; const Canvas: TCanvas;
+  const Column: TColumn; const Bounds: TRectF; const Row: Integer; const Value: TValue;
+  const State: TGridDrawStates);
+begin
+  if Row = (Sender as TStringGrid).Row then
+  begin
+    Canvas.Fill.Kind := TBrushKind.Solid;
+    Canvas.Fill.Color := cSelectionColor;
+    Canvas.FillRect(Bounds, 0, 0, [], 1);
+  end;
+end;
+
+procedure TfrmInvoicingMain.GridDrawColumnCell(Sender: TObject; const Canvas: TCanvas;
+  const Column: TColumn; const Bounds: TRectF; const Row: Integer; const Value: TValue;
+  const State: TGridDrawStates);
+var
+  TextRect: TRectF;
+begin
+  TextRect := Bounds;
+  TextRect.Inflate(-4, 0);
+  Canvas.Font.Assign((Sender as TStringGrid).TextSettings.Font);
+  Canvas.Fill.Kind := TBrushKind.Solid;
+  if Row = TStringGrid(Sender).Row then
+    Canvas.Fill.Color := cSelectionTextColor
+  else
+    Canvas.Fill.Color := cTextColor;
+  Canvas.FillText(TextRect, Value.ToString, False, 1, [], Column.HorzAlign, TTextAlign.Center);
+end;
+
 procedure TfrmInvoicingMain.AppIdle(Sender: TObject; var Done: Boolean);
 begin
   // Brings the Bold-aware followers, TBoldDataSet's among them, up to date
   TBoldQueueable.DisplayAll;
+  ApplyTheLook;
   // Without an invoice there is nothing to pick a customer for
   if Assigned(bdsInvoices) then
     cmbInvoiceCustomer.Enabled := bdsInvoices.Active and not bdsInvoices.IsEmpty;
