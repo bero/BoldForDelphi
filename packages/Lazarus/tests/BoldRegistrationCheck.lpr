@@ -9,7 +9,8 @@ program BoldRegistrationCheck;
   handles, a persistence handle and a TBoldDataSet with fields, which refer
   to each other. Last, the property editor of Expression: what it is
   registered for, the check of expressions against that model, and its
-  dialog, which is created (hence the LCL and a widgetset) but not shown.
+  dialog, the OCL editor with its lists, which is created (hence the LCL and
+  a widgetset) but not shown.
   One line per check; exit code = number of failed checks. }
 
 {$APPTYPE CONSOLE}
@@ -225,6 +226,11 @@ begin
   Check(AWhat, Passed, Actual);
 end;
 
+function OneLine(const AText: string): string;
+begin
+  Result := StringReplace(AText, LineEnding, ' / ', [rfReplaceAll]);
+end;
+
 procedure CheckEditorOf(APersistent: TPersistent; const AProperty: string; AIsOclEditor: Boolean);
 var
   PropInfo: PPropInfo;
@@ -286,8 +292,9 @@ begin
     Editor.PressOK := True;
     Editor.Edit;
     Check('OK writes the expression to the handle',
-      (AHandle.Expression = 'invoices->select(isPosted)') and (Editor.StatusSeen = 'Result type: Collection(Invoice)'),
-      AHandle.Expression + ', ' + Editor.StatusSeen);
+      (AHandle.Expression = 'invoices->select(isPosted)') and
+      (Pos('Current type is: Collection(Invoice)', Editor.StatusSeen) > 0),
+      AHandle.Expression + ', ' + OneLine(Editor.StatusSeen));
     AHandle.Expression := Before;
   finally
     Editor.Free;
@@ -295,33 +302,138 @@ begin
   end;
 end;
 
-{ The dialog as the property editor creates it, not shown }
-procedure CheckTheDialog(AHandle: TBoldListHandle);
+function CountOfKind(ADialog: TBoldOclExpressionDialog; AKind: TBoldOclCompletionKind): Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  for i := 0 to ADialog.CompletionCount - 1 do
+    if ADialog.Completions[i].Kind = AKind then
+      Inc(Result);
+end;
+
+function IndexOfCompletion(ADialog: TBoldOclExpressionDialog; const AInsertText: string): Integer;
+begin
+  for Result := 0 to ADialog.CompletionCount - 1 do
+    if ADialog.Completions[Result].InsertText = AInsertText then
+      Exit;
+  Result := -1;
+end;
+
+{ The dialog as the property editor creates it, not shown: Delphi's OCL
+  editor, with the parser messages under the expression, the members and
+  operations that can follow it at the right and the variables at the left }
+procedure CheckTheDialog(AMasters, ADetails: TBoldListHandle);
 var
   Context: TBoldElementTypeInfo;
   Variables: TBoldExternalVariableList;
   Dialog: TBoldOclExpressionDialog;
+  Index, Start, Count: Integer;
 begin
-  BoldOclContextOf(AHandle, Context, Variables);
+  BoldOclContextOf(ADetails, Context, Variables);
   Dialog := TBoldOclExpressionDialog.CreateDialog(nil, Context, Variables);
   try
-    Check('the dialog names the context', Pos('Customer', Dialog.Caption) > 0, Dialog.Caption);
-    Dialog.Expression := AHandle.Expression;
-    Check('the dialog shows the result type of the expression',
-      Dialog.LastCheck.Valid and (Dialog.StatusText = 'Result type: Collection(Invoice)'), Dialog.StatusText);
+    Check('the dialog names the context', Pos('Context: Customer', Dialog.Caption) > 0, Dialog.Caption);
+    Check('the lists have their icons, those of Delphi''s editor', Dialog.IconCount = 5,
+      IntToStr(Dialog.IconCount) + ' icons, 16 wide');
+    Check('an empty expression lists the members of the context',
+      (Dialog.StatusText = 'Empty Expression') and (Dialog.CompletionCount = 13) and
+      (CountOfKind(Dialog, ockAttribute) = 10) and (CountOfKind(Dialog, ockSingleLink) = 2) and
+      (CountOfKind(Dialog, ockMultiLink) = 1) and (Dialog.Completions[0].InsertText = 'number') and
+      (Dialog.Completions[0].Detail = ': Integer'),
+      IntToStr(Dialog.CompletionCount) + ' lines, the first ' + Dialog.Completions[0].Name +
+      Dialog.Completions[0].Detail);
+    Index := IndexOfCompletion(Dialog, 'invoices');
+    Check('a multi link is listed with its class', (Index >= 0) and
+      (Dialog.Completions[Index].Kind = ockMultiLink) and (Dialog.Completions[Index].Detail = ': List<Invoice>'),
+      Dialog.Completions[Index].Name + Dialog.Completions[Index].Detail);
+    Dialog.MemberOptions := [omoPersistent, omoTransient];
+    Check('without Derived the derived attributes are not listed',
+      (Dialog.CompletionCount = 10) and (IndexOfCompletion(Dialog, 'openBalance') = -1),
+      IntToStr(Dialog.CompletionCount) + ' lines');
+    Dialog.MemberOptions := [omoDerived, omoPersistent, omoTransient];
+    Dialog.SetFilter(ocfSingleLinks);
+    Check('the filter Single links', (Dialog.CompletionCount = 2) and (CountOfKind(Dialog, ockSingleLink) = 2),
+      IntToStr(Dialog.CompletionCount) + ' lines');
+    Dialog.SetFilter(ocfText, 'ADDR');
+    Check('a text typed as filter', (Dialog.CompletionCount = 2) and
+      (Dialog.Completions[0].InsertText = 'billingAddress'), IntToStr(Dialog.CompletionCount) + ' lines');
+    Dialog.AddCompletion(0);
+    Check('a double click adds the line to the expression and ends a typed filter',
+      (Dialog.Expression = 'billingAddress') and (Dialog.CompletionCount > 2), Dialog.Expression);
+    Dialog.ClearExpression;
+    Check('Clear empties the expression', (Dialog.Expression = '') and (Dialog.CompletionCount = 13), 'empty');
+
+    Dialog.Expression := ADetails.Expression;
+    Check('the dialog shows the result type of the expression', Dialog.LastCheck.Valid and
+      (Dialog.StatusText = 'Syntax is OK' + LineEnding + LineEnding + 'Current type is: Collection(Invoice)'),
+      OneLine(Dialog.StatusText));
     Check('the dialog gives the expression back as it was set', Dialog.Expression = 'invoices', Dialog.Expression);
+    Check('after an expression come members with a dot, and the operations',
+      (Dialog.CompletionCount = 70) and (CountOfKind(Dialog, ockOperation) = 50) and
+      (IndexOfCompletion(Dialog, '.grossTotal') >= 0) and (IndexOfCompletion(Dialog, '->size') >= 0) and
+      (IndexOfCompletion(Dialog, '.oclIsKindOf(«MetaType»)') >= 0),
+      IntToStr(Dialog.CompletionCount) + ' lines, ' + IntToStr(CountOfKind(Dialog, ockOperation)) + ' operations');
+    Dialog.SetFilter(ocfOperations);
+    Index := IndexOfCompletion(Dialog, '->select(«Boolean»)');
+    Check('an operation is listed with its arguments', (Dialog.CompletionCount = 50) and (Index >= 0) and
+      (Dialog.Completions[Index].Name = '->select') and (Dialog.Completions[Index].Detail = '(«Boolean»)'),
+      Dialog.Completions[Index].Name + Dialog.Completions[Index].Detail);
+    Dialog.AddCompletion(Index);
+    Check('an operation is added with a placeholder for its argument',
+      (Dialog.Expression = 'invoices->select(«Boolean»)') and not Dialog.LastCheck.Valid, Dialog.Expression);
+    Check('a placeholder is found around the caret, to select it as a whole',
+      BoldOclPlaceholderAt(Dialog.Expression, 20, Start, Count) and (Start = 17) and (Count = 9) and
+      not BoldOclPlaceholderAt(Dialog.Expression, 5, Start, Count) and
+      not BoldOclPlaceholderAt(Dialog.Expression, 27, Start, Count),
+      Copy(Dialog.Expression, 18, 9));
+    Dialog.RemoveLast;
+    Check('Remove Last takes the last step away', Dialog.Expression = 'invoices', Dialog.Expression);
+    Check('Remove Last, step by step',
+      (BoldOclRemoveLast('invoices.lines.product') = 'invoices.lines') and
+      (BoldOclRemoveLast('invoices->size') = 'invoices') and (BoldOclRemoveLast('invoices') = '') and
+      (BoldOclRemoveLast('') = ''), BoldOclRemoveLast('invoices.lines.product'));
+
     Dialog.Expression := 'invoices.nosuchmember';
-    Check('the dialog shows the error of an expression that is not valid',
-      not Dialog.LastCheck.Valid and
-      (Dialog.StatusText = 'Error at position 9: nosuchmember is not a member of Invoice'), Dialog.StatusText);
+    Check('the dialog shows the error of an expression that is not valid, with a pointer at it',
+      not Dialog.LastCheck.Valid and (Dialog.CompletionCount = 0) and
+      (Dialog.StatusText = 'invoices.nosuchmember' + LineEnding + '  -------^' + LineEnding +
+        'nosuchmember is not a member of Invoice'), OneLine(Dialog.StatusText));
+    Dialog.Expression := 'invoices->';
+    Check('a parser error is shown as a syntax error', not Dialog.LastCheck.Valid and
+      Dialog.LastCheck.IsSyntaxError and (Dialog.StatusText = 'Unable to complete parse, syntax error'),
+      OneLine(Dialog.StatusText));
+    Dialog.ShowSyntaxErrors := True;
+    Check('and with Show Original Parser Errors as the parser gives it',
+      (Pos('invoices->', Dialog.StatusText) = 1) and (Pos('SS', Dialog.StatusText) > 0), OneLine(Dialog.StatusText));
+
+    Check('the variables are listed', (Dialog.VariableCount = 2) and (Dialog.Variables[0].InsertText = 'today') and
+      (Dialog.Variables[0].Detail = ': Date') and (Dialog.Variables[1].InsertText = 'now'),
+      IntToStr(Dialog.VariableCount) + ' variables');
+    Dialog.Expression := 'invoices->select(dueDate < ';
+    Dialog.AddVariable(0);
+    Check('a double click adds the variable to the expression',
+      Dialog.Expression = 'invoices->select(dueDate < today', Dialog.Expression);
   finally
     Dialog.Free;
   end;
+
+  BoldOclContextOf(AMasters, Context, Variables);
+  Dialog := TBoldOclExpressionDialog.CreateDialog(nil, Context, Variables);
+  try
+    Check('with the system as context the classes are listed', (Dialog.CompletionCount = 12) and
+      (CountOfKind(Dialog, ockType) = 12) and (IndexOfCompletion(Dialog, 'Customer') >= 0),
+      IntToStr(Dialog.CompletionCount) + ' classes');
+  finally
+    Dialog.Free;
+  end;
+
   Dialog := TBoldOclExpressionDialog.CreateDialog(nil, nil, nil);
   try
     Dialog.Expression := 'anything';
     Check('the dialog without a context says that nothing is checked',
-      not Dialog.LastCheck.Checked and (Pos('No context', Dialog.StatusText) = 1), Dialog.StatusText);
+      not Dialog.LastCheck.Checked and (Dialog.StatusText = 'No Context, No design support') and
+      (Dialog.CompletionCount = 0) and (Dialog.VariableCount = 0), Dialog.StatusText);
   finally
     Dialog.Free;
   end;
@@ -380,7 +492,7 @@ begin
       // Other strings keep the plain editor
       CheckEditorOf(DataSet.FieldDescriptions[0], 'FieldName', False);
       CheckEditorOf(Module.FindComponent('BoldPersistenceHandleFileXML1') as TPersistent, 'FileName', False);
-      CheckTheDialog(Details);
+      CheckTheDialog(Masters, Details);
       CheckTheEditorEdits(Details);
     except
       on E: Exception do

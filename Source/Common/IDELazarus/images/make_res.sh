@@ -45,6 +45,31 @@ done
 # shellcheck disable=SC2086
 lazres ../boldlazarusreg.res $FILES
 
+# The icons of the OCL editor's lists (attribute, class, single link, multi
+# link, operation), in dclBold's property editor of Expression: the image
+# list of Delphi's editor, Source/ObjectSpace/UtilsGUI/boldoclpropeditor.dfm,
+# 16x16 each, with its mask as transparency.
+python3 - "$HERE/../../../ObjectSpace/UtilsGUI/boldoclpropeditor.dfm" "$HERE" <<'PY'
+import io, re, sys
+from PIL import Image
+text = open(sys.argv[1], encoding="latin-1").read()
+start = text.index("Bitmap = {", text.index("object ImageList1")) + len("Bitmap = {")
+data = bytes.fromhex(re.sub(r"\s", "", text[start:text.index("}", start)]))
+first = data.index(b"BM")
+second = data.index(b"BM", first + 2)
+image = Image.open(io.BytesIO(data[first:second])).convert("RGBA")
+mask = Image.open(io.BytesIO(data[second:])).convert("L")
+names = ["BoldOclAttribute", "BoldOclClass", "BoldOclSingleLink", "BoldOclMultiLink", "BoldOclOperation"]
+for index, name in enumerate(names):
+    box = (index % 4 * 16, index // 4 * 16, index % 4 * 16 + 16, index // 4 * 16 + 16)
+    icon = image.crop(box)
+    # In the mask, white is outside the icon
+    icon.putalpha(mask.crop(box).point(lambda v: 0 if v else 255))
+    icon.save(f"{sys.argv[2]}/{name}.png", optimize=True)
+PY
+lazres ../boldoclexpressionpropedit.res BoldOclAttribute.png BoldOclClass.png BoldOclSingleLink.png \
+  BoldOclMultiLink.png BoldOclOperation.png
+
 # TBoldDatabaseAdapterZeos, in dclBoldZeos: the icon of the general database adapter
 ZEOSREG="$HERE/../../../Persistence/Zeos/IDELazarus"
 to_png "$BITMAPS/TBoldDatabaseAdapterDB.bmp" "$ZEOSREG/images/TBoldDatabaseAdapterZeos.png"

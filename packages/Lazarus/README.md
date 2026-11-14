@@ -46,7 +46,9 @@ registers, on the same pages as the Delphi package of that name:
 The components have the icons of the Delphi palette (`TBoldFilteredHandle`
 has none there either and shows the default icon). The icons are PNG files in
 `Source/Common/IDELazarus/images`; `make_res.sh` there makes them from the
-bitmaps in `Images/Components` and packs them into `boldlazarusreg.res`.
+bitmaps in `Images/Components` and packs them into `boldlazarusreg.res`, and
+makes the icons of the OCL editor's lists from the image list of Delphi's
+editor (`boldoclexpressionpropedit.res`).
 
 `dclBoldZeos.lpk` is installed the same way, by those who use Zeos. It
 requires `dclBold` and `BoldZeos` and puts `TBoldDatabaseAdapterZeos` on the
@@ -63,13 +65,18 @@ is saved again.
 `dclBold` also has a property editor for OCL expressions: `Expression` and
 `MutableListExpression` of a list handle, `Expression` of an expression
 handle, and `Expression` under `BoldProperties` of a `TBoldDataSet` field. The
-"..." button in the Object Inspector opens a dialog that names the type the
-expression is evaluated in and shows, as the expression is typed, the type of
-its result or the error and its position. The model must be in the form (a
-`TBoldModel` that the handles reach through their system handle); a handle
-that is not connected to one can be edited, but is not checked. It is a small
-stand-in for Delphi's OCL editor, without that editor's lists of members and
-operations. The package requires `IDEIntf` for it, so it is built for a
+"..." button in the Object Inspector opens Delphi's OCL editor as an LCL
+dialog. In the middle is the expression and, under it, the parser messages:
+the type of the result, or the expression with a pointer at the error. At the
+right is what can follow the expression, the members of its type (the classes,
+for the system) and the operations, with the filter and the Derived,
+Persistent and Transient boxes; a double click or Enter adds the line. At the
+left are the OCL variables. Remove Last, Clear, Show Original Parser Errors
+and Show Info are there; the font button and the list of recently used
+expressions, which Delphi keeps in the Windows registry, are not. The model
+must be in the form (a `TBoldModel` that the handles reach through their
+system handle); a handle that is not connected to one can be edited, but is
+not checked. The package requires `IDEIntf` for it, so it is built for a
 widgetset (`lazbuild --ws=qt5`). On Debian and Ubuntu `lazbuild` needs the
 package `lazarus-src` for that: `IDEIntf` uses `BuildIntf`, which those
 distributions ship as source only.
@@ -78,9 +85,9 @@ A project never requires `dclBold`: it requires `Bold` (and `BoldLCL`), so an
 application links no registration code. `tests/BoldRegistrationCheck` checks
 without the IDE what the package registers, that every component, and a
 data module of them that refer to each other, is written as form text and
-read back, that every component has its icon, and that the property editor
-checks expressions against the Invoicing model and writes an edited
-expression back.
+read back, that every component has its icon, and the OCL editor against the
+Invoicing model: the parser messages, the lists and their filter, adding a
+line, Remove Last, and that an edited expression is written back.
 
 ## Using it
 
@@ -112,7 +119,6 @@ written and read as components, but have no tests under Free Pascal yet:
 Not there yet:
 
 - The other property and component editors of the Delphi design package
-  (the full OCL editor, the model editor, the field editor of
-  `TBoldDataSet`): they are written against Delphi's design-time API. Other
+  (the model editor, the field editor of `TBoldDataSet`): they are written against Delphi's design-time API. Other
   properties are edited in the Object Inspector as text.
 - Bold's visual controls.

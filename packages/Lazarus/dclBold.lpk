@@ -15,7 +15,7 @@
         <CustomOptions Value="-Mdelphiunicode"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Bold for Delphi, design time for Lazarus: puts Bold's non-visual components (handles, model, persistence handles, TBoldDataSet) on the component palette, with a property editor that checks OCL expressions against the model."/>
+    <Description Value="Bold for Delphi, design time for Lazarus: puts Bold's non-visual components (handles, model, persistence handles, TBoldDataSet) on the component palette, with the OCL editor as property editor of the expressions."/>
     <License Value="MIT"/>
     <Version Major="26" Minor="9" Release="1"/>
     <Files>

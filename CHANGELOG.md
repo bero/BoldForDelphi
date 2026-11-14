@@ -20,10 +20,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   puts the handles, the model, the persistence handles and `TBoldDataSet` on
   the Lazarus component palette, with the icons of the Delphi palette, and
   `dclBoldZeos.lpk` adds `TBoldDatabaseAdapterZeos`. `Expression` of the
-  handles and of a `TBoldDataSet` field has a property editor that checks
-  the OCL expression against the model and shows its result type or the
-  error; the other property and component editors of the Delphi package
-  are not ported
+  handles and of a `TBoldDataSet` field opens Delphi's OCL editor as an LCL
+  dialog: the parser messages under the expression, the members and
+  operations that can follow it at the right, the variables at the left;
+  the other property and component editors of the Delphi package are not
+  ported
 - The Invoicing FMX client (`examples/Compound/Invoicing/FMX`) has the Linux64
   platform (#117): the project deploys `Invoicing.bld` next to the program,
   where the client now looks for the model first
