@@ -148,6 +148,9 @@ type
     FRecordSize: integer;
     fLastKnownType: TBoldElementTypeInfo;
     fInternalCursorReady: Boolean;
+    // The edit of a row that has left the list is being ended: see
+    // EndEditOfARowThatLeftTheList
+    fEditedRowLeftTheList: Boolean;
     function GetIndexForElement(AElement: TBoldElement): integer;
     function GetIndexForBookmark(const Bookmark: TBookmark): integer;
     procedure InsertElement(ABuffer: TRecordBuffer); virtual;
@@ -157,6 +160,7 @@ type
     procedure EnsureCellFollowers(ARow: Integer; AElement: TBoldElement);
     procedure _InsertRow(index: Integer; OwningFollower: TBoldFollower);
     procedure _DeleteRow(index: Integer; owningFollower: TBoldFollower);
+    function EndEditOfARowThatLeftTheList: Boolean;
     procedure BufferToBoldElement(AIndex: integer; ABuffer: TRecordBuffer);
     procedure BoldElementToBuffer(AIndex: integer; ABuffer: TRecordBuffer);
     function GetBookmarkInfo(Buffer: TRecordBuffer): PBDSBookmarkInfo;
@@ -948,7 +952,11 @@ end;
 
 procedure TBoldAbstractDataSet.InternalCancel;
 begin
-  if Assigned(ActiveBoldObject) then
+  // Cancel discards what was changed in the object: a field is written to
+  // the object when it is set, not when the row is posted. Not when the
+  // edit is only ended because the row has left the list
+  // (EndEditOfARowThatLeftTheList).
+  if Assigned(ActiveBoldObject) and not fEditedRowLeftTheList then
     ActiveBoldObject.Discard;
 {CHECKME Is this needed???
 
@@ -1196,6 +1204,8 @@ begin
 
   if State = dsInsert then
     Exit;
+  if EndEditOfARowThatLeftTheList then
+    Exit;
   UpdateCursorPos;  
   if BoldHandle.CurrentElement <> ActiveBoldElement then
     if (State in dsWriteModes) then
@@ -1208,9 +1218,34 @@ begin
 
 end;
 
+{ True when the row that is edited is no longer in the list, and the edit
+  was ended for that. The edit itself can take the row out: in the grid of a
+  customer's invoices, an invoice that gets another customer. What was set
+  is in the object already, so the changes are kept (InternalCancel does not
+  discard them); Cancel reads the records again, from the row that is now
+  where the edited one was. Called when the rows of the list are followed
+  again: a row was removed, or the rows were built anew. }
+function TBoldAbstractDataSet.EndEditOfARowThatLeftTheList: Boolean;
+begin
+  Result := (State = dsEdit) and not fEditedRowLeftTheList and
+    (GetIndexForElement(ActiveBoldElement) = -1);
+  if Result then
+  begin
+    fEditedRowLeftTheList := True;
+    try
+      EnsureRecordPosInValidRange;
+      Cancel;
+    finally
+      fEditedRowLeftTheList := False;
+    end;
+  end;
+end;
+
 procedure TBoldAbstractDataSet._InsertRow(index: Integer; OwningFollower: TBoldFollower);
 begin
   if State in [dsInsert, dsInactive] then
+    Exit;
+  if EndEditOfARowThatLeftTheList then
     Exit;
   if (State in dsWriteModes) then
     UpdateRecord;

@@ -150,6 +150,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet`: an edit that takes the row out of its list is kept. In the
+  grid of a customer's invoices, an invoice that got another customer left
+  the list while its row was edited; the dataset then stayed in edit mode on
+  a row it no longer had, or cancelled the edit and with it discarded the
+  change. It now ends the edit, keeps what was set (a field is written to
+  the object when it is set) and reads the rows again. The same holds when
+  something else removes the edited row from the list; Cancel by the user
+  discards as before (#117)
 - Discarding a changed single link no longer raises `StateError: Invalidate`
   with file persistence (`TBoldPersistenceHandleFileXML`). There the
   multilinks are stored in the object too, so the change marks the list of

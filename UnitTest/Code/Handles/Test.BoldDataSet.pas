@@ -165,6 +165,9 @@ type
     procedure TestLookupLeavesTheCursorOfTheLookupDataSet;
     procedure TestCalculatedFieldReadsTheRowItIsCalculatedFor;
     procedure TestLinkChangedOnTheBoldSideShows;
+    // The children of the selected Own, as a detail grid has them: a child
+    // that gets another Own leaves that list while its row is edited
+    procedure TestLinkEditThatTakesTheRowOutOfItsListIsKept;
   private
     procedure CalcNameOfChild(DataSet: TDataSet);
     procedure AddLookupFields(const ALookupKeyField: string; out ALookup: TIntegerField);
@@ -175,6 +178,8 @@ implementation
 uses
   SysUtils,
   Classes,
+  BoldSystem,
+  BoldValueSpaceInterfaces,
   BoldQueue,
   dmModel1;
 
@@ -1186,6 +1191,56 @@ begin
   Assert.AreEqual('FIRST', Shout.AsString, 'the calculated field of the first child');
   GoToChild(FLooseChild);
   Assert.AreEqual('LOOSE', Shout.AsString, 'the calculated field of the last child');
+end;
+
+procedure TTestBoldDataSetLinks.TestLinkEditThatTakesTheRowOutOfItsListIsKept;
+var
+  Key1: Int64;
+  DetailHandle: TBoldListHandle;
+  Detail: TBoldDataSet;
+  Description: TBoldDataSetFieldDescription;
+  StartTicks: Int64;
+begin
+  Key1 := KeyOf(FOwn1);
+  // The owners dataset on Own2, whose children the detail dataset shows
+  FOwners.First;
+  while not FOwners.Eof and (FOwners.ActiveBoldObject <> FOwn2) do
+    FOwners.Next;
+  DetailHandle := TBoldListHandle.Create(nil);
+  Detail := TBoldDataSet.Create(nil);
+  try
+    DetailHandle.RootHandle := FOwnersHandle;
+    DetailHandle.StaticSystemHandle := FSystemHandle;
+    DetailHandle.Expression := 'childMapped';
+    Detail.BoldHandle := DetailHandle;
+    Description := Detail.FieldDescriptions.Add;
+    Description.BoldProperties.Expression := 'own';
+    Description.FieldName := 'Own';
+    Detail.Open;
+    Assert.AreEqual(2, Detail.RecordCount, 'Own2 has two children');
+    Detail.First;
+    while not Detail.Eof and (Detail.ActiveBoldObject <> FChildOfOwn2) do
+      Detail.Next;
+    Assert.IsTrue(Detail.ActiveBoldObject = FChildOfOwn2, 'on the second child');
+
+    Detail.Edit;
+    Detail.FieldByName('Own').AsLargeInt := Key1;
+    // The child is now a child of Own1: the list of the detail handle loses it
+    StartTicks := BoldTestTickCount;
+    repeat
+      TBoldQueueable.DisplayAll;
+      CheckSynchronize(20);
+    until not (Detail.State in dsEditModes) or (BoldTestTickCount - StartTicks > 2000);
+
+    Assert.IsTrue(FChildOfOwn2.BoldExistenceState = besExisting, 'the child still exists');
+    Assert.IsTrue(FChildOfOwn2.Own = FOwn1, 'and keeps the Own that was picked for it');
+    Assert.IsFalse(Detail.State in dsEditModes, 'the dataset is not editing a row it no longer has');
+    Assert.AreEqual(1, Detail.RecordCount, 'Own2 has one child left');
+    Assert.IsTrue(Detail.ActiveBoldObject <> FChildOfOwn2, 'and the cursor is on it');
+  finally
+    Detail.Free;
+    DetailHandle.Free;
+  end;
 end;
 
 procedure TTestBoldDataSetLinks.TestLinkChangedOnTheBoldSideShows;
