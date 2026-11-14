@@ -97,6 +97,14 @@ gets the default ones when the program starts. Below them is the command
 every dataset has in Lazarus, **Edit Fields ...**, for persistent `TField`
 components.
 
+A `TBoldModel` has one command, also on a double click
+(`BoldModelComponentEditor`): **Load model from file...** replaces its model
+with the one of a `.bld` file, the format Bold's model editor in Delphi
+saves. The form file then holds the model, the OCL editor checks the
+expressions of the handles against it and `TBoldDataSet` can make its default
+fields. A file that is not a model is refused and the model stays as it was.
+The form holds a copy: after a change of the file, load it again.
+
 A project never requires `dclBold`: it requires `Bold` (and `BoldLCL`), so an
 application links no registration code. `tests/BoldRegistrationCheck` checks
 without the IDE what the package registers, that every component, and a
@@ -104,7 +112,7 @@ data module of them that refer to each other, is written as form text and
 read back, that every component has its icon, and the OCL editor against the
 Invoicing model: the parser messages, the lists and their filter, adding a
 line, Remove Last, and that an edited expression is written back; and the
-commands of the `TBoldDataSet` component editor.
+commands of the `TBoldDataSet` and `TBoldModel` component editors.
 
 ## Using it
 
@@ -136,7 +144,8 @@ written and read as components, but have no tests under Free Pascal yet:
 Not there yet:
 
 - The other property and component editors of the Delphi design package
-  (the model editor among them): they are written against Delphi's
+  (the model editor among them: a model is made in Delphi and
+  loaded from its `.bld` file): they are written against Delphi's
   design-time API. Other properties are edited in the Object Inspector as
   text.
 - Bold's visual controls.

@@ -15,8 +15,9 @@ unit BoldLazarusReg;
 
   One property editor: Expression of the handles and of a TBoldDataSet field
   opens Delphi's OCL editor as an LCL dialog (BoldOclExpressionPropEdit).
-  One component editor: TBoldDataSet has the commands of Delphi's
-  TBoldDataSetEditor (BoldDataSetComponentEditor). The other property and
+  Two component editors: TBoldDataSet has the commands of Delphi's
+  TBoldDataSetEditor (BoldDataSetComponentEditor), and TBoldModel loads a
+  model from a .bld file (BoldModelComponentEditor). The other property and
   component editors of the Delphi package are written against Delphi's
   design-time API and are not ported. }
 
@@ -36,6 +37,7 @@ uses
   BoldControlPack,
   BoldOclExpressionPropEdit,
   BoldDataSetComponentEditor,
+  BoldModelComponentEditor,
   BoldIDEConsts,
   BoldEnvironment,
   BoldHandles,
@@ -102,6 +104,8 @@ begin
 
   // Fields Editor (the field descriptions), Create default fields, Clear all columns
   RegisterComponentEditor(TBoldAbstractDataSet, TBoldDataSetComponentEditor);
+  // Load model from file
+  RegisterComponentEditor(TBoldModel, TBoldModelComponentEditor);
 end;
 
 end.

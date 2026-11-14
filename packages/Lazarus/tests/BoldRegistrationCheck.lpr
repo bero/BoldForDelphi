@@ -10,8 +10,8 @@ program BoldRegistrationCheck;
   to each other. Last, the property editor of Expression: what it is
   registered for, the check of expressions against that model, and its
   dialog, the OCL editor with its lists, which is created (hence the LCL and
-  a widgetset) but not shown, and the component editor of TBoldDataSet with
-  its commands.
+  a widgetset) but not shown, and the component editors: TBoldDataSet with
+  its commands, and TBoldModel, which loads a model from a .bld file.
   One line per check; exit code = number of failed checks. }
 
 {$APPTYPE CONSOLE}
@@ -39,6 +39,7 @@ uses
   BoldOclExpressionCheck,
   BoldOclExpressionPropEdit,
   BoldDataSetComponentEditor,
+  BoldModelComponentEditor,
   BoldLazarusReg,
   BoldRegistrationChecks;
 
@@ -634,6 +635,195 @@ begin
   end;
 end;
 
+function ExampleFileName(const ARelative: string): string;
+begin
+  // The program is in packages/Lazarus/tests/bin
+  Result := ExpandFileName(ExtractFilePath(ParamStr(0)) + '..' + PathDelim + '..' + PathDelim + '..' +
+    PathDelim + '..' + PathDelim + 'examples' + PathDelim +
+    StringReplace(ARelative, '/', PathDelim, [rfReplaceAll]));
+end;
+
+function ClassNamesOf(AModel: TBoldModel): string;
+var
+  Names: TStringList;
+  i: Integer;
+begin
+  Names := TStringList.Create;
+  try
+    for i := 0 to AModel.MoldModel.Classes.Count - 1 do
+      Names.Add(AModel.MoldModel.Classes[i].ExpandedExpressionName);
+    Names.Sort;
+    Result := Names.CommaText;
+  finally
+    Names.Free;
+  end;
+end;
+
+{ The classes of a .bld file, read as a program reads it }
+function ClassNamesOfFile(const AFileName: string): string;
+var
+  Model: TBoldModel;
+  ModelText: TStringList;
+begin
+  Model := TBoldModel.Create(nil);
+  ModelText := TStringList.Create;
+  try
+    ModelText.LoadFromFile(AFileName);
+    Model.SetFromModelAsString(ModelText);
+    Result := ClassNamesOf(Model);
+  finally
+    ModelText.Free;
+    Model.Free;
+  end;
+end;
+
+type
+  { The component editor with a user who picks a file, or cancels, in place
+    of the file dialog }
+  TModelEditorWithAUser = class(TBoldModelComponentEditor)
+  protected
+    function AskForFileName(var AFileName: string): Boolean; override;
+  public
+    Picks: string;
+    Asked: Integer;
+  end;
+
+function TModelEditorWithAUser.AskForFileName(var AFileName: string): Boolean;
+begin
+  Inc(Asked);
+  Result := Picks <> '';
+  if Result then
+    AFileName := Picks;
+end;
+
+{ The component editor of TBoldModel: Load model from file. A new form with
+  an empty model, a type info handle, a system handle and a list handle. }
+procedure CheckTheModelEditor;
+var
+  Module, Reloaded: TCheckModule;
+  Model, ReloadedModel: TBoldModel;
+  TypeInfoHandle: TBoldSystemTypeInfoHandle;
+  SystemHandle: TBoldSystemHandle;
+  Customers: TBoldListHandle;
+  Registered: TBaseComponentEditor;
+  Editor: TModelEditorWithAUser;
+  InvoicingFile, BuildingFile, NoModelFile, Before, Raised: string;
+  Context: TBoldElementTypeInfo;
+  Variables: TBoldExternalVariableList;
+  R: TBoldOclCheckResult;
+  NoModel: TStringList;
+begin
+  InvoicingFile := InvoicingModelFileName;
+  BuildingFile := ExampleFileName('Compound/Building/Building.bld');
+  NoModelFile := IncludeTrailingPathDelimiter(GetTempDir) + 'BoldRegistrationCheck-no-model.bld';
+  Reloaded := nil;
+  Module := TCheckModule.CreateNew(nil);
+  try
+    try
+      Module.Name := 'CheckModule';
+      Model := TBoldModel.Create(Module);
+      Model.Name := 'BoldModel1';
+      TypeInfoHandle := TBoldSystemTypeInfoHandle.Create(Module);
+      TypeInfoHandle.Name := 'BoldSystemTypeInfoHandle1';
+      TypeInfoHandle.BoldModel := Model;
+      SystemHandle := TBoldSystemHandle.Create(Module);
+      SystemHandle.Name := 'BoldSystemHandle1';
+      SystemHandle.SystemTypeInfoHandle := TypeInfoHandle;
+      Customers := TBoldListHandle.Create(Module);
+      Customers.Name := 'blhCustomers';
+      Customers.StaticSystemHandle := SystemHandle;
+      Customers.RootHandle := SystemHandle;
+      Customers.Expression := 'Customer.allInstances';
+
+      Registered := GetComponentEditor(Model, nil);
+      try
+        Check('TBoldModel has the Bold component editor', Registered is TBoldModelComponentEditor,
+          string(Registered.ClassName));
+      finally
+        Registered.Free;
+      end;
+
+      Editor := TModelEditorWithAUser.Create(Model, nil);
+      try
+        Check('its command', (Editor.GetVerbCount = 1) and (Editor.GetVerb(0) = 'Load model from file...'),
+          Editor.GetVerb(0));
+
+        Before := ClassNamesOf(Model);
+        Editor.Picks := '';
+        Editor.Edit;
+        Check('a double click asks for the file, and Cancel leaves the model as it was',
+          (Editor.Asked = 1) and (ClassNamesOf(Model) = Before), ClassNamesOf(Model));
+
+        Editor.Picks := InvoicingFile;
+        Editor.ExecuteVerb(bmoVerbLoadFromFile);
+        Check('the model has the classes of the file', ClassNamesOf(Model) = ClassNamesOfFile(InvoicingFile),
+          ClassNamesOf(Model));
+        if BoldOclContextOf(Customers, Context, Variables) then
+          R := BoldCheckOclExpression(Customers.Expression, Context, Variables)
+        else
+          R := BoldCheckOclExpression(Customers.Expression, nil, nil);
+        Check('and the expression of a handle in the form is checked against it',
+          R.Checked and R.Valid and (R.ResultTypeName = 'Collection(Customer)'),
+          OneLine(BoldOclCheckResultAsText(Customers.Expression, R)));
+
+        Reloaded := TCheckModule.CreateNew(nil);
+        TextToComponent(ComponentToText(Module), Reloaded);
+        ReloadedModel := Reloaded.FindComponent('BoldModel1') as TBoldModel;
+        Check('the form is saved with the model', ClassNamesOf(ReloadedModel) = ClassNamesOfFile(InvoicingFile),
+          ClassNamesOf(ReloadedModel));
+        FreeAndNil(Reloaded);
+
+        // The form was written, as a save does; now another model
+        Editor.Picks := BuildingFile;
+        Editor.ExecuteVerb(bmoVerbLoadFromFile);
+        Check('another file replaces the model, also after the form was saved',
+          (ClassNamesOf(Model) = ClassNamesOfFile(BuildingFile)) and
+          (ClassNamesOfFile(BuildingFile) <> ClassNamesOfFile(InvoicingFile)), ClassNamesOf(Model));
+        if BoldOclContextOf(Customers, Context, Variables) then
+          R := BoldCheckOclExpression(Customers.Expression, Context, Variables)
+        else
+          R := BoldCheckOclExpression(Customers.Expression, nil, nil);
+        Check('and an expression on a class that is gone is not valid any more', R.Checked and not R.Valid,
+          OneLine(BoldOclCheckResultAsText(Customers.Expression, R)));
+        Reloaded := TCheckModule.CreateNew(nil);
+        TextToComponent(ComponentToText(Module), Reloaded);
+        ReloadedModel := Reloaded.FindComponent('BoldModel1') as TBoldModel;
+        Check('and the form is saved with that model', ClassNamesOf(ReloadedModel) = ClassNamesOfFile(BuildingFile),
+          ClassNamesOf(ReloadedModel));
+        FreeAndNil(Reloaded);
+
+        NoModel := TStringList.Create;
+        try
+          NoModel.Add('This is not a model');
+          NoModel.SaveToFile(NoModelFile);
+        finally
+          NoModel.Free;
+        end;
+        Before := ClassNamesOf(Model);
+        Raised := '';
+        Editor.Picks := NoModelFile;
+        try
+          Editor.ExecuteVerb(bmoVerbLoadFromFile);
+        except
+          on E: Exception do
+            Raised := string(E.ClassName) + ': ' + E.Message;
+        end;
+        Check('a file that is not a model is refused', Pos('is not read as a Bold model', Raised) > 0, Raised);
+        Check('and the model stays as it was', ClassNamesOf(Model) = Before, ClassNamesOf(Model));
+      finally
+        Editor.Free;
+      end;
+    except
+      on E: Exception do
+        Check('the component editor of TBoldModel', False, string(E.ClassName) + ': ' + E.Message);
+    end;
+  finally
+    DeleteFile(NoModelFile);
+    Reloaded.Free;
+    Module.Free;
+  end;
+end;
+
 begin
   try
     // The dialog of the property editor is created, never shown
@@ -663,6 +853,9 @@ begin
 
     Writeln('The component editor of TBoldDataSet');
     CheckTheDataSetEditor;
+
+    Writeln('The component editor of TBoldModel');
+    CheckTheModelEditor;
 
     if Failures = 0 then
       Writeln('All checks passed')

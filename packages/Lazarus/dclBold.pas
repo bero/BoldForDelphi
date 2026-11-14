@@ -9,7 +9,7 @@ interface
 
 uses
   BoldLazarusReg, BoldOclExpressionPropEdit, BoldDataSetComponentEditor, 
-  BoldIDEConsts, LazarusPackageIntf;
+  BoldModelComponentEditor, BoldIDEConsts, LazarusPackageIntf;
 
 implementation
 

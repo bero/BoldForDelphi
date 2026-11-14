@@ -33,6 +33,10 @@
         <UnitName Value="BoldDataSetComponentEditor"/>
       </Item>
       <Item>
+        <Filename Value="../../Source/Common/IDELazarus/boldmodelcomponenteditor.pas"/>
+        <UnitName Value="BoldModelComponentEditor"/>
+      </Item>
+      <Item>
         <Filename Value="../../Source/Common/IDE/boldideconsts.pas"/>
         <UnitName Value="BoldIDEConsts"/>
       </Item>
