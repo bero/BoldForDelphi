@@ -712,7 +712,9 @@ begin
             Expect(Cond1.Params[i].DataType = Cond2.Params[i].DataType, Cond1.Params[i].Name + ' DataType',
               IntToStr(Ord(Cond2.Params[i].DataType)));
           Expect(Cond2.Params.ParamByName('aString').AsString = 'test value', 'aString', Cond2.Params.ParamByName('aString').AsString);
-          Expect(Cond2.Params.ParamByName('aUnicode').AsString = cUnicode, 'aUnicode', Cond2.Params.ParamByName('aUnicode').AsString);
+          // AsWideString: in Free Pascal AsString is an AnsiString in the system code page,
+          // which on Windows cannot hold the Cyrillic and CJK characters
+          Expect(Cond2.Params.ParamByName('aUnicode').AsWideString = cUnicode, 'aUnicode', Cond2.Params.ParamByName('aUnicode').AsWideString);
           Expect(Cond2.Params.ParamByName('anAnsi').AsAnsiString = 'ansi value', 'anAnsi', string(Cond2.Params.ParamByName('anAnsi').AsAnsiString));
           Expect(Cond2.Params.ParamByName('anInt').AsInteger = 42, 'anInt', Cond2.Params.ParamByName('anInt').AsString);
           Expect(Cond2.Params.ParamByName('aFloat').AsFloat = 1.5, 'aFloat', Cond2.Params.ParamByName('aFloat').AsString);

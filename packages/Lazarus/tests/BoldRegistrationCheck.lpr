@@ -1,4 +1,7 @@
-﻿{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
+﻿{$IFDEF FPC}{$mode delphiunicode}{$codepage utf8}{$ENDIF}
+// {$mode} in the source drops the code page of the BOM: without {$codepage utf8}
+// the «» of the literals below stay UTF-8 bytes, read at run time in the system
+// code page, which is UTF-8 on Linux but not on Windows
 program BoldRegistrationCheck;
 { Checks what the Lazarus design-time package dclBold registers, without the
   IDE (#117): it catches the calls of BoldLazarusReg.Register, and for every

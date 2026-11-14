@@ -172,6 +172,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBase64.DecodeData` (`BoldBase64`) under Free Pascal on Windows decoded
+  every byte from 128 up as `?`, so binary data that `BoldXMLStreaming`
+  writes as base64, such as blobs in the XML file persistence, came back
+  changed. The decoder appended each byte as an `AnsiChar`, which Free Pascal
+  converts from the unit's UTF-8 to the string's code page; it now writes the
+  bytes into the string. On Linux, where the code page is UTF-8, and in Delphi
+  nothing changes (#117)
 - `TBoldDataSet`: a row that is being inserted and whose list changes under
   it no longer stays on screen. In the grid of an invoice's lines, a new line
   was typed and another invoice selected: the grid kept showing the new line

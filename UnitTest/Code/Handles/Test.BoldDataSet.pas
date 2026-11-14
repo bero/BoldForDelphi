@@ -422,7 +422,9 @@ begin
   Assert.AreEqual(cText, Target.aString, 'non-ASCII text should reach the object unchanged');
   Target.aString := cText + '!';
   FDataSet.Refresh;
-  Assert.AreEqual(cText + '!', FDataSet.FieldByName('aString').AsString, 'non-ASCII text should come back unchanged');
+  // AsWideString: in Free Pascal AsString is an AnsiString in the system code page,
+  // which on Windows cannot hold the Ω
+  Assert.AreEqual(cText + '!', string(FDataSet.FieldByName('aString').AsWideString), 'non-ASCII text should come back unchanged');
 end;
 
 procedure TTestBoldDataSet.TestAppendCreatesOneObject;

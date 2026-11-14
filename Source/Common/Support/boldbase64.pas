@@ -239,6 +239,16 @@ end;
 
 
 
+// Appends B to S as a raw byte. Free Pascal reads an AnsiChar in a concatenation
+// as text in the unit's code page (UTF-8, from the BOM) and converts it to the
+// code page of S, which turns bytes above 127 into '?' where the system code page
+// is not UTF-8, as on Windows.
+procedure AppendByte(var S: TBoldAnsiString; B: Byte);
+begin
+  SetLength(S, Length(S) + 1);
+  S[Length(S)] := AnsiChar(B);
+end;
+
 //******************************************************************
 // Decodes a base64 representation in ASCII format into a string
 // returns BASE64_OK if conversion was done without errors
@@ -288,7 +298,7 @@ begin
     end;
 
     c := ((currentb shl 2)+(prevb shr 4)) and 255;
-    OutPutData := OutPutData + AnsiChar(Chr(c));
+    AppendByte(OutPutData, c);
 
     // process second Byte
     i := i+1;s := InputData[i];
@@ -313,7 +323,7 @@ begin
         exit;
       end;
       c := ((prevb shl 4) + (currentb shr 2)) and 255;
-      OutPutData := OutPutData + AnsiChar(Chr(c));
+      AppendByte(OutPutData, c);
     end;
     // process third Byte
     i := i+1;
@@ -334,7 +344,7 @@ begin
         exit;
       end;
       c := ((currentb shl 6) + (prevb)) and 255;
-      OutPutData := OutPutData + AnsiChar(Chr(c));
+      AppendByte(OutPutData, c);
      end;
   until (i >= InputLength);
   result := BASE64_OK;

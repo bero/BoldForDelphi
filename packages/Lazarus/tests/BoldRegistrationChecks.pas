@@ -54,6 +54,13 @@ uses
   SysUtils,
   ComponentEditors;
 
+{$IFDEF MSWINDOWS}
+// Free Pascal's System unit declares RT_RCDATA off Windows only (rtl/inc/resh.inc);
+// the Windows unit, which has it, would hide Classes.RegisterClass
+const
+  RT_RCDATA = MAKEINTRESOURCE(10);
+{$ENDIF}
+
 function AfterFirstLine(const AText: AnsiString): AnsiString;
 begin
   Result := Copy(AText, Pos(AnsiString(#10), AText) + 1, MaxInt);
