@@ -122,7 +122,7 @@ object frmInvoicingMain: TfrmInvoicingMain
       Margins.Top = 4.000000000000000000
       Margins.Right = 4.000000000000000000
       Margins.Bottom = 4.000000000000000000
-      Position.X = 748.000000000000000000
+      Position.X = 624.000000000000000000
       Position.Y = 4.000000000000000000
       Size.Width = 120.000000000000000000
       Size.Height = 28.000000000000000000
@@ -132,6 +132,23 @@ object frmInvoicingMain: TfrmInvoicingMain
       TextSettings.Font.Size = 15.000000000000000000
       Text = 'New invoice'
       OnClick = NewInvoiceClick
+    end
+    object btnDeleteInvoice: TButton
+      Align = Right
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 748.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
+      Text = 'Delete invoice'
+      OnClick = DeleteInvoiceClick
     end
     object btnPostInvoice: TButton
       Align = Right
@@ -144,7 +161,7 @@ object frmInvoicingMain: TfrmInvoicingMain
       Size.Width = 120.000000000000000000
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 2
+      TabOrder = 3
       StyledSettings = [Family, Style, FontColor]
       TextSettings.Font.Size = 15.000000000000000000
       Text = 'Post invoice'

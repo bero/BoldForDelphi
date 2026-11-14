@@ -96,6 +96,7 @@ type
     lblInvoiceCustomer: TLabel;
     cmbInvoiceCustomer: TComboBox;
     btnNewInvoice: TButton;
+    btnDeleteInvoice: TButton;
     btnPostInvoice: TButton;
     layLines: TLayout;
     lblLines: TLabel;
@@ -112,6 +113,7 @@ type
     procedure EditOclClick(Sender: TObject);
     procedure InvoiceCustomerChange(Sender: TObject);
     procedure NewInvoiceClick(Sender: TObject);
+    procedure DeleteInvoiceClick(Sender: TObject);
     procedure PostInvoiceClick(Sender: TObject);
     procedure AddLineClick(Sender: TObject);
     procedure DeleteLineClick(Sender: TObject);
@@ -483,6 +485,7 @@ begin
   grdLines.ReadOnly := not IsDraft;
   btnAddLine.Enabled := IsDraft;
   btnDeleteLine.Enabled := IsDraft and bdsLines.Active and not bdsLines.IsEmpty;
+  btnDeleteInvoice.Enabled := IsDraft;
   btnPostInvoice.Enabled := IsDraft;
   btnNewInvoice.Enabled := bdsCustomers.Active and not bdsCustomers.IsEmpty;
 end;
@@ -531,6 +534,20 @@ procedure TfrmInvoicingMain.DeleteLineClick(Sender: TObject);
 begin
   if not bdsLines.IsEmpty then
     bdsLines.Delete;
+  UpdateInvoiceControls;
+end;
+
+procedure TfrmInvoicingMain.DeleteInvoiceClick(Sender: TObject);
+begin
+  if not (bdsInvoices.ActiveBoldObject is TInvoice) then
+    Exit;
+  // A line that is being typed goes with its invoice
+  if bdsLines.State in dsEditModes then
+    bdsLines.Cancel;
+  // The dataset deletes the object of its row. The model decides whether it
+  // may be deleted (TInvoice.MayDelete: not a posted one), and its lines go
+  // with it (the delete action of the association).
+  bdsInvoices.Delete;
   UpdateInvoiceControls;
 end;
 
@@ -703,7 +720,7 @@ var
     Customer: TCustomer;
     Invoice: TInvoice;
     Line: TInvoiceLine;
-    InvoicesBefore: Integer;
+    InvoicesBefore, LinesBefore: Integer;
     Refused: string;
     IdleDone: Boolean;
   begin
@@ -717,6 +734,27 @@ var
       Check('the lines of a posted invoice cannot be edited in the grid',
         TInvoice(bdsInvoices.ActiveBoldObject).IsPosted and grdLines.ReadOnly and not btnPostInvoice.Enabled,
         'read-only ' + BoolToStr(grdLines.ReadOnly, True));
+
+    Check('a posted invoice cannot be deleted', not btnDeleteInvoice.Enabled,
+      BoolToStr(btnDeleteInvoice.Enabled, True));
+
+    // A draft that is not wanted: deleted again, with its line
+    InvoicesBefore := Customer.Invoices.Count;
+    LinesBefore := FData.BoldSystem.EvaluateExpressionAsInteger('InvoiceLine.allInstances->size');
+    NewInvoiceClick(btnNewInvoice);
+    Settle;
+    Application.DoIdle(IdleDone);
+    Check('a draft can be deleted', (Customer.Invoices.Count = InvoicesBefore + 1) and btnDeleteInvoice.Enabled,
+      BoolToStr(btnDeleteInvoice.Enabled, True));
+    DeleteInvoiceClick(btnDeleteInvoice);
+    Settle;
+    Application.DoIdle(IdleDone);
+    Check('Delete invoice deletes the draft, and its first line with it',
+      (Customer.Invoices.Count = InvoicesBefore) and (grdInvoices.RowCount = InvoicesBefore) and
+      (FData.BoldSystem.EvaluateExpressionAsInteger('InvoiceLine.allInstances->size') = LinesBefore) and not (bdsLines.State in dsEditModes) and not (bdsInvoices.State in dsEditModes),
+      Format('%d invoices, %d lines in all', [Customer.Invoices.Count, FData.BoldSystem.EvaluateExpressionAsInteger('InvoiceLine.allInstances->size')]));
+    Check('and an invoice that is left is selected', (bdsInvoices.ActiveBoldObject is TInvoice) and
+      (TInvoice(bdsInvoices.ActiveBoldObject).Customer = Customer), bdsInvoices.FieldByName('Status').AsString);
 
     InvoicesBefore := Customer.Invoices.Count;
     NewInvoiceClick(btnNewInvoice);

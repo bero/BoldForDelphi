@@ -89,6 +89,11 @@ lines grid, a plain `TDBGrid` on a `TBoldDataSet`:
 - the derived column `Amount` cannot be typed in: its field is read-only,
   because Bold says the value cannot be modified.
 
+**Delete invoice** deletes a draft that is not wanted: the invoice dataset
+deletes the object of its row, the model allows it for a draft only
+(`TInvoice.MayDelete`), and the lines go with the invoice (the delete action
+of the association).
+
 **Post invoice** calls `Invoice.Post`, which refuses an invoice without lines
 and gives the invoice its number. A posted invoice is frozen. The model says
 so in its business methods (`TInvoice.AddLine`), not for each attribute, so
