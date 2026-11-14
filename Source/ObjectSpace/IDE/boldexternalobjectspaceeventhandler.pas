@@ -10,6 +10,10 @@
 {$include bold.inc}
 unit BoldExternalObjectSpaceEventHandler;
 
+// PropagatorHandle needs the COM propagator, which only Delphi builds on Windows
+// (Bold.lpk has no propagator units, so under Free Pascal Windows is like Linux).
+{$IFDEF MSWINDOWS}{$IFNDEF FPC}{$DEFINE BOLD_PROPAGATOR_HANDLE}{$ENDIF}{$ENDIF}
+
 interface
 
 uses
@@ -20,8 +24,8 @@ uses
   BoldSubscription,
   BoldAbstractDequeuer,
   BoldDefaultID,
-  {$IFDEF MSWINDOWS}
-  BoldAbstractPropagatorHandle, // COM (BoldPropagatorInterfaces_TLB): Windows only
+  {$IFDEF BOLD_PROPAGATOR_HANDLE}
+  BoldAbstractPropagatorHandle, // COM (BoldPropagatorInterfaces_TLB): Delphi on Windows only
   {$ENDIF}
   BoldElementList,
   BoldDomainElement,
@@ -59,7 +63,7 @@ type
   TBoldExternalObjectSpaceEventHandler = class(TBoldStringDequeuer)
   private
     fBoldSystemHandle: TBoldSystemHandle;
-    {$IFDEF MSWINDOWS}
+    {$IFDEF BOLD_PROPAGATOR_HANDLE}
     fPropagatorHandle: TBoldAbstractPropagatorHandle;
     {$ENDIF}
     fPTSubscriber: TBoldPassthroughSubscriber;
@@ -80,7 +84,7 @@ type
     fIdFetchArray: TIdListArray;
     fUseMemberLevelOSS: boolean;
     FOnFailedMessage: TBoldFailedOSSMessageEvent;
-    {$IFDEF MSWINDOWS}
+    {$IFDEF BOLD_PROPAGATOR_HANDLE}
     procedure SetPropagatorHandle(Value: TBoldAbstractPropagatorHandle);
     {$ENDIF}
     procedure SetBoldSystemHandle(aSystemHandle: TBoldSystemHandle);
@@ -121,7 +125,7 @@ type
     property OnLockLost: TBoldLockLostEvent read fOnLockLost write fOnLockLost;
     property OnConflict: TBoldConflictEvent read fOnConflict write fOnConflict;
     property OnDoDisconnect: TBoldDoDisconnectEvent read fDoDisconnect write fDoDisconnect;
-    {$IFDEF MSWINDOWS}
+    {$IFDEF BOLD_PROPAGATOR_HANDLE}
     property PropagatorHandle: TBoldAbstractPropagatorHandle read fPropagatorHandle write SetPropagatorHandle;
     {$ENDIF}
     property KeepClassesCurrent: boolean read fKeepClassesCurrent write fKeepClassesCurrent default true;
@@ -633,14 +637,14 @@ begin
   begin
     if (AComponent = fBoldSystemHandle) then
       fBoldSystemHandle := nil;
-    {$IFDEF MSWINDOWS}
+    {$IFDEF BOLD_PROPAGATOR_HANDLE}
     if (AComponent = fPropagatorHandle) then
       fPropagatorHandle := nil;
     {$ENDIF}
   end;
 end;
 
-{$IFDEF MSWINDOWS}
+{$IFDEF BOLD_PROPAGATOR_HANDLE}
 procedure TBoldExternalObjectSpaceEventHandler.SetPropagatorHandle(
   Value: TBoldAbstractPropagatorHandle);
 begin
@@ -660,7 +664,7 @@ begin
   begin
     if not (csDesigning in ComponentState) then
     begin
-      {$IFDEF MSWINDOWS}
+      {$IFDEF BOLD_PROPAGATOR_HANDLE}
       if Assigned(fPropagatorHandle) then
         fPropagatorHandle.AddSmallSubscription(fPTSubscriber, [beDestroying], beDestroying);
       {$ENDIF}

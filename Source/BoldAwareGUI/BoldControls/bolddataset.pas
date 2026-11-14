@@ -1368,10 +1368,11 @@ begin
         ftDateTime:
           if PDouble(LFieldAdr)^ <> 0 then
           begin
+            // Whole milliseconds (TimeStampToMSecs); Round, as Win64 FPC's Comp is an Int64
             if LValue is TBADateTime then
-              TBADateTime(LValue).AsDateTime := TimeStampToDateTime(MSecsToTimeStamp(PDouble(LFieldAdr)^))
+              TBADateTime(LValue).AsDateTime := TimeStampToDateTime(MSecsToTimeStamp(Round(PDouble(LFieldAdr)^)))
             else
-              LValue.AsString := DateTimeToStr(TimeStampToDateTime(MSecsToTimeStamp(PDouble(LFieldAdr)^)));
+              LValue.AsString := DateTimeToStr(TimeStampToDateTime(MSecsToTimeStamp(Round(PDouble(LFieldAdr)^))));
           end
           else
             LValue.AsString := '';

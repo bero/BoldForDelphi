@@ -34,8 +34,10 @@ Pascal, where Delphi uses FireDAC. Lazarus must know the Zeos packages first:
 open `zcomponent.lpk` from Zeos's `packages/lazarus` folder once, or see
 `examples/Compound/Invoicing/Zeos/build.sh` for the command line.
 
-`dclBold.lpk` is installed in the IDE (Package, Open Package File, then Use,
-Install; Lazarus rebuilds itself). It requires `Bold` and `BoldLCL` and
+`dclBold.lpk` is installed in the IDE; the steps, with the questions Lazarus
+asks on the way, are in
+[Installation](../../docs/getting-started/installation.md#lazarus-and-free-pascal).
+It requires `Bold` and `BoldLCL` and
 registers, on the same pages as the Delphi package of that name:
 
 - **Bold Handles**: `TBoldModel`, `TBoldSystemHandle`,

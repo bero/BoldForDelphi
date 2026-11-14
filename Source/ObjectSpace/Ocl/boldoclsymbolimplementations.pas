@@ -2353,7 +2353,7 @@ begin
   if VarIsNull(Max) then
     HELP.MakeNewNull(Params.Result, Params.Result.BoldType)
   else if ListElementType.ConformsTo(HELP.IntegerType) then
-    HELP.MakeNewInteger(Params.Result, Round(Max))
+    HELP.MakeNewInteger(Params.Result, Round(Double(Max))) // Win64 FPC has Round(Currency) too
   else if ListElementType.ConformsTo(HELP.CurrencyType) then
     HELP.MakeNewCurrency(Params.Result, Max)
   else if ListElementType.ConformsTo(HELP.MomentType) then
@@ -2384,7 +2384,7 @@ begin
   if VarIsNull(Min) then
     HELP.MakeNewNull(Params.Result, Params.Result.BoldType)
   else if ListElementType.ConformsTo(HELP.IntegerType) then
-    HELP.MakeNewInteger(Params.Result, Round(Min))
+    HELP.MakeNewInteger(Params.Result, Round(Double(Min))) // Win64 FPC has Round(Currency) too
   else if ListElementType.ConformsTo(HELP.CurrencyType) then
     HELP.MakeNewCurrency(Params.Result, Min)
   else if ListElementType.ConformsTo(HELP.MomentType) then

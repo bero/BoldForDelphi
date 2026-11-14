@@ -78,11 +78,13 @@ begin
     Result := 0;
 end;
 
+// The Windows calls in this unit name the W (UTF-16) functions: Delphi's Windows
+// unit maps the plain names to them, Free Pascal's to the ANSI ones.
 function BoldModuleFileName: string;
 var
-  Buffer: array[0..261] of Char;
+  Buffer: array[0..261] of WideChar;
 begin
-  SetString(Result, Buffer, GetModuleFileName(HInstance, Buffer, SizeOf(Buffer)));
+  SetString(Result, Buffer, GetModuleFileNameW(HInstance, Buffer, Length(Buffer)));
 end;
 {$ELSE}
 function BoldProcessUserTimeInTicks: Int64;
@@ -99,28 +101,21 @@ end;
 {$IFDEF MSWINDOWS}
 function BoldLoginName: string;
 var
-  User: PChar;
+  User: array[0..256] of WideChar;
   Size: DWord;
 begin
   Result := '';
-  Size := 256;
-  User := StrAlloc(Size);
+  Size := Length(User);
   try
-    try
-      if WNetGetUser(PChar(0), User, Size) = 0 then begin
-        Result := string(User);
-      end else begin
-        RaiseLastOSError;
-      end;
-    except
-      if GetUserName(User, Size) then begin
-        Result := string(User);
-      end else begin
-        RaiseLastOSError;
-      end;
-    end;
-  finally
-    StrDispose(User);
+    if WNetGetUserW(nil, User, Size) = 0 then
+      Result := User
+    else
+      RaiseLastOSError;
+  except
+    if GetUserNameW(User, Size) then
+      Result := User
+    else
+      RaiseLastOSError;
   end;
 end;
 {$ELSE}
@@ -224,7 +219,7 @@ end;
 
 procedure BoldOutputDebugString(const s: string);
 begin
-  OutputDebugString(PChar(s));
+  OutputDebugStringW(PWideChar(s));
 end;
 
 function BoldCurrentThreadId: Cardinal;

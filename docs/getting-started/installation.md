@@ -2,7 +2,8 @@
 
 ## Prerequisites
 
-- **Delphi 11.3, 12.3, or 13**
+- **Delphi 11.3, 12.3, or 13**, or **Lazarus 4** with Free Pascal 3.2.2 (see
+  [Lazarus and Free Pascal](#lazarus-and-free-pascal))
 - **Database**: SQLite (easiest), SQL Server, PostgreSQL, Firebird, MariaDB/MySQL, or Oracle
 - **Git** (for cloning the repository)
 
@@ -99,6 +100,62 @@ If your Delphi version is not listed:
 
 !!! tip
     When you verify everything works, please submit a pull request to include the new package in the repository!
+
+## Lazarus and Free Pascal
+
+Bold's Lazarus packages are in `packages\Lazarus`; its
+[README](https://github.com/bero/BoldForDelphi/blob/develop/packages/Lazarus/README.md)
+says what each package holds. They need Lazarus 4 with Free Pascal 3.2.2 or later; the CI
+builds them with Lazarus 4.4 on Linux, and the steps below install them in Lazarus 4.8 on
+64-bit Windows. The design-time package puts Bold's non-visual components on the palette
+and has the OCL editor; Bold's visual controls and the model editor are Delphi only.
+
+1. **Install Lazarus.** On Windows, the installer from
+   [lazarus-ide.org](https://www.lazarus-ide.org/index.php?page=downloads) includes Free
+   Pascal and the Lazarus source, which the rebuild in step 5 compiles. With winget:
+
+    ```shell
+    winget install --id Lazarus.Lazarus --exact
+    ```
+
+    Add `--version 4.4` for the version the CI uses. On Debian and Ubuntu, install
+    `lazarus-src` as well: the design-time package needs the source of `BuildIntf`, which
+    those distributions ship as source only.
+
+2. **English menus (optional).** Lazarus starts in the language of the operating system.
+   In **Tools → Options → Environment → General → Language**, choose **English [en]**, not
+   **Automatic (or English)**, which follows the system, and restart Lazarus. The steps
+   below use the English names.
+
+3. **Get the source**, as in [Step 1](#step-1-get-the-source).
+
+4. **Open the design-time package.** Choose **Package → Open Package File (.lpk) ...** and
+   open `packages\Lazarus\dclBold.lpk`. Lazarus finds the two runtime packages it requires,
+   `Bold.lpk` and `BoldLCL.lpk`, in the same folder.
+
+5. **Install it.** In the package window, choose **Use → Install**. Lazarus asks three
+   questions:
+
+    1. **Automatically installed packages**: installing `dclBold` installs `Bold` and
+       `BoldLCL` too. Choose **OK**.
+    2. **Suspicious include path**: "The package Bold adds the path
+       `..\..\Source\Common\Include` to the include path of the IDE". Choose **Continue**,
+       or **Continue and do not ask again**. The path is intended: a project that requires
+       Bold finds `bold.inc` through it, and the folder holds only Bold's include files.
+       Lazarus asks this about every package that passes an include path on.
+    3. **Rebuild Lazarus?**: choose **Yes**. Lazarus compiles itself with the three packages
+       and restarts.
+
+6. **Check the palette.** It has three new pages: **Bold Handles** (`TBoldModel`,
+   `TBoldSystemHandle`, the list and expression handles and the others), **Bold
+   Persistence** (`TBoldPersistenceHandleDB`, `TBoldPersistenceHandleFileXML`) and **Bold
+   Misc** (`TBoldDataSet` among others). The "..." button of an `Expression` property in
+   the Object Inspector opens the OCL editor.
+
+A project requires `Bold`, or `BoldLCL` for an LCL application, and never `dclBold`, so it
+links no registration code. The Zeos database adapter has its own design-time package,
+`dclBoldZeos.lpk`, which is installed the same way once Lazarus knows Zeos's packages (see
+the README).
 
 ## Verify Installation
 

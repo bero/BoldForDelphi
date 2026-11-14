@@ -163,6 +163,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- The Lazarus packages `Bold`, `BoldLCL` and `dclBold` compile with Free
+  Pascal on 64-bit Windows; the CI builds them on Linux, where these errors
+  do not occur. `BoldPlatform` calls the Unicode (W) Windows functions by
+  name, as Free Pascal's `Windows` unit maps the plain names to the ANSI
+  ones; the OCL operations `maxValue` and `minValue` and the date-time
+  fields of `TBoldDataSet` no longer depend on how Free Pascal's 64-bit
+  Windows target treats `Currency` and `Comp`; and the `PropagatorHandle`
+  of `TBoldExternalObjectSpaceEventHandler` is Delphi on Windows only, as
+  `Bold.lpk` has no propagator units. The installation guide has the steps
+  that install the packages in the Lazarus IDE (#117)
+- `BoldModuleFileName` passed the size of its buffer in bytes where Windows
+  expects characters, so a module path longer than 261 characters could be
+  written past the end of the buffer; such a path is now cut off (#117)
 - `TBoldDataSet`: an edit that takes the row out of its list is kept. In the
   grid of a customer's invoices, an invoice that got another customer left
   the list while its row was edited; the dataset then stayed in edit mode on

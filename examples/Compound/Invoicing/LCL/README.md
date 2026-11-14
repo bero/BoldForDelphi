@@ -92,6 +92,13 @@ another. The project requires the packages `Bold` and `BoldLCL`
 own units in the mode `delphiunicode` (Project Options, Custom Options:
 `-Mdelphiunicode`).
 
+On the first run, filling the empty data file raises six `EBold` exceptions
+on purpose: the scenario checks that the model refuses a payment on a draft
+invoice, posting an empty invoice and the like, and catches each refusal.
+Run from the Lazarus IDE, the debugger stops on each of them; choose
+**Continue**, or start the program with **Run → Run without Debugging**.
+Later runs open the saved data file and raise none.
+
 **Save changes** writes to the data file.
 
 **Edit OCL...** opens Bold's OCL editor (`BoldOclExpressionDialogLCL`, in the
@@ -117,4 +124,5 @@ without a window, so the row checks read the dataset behind each grid.
 - The grids are read-only here; the combo box is the only control that
   edits. `TBoldDataSet` can edit in a grid too (Edit and Post write into the
   Bold objects).
-- Built and run on Linux only so far.
+- Built and run on Linux and, with Lazarus 4.8, on 64-bit Windows only so
+  far.
