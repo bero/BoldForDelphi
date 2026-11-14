@@ -1614,7 +1614,9 @@ end;
 function TBoldAbstractDataSet.GetActiveRecBuf(var RecBuf: TRecordBuffer): Boolean;
 begin
   case State of
-    dsBrowse: if IsEmpty then
+    // dsBlockRead: BlockReadSize > 0, reading from first to last without
+    // notifying the controls; the LCL's lookup combo box reads its list so
+    dsBrowse, dsBlockRead: if IsEmpty then
       RecBuf := nil
     else
       RecBuf := TRecordBuffer(ActiveBuffer);
@@ -1719,7 +1721,7 @@ begin
     end
     else
     begin
-      if State in [dsBrowse, dsEdit, dsInsert, dsCalcFields] then
+      if State in [dsBrowse, dsBlockRead, dsEdit, dsInsert, dsCalcFields] then
       begin
         // A calculated field: a null flag byte, then the value
         Inc(LRecBuf, FRecordSize + Offset);

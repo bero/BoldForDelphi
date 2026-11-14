@@ -150,6 +150,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet`: fields read their values while the dataset is read with
+  `BlockReadSize` set (the state `dsBlockRead`); they read as empty. The LCL's
+  `TDBLookupComboBox` reads its list that way (#117)
 - `TBoldDataSet`: calculated and lookup fields no longer raise an access
   violation when they read another field of the row. The dataset calculated
   them once before the record buffer had the row's object (#117)

@@ -67,6 +67,10 @@ type
     procedure TestAppendRecordCreatesOneObject;
     procedure TestDateAndTimeFieldsRoundTrip;
     procedure TestBlobFieldReadsAndWrites;
+    // BlockReadSize > 0 puts a dataset in the state dsBlockRead, in which
+    // it is read from first to last without notifying its controls; the
+    // LCL's lookup combo box reads its list that way
+    procedure TestFieldsReadInBlockReadMode;
     // A Bold-side change refreshes the dataset through BoldSharedClock, which
     // needs only CheckSynchronize, not a VCL message loop (#117 step 9)
     procedure TestBoldSideChangesShowWithoutAMessageLoop;
@@ -450,6 +454,29 @@ begin
   FDataSet.Open;
   Assert.AreEqual(1, FDataSet.FieldCount, 'Close and Open should keep the persistent field, and only it');
   Assert.IsTrue(FDataSet.FindField('aInteger') = Field, 'the same field object after Close and Open');
+end;
+
+procedure TTestBoldDataSet.TestFieldsReadInBlockReadMode;
+var
+  i: Integer;
+begin
+  FDataSet.Open;
+  FDataSet.BlockReadSize := 1;
+  try
+    Assert.IsTrue(FDataSet.State = dsBlockRead, 'BlockReadSize should give the state dsBlockRead');
+    FDataSet.First;
+    for i := 0 to High(cNames) do
+    begin
+      Assert.IsFalse(FDataSet.Eof, 'a record for every object');
+      Assert.AreEqual(cNames[i], FDataSet.FieldByName('aString').AsString, 'aString while block reading');
+      Assert.AreEqual(i + 1, FDataSet.FieldByName('aInteger').AsInteger, 'aInteger while block reading');
+      FDataSet.Next;
+    end;
+    Assert.IsTrue(FDataSet.Eof, 'and then the end');
+  finally
+    FDataSet.BlockReadSize := 0;
+  end;
+  Assert.IsTrue(FDataSet.State = dsBrowse, 'back to browsing');
 end;
 
 procedure TTestBoldDataSet.TestEmptyListOpensEmpty;
