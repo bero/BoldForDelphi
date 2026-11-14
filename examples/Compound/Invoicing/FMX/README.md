@@ -36,14 +36,50 @@ drains Bold's display queue by itself, so the form calls
 Build `InvoicingFMX.dproj` for Win32 or Win64 and run it. **Save changes**
 writes to the database.
 
-The project also has the Linux64 platform (tried with Delphi 13). Run from
-the IDE deploys through PAServer; the deployment holds `Invoicing.bld` next to
-the program, where the client looks for the model first, before `..\Model`.
-
 `InvoicingFMX --selftest` shows no window: it fills a temporary database,
 walks every customer and invoice, checks that the grids show the right rows,
 writes the checks to `InvoicingFMX.selftest.txt` and exits with the number of
 failed checks.
+
+## Linux64
+
+The project also has the Linux64 platform, tried with Delphi 13.2 and
+FmxLinux 1.84 from GetIt (FMX on Linux needs FmxLinux). Run from the IDE
+deploys through PAServer; the deployment holds `Invoicing.bld` next to the
+program, where the client looks for the model first, before `..\Model`.
+
+The Linux machine needs `libsqlite3-dev`: FireDAC loads `libsqlite3.so`
+without a version number, and Ubuntu ships that name only in the dev package.
+
+With Delphi 13.2 and FmxLinux 1.84 the build stops at one of two errors, both
+reported to Embarcadero:
+
+- `F1027 Unit not found: 'FMX.ScrollBox'` (RSS-6318). The Delphi folders
+  `lib\linux64\release` and `lib\linux64\debug` hold an `FMX.ScrollBox.dcu`
+  with no `.o`, which hides FmxLinux's unit while those folders come first on
+  the library path. In Tools > Options > Language > Delphi > Library, for
+  Linux 64-bit, move FmxLinux's `lib\Release` above
+  `$(BDSLIB)\$(Platform)\release`.
+- `F2051 Unit Fmx.Bind.Editors was compiled with a different version of
+  Data.Bind.Components.IBindFillControlDefaultDisplay` (RSS-6317). FmxLinux's
+  `Fmx.Bind.Editors` was built against a newer `Data.Bind.Components` than
+  Delphi 13.2 has, so every FMX program with LiveBindings stops here on
+  Linux64. Compile the unit from Delphi's own source against the FmxLinux
+  units, in an empty folder in a RAD Studio Command Prompt:
+
+  ```bat
+  set FMXLINUX=%PUBLIC%\Documents\Embarcadero\Studio\37.0\CatalogRepository\FmxLinux\1.84\lib
+  copy "%BDS%\source\databinding\components\Fmx.Bind.Editors.pas" .
+  mkdir release debug
+  dcclinux64 --no-config -Q -$O+ -$D- -$L- -$Y- -U"%FMXLINUX%\Release;%BDS%\lib\linux64\release" -NUrelease Fmx.Bind.Editors.pas
+  dcclinux64 --no-config -Q -$O- -$D+ -$L+ -$Y+ -U"%FMXLINUX%\Debug;%BDS%\lib\linux64\debug;%BDS%\lib\linux64\release" -NUdebug Fmx.Bind.Editors.pas
+  ```
+
+  Keep a copy of `Fmx.Bind.Editors.dcu` and `Fmx.Bind.Editors.o` from
+  FmxLinux's `lib\Release` and `lib\Debug`, then copy the new files from
+  `release` and `debug` over them. Reinstalling FmxLinux brings the old units
+  back. A program built with runtime packages still gets FmxLinux's
+  `bindcompfmx` package, which this does not replace.
 
 ## Not yet
 
