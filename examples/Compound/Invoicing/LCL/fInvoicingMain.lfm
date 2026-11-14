@@ -1594,6 +1594,7 @@ object frmInvoicingMain: TfrmInvoicingMain
       KeyField = 'self'
       ListField = 'Name'
       ListSource = dsCustomerChoice
+      OnSelect = cmbInvoiceCustomerSelect
       Style = csDropDownList
       TabOrder = 0
     end

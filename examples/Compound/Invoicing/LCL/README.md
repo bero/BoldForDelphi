@@ -52,9 +52,12 @@ move the customer grid.
 
 Here the link is also what the invoice grid is built on: it shows the
 invoices of the selected customer. An invoice that gets another customer
-leaves the grid at once; the dataset ends the edit and keeps the change, the
-combo box follows the invoice that is selected then, and the invoice is in
-the grid of its new customer, whose derived columns have it. The change is
+leaves that list at once; the dataset ends the edit and keeps the change.
+So that the invoice does not vanish from view, the form then follows it
+(`cmbInvoiceCustomerSelect`, `FollowTheInvoice`): the customer grid moves to
+the new customer, the invoice grid shows that customer's invoices with the
+invoice selected, and the combo box shows the new customer, ready for
+another pick. The derived columns of both customers have the change. It is
 saved with **Save changes**, like every other.
 
 The form disables the combo box while the invoice grid is empty
