@@ -581,6 +581,34 @@ var
       (bdsInvoices.FieldByName('Total').AsCurrency = 375),
       FloatToStr(Invoice.Lines[0].Quantity) + ', total ' + bdsInvoices.FieldByName('Total').AsString);
 
+    // A line is being typed, not posted, and the user selects another
+    // invoice: the lines grid shows the lines of that invoice
+    bdsLines.Append;
+    bdsLines.FieldByName('Description').AsString := 'Being typed';
+    bdsLines.FieldByName('Quantity').AsFloat := 2;
+    bdsLines.FieldByName('Unit price').AsCurrency := 10;
+    Check('the derived amount follows while a new line is typed',
+      bdsLines.FieldByName('Amount').AsCurrency = 20, bdsLines.FieldByName('Amount').AsString);
+    bdsInvoices.First;
+    Settle;
+    Check('selecting another invoice while a line is typed shows the lines of that invoice',
+      (bdsInvoices.ActiveBoldObject <> Invoice) and not (bdsLines.State in dsEditModes) and
+      (bdsLines.RecordCount = (bdsInvoices.ActiveBoldObject as TInvoice).Lines.Count) and
+      (bdsLines.ActiveBoldObject is TInvoiceLine) and
+      (TInvoiceLine(bdsLines.ActiveBoldObject).Invoice = bdsInvoices.ActiveBoldObject),
+      IntToStr(bdsLines.RecordCount) + ' rows, state ' + IntToStr(Ord(bdsLines.State)));
+    Check('and the line that was typed stays with its invoice', Invoice.Lines.Count = 2, IntToStr(Invoice.Lines.Count));
+    // Back to the draft, where that line is deleted again
+    bdsInvoices.Last;
+    while not bdsInvoices.Bof and (bdsInvoices.ActiveBoldObject <> Invoice) do
+      bdsInvoices.Prior;
+    Settle;
+    bdsLines.Last;
+    Check('back on the draft the typed line is there', (bdsInvoices.ActiveBoldObject = Invoice) and
+      (bdsLines.FieldByName('Description').AsString = 'Being typed'), bdsLines.FieldByName('Description').AsString);
+    bdsLines.Delete;
+    Settle;
+
     bdsLines.Append;
     bdsLines.FieldByName('Description').AsString := 'Not wanted';
     bdsLines.FieldByName('Quantity').AsFloat := 1;

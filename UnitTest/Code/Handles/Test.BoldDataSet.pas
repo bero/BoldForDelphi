@@ -188,8 +188,9 @@ type
     FDetailHandle: TBoldListHandle;
     FMaster: TBoldDataSet;
     FDetail: TBoldDataSet;
-    FParent: TObject;
-    FChild1, FChild2: TObject;
+    FParent, FOtherParent: TObject;
+    FChild1, FChild2, FOtherChild: TObject;
+    procedure GoToMaster(AObject: TObject);
     function ObjectCount: Integer;
     procedure GoToDetail(AObject: TObject);
     procedure Settle;
@@ -206,6 +207,14 @@ type
     procedure TestCancelOfAnEditOfANewObjectKeepsTheObject;
     procedure TestDeleteInADetailDeletesTheObject;
     procedure TestAFieldThatCannotBeSetIsReadOnly;
+    // A grid cell is being typed in, or a new row, and the user clicks
+    // another row of the master grid: the detail grid shows the rows of that
+    // master, and what was typed stays with the object it was typed for
+    procedure TestMasterMovesWhileADetailRowIsEdited;
+    procedure TestMasterMovesWhileADetailRowIsInserted;
+    // A calculated column of the row that is typed in
+    procedure TestOtherFieldsFollowWhileARowIsInserted;
+    procedure TestOtherFieldsFollowWhileARowIsEdited;
   end;
 
 implementation
@@ -1338,13 +1347,21 @@ begin
   Child.parent := Parent;
   FChild2 := Child;
   FParent := Parent;
+  Parent := TSomeClass.Create(Sys);
+  Parent.aString := 'the other parent';
+  Child := TSomeClass.Create(Sys);
+  Child.aString := 'other child';
+  Child.parent := Parent;
+  FOtherParent := Parent;
+  FOtherChild := Child;
   // Saved: what a Cancel goes back to is in the database
   Sys.UpdateDatabase;
 
   FMasterHandle := TBoldListHandle.Create(nil);
   FMasterHandle.RootHandle := BoldTestDM.BoldSystemHandle1;
   FMasterHandle.StaticSystemHandle := BoldTestDM.BoldSystemHandle1;
-  FMasterHandle.Expression := 'SomeClass.allInstances->select(aString = ''the parent'')';
+  // The two parents
+  FMasterHandle.Expression := 'SomeClass.allInstances->select(child->notEmpty)';
   FDetailHandle := TBoldListHandle.Create(nil);
   FDetailHandle.RootHandle := FMasterHandle;
   FDetailHandle.StaticSystemHandle := BoldTestDM.BoldSystemHandle1;
@@ -1363,6 +1380,10 @@ begin
   Description := FDetail.FieldDescriptions.Add;
   Description.BoldProperties.Expression := 'aString';
   Description.FieldName := 'aString';
+  // Calculated from the attribute, as a derived column of a grid
+  Description := FDetail.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'aString.length';
+  Description.FieldName := 'Length';
   FMaster.Open;
   FDetail.Open;
 end;
@@ -1382,6 +1403,14 @@ end;
 function TTestBoldDataSetEditing.ObjectCount: Integer;
 begin
   Result := BoldTestDM.BoldSystemHandle1.System.EvaluateExpressionAsInteger('SomeClass.allInstances->size');
+end;
+
+procedure TTestBoldDataSetEditing.GoToMaster(AObject: TObject);
+begin
+  FMaster.First;
+  while not FMaster.Eof and (FMaster.ActiveBoldObject <> AObject) do
+    FMaster.Next;
+  Assert.IsTrue(FMaster.ActiveBoldObject = AObject, 'the master dataset should have a row for the object');
 end;
 
 procedure TTestBoldDataSetEditing.GoToDetail(AObject: TObject);
@@ -1547,6 +1576,75 @@ begin
   end;
   FMaster.Cancel;
   Assert.IsTrue(Raised, 'setting it is refused');
+end;
+
+procedure TTestBoldDataSetEditing.TestMasterMovesWhileADetailRowIsEdited;
+begin
+  GoToMaster(FParent);
+  Settle;
+  GoToDetail(FChild1);
+  FDetail.Edit;
+  FDetail.FieldByName('aString').AsString := 'typed';
+  // A click on the other row of the master grid
+  GoToMaster(FOtherParent);
+  Settle;
+  Assert.IsFalse(FDetail.State in dsEditModes, 'the detail dataset is not left editing a row of another master');
+  Assert.AreEqual(1, FDetail.RecordCount, 'the detail dataset has the rows of the other master');
+  Assert.IsTrue(FDetail.ActiveBoldObject = FOtherChild, 'the cursor is on its child');
+  Assert.AreEqual('other child', FDetail.FieldByName('aString').AsString, 'and the row shows that child');
+  Assert.AreEqual('typed', TSomeClass(FChild1).aString, 'what was typed stays with the object it was typed for');
+  Assert.AreEqual('other child', TSomeClass(FOtherChild).aString, 'and does not reach another object');
+end;
+
+procedure TTestBoldDataSetEditing.TestMasterMovesWhileADetailRowIsInserted;
+begin
+  GoToMaster(FParent);
+  Settle;
+  FDetail.Append;
+  FDetail.FieldByName('aString').AsString := 'typed';
+  // A click on the other row of the master grid
+  GoToMaster(FOtherParent);
+  Settle;
+  Assert.IsFalse(FDetail.State in dsEditModes, 'the detail dataset is not left inserting a row of another master');
+  Assert.AreEqual(1, FDetail.RecordCount, 'the detail dataset has the rows of the other master');
+  Assert.IsTrue(FDetail.ActiveBoldObject = FOtherChild, 'the cursor is on its child');
+  Assert.AreEqual('other child', FDetail.FieldByName('aString').AsString, 'and the row shows that child');
+  Assert.AreEqual(3, TSomeClass(FParent).child.Count, 'the new row stays a child of the master it was typed for');
+  Assert.AreEqual(1, TSomeClass(FOtherParent).child.Count, 'and is no child of the other');
+  // Back: the new child is there, with what was typed
+  GoToMaster(FParent);
+  Settle;
+  Assert.AreEqual(3, FDetail.RecordCount, 'three rows under the first master');
+  FDetail.Last;
+  Assert.AreEqual('typed', FDetail.FieldByName('aString').AsString, 'the last one with what was typed');
+end;
+
+procedure TTestBoldDataSetEditing.TestOtherFieldsFollowWhileARowIsInserted;
+begin
+  GoToMaster(FParent);
+  Settle;
+  FDetail.Append;
+  FDetail.FieldByName('aString').AsString := 'abc';
+  Settle;
+  Assert.AreEqual(3, FDetail.FieldByName('Length').AsInteger,
+    'a calculated field of the row follows what is typed in a new row, before it is posted');
+  FDetail.FieldByName('aString').AsString := 'abcde';
+  Assert.AreEqual(5, FDetail.FieldByName('Length').AsInteger, 'at once, with no idle time in between');
+  FDetail.Cancel;
+end;
+
+procedure TTestBoldDataSetEditing.TestOtherFieldsFollowWhileARowIsEdited;
+begin
+  GoToMaster(FParent);
+  Settle;
+  GoToDetail(FChild1);
+  Assert.AreEqual(5, FDetail.FieldByName('Length').AsInteger, 'first');
+  FDetail.Edit;
+  FDetail.FieldByName('aString').AsString := 'abc';
+  Assert.AreEqual(3, FDetail.FieldByName('Length').AsInteger,
+    'a calculated field of the row follows what is typed, before it is posted');
+  FDetail.Cancel;
+  Assert.AreEqual(5, FDetail.FieldByName('Length').AsInteger, 'and what Cancel puts back');
 end;
 
 initialization

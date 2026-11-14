@@ -165,6 +165,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet`: a row that is being inserted and whose list changes under
+  it no longer stays on screen. In the grid of an invoice's lines, a new line
+  was typed and another invoice selected: the grid kept showing the new line
+  of the first invoice. The dataset ends the insert, keeps the new object
+  with what was typed, and shows the rows of the list it has now (#117)
+- `TBoldDataSet`: the other fields of a row follow when a field is set. A
+  calculated column, such as the amount of a line, stayed 0 in a new row
+  until the row was posted, and lagged in an edited one (#117)
 - `TBoldDataSet`: Cancel takes back what the edit set, and only that. It
   discarded the whole object, so an earlier change of the row that was
   posted but not saved was lost with it, and the cancelled edit of a new

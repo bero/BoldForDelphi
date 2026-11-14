@@ -1357,9 +1357,9 @@ begin
   if not Active then
     Exit;
 
-  if State = dsInsert then
-    Exit;
   if EndEditOfARowThatLeftTheList then
+    Exit;
+  if State = dsInsert then
     Exit;
   UpdateCursorPos;  
   if BoldHandle.CurrentElement <> ActiveBoldElement then
@@ -1373,17 +1373,22 @@ begin
 
 end;
 
-{ True when the row that is edited is no longer in the list, and the edit
-  was ended for that. The edit itself can take the row out: in the grid of a
-  customer's invoices, an invoice that gets another customer. What was set
-  is in the object already, so the changes are kept (InternalCancel does not
-  discard them); Cancel reads the records again, from the row that is now
-  where the edited one was. Called when the rows of the list are followed
-  again: a row was removed, or the rows were built anew. }
+{ True when the row that is edited, or inserted, is no longer in the list,
+  and the edit was ended for that. The edit itself can take the row out: in
+  the grid of a customer's invoices, an invoice that gets another customer.
+  Or the list is another one: in the grid of an invoice's lines, a line is
+  typed in and the user selects another invoice. What was set is in the
+  object already, so the changes are kept, and so is the object of a row
+  that was being inserted (InternalCancel discards nothing); Cancel reads
+  the records again, from the row that is now where the edited one was.
+  Called when the rows of the list are followed again: a row was removed, or
+  the rows were built anew. A row that is being inserted has its element
+  once DoOnNewRecord has made it, and is in the list then, so the dataset's
+  own new row ends nothing. }
 function TBoldAbstractDataSet.EndEditOfARowThatLeftTheList: Boolean;
 begin
-  Result := (State = dsEdit) and not fEditedRowLeftTheList and
-    (GetIndexForElement(ActiveBoldElement) = -1);
+  Result := (State in [dsEdit, dsInsert]) and not fEditedRowLeftTheList and
+    Assigned(ActiveBoldElement) and (GetIndexForElement(ActiveBoldElement) = -1);
   if Result then
   begin
     fEditedRowLeftTheList := True;
@@ -1398,9 +1403,11 @@ end;
 
 procedure TBoldAbstractDataSet._InsertRow(index: Integer; OwningFollower: TBoldFollower);
 begin
-  if State in [dsInsert, dsInactive] then
+  if State = dsInactive then
     Exit;
   if EndEditOfARowThatLeftTheList then
+    Exit;
+  if State = dsInsert then
     Exit;
   if (State in dsWriteModes) then
     UpdateRecord;
@@ -1929,7 +1936,10 @@ end;
 procedure TBoldAbstractDataSet.{$IFDEF FPC}SetFieldDataValue{$ELSE}SetFieldData{$ENDIF}(Field: TField; Buffer: TValueBuffer);
 var
   LRecBuf: TRecordBuffer;
+  i: Integer;
+  RowChanged: Boolean;
 begin
+  RowChanged := False;
   with Field do
   begin
     if not (State in dsWriteModes) then
@@ -1954,6 +1964,13 @@ begin
             Move(Buffer[0], (LRecBuf + FieldOfs)^, Min(Length(Buffer), BufferSize));
         end;
         BufferToBoldElement(Field.FieldNo - 1, LRecBuf);
+        // The field is in the object now. The other fields of the row are
+        // read again from it: a calculated one may depend on what was set
+        // (the amount of a line on its quantity), and the row shows what
+        // the object has, also in a new row, which has no followers yet.
+        for i := 0 to FieldDescriptions.Count - 1 do
+          BoldElementToBuffer(i, LRecBuf);
+        RowChanged := True;
       end;
     end
     else {fkCalculated, fkLookup}
@@ -1965,7 +1982,12 @@ begin
         Move(Buffer[0], (LRecBuf + 1)^, Min(Length(Buffer), DataSize));
     end;
     if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+    begin
       DataEvent(deFieldChange, NativeInt(Field));
+      // And the controls of the other fields show them
+      if RowChanged then
+        DataEvent(deRecordChange, 0);
+    end;
   end;
 end;
 
