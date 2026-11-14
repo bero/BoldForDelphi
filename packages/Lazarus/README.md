@@ -87,13 +87,24 @@ widgetset (`lazbuild --ws=qt5`). On Debian and Ubuntu `lazbuild` needs the
 package `lazarus-src` for that: `IDEIntf` uses `BuildIntf`, which those
 distributions ship as source only.
 
+A `TBoldDataSet` in a form has the commands of Delphi's component editor in
+its context menu (`BoldDataSetComponentEditor`): **Fields Editor...** opens
+the field descriptions in the collection editor, as a double click on the
+component does; **Create default fields** replaces them with one for each
+attribute of the class its handle lists (nothing happens without a handle);
+**Clear all columns** removes them. A dataset with no field descriptions
+gets the default ones when the program starts. Below them is the command
+every dataset has in Lazarus, **Edit Fields ...**, for persistent `TField`
+components.
+
 A project never requires `dclBold`: it requires `Bold` (and `BoldLCL`), so an
 application links no registration code. `tests/BoldRegistrationCheck` checks
 without the IDE what the package registers, that every component, and a
 data module of them that refer to each other, is written as form text and
 read back, that every component has its icon, and the OCL editor against the
 Invoicing model: the parser messages, the lists and their filter, adding a
-line, Remove Last, and that an edited expression is written back.
+line, Remove Last, and that an edited expression is written back; and the
+commands of the `TBoldDataSet` component editor.
 
 ## Using it
 
@@ -125,6 +136,7 @@ written and read as components, but have no tests under Free Pascal yet:
 Not there yet:
 
 - The other property and component editors of the Delphi design package
-  (the model editor, the field editor of `TBoldDataSet`): they are written against Delphi's design-time API. Other
-  properties are edited in the Object Inspector as text.
+  (the model editor among them): they are written against Delphi's
+  design-time API. Other properties are edited in the Object Inspector as
+  text.
 - Bold's visual controls.

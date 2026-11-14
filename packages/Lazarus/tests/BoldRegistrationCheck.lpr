@@ -10,7 +10,8 @@ program BoldRegistrationCheck;
   to each other. Last, the property editor of Expression: what it is
   registered for, the check of expressions against that model, and its
   dialog, the OCL editor with its lists, which is created (hence the LCL and
-  a widgetset) but not shown.
+  a widgetset) but not shown, and the component editor of TBoldDataSet with
+  its commands.
   One line per check; exit code = number of failed checks. }
 
 {$APPTYPE CONSOLE}
@@ -23,6 +24,7 @@ uses
   TypInfo,
   Forms,
   PropEdits,
+  ComponentEditors,
   BoldEnvironment,
   BoldHandles,
   BoldSystemHandle,
@@ -36,6 +38,7 @@ uses
   BoldControlPack,
   BoldOclExpressionCheck,
   BoldOclExpressionPropEdit,
+  BoldDataSetComponentEditor,
   BoldLazarusReg,
   BoldRegistrationChecks;
 
@@ -503,6 +506,134 @@ begin
   end;
 end;
 
+const
+  // Customer of the Invoicing model, the inherited attributes first
+  AttributesOfCustomer =
+    'number,name,email,phone,paymentTermDays,isActive,notes,invoicedTotal,openBalance,overdueCount';
+
+type
+  { The component editor with the collection editor left out: it notes what
+    it was asked to show }
+  TDataSetEditorWithoutForm = class(TBoldDataSetComponentEditor)
+  protected
+    procedure ShowFieldDescriptions(ACollection: TCollection; AOwner: TPersistent;
+      const APropertyName: string); override;
+  public
+    ShownCollection: TCollection;
+    ShownOwner: TPersistent;
+    ShownProperty: string;
+  end;
+
+procedure TDataSetEditorWithoutForm.ShowFieldDescriptions(ACollection: TCollection;
+  AOwner: TPersistent; const APropertyName: string);
+begin
+  ShownCollection := ACollection;
+  ShownOwner := AOwner;
+  ShownProperty := APropertyName;
+end;
+
+function FieldExpressions(ADataSet: TBoldDataSet): string;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 0 to ADataSet.FieldDescriptions.Count - 1 do
+  begin
+    if i > 0 then
+      Result := Result + ',';
+    Result := Result + ADataSet.FieldDescriptions[i].BoldProperties.Expression;
+  end;
+end;
+
+{ The component editor of TBoldDataSet: the menu of the component in the form
+  designer. No designer here, so nothing is marked as modified. }
+procedure CheckTheDataSetEditor;
+var
+  Module: TCheckModule;
+  DataSet, Loose: TBoldDataSet;
+  Registered: TBaseComponentEditor;
+  Editor: TDataSetEditorWithoutForm;
+  Verbs, Before: string;
+  i: Integer;
+begin
+  Module := TCheckModule.CreateNew(nil);
+  try
+    try
+      Module.Name := 'CheckModule';
+      BuildModule(Module);
+      DataSet := Module.FindComponent('BoldDataSet1') as TBoldDataSet;
+
+      Registered := GetComponentEditor(DataSet, nil);
+      try
+        Check('TBoldDataSet has the Bold component editor', Registered is TBoldDataSetComponentEditor,
+          string(Registered.ClassName));
+      finally
+        Registered.Free;
+      end;
+      Registered := GetComponentEditor(Module.FindComponent('blhMasters'), nil);
+      try
+        Check('a handle keeps the default component editor', not (Registered is TBoldDataSetComponentEditor),
+          string(Registered.ClassName));
+      finally
+        Registered.Free;
+      end;
+
+      Editor := TDataSetEditorWithoutForm.Create(DataSet, nil);
+      try
+        Verbs := '';
+        for i := 0 to Editor.GetVerbCount - 1 do
+          Verbs := Verbs + '[' + Editor.GetVerb(i) + ']';
+        Check('its commands: those of Delphi, then the fields editor of Lazarus',
+          (Editor.GetVerbCount = 4) and
+          (Pos('[Fields Editor...][Create default fields][Clear all columns][', Verbs) = 1) and
+          (Editor.GetVerb(bdsVerbPersistentFields) <> ''), Verbs);
+
+        Before := FieldExpressions(DataSet);
+        Editor.Edit;
+        Check('a double click opens the field descriptions in the collection editor',
+          (Editor.ShownCollection = DataSet.FieldDescriptions) and (Editor.ShownOwner = DataSet) and
+          (Editor.ShownProperty = 'FieldDescriptions') and (FieldExpressions(DataSet) = Before),
+          Editor.ShownProperty + ', fields ' + FieldExpressions(DataSet));
+
+        Editor.ExecuteVerb(bdsVerbClearFields);
+        Check('Clear all columns leaves no field description', DataSet.FieldDescriptions.Count = 0,
+          IntToStr(DataSet.FieldDescriptions.Count));
+
+        Editor.ExecuteVerb(bdsVerbCreateDefaultFields);
+        Check('Create default fields makes one for each attribute of the class',
+          FieldExpressions(DataSet) = AttributesOfCustomer, FieldExpressions(DataSet));
+
+        DataSet.FieldDescriptions.Add.BoldProperties.Expression := 'invoices->size';
+        Editor.ExecuteVerb(bdsVerbCreateDefaultFields);
+        Check('and replaces the field descriptions there were',
+          FieldExpressions(DataSet) = AttributesOfCustomer, FieldExpressions(DataSet));
+      finally
+        Editor.Free;
+      end;
+
+      Loose := TBoldDataSet.Create(Module);
+      Loose.Name := 'BoldDataSetLoose';
+      Loose.FieldDescriptions.Add.BoldProperties.Expression := 'name';
+      Editor := TDataSetEditorWithoutForm.Create(Loose, nil);
+      try
+        Editor.ExecuteVerb(bdsVerbCreateDefaultFields);
+        Check('Create default fields without a handle keeps the field descriptions',
+          FieldExpressions(Loose) = 'name', FieldExpressions(Loose));
+        Editor.ExecuteVerb(bdsVerbClearFields);
+        Check('Clear all columns needs no handle', Loose.FieldDescriptions.Count = 0,
+          IntToStr(Loose.FieldDescriptions.Count));
+      finally
+        Editor.Free;
+      end;
+    except
+      on E: Exception do
+        Check('the component editor of TBoldDataSet', False, string(E.ClassName) + ': ' + E.Message);
+    end;
+  finally
+    Module.Free;
+  end;
+end;
+
 begin
   try
     // The dialog of the property editor is created, never shown
@@ -529,6 +660,9 @@ begin
 
     Writeln('Expressions checked against the model');
     CheckExpressionsAgainstTheModel;
+
+    Writeln('The component editor of TBoldDataSet');
+    CheckTheDataSetEditor;
 
     if Failures = 0 then
       Writeln('All checks passed')

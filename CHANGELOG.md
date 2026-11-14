@@ -22,9 +22,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `dclBoldZeos.lpk` adds `TBoldDatabaseAdapterZeos`. `Expression` of the
   handles and of a `TBoldDataSet` field opens Delphi's OCL editor as an LCL
   dialog: the parser messages under the expression, the members and
-  operations that can follow it at the right, the variables at the left;
-  the other property and component editors of the Delphi package are not
-  ported
+  operations that can follow it at the right, the variables at the left. `TBoldDataSet` has the commands
+  of Delphi's component editor in the form designer: Fields Editor (the
+  field descriptions, also on a double click), Create default fields and
+  Clear all columns. The other property and component editors of the Delphi
+  package are not ported
 - The Invoicing FMX client (`examples/Compound/Invoicing/FMX`) has the Linux64
   platform (#117): the project deploys `Invoicing.bld` next to the program,
   where the client now looks for the model first

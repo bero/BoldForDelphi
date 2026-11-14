@@ -29,6 +29,10 @@
         <UnitName Value="BoldOclExpressionPropEdit"/>
       </Item>
       <Item>
+        <Filename Value="../../Source/Common/IDELazarus/bolddatasetcomponenteditor.pas"/>
+        <UnitName Value="BoldDataSetComponentEditor"/>
+      </Item>
+      <Item>
         <Filename Value="../../Source/Common/IDE/boldideconsts.pas"/>
         <UnitName Value="BoldIDEConsts"/>
       </Item>
