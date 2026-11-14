@@ -116,6 +116,40 @@ object frmInvoicingMain: TfrmInvoicingMain
       TabOrder = 0
       OnChange = InvoiceCustomerChange
     end
+    object btnNewInvoice: TButton
+      Align = Right
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 748.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
+      Text = 'New invoice'
+      OnClick = NewInvoiceClick
+    end
+    object btnPostInvoice: TButton
+      Align = Right
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 872.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
+      Text = 'Post invoice'
+      OnClick = PostInvoiceClick
+    end
   end
   object lblLines: TLabel
     Align = Top
@@ -152,7 +186,8 @@ object frmInvoicingMain: TfrmInvoicingMain
     DefaultDrawing = False
     OnDrawColumnBackground = GridDrawColumnBackground
     OnDrawColumnCell = GridDrawColumnCell
-    Options = [ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+    ReadOnly = True
+    Options = [Editing, ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
   end
   object layBar: TLayout
     Align = Bottom

@@ -57,6 +57,19 @@ does not vanish from view, the form then follows it (`InvoiceCustomerChange`,
 invoice selected and the combo box ready for another pick. While the invoice
 grid is empty the combo box is disabled.
 
+## Editing the lines of an invoice in the grid
+
+As in the LCL client: **New invoice** makes a draft for the selected customer
+(`Customer.NewInvoice`), the lines of a draft are edited in the lines grid,
+and **Post invoice** posts it (`Invoice.Post`), after which its lines are
+frozen. The grid link (`TLinkGridToDataSource`) writes a cell to the dataset
+field, and `TBoldDataSet` writes the field to the line; a new row is a new
+line of the selected invoice, because the dataset asks the list of its handle
+for it; the derived column `Amount` is a read-only field. The frozen rule is
+in the model's business methods, not on each attribute, so the form follows
+it: `UpdateInvoiceControls` makes the lines grid read-only when the selected
+invoice is posted.
+
 ## The look of the LCL client
 
 The form has the font size, the column widths and the selection of the LCL
@@ -146,6 +159,7 @@ reported to Embarcadero:
 - The model and the system handle are in the data module, which the code
   creates, so the two top list handles get their root in code. In the LCL
   client they are components on the form too.
-- The grids are read-only here; the combo box is the only control that
-  edits. `TBoldDataSet` can edit in a grid too (Edit and Post write into the
-  Bold objects).
+- Only the lines grid is edited; the customer and invoice grids are
+  read-only.
+- Typing in the lines grid has not been tried by hand in the FMX client;
+  the self-test edits through the grid's dataset.

@@ -94,6 +94,8 @@ type
     layInvoice: TLayout;
     lblInvoiceCustomer: TLabel;
     cmbInvoiceCustomer: TComboBox;
+    btnNewInvoice: TButton;
+    btnPostInvoice: TButton;
     lblLines: TLabel;
     grdLines: TStringGrid;
     layBar: TLayout;
@@ -105,6 +107,8 @@ type
     procedure SaveClick(Sender: TObject);
     procedure EditOclClick(Sender: TObject);
     procedure InvoiceCustomerChange(Sender: TObject);
+    procedure NewInvoiceClick(Sender: TObject);
+    procedure PostInvoiceClick(Sender: TObject);
     procedure GridDrawColumnBackground(Sender: TObject; const Canvas: TCanvas; const Column: TColumn;
       const Bounds: TRectF; const Row: Integer; const Value: TValue; const State: TGridDrawStates);
     procedure GridDrawColumnCell(Sender: TObject; const Canvas: TCanvas; const Column: TColumn;
@@ -121,6 +125,7 @@ type
     FOclExpression: string;
     procedure FollowTheInvoice;
     procedure ApplyTheLook;
+    procedure UpdateInvoiceControls;
     procedure AppIdle(Sender: TObject; var Done: Boolean);
     procedure OpenData;
     procedure ShowStatus;
@@ -403,11 +408,56 @@ begin
   // Brings the Bold-aware followers, TBoldDataSet's among them, up to date
   TBoldQueueable.DisplayAll;
   ApplyTheLook;
-  // Without an invoice there is nothing to pick a customer for
-  if Assigned(bdsInvoices) then
-    cmbInvoiceCustomer.Enabled := bdsInvoices.Active and not bdsInvoices.IsEmpty;
+  UpdateInvoiceControls;
   ShowStatus;
   Done := True;
+end;
+
+{ What can be done with the selected invoice; called from the idle loop }
+procedure TfrmInvoicingMain.UpdateInvoiceControls;
+var
+  HasInvoice, IsDraft: Boolean;
+begin
+  if not Assigned(bdsInvoices) or not Assigned(bdsCustomers) then
+    Exit;
+  HasInvoice := bdsInvoices.Active and not bdsInvoices.IsEmpty and (bdsInvoices.ActiveBoldObject is TInvoice);
+  IsDraft := HasInvoice and not TInvoice(bdsInvoices.ActiveBoldObject).IsPosted;
+  // Without an invoice there is nothing to pick a customer for
+  cmbInvoiceCustomer.Enabled := HasInvoice;
+  // The lines of a draft are edited in the grid. A posted invoice is frozen,
+  // which the model says in TInvoice.AddLine; the grid follows that rule here.
+  grdLines.ReadOnly := not IsDraft;
+  btnPostInvoice.Enabled := IsDraft;
+  btnNewInvoice.Enabled := bdsCustomers.Active and not bdsCustomers.IsEmpty;
+end;
+
+procedure TfrmInvoicingMain.NewInvoiceClick(Sender: TObject);
+var
+  Invoice: TInvoice;
+begin
+  if not (bdsCustomers.ActiveBoldObject is TCustomer) then
+    Exit;
+  // The business method: dates from the payment term, a copy of the address
+  Invoice := TCustomer(bdsCustomers.ActiveBoldObject).NewInvoice;
+  // The invoice dataset gets the new invoice when Bold's display queue is
+  // drained; at once here, so that the new row can be selected
+  TBoldQueueable.DisplayAll;
+  bdsInvoices.Last;
+  while not bdsInvoices.Bof and (bdsInvoices.ActiveBoldObject <> Invoice) do
+    bdsInvoices.Prior;
+  UpdateInvoiceControls;
+end;
+
+procedure TfrmInvoicingMain.PostInvoiceClick(Sender: TObject);
+begin
+  if not (bdsInvoices.ActiveBoldObject is TInvoice) then
+    Exit;
+  // A line that is being typed belongs to the invoice that is posted
+  if bdsLines.State in dsEditModes then
+    bdsLines.Post;
+  // The business method: refuses an invoice without lines, gives the number
+  TInvoice(bdsInvoices.ActiveBoldObject).Post;
+  UpdateInvoiceControls;
 end;
 
 procedure TfrmInvoicingMain.SaveClick(Sender: TObject);
@@ -558,6 +608,110 @@ var
     finally
       Editor.Free;
     end;
+  end;
+
+  { A new invoice, its lines edited as the grid edits them (through the
+    dataset of the grid), and posted }
+  procedure CheckEditingTheLines;
+  var
+    Customer: TCustomer;
+    Invoice: TInvoice;
+    Line: TInvoiceLine;
+    InvoicesBefore: Integer;
+    Refused: string;
+    IdleDone: Boolean;
+  begin
+    bdsCustomers.First;
+    Settle;
+    Customer := bdsCustomers.ActiveBoldObject as TCustomer;
+    bdsInvoices.First;
+    Settle;
+    Application.DoIdle(IdleDone);
+    if bdsInvoices.ActiveBoldObject is TInvoice then
+      Check('the lines of a posted invoice cannot be edited in the grid',
+        TInvoice(bdsInvoices.ActiveBoldObject).IsPosted and grdLines.ReadOnly and not btnPostInvoice.Enabled,
+        'read-only ' + BoolToStr(grdLines.ReadOnly, True));
+
+    InvoicesBefore := Customer.Invoices.Count;
+    NewInvoiceClick(btnNewInvoice);
+    Settle;
+    Check('New invoice makes a draft for the selected customer, and selects it',
+      (Customer.Invoices.Count = InvoicesBefore + 1) and (bdsInvoices.ActiveBoldObject is TInvoice) and
+      not TInvoice(bdsInvoices.ActiveBoldObject).IsPosted and
+      (TInvoice(bdsInvoices.ActiveBoldObject).Customer = Customer),
+      Format('%d invoices, status %s', [Customer.Invoices.Count, bdsInvoices.FieldByName('Status').AsString]));
+    if not (bdsInvoices.ActiveBoldObject is TInvoice) then
+      Exit;
+    Invoice := TInvoice(bdsInvoices.ActiveBoldObject);
+    Check('the lines of a draft can be edited in the grid, and it can be posted',
+      not grdLines.ReadOnly and btnPostInvoice.Enabled and (bdsLines.RecordCount = 0) and (grdLines.RowCount = 0),
+      Format('read-only %s, %d lines', [BoolToStr(grdLines.ReadOnly, True), bdsLines.RecordCount]));
+
+    Refused := '';
+    try
+      PostInvoiceClick(btnPostInvoice);
+    except
+      on E: Exception do
+        Refused := E.Message;
+    end;
+    Check('an invoice without lines is not posted', (Refused <> '') and not Invoice.IsPosted, Refused);
+
+    bdsLines.Append;
+    bdsLines.FieldByName('Description').AsString := 'Workshop';
+    bdsLines.FieldByName('Quantity').AsFloat := 2;
+    bdsLines.FieldByName('Unit price').AsCurrency := 100;
+    bdsLines.FieldByName('VAT %').AsFloat := 25;
+    bdsLines.Post;
+    Settle;
+    Check('a line typed in the grid is a line of the invoice',
+      (Invoice.Lines.Count = 1) and (grdLines.RowCount = 1) and (Invoice.Lines[0].Description = 'Workshop') and
+      (grdLines.Cells[0, 0] = 'Workshop'), Format('%d lines, %d rows', [Invoice.Lines.Count, grdLines.RowCount]));
+    Check('its derived amount is in its row', bdsLines.FieldByName('Amount').AsCurrency = 250,
+      bdsLines.FieldByName('Amount').AsString);
+    Check('and the total of the invoice row has it', bdsInvoices.FieldByName('Total').AsCurrency = 250,
+      bdsInvoices.FieldByName('Total').AsString);
+    Check('the derived amount is not a cell to type in', bdsLines.FieldByName('Amount').ReadOnly and
+      not bdsLines.FieldByName('Quantity').ReadOnly, BoolToStr(bdsLines.FieldByName('Amount').ReadOnly, True));
+
+    bdsLines.Edit;
+    bdsLines.FieldByName('Quantity').AsFloat := 3;
+    bdsLines.Post;
+    Settle;
+    Check('an edited quantity changes the amount and the total',
+      (bdsLines.FieldByName('Amount').AsCurrency = 375) and (bdsInvoices.FieldByName('Total').AsCurrency = 375),
+      bdsLines.FieldByName('Amount').AsString + ', ' + bdsInvoices.FieldByName('Total').AsString);
+
+    bdsLines.Edit;
+    bdsLines.FieldByName('Quantity').AsFloat := 99;
+    bdsLines.Cancel;
+    Settle;
+    Check('Cancel takes back what was typed, and keeps the line',
+      (Invoice.Lines.Count = 1) and (Invoice.Lines[0].Quantity = 3) and
+      (bdsInvoices.FieldByName('Total').AsCurrency = 375),
+      FloatToStr(Invoice.Lines[0].Quantity) + ', total ' + bdsInvoices.FieldByName('Total').AsString);
+
+    bdsLines.Append;
+    bdsLines.FieldByName('Description').AsString := 'Not wanted';
+    bdsLines.FieldByName('Quantity').AsFloat := 1;
+    bdsLines.Post;
+    Settle;
+    Check('a second line', (Invoice.Lines.Count = 2) and (grdLines.RowCount = 2), IntToStr(Invoice.Lines.Count));
+    Line := bdsLines.ActiveBoldObject as TInvoiceLine;
+    bdsLines.Delete;
+    Settle;
+    Check('a deleted row is a deleted line',
+      (Invoice.Lines.Count = 1) and (grdLines.RowCount = 1) and (Invoice.Lines[0] <> Line) and
+      (bdsInvoices.FieldByName('Total').AsCurrency = 375),
+      Format('%d lines, total %s', [Invoice.Lines.Count, bdsInvoices.FieldByName('Total').AsString]));
+
+    PostInvoiceClick(btnPostInvoice);
+    Settle;
+    Check('Post invoice posts it: a number, and the status of an open invoice',
+      Invoice.IsPosted and (Invoice.Number > 0) and (bdsInvoices.ActiveBoldObject = Invoice) and
+      (bdsInvoices.FieldByName('Status').AsString = Invoice.Status),
+      Format('%d, %s', [Invoice.Number, bdsInvoices.FieldByName('Status').AsString]));
+    Check('and its lines can no longer be edited in the grid', grdLines.ReadOnly and not btnPostInvoice.Enabled,
+      'read-only ' + BoolToStr(grdLines.ReadOnly, True));
   end;
 
   function ShownInTheComboBox: string;
@@ -724,6 +878,7 @@ begin
     Check('a rename on the Bold side shows in the grid',
       grdCustomers.Cells[1, bdsCustomers.RecNo - 1] = Customer.Name, grdCustomers.Cells[1, bdsCustomers.RecNo - 1]);
     CheckTheOclEditor;
+    CheckEditingTheLines;
     Log.Add(Format('%d failed', [Failures]));
     SelfTestTrace(Log.Text);
   finally
