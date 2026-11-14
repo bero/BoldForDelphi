@@ -13,6 +13,12 @@ unit fInvoicingMain;
   follow with no code. Derived attributes such as openBalance, grossTotal and
   status are ordinary columns.
 
+  Under the invoice grid a TDBLookupComboBox shows the customer of the
+  selected invoice and picks another: a single link through datasets. The
+  invoice dataset has a field with the expression customer, the dataset of
+  the customers to choose from one with the expression self, and those two
+  are the combo box's data field and key field. See README.md.
+
   All of that is in the form file (fInvoicingMain.lfm): the model, the system
   and persistence handles, the list handles, the datasets with their fields,
   the data sources and the grids are components on the form, wired through
@@ -39,6 +45,7 @@ uses
   ExtCtrls,
   DB,
   DBGrids,
+  DBCtrls,
   BoldHandles,
   BoldListHandle,
   BoldSystemHandle,
@@ -53,18 +60,24 @@ type
     BoldPersistenceHandleFileXML1: TBoldPersistenceHandleFileXML;
     BoldSystemHandle1: TBoldSystemHandle;
     blhCustomers: TBoldListHandle;
+    blhCustomerChoice: TBoldListHandle;
     blhInvoices: TBoldListHandle;
     blhLines: TBoldListHandle;
     bdsCustomers: TBoldDataSet;
     bdsInvoices: TBoldDataSet;
     bdsLines: TBoldDataSet;
+    bdsCustomerChoice: TBoldDataSet;
     dsCustomers: TDataSource;
     dsInvoices: TDataSource;
+    dsCustomerChoice: TDataSource;
     dsLines: TDataSource;
     lblCustomers: TLabel;
     grdCustomers: TDBGrid;
     lblInvoices: TLabel;
     grdInvoices: TDBGrid;
+    pnlInvoice: TPanel;
+    lblInvoiceCustomer: TLabel;
+    cmbInvoiceCustomer: TDBLookupComboBox;
     lblLines: TLabel;
     grdLines: TDBGrid;
     pnlBar: TPanel;
@@ -189,6 +202,11 @@ begin
   end;
 end;
 
+type
+  // Reaches the protected Select and Change, which the widgetset calls when
+  // the user picks an item
+  TComboAccess = class(TDBLookupComboBox);
+
 { TfrmInvoicingMain }
 
 procedure TfrmInvoicingMain.FormCreate(Sender: TObject);
@@ -211,7 +229,13 @@ begin
 
   // The handles are chained in the form file; the datasets open on them
   bdsCustomers.Open;
+  // The customers to choose from, for the combo box: a dataset of its own,
+  // so that the combo box does not move the customer grid
+  bdsCustomerChoice.Open;
   bdsInvoices.Open;
+  // The link of an invoice to its customer is a field with a key of the
+  // customer, which the combo box shows as a name; not a grid column
+  bdsInvoices.FieldByName('Customer').Visible := False;
   bdsLines.Open;
 
   Application.OnIdle := AppIdle;
@@ -228,9 +252,11 @@ begin
   // and only then is the system closed.
   FreeAndNil(bdsLines);
   FreeAndNil(bdsInvoices);
+  FreeAndNil(bdsCustomerChoice);
   FreeAndNil(bdsCustomers);
   FreeAndNil(blhLines);
   FreeAndNil(blhInvoices);
+  FreeAndNil(blhCustomerChoice);
   FreeAndNil(blhCustomers);
   if BoldSystemHandle1.Active then
   begin
@@ -332,9 +358,9 @@ var
   end;
 
 var
-  Customer: TCustomer;
+  Customer, OtherCustomer: TCustomer;
   Invoice: TInvoice;
-  InvoicesShown, LinesShown: Integer;
+  InvoicesShown, LinesShown, InvoicesBefore, Choice: Integer;
   NameShown: string;
 begin
   Failures := 0;
@@ -391,12 +417,93 @@ begin
     Check('the idle handling drains Bold''s display queue', BoldInstalledQueue.Empty,
       IntToStr(BoldInstalledQueue.DisplayCount) + ' queued');
 
+    // The combo box under the invoice grid: a single link through a dataset.
+    // Its list is the dataset of all customers, its key that dataset's field
+    // 'self', and its data field the invoice's field 'customer'.
+    bdsCustomers.First;
+    while not bdsCustomers.Eof and (bdsInvoices.RecordCount = 0) do
+      bdsCustomers.Next;
+    Settle;
+    Customer := bdsCustomers.ActiveBoldObject as TCustomer;
+    bdsInvoices.First;
+    Settle;
+    Invoice := bdsInvoices.ActiveBoldObject as TInvoice;
+    InvoicesBefore := Customer.Invoices.Count;
+    Check('the combo box lists every customer',
+      cmbInvoiceCustomer.Items.Count = BoldSystemHandle1.System.EvaluateExpressionAsInteger('Customer.allInstances->size'),
+      IntToStr(cmbInvoiceCustomer.Items.Count));
+    Check('the combo box shows the customer of the selected invoice',
+      (cmbInvoiceCustomer.ItemIndex >= 0) and
+      (string(cmbInvoiceCustomer.Items[cmbInvoiceCustomer.ItemIndex]) = Customer.Name),
+      string(cmbInvoiceCustomer.Text));
+    // Another customer, picked as a user picks it from the list
+    OtherCustomer := nil;
+    Choice := 0;
+    while (Choice < cmbInvoiceCustomer.Items.Count) and
+      (string(cmbInvoiceCustomer.Items[Choice]) = Customer.Name) do
+      Inc(Choice);
+    cmbInvoiceCustomer.ItemIndex := Choice;
+    // What the widgetset calls then: the combo box notes the selection and
+    // posts itself a message, on which it edits the dataset
+    TComboAccess(cmbInvoiceCustomer).Select;
+    TComboAccess(cmbInvoiceCustomer).Change;
+    Settle;
+    if bdsInvoices.State in dsEditModes then
+      bdsInvoices.Post;
+    Settle;
+    if Assigned(Invoice.Customer) then
+      OtherCustomer := Invoice.Customer;
+    Check('picking another customer in the combo box links the invoice to it',
+      Assigned(OtherCustomer) and (OtherCustomer <> Customer) and
+      (OtherCustomer.Name = string(cmbInvoiceCustomer.Items[Choice])),
+      'invoice ' + IntToStr(Invoice.Number) + ' of ' + Invoice.Customer.Name);
+    Check('and the invoice leaves the invoice grid of its former customer',
+      (Customer.Invoices.Count = InvoicesBefore - 1) and (Rows(grdInvoices) = Customer.Invoices.Count),
+      IntToStr(Rows(grdInvoices)) + ' rows, ' + IntToStr(Customer.Invoices.Count) + ' invoices');
+    Check('the invoice dataset is not left editing', not (bdsInvoices.State in dsEditModes),
+      IntToStr(Ord(bdsInvoices.State)));
+    if Customer.Invoices.Count = 0 then
+      Check('with no invoice left in the grid the combo box shows no customer',
+        cmbInvoiceCustomer.ItemIndex = -1, string(cmbInvoiceCustomer.Text))
+    else
+      Check('the combo box shows the customer of the invoice that is now selected',
+        (cmbInvoiceCustomer.ItemIndex >= 0) and
+        (string(cmbInvoiceCustomer.Items[cmbInvoiceCustomer.ItemIndex]) = Customer.Name),
+        string(cmbInvoiceCustomer.Text));
+    // The row of the customer that got the invoice
+    if Assigned(OtherCustomer) then
+    begin
+      bdsCustomers.First;
+      while not bdsCustomers.Eof and (bdsCustomers.ActiveBoldObject <> OtherCustomer) do
+        bdsCustomers.Next;
+      Settle;
+      bdsInvoices.First;
+      while not bdsInvoices.Eof and (bdsInvoices.ActiveBoldObject <> Invoice) do
+        bdsInvoices.Next;
+      Settle;
+      Check('the invoice is in the invoice grid of its new customer',
+        (bdsCustomers.ActiveBoldObject = OtherCustomer) and (bdsInvoices.ActiveBoldObject = Invoice) and
+        (Rows(grdInvoices) = OtherCustomer.Invoices.Count),
+        IntToStr(Rows(grdInvoices)) + ' rows, ' + IntToStr(OtherCustomer.Invoices.Count) + ' invoices');
+      Check('where the combo box shows that customer',
+        (cmbInvoiceCustomer.ItemIndex >= 0) and
+        (string(cmbInvoiceCustomer.Items[cmbInvoiceCustomer.ItemIndex]) = OtherCustomer.Name),
+        string(cmbInvoiceCustomer.Text));
+      Check('and the invoiced total of the customer row has the invoice',
+        bdsCustomers.FieldByName('Invoiced').AsCurrency = OtherCustomer.InvoicedTotal,
+        bdsCustomers.FieldByName('Invoiced').AsString);
+    end;
+
+    // A customer renamed on the Bold side: the grid row and the combo box's list
+    bdsCustomers.First;
+    Settle;
     // Only an attribute changes, on the Bold side; the change is not saved
     Customer := bdsCustomers.ActiveBoldObject as TCustomer;
     Customer.Name := Customer.Name + ' (renamed)';
     Settle;
     NameShown := grdCustomers.Columns[1].Field.AsUnicodeString;
     Check('a rename on the Bold side shows in the grid', NameShown = Customer.Name, NameShown);
+
     Log.Add(IntToStr(Failures) + ' failed');
     SelfTestTrace(Log.Text);
   finally

@@ -97,6 +97,16 @@ gets the default ones when the program starts. Below them is the command
 every dataset has in Lazarus, **Edit Fields ...**, for persistent `TField`
 components.
 
+A single link is edited with the LCL's lookup controls
+(`TDBLookupComboBox`, `TDBLookupListBox`) or a lookup field. A field
+description whose expression gives an object, such as `customer` of an
+invoice, is a 64-bit integer field with a key of that object, null when
+there is none. A dataset of the objects to choose from has the same key in a
+field with the expression `self`; name the field `self` too, and the dataset
+finds a key without searching its rows. The control gets the link field as
+`DataField` and the `self` field as `KeyField`. The Invoicing LCL client has
+one (`examples/Compound/Invoicing/LCL`, where its README says more).
+
 A `TBoldModel` has one command, also on a double click
 (`BoldModelComponentEditor`): **Load model from file...** replaces its model
 with the one of a `.bld` file, the format Bold's model editor in Delphi

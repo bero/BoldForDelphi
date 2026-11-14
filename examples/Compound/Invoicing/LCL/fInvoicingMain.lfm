@@ -1360,6 +1360,13 @@ object frmInvoicingMain: TfrmInvoicingMain
     RootHandle = BoldSystemHandle1
     Expression = 'Customer.allInstances'
   end
+  object blhCustomerChoice: TBoldListHandle
+    Left = 440
+    Top = 192
+    StaticSystemHandle = BoldSystemHandle1
+    RootHandle = BoldSystemHandle1
+    Expression = 'Customer.allInstances'
+  end
   object blhInvoices: TBoldListHandle
     Left = 440
     Top = 304
@@ -1432,9 +1439,28 @@ object frmInvoicingMain: TfrmInvoicingMain
       item
         BoldProperties.Expression = 'balance'
         FieldName = 'Balance'
+      end
+      item
+        BoldProperties.Expression = 'customer'
+        FieldName = 'Customer'
       end>
     AutoOpen = False
     BoldHandle = blhInvoices
+  end
+  object bdsCustomerChoice: TBoldDataSet
+    Left = 536
+    Top = 192
+    FieldDescriptions = <
+      item
+        BoldProperties.Expression = 'self'
+        FieldName = 'self'
+      end
+      item
+        BoldProperties.Expression = 'name'
+        FieldName = 'Name'
+      end>
+    AutoOpen = False
+    BoldHandle = blhCustomerChoice
   end
   object bdsLines: TBoldDataSet
     Left = 536
@@ -1472,6 +1498,11 @@ object frmInvoicingMain: TfrmInvoicingMain
     Left = 632
     Top = 304
     DataSet = bdsInvoices
+  end
+  object dsCustomerChoice: TDataSource
+    Left = 632
+    Top = 192
+    DataSet = bdsCustomerChoice
   end
   object dsLines: TDataSource
     Left = 632
@@ -1518,7 +1549,7 @@ object frmInvoicingMain: TfrmInvoicingMain
   end
   object grdInvoices: TDBGrid
     Left = 8
-    Height = 200
+    Height = 164
     Top = 274
     Width = 984
     Align = alTop
@@ -1531,6 +1562,40 @@ object frmInvoicingMain: TfrmInvoicingMain
     Options = [dgTitles, dgIndicator, dgColumnResize, dgColumnMove, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
     ReadOnly = True
     TabOrder = 1
+  end
+  object pnlInvoice: TPanel
+    Left = 0
+    Height = 36
+    Top = 442
+    Width = 1000
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 36
+    ClientWidth = 1000
+    TabOrder = 4
+    object lblInvoiceCustomer: TLabel
+      Left = 8
+      Height = 36
+      Top = 0
+      Width = 210
+      Align = alLeft
+      BorderSpacing.Left = 8
+      Caption = 'Customer of the selected invoice:'
+      Layout = tlCenter
+    end
+    object cmbInvoiceCustomer: TDBLookupComboBox
+      Left = 232
+      Height = 28
+      Top = 4
+      Width = 320
+      DataField = 'Customer'
+      DataSource = dsInvoices
+      KeyField = 'self'
+      ListField = 'Name'
+      ListSource = dsCustomerChoice
+      Style = csDropDownList
+      TabOrder = 0
+    end
   end
   object lblLines: TLabel
     Left = 8

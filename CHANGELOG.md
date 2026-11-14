@@ -13,7 +13,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   framework-neutral runtime that builds with Free Pascal; `BoldLCL.lpk` with
   `BoldEnvironmentLCL`, the LCL twin of `BoldEnvironmentVCL`; and
   `BoldZeos.lpk` with the Zeos database adapter. The Invoicing example shows
-  them: an LCL client with `TDBGrid`s over `TBoldDataSet`
+  them: an LCL client with `TDBGrid`s over `TBoldDataSet`, and a
+  `TDBLookupComboBox` that picks the customer of an invoice, a single link
+  through two datasets
   (`examples/Compound/Invoicing/LCL`) and a console runner on SQLite through
   Zeos (`examples/Compound/Invoicing/Zeos`). GitHub Actions builds both with
   lazbuild and runs them on every push. The design-time package `dclBold.lpk`
