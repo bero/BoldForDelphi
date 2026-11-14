@@ -57,6 +57,10 @@ combo box follows the invoice that is selected then, and the invoice is in
 the grid of its new customer, whose derived columns have it. The change is
 saved with **Save changes**, like every other.
 
+The form disables the combo box while the invoice grid is empty
+(`dsInvoicesDataChange`): a data-aware control that edits an empty dataset
+inserts a record, which here would be a new invoice.
+
 The combo box reads its list when the choice dataset opens and when its
 number of rows changes; that is how the LCL's lookup controls work with any
 dataset. A customer that is renamed while the form is open keeps its former

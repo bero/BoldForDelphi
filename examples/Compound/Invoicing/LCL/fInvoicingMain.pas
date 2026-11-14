@@ -86,6 +86,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
+    procedure dsInvoicesDataChange(Sender: TObject; Field: TField);
   private
     FDatabase: string;
     FSelfTest: Boolean;
@@ -291,6 +292,13 @@ begin
   ShowStatus;
 end;
 
+procedure TfrmInvoicingMain.dsInvoicesDataChange(Sender: TObject; Field: TField);
+begin
+  // Without an invoice there is nothing to pick a customer for: a data-aware
+  // control that edits an empty dataset inserts a record, here a new invoice
+  cmbInvoiceCustomer.Enabled := bdsInvoices.Active and not bdsInvoices.IsEmpty;
+end;
+
 procedure TfrmInvoicingMain.btnSaveClick(Sender: TObject);
 begin
   BoldSystemHandle1.System.UpdateDatabase;
@@ -463,8 +471,9 @@ begin
     Check('the invoice dataset is not left editing', not (bdsInvoices.State in dsEditModes),
       IntToStr(Ord(bdsInvoices.State)));
     if Customer.Invoices.Count = 0 then
-      Check('with no invoice left in the grid the combo box shows no customer',
-        cmbInvoiceCustomer.ItemIndex = -1, string(cmbInvoiceCustomer.Text))
+      Check('with no invoice left in the grid the combo box shows no customer and cannot be used',
+        (cmbInvoiceCustomer.ItemIndex = -1) and not cmbInvoiceCustomer.Enabled,
+        string(cmbInvoiceCustomer.Text) + ', enabled ' + BoolToStr(cmbInvoiceCustomer.Enabled, True))
     else
       Check('the combo box shows the customer of the invoice that is now selected',
         (cmbInvoiceCustomer.ItemIndex >= 0) and
@@ -486,7 +495,7 @@ begin
         (Rows(grdInvoices) = OtherCustomer.Invoices.Count),
         IntToStr(Rows(grdInvoices)) + ' rows, ' + IntToStr(OtherCustomer.Invoices.Count) + ' invoices');
       Check('where the combo box shows that customer',
-        (cmbInvoiceCustomer.ItemIndex >= 0) and
+        cmbInvoiceCustomer.Enabled and (cmbInvoiceCustomer.ItemIndex >= 0) and
         (string(cmbInvoiceCustomer.Items[cmbInvoiceCustomer.ItemIndex]) = OtherCustomer.Name),
         string(cmbInvoiceCustomer.Text));
       Check('and the invoiced total of the customer row has the invoice',

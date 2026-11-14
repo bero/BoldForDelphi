@@ -1498,6 +1498,7 @@ object frmInvoicingMain: TfrmInvoicingMain
     Left = 632
     Top = 304
     DataSet = bdsInvoices
+    OnDataChange = dsInvoicesDataChange
   end
   object dsCustomerChoice: TDataSource
     Left = 632
@@ -1577,14 +1578,14 @@ object frmInvoicingMain: TfrmInvoicingMain
       Left = 8
       Height = 36
       Top = 0
-      Width = 210
+      Width = 250
       Align = alLeft
       BorderSpacing.Left = 8
       Caption = 'Customer of the selected invoice:'
       Layout = tlCenter
     end
     object cmbInvoiceCustomer: TDBLookupComboBox
-      Left = 232
+      Left = 270
       Height = 28
       Top = 4
       Width = 320
