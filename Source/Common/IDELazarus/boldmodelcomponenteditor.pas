@@ -6,7 +6,8 @@ unit BoldModelComponentEditor;
 { The component editor of TBoldModel in the Lazarus form designer (#117): one
   command in the menu of the component, also the double click:
 
-    Load model from file...   replaces the model with the one of a .bld file
+    Load model from file...   replaces the model with the one of a .bld file,
+                              and says which model it loaded
 
   Delphi's component editor of TBoldModel opens the model editor, which is not
   ported; a model is made there, or in another tool, and saved as a .bld file.
@@ -36,6 +37,8 @@ type
   protected
     // Asks for the file; virtual so that a check can stand in for the dialog
     function AskForFileName(var AFileName: string): Boolean; virtual;
+    // Tells the user what was loaded: the form itself shows no change
+    procedure InformLoaded(const AText: string); virtual;
   public
     function GetVerbCount: Integer; override;
     // AnsiString: the string type of the LCL
@@ -155,6 +158,11 @@ begin
   end;
 end;
 
+procedure TBoldModelComponentEditor.InformLoaded(const AText: string);
+begin
+  ShowMessage(AnsiString(AText));
+end;
+
 procedure TBoldModelComponentEditor.LoadFromFile;
 var
   FileName: string;
@@ -165,6 +173,8 @@ begin
     BoldLoadModelFromBldFile(BoldModel, FileName);
     if Assigned(Designer) then
       Modified;
+    InformLoaded(Format('%s now holds the model %s, with %d classes, from %s',
+      [string(BoldModel.Name), BoldModel.MoldModel.Name, BoldModel.MoldModel.Classes.Count, FileName]));
   end;
 end;
 

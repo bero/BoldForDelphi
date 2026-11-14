@@ -100,7 +100,7 @@ components.
 A `TBoldModel` has one command, also on a double click
 (`BoldModelComponentEditor`): **Load model from file...** replaces its model
 with the one of a `.bld` file, the format Bold's model editor in Delphi
-saves. The form file then holds the model, the OCL editor checks the
+saves, and says which model it loaded. The form file then holds the model, the OCL editor checks the
 expressions of the handles against it and `TBoldDataSet` can make its default
 fields. A file that is not a model is refused and the model stays as it was.
 The form holds a copy: after a change of the file, load it again.

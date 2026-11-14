@@ -689,10 +689,17 @@ type
   TModelEditorWithAUser = class(TBoldModelComponentEditor)
   protected
     function AskForFileName(var AFileName: string): Boolean; override;
+    procedure InformLoaded(const AText: string); override;
   public
     Picks: string;
     Asked: Integer;
+    Told: string;
   end;
+
+procedure TModelEditorWithAUser.InformLoaded(const AText: string);
+begin
+  Told := AText;
+end;
 
 procedure TDesignedModule.BeDesigned;
 begin
@@ -768,12 +775,15 @@ begin
         Editor.Picks := '';
         Editor.Edit;
         Check('a double click asks for the file, and Cancel leaves the model as it was',
-          (Editor.Asked = 1) and (ClassNamesOf(Model) = Before), ClassNamesOf(Model));
+          (Editor.Asked = 1) and (ClassNamesOf(Model) = Before) and (Editor.Told = ''), ClassNamesOf(Model));
 
         Editor.Picks := InvoicingFile;
         Editor.ExecuteVerb(bmoVerbLoadFromFile);
         Check('the model has the classes of the file', ClassNamesOf(Model) = ClassNamesOfFile(InvoicingFile),
           ClassNamesOf(Model));
+        Check('and the user is told which model was loaded',
+          (Pos('BoldModel1 now holds the model ', Editor.Told) = 1) and (Pos(', with 12 classes, from ', Editor.Told) > 0) and
+          (Pos(InvoicingFile, Editor.Told) > 0), Editor.Told);
         if BoldOclContextOf(Customers, Context, Variables) then
           R := BoldCheckOclExpression(Customers.Expression, Context, Variables)
         else
@@ -817,6 +827,7 @@ begin
         end;
         Before := ClassNamesOf(Model);
         Raised := '';
+        Editor.Told := '';
         Editor.Picks := NoModelFile;
         try
           Editor.ExecuteVerb(bmoVerbLoadFromFile);
@@ -824,7 +835,8 @@ begin
           on E: Exception do
             Raised := string(E.ClassName) + ': ' + E.Message;
         end;
-        Check('a file that is not a model is refused', Pos('is not read as a Bold model', Raised) > 0, Raised);
+        Check('a file that is not a model is refused', (Pos('is not read as a Bold model', Raised) > 0) and
+          (Editor.Told = ''), Raised);
         Check('and the model stays as it was', ClassNamesOf(Model) = Before, ClassNamesOf(Model));
       finally
         Editor.Free;
