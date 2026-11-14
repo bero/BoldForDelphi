@@ -61,7 +61,7 @@ empty.
 ## Editing the lines of an invoice in the grid
 
 As in the LCL client: **New invoice** makes a draft for the selected customer
-(`Customer.NewInvoice`), the lines of a draft are edited in the lines grid,
+(`Customer.NewInvoice`) and gives it its first line, ready to be typed in, the lines of a draft are edited in the lines grid,
 and **Post invoice** posts it (`Invoice.Post`), after which its lines are
 frozen. **Add line** gives the grid a new row to type in, which an FMX grid
 needs while it is empty: it has no row to start in. **Delete line** deletes

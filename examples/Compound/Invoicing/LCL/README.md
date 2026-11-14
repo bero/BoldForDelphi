@@ -73,7 +73,8 @@ name in the list until then.
 ## Editing the lines of an invoice in the grid
 
 **New invoice** makes a draft for the selected customer, through the model's
-business method `Customer.NewInvoice`. The lines of a draft are edited in the
+business method `Customer.NewInvoice`, and gives it its first line, ready to
+be typed in; the next lines are added with **Add line**. The lines of a draft are edited in the
 lines grid, a plain `TDBGrid` on a `TBoldDataSet`:
 
 - typing in a cell changes the line; the derived columns of the line, the

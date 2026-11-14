@@ -501,7 +501,14 @@ begin
   bdsInvoices.Last;
   while not bdsInvoices.Bof and (bdsInvoices.ActiveBoldObject <> Invoice) do
     bdsInvoices.Prior;
-  UpdateInvoiceControls;
+  // An invoice is made to get lines: the draft has its first one at once,
+  // ready to be typed in. The lines dataset follows the selected invoice
+  // when the display queue is drained.
+  TBoldQueueable.DisplayAll;
+  if (bdsInvoices.ActiveBoldObject = Invoice) and bdsLines.IsEmpty then
+    AddLineClick(Sender)
+  else
+    UpdateInvoiceControls;
 end;
 
 procedure TfrmInvoicingMain.AddLineClick(Sender: TObject);
@@ -722,9 +729,23 @@ var
     if not (bdsInvoices.ActiveBoldObject is TInvoice) then
       Exit;
     Invoice := TInvoice(bdsInvoices.ActiveBoldObject);
-    Check('the lines of a draft can be edited in the grid, and it can be posted',
-      not grdLines.ReadOnly and btnPostInvoice.Enabled and (bdsLines.RecordCount = 0) and (grdLines.RowCount = 0),
-      Format('read-only %s, %d lines', [BoolToStr(grdLines.ReadOnly, True), bdsLines.RecordCount]));
+    Settle;
+    Application.DoIdle(IdleDone);
+    Check('a new draft has its first line, ready to be typed in',
+      not grdLines.ReadOnly and btnPostInvoice.Enabled and (bdsLines.State = dsInsert) and
+      (grdLines.RowCount = 1) and (Invoice.Lines.Count = 1),
+      IntToStr(grdLines.RowCount) + ' rows, state ' + IntToStr(Ord(bdsLines.State)));
+    Check('with a line there, Delete line can be used', btnAddLine.Enabled and btnDeleteLine.Enabled,
+      BoolToStr(btnDeleteLine.Enabled, True));
+    // The first line is not wanted after all
+    DeleteLineClick(btnDeleteLine);
+    Settle;
+    Application.DoIdle(IdleDone);
+    Check('Delete line takes the new line away again',
+      (Invoice.Lines.Count = 0) and (grdLines.RowCount = 0) and not (bdsLines.State in dsEditModes),
+      IntToStr(Invoice.Lines.Count) + ' lines');
+    Check('a draft without lines: Add line can be used, Delete line cannot',
+      btnAddLine.Enabled and not btnDeleteLine.Enabled, BoolToStr(btnAddLine.Enabled, True));
 
     Refused := '';
     try
@@ -735,11 +756,7 @@ var
     end;
     Check('an invoice without lines is not posted', (Refused <> '') and not Invoice.IsPosted, Refused);
 
-    // The idle loop, where the buttons are enabled or not
-    Settle;
-    Application.DoIdle(IdleDone);
-    Check('a draft without lines: Add line can be used, Delete line cannot',
-      btnAddLine.Enabled and not btnDeleteLine.Enabled, BoolToStr(btnAddLine.Enabled, True));
+    // The next lines are added by hand
     AddLineClick(btnAddLine);
     Settle;
     Check('Add line gives the lines grid a new row to type in',
