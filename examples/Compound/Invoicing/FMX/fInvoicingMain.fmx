@@ -10,4 +10,373 @@ object frmInvoicingMain: TfrmInvoicingMain
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignerMasterStyle = 0
+  object lblCustomers: TLabel
+    Align = Top
+    Margins.Left = 8.000000000000000000
+    Margins.Top = 6.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 2.000000000000000000
+    Position.X = 8.000000000000000000
+    Position.Y = 6.000000000000000000
+    Size.Width = 984.000000000000000000
+    Size.Height = 17.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Customers'
+  end
+  object grdCustomers: TStringGrid
+    Align = Top
+    CanFocus = True
+    ClipChildren = True
+    Margins.Left = 8.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 4.000000000000000000
+    Position.X = 8.000000000000000000
+    Position.Y = 25.000000000000000000
+    Size.Width = 984.000000000000000000
+    Size.Height = 220.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    RowCount = 0
+    Options = [ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+  end
+  object lblInvoices: TLabel
+    Align = Top
+    Margins.Left = 8.000000000000000000
+    Margins.Top = 6.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 2.000000000000000000
+    Position.X = 8.000000000000000000
+    Position.Y = 255.000000000000000000
+    Size.Width = 984.000000000000000000
+    Size.Height = 17.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Invoices of the selected customer'
+  end
+  object grdInvoices: TStringGrid
+    Align = Top
+    CanFocus = True
+    ClipChildren = True
+    Margins.Left = 8.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 4.000000000000000000
+    Position.X = 8.000000000000000000
+    Position.Y = 274.000000000000000000
+    Size.Width = 984.000000000000000000
+    Size.Height = 164.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    RowCount = 0
+    Options = [ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+  end
+  object layInvoice: TLayout
+    Align = Top
+    Position.Y = 442.000000000000000000
+    Size.Width = 1000.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object lblInvoiceCustomer: TLabel
+      Align = Left
+      Margins.Left = 8.000000000000000000
+      Position.X = 8.000000000000000000
+      Size.Width = 250.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Customer of the selected invoice:'
+    end
+    object cmbInvoiceCustomer: TComboBox
+      Align = Left
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 262.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 320.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      OnChange = InvoiceCustomerChange
+    end
+  end
+  object lblLines: TLabel
+    Align = Top
+    Margins.Left = 8.000000000000000000
+    Margins.Top = 6.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 2.000000000000000000
+    Position.X = 8.000000000000000000
+    Position.Y = 484.000000000000000000
+    Size.Width = 984.000000000000000000
+    Size.Height = 17.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Lines of the selected invoice'
+  end
+  object grdLines: TStringGrid
+    Align = Client
+    CanFocus = True
+    ClipChildren = True
+    Margins.Left = 8.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 4.000000000000000000
+    Position.X = 8.000000000000000000
+    Position.Y = 503.000000000000000000
+    Size.Width = 984.000000000000000000
+    Size.Height = 137.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    RowCount = 0
+    Options = [ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+  end
+  object layBar: TLayout
+    Align = Bottom
+    Position.Y = 644.000000000000000000
+    Size.Width = 1000.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    object lblStatus: TLabel
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Size.Width = 736.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object btnEditOcl: TButton
+      Align = Right
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 748.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Edit OCL...'
+      OnClick = EditOclClick
+    end
+    object btnSave: TButton
+      Align = Right
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 872.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'Save changes'
+      OnClick = SaveClick
+    end
+  end
+  object blhCustomers: TBoldListHandle
+    Expression = 'Customer.allInstances'
+    Left = 440
+    Top = 80
+  end
+  object blhCustomerChoice: TBoldListHandle
+    Expression = 'Customer.allInstances'
+    Left = 440
+    Top = 192
+  end
+  object blhInvoices: TBoldListHandle
+    RootHandle = blhCustomers
+    Expression = 'invoices'
+    Left = 440
+    Top = 304
+  end
+  object blhLines: TBoldListHandle
+    RootHandle = blhInvoices
+    Expression = 'lines'
+    Left = 440
+    Top = 520
+  end
+  object bdsCustomers: TBoldDataSet
+    FieldDescriptions = <
+      item
+        BoldProperties.Expression = 'number'
+        FieldName = 'Number'
+      end
+      item
+        BoldProperties.Expression = 'name'
+        FieldName = 'Name'
+      end
+      item
+        BoldProperties.Expression = 'email'
+        FieldName = 'Email'
+      end
+      item
+        BoldProperties.Expression = 'invoicedTotal'
+        FieldName = 'Invoiced'
+      end
+      item
+        BoldProperties.Expression = 'openBalance'
+        FieldName = 'Open balance'
+      end
+      item
+        BoldProperties.Expression = 'overdueCount'
+        FieldName = 'Overdue'
+      end>
+    BoldHandle = blhCustomers
+    Left = 536
+    Top = 80
+  end
+  object bdsCustomerChoice: TBoldDataSet
+    FieldDescriptions = <
+      item
+        BoldProperties.Expression = 'self'
+        FieldName = 'self'
+      end
+      item
+        BoldProperties.Expression = 'name'
+        FieldName = 'Name'
+      end>
+    BoldHandle = blhCustomerChoice
+    Left = 536
+    Top = 192
+  end
+  object bdsInvoices: TBoldDataSet
+    FieldDescriptions = <
+      item
+        BoldProperties.Expression = 'number'
+        FieldName = 'Number'
+      end
+      item
+        BoldProperties.Expression = 'invoiceDate'
+        FieldName = 'Date'
+      end
+      item
+        BoldProperties.Expression = 'dueDate'
+        FieldName = 'Due'
+      end
+      item
+        BoldProperties.Expression = 'status'
+        FieldName = 'Status'
+      end
+      item
+        BoldProperties.Expression = 'grossTotal'
+        FieldName = 'Total'
+      end
+      item
+        BoldProperties.Expression = 'balance'
+        FieldName = 'Balance'
+      end
+      item
+        BoldProperties.Expression = 'customer'
+        FieldName = 'Customer'
+      end>
+    BoldHandle = blhInvoices
+    Left = 536
+    Top = 304
+  end
+  object bdsLines: TBoldDataSet
+    FieldDescriptions = <
+      item
+        BoldProperties.Expression = 'description'
+        FieldName = 'Description'
+      end
+      item
+        BoldProperties.Expression = 'quantity'
+        FieldName = 'Quantity'
+      end
+      item
+        BoldProperties.Expression = 'unitPrice'
+        FieldName = 'Unit price'
+      end
+      item
+        BoldProperties.Expression = 'vatPercent'
+        FieldName = 'VAT %'
+      end
+      item
+        BoldProperties.Expression = 'grossAmount'
+        FieldName = 'Amount'
+      end>
+    BoldHandle = blhLines
+    Left = 536
+    Top = 520
+  end
+  object bsCustomers: TBindSourceDB
+    DataSet = bdsCustomers
+    ScopeMappings = <>
+    Left = 632
+    Top = 80
+  end
+  object bsCustomerChoice: TBindSourceDB
+    DataSet = bdsCustomerChoice
+    ScopeMappings = <>
+    Left = 632
+    Top = 192
+  end
+  object bsInvoices: TBindSourceDB
+    DataSet = bdsInvoices
+    ScopeMappings = <>
+    Left = 632
+    Top = 304
+  end
+  object bsLines: TBindSourceDB
+    DataSet = bdsLines
+    ScopeMappings = <>
+    Left = 632
+    Top = 520
+  end
+  object BindingsList1: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 728
+    Top = 304
+    object lnkCustomers: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsCustomers
+      GridControl = grdCustomers
+      Columns = <>
+    end
+    object lnkInvoices: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsInvoices
+      GridControl = grdInvoices
+      Columns = <
+        item
+          MemberName = 'Number'
+        end
+        item
+          MemberName = 'Date'
+        end
+        item
+          MemberName = 'Due'
+        end
+        item
+          MemberName = 'Status'
+        end
+        item
+          MemberName = 'Total'
+        end
+        item
+          MemberName = 'Balance'
+        end>
+    end
+    object lnkLines: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsLines
+      GridControl = grdLines
+      Columns = <>
+    end
+    object lnkInvoiceCustomer: TLinkFillControlToField
+      Category = 'Quick Bindings'
+      DataSource = bsInvoices
+      FieldName = 'Customer'
+      Control = cmbInvoiceCustomer
+      Track = True
+      FillDataSource = bsCustomerChoice
+      FillValueFieldName = 'self'
+      FillDisplayFieldName = 'Name'
+      AutoFill = True
+      FillExpressions = <>
+      FillHeaderExpressions = <>
+      FillBreakGroups = <>
+    end
+  end
 end

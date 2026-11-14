@@ -17,6 +17,15 @@ handle's current element, and the grids below follow with no code. The derived
 attributes of the model, such as `openBalance`, `grossTotal` and `status`, are
 ordinary columns, and a change made on the Bold side shows in the grids.
 
+All of it is in the form file, `fInvoicingMain.fmx`, as the form designer
+writes it with the design package `dclBold` installed (`TBoldDataSet` is on
+its page Bold Misc): the four list handles, the four datasets with their
+fields, the bind sources, the bindings list with its links, and the labels,
+grids, combo box and buttons are components on the form, wired through their
+properties. The Lazarus client has the same form in `..\LCL\fInvoicingMain.lfm`.
+The code in `fInvoicingMain.pas` opens the database, roots the two lists of
+all customers on the data module's system handle, and opens the datasets.
+
 The data module is the one the console runner and the tests use
 (`..\Data\dmInvoicing.pas`); it links no VCL unit. The model is
 `..\Model\Invoicing.bld`, and on the first run `InvoicingFMX.db` next to the exe
@@ -31,12 +40,12 @@ each side and LiveBindings' lookup link:
 
 | | |
 |---|---|
-| `FInvoices`, the dataset that is edited | a field with the expression `customer`, the link. It holds a key of the linked object, or null. |
-| `FCustomerChoice`, the customers to choose from | a field with the expression `self`, named `self`: the same key. And `name`, to show. |
-| a `TLinkFillControlToField` | `DataSource`/`FieldName` = the invoices' `Customer` field, `FillDataSource` = the choice dataset, `FillValueFieldName` = `self`, `FillDisplayFieldName` = `Name`, `Control` = the `TComboBox` |
+| `bdsInvoices`, the dataset that is edited | a field with the expression `customer`, the link. It holds a key of the linked object, or null. |
+| `bdsCustomerChoice`, the customers to choose from | a field with the expression `self`, named `self`: the same key. And `name`, to show. |
+| `lnkInvoiceCustomer`, a `TLinkFillControlToField` | `DataSource`/`FieldName` = the invoices' `Customer` field, `FillDataSource` = the choice dataset, `FillValueFieldName` = `self`, `FillDisplayFieldName` = `Name`, `Control` = the `TComboBox` |
 
 The key is a 64-bit integer that is only good for the running program, so its
-field is not visible and the grid has no column for it. The choice dataset is
+field is not among the columns of the invoice grid's link. The choice dataset is
 one of its own, on a list handle of all customers, so that the combo box does
 not move the customer grid.
 
@@ -117,8 +126,14 @@ reported to Embarcadero:
 
 ## Not yet
 
-- The handles, datasets, grids and bindings are created in code
-  (`fInvoicingMain.pas`), because `TBoldDataSet` is not on the component
-  palette yet (#117 step 8).
-- The grids are read-only here. `TBoldDataSet` can edit (Edit and Post write
-  into the Bold objects), which a later version of the client can show.
+- The form file was written to match what the components write, and checked
+  by running it on Windows and Linux64; it has not been opened and saved in
+  the Delphi form designer yet. Bold's handles are registered for the
+  Windows platforms, so the palette offers them only while a Windows target
+  platform is selected.
+- The model and the system handle are in the data module, which the code
+  creates, so the two top list handles get their root in code. In the LCL
+  client they are components on the form too.
+- The grids are read-only here; the combo box is the only control that
+  edits. `TBoldDataSet` can edit in a grid too (Edit and Post write into the
+  Bold objects).
