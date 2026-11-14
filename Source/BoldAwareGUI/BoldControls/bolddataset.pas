@@ -50,6 +50,17 @@ type
 
   PBDSBookmarkInfo = ^TBDSBookmarkInfo;
 
+  { What a field of the row had when its edit started; see
+    TBoldAbstractDataSet.TakeEditSnapshot }
+  TBoldDataSetEditValue = record
+    Kept: Boolean;
+    // The member had the saved value: Cancel discards the member
+    WasCurrent: Boolean;
+    IsLink: Boolean;
+    Value: Variant;
+    Locator: TBoldObjectLocator;
+  end;
+
   TBoldAbstractDataSet = class;
   TBoldDataSet = class;
   TBoldDataSetFieldDescription = class;
@@ -151,6 +162,11 @@ type
     // The edit of a row that has left the list is being ended: see
     // EndEditOfARowThatLeftTheList
     fEditedRowLeftTheList: Boolean;
+    // The values of the row that is edited, as they were when the edit
+    // started, one for each field description; Cancel puts them back
+    fEditSnapshot: array of TBoldDataSetEditValue;
+    procedure TakeEditSnapshot;
+    procedure RestoreEditSnapshot;
     function GetIndexForElement(AElement: TBoldElement): integer;
     function GetIndexForBookmark(const Bookmark: TBookmark): integer;
     procedure InsertElement(ABuffer: TRecordBuffer); virtual;
@@ -943,6 +959,133 @@ end;
 procedure TBoldAbstractDataSet.InternalEdit;
 begin
   inherited InternalEdit;
+  TakeEditSnapshot;
+end;
+
+{ A field is written to the object when it is set, not when the row is
+  posted, so Cancel has something to take back: what the edit set, and only
+  that. The object may have changes from before the edit that are not saved
+  (a row that was posted), or be new, and discarding the object would lose
+  those, or the object. So the fields are remembered when the edit starts.
+  A member that had its saved value then is discarded by Cancel, when the
+  edit changed it: it is read again and nothing is left to save. A member
+  that was changed before the edit, or belongs to a new object, gets back
+  the value it had. A blob is written through its stream and is not
+  remembered. }
+procedure TBoldAbstractDataSet.TakeEditSnapshot;
+var
+  i: Integer;
+  Element: TBoldElement;
+  IndirectElement: TBoldIndirectElement;
+  Value: TBoldElement;
+begin
+  SetLength(fEditSnapshot, 0);
+  Element := ActiveBoldElement;
+  if not Assigned(Element) then
+    Exit;
+  SetLength(fEditSnapshot, FieldDescriptions.Count);
+  for i := 0 to FieldDescriptions.Count - 1 do
+  begin
+    fEditSnapshot[i].Kept := False;
+    fEditSnapshot[i].WasCurrent := False;
+    fEditSnapshot[i].IsLink := False;
+    fEditSnapshot[i].Locator := nil;
+    fEditSnapshot[i].Value := Unassigned;
+    if FieldDescriptions[i].FieldType = ftBlob then
+      Continue;
+    IndirectElement := TBoldIndirectElement.Create;
+    try
+      try
+        Element.EvaluateExpression(FieldDescriptions[i].Expression, IndirectElement, False,
+          FieldDescriptions[i].BoldProperties.VariableList);
+        Value := IndirectElement.Value;
+        if Assigned(Value) and Value.Mutable then
+        begin
+          fEditSnapshot[i].WasCurrent := (Value is TBoldMember) and
+            (TBoldMember(Value).BoldPersistenceState = bvpsCurrent);
+          if Value is TBoldObjectReference then
+          begin
+            fEditSnapshot[i].IsLink := True;
+            fEditSnapshot[i].Locator := TBoldObjectReference(Value).Locator;
+            fEditSnapshot[i].Kept := True;
+          end
+          else if Value is TBoldAttribute then
+          begin
+            if TBoldAttribute(Value).IsNull then
+              fEditSnapshot[i].Value := Null
+            else
+              fEditSnapshot[i].Value := Value.AsVariant;
+            fEditSnapshot[i].Kept := True;
+          end;
+        end;
+      except
+        // A field whose expression cannot be evaluated has nothing to put back
+        fEditSnapshot[i].Kept := False;
+      end;
+    finally
+      IndirectElement.Free;
+    end;
+  end;
+end;
+
+procedure TBoldAbstractDataSet.RestoreEditSnapshot;
+var
+  i: Integer;
+  Element: TBoldElement;
+  IndirectElement: TBoldIndirectElement;
+  Value: TBoldElement;
+  Reference: TBoldObjectReference;
+  Attribute: TBoldAttribute;
+begin
+  Element := ActiveBoldElement;
+  if not Assigned(Element) then
+    Exit;
+  for i := 0 to Min(High(fEditSnapshot), FieldDescriptions.Count - 1) do
+  begin
+    if not fEditSnapshot[i].Kept then
+      Continue;
+    IndirectElement := TBoldIndirectElement.Create;
+    try
+      Element.EvaluateExpression(FieldDescriptions[i].Expression, IndirectElement, False,
+        FieldDescriptions[i].BoldProperties.VariableList);
+      Value := IndirectElement.Value;
+      if not Assigned(Value) or not Value.Mutable then
+        Continue;
+      if fEditSnapshot[i].WasCurrent and (Value is TBoldMember) then
+      begin
+        if TBoldMember(Value).BoldPersistenceState = bvpsModified then
+          TBoldMember(Value).Discard;
+      end
+      else if fEditSnapshot[i].IsLink then
+      begin
+        if Value is TBoldObjectReference then
+        begin
+          Reference := TBoldObjectReference(Value);
+          if Reference.Locator <> fEditSnapshot[i].Locator then
+            if Assigned(fEditSnapshot[i].Locator) then
+            begin
+              fEditSnapshot[i].Locator.EnsureBoldObject;
+              Reference.BoldObject := fEditSnapshot[i].Locator.BoldObject;
+            end
+            else
+              Reference.BoldObject := nil;
+        end;
+      end
+      else if Value is TBoldAttribute then
+      begin
+        Attribute := TBoldAttribute(Value);
+        if VarIsNull(fEditSnapshot[i].Value) then
+        begin
+          if not Attribute.IsNull then
+            Attribute.SetToNull;
+        end
+        else if Attribute.IsNull or not VarSameValue(Attribute.AsVariant, fEditSnapshot[i].Value) then
+          Attribute.AsVariant := fEditSnapshot[i].Value;
+      end;
+    finally
+      IndirectElement.Free;
+    end;
+  end;
 end;
 
 function TBoldAbstractDataSet.GetCanModify: boolean;
@@ -952,12 +1095,24 @@ end;
 
 procedure TBoldAbstractDataSet.InternalCancel;
 begin
-  // Cancel discards what was changed in the object: a field is written to
-  // the object when it is set, not when the row is posted. Not when the
-  // edit is only ended because the row has left the list
-  // (EndEditOfARowThatLeftTheList).
-  if Assigned(ActiveBoldObject) and not fEditedRowLeftTheList then
-    ActiveBoldObject.Discard;
+  // A field is written to the object when it is set, not when the row is
+  // posted, so Cancel takes back what was set. An append is taken back as a
+  // whole: the new object is discarded, which removes it. An edit is taken
+  // back field by field (TakeEditSnapshot), which keeps what the object had
+  // before the edit. Nothing is taken back when the edit is only ended
+  // because the row has left the list (EndEditOfARowThatLeftTheList).
+  try
+    if not fEditedRowLeftTheList then
+      if State = dsInsert then
+      begin
+        if Assigned(ActiveBoldObject) then
+          ActiveBoldObject.Discard;
+      end
+      else
+        RestoreEditSnapshot;
+  finally
+    SetLength(fEditSnapshot, 0);
+  end;
 {CHECKME Is this needed???
 
   if State = dsInsert then
@@ -1995,6 +2150,7 @@ end;
 
 procedure TBoldAbstractDataSet.InternalPost;
 begin
+  SetLength(fEditSnapshot, 0);
   FRecordPos := List.IndexOf(ActiveBoldElement);
   if (FRecordPos <> FListFollower.Follower.CurrentIndex) then
   begin

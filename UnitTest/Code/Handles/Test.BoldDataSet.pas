@@ -157,6 +157,7 @@ type
     procedure TestLinkFieldOfAnObjectWithoutLinkIsNull;
     procedure TestPostOfAKeySetsTheLink;
     procedure TestClearRemovesTheLink;
+    procedure TestCancelOfALinkEditRestoresTheLink;
     procedure TestLocateFindsTheLinkedObjectByItsKey;
     procedure TestLookupFieldShowsAValueOfTheLinkedObject;
     procedure TestLookupFieldOfAnObjectWithoutLinkIsNull;
@@ -173,6 +174,40 @@ type
     procedure AddLookupFields(const ALookupKeyField: string; out ALookup: TIntegerField);
   end;
 
+  { Editing as a grid does it (#117): edit and post, cancel, append and
+    delete, in a detail dataset under a master, on objects that are saved.
+    The SQLite-backed BoldTestDM, BoldTestModel: a SomeClass has a parent
+    and children. The fields are written to the object when they are set,
+    so Cancel has to take back exactly what the edit set. }
+  {$IFNDEF FPC}
+  [Category('Handles')]
+  {$ENDIF}
+  TTestBoldDataSetEditing = class(TBoldTestCase)
+  private
+    FMasterHandle: TBoldListHandle;
+    FDetailHandle: TBoldListHandle;
+    FMaster: TBoldDataSet;
+    FDetail: TBoldDataSet;
+    FParent: TObject;
+    FChild1, FChild2: TObject;
+    function ObjectCount: Integer;
+    procedure GoToDetail(AObject: TObject);
+    procedure Settle;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestPostKeepsTheValueAndTheRow;
+    procedure TestCancelOfAnEditRestoresTheValue;
+    procedure TestCancelOfAnEditLeavesNothingToSave;
+    procedure TestCancelKeepsWhatWasPostedBefore;
+    procedure TestAppendInADetailLinksTheNewObjectToTheMaster;
+    procedure TestCancelOfAnAppendLeavesNoObject;
+    procedure TestCancelOfAnEditOfANewObjectKeepsTheObject;
+    procedure TestDeleteInADetailDeletesTheObject;
+    procedure TestAFieldThatCannotBeSetIsReadOnly;
+  end;
+
 implementation
 
 uses
@@ -181,6 +216,8 @@ uses
   BoldSystem,
   BoldValueSpaceInterfaces,
   BoldQueue,
+  dmBoldTest,
+  BoldTestModel,
   dmModel1;
 
 type
@@ -1085,6 +1122,25 @@ begin
   Assert.IsTrue(FChildOfOwn1.Own = nil, 'Post of a cleared link field should remove the link');
 end;
 
+procedure TTestBoldDataSetLinks.TestCancelOfALinkEditRestoresTheLink;
+var
+  Key2: Int64;
+begin
+  Key2 := KeyOf(FOwn2);
+  GoToChild(FChildOfOwn1);
+  FChildren.Edit;
+  FChildren.FieldByName('Own').AsLargeInt := Key2;
+  Assert.IsTrue(FChildOfOwn1.Own = FOwn2, 'the link is written when the field is set');
+  FChildren.Cancel;
+  Assert.IsTrue(FChildOfOwn1.Own = FOwn1, 'Cancel puts the link back');
+  Assert.IsTrue(FChildOfOwn1.BoldExistenceState = besExisting, 'and the object is still there');
+  GoToChild(FLooseChild);
+  FChildren.Edit;
+  FChildren.FieldByName('Own').AsLargeInt := Key2;
+  FChildren.Cancel;
+  Assert.IsTrue(FLooseChild.Own = nil, 'Cancel puts back a link to nothing too');
+end;
+
 procedure TTestBoldDataSetLinks.TestLocateFindsTheLinkedObjectByItsKey;
 begin
   GoToChild(FChildOfOwn2);
@@ -1260,7 +1316,241 @@ begin
   Assert.IsTrue(FChildren.FieldByName('Own').AsLargeInt = Key2, 'the link field should show the new Own');
 end;
 
+{ TTestBoldDataSetEditing }
+
+procedure TTestBoldDataSetEditing.SetUp;
+var
+  Sys: TBoldSystem;
+  Parent, Child: TSomeClass;
+  Description: TBoldDataSetFieldDescription;
+begin
+  inherited;
+  EnsureBoldTestDM;
+  Sys := BoldTestDM.BoldSystemHandle1.System;
+  Parent := TSomeClass.Create(Sys);
+  Parent.aString := 'the parent';
+  Child := TSomeClass.Create(Sys);
+  Child.aString := 'first';
+  Child.parent := Parent;
+  FChild1 := Child;
+  Child := TSomeClass.Create(Sys);
+  Child.aString := 'second';
+  Child.parent := Parent;
+  FChild2 := Child;
+  FParent := Parent;
+  // Saved: what a Cancel goes back to is in the database
+  Sys.UpdateDatabase;
+
+  FMasterHandle := TBoldListHandle.Create(nil);
+  FMasterHandle.RootHandle := BoldTestDM.BoldSystemHandle1;
+  FMasterHandle.StaticSystemHandle := BoldTestDM.BoldSystemHandle1;
+  FMasterHandle.Expression := 'SomeClass.allInstances->select(aString = ''the parent'')';
+  FDetailHandle := TBoldListHandle.Create(nil);
+  FDetailHandle.RootHandle := FMasterHandle;
+  FDetailHandle.StaticSystemHandle := BoldTestDM.BoldSystemHandle1;
+  FDetailHandle.Expression := 'child';
+
+  FMaster := TBoldDataSet.Create(nil);
+  FMaster.BoldHandle := FMasterHandle;
+  Description := FMaster.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'aString';
+  Description.FieldName := 'aString';
+  Description := FMaster.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'child->size';
+  Description.FieldName := 'ChildCount';
+  FDetail := TBoldDataSet.Create(nil);
+  FDetail.BoldHandle := FDetailHandle;
+  Description := FDetail.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'aString';
+  Description.FieldName := 'aString';
+  FMaster.Open;
+  FDetail.Open;
+end;
+
+procedure TTestBoldDataSetEditing.TearDown;
+begin
+  FreeAndNil(FDetail);
+  FreeAndNil(FMaster);
+  FreeAndNil(FDetailHandle);
+  FreeAndNil(FMasterHandle);
+  if Assigned(BoldTestDM) and BoldTestDM.BoldSystemHandle1.Active then
+    BoldTestDM.BoldSystemHandle1.System.Discard;
+  CloseBoldTestDM;
+  inherited;
+end;
+
+function TTestBoldDataSetEditing.ObjectCount: Integer;
+begin
+  Result := BoldTestDM.BoldSystemHandle1.System.EvaluateExpressionAsInteger('SomeClass.allInstances->size');
+end;
+
+procedure TTestBoldDataSetEditing.GoToDetail(AObject: TObject);
+begin
+  FDetail.First;
+  while not FDetail.Eof and (FDetail.ActiveBoldObject <> AObject) do
+    FDetail.Next;
+  Assert.IsTrue(FDetail.ActiveBoldObject = AObject, 'the detail dataset should have a row for the object');
+end;
+
+{ What the idle loop of an application does, for a moment }
+procedure TTestBoldDataSetEditing.Settle;
+var
+  StartTicks: Int64;
+begin
+  StartTicks := BoldTestTickCount;
+  repeat
+    TBoldQueueable.DisplayAll;
+    CheckSynchronize(20);
+  until BoldTestTickCount - StartTicks > 250;
+end;
+
+procedure TTestBoldDataSetEditing.TestPostKeepsTheValueAndTheRow;
+begin
+  Assert.AreEqual(2, FDetail.RecordCount, 'two children');
+  GoToDetail(FChild2);
+  FDetail.Edit;
+  FDetail.FieldByName('aString').AsString := 'second, edited';
+  FDetail.Post;
+  Settle;
+  Assert.AreEqual('second, edited', TSomeClass(FChild2).aString, 'Post writes to the object');
+  Assert.IsTrue(FDetail.ActiveBoldObject = FChild2, 'the cursor stays on the row');
+  Assert.AreEqual('second, edited', FDetail.FieldByName('aString').AsString, 'the row shows it');
+  Assert.IsTrue(FDetail.State = dsBrowse, 'browsing again');
+end;
+
+procedure TTestBoldDataSetEditing.TestCancelOfAnEditRestoresTheValue;
+begin
+  GoToDetail(FChild1);
+  FDetail.Edit;
+  FDetail.FieldByName('aString').AsString := 'typed';
+  FDetail.Cancel;
+  Settle;
+  Assert.AreEqual('first', TSomeClass(FChild1).aString, 'Cancel takes back what the edit set');
+  Assert.AreEqual('first', FDetail.FieldByName('aString').AsString, 'the row shows the value from before');
+  Assert.IsTrue(FDetail.ActiveBoldObject = FChild1, 'the cursor stays on the row');
+  Assert.AreEqual(2, FDetail.RecordCount, 'two children');
+end;
+
+procedure TTestBoldDataSetEditing.TestCancelOfAnEditLeavesNothingToSave;
+begin
+  Assert.IsFalse(BoldTestDM.BoldSystemHandle1.System.BoldDirty, 'saved, so nothing to save before the edit');
+  GoToDetail(FChild1);
+  FDetail.Edit;
+  FDetail.FieldByName('aString').AsString := 'typed';
+  Assert.IsTrue(BoldTestDM.BoldSystemHandle1.System.BoldDirty, 'the field is written to the object when it is set');
+  FDetail.Cancel;
+  Settle;
+  // The attribute had its saved value before the edit, so Cancel discards it
+  Assert.IsFalse(BoldTestDM.BoldSystemHandle1.System.BoldDirty, 'a cancelled edit leaves nothing to save');
+end;
+
+procedure TTestBoldDataSetEditing.TestCancelKeepsWhatWasPostedBefore;
+begin
+  GoToDetail(FChild1);
+  FDetail.Edit;
+  FDetail.FieldByName('aString').AsString := 'posted';
+  FDetail.Post;
+  // Not saved: the object now differs from the database
+  FDetail.Edit;
+  FDetail.FieldByName('aString').AsString := 'typed';
+  FDetail.Cancel;
+  Settle;
+  Assert.AreEqual('posted', TSomeClass(FChild1).aString,
+    'Cancel takes back the edit, not what was posted before it');
+  Assert.AreEqual('posted', FDetail.FieldByName('aString').AsString, 'the row shows the posted value');
+end;
+
+procedure TTestBoldDataSetEditing.TestAppendInADetailLinksTheNewObjectToTheMaster;
+var
+  Added: TSomeClass;
+begin
+  FDetail.Append;
+  FDetail.FieldByName('aString').AsString := 'third';
+  FDetail.Post;
+  Settle;
+  Assert.AreEqual(3, TSomeClass(FParent).child.Count, 'the master has a third child');
+  Assert.AreEqual(3, FDetail.RecordCount, 'and the detail dataset a third row');
+  Assert.IsTrue(FDetail.ActiveBoldObject is TSomeClass, 'the new row is an object');
+  Added := TSomeClass(FDetail.ActiveBoldObject);
+  Assert.AreEqual('third', Added.aString, 'with the posted value');
+  Assert.IsTrue(Added.parent = FParent, 'linked to the master');
+  Assert.AreEqual(3, FMaster.FieldByName('ChildCount').AsInteger, 'and the master row counts it');
+end;
+
+procedure TTestBoldDataSetEditing.TestCancelOfAnAppendLeavesNoObject;
+var
+  Before: Integer;
+begin
+  Before := ObjectCount;
+  FDetail.Append;
+  FDetail.FieldByName('aString').AsString := 'not wanted';
+  FDetail.Cancel;
+  Settle;
+  Assert.AreEqual(Before, ObjectCount, 'Cancel of an append leaves no object behind');
+  Assert.AreEqual(2, TSomeClass(FParent).child.Count, 'the master has its two children');
+  Assert.AreEqual(2, FDetail.RecordCount, 'and the detail dataset its two rows');
+  Assert.IsFalse(BoldTestDM.BoldSystemHandle1.System.BoldDirty, 'nothing is left to save');
+end;
+
+procedure TTestBoldDataSetEditing.TestCancelOfAnEditOfANewObjectKeepsTheObject;
+var
+  Added: TObject;
+begin
+  FDetail.Append;
+  FDetail.FieldByName('aString').AsString := 'third';
+  FDetail.Post;
+  Settle;
+  Added := FDetail.ActiveBoldObject;
+  // The new object is not saved; an edit of it is cancelled
+  GoToDetail(Added);
+  FDetail.Edit;
+  FDetail.FieldByName('aString').AsString := 'typed';
+  FDetail.Cancel;
+  Settle;
+  Assert.AreEqual(3, TSomeClass(FParent).child.Count, 'the new child is still there');
+  Assert.AreEqual(3, FDetail.RecordCount, 'and has its row');
+  Assert.AreEqual('third', TSomeClass(Added).aString, 'with the value it was posted with');
+end;
+
+procedure TTestBoldDataSetEditing.TestDeleteInADetailDeletesTheObject;
+var
+  Before: Integer;
+begin
+  Before := ObjectCount;
+  GoToDetail(FChild1);
+  FDetail.Delete;
+  Settle;
+  Assert.AreEqual(Before - 1, ObjectCount, 'Delete deletes the object');
+  Assert.AreEqual(1, TSomeClass(FParent).child.Count, 'the master has one child left');
+  Assert.AreEqual(1, FDetail.RecordCount, 'and the detail dataset one row');
+  Assert.IsTrue(FDetail.ActiveBoldObject = FChild2, 'the cursor is on the child that is left');
+  Assert.AreEqual(1, FMaster.FieldByName('ChildCount').AsInteger, 'and the master row counts one');
+end;
+
+procedure TTestBoldDataSetEditing.TestAFieldThatCannotBeSetIsReadOnly;
+var
+  Count: TField;
+  Raised: Boolean;
+begin
+  // child->size is a value that is calculated, not an attribute to set
+  Count := FMaster.FieldByName('ChildCount');
+  Assert.AreEqual(2, Count.AsInteger, 'two children');
+  Assert.IsTrue(Count.ReadOnly, 'a grid must not offer the field for editing');
+  Assert.IsFalse(FMaster.FieldByName('aString').ReadOnly, 'an attribute can be edited');
+  FMaster.Edit;
+  Raised := False;
+  try
+    Count.AsInteger := 5;
+  except
+    on E: EDatabaseError do
+      Raised := True;
+  end;
+  FMaster.Cancel;
+  Assert.IsTrue(Raised, 'setting it is refused');
+end;
+
 initialization
+  BoldRegisterTest(TTestBoldDataSetEditing);
   BoldRegisterTest(TTestBoldDataSet);
   BoldRegisterTest(TTestBoldDataSetMasterDetail);
   BoldRegisterTest(TTestBoldDataSetLinks);
