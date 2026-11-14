@@ -163,6 +163,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet`: Cancel takes back what the edit set, and only that. It
+  discarded the whole object, so an earlier change of the row that was
+  posted but not saved was lost with it, and the cancelled edit of a new
+  row deleted the row. The dataset now remembers the fields when the edit
+  starts: a field that had its saved value is discarded, one that was
+  changed before gets its value back. Cancel of an append still removes
+  the new object (#117)
 - The Lazarus packages `Bold`, `BoldLCL` and `dclBold` compile with Free
   Pascal on 64-bit Windows; the CI builds them on Linux, where these errors
   do not occur. `BoldPlatform` calls the Unicode (W) Windows functions by
