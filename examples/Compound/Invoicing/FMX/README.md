@@ -63,7 +63,9 @@ empty.
 As in the LCL client: **New invoice** makes a draft for the selected customer
 (`Customer.NewInvoice`), the lines of a draft are edited in the lines grid,
 and **Post invoice** posts it (`Invoice.Post`), after which its lines are
-frozen. The grid link (`TLinkGridToDataSource`) writes a cell to the dataset
+frozen. **Add line** gives the grid a new row to type in, which an FMX grid
+needs while it is empty: it has no row to start in. **Delete line** deletes
+the selected one. The grid link (`TLinkGridToDataSource`) writes a cell to the dataset
 field, and `TBoldDataSet` writes the field to the line; a new row is a new
 line of the selected invoice, because the dataset asks the list of its handle
 for it; the derived column `Amount` is a read-only field. The frozen rule is
@@ -82,7 +84,10 @@ with a tinted control laid over the cells, in the style's accent colour; the
 form makes that control invisible and draws the cells itself
 (`GridDrawColumnBackground`, `GridDrawColumnCell`), a blue row with white
 text. `ApplyTheLook` gives the column headers and the combo box's items the
-font size, which are made while the program runs.
+font size, which are made while the program runs, and puts a grey rectangle
+in place of the thumb of the grids' scroll bars, which the style draws as a
+picture in its accent colour. The customer columns are narrow enough to fit
+the grid, so it has no horizontal scroll bar.
 
 ## No VCL
 

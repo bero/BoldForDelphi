@@ -45,6 +45,7 @@ uses
   System.Rtti,
   FMX.Types,
   FMX.Graphics,
+  FMX.Objects,
   FMX.Controls,
   FMX.Forms,
   FMX.StdCtrls,
@@ -96,7 +97,10 @@ type
     cmbInvoiceCustomer: TComboBox;
     btnNewInvoice: TButton;
     btnPostInvoice: TButton;
+    layLines: TLayout;
     lblLines: TLabel;
+    btnAddLine: TButton;
+    btnDeleteLine: TButton;
     grdLines: TStringGrid;
     layBar: TLayout;
     lblStatus: TLabel;
@@ -109,6 +113,8 @@ type
     procedure InvoiceCustomerChange(Sender: TObject);
     procedure NewInvoiceClick(Sender: TObject);
     procedure PostInvoiceClick(Sender: TObject);
+    procedure AddLineClick(Sender: TObject);
+    procedure DeleteLineClick(Sender: TObject);
     procedure GridDrawColumnBackground(Sender: TObject; const Canvas: TCanvas; const Column: TColumn;
       const Bounds: TRectF; const Row: Integer; const Value: TValue; const State: TGridDrawStates);
     procedure GridDrawColumnCell(Sender: TObject; const Canvas: TCanvas; const Column: TColumn;
@@ -334,6 +340,8 @@ end;
 
 const
   cFontSize = 15;
+  cScrollBarColor = $FFB4B4B4;
+  cOurThumb = 'BoldLookThumb';
   cSelectionColor = $FF308CC6;
   cSelectionTextColor = TAlphaColors.White;
   cTextColor = TAlphaColors.Black;
@@ -353,6 +361,41 @@ procedure TfrmInvoicingMain.ApplyTheLook;
       HideTheStyleSelection(AObject.Children[i]);
   end;
 
+  { The thumb of a scroll bar is a picture of the style, in its accent
+    colour; it is made invisible and a grey rectangle takes its place }
+  procedure GreyScrollBars(AObject: TFmxObject);
+  var
+    i: Integer;
+    HasOurs: Boolean;
+    Ours: TRectangle;
+  begin
+    if AObject is TThumb then
+    begin
+      HasOurs := False;
+      for i := 0 to AObject.ChildrenCount - 1 do
+        if AObject.Children[i].TagString = cOurThumb then
+          HasOurs := True
+        else if AObject.Children[i] is TControl then
+          TControl(AObject.Children[i]).Opacity := 0;
+      if not HasOurs then
+      begin
+        Ours := TRectangle.Create(AObject);
+        Ours.TagString := cOurThumb;
+        Ours.Stored := False;
+        Ours.HitTest := False;
+        Ours.Align := TAlignLayout.Contents;
+        Ours.Stroke.Kind := TBrushKind.None;
+        Ours.Fill.Color := cScrollBarColor;
+        Ours.XRadius := 3;
+        Ours.YRadius := 3;
+        Ours.Parent := AObject;
+      end;
+      Exit;
+    end;
+    for i := 0 to AObject.ChildrenCount - 1 do
+      GreyScrollBars(AObject.Children[i]);
+  end;
+
   procedure LookOfGrid(AGrid: TStringGrid);
   var
     i: Integer;
@@ -365,6 +408,7 @@ procedure TfrmInvoicingMain.ApplyTheLook;
         AGrid.Columns[i].HeaderSettings.TextSettings.Font.Size := cFontSize;
       end;
     HideTheStyleSelection(AGrid);
+    GreyScrollBars(AGrid);
   end;
 
 var
@@ -437,6 +481,8 @@ begin
   cmbInvoiceCustomer.Enabled := IsDraft;
   // The lines of a draft are edited in the grid
   grdLines.ReadOnly := not IsDraft;
+  btnAddLine.Enabled := IsDraft;
+  btnDeleteLine.Enabled := IsDraft and bdsLines.Active and not bdsLines.IsEmpty;
   btnPostInvoice.Enabled := IsDraft;
   btnNewInvoice.Enabled := bdsCustomers.Active and not bdsCustomers.IsEmpty;
 end;
@@ -455,6 +501,29 @@ begin
   bdsInvoices.Last;
   while not bdsInvoices.Bof and (bdsInvoices.ActiveBoldObject <> Invoice) do
     bdsInvoices.Prior;
+  UpdateInvoiceControls;
+end;
+
+procedure TfrmInvoicingMain.AddLineClick(Sender: TObject);
+begin
+  // A new row at the end of the lines grid, ready to be typed in: an FMX
+  // grid has no row to start in while it is empty. The dataset asks the
+  // list of its handle, the lines of the selected invoice, for the new
+  // object, so it is a line of that invoice at once.
+  bdsLines.Append;
+  if Visible and grdLines.CanFocus then
+  begin
+    grdLines.SetFocus;
+    grdLines.Col := 0;
+    grdLines.EditorMode := True;
+  end;
+  UpdateInvoiceControls;
+end;
+
+procedure TfrmInvoicingMain.DeleteLineClick(Sender: TObject);
+begin
+  if not bdsLines.IsEmpty then
+    bdsLines.Delete;
   UpdateInvoiceControls;
 end;
 
@@ -666,7 +735,16 @@ var
     end;
     Check('an invoice without lines is not posted', (Refused <> '') and not Invoice.IsPosted, Refused);
 
-    bdsLines.Append;
+    // The idle loop, where the buttons are enabled or not
+    Settle;
+    Application.DoIdle(IdleDone);
+    Check('a draft without lines: Add line can be used, Delete line cannot',
+      btnAddLine.Enabled and not btnDeleteLine.Enabled, BoolToStr(btnAddLine.Enabled, True));
+    AddLineClick(btnAddLine);
+    Settle;
+    Check('Add line gives the lines grid a new row to type in',
+      (bdsLines.State = dsInsert) and (grdLines.RowCount = 1) and (Invoice.Lines.Count = 1),
+      IntToStr(grdLines.RowCount) + ' rows, state ' + IntToStr(Ord(bdsLines.State)));
     bdsLines.FieldByName('Description').AsString := 'Workshop';
     bdsLines.FieldByName('Quantity').AsFloat := 2;
     bdsLines.FieldByName('Unit price').AsCurrency := 100;
@@ -735,7 +813,7 @@ var
     Settle;
     Check('a second line', (Invoice.Lines.Count = 2) and (grdLines.RowCount = 2), IntToStr(Invoice.Lines.Count));
     Line := bdsLines.ActiveBoldObject as TInvoiceLine;
-    bdsLines.Delete;
+    DeleteLineClick(btnDeleteLine);
     Settle;
     Check('a deleted row is a deleted line',
       (Invoice.Lines.Count = 1) and (grdLines.RowCount = 1) and (Invoice.Lines[0] <> Line) and

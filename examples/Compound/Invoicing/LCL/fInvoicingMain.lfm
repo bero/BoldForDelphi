@@ -1621,16 +1621,48 @@ object frmInvoicingMain: TfrmInvoicingMain
       TabOrder = 2
     end
   end
-  object lblLines: TLabel
-    Left = 8
-    Height = 17
-    Top = 484
-    Width = 992
+  object pnlLines: TPanel
+    Left = 0
+    Height = 36
+    Top = 478
+    Width = 1000
     Align = alTop
-    BorderSpacing.Left = 8
-    BorderSpacing.Top = 6
-    BorderSpacing.Bottom = 2
-    Caption = 'Lines of the selected invoice'
+    BevelOuter = bvNone
+    ClientHeight = 36
+    ClientWidth = 1000
+    TabOrder = 5
+    object lblLines: TLabel
+      Left = 8
+      Height = 36
+      Top = 0
+      Width = 736
+      Align = alClient
+      BorderSpacing.Left = 8
+      Caption = 'Lines of the selected invoice'
+      Layout = tlCenter
+    end
+    object btnAddLine: TButton
+      Left = 748
+      Height = 28
+      Top = 4
+      Width = 120
+      Align = alRight
+      BorderSpacing.Around = 4
+      Caption = 'Add line'
+      OnClick = btnAddLineClick
+      TabOrder = 0
+    end
+    object btnDeleteLine: TButton
+      Left = 876
+      Height = 28
+      Top = 4
+      Width = 120
+      Align = alRight
+      BorderSpacing.Around = 4
+      Caption = 'Delete line'
+      OnClick = btnDeleteLineClick
+      TabOrder = 1
+    end
   end
   object grdLines: TDBGrid
     Left = 8

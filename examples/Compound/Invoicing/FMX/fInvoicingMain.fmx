@@ -151,20 +151,57 @@ object frmInvoicingMain: TfrmInvoicingMain
       OnClick = PostInvoiceClick
     end
   end
-  object lblLines: TLabel
+  object layLines: TLayout
     Align = Top
-    Margins.Left = 8.000000000000000000
-    Margins.Top = 6.000000000000000000
-    Margins.Right = 8.000000000000000000
-    Margins.Bottom = 2.000000000000000000
-    Position.X = 8.000000000000000000
-    Position.Y = 484.000000000000000000
-    Size.Width = 984.000000000000000000
-    Size.Height = 20.000000000000000000
+    Position.Y = 478.000000000000000000
+    Size.Width = 1000.000000000000000000
+    Size.Height = 36.000000000000000000
     Size.PlatformDefault = False
-    StyledSettings = [Family, Style, FontColor]
-    TextSettings.Font.Size = 15.000000000000000000
-    Text = 'Lines of the selected invoice'
+    TabOrder = 5
+    object lblLines: TLabel
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Size.Width = 736.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
+      Text = 'Lines of the selected invoice'
+    end
+    object btnAddLine: TButton
+      Align = Right
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 748.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
+      Text = 'Add line'
+      OnClick = AddLineClick
+    end
+    object btnDeleteLine: TButton
+      Align = Right
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 872.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 15.000000000000000000
+      Text = 'Delete line'
+      OnClick = DeleteLineClick
+    end
   end
   object grdLines: TStringGrid
     Align = Client
@@ -402,15 +439,15 @@ object frmInvoicingMain: TfrmInvoicingMain
       Columns = <
         item
           MemberName = 'Number'
-          Width = 110
+          Width = 80
         end
         item
           MemberName = 'Name'
-          Width = 330
+          Width = 250
         end
         item
           MemberName = 'Email'
-          Width = 330
+          Width = 250
         end
         item
           MemberName = 'Invoiced'
@@ -422,7 +459,7 @@ object frmInvoicingMain: TfrmInvoicingMain
         end
         item
           MemberName = 'Overdue'
-          Width = 110
+          Width = 90
         end>
     end
     object lnkInvoices: TLinkGridToDataSource

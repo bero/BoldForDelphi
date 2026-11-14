@@ -80,10 +80,11 @@ lines grid, a plain `TDBGrid` on a `TBoldDataSet`:
   invoice and the customer follow. A field is written to the object when it
   is set, and **Esc** takes back what was typed in the row since it was
   entered, and only that;
-- the down arrow on the last row adds a line: the dataset asks the list of
-  its handle (`lines` of the selected invoice) for a new object, so the line
-  belongs to the invoice at once. Esc there removes it again;
-- **Ctrl+Del** deletes the line;
+- **Add line**, or the down arrow on the last row, adds a line: the dataset
+  asks the list of its handle (`lines` of the selected invoice) for a new
+  object, so the line belongs to the invoice at once. Esc there removes it
+  again;
+- **Delete line**, or Ctrl+Del, deletes the line;
 - the derived column `Amount` cannot be typed in: its field is read-only,
   because Bold says the value cannot be modified.
 

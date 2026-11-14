@@ -86,7 +86,10 @@ type
     cmbInvoiceCustomer: TDBLookupComboBox;
     btnNewInvoice: TButton;
     btnPostInvoice: TButton;
+    pnlLines: TPanel;
     lblLines: TLabel;
+    btnAddLine: TButton;
+    btnDeleteLine: TButton;
     grdLines: TDBGrid;
     pnlBar: TPanel;
     btnSave: TButton;
@@ -98,6 +101,8 @@ type
     procedure btnEditOclClick(Sender: TObject);
     procedure btnNewInvoiceClick(Sender: TObject);
     procedure btnPostInvoiceClick(Sender: TObject);
+    procedure btnAddLineClick(Sender: TObject);
+    procedure btnDeleteLineClick(Sender: TObject);
     procedure dsInvoicesDataChange(Sender: TObject; Field: TField);
     procedure cmbInvoiceCustomerSelect(Sender: TObject);
   private
@@ -339,9 +344,12 @@ begin
   // customer for: a data-aware control that edits an empty dataset inserts a
   // record, here a new invoice.
   cmbInvoiceCustomer.Enabled := IsDraft;
-  // The lines of a draft are edited in the grid: type in a cell, the down
-  // arrow on the last row adds a line, Ctrl+Del deletes one.
+  // The lines of a draft are edited in the grid: Add line (or the down arrow
+  // on the last row) adds one, typing in a cell changes it, Delete line (or
+  // Ctrl+Del) deletes it.
   grdLines.ReadOnly := not IsDraft;
+  btnAddLine.Enabled := IsDraft;
+  btnDeleteLine.Enabled := IsDraft and bdsLines.Active and not bdsLines.IsEmpty;
   btnPostInvoice.Enabled := IsDraft;
   btnNewInvoice.Enabled := bdsCustomers.Active and not bdsCustomers.IsEmpty;
 end;
@@ -360,6 +368,27 @@ begin
   bdsInvoices.Last;
   while not bdsInvoices.Bof and (bdsInvoices.ActiveBoldObject <> Invoice) do
     bdsInvoices.Prior;
+  UpdateInvoiceControls;
+end;
+
+procedure TfrmInvoicingMain.btnAddLineClick(Sender: TObject);
+begin
+  // A new row at the end of the lines grid, ready to be typed in. The
+  // dataset asks the list of its handle, the lines of the selected invoice,
+  // for the new object, so it is a line of that invoice at once.
+  bdsLines.Append;
+  if grdLines.CanSetFocus then
+  begin
+    grdLines.SetFocus;
+    grdLines.SelectedIndex := 0;
+  end;
+  UpdateInvoiceControls;
+end;
+
+procedure TfrmInvoicingMain.btnDeleteLineClick(Sender: TObject);
+begin
+  if not bdsLines.IsEmpty then
+    bdsLines.Delete;
   UpdateInvoiceControls;
 end;
 
@@ -546,7 +575,13 @@ var
     Check('an invoice without lines is not posted', (Refused <> '') and not Invoice.IsPosted, Refused);
 
     // The down arrow on the last row of the grid, then typing in the cells
-    bdsLines.Append;
+    Check('a draft without lines: Add line can be used, Delete line cannot',
+      btnAddLine.Enabled and not btnDeleteLine.Enabled, BoolToStr(btnAddLine.Enabled, True));
+    btnAddLine.Click;
+    Settle;
+    Check('Add line gives the lines grid a new row to type in',
+      (bdsLines.State = dsInsert) and (bdsLines.RecordCount = 1) and (Invoice.Lines.Count = 1),
+      IntToStr(bdsLines.RecordCount) + ' rows, state ' + IntToStr(Ord(bdsLines.State)));
     bdsLines.FieldByName('Description').AsString := 'Workshop';
     bdsLines.FieldByName('Quantity').AsFloat := 2;
     bdsLines.FieldByName('Unit price').AsCurrency := 100;
@@ -617,7 +652,7 @@ var
     Check('a second line', (Invoice.Lines.Count = 2) and (bdsLines.RecordCount = 2), IntToStr(Invoice.Lines.Count));
     // Ctrl+Del in the grid
     Line := bdsLines.ActiveBoldObject as TInvoiceLine;
-    bdsLines.Delete;
+    btnDeleteLine.Click;
     Settle;
     Check('a deleted row is a deleted line',
       (Invoice.Lines.Count = 1) and (bdsLines.RecordCount = 1) and (Invoice.Lines[0] <> Line) and
