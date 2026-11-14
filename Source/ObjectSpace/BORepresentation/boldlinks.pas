@@ -1677,16 +1677,45 @@ procedure TBoldDirectSingleLinkController.PreDiscard;
         not OtherEndController.RoleRTInfo.IsStoredInObject and
         not OtherEndController.OwningObject.BoldObjectIsNew then
       begin
-        OtherEndController.OwningMember.Invalidate;
+        // With file persistence the multilinks are stored in the object too
+        // (MultilinksAreStoredInObject), so the change of this link marked
+        // the list of the other end as modified. Invalidate refuses a
+        // modified member: the list is discarded, which makes it invalid as
+        // well, and it is read again when it is asked for.
+        if OtherEndController.OwningMember.BoldPersistenceState = bvpsModified then
+          OtherEndController.OwningMember.Discard
+        else
+          OtherEndController.OwningMember.Invalidate;
       end;
+    end;
+  end;
+
+  { The list this link was added to. Only where the multilinks are stored in
+    the object is it marked as modified; it is discarded with the link, or
+    its object would stay dirty with nothing left to save. }
+  procedure DiscardModifiedNonEmbeddedOtherEnd(Locator: TBoldObjectLocator);
+  var
+    OtherEndController: TBoldAbstractController;
+  begin
+    if assigned(Locator) then
+    begin
+      OtherEndController := GetOtherEndController(Locator, false);
+      if assigned(OtherEndController) and
+        not OtherEndController.RoleRTInfo.IsStoredInObject and
+        not OtherEndController.OwningObject.BoldObjectIsNew and
+        (OtherEndController.OwningMember.BoldPersistenceState = bvpsModified) then
+        OtherEndController.OwningMember.Discard;
     end;
   end;
 
 var
   OldRef: IBoldValue;
   OldIdRef: IBoldObjectIdRef;
+  NewLocator: TBoldObjectLocator;
 begin
+  NewLocator := fLocator;
   RemoveFromOtherEnd(blulNone);
+  DiscardModifiedNonEmbeddedOtherEnd(NewLocator);
   OldRef := OwningReference.OldValue;
   if assigned(OldRef) then
   begin

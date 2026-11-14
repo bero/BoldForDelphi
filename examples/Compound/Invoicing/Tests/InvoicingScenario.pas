@@ -35,6 +35,13 @@ procedure BuildAndVerifyScenario(ASystem: TBoldSystem; ACheck: TCheckProc);
 { Checks the facts that must survive a save, a close and a reopen. }
 procedure VerifyReloadedScenario(ASystem: TBoldSystem; ACheck: TCheckProc);
 
+{ Moves the saved invoice to the other customer and discards the change: the
+  whole system's changes, or with AWholeSystem False those of the invoice
+  alone. The invoice must be back with its customer, in the invoice lists of
+  both customers too, and nothing may be left to save. With file persistence
+  the invoice lists are stored as well, so the move modifies three objects. }
+procedure CheckDiscardOfAMovedInvoice(ASystem: TBoldSystem; AWholeSystem: Boolean; ACheck: TCheckProc);
+
 function Money(AValue: Currency): string;
 
 implementation
@@ -42,6 +49,54 @@ implementation
 const
   cBillingAddressText = 'Teollisuuskatu 5, 00510 Helsinki, Finland';
   cFirstInvoiceNumber = 1001;
+
+procedure CheckDiscardOfAMovedInvoice(ASystem: TBoldSystem; AWholeSystem: Boolean; ACheck: TCheckProc);
+var
+  Invoice: TInvoice;
+  Before, Other: TCustomer;
+  Customers: TBoldObjectList;
+  i: Integer;
+  What: string;
+begin
+  if AWholeSystem then
+    What := 'System.Discard'
+  else
+    What := 'Invoice.Discard';
+  Invoice := ASystem.ClassByExpressionName['Invoice'][0] as TInvoice;
+  Before := Invoice.Customer;
+  Other := nil;
+  Customers := ASystem.ClassByExpressionName['Customer'];
+  for i := 0 to Customers.Count - 1 do
+    if Customers[i] <> Before then
+      Other := Customers[i] as TCustomer;
+  ACheck('Move: the invoice has a customer and there is another', Assigned(Before) and Assigned(Other),
+    IntToStr(Customers.Count) + ' customers');
+  if not (Assigned(Before) and Assigned(Other)) then
+    Exit;
+  ACheck('Move: nothing to save before', not ASystem.BoldDirty, BoolToStr(ASystem.BoldDirty, True));
+
+  Invoice.Customer := Other;
+  ACheck('Move: the invoice is in the list of its new customer, not of the former',
+    (Invoice.Customer = Other) and Other.Invoices.Includes(Invoice) and not Before.Invoices.Includes(Invoice),
+    Invoice.Customer.AsString);
+
+  try
+    if AWholeSystem then
+      ASystem.Discard
+    else
+      Invoice.Discard;
+    ACheck(What + ' of the move', True, 'no exception');
+  except
+    on E: Exception do
+      ACheck(What + ' of the move', False, E.ClassName + ': ' + E.Message);
+  end;
+  ACheck(What + ': the invoice is back with its customer', Invoice.Customer = Before, Invoice.Customer.AsString);
+  ACheck(What + ': and in the invoice list of that customer', Before.Invoices.Includes(Invoice),
+    IntToStr(Before.Invoices.Count) + ' invoices');
+  ACheck(What + ': and not in the list of the other', not Other.Invoices.Includes(Invoice),
+    IntToStr(Other.Invoices.Count) + ' invoices');
+  ACheck(What + ': nothing is left to save', not ASystem.BoldDirty, BoolToStr(ASystem.BoldDirty, True));
+end;
 
 function Money(AValue: Currency): string;
 begin

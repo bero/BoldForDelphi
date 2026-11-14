@@ -28,6 +28,10 @@ type
     procedure AbstractCustomerIsRefused;
     procedure BusinessMethodsAndDerivations;
     procedure SurvivesSaveCloseAndReopen;
+    // A changed single link and Discard (a dataset's Cancel does that)
+    procedure DiscardPutsAMovedInvoiceBack;
+    procedure DiscardOfTheInvoiceAlonePutsItBack;
+    procedure DiscardAfterReopenPutsAMovedInvoiceBack;
   end;
 
 implementation
@@ -108,6 +112,41 @@ procedure TTestInvoicingScenario.SurvivesSaveCloseAndReopen;
 begin
   OpenDatabase;
   BuildAndVerifyScenario(FInvoicing.BoldSystem, CollectCheck);
+  FInvoicing.Save;
+  FInvoicing.CloseSystem(False);
+  FInvoicing.OpenSystem(FDataFile);
+  VerifyReloadedScenario(FInvoicing.BoldSystem, CollectCheck);
+  AssertAllChecksPassed;
+end;
+
+procedure TTestInvoicingScenario.DiscardPutsAMovedInvoiceBack;
+begin
+  OpenDatabase;
+  BuildAndVerifyScenario(FInvoicing.BoldSystem, CollectCheck);
+  FInvoicing.Save;
+  CheckDiscardOfAMovedInvoice(FInvoicing.BoldSystem, True, CollectCheck);
+  AssertAllChecksPassed;
+end;
+
+procedure TTestInvoicingScenario.DiscardOfTheInvoiceAlonePutsItBack;
+begin
+  OpenDatabase;
+  BuildAndVerifyScenario(FInvoicing.BoldSystem, CollectCheck);
+  FInvoicing.Save;
+  CheckDiscardOfAMovedInvoice(FInvoicing.BoldSystem, False, CollectCheck);
+  AssertAllChecksPassed;
+end;
+
+procedure TTestInvoicingScenario.DiscardAfterReopenPutsAMovedInvoiceBack;
+begin
+  OpenDatabase;
+  BuildAndVerifyScenario(FInvoicing.BoldSystem, CollectCheck);
+  FInvoicing.Save;
+  FInvoicing.CloseSystem(False);
+  FInvoicing.OpenSystem(FDataFile);
+  CheckDiscardOfAMovedInvoice(FInvoicing.BoldSystem, True, CollectCheck);
+  CheckDiscardOfAMovedInvoice(FInvoicing.BoldSystem, False, CollectCheck);
+  // And the data file is as it was
   FInvoicing.Save;
   FInvoicing.CloseSystem(False);
   FInvoicing.OpenSystem(FDataFile);

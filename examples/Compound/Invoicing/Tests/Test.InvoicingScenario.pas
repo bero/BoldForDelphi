@@ -6,7 +6,8 @@
   failed check and fails the test once with all of them listed, so a single run
   shows the whole picture instead of stopping at the first mismatch. The
   console runner prints the same checks line by line; a Lazarus runner would
-  wrap the same three procedures in FPCUnit. }
+  wraps the same procedures in FPCUnit (../FPC), on XML file persistence where
+  this fixture is on SQLite. }
 
 interface
 
@@ -36,6 +37,13 @@ type
     procedure BusinessMethodsAndDerivations;
     [Test]
     procedure SurvivesSaveCloseAndReopen;
+    // A changed single link and Discard (a dataset's Cancel does that)
+    [Test]
+    procedure DiscardPutsAMovedInvoiceBack;
+    [Test]
+    procedure DiscardOfTheInvoiceAlonePutsItBack;
+    [Test]
+    procedure DiscardAfterReopenPutsAMovedInvoiceBack;
   end;
 
 implementation
@@ -125,6 +133,41 @@ procedure TTestInvoicingScenario.SurvivesSaveCloseAndReopen;
 begin
   OpenDatabase;
   BuildAndVerifyScenario(FDataModule.BoldSystem, CollectCheck);
+  FDataModule.Save;
+  FDataModule.CloseSystem(False);
+  FDataModule.OpenSystem(FDatabaseFile);
+  VerifyReloadedScenario(FDataModule.BoldSystem, CollectCheck);
+  AssertAllChecksPassed;
+end;
+
+procedure TTestInvoicingScenario.DiscardPutsAMovedInvoiceBack;
+begin
+  OpenDatabase;
+  BuildAndVerifyScenario(FDataModule.BoldSystem, CollectCheck);
+  FDataModule.Save;
+  CheckDiscardOfAMovedInvoice(FDataModule.BoldSystem, True, CollectCheck);
+  AssertAllChecksPassed;
+end;
+
+procedure TTestInvoicingScenario.DiscardOfTheInvoiceAlonePutsItBack;
+begin
+  OpenDatabase;
+  BuildAndVerifyScenario(FDataModule.BoldSystem, CollectCheck);
+  FDataModule.Save;
+  CheckDiscardOfAMovedInvoice(FDataModule.BoldSystem, False, CollectCheck);
+  AssertAllChecksPassed;
+end;
+
+procedure TTestInvoicingScenario.DiscardAfterReopenPutsAMovedInvoiceBack;
+begin
+  OpenDatabase;
+  BuildAndVerifyScenario(FDataModule.BoldSystem, CollectCheck);
+  FDataModule.Save;
+  FDataModule.CloseSystem(False);
+  FDataModule.OpenSystem(FDatabaseFile);
+  CheckDiscardOfAMovedInvoice(FDataModule.BoldSystem, True, CollectCheck);
+  CheckDiscardOfAMovedInvoice(FDataModule.BoldSystem, False, CollectCheck);
+  // And the database is as it was
   FDataModule.Save;
   FDataModule.CloseSystem(False);
   FDataModule.OpenSystem(FDatabaseFile);

@@ -150,6 +150,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- Discarding a changed single link no longer raises `StateError: Invalidate`
+  with file persistence (`TBoldPersistenceHandleFileXML`). There the
+  multilinks are stored in the object too, so the change marks the list of
+  the other end as modified, which the discard then tried to invalidate. The
+  modified lists of both ends are now discarded with the link; database
+  persistence, where they are never modified, is unchanged (#117)
 - `TBoldDataSet`: fields read their values while the dataset is read with
   `BlockReadSize` set (the state `dsBlockRead`); they read as empty. The LCL's
   `TDBLookupComboBox` reads its list that way (#117)
