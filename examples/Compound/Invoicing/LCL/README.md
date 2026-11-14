@@ -105,15 +105,16 @@ freestanding environment, where the application drains the queue itself.
 ## Building and running it
 
 Open `InvoicingLCL.lpi` in Lazarus 4 (FPC 3.2.2 or later) and run it, or on
-Linux:
+Linux or in Git Bash on Windows (Lazarus in `C:\lazarus`, or in
+`LAZARUS_DIR`):
 
 ```sh
 ./build.sh            # lazbuild, then the self-test
 bin/InvoicingLCL      # the client
 ```
 
-`build.sh` builds for the Qt5 widgetset; `LCL_WS=gtk2 ./build.sh` chooses
-another. The project requires the packages `Bold` and `BoldLCL`
+`build.sh` builds for the Qt5 widgetset, on Windows for win32;
+`LCL_WS=gtk2 ./build.sh` chooses another. The project requires the packages `Bold` and `BoldLCL`
 (`packages\Lazarus`), which lazbuild compiles first, and compiles its
 own units in the mode `delphiunicode` (Project Options, Custom Options:
 `-Mdelphiunicode`).

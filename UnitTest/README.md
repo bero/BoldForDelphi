@@ -176,6 +176,13 @@ sh FPC/build.sh                                        # build, then run all tes
 sh FPC/build.sh --suite=TTestBoldSystem --format=plain # one fixture
 ```
 
+The same commands run in Git Bash on Windows. There `build.sh` finds Free
+Pascal in the Lazarus installation (`C:\lazarus`, or the folder in
+`LAZARUS_DIR`), `ZEOS` may be written as `/c/...` or `C:/...`, and Zeos loads
+`sqlite3.dll` (64-bit) from the `PATH`. The Windows handling is in
+`Tools/fpc-env.sh`, which every Free Pascal and Lazarus `build.sh` reads; on
+Linux it does nothing.
+
 `build.sh` compiles Zeos first, in mode Delphi as its Lazarus packages do,
 into `FPC/bin/zeos`, and then the tests in mode DelphiUnicode against those
 units. Output goes to `FPC/bin`; the exit code is 0 when every test passed.

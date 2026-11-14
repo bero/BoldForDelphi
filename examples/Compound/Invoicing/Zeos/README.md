@@ -33,4 +33,8 @@ export ZEOS=~/components/zeosdbo-8.0.0
 IDE, open `zcomponent.lpk` from `$ZEOS/packages/lazarus` once instead, then
 `InvoicingZeos.lpi`.
 
-At run time Zeos loads the SQLite library (`libsqlite3.so.0` on Linux).
+`build.sh` also runs in Git Bash on Windows, with Lazarus in `C:\lazarus` (or
+in `LAZARUS_DIR`); `ZEOS` may be written as `/c/...` or `C:/...`.
+
+At run time Zeos loads the SQLite library (`libsqlite3.so.0` on Linux, a
+64-bit `sqlite3.dll` from the `PATH` on Windows).

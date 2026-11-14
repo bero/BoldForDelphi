@@ -78,6 +78,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   share that logic and their captions (in `BoldCoreConsts`). The Invoicing
   FMX client opens it with **Edit OCL**, and its `--selftest` drives it; the
   state has tests `TTestBoldOclEditorState` (Delphi and Free Pascal)
+- The Free Pascal and Lazarus `build.sh` scripts (`UnitTest/FPC`, the
+  Invoicing examples `FPC`, `LCL` and `Zeos`, `packages/Lazarus/tests`) also
+  run in Git Bash on Windows. `Tools/fpc-env.sh`, which they read, gives the
+  Windows programs `fpc` and `lazbuild` paths in the form `C:/...`, keeps Git
+  Bash from rewriting their arguments, finds Free Pascal and lazbuild in the
+  Lazarus folder (`C:\lazarus` or `LAZARUS_DIR`) and builds the LCL for win32;
+  on Linux it does nothing (#117)
 
 ### Changed
 - The OCL editor (`BoldOclPropEditor`) takes its checking, parser messages

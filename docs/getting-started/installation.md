@@ -157,6 +157,10 @@ links no registration code. The Zeos database adapter has its own design-time pa
 `dclBoldZeos.lpk`, which is installed the same way once Lazarus knows Zeos's packages (see
 the README).
 
+The command-line builds of the repository, the `build.sh` scripts of the Free Pascal tests,
+the Lazarus packages' checks and the Invoicing examples, also run in Git Bash on Windows;
+they find Lazarus in `C:\lazarus`, or in the folder that `LAZARUS_DIR` names.
+
 ## Verify Installation
 
 After installation, you should see Bold components in the Delphi Tool Palette:

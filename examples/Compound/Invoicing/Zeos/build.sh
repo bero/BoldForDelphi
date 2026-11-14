@@ -1,6 +1,6 @@
 #!/bin/sh
 # Builds the Invoicing scenario runner on SQLite through Zeos with lazbuild and
-# runs it (Linux, Lazarus 4 with FPC 3.2.2+).
+# runs it (Linux, or Git Bash on Windows; Lazarus 4 with FPC 3.2.2+).
 # Requires Zeos 8.0: set ZEOS to its root folder, the one that contains
 # packages/lazarus (see UnitTest/README.md). The Zeos packages are made known
 # to Lazarus here; building them is lazbuild's job.
@@ -11,6 +11,12 @@
 # configuration of its own.
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
+# Windows paths and programs under Git Bash; nothing on Linux
+. "$HERE/../../../../Tools/fpc-env.sh"
+HERE=$(bold_path "$HERE")
+if [ -n "$ZEOS" ]; then
+  ZEOS=$(bold_path "$ZEOS")
+fi
 if [ -z "$ZEOS" ] || [ ! -f "$ZEOS/packages/lazarus/zcomponent.lpk" ]; then
   echo "build.sh: Zeos 8.0 is required for this runner." >&2
   echo "Set ZEOS to the Zeos root folder (the one that contains packages/lazarus)," >&2

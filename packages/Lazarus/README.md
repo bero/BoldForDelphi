@@ -135,6 +135,9 @@ read back, that every component has its icon, and the OCL editor against the
 Invoicing model: the parser messages, the lists and their filter, adding a
 line, Remove Last, and that an edited expression is written back; and the
 commands of the `TBoldDataSet` and `TBoldModel` component editors.
+`tests/build.sh` builds and runs it, on Linux or in Git Bash on Windows, as
+`tests/build-zeos.sh` does the Zeos check (Lazarus in `C:\lazarus`, or in
+`LAZARUS_DIR`).
 
 ## Using it
 

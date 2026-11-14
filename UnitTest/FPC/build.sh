@@ -1,5 +1,6 @@
 #!/bin/sh
-# Builds and runs the Bold unit tests under Free Pascal (Linux, FPC 3.2.2+).
+# Builds and runs the Bold unit tests under Free Pascal (Linux, or Git Bash on
+# Windows; FPC 3.2.2+).
 # Requires Zeos 8.0: set ZEOS to its root folder (see UnitTest/README.md).
 # Arguments are passed to the test runner (default: all tests, plain output).
 # Output goes to UnitTest/FPC/bin. Exit code 0 when every test passed.
@@ -12,6 +13,13 @@
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../.." && pwd)
+# Windows paths and programs under Git Bash; nothing on Linux
+. "$ROOT/Tools/fpc-env.sh"
+HERE=$(bold_path "$HERE")
+ROOT=$(bold_path "$ROOT")
+if [ -n "$ZEOS" ]; then
+  ZEOS=$(bold_path "$ZEOS")
+fi
 OUT="$HERE/bin"
 HEAPTRC_OPTIONS=""
 if [ "$BOLD_HEAPTRC" = "1" ]; then

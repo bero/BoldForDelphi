@@ -1,18 +1,21 @@
 #!/bin/sh
 # Builds the Lazarus design-time package dclBold with lazbuild, then builds
 # and runs BoldRegistrationCheck, which checks without the IDE what the
-# package registers (Linux, Lazarus 4 with FPC 3.2.2+).
+# package registers (Linux, or Git Bash on Windows; Lazarus 4 with FPC 3.2.2+).
 # Run from anywhere. Exit code 0 when both builds and every check passed.
 #
 # The package holds a property editor with a dialog, so it and the check
-# program are built for a widgetset: LCL_WS, qt5 by default. The check program
-# creates the dialog without showing it; without a display, set
-# QT_QPA_PLATFORM=offscreen.
+# program are built for a widgetset: LCL_WS, qt5 by default, win32 on Windows.
+# The check program creates the dialog without showing it; without a display,
+# set QT_QPA_PLATFORM=offscreen.
 #
 # LAZBUILD_OPTIONS adds lazbuild options, e.g. --pcp=<dir> for a Lazarus
 # configuration of its own.
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
+# Windows paths and programs under Git Bash; nothing on Linux
+. "$HERE/../../../Tools/fpc-env.sh"
+HERE=$(bold_path "$HERE")
 # shellcheck disable=SC2086
 lazbuild --ws="${LCL_WS:-qt5}" $LAZBUILD_OPTIONS "$HERE/../dclBold.lpk"
 # shellcheck disable=SC2086

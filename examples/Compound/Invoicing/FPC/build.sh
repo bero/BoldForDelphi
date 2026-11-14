@@ -1,11 +1,15 @@
 #!/bin/sh
 # Builds and runs the Invoicing scenario runner and the FPCUnit tests under
-# Free Pascal (Linux, FPC 3.2.2+).
+# Free Pascal (Linux, or Git Bash on Windows; FPC 3.2.2+).
 # Run from anywhere; output goes to examples/Compound/Invoicing/FPC/bin.
 # Exit code 0 when every check and every test passed.
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
+# Windows paths and programs under Git Bash; nothing on Linux
+. "$ROOT/Tools/fpc-env.sh"
+HERE=$(bold_path "$HERE")
+ROOT=$(bold_path "$ROOT")
 INV="$ROOT/examples/Compound/Invoicing"
 OUT="$HERE/bin"
 mkdir -p "$OUT"
