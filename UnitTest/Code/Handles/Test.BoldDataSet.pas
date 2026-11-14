@@ -123,6 +123,49 @@ type
     procedure TestObjectSpaceChangeWhileTheFormIsBeingDestroyed;
   end;
 
+  { A single link as a dataset field (#117): the field of an expression that
+    gives an object holds a key of that object, and a dataset over the
+    objects that can be linked has the same key in a field with the
+    expression 'self'. That is what a lookup field and a lookup combo box
+    need: KeyFields = the link field, LookupKeyFields = the 'self' field.
+    TestModel1: a ChildMapped (Child1) has one Own. }
+  {$IFNDEF FPC}
+  [Category('Handles')]
+  {$ENDIF}
+  TTestBoldDataSetLinks = class(TBoldTestCase)
+  private
+    FSystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
+    FSystemHandle: TBoldSystemHandle;
+    FOwnersHandle: TBoldListHandle;
+    FChildrenHandle: TBoldListHandle;
+    FOwners: TBoldDataSet;
+    FChildren: TBoldDataSet;
+    FOwn1, FOwn2: TOwn;
+    FChildOfOwn1, FChildOfOwn2, FLooseChild: TChildMapped;
+    function AddChild(const AName: string; AOwn: TOwn): TChildMapped;
+    function KeyOf(AOwn: TOwn): Int64;
+    procedure GoToChild(AChild: TChildMapped);
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestLinkFieldHoldsTheKeyOfTheLinkedObject;
+    procedure TestLinkFieldOfAnObjectWithoutLinkIsNull;
+    procedure TestPostOfAKeySetsTheLink;
+    procedure TestClearRemovesTheLink;
+    procedure TestLocateFindsTheLinkedObjectByItsKey;
+    procedure TestLookupFieldShowsAValueOfTheLinkedObject;
+    procedure TestLookupFieldOfAnObjectWithoutLinkIsNull;
+    // A key field named 'self' is found by the object, not by a search
+    procedure TestLookupByAKeyFieldNamedSelf;
+    procedure TestLookupLeavesTheCursorOfTheLookupDataSet;
+    procedure TestCalculatedFieldReadsTheRowItIsCalculatedFor;
+    procedure TestLinkChangedOnTheBoldSideShows;
+  private
+    procedure CalcNameOfChild(DataSet: TDataSet);
+    procedure AddLookupFields(const ALookupKeyField: string; out ALookup: TIntegerField);
+  end;
+
 implementation
 
 uses
@@ -868,8 +911,276 @@ begin
   Assert.IsFalse(FSystemHandle.System.BoldDirty, 'nothing should be left to save');
 end;
 
+{ TTestBoldDataSetLinks }
+
+procedure TTestBoldDataSetLinks.SetUp;
+var
+  Description: TBoldDataSetFieldDescription;
+begin
+  inherited;
+  Ensuredm_Model;
+  FSystemTypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
+  FSystemTypeInfoHandle.BoldModel := dm_Model1.BoldModel1;
+  FSystemHandle := TBoldSystemHandle.Create(nil);
+  FSystemHandle.SystemTypeInfoHandle := FSystemTypeInfoHandle;
+  FSystemHandle.Active := True;
+
+  FOwn1 := TOwn.Create(FSystemHandle.System);
+  FOwn2 := TOwn.Create(FSystemHandle.System);
+  FChildOfOwn1 := AddChild('first', FOwn1);
+  FChildOfOwn2 := AddChild('second', FOwn2);
+  AddChild('third', FOwn2);
+  FLooseChild := AddChild('loose', nil);
+
+  FOwnersHandle := TBoldListHandle.Create(nil);
+  FOwnersHandle.RootHandle := FSystemHandle;
+  FOwnersHandle.StaticSystemHandle := FSystemHandle;
+  FOwnersHandle.Expression := 'Own.allInstances';
+  FChildrenHandle := TBoldListHandle.Create(nil);
+  FChildrenHandle.RootHandle := FSystemHandle;
+  FChildrenHandle.StaticSystemHandle := FSystemHandle;
+  FChildrenHandle.Expression := 'ChildMapped.allInstances';
+
+  FOwners := TBoldDataSet.Create(nil);
+  FOwners.BoldHandle := FOwnersHandle;
+  Description := FOwners.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'self';
+  Description.FieldName := 'Key';
+  Description := FOwners.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'childMapped->size';
+  Description.FieldName := 'ChildCount';
+
+  FChildren := TBoldDataSet.Create(nil);
+  FChildren.BoldHandle := FChildrenHandle;
+  Description := FChildren.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'c';
+  Description.FieldName := 'c';
+  Description := FChildren.FieldDescriptions.Add;
+  Description.BoldProperties.Expression := 'own';
+  Description.FieldName := 'Own';
+end;
+
+procedure TTestBoldDataSetLinks.TearDown;
+begin
+  FreeAndNil(FChildren);
+  FreeAndNil(FOwners);
+  FreeAndNil(FChildrenHandle);
+  FreeAndNil(FOwnersHandle);
+  if Assigned(FSystemHandle) and FSystemHandle.Active then
+  begin
+    FSystemHandle.System.Discard;
+    FSystemHandle.Active := False;
+  end;
+  FreeAndNil(FSystemHandle);
+  FreeAndNil(FSystemTypeInfoHandle);
+  inherited;
+end;
+
+function TTestBoldDataSetLinks.AddChild(const AName: string; AOwn: TOwn): TChildMapped;
+begin
+  Result := TChild1.Create(FSystemHandle.System);
+  Result.c := AName;
+  Result.Own := AOwn;
+end;
+
+{ The key of an Own, as its row in the owners dataset has it }
+function TTestBoldDataSetLinks.KeyOf(AOwn: TOwn): Int64;
+begin
+  if not FOwners.Active then
+    FOwners.Open;
+  FOwners.First;
+  while not FOwners.Eof and (FOwners.ActiveBoldObject <> AOwn) do
+    FOwners.Next;
+  Assert.IsFalse(FOwners.Eof, 'the owners dataset should have a row for the object');
+  Result := FOwners.FieldByName('Key').AsLargeInt;
+end;
+
+procedure TTestBoldDataSetLinks.GoToChild(AChild: TChildMapped);
+begin
+  if not FChildren.Active then
+    FChildren.Open;
+  FChildren.First;
+  while not FChildren.Eof and (FChildren.ActiveBoldObject <> AChild) do
+    FChildren.Next;
+  Assert.IsFalse(FChildren.Eof, 'the children dataset should have a row for the object');
+end;
+
+procedure TTestBoldDataSetLinks.TestLinkFieldHoldsTheKeyOfTheLinkedObject;
+begin
+  FChildren.Open;
+  Assert.IsTrue(FChildren.FieldByName('Own').DataType = ftLargeint, 'a link is a ftLargeint field');
+  FOwners.Open;
+  Assert.IsTrue(FOwners.FieldByName('Key').DataType = ftLargeint, 'self is a ftLargeint field');
+  Assert.IsTrue(KeyOf(FOwn1) <> 0, 'an object has a key');
+  Assert.IsTrue(KeyOf(FOwn1) <> KeyOf(FOwn2), 'two objects have two keys');
+  GoToChild(FChildOfOwn1);
+  Assert.IsTrue(FChildren.FieldByName('Own').AsLargeInt = KeyOf(FOwn1), 'the link field of the first child is the key of its Own');
+  GoToChild(FChildOfOwn2);
+  Assert.IsTrue(FChildren.FieldByName('Own').AsLargeInt = KeyOf(FOwn2), 'the link field of the second child is the key of its Own');
+end;
+
+procedure TTestBoldDataSetLinks.TestLinkFieldOfAnObjectWithoutLinkIsNull;
+begin
+  GoToChild(FLooseChild);
+  Assert.IsTrue(FChildren.FieldByName('Own').IsNull, 'a link to nothing is a null field');
+  GoToChild(FChildOfOwn1);
+  Assert.IsFalse(FChildren.FieldByName('Own').IsNull, 'a link to an object is not null');
+end;
+
+procedure TTestBoldDataSetLinks.TestPostOfAKeySetsTheLink;
+var
+  Key2: Int64;
+begin
+  Key2 := KeyOf(FOwn2);
+  GoToChild(FChildOfOwn1);
+  FChildren.Edit;
+  FChildren.FieldByName('Own').AsLargeInt := Key2;
+  FChildren.Post;
+  Assert.IsTrue(FChildOfOwn1.Own = FOwn2, 'Post of the key of another Own should link the child to it');
+  GoToChild(FLooseChild);
+  FChildren.Edit;
+  FChildren.FieldByName('Own').AsLargeInt := Key2;
+  FChildren.Post;
+  Assert.IsTrue(FLooseChild.Own = FOwn2, 'and link a child that had no Own');
+end;
+
+procedure TTestBoldDataSetLinks.TestClearRemovesTheLink;
+begin
+  GoToChild(FChildOfOwn1);
+  FChildren.Edit;
+  FChildren.FieldByName('Own').Clear;
+  FChildren.Post;
+  Assert.IsTrue(FChildOfOwn1.Own = nil, 'Post of a cleared link field should remove the link');
+end;
+
+procedure TTestBoldDataSetLinks.TestLocateFindsTheLinkedObjectByItsKey;
+begin
+  GoToChild(FChildOfOwn2);
+  FOwners.Open;
+  FOwners.First;
+  Assert.IsTrue(FOwners.Locate('Key', FChildren.FieldByName('Own').Value, []), 'Locate by the key of the link');
+  Assert.IsTrue(FOwners.ActiveBoldObject = FOwn2, 'Locate should find the linked object');
+end;
+
+procedure TTestBoldDataSetLinks.TestLookupFieldShowsAValueOfTheLinkedObject;
+var
+  Lookup: TIntegerField;
+begin
+  AddLookupFields('Key', Lookup);
+  FOwners.Open;
+  GoToChild(FChildOfOwn1);
+  Assert.AreEqual(1, Lookup.AsInteger, 'the Own of the first child has one child');
+  GoToChild(FChildOfOwn2);
+  Assert.AreEqual(2, Lookup.AsInteger, 'the Own of the second child has two children');
+end;
+
+procedure TTestBoldDataSetLinks.TestLookupFieldOfAnObjectWithoutLinkIsNull;
+var
+  Lookup: TIntegerField;
+begin
+  AddLookupFields('Key', Lookup);
+  FOwners.Open;
+  GoToChild(FLooseChild);
+  Assert.IsTrue(Lookup.IsNull, 'a child without Own has no lookup value');
+end;
+
+procedure TTestBoldDataSetLinks.AddLookupFields(const ALookupKeyField: string; out ALookup: TIntegerField);
+var
+  Link: TLargeintField;
+begin
+  Link := TLargeintField.Create(FChildren);
+  Link.FieldName := 'Own';
+  Link.DataSet := FChildren;
+  ALookup := TIntegerField.Create(FChildren);
+  ALookup.FieldName := 'OwnChildCount';
+  ALookup.FieldKind := fkLookup;
+  ALookup.KeyFields := 'Own';
+  ALookup.LookupDataSet := FOwners;
+  ALookup.LookupKeyFields := ALookupKeyField;
+  ALookup.LookupResultField := 'ChildCount';
+  ALookup.DataSet := FChildren;
+end;
+
+procedure TTestBoldDataSetLinks.TestLookupByAKeyFieldNamedSelf;
+var
+  Lookup: TIntegerField;
+begin
+  FOwners.FieldDescriptions[0].FieldName := 'self';
+  AddLookupFields('self', Lookup);
+  FOwners.Open;
+  GoToChild(FChildOfOwn1);
+  Assert.AreEqual(1, Lookup.AsInteger, 'the Own of the first child has one child');
+  GoToChild(FChildOfOwn2);
+  Assert.AreEqual(2, Lookup.AsInteger, 'the Own of the second child has two children');
+  GoToChild(FLooseChild);
+  Assert.IsTrue(Lookup.IsNull, 'a child without Own has no lookup value');
+end;
+
+procedure TTestBoldDataSetLinks.TestLookupLeavesTheCursorOfTheLookupDataSet;
+var
+  Lookup: TIntegerField;
+  First: TObject;
+begin
+  AddLookupFields('Key', Lookup);
+  FOwners.Open;
+  FOwners.First;
+  First := FOwners.ActiveBoldObject;
+  GoToChild(FChildOfOwn1);
+  GoToChild(FChildOfOwn2);
+  GoToChild(FLooseChild);
+  Assert.IsTrue(FOwners.ActiveBoldObject = First, 'the lookup dataset stays on its row');
+  FOwners.Next;
+  Assert.IsFalse(FOwners.Eof, 'and Next goes to its second row');
+  Assert.IsTrue(FOwners.ActiveBoldObject <> First, 'which is another object');
+  FOwners.Next;
+  Assert.IsTrue(FOwners.Eof, 'and then to the end: two rows');
+end;
+
+procedure TTestBoldDataSetLinks.CalcNameOfChild(DataSet: TDataSet);
+begin
+  DataSet.FieldByName('Shout').AsString := UpperCase(DataSet.FieldByName('c').AsString);
+end;
+
+procedure TTestBoldDataSetLinks.TestCalculatedFieldReadsTheRowItIsCalculatedFor;
+var
+  Name, Shout: TWideStringField;
+begin
+  Name := TWideStringField.Create(FChildren);
+  Name.FieldName := 'c';
+  Name.Size := 255;
+  Name.DataSet := FChildren;
+  Shout := TWideStringField.Create(FChildren);
+  Shout.FieldName := 'Shout';
+  Shout.FieldKind := fkCalculated;
+  Shout.Size := 255;
+  Shout.DataSet := FChildren;
+  FChildren.OnCalcFields := CalcNameOfChild;
+  GoToChild(FChildOfOwn1);
+  Assert.AreEqual('FIRST', Shout.AsString, 'the calculated field of the first child');
+  GoToChild(FLooseChild);
+  Assert.AreEqual('LOOSE', Shout.AsString, 'the calculated field of the last child');
+end;
+
+procedure TTestBoldDataSetLinks.TestLinkChangedOnTheBoldSideShows;
+var
+  Key2: Int64;
+  StartTicks: Int64;
+begin
+  Key2 := KeyOf(FOwn2);
+  GoToChild(FChildOfOwn1);
+  FChildOfOwn1.Own := FOwn2;
+  StartTicks := BoldTestTickCount;
+  repeat
+    TBoldQueueable.DisplayAll;
+    CheckSynchronize(20);
+  until (FChildren.FieldByName('Own').AsLargeInt = Key2) or (BoldTestTickCount - StartTicks > 2000);
+  Assert.IsTrue(FChildren.ActiveBoldObject = FChildOfOwn1, 'the cursor stays on the child');
+  Assert.IsTrue(FChildren.FieldByName('Own').AsLargeInt = Key2, 'the link field should show the new Own');
+end;
+
 initialization
   BoldRegisterTest(TTestBoldDataSet);
   BoldRegisterTest(TTestBoldDataSetMasterDetail);
+  BoldRegisterTest(TTestBoldDataSetLinks);
 
 end.

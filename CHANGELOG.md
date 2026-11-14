@@ -150,6 +150,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet`: calculated and lookup fields no longer raise an access
+  violation when they read another field of the row. The dataset calculated
+  them once before the record buffer had the row's object (#117)
+- `TBoldDataSet`: the field of a single link (an expression that gives an
+  object) is null when it links to no object; it read as 0. With the two
+  fixes a lookup field or lookup combo box picks a linked object: the link
+  field as key field, a field with the expression `self` in the dataset of
+  the objects to choose from as lookup key (#117)
 - `TBoldDataSet` no longer loses a Bold-side change of one row that is
   displayed while it reads another row and creates that row's cell followers
   (a log window that pumps messages during a fetch does that). The dataset

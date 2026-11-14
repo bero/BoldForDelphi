@@ -1045,8 +1045,12 @@ begin
   try
     if UpperCase(KeyFields) = 'SELF' then
     begin
-      // The key is the locator's address, as the object-reference fields hold it
-      LocatorPtr := Pointer(NativeInt(Int64(KeyValues)));
+      // The key is the locator's address, as the object-reference fields hold it;
+      // a link to no object is null, and finds nothing
+      if VarIsNull(KeyValues) or VarIsEmpty(KeyValues) then
+        LocatorPtr := nil
+      else
+        LocatorPtr := Pointer(NativeInt(Int64(KeyValues)));
       if Assigned(LocatorPtr) then
       begin
         try
@@ -1585,7 +1589,8 @@ begin
 
   if result = grOk then
   begin
-    GetCalcFields(Buffer);
+    // The calculated and lookup fields are calculated by BoldToBuffer, once
+    // the buffer has the row's element: they may read the row's other fields
     with GetBookmarkInfo(TRecordBuffer(Buffer))^ do
     begin
       Element := List[FRecordPos];
@@ -1694,6 +1699,14 @@ begin
             if (Length(Buffer) >= SizeOf(Variant)) and (Field.DataType=ftVariant) then
               PVariant(@Buffer[0])^ := IndirectElement.Value.GetAsVariant;
             Field.readOnly := not Attr.CanModify;
+          end
+          else if FieldType = ftLargeint then
+          begin
+            // A single link: null when it links to no object
+            if IndirectElement.Value is TBoldObjectReference then
+              result := Assigned(TBoldObjectReference(IndirectElement.Value).Locator)
+            else
+              result := IndirectElement.Value is TBoldObject;
           end
           else
             result := True;
