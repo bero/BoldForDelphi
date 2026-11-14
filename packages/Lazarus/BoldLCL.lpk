@@ -8,20 +8,24 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../../Source/Common/Include"/>
-        <OtherUnitFiles Value="../../Source/Common/EnvironmentLCL"/>
+        <OtherUnitFiles Value="../../Source/Common/EnvironmentLCL;../../Source/ObjectSpace/UtilsGUI/LCL"/>
         <UnitOutputDirectory Value="lib/BoldLCL/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
         <CustomOptions Value="-Mdelphiunicode"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Bold for Delphi, the LCL side of the runtime: BoldEnvironmentLCL, which drains Bold's display queue from the LCL's idle handling and shows LCL dialogs."/>
+    <Description Value="Bold for Delphi, the LCL side of the runtime: BoldEnvironmentLCL, which drains Bold's display queue from the LCL's idle handling and shows LCL dialogs, and Bold's OCL editor as an LCL dialog."/>
     <License Value="MIT"/>
     <Version Major="26" Minor="9" Release="1"/>
     <Files>
       <Item>
         <Filename Value="../../Source/Common/EnvironmentLCL/boldenvironmentlcl.pas"/>
         <UnitName Value="BoldEnvironmentLCL"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/ObjectSpace/UtilsGUI/LCL/boldoclexpressiondialoglcl.pas"/>
+        <UnitName Value="BoldOclExpressionDialogLCL"/>
       </Item>
     </Files>
     <RequiredPkgs>

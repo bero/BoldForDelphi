@@ -8,7 +8,7 @@ unit BoldLCL;
 interface
 
 uses
-  BoldEnvironmentLCL;
+  BoldEnvironmentLCL, BoldOclExpressionDialogLCL;
 
 implementation
 

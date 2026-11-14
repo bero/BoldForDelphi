@@ -15,7 +15,12 @@ space, OCL, handles, persistence mappers, XML file persistence and
 (`Source/Common/EnvironmentLCL`), the twin of `BoldEnvironmentVCL`: name it in
 one uses clause of an LCL application, and Bold's display queue is drained
 from the LCL's idle handling, and `AskUser`, `QueryUser` and `InformUser` show
-LCL dialogs. A console program or a service needs only `Bold`.
+LCL dialogs. A console program or a service needs only `Bold`. It also holds
+Bold's OCL editor as an LCL dialog (`BoldOclExpressionDialogLCL`,
+`Source/ObjectSpace/UtilsGUI/LCL`): `BoldEditOclExpressionLCL` opens it on
+an expression from an application, as `BoldEditOclExpressionFMX` does in an
+FMX one, and the design package opens the same dialog from the Object
+Inspector.
 
 The queue is drained when the application is idle. Under the VCL Bold drains
 it before every message, so also inside a loop that calls

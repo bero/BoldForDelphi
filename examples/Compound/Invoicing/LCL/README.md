@@ -94,6 +94,13 @@ own units in the mode `delphiunicode` (Project Options, Custom Options:
 
 **Save changes** writes to the data file.
 
+**Edit OCL...** opens Bold's OCL editor (`BoldOclExpressionDialogLCL`, in the
+package `BoldLCL`) on the Invoicing model: the classes, members and operations
+that can follow the expression are listed and filtered as you type, and the
+parser's answer is shown under it. After OK the expression is evaluated in
+the running system and the client shows its value. The FMX client has the
+same button, with the same editor as an FMX dialog.
+
 `InvoicingLCL --selftest` shows no window: it fills a temporary data file,
 walks every customer and invoice, checks what the grids are bound to and that
 the LCL environment drains Bold's display queue, picks another customer for

@@ -21,6 +21,10 @@ unit fInvoicingMain;
   the customer grid to the new customer, so that the invoice stays in view.
   See README.md.
 
+  Edit OCL opens Bold's OCL editor as an LCL dialog
+  (BoldOclExpressionDialogLCL) on the model, and evaluates the expression it
+  gives back. The FMX client (../FMX) has the same form.
+
   All of that is in the form file (fInvoicingMain.lfm): the model, the system
   and persistence handles, the list handles, the datasets with their fields,
   the data sources and the grids are components on the form, wired through
@@ -84,16 +88,20 @@ type
     grdLines: TDBGrid;
     pnlBar: TPanel;
     btnSave: TButton;
+    btnEditOcl: TButton;
     lblStatus: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
+    procedure btnEditOclClick(Sender: TObject);
     procedure dsInvoicesDataChange(Sender: TObject; Field: TField);
     procedure cmbInvoiceCustomerSelect(Sender: TObject);
   private
     FDatabase: string;
     FSelfTest: Boolean;
     FSelfTestException: Boolean;
+    { What Edit OCL opens with: the expression of the last OK }
+    FOclExpression: string;
     // A TInvoice; the model's classes are not named in the interface
     FInvoiceToFollow: TObject;
     procedure FollowTheInvoice(Data: PtrInt);
@@ -124,7 +132,10 @@ implementation
 {$R *.lfm}
 
 uses
+  Dialogs,
   BoldQueue,
+  BoldOclExpressionCheck,
+  BoldOclExpressionDialogLCL,
   BoldEnvironment,
   BoldEnvironmentLCL, // registers Bold's LCL environment
   InvoicingClasses,
@@ -246,6 +257,7 @@ begin
   bdsInvoices.FieldByName('Customer').Visible := False;
   bdsLines.Open;
 
+  FOclExpression := 'Customer.allInstances';
   Application.OnIdle := AppIdle;
   ShowStatus;
   SelfTestTrace('grids bound');
@@ -347,6 +359,27 @@ begin
   ShowStatus;
 end;
 
+{ The OCL editor checks against the model as the user types; after OK the
+  expression is evaluated in the system, and its value or error shown }
+procedure TfrmInvoicingMain.btnEditOclClick(Sender: TObject);
+var
+  Expression, Outcome: string;
+begin
+  Expression := FOclExpression;
+  if not BoldEditOclExpressionLCL(Expression, BoldSystemHandle1.StaticSystemTypeInfo) then
+    Exit;
+  FOclExpression := Expression;
+  try
+    Outcome := BoldSystemHandle1.System.EvaluateExpressionAsString(Expression);
+  except
+    on E: Exception do
+      Outcome := string(E.ClassName) + ': ' + E.Message;
+  end;
+  if Length(Outcome) > 1000 then
+    Outcome := Copy(Outcome, 1, 1000) + '...';
+  ShowMessage(AnsiString(Expression + LineEnding + LineEnding + Outcome));
+end;
+
 procedure TfrmInvoicingMain.ShowStatus;
 var
   Status: string;
@@ -405,6 +438,32 @@ var
   function Rows(AGrid: TDBGrid): Integer;
   begin
     Result := AGrid.DataSource.DataSet.RecordCount;
+  end;
+
+  { The OCL editor, created as Edit OCL creates it but not shown }
+  procedure CheckTheOclEditor;
+  var
+    Editor: TBoldOclExpressionDialog;
+    i, Found: Integer;
+  begin
+    Editor := TBoldOclExpressionDialog.CreateDialog(nil, BoldSystemHandle1.StaticSystemTypeInfo, nil);
+    try
+      Found := -1;
+      for i := 0 to Editor.CompletionCount - 1 do
+        if Editor.Completions[i].InsertText = 'Customer' then
+          Found := i;
+      Check('OCL editor: the classes of the model for the empty expression',
+        (Found >= 0) and (Editor.Completions[Found].Kind = ockType), IntToStr(Editor.CompletionCount) + ' lines');
+      Editor.Expression := FOclExpression;
+      Check('OCL editor: the expression Edit OCL opens with is valid, with its type',
+        Editor.LastCheck.Valid and (Editor.LastCheck.ResultTypeName = 'Collection(Customer)'),
+        Editor.LastCheck.ResultTypeName);
+      Editor.Expression := 'Customer.allInstances.nosuch';
+      Check('OCL editor: an error is shown with a pointer at it',
+        not Editor.LastCheck.Valid and (Pos('^', Editor.StatusText) > 0), IntToStr(Editor.LastCheck.ErrorPosition));
+    finally
+      Editor.Free;
+    end;
   end;
 
   { Picks an item of the combo box as a user does. The widgetset then calls
@@ -563,6 +622,7 @@ begin
     NameShown := grdCustomers.Columns[1].Field.AsUnicodeString;
     Check('a rename on the Bold side shows in the grid', NameShown = Customer.Name, NameShown);
 
+    CheckTheOclEditor;
     Log.Add(IntToStr(Failures) + ' failed');
     SelfTestTrace(Log.Text);
   finally

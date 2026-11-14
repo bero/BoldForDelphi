@@ -1647,11 +1647,22 @@ object frmInvoicingMain: TfrmInvoicingMain
       OnClick = btnSaveClick
       TabOrder = 0
     end
+    object btnEditOcl: TButton
+      Left = 748
+      Height = 28
+      Top = 4
+      Width = 120
+      Align = alRight
+      BorderSpacing.Around = 4
+      Caption = 'Edit OCL...'
+      OnClick = btnEditOclClick
+      TabOrder = 1
+    end
     object lblStatus: TLabel
       Left = 8
       Height = 36
       Top = 0
-      Width = 864
+      Width = 736
       Align = alClient
       BorderSpacing.Left = 8
       Layout = tlCenter

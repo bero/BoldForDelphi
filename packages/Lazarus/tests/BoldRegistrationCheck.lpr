@@ -37,6 +37,7 @@ uses
   BoldExpressionHandle,
   BoldControlPack,
   BoldOclExpressionCheck,
+  BoldOclExpressionDialogLCL,
   BoldOclExpressionPropEdit,
   BoldDataSetComponentEditor,
   BoldModelComponentEditor,
