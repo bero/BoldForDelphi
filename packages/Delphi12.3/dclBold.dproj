@@ -379,6 +379,7 @@
         <DCCReference Include="..\..\Source\ObjectSpace\Ocl\BoldOcl.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\Ocl\BoldOclClasses.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\Ocl\BoldOclError.pas"/>
+        <DCCReference Include="..\..\Source\ObjectSpace\Ocl\BoldOclExpressionCheck.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\Ocl\BoldOclEvaluator.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\Ocl\BoldOclLightWeightNodeMaker.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\Ocl\BoldOclLightWeightNodes.pas"/>

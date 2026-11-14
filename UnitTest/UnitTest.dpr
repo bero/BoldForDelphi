@@ -52,6 +52,8 @@ uses
   Test.BoldOclClasses in 'Code\ObjectSpace\Test.BoldOclClasses.pas',
   Test.BoldOclLightWeightNodes in 'Code\ObjectSpace\Test.BoldOclLightWeightNodes.pas',
   Test.BoldOclEvaluation in 'Code\ObjectSpace\Test.BoldOclEvaluation.pas',
+  Test.BoldOclExpressionCheck in 'Code\ObjectSpace\Test.BoldOclExpressionCheck.pas',
+  Test.BoldOclPropEditor in 'Code\ObjectSpace\Test.BoldOclPropEditor.pas',
   Test.BoldOclObjectTimeStamp in 'Code\ObjectSpace\Test.BoldOclObjectTimeStamp.pas',
   Test.BoldSystem in 'Code\ObjectSpace\Test.BoldSystem.pas',
   Test.BoldSystemPersistent in 'Code\ObjectSpace\Test.BoldSystemPersistent.pas',

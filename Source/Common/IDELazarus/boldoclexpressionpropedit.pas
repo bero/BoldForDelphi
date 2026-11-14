@@ -122,6 +122,13 @@ type
     procedure Edit; override;
   end;
 
+{ The type an expression of APersistent is evaluated in, and its variables:
+  a handle with an expression (IBoldOCLComponent) or a follower controller,
+  as the BoldProperties of a TBoldDataSet field. False when APersistent is
+  neither; AContext is nil when the component is not connected to a model. }
+function BoldOclContextOf(APersistent: TPersistent; out AContext: TBoldElementTypeInfo;
+  out AVariables: TBoldExternalVariableList): Boolean;
+
 implementation
 
 {$R boldoclexpressionpropedit.res}
@@ -134,6 +141,7 @@ uses
   Clipbrd,
   Dialogs,
   BoldCoreConsts,
+  BoldControlPack,
   BoldSystemRT;
 
 resourcestring
@@ -166,6 +174,28 @@ const
   cIconResources: array[TBoldOclCompletionKind] of string =
     ('BOLDOCLATTRIBUTE', 'BOLDOCLSINGLELINK', 'BOLDOCLMULTILINK', 'BOLDOCLCLASS', 'BOLDOCLOPERATION');
   cGap = 6;
+
+function BoldOclContextOf(APersistent: TPersistent; out AContext: TBoldElementTypeInfo;
+  out AVariables: TBoldExternalVariableList): Boolean;
+var
+  OclComponent: IBoldOCLComponent;
+begin
+  AContext := nil;
+  AVariables := nil;
+  Result := True;
+  if APersistent is TBoldFollowerController then
+  begin
+    AContext := TBoldFollowerController(APersistent).ContextType;
+    AVariables := TBoldFollowerController(APersistent).VariableList;
+  end
+  else if Assigned(APersistent) and APersistent.GetInterface(IBoldOCLComponent, OclComponent) then
+  begin
+    AContext := OclComponent.ContextType;
+    AVariables := OclComponent.VariableList;
+  end
+  else
+    Result := False;
+end;
 
 { TBoldOclExpressionDialog }
 

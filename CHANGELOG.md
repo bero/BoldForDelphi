@@ -51,6 +51,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   itself. `BoldSharedClock` is the instance shared by the application (#119)
 
 ### Changed
+- The OCL editor (`BoldOclPropEditor`) takes its checking, parser messages
+  and lists of members, operations and variables from the new unit
+  `BoldOclExpressionCheck` (`Source/ObjectSpace/Ocl`), which the Lazarus OCL
+  editor uses too, so there is one copy of that logic (#124). The form shows
+  what it showed before; a line of the list now carries its OCL symbol
+  through the filter. New tests `Test.BoldOclPropEditor` (the form, Windows)
+  and `Test.BoldOclExpressionCheck` (the unit, Delphi and Free Pascal)
 - The parts of `BoldControlPack`, `BoldStringControlPack` and `BoldGUI` that
   need the VCL (`DrawOnCanvas`, the renderer's `OnSetFont`/`OnSetColor`, the
   popup menu, the lookup of the hosting form) are compiled only under the new

@@ -288,6 +288,7 @@ contains
   BoldOcl in '..\..\Source\ObjectSpace\Ocl\BoldOcl.pas',
   BoldOclClasses in '..\..\Source\ObjectSpace\Ocl\BoldOclClasses.pas',
   BoldOclError in '..\..\Source\ObjectSpace\Ocl\BoldOclError.pas',
+  BoldOclExpressionCheck in '..\..\Source\ObjectSpace\Ocl\BoldOclExpressionCheck.pas',
   BoldOclEvaluator in '..\..\Source\ObjectSpace\Ocl\BoldOclEvaluator.pas',
   BoldOclLightWeightNodeMaker in '..\..\Source\ObjectSpace\Ocl\BoldOclLightWeightNodeMaker.pas',
   BoldOclLightWeightNodes in '..\..\Source\ObjectSpace\Ocl\BoldOclLightWeightNodes.pas',

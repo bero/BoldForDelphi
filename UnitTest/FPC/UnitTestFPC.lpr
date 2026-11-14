@@ -71,6 +71,7 @@ uses
   Test.BoldOclClasses,
   Test.BoldOclError,
   Test.BoldOclEvaluation,
+  Test.BoldOclExpressionCheck,
   Test.BoldOclLightWeightNodes,
   Test.BoldOclObjectTimeStamp,
   Test.BoldOclVariables,

@@ -3,14 +3,14 @@
 {$include bold.inc}
 unit BoldOclExpressionCheck;
 
-{ Checks an OCL expression against the model, for the Lazarus property editor
-  of Expression (#117): the type the expression is evaluated in comes from the
-  component that owns the property, the check is the one the OCL evaluator
-  does when it parses, and the answer is the type of the result or the error
-  and where in the expression it is. It also lists what can follow the
-  expression (members, classes, operations) and the variables, as Delphi's
-  OCL editor (BoldOclPropEditor) does. No LCL and no IDE unit, so
-  packages/Lazarus/tests/BoldRegistrationCheck tests it without the IDE. }
+{ What an OCL editor needs, without its form: checks an expression against
+  the type it is evaluated in and gives the parser messages (the type of the
+  result, or the expression with a pointer at the error), lists what can
+  follow the expression (members, classes, operations) and the OCL variables,
+  and has Remove Last and the search for an argument placeholder.
+
+  One copy for the two editors (#124): the VCL form BoldOclPropEditor and the
+  Lazarus dialog BoldOclExpressionPropEdit (#117). No VCL, LCL or IDE unit. }
 
 interface
 
@@ -28,10 +28,15 @@ type
       the context }
     ResultType: TBoldElementTypeInfo;
     ResultTypeName: string;
-    { Of an expression that is not valid; the position is the offset of the
-      character in the expression, from 0, or -1 when the error has none }
+    { Of an expression that is not valid. An OCL error has a position: the
+      offset of the character in the expression, from 0. Another exception
+      has -1. ErrorMessage is the text without the position the evaluator
+      puts before it, RawErrorMessage with it, as the editors show it. }
     ErrorMessage: string;
+    RawErrorMessage: string;
     ErrorPosition: Integer;
+    IsOclError: Boolean;
+    IsInternalError: Boolean;
     { The error is one of the parser's own (SSYacc, SSLex) }
     IsSyntaxError: Boolean;
   end;
@@ -45,6 +50,8 @@ type
     { The line of the list in two parts: the name, and its arguments and type }
     Name: string;
     Detail: string;
+    { Of an operation: its TBoldOclSymbol }
+    Symbol: TObject;
   end;
   TBoldOclCompletions = array of TBoldOclCompletion;
 
@@ -61,15 +68,9 @@ const
   ocfOperations = 4;
   ocfText = -1;
 
-{ The type an expression of APersistent is evaluated in, and its variables:
-  a handle with an expression (IBoldOCLComponent) or a follower controller,
-  as the BoldProperties of a TBoldDataSet field. False when APersistent is
-  neither; AContext is nil when the component is not connected to a model. }
-function BoldOclContextOf(APersistent: TPersistent; out AContext: TBoldElementTypeInfo;
-  out AVariables: TBoldExternalVariableList): Boolean;
-
+{ AEvaluator: another evaluator than the one of the context's system }
 function BoldCheckOclExpression(const AExpression: string; AContext: TBoldElementTypeInfo;
-  AVariables: TBoldExternalVariableList): TBoldOclCheckResult;
+  AVariables: TBoldExternalVariableList; AEvaluator: TBoldEvaluator = nil): TBoldOclCheckResult;
 
 { The parser messages of Delphi's OCL editor: 'Syntax is OK' and the type, or
   the expression with a pointer under the error, and the message. A parser
@@ -81,13 +82,14 @@ function BoldOclCheckResultAsText(const AExpression: string; const AResult: TBol
   or the classes for the system, and the operations that take that type.
   Nothing when the expression is not valid. }
 procedure BoldOclListCompletions(const AExpression: string; const ACheck: TBoldOclCheckResult;
-  AContext: TBoldElementTypeInfo; AOptions: TBoldOclMemberOptions; out AItems: TBoldOclCompletions);
+  AContext: TBoldElementTypeInfo; AOptions: TBoldOclMemberOptions; out AItems: TBoldOclCompletions;
+  AEvaluator: TBoldEvaluator = nil);
 function BoldOclCompletionPasses(const AItem: TBoldOclCompletion; AKindFilter: Integer;
   const AFilterText: string): Boolean;
 { The variables the expression can use: the component's, and the evaluator's
   own except Nil, True, False and TimeStampNow }
 procedure BoldOclListVariables(AContext: TBoldElementTypeInfo; AVariables: TBoldExternalVariableList;
-  out AItems: TBoldOclCompletions);
+  out AItems: TBoldOclCompletions; AEvaluator: TBoldEvaluator = nil);
 
 { The expression without its last step: back to the last '.', '->' or space }
 function BoldOclRemoveLast(const AExpression: string): string;
@@ -100,7 +102,7 @@ implementation
 uses
   SysUtils,
   BoldCoreConsts,
-  BoldControlPack,
+  BoldOclError,
   BoldSystemRT,
   BoldOcl,
   BoldOclClasses;
@@ -109,28 +111,6 @@ const
   cHiddenOclVariables: array[0..3] of string = ('Nil', 'True', 'False', 'TimeStampNow');
   cPlaceholderOpen = '«';
   cPlaceholderClose = '»';
-
-function BoldOclContextOf(APersistent: TPersistent; out AContext: TBoldElementTypeInfo;
-  out AVariables: TBoldExternalVariableList): Boolean;
-var
-  OclComponent: IBoldOCLComponent;
-begin
-  AContext := nil;
-  AVariables := nil;
-  Result := True;
-  if APersistent is TBoldFollowerController then
-  begin
-    AContext := TBoldFollowerController(APersistent).ContextType;
-    AVariables := TBoldFollowerController(APersistent).VariableList;
-  end
-  else if Assigned(APersistent) and APersistent.GetInterface(IBoldOCLComponent, OclComponent) then
-  begin
-    AContext := OclComponent.ContextType;
-    AVariables := OclComponent.VariableList;
-  end
-  else
-    Result := False;
-end;
 
 { The evaluator's messages start with the position and a colon }
 procedure SplitMessage(const AMessage: string; out APosition: Integer; out AText: string);
@@ -146,8 +126,29 @@ begin
     APosition := -1;
 end;
 
+function EvaluatorOf(AContext: TBoldElementTypeInfo; AEvaluator: TBoldEvaluator): TBoldEvaluator;
+begin
+  Result := AEvaluator;
+  if not Assigned(Result) and Assigned(AContext) then
+    Result := AContext.Evaluator;
+end;
+
 function BoldCheckOclExpression(const AExpression: string; AContext: TBoldElementTypeInfo;
-  AVariables: TBoldExternalVariableList): TBoldOclCheckResult;
+  AVariables: TBoldExternalVariableList; AEvaluator: TBoldEvaluator): TBoldOclCheckResult;
+var
+  Evaluator: TBoldEvaluator;
+
+  procedure OclError(E: Exception; APosition: Integer);
+  var
+    Position: Integer;
+  begin
+    Result.IsOclError := True;
+    Result.ErrorPosition := APosition;
+    Result.RawErrorMessage := E.Message;
+    Result.IsSyntaxError := (Pos('SSYacc', E.Message) > 0) or (Pos('SSLex', E.Message) > 0);
+    SplitMessage(E.Message, Position, Result.ErrorMessage);
+  end;
+
 begin
   Result.Checked := False;
   Result.Valid := False;
@@ -155,25 +156,42 @@ begin
   Result.ResultType := nil;
   Result.ResultTypeName := '';
   Result.ErrorMessage := '';
+  Result.RawErrorMessage := '';
   Result.ErrorPosition := -1;
+  Result.IsOclError := False;
+  Result.IsInternalError := False;
   Result.IsSyntaxError := False;
-  if not Assigned(AContext) or not Assigned(AContext.Evaluator) then
+  Evaluator := EvaluatorOf(AContext, AEvaluator);
+  if not Assigned(AContext) or not Assigned(Evaluator) then
     Exit;
   Result.Checked := True;
   Result.ContextName := AContext.AsString;
   try
     // An empty expression is the context itself
-    Result.ResultType := AContext.Evaluator.ExpressionType(AExpression, AContext, True, AVariables);
+    Result.ResultType := Evaluator.ExpressionType(AExpression, AContext, True, AVariables);
     Result.Valid := True;
     if Assigned(Result.ResultType) then
       Result.ResultTypeName := Result.ResultType.AsString;
   except
-    // EBoldOCLAbort is an EAbort, EBoldOCLError an EBold
+    // The evaluator has given the exception its position (FixError)
+    on E: EBoldOclAbort do
+    begin
+      Result.ResultType := nil;
+      E.FixError;
+      OclError(E, E.Position);
+    end;
+    on E: EBoldOclError do
+    begin
+      Result.ResultType := nil;
+      E.FixError;
+      OclError(E, E.Position);
+      Result.IsInternalError := E is EBoldOclInternalError;
+    end;
     on E: Exception do
     begin
       Result.ResultType := nil;
-      Result.IsSyntaxError := (Pos('SSYacc', E.Message) > 0) or (Pos('SSLex', E.Message) > 0);
-      SplitMessage(E.Message, Result.ErrorPosition, Result.ErrorMessage);
+      Result.ErrorMessage := E.Message;
+      Result.RawErrorMessage := E.Message;
     end;
   end;
 end;
@@ -188,7 +206,10 @@ var
 begin
   Lines := TStringList.Create;
   try
-    Lines.Text := AExpression;
+    if AResult.IsInternalError then
+      Lines.Text := 'Internal Error: ' + AExpression
+    else
+      Lines.Text := AExpression;
     if (AResult.ErrorPosition >= 0) and (Lines.Count > 0) then
     begin
       Line := 0;
@@ -201,13 +222,13 @@ begin
       end;
       if Offset < 0 then
         Offset := 0;
-      if Offset >= 8 then
+      if Offset >= 10 then
         Pointer := StringOfChar(' ', Offset - 7) + '-------^'
       else
         Pointer := StringOfChar(' ', Offset) + '^-------';
       Lines.Insert(Line + 1, Pointer);
     end;
-    Lines.Add(AResult.ErrorMessage);
+    Lines.Add(AResult.RawErrorMessage);
     Result := TrimRight(Lines.Text);
   finally
     Lines.Free;
@@ -228,6 +249,8 @@ begin
     else
       Result := sSyntaxOK + sLineBreak + sLineBreak + sCurrentTypeIsUnknown;
   end
+  else if not AResult.IsOclError then
+    Result := AResult.RawErrorMessage
   else if AResult.IsSyntaxError and not AShowSyntaxErrors then
     Result := sSyntaxError
   else
@@ -235,7 +258,7 @@ begin
 end;
 
 procedure AddCompletion(var AItems: TBoldOclCompletions; AKind: TBoldOclCompletionKind;
-  const AInsertText, AName, ADetail: string);
+  const AInsertText, AName, ADetail: string; ASymbol: TObject = nil);
 begin
   SetLength(AItems, Length(AItems) + 1);
   with AItems[High(AItems)] do
@@ -244,6 +267,7 @@ begin
     InsertText := AInsertText;
     Name := AName;
     Detail := ADetail;
+    Symbol := ASymbol;
   end;
 end;
 
@@ -351,19 +375,23 @@ begin
       Detail := Arguments + ' : ' + Symbol.ResultType.ExpressionName
     else
       Detail := Arguments;
-    AddCompletion(AItems, ockOperation, Name + Arguments, Name, Detail);
+    AddCompletion(AItems, ockOperation, Name + Arguments, Name, Detail, Symbol);
   end;
 end;
 
 procedure BoldOclListCompletions(const AExpression: string; const ACheck: TBoldOclCheckResult;
-  AContext: TBoldElementTypeInfo; AOptions: TBoldOclMemberOptions; out AItems: TBoldOclCompletions);
+  AContext: TBoldElementTypeInfo; AOptions: TBoldOclMemberOptions; out AItems: TBoldOclCompletions;
+  AEvaluator: TBoldEvaluator);
+var
+  Evaluator: TBoldEvaluator;
 begin
   AItems := nil;
   if not ACheck.Valid or not Assigned(ACheck.ResultType) then
     Exit;
   ListMembers(AExpression, ACheck.ResultType, AOptions, AItems);
-  if (AExpression <> '') and Assigned(AContext) and (AContext.Evaluator is TBoldOcl) then
-    ListOperations(ACheck.ResultType, TBoldOcl(AContext.Evaluator), AItems);
+  Evaluator := EvaluatorOf(AContext, AEvaluator);
+  if (AExpression <> '') and (Evaluator is TBoldOcl) then
+    ListOperations(ACheck.ResultType, TBoldOcl(Evaluator), AItems);
 end;
 
 function BoldOclCompletionPasses(const AItem: TBoldOclCompletion; AKindFilter: Integer;
@@ -393,7 +421,7 @@ begin
 end;
 
 procedure BoldOclListVariables(AContext: TBoldElementTypeInfo; AVariables: TBoldExternalVariableList;
-  out AItems: TBoldOclCompletions);
+  out AItems: TBoldOclCompletions; AEvaluator: TBoldEvaluator);
 
   procedure AddVariable(const AName: string; AType: TBoldElementTypeInfo);
   var
@@ -426,9 +454,9 @@ begin
   if Assigned(AVariables) then
     for i := 0 to AVariables.Count - 1 do
       AddVariable(AVariables[i].Name, AVariables[i].ValueType);
-  if Assigned(AContext) and (AContext.Evaluator is TBoldOcl) then
+  if EvaluatorOf(AContext, AEvaluator) is TBoldOcl then
   begin
-    Evaluator := TBoldOcl(AContext.Evaluator);
+    Evaluator := TBoldOcl(EvaluatorOf(AContext, AEvaluator));
     for i := 0 to Evaluator.VariableCount - 1 do
     begin
       Binding := Evaluator.Variables[i] as TBoldOclVariableBinding;

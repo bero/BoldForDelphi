@@ -397,8 +397,8 @@ begin
     Dialog.Expression := 'invoices.nosuchmember';
     Check('the dialog shows the error of an expression that is not valid, with a pointer at it',
       not Dialog.LastCheck.Valid and (Dialog.CompletionCount = 0) and
-      (Dialog.StatusText = 'invoices.nosuchmember' + LineEnding + '  -------^' + LineEnding +
-        'nosuchmember is not a member of Invoice'), OneLine(Dialog.StatusText));
+      (Dialog.StatusText = 'invoices.nosuchmember' + LineEnding + '         ^-------' + LineEnding +
+        '9:nosuchmember is not a member of Invoice'), OneLine(Dialog.StatusText));
     Dialog.Expression := 'invoices->';
     Check('a parser error is shown as a syntax error', not Dialog.LastCheck.Valid and
       Dialog.LastCheck.IsSyntaxError and (Dialog.StatusText = 'Unable to complete parse, syntax error'),

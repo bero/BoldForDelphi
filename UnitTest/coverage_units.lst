@@ -380,6 +380,7 @@ BoldObjectUpgraderHandleReg
 BoldOcl
 BoldOclClasses
 BoldOclError
+BoldOclExpressionCheck
 BoldOclEvaluator
 BoldOclLightWeightNodeMaker
 BoldOclLightWeightNodes

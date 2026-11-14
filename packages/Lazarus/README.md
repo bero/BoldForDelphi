@@ -71,7 +71,10 @@ the type of the result, or the expression with a pointer at the error. At the
 right is what can follow the expression, the members of its type (the classes,
 for the system) and the operations, with the filter and the Derived,
 Persistent and Transient boxes; a double click or Enter adds the line. At the
-left are the OCL variables. Remove Last, Clear, Show Original Parser Errors
+left are the OCL variables. The checking, the messages and the lists are one
+unit that Delphi's form uses too, `BoldOclExpressionCheck`
+(`Source/ObjectSpace/Ocl`, in `Bold.lpk`; #124), so the two editors show the
+same. Remove Last, Clear, Show Original Parser Errors
 and Show Info are there; the font button and the list of recently used
 expressions, which Delphi keeps in the Windows registry, are not. The model
 must be in the form (a `TBoldModel` that the handles reach through their

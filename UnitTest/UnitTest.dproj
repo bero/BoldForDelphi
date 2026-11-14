@@ -159,6 +159,8 @@
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclClasses.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclLightWeightNodes.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclEvaluation.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldOclExpressionCheck.pas"/>
+        <DCCReference Include="Code\ObjectSpace\Test.BoldOclPropEditor.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldOclObjectTimeStamp.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldSystem.pas"/>
         <DCCReference Include="Code\ObjectSpace\Test.BoldSystemPersistent.pas"/>

@@ -456,6 +456,10 @@
         <UnitName Value="BoldOclError"/>
       </Item>
       <Item>
+        <Filename Value="../../Source/ObjectSpace/Ocl/boldoclexpressioncheck.pas"/>
+        <UnitName Value="BoldOclExpressionCheck"/>
+      </Item>
+      <Item>
         <Filename Value="../../Source/ObjectSpace/Ocl/boldoclevaluator.pas"/>
         <UnitName Value="BoldOclEvaluator"/>
       </Item>

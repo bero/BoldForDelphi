@@ -25,10 +25,6 @@
         <UnitName Value="BoldLazarusReg"/>
       </Item>
       <Item>
-        <Filename Value="../../Source/Common/IDELazarus/boldoclexpressioncheck.pas"/>
-        <UnitName Value="BoldOclExpressionCheck"/>
-      </Item>
-      <Item>
         <Filename Value="../../Source/Common/IDELazarus/boldoclexpressionpropedit.pas"/>
         <UnitName Value="BoldOclExpressionPropEdit"/>
       </Item>

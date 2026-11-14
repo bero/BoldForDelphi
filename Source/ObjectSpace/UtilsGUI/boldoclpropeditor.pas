@@ -19,6 +19,7 @@ uses
   BoldSystemRT,
   BoldElements,
   BoldOcl,
+  BoldOclExpressionCheck,
   ExtCtrls,
   Grids,
   ComCtrls,
@@ -104,7 +105,8 @@ type
     fSystemTypeInfo: TBoldSystemTypeInfo;
     fOclEvaluator: TBoldOcl;
     fVariables: TBoldExternalVariableList;
-    fCompleteSelectList: TStrings;
+    fCompletions: TBoldOclCompletions;
+    fLastCheck: TBoldOclCheckResult;
     fMRUExpressionList: TStringList;
     FOnExpressionChanged: TNotifyEvent;
     procedure SetOclExpr(Expr: String);
@@ -112,8 +114,6 @@ type
     procedure SetContext(Context: TBoldElementTypeInfo);
     procedure SetSelection;
     procedure CleanParserMsg;
-    procedure MemberHelp(Ocl: String);
-    procedure OperationHelp(Ocl: String);
     procedure ApplyFilter;
     procedure UpdateVariables;
     function CheckOcl(Ocl: String): TBoldElementTypeInfo;
@@ -188,7 +188,6 @@ end;
 constructor TBoldOclPropEditForm.Create(AOwner: TComponent);
 begin
   inherited;
-  fCompleteSelectList := TStringList.Create;
   ShowDerived := true;
   ShowPersistent := true;
   ShowTransient := true;
@@ -198,7 +197,6 @@ end;
 
 destructor TBoldOclPropEditForm.destroy;
 begin
-  fCompleteSelectList.free;
   inherited;
 end;
 
@@ -307,60 +305,33 @@ begin
   end;
 end;
 
-type
-  TFilterType = (ftAll, ftAttribute, ftSingleLink, ftMultilink, ftOperation, ftType, ftText);
+const
+  cKindDigit: array[TBoldOclCompletionKind] of Char = ('1', '2', '3', '4', '5');
+
+{ A line of the lists: the kind, which picks the icon, then the text. What is
+  added to the expression is the text up to its first space. }
+function CompletionLine(const ACompletion: TBoldOclCompletion): string;
+begin
+  Result := cKindDigit[ACompletion.Kind] + ' | ' + ACompletion.Name + ACompletion.Detail;
+  if Pos(':', ACompletion.Detail) = 0 then
+    Result := Result + ' ';
+end;
 
 procedure TBoldOclPropEditForm.ApplyFilter;
-
-  function ExtractFilterType(const AString: string): TFilterType;
-  var
-    c: char;
-  begin
-    result := ftAll;
-    if (copy(AString, 3,1) = '|') and (Length(AString) > 4) then
-    begin
-      c := AString[1];
-      case c of
-        '1': result := ftAttribute;
-        '2': result := ftSingleLink;
-        '3': result := ftMultiLink;
-        '4': result := ftType;
-        '5': result := ftOperation;
-      end;
-    end;
-  end;
-
 var
-  i: integer;
-  vElementType: TFilterType;
-  vFilterType: TFilterType;
-  vInclude: boolean;
-  vFilterText: string;
+  i: Integer;
+  vKindFilter: Integer;
 begin
+  // A line of the filter's list, or a text typed there
   case filterCombo.ItemIndex of
-     -1: vFilterType := ftText;
-      Ord(ftAttribute)..Ord(ftType): vFilterType := TFilterType(filterCombo.ItemIndex);
-    else
-      vFilterType := ftAll;
+    -1: vKindFilter := ocfText;
+    ocfAttributes..ocfOperations: vKindFilter := filterCombo.ItemIndex;
+  else
+    vKindFilter := ocfAll;
   end;
-  vFilterText :=  Trim(FilterCombo.Text);
-
-  for I := 0 to fCompleteSelectList.Count - 1 do
-  begin
-    vInclude := vFilterType = ftAll;
-    if vFilterType <> ftAll then
-    begin
-      vElementType := ExtractFilterType(fCompleteSelectList[i]);
-      case vFilterType of
-        ftAll: vInclude := true;
-        ftAttribute..ftOperation: vInclude := vElementType = vFilterType;
-        ftType: vInclude := true;
-        ftText: vInclude := (vFilterText = '') or AnsiContainsText(Copy(fCompleteSelectList[i], 5, MaxInt), vFilterText);
-      end;
-    end;
-    if vInclude then
-      SelectBox.Items.Add(fCompleteSelectList[i]);
-  end;
+  for i := 0 to High(fCompletions) do
+    if BoldOclCompletionPasses(fCompletions[i], vKindFilter, filterCombo.Text) then
+      SelectBox.Items.AddObject(CompletionLine(fCompletions[i]), fCompletions[i].Symbol);
 end;
 
 procedure TBoldOclPropEditForm.LoadFontSettings(const Font: TFont);
@@ -409,230 +380,22 @@ begin
   end;
 end;
 
+{ The checking, the parser messages and the lists are BoldOclExpressionCheck's,
+  which the Lazarus editor uses too (#124) }
 function TBoldOclPropEditForm.CheckOcl(Ocl: String): TBoldElementTypeInfo;
-
-  procedure ShowError(Ocl: String; ErrorPointer: String; message: string);
-  var
-    i: integer;
-  begin
-    ParserMessages.lines.text := Ocl;
-    i := 0;
-    while length(ErrorPointer) > length(ParserMessages.Lines[i]) do
-    begin
-      system.Delete(ErrorPointer, 1, length(ParserMessages.lines[i])+2);
-      inc(i);
-    end;
-    ParserMessages.lines.Add(message);
-    if length(ErrorPointer) > 10 then
-    begin
-      delete(ErrorPointer, length(ErrorPointer)-8, 7);
-      insert('-------', errorPointer, length(ErrorPointer));
-    end else
-      ErrorPointer := ErrorPointer + '-------';
-
-    ParserMessages.lines.Insert(i+1, ErrorPointer);
-  end;
-
 begin
-  CleanParserMsg;
-  if Ocl = '' then
-  begin
-    Result := Context;
-    ParserMessages.lines.Add(sEmptyExpression);
-    exit;
-  end;
-
-  try
-    Result := OclEvaluator.ExpressionType(Ocl, Context, true, Variables);
-  except
-    on e: EBoldOclAbort do
-    begin
-      Result := nil;
-      ParserMessages.lines.BeginUpdate;
-      if (Pos('SSYacc', e.Message) > 0) or (Pos('SSLex', e.Message) > 0) then // do not localize
-      begin
-        if ShowSyntaxErrors then
-          ShowError(e.Ocl, e.ErrorPointer, e.Message)
-        else
-          ParserMessages.lines.add(sSyntaxError);
-      end else
-        ShowError(e.Ocl, e.ErrorPointer, e.Message);
-      ParserMessages.lines.EndUpdate;
-      exit;
-    end;
-    on e: EBoldOclInternalError do
-    begin
-      Result := nil;
-      e.Ocl := 'Internal Error: ' + e.ocl; // do not localize
-      ShowError(e.Ocl, e.ErrorPointer, e.Message);
-      exit;
-    end;
-    on e: EBoldOclError do
-    begin
-      Result := nil;
-      ShowError(e.Ocl, e.ErrorPointer, e.Message);
-      exit;
-    end;
-    on e:Exception do
-    begin
-      Result := nil;
-      ParserMessages.lines.Add(e.message);
-      exit;
-    end;
-  end;
-  ParserMessages.lines.BeginUpdate;
-  ParserMessages.lines.Add(sSyntaxOK);
-  ParserMessages.lines.Add('');
-  if assigned(result) then
-    ParserMessages.lines.Add(sCurrentTypeIsX + Result.AsString)
-  else
-    ParserMessages.lines.Add(sCurrentTypeIsUnknown);
+  fLastCheck := BoldCheckOclExpression(Ocl, Context, Variables, OclEvaluator);
+  ParserMessages.Lines.Text := BoldOclCheckResultAsText(Ocl, fLastCheck, ShowSyntaxErrors);
   ParserMessages.SelStart := 0;
   ParserMessages.SelLength := 0;
-  ParserMessages.lines.EndUpdate;
-end;
-
-procedure TBoldOclPropEditForm.OperationHelp(Ocl: String);
-const
-  prefix: array [false..true] of string=('->', '.');
-var
-  ExpressionType: TBoldElementTypeInfo;
-  i, j: integer;
-  Symbol: TBoldOCLSymbol;
-  Addition: String;
-  ListExprType: TBoldListTypeInfo;
-begin
-  if ocl = '' then
-    exit;
-  ExpressionType := CheckOcl(Ocl);
-  if not assigned(ExpressionType) then
-    exit;
-
-  if assigned(OclEvaluator.SymbolTable) then
-  begin
-     for i := 0 to OclEvaluator.SymbolTable.Count - 1 do
-     begin
-      Symbol := OclEvaluator.SymbolTable.Symbols[i];
-      if (not Assigned(Symbol.FormalArguments[0]) or
-        ExpressionType.ConformsTo(Symbol.formalArguments[0]) or
-        ((ExpressionType is TBoldListTypeInfo) and
-         assigned(TBoldListTypeInfo(ExpressionType).ListElementTypeInfo) and 
-         TBoldListTypeInfo(ExpressionType).ListElementTypeInfo.ConformsTo(Symbol.FormalArguments[0]))) and symbol.IsPostFix then
-      begin
-        Addition := '5 | ' + prefix[Symbol.IsDotNotation] + Symbol.SymbolName;
-        if Symbol.NumberofArgs > 1 then
-        begin
-          Addition := Addition + '(';
-          for j := 1 to Symbol.NumberofArgs - 1 do
-            if assigned(Symbol.FormalArguments[j]) then
-            begin
-              if Symbol.FormalArguments[j] is TBoldListTypeInfo then
-              begin
-                ListExprType := Symbol.FormalArguments[j] as TBoldListTypeInfo;
-                if Assigned(LIstExprType.ListElementTypeInfo) then
-                  Addition := Addition + '«List<' + (Symbol.FormalArguments[j] as TBoldListTypeInfo).ListElementTypeInfo.ExpressionName + '>»,'
-                else
-                  Addition := Addition + '«List<AnyArg>»,'
-              end
-              else
-                Addition := Addition + '«' + Symbol.FormalArguments[j].ExpressionName + '»,'
-            end
-            else
-              Addition := Addition + '«AnyArg»,';
-          Delete(Addition, Length(Addition), 1);
-          Addition := Addition + ')';
-        end;
-        if Assigned(Symbol.ResultType) then
-          fCompleteSelectList.AddObject(Addition +  ' : ' + Symbol.ResultType.ExpressionName , Symbol)
-        else
-          fCompleteSelectList.AddObject(Addition +  ' ', Symbol);
-      end;
-    end;
-  end;
+  Result := fLastCheck.ResultType;
 end;
 
 procedure TBoldOclPropEditForm.RemoveLastClick(Sender: TObject);
-var
-  line: string;
-procedure RemovePrefix;
 begin
-  if line = '' then
+  if Trim(EditMemo.Text) = '' then
     exit;
-  if line[length(line)] = '.' then
-    delete(line, length(line), 1)
-  else if Copy(line, Length(line) - 1, 2) = '->' then
-    delete(line, length(line) - 1, 2);
-end;
-
-begin
-  Line := trim(EditMemo.Text);
-  if Line = '' then exit;
-  while (line <> '') and
-        (not CharInSet(line[length(line)], ['.', ' ']) and
-        (Copy(line, Length(line) - 1, 2) <> '->')) do
-    delete(line, length(line), 1);
-  RemovePrefix;
-  Editmemo.Text := trim(Line);
-end;
-
-procedure TBoldOclPropEditForm.MemberHelp(Ocl: String);
-const
-  prefix: array[false..true] of string = ('', '.');
-var
-  I: Integer;
-  ClassInfo: TBoldClasstypeInfo;
-  SystemInfo: TBoldSystemtypeInfo;
-  Member: TBoldMemberRTInfo;
-  ExpressionType: TBoldElementTypeInfo;
-  Attr: TBoldAttributeRTInfo;
-  Role: TBoldRoleRTInfo;
-  ExprName: string;
-begin
-  ExpressionType := CheckOcl(ocl);
-  if not assigned(ExpressionType) then
-    exit;
-
-  if ExpressionType is TBoldListTypeInfo then
-    ExpressionType := (ExpressionType as TBoldListTypeInfo).ListElementTypeInfo;
-
-  if ExpressionType is TBoldClasstypeInfo then
-  begin
-    ClassInfo := ExpressionType as TBoldClasstypeInfo;
-    for I := 0 to ClassInfo.AllMembersCount - 1 do
-    begin
-      Member := ClassInfo.AllMembers[I];
-      if not ShowDerived and Member.IsDerived then continue;
-      if not ShowPersistent and Member.Persistent  then continue;
-      if not ShowTransient and not (Member.Persistent or Member.IsDerived) then continue;
-      if ClassInfo.AllMembers[I] is TBoldAttributeRTInfo then
-      begin
-        Attr := ClassInfo.AllMembers[I] as TBoldAttributeRTInfo;
-        Exprname := '1 | ' + Prefix[ocl <> ''] + Attr.ExpressionName;
-        fCompleteSelectList.Add(Exprname + ': ' + Attr.BoldType.ExpressionName)
-      end else if ClassInfo.AllMembers[I] is TBoldRoleRTInfo then
-      begin
-        Role := ClassInfo.AllMembers[I] as TBoldRoleRTInfo;
-        if role.IsNavigable then
-        begin
-          if role.IsMultiRole then
-            Exprname := '3 | ' + Prefix[ocl <> ''] + Role.ExpressionName
-          else
-            Exprname := '2 | ' + Prefix[ocl <> ''] + Role.ExpressionName;
-          if role.IsMultiRole then
-            fCompleteSelectList.Add(ExprName + ': List<' + Role.ClassTypeInfoOfOtherEnd.Expressionname + '>')
-          else
-            fCompleteSelectList.Add(ExprName + ': ' + Role.ClassTypeInfoOfOtherEnd.Expressionname)
-        end;
-      end;
-    end;
-  end
-  else if ExpressionType is TBoldSystemTypeInfo then
-  begin
-    SystemInfo := ExpressionType as TBoldSystemTypeInfo;
-    for i := 0 to SystemInfo.TopSortedClasses.Count - 1 do
-      with SystemInfo.TopSortedClasses[i] do
-        fCompleteSelectList.Add('4 | ' + ExpressionName + ': ' + DelphiName);
-  end;
+  EditMemo.Text := BoldOclRemoveLast(EditMemo.Text);
 end;
 
 procedure TBoldOclPropEditForm.MRUPopUpMenuClick(Sender: TObject);
@@ -691,48 +454,33 @@ end;
 procedure TBoldOclPropEditForm.EditMemoChange(Sender: TObject);
 var
   Ocl: String;
+  vOptions: TBoldOclMemberOptions;
 begin
   if not assigned(Context) then
     exit;
-{  For i := 0 to EditMemo.Lines.Count - 1 do
-    Ocl := Ocl + ' ' + Trim(EditMemo.Lines[i]);
-  Ocl := trim(Ocl);
-}
   Ocl := trim(EditMemo.Text);
+  vOptions := [];
+  if ShowDerived then
+    Include(vOptions, omoDerived);
+  if ShowPersistent then
+    Include(vOptions, omoPersistent);
+  if ShowTransient then
+    Include(vOptions, omoTransient);
 
   VariablesListBox.Items.BeginUpdate;
   SelectBox.Items.BeginUpdate;
-  fCompleteSelectList.BeginUpdate;
   try
     SelectBox.Clear;
-    fCompleteSelectList.Clear;
-    MemberHelp(Ocl);
-    OperationHelp(Ocl);
+    CheckOcl(Ocl);
+    BoldOclListCompletions(Ocl, fLastCheck, Context, vOptions, fCompletions, OclEvaluator);
     ApplyFilter;
     UpdateVariables;
   finally
     VariablesListBox.Items.EndUpdate;
     SelectBox.Items.EndUpdate;
-    fCompleteSelectList.EndUpdate;
   end;
   if Assigned(fOnExpressionChanged) then
     OnExpressionChanged(self);
-
-{  if Ocl = '' then
-  begin
-    Mode := Dot;
-    trimOcl := OclExpr;
-  end else if Copy(Ocl, Length(Ocl) - 1, 2) = '->' then
-  begin
-    Mode := Arrow;
-    TrimOcl := Copy(Ocl, 1, Length(Ocl)-2);
-  end else if OclExpr[Length(Ocl)] = '.' then
-  begin
-    Mode := Dot;
-    trimOcl := Copy(Ocl, 1, Length(Ocl) - 1);
-  end else
-    Mode := unKnown;
-}
 end;
 
 procedure TBoldOclPropEditForm.SyntaxcbClick(Sender: TObject);
@@ -757,51 +505,17 @@ begin
 end;
 
 procedure TBoldOclPropEditForm.UpdateVariables;
-
-  procedure AddVariable(const AName: string; AValueType: TBoldElementTypeInfo);
-  var
-    s: string;
-  begin
-    if not Assigned(AValueType) then
-    begin
-      VariablesListBox.Items.Add('5 | ' + AName + ': ' + 'Nil');
-      exit;
-    end;
-    if AValueType is TBoldListTypeInfo then
-      s := '3 | '
-    else
-    if AValueType is TBoldAttributeTypeInfo then
-      s := '1 | '
-    else
-    if AValueType is TBoldClassTypeInfo then
-      s := '2 | '
-    else
-    if AValueType is TBoldSystemTypeInfo then
-      s := '4 | '
-    else
-    if AValueType is TBoldTypeTypeInfo then
-      s := '5 | '
-    else
-      Assert(False, 'Unhandled ValueType: ' + AValueType.ClassName);
-    s := s + AName + ': ' + AValueType.ExpressionName;
-//    if VariablesListBox.Items.IndexOf(s) = -1 then
-      VariablesListBox.Items.Add(s);
-  end;
-
 var
   i: integer;
+  vItems: TBoldOclCompletions;
 begin
   VariablesPageControl.Visible := HasVariables;
   VariablesListBox.Items.BeginUpdate;
   VariablesListBox.Clear;
   try
-    if Assigned(fVariables) then
-      for I := 0 to Variables.Count - 1 do
-        AddVariable(Variables[i].Name, Variables[i].ValueType);
-    for i := 0 to OclEvaluator.VariableCount - 1 do
-      with OclEvaluator.Variables[i] as TBoldOCLVariableBinding do
-        if AnsiIndexText(VariableName, cHiddenOCLVariables) = -1 then
-          AddVariable(VariableName, BoldType);
+    BoldOclListVariables(Context, Variables, vItems, OclEvaluator);
+    for i := 0 to High(vItems) do
+      VariablesListBox.Items.Add(CompletionLine(vItems[i]));
   finally
     VariablesListBox.Items.EndUpdate;
   end;
@@ -832,26 +546,13 @@ end;
 
 procedure TBoldOclPropEditForm.SetSelection;
 var
-  i, j: integer;
+  vStart, vLength: Integer;
 begin
-  if EditMemo.SelLength = 0 then
+  if (EditMemo.SelLength = 0) and
+    BoldOclPlaceholderAt(EditMemo.Text, EditMemo.SelStart, vStart, vLength) then
   begin
-    i := EditMemo.SelStart;
-    while (i > 0) and not CharInSet(EditMemo.Text[i], ['«', '»']) do
-      dec(i);
-
-    if (i = 0)or (EditMemo.Text[i] = '»') then
-      exit;
-
-    j := i + 1;
-    while (j <= Length(EditMemo.Text)) and not CharInSet(EditMemo.Text[j], ['«', '»']) do
-      Inc(j);
-
-    if (j > Length(EditMemo.Text)) or (EditMemo.Text[j] = '«') then
-      exit;
-
-    EditMemo.SelStart := i - 1;
-    EditMemo.SelLength := j - i + 1;
+    EditMemo.SelStart := vStart;
+    EditMemo.SelLength := vLength;
   end;
 end;
 
