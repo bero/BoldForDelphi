@@ -60,7 +60,8 @@ invoice selected, and the combo box shows the new customer, ready for
 another pick. The derived columns of both customers have the change. It is
 saved with **Save changes**, like every other.
 
-The form disables the combo box while the invoice grid is empty
+The form disables the combo box for a posted invoice, which is frozen, and
+while the invoice grid is empty
 (`dsInvoicesDataChange`): a data-aware control that edits an empty dataset
 inserts a record, which here would be a new invoice.
 
@@ -90,7 +91,8 @@ lines grid, a plain `TDBGrid` on a `TBoldDataSet`:
 and gives the invoice its number. A posted invoice is frozen. The model says
 so in its business methods (`TInvoice.AddLine`), not for each attribute, so
 the form follows the rule: `UpdateInvoiceControls` makes the lines grid
-read-only when the selected invoice is posted.
+read-only and disables the customer combo box when the selected invoice is
+posted. Only a draft gets lines, or another customer.
 
 ## The LCL environment
 
@@ -147,7 +149,7 @@ without a window, so the row checks read the dataset behind each grid.
   yet.
 - Only the lines grid is edited; the customer and invoice grids are
   read-only.
-- The combo box moves a posted invoice to another customer too; only the
-  lines of a posted invoice are frozen here.
+- The customer and invoice grids show what the lines and the combo box
+  change; they have no cells to type in.
 - Built and run on Linux and, with Lazarus 4.8, on 64-bit Windows only so
   far.

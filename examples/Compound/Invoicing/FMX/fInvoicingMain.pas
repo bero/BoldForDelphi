@@ -283,11 +283,14 @@ begin
   // the selected customer: the form follows the invoice, once the combo box
   // and its link are done with the pick.
   // The invoice is noted now: once the pick is written it is no longer the
-  // selected one.
-  if Assigned(bdsInvoices) and bdsInvoices.Active and not bdsInvoices.IsEmpty then
-    FInvoiceToFollow := bdsInvoices.ActiveBoldObject;
+  // selected one, and the combo box changes again, for the invoice that is
+  // selected then. Only the first change counts until the form has followed.
   if not FFollowQueued then
   begin
+    if Assigned(bdsInvoices) and bdsInvoices.Active and not bdsInvoices.IsEmpty then
+      FInvoiceToFollow := bdsInvoices.ActiveBoldObject
+    else
+      FInvoiceToFollow := nil;
     FFollowQueued := True;
     TThread.ForceQueue(nil, FollowTheInvoice);
   end;
@@ -311,7 +314,12 @@ begin
   if bdsCustomers.Locate('Number', Invoice.Customer.Number, []) then
   begin
     TBoldQueueable.DisplayAll;
-    bdsInvoices.Locate('Number', Invoice.Number, []);
+    // By the object, not by its number: a draft has no number yet
+    bdsInvoices.First;
+    while not bdsInvoices.Eof and (bdsInvoices.ActiveBoldObject <> Invoice) do
+      bdsInvoices.Next;
+    if bdsInvoices.Eof then
+      bdsInvoices.First;
   end;
 end;
 
@@ -422,10 +430,12 @@ begin
     Exit;
   HasInvoice := bdsInvoices.Active and not bdsInvoices.IsEmpty and (bdsInvoices.ActiveBoldObject is TInvoice);
   IsDraft := HasInvoice and not TInvoice(bdsInvoices.ActiveBoldObject).IsPosted;
-  // Without an invoice there is nothing to pick a customer for
-  cmbInvoiceCustomer.Enabled := HasInvoice;
-  // The lines of a draft are edited in the grid. A posted invoice is frozen,
-  // which the model says in TInvoice.AddLine; the grid follows that rule here.
+  // A posted invoice is frozen, which the model says in its business methods
+  // (TInvoice.AddLine); the form follows that rule here. So only a draft
+  // gets another customer, and without an invoice there is nothing to pick
+  // a customer for.
+  cmbInvoiceCustomer.Enabled := IsDraft;
+  // The lines of a draft are edited in the grid
   grdLines.ReadOnly := not IsDraft;
   btnPostInvoice.Enabled := IsDraft;
   btnNewInvoice.Enabled := bdsCustomers.Active and not bdsCustomers.IsEmpty;
@@ -757,16 +767,30 @@ var
     Invoice: TInvoice;
     InvoicesBefore, Choice: Integer;
     IdleDone: Boolean;
+
+    // What the idle loop does, where the controls are enabled or not
+    procedure Idle;
+    begin
+      Settle;
+      Application.DoIdle(IdleDone);
+    end;
+
   begin
+    bdsCustomers.First;
+    while not bdsCustomers.Eof and (bdsInvoices.RecordCount > 0) do
+      bdsCustomers.Next;
+    Idle;
+    if not bdsCustomers.Eof then
+      Check('a customer without invoices: an empty invoice grid, and the combo box cannot be used',
+        (grdInvoices.RowCount = 0) and not cmbInvoiceCustomer.Enabled,
+        Format('%d rows, enabled %s', [grdInvoices.RowCount, BoolToStr(cmbInvoiceCustomer.Enabled, True)]));
     bdsCustomers.First;
     while not bdsCustomers.Eof and (bdsInvoices.RecordCount = 0) do
       bdsCustomers.Next;
-    Settle;
+    Idle;
     Customer := bdsCustomers.ActiveBoldObject as TCustomer;
     bdsInvoices.First;
-    Settle;
-    Invoice := bdsInvoices.ActiveBoldObject as TInvoice;
-    InvoicesBefore := Customer.Invoices.Count;
+    Idle;
     Check('the invoice grid has no column for the customer key', grdInvoices.ColumnCount = 6,
       IntToStr(grdInvoices.ColumnCount) + ' columns');
     Check('the combo box lists every customer',
@@ -774,16 +798,28 @@ var
       IntToStr(cmbInvoiceCustomer.Count));
     Check('the combo box shows the customer of the selected invoice', ShownInTheComboBox = Customer.Name,
       ShownInTheComboBox);
+    Check('a posted invoice is frozen: it cannot get another customer',
+      (bdsInvoices.ActiveBoldObject as TInvoice).IsPosted and not cmbInvoiceCustomer.Enabled,
+      'enabled ' + BoolToStr(cmbInvoiceCustomer.Enabled, True));
+
+    // A draft gets another customer
+    NewInvoiceClick(btnNewInvoice);
+    Idle;
+    Invoice := bdsInvoices.ActiveBoldObject as TInvoice;
+    InvoicesBefore := Customer.Invoices.Count;
+    Check('for a draft the combo box can be used, and shows its customer',
+      not Invoice.IsPosted and cmbInvoiceCustomer.Enabled and (ShownInTheComboBox = Customer.Name),
+      ShownInTheComboBox);
     OtherCustomer := nil;
     Choice := 0;
     while (Choice < cmbInvoiceCustomer.Count) and (cmbInvoiceCustomer.ListItems[Choice].Text = Customer.Name) do
       Inc(Choice);
     PickInTheComboBox(Choice);
+    Idle;
     if Assigned(Invoice.Customer) then
       OtherCustomer := Invoice.Customer;
     Check('picking another customer in the combo box links the invoice to it',
-      Assigned(OtherCustomer) and (OtherCustomer <> Customer),
-      'invoice ' + IntToStr(Invoice.Number) + ' of ' + Invoice.Customer.Name);
+      Assigned(OtherCustomer) and (OtherCustomer <> Customer), 'the draft of ' + Invoice.Customer.Name);
     Check('the invoice is no longer among the invoices of its former customer',
       Customer.Invoices.Count = InvoicesBefore - 1, IntToStr(Customer.Invoices.Count) + ' invoices');
     Check('the invoice dataset is not left editing', not (bdsInvoices.State in dsEditModes),
@@ -796,27 +832,14 @@ var
     Check('the combo box shows the new customer and can be used again',
       cmbInvoiceCustomer.Enabled and Assigned(OtherCustomer) and (ShownInTheComboBox = OtherCustomer.Name),
       ShownInTheComboBox);
-    if Customer.Invoices.Count = 0 then
-    begin
-      bdsCustomers.Locate('Number', Customer.Number, []);
-      Settle;
-      // What the idle loop does, where the combo box is enabled or not
-      Application.DoIdle(IdleDone);
-      Check('a customer without invoices: an empty invoice grid, and the combo box cannot be used',
-        (bdsCustomers.ActiveBoldObject = Customer) and (grdInvoices.RowCount = 0) and not cmbInvoiceCustomer.Enabled,
-        Format('%d rows, enabled %s', [grdInvoices.RowCount, BoolToStr(cmbInvoiceCustomer.Enabled, True)]));
-      if Assigned(OtherCustomer) then
-        bdsCustomers.Locate('Number', OtherCustomer.Number, []);
-      Settle;
-      Application.DoIdle(IdleDone);
-    end;
     Choice := 0;
     while (Choice < cmbInvoiceCustomer.Count) and (cmbInvoiceCustomer.ListItems[Choice].Text <> Customer.Name) do
       Inc(Choice);
     PickInTheComboBox(Choice);
+    Idle;
     Check('picking the former customer brings the invoice back to it',
       (Invoice.Customer = Customer) and (Customer.Invoices.Count = InvoicesBefore),
-      'invoice ' + IntToStr(Invoice.Number) + ' of ' + Invoice.Customer.Name);
+      'the draft of ' + Invoice.Customer.Name);
     Check('and the form follows it there',
       (bdsCustomers.ActiveBoldObject = Customer) and (bdsInvoices.ActiveBoldObject = Invoice) and
       (ShownInTheComboBox = Customer.Name), bdsCustomers.FieldByName('Name').AsString + ', ' + ShownInTheComboBox);

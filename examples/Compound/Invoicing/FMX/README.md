@@ -54,8 +54,9 @@ the selected customer. An invoice that gets another customer leaves that list
 at once; the dataset ends the edit and keeps the change. So that the invoice
 does not vanish from view, the form then follows it (`InvoiceCustomerChange`,
 `FollowTheInvoice`): the customer grid moves to the new customer, with the
-invoice selected and the combo box ready for another pick. While the invoice
-grid is empty the combo box is disabled.
+invoice selected and the combo box ready for another pick. The combo box is
+disabled for a posted invoice, which is frozen, and while the invoice grid is
+empty.
 
 ## Editing the lines of an invoice in the grid
 
@@ -67,8 +68,9 @@ field, and `TBoldDataSet` writes the field to the line; a new row is a new
 line of the selected invoice, because the dataset asks the list of its handle
 for it; the derived column `Amount` is a read-only field. The frozen rule is
 in the model's business methods, not on each attribute, so the form follows
-it: `UpdateInvoiceControls` makes the lines grid read-only when the selected
-invoice is posted.
+it: `UpdateInvoiceControls` makes the lines grid read-only and disables the
+customer combo box when the selected invoice is posted. Only a draft gets
+lines, or another customer.
 
 ## The look of the LCL client
 
