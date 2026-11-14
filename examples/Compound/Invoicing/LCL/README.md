@@ -69,6 +69,29 @@ number of rows changes; that is how the LCL's lookup controls work with any
 dataset. A customer that is renamed while the form is open keeps its former
 name in the list until then.
 
+## Editing the lines of an invoice in the grid
+
+**New invoice** makes a draft for the selected customer, through the model's
+business method `Customer.NewInvoice`. The lines of a draft are edited in the
+lines grid, a plain `TDBGrid` on a `TBoldDataSet`:
+
+- typing in a cell changes the line; the derived columns of the line, the
+  invoice and the customer follow. A field is written to the object when it
+  is set, and **Esc** takes back what was typed in the row since it was
+  entered, and only that;
+- the down arrow on the last row adds a line: the dataset asks the list of
+  its handle (`lines` of the selected invoice) for a new object, so the line
+  belongs to the invoice at once. Esc there removes it again;
+- **Ctrl+Del** deletes the line;
+- the derived column `Amount` cannot be typed in: its field is read-only,
+  because Bold says the value cannot be modified.
+
+**Post invoice** calls `Invoice.Post`, which refuses an invoice without lines
+and gives the invoice its number. A posted invoice is frozen. The model says
+so in its business methods (`TInvoice.AddLine`), not for each attribute, so
+the form follows the rule: `UpdateInvoiceControls` makes the lines grid
+read-only when the selected invoice is posted.
+
 ## The LCL environment
 
 The form names `BoldEnvironmentLCL` in a uses clause, which registers Bold's
@@ -111,7 +134,8 @@ same button, with the same editor as an FMX dialog.
 `InvoicingLCL --selftest` shows no window: it fills a temporary data file,
 walks every customer and invoice, checks what the grids are bound to and that
 the LCL environment drains Bold's display queue, picks another customer for
-an invoice in the combo box as a user does, writes
+an invoice in the combo box as a user does, makes a new invoice and edits its
+lines through the grid's dataset, posts it, writes
 the checks to `InvoicingLCL.selftest.txt` and exits with the number of failed
 checks. A `TDBGrid` counts only the rows it paints, and it paints nothing
 without a window, so the row checks read the dataset behind each grid.
@@ -121,8 +145,9 @@ without a window, so the row checks read the dataset behind each grid.
 - The form file was written to match what the components write, and checked
   by running it; it has not been opened and saved in the Lazarus form designer
   yet.
-- The grids are read-only here; the combo box is the only control that
-  edits. `TBoldDataSet` can edit in a grid too (Edit and Post write into the
-  Bold objects).
+- Only the lines grid is edited; the customer and invoice grids are
+  read-only.
+- The combo box moves a posted invoice to another customer too; only the
+  lines of a posted invoice are frozen here.
 - Built and run on Linux and, with Lazarus 4.8, on 64-bit Windows only so
   far.

@@ -37,7 +37,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   application can open it, as an FMX one opens `BoldEditOclExpressionFMX`; it
   was part of the design package's property editor. The Invoicing LCL client
   has the Edit OCL button of the FMX client, and the FMX client has its
-  components in the form file, so the two forms are alike (#117)
+  components in the form file, so the two forms are alike. The lines of a
+  draft invoice are edited in the grid, with New invoice and Post invoice
+  (#117)
 - `TBoldDataSet` is on the Delphi component palette (page Bold Misc), with
   its component editor: Fields Editor, Create default fields, Clear all
   columns. The design package `dclBold` registers it, as the Lazarus package

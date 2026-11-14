@@ -1598,6 +1598,28 @@ object frmInvoicingMain: TfrmInvoicingMain
       Style = csDropDownList
       TabOrder = 0
     end
+    object btnNewInvoice: TButton
+      Left = 748
+      Height = 28
+      Top = 4
+      Width = 120
+      Align = alRight
+      BorderSpacing.Around = 4
+      Caption = 'New invoice'
+      OnClick = btnNewInvoiceClick
+      TabOrder = 1
+    end
+    object btnPostInvoice: TButton
+      Left = 876
+      Height = 28
+      Top = 4
+      Width = 120
+      Align = alRight
+      BorderSpacing.Around = 4
+      Caption = 'Post invoice'
+      OnClick = btnPostInvoiceClick
+      TabOrder = 2
+    end
   end
   object lblLines: TLabel
     Left = 8
@@ -1622,7 +1644,7 @@ object frmInvoicingMain: TfrmInvoicingMain
     Color = clWindow
     Columns = <>
     DataSource = dsLines
-    Options = [dgTitles, dgIndicator, dgColumnResize, dgColumnMove, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
+    Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColumnMove, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
     ReadOnly = True
     TabOrder = 2
   end
