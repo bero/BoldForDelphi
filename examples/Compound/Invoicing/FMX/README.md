@@ -36,10 +36,18 @@ drains Bold's display queue by itself, so the form calls
 Build `InvoicingFMX.dproj` for Win32 or Win64 and run it. **Save changes**
 writes to the database.
 
+**Edit OCL** opens Bold's OCL editor as an FMX dialog
+(`Source\ObjectSpace\UtilsGUI\FMX\BoldOclExpressionDialogFMX.pas`) on the
+Invoicing model. It checks the expression as you type, shows the type of the
+result or the error, and lists the members, operations and variables that
+can follow it. After **OK** the client evaluates the expression and shows the
+value. The dialog is the same as the Lazarus OCL property editor: both are
+views over `TBoldOclEditorState` in `BoldOclExpressionCheck`.
+
 `InvoicingFMX --selftest` shows no window: it fills a temporary database,
 walks every customer and invoice, checks that the grids show the right rows,
-writes the checks to `InvoicingFMX.selftest.txt` and exits with the number of
-failed checks.
+drives the OCL editor through the steps of a user, writes the checks to
+`InvoicingFMX.selftest.txt` and exits with the number of failed checks.
 
 ## Linux64
 

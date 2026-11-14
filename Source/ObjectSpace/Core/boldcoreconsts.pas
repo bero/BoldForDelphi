@@ -318,6 +318,34 @@ const
   sCurrentTypeIsUnknown = 'Current type is: unknown';
   sModelContainsErrors = 'The model contains errors: ';
 
+// The OCL editor dialogs of Lazarus and FMX: BoldOclExpressionPropEdit, BoldOclExpressionDialogFMX
+  sOclEditorCaption = 'OCL expression editor - Context: %s';
+  sOclEditorUnknownContext = '<unknown>';
+  sOclEditorExpression = 'Expression';
+  sOclEditorParserMessage = 'Parser Message:';
+  sOclEditorShowOriginalParserErrors = 'Show Original Parser &Errors';
+  sOclEditorRemoveLast = '&Remove Last';
+  sOclEditorClear = '&Clear';
+  sOclEditorAvailableExpressions = 'Available expressions';
+  sOclEditorVariables = 'OCL Variables';
+  sOclEditorDerived = '&Derived';
+  sOclEditorPersistent = '&Persistent';
+  sOclEditorTransient = '&Transient';
+  sOclEditorFilterAll = '< All >';
+  sOclEditorFilterAttributes = '< Attributes >';
+  sOclEditorFilterSingleLinks = '< Single links >';
+  sOclEditorFilterMultiLinks = '< Multi links >';
+  sOclEditorFilterOperations = '< Operations >';
+  sOclEditorShowInfo = 'Show Info';
+  sOclEditorModelErrors = 'Model errors...';
+  sOclEditorOK = '&OK';
+  sOclEditorCancel = 'Cancel';
+  sOclEditorCopyMessages = 'Copy messages to clipboard';
+  // The text Copy messages to clipboard puts there
+  sOclEditorCopyContext = 'Context: ';
+  sOclEditorCopyExpression = 'OCL Expression: ';
+  sOclEditorCopyParserMessages = 'Parser messages: ';
+
 // BoldBld
   sErrorOnPos = '%s Line: %d Position: %d';
   sUnexpectedEOF = 'BLD Reader: Unexpected EOF';

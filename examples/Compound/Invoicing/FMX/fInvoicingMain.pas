@@ -16,7 +16,10 @@
   AppIdle does it from FMX's idle loop.
 
   The handles, datasets, grids and bindings are created in code, because
-  TBoldDataSet is not on the component palette yet (#117 step 8). }
+  TBoldDataSet is not on the component palette yet (#117 step 8).
+
+  Edit OCL opens Bold's OCL editor as an FMX dialog (BoldOclExpressionDialogFMX,
+  #124) on the Invoicing model, and evaluates the expression it gives back. }
 
 interface
 
@@ -68,11 +71,14 @@ type
     FInvoiceGrid: TStringGrid;
     FLineGrid: TStringGrid;
     FStatus: TLabel;
+    { What Edit OCL opens with: the expression of the last OK }
+    FOclExpression: string;
     function AddListHandle(ARoot: TBoldElementHandle; const AExpression: string): TBoldListHandle;
     function AddDataSet(AHandle: TBoldListHandle; const AColumns: array of string): TBoldDataSet;
     function AddGrid(const ACaption: string; ADataSet: TDataSet; AAlign: TAlignLayout; AHeight: Single): TStringGrid;
     procedure AppIdle(Sender: TObject; var Done: Boolean);
     procedure SaveClick(Sender: TObject);
+    procedure EditOclClick(Sender: TObject);
     procedure OpenData;
     procedure ShowStatus;
     procedure Settle;
@@ -101,7 +107,13 @@ implementation
 uses
   System.IOUtils,
   System.StrUtils,
+  {$IFDEF POSIX}
+  Posix.Unistd, // SysUtils.DeleteFile is inlined from it (H2443 without)
+  {$ENDIF}
+  FMX.DialogService,
   BoldQueue,
+  BoldOclExpressionCheck,
+  BoldOclExpressionDialogFMX,
   InvoicingClasses,
   InvoicingScenario;
 
@@ -149,7 +161,7 @@ end;
 procedure TfrmInvoicingMain.FormCreate(Sender: TObject);
 var
   Bar: TLayout;
-  Save: TButton;
+  Save, EditOcl: TButton;
 begin
   FSelfTest := IsSelfTestRun;
   if FSelfTest then
@@ -190,6 +202,17 @@ begin
   Save.Margins.Rect := TRectF.Create(4, 4, 8, 4);
   Save.Text := 'Save changes';
   Save.OnClick := SaveClick;
+  // FMX lines up right-aligned controls by their right edge, and Save has
+  // moved to the far right: at position 0 this button goes left of it
+  EditOcl := TButton.Create(Self);
+  EditOcl.Parent := Bar;
+  EditOcl.Position.X := 0;
+  EditOcl.Align := TAlignLayout.Right;
+  EditOcl.Width := 120;
+  EditOcl.Margins.Rect := TRectF.Create(4, 4, 4, 4);
+  EditOcl.Text := 'Edit OCL...';
+  EditOcl.OnClick := EditOclClick;
+  FOclExpression := 'Customer.allInstances';
 
   FCustomerGrid := AddGrid('Customers', FCustomers, TAlignLayout.Top, 220);
   FInvoiceGrid := AddGrid('Invoices of the selected customer', FInvoices, TAlignLayout.Top, 200);
@@ -305,6 +328,27 @@ begin
   ShowStatus;
 end;
 
+{ The OCL editor checks against the model as the user types; after OK the
+  expression is evaluated in the system, and its value or error shown }
+procedure TfrmInvoicingMain.EditOclClick(Sender: TObject);
+var
+  Expression, Outcome: string;
+begin
+  Expression := FOclExpression;
+  if not BoldEditOclExpressionFMX(Expression, FData.BoldSystemHandle1.StaticSystemTypeInfo) then
+    Exit;
+  FOclExpression := Expression;
+  try
+    Outcome := FData.BoldSystem.EvaluateExpressionAsString(Expression);
+  except
+    on E: Exception do
+      Outcome := E.ClassName + ': ' + E.Message;
+  end;
+  if Length(Outcome) > 1000 then
+    Outcome := Copy(Outcome, 1, 1000) + '...';
+  TDialogService.ShowMessage(Expression + sLineBreak + sLineBreak + Outcome);
+end;
+
 procedure TfrmInvoicingMain.ShowStatus;
 begin
   if Assigned(FStatus) and Assigned(FData) and FData.IsOpen then
@@ -346,6 +390,85 @@ var
     begin
       Log.Add('  FAIL  ' + AWhat + ' = ' + AActual);
       Inc(Failures);
+    end;
+  end;
+
+  function OneLine(const S: string): string;
+  begin
+    Result := StringReplace(StringReplace(S, #13, '', [rfReplaceAll]), #10, ' | ', [rfReplaceAll]);
+  end;
+
+  function IndexOfCompletion(AEditor: TBoldOclExpressionDialogFMX; const AInsertText: string): Integer;
+  begin
+    for Result := 0 to AEditor.CompletionCount - 1 do
+      if AEditor.Completions[Result].InsertText = AInsertText then
+        Exit;
+    Result := -1;
+  end;
+
+  { The FMX OCL editor, created as Edit OCL creates it but not shown: the
+    steps of a user, through the dialog's methods and its memo }
+  procedure CheckTheOclEditor;
+  const
+    cSelect = 'Customer.allInstances->select(«Boolean»)';
+  var
+    Editor: TBoldOclExpressionDialogFMX;
+    Index: Integer;
+  begin
+    Editor := TBoldOclExpressionDialogFMX.CreateDialog(nil, FData.BoldSystemHandle1.StaticSystemTypeInfo, nil);
+    try
+      Check('OCL editor: the icons of its lists', Editor.IconCount = 5, IntToStr(Editor.IconCount) + ' icons');
+      Check('OCL editor: the classes for the empty expression', (Editor.StatusText = 'Empty Expression') and
+        (IndexOfCompletion(Editor, 'Customer') >= 0) and (Editor.Completions[0].Kind = ockType),
+        IntToStr(Editor.CompletionCount) + ' lines');
+      Check('OCL editor: the evaluator''s variables', Editor.VariableCount >= 2, IntToStr(Editor.VariableCount));
+      Editor.Expression := 'Customer.allInstances';
+      Check('OCL editor: a valid expression and its type', Editor.LastCheck.Valid and
+        (Editor.StatusText = 'Syntax is OK' + sLineBreak + sLineBreak + 'Current type is: Collection(Customer)'),
+        OneLine(Editor.StatusText));
+      Check('OCL editor: the memo shows the expression',
+        BoldOclTrimLineBreaks(Editor.ExpressionMemo.Text) = 'Customer.allInstances', Editor.ExpressionMemo.Text);
+      Index := IndexOfCompletion(Editor, '.invoices');
+      Check('OCL editor: a multi link of the elements', (Index >= 0) and
+        (Editor.Completions[Index].Kind = ockMultiLink) and (Editor.Completions[Index].Detail = ': List<Invoice>'),
+        IntToStr(Index));
+      Editor.SetFilter(ocfOperations);
+      Index := IndexOfCompletion(Editor, '->select(«Boolean»)');
+      Check('OCL editor: an operation with its argument', Index >= 0, IntToStr(Editor.CompletionCount) + ' operations');
+      Editor.AddCompletion(Index);
+      Check('OCL editor: the operation is added', (Editor.Expression = cSelect) and not Editor.LastCheck.Valid and
+        (BoldOclTrimLineBreaks(Editor.ExpressionMemo.Text) = cSelect), Editor.ExpressionMemo.Text);
+      // The caret inside the placeholder, as after a click there
+      Editor.ExpressionMemo.SelStart := Length('Customer.allInstances->select(') + 3;
+      Editor.ExpressionMemo.SelLength := 0;
+      Editor.SelectPlaceholder;
+      Check('OCL editor: a click in a placeholder selects it', Editor.ExpressionMemo.SelText = '«Boolean»',
+        Editor.ExpressionMemo.SelText);
+      // The same in the second line: the memo counts its line breaks as the text has them
+      Editor.Expression := 'Customer.allInstances' + sLineBreak + '->select(«Boolean»)';
+      Editor.ExpressionMemo.SelStart := Length('Customer.allInstances' + sLineBreak + '->select(') + 3;
+      Editor.ExpressionMemo.SelLength := 0;
+      Editor.SelectPlaceholder;
+      Check('OCL editor: a placeholder in the second line', Editor.ExpressionMemo.SelText = '«Boolean»',
+        Editor.ExpressionMemo.SelText);
+      Editor.RemoveLast;
+      Check('OCL editor: Remove Last', Editor.Expression = 'Customer.allInstances', OneLine(Editor.Expression));
+      Editor.SetFilter(ocfText, 'INVOICED');
+      Index := IndexOfCompletion(Editor, '.invoicedTotal');
+      Check('OCL editor: a typed filter', (Index >= 0) and (Editor.CompletionCount < 5),
+        IntToStr(Editor.CompletionCount) + ' lines');
+      Editor.AddCompletion(Index);
+      Check('OCL editor: after an addition the typed filter gives way',
+        (Editor.Expression = 'Customer.allInstances.invoicedTotal') and (Editor.State.KindFilter = ocfAll),
+        Editor.Expression);
+      Editor.Expression := 'Customer.allInstances.nosuch';
+      Check('OCL editor: an error, with a pointer at it', not Editor.LastCheck.Valid and
+        (Editor.CompletionCount = 0) and (Pos('^', Editor.StatusText) > 0), OneLine(Editor.StatusText));
+      Editor.ClearExpression;
+      Check('OCL editor: Clear', (Editor.Expression = '') and (Editor.StatusText = 'Empty Expression'),
+        OneLine(Editor.StatusText));
+    finally
+      Editor.Free;
     end;
   end;
 
@@ -402,6 +525,7 @@ begin
     Settle;
     Check('a rename on the Bold side shows in the grid',
       FCustomerGrid.Cells[1, FCustomers.RecNo - 1] = Customer.Name, FCustomerGrid.Cells[1, FCustomers.RecNo - 1]);
+    CheckTheOclEditor;
     Log.Add(Format('%d failed', [Failures]));
     SelfTestTrace(Log.Text);
   finally

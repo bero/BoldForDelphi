@@ -74,7 +74,10 @@ Persistent and Transient boxes; a double click or Enter adds the line. At the
 left are the OCL variables. The checking, the messages and the lists are one
 unit that Delphi's form uses too, `BoldOclExpressionCheck`
 (`Source/ObjectSpace/Ocl`, in `Bold.lpk`; #124), so the two editors show the
-same. Remove Last, Clear, Show Original Parser Errors
+same. The dialog keeps what the user has done in that unit's
+`TBoldOclEditorState`, as Delphi's FMX dialog `BoldOclExpressionDialogFMX`
+does, so the LCL and the FMX dialog share the filter, the options and the
+additions too, and their captions. Remove Last, Clear, Show Original Parser Errors
 and Show Info are there; the font button and the list of recently used
 expressions, which Delphi keeps in the Windows registry, are not. The model
 must be in the form (a `TBoldModel` that the handles reach through their

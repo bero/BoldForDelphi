@@ -9,8 +9,11 @@ unit BoldOclExpressionCheck;
   follow the expression (members, classes, operations) and the OCL variables,
   and has Remove Last and the search for an argument placeholder.
 
-  One copy for the two editors (#124): the VCL form BoldOclPropEditor and the
-  Lazarus dialog BoldOclExpressionPropEdit (#117). No VCL, LCL or IDE unit. }
+  One copy for the editors (#124): the VCL form BoldOclPropEditor, the Lazarus
+  dialog BoldOclExpressionPropEdit (#117) and the FMX dialog
+  BoldOclExpressionDialogFMX. The two dialogs also share TBoldOclEditorState,
+  what the editor holds between the user's steps. No VCL, LCL, FMX or IDE
+  unit. }
 
 interface
 
@@ -67,6 +70,78 @@ const
   ocfMultiLinks = 3;
   ocfOperations = 4;
   ocfText = -1;
+  { What Show Info of the editors opens }
+  cBoldOclInfoUrl = 'https://www.omg.org/spec/OCL/2.0/PDF';
+
+type
+  { An OCL editor without its controls: the expression, what the check says
+    about it, and the lists of what can follow it and of the variables. A
+    dialog passes what the user does to it and shows it again on OnChange. }
+  TBoldOclEditorState = class
+  private
+    fContext: TBoldElementTypeInfo;
+    fVariables: TBoldExternalVariableList;
+    fEvaluator: TBoldEvaluator;
+    fExpression: string;
+    fMemberOptions: TBoldOclMemberOptions;
+    fShowSyntaxErrors: Boolean;
+    fKindFilter: Integer;
+    fFilterText: string;
+    fLastCheck: TBoldOclCheckResult;
+    fStatusText: string;
+    fAllCompletions: TBoldOclCompletions;
+    { The completions after the filter: indexes into fAllCompletions }
+    fShownCompletions: array of Integer;
+    fVariableItems: TBoldOclCompletions;
+    fOnChange: TNotifyEvent;
+    function GetCompletionCount: Integer;
+    function GetCompletion(AIndex: Integer): TBoldOclCompletion;
+    function GetVariableCount: Integer;
+    function GetVariable(AIndex: Integer): TBoldOclCompletion;
+    function GetModelErrors: string;
+    procedure SetExpression(const AValue: string);
+    procedure SetMemberOptions(AValue: TBoldOclMemberOptions);
+    procedure SetShowSyntaxErrors(AValue: Boolean);
+    procedure Update;
+    procedure ApplyFilter;
+    procedure Changed;
+  public
+    { AContext may be nil: the expression can be edited but is not checked }
+    constructor Create(AContext: TBoldElementTypeInfo; AVariables: TBoldExternalVariableList;
+      AEvaluator: TBoldEvaluator = nil);
+    { The filter of the completions: ocfAll .. ocfOperations, or ocfText with
+      a text the lines must contain }
+    procedure SetFilter(AKindFilter: Integer; const AText: string = '');
+    { Adds a line of the completions after the filter to the expression; a
+      text filter has then done its work and gives way to ocfAll. An index
+      outside the list adds nothing. }
+    procedure AddCompletion(AIndex: Integer);
+    procedure AddVariable(AIndex: Integer);
+    procedure RemoveLast;
+    procedure Clear;
+    { What Copy messages to clipboard copies: the context, the expression and
+      the parser messages }
+    function MessagesAsText: string;
+    property Context: TBoldElementTypeInfo read fContext;
+    { Without the line breaks a memo ends its text with }
+    property Expression: string read fExpression write SetExpression;
+    property LastCheck: TBoldOclCheckResult read fLastCheck;
+    { The parser messages }
+    property StatusText: string read fStatusText;
+    property MemberOptions: TBoldOclMemberOptions read fMemberOptions write SetMemberOptions;
+    property ShowSyntaxErrors: Boolean read fShowSyntaxErrors write SetShowSyntaxErrors;
+    property KindFilter: Integer read fKindFilter;
+    property FilterText: string read fFilterText;
+    { The completions after the filter }
+    property CompletionCount: Integer read GetCompletionCount;
+    property Completions[AIndex: Integer]: TBoldOclCompletion read GetCompletion;
+    property VariableCount: Integer read GetVariableCount;
+    property Variables[AIndex: Integer]: TBoldOclCompletion read GetVariable;
+    { The initialization log of the context's model; empty when it has no errors }
+    property ModelErrors: string read GetModelErrors;
+    { After every change: of the expression, the options or the filter }
+    property OnChange: TNotifyEvent read fOnChange write fOnChange;
+  end;
 
 { AEvaluator: another evaluator than the one of the context's system }
 function BoldCheckOclExpression(const AExpression: string; AContext: TBoldElementTypeInfo;
@@ -96,6 +171,8 @@ function BoldOclRemoveLast(const AExpression: string): string;
 { An argument placeholder «...» around the caret (ACaret = characters before
   it), to select it as a whole. AStart counts from 0. }
 function BoldOclPlaceholderAt(const AText: string; ACaret: Integer; out AStart, ALength: Integer): Boolean;
+{ The text of a memo without the line breaks it can end with }
+function BoldOclTrimLineBreaks(const AText: string): string;
 
 implementation
 
@@ -504,6 +581,160 @@ begin
   AStart := i - 1;
   ALength := j - i + 1;
   Result := True;
+end;
+
+function BoldOclTrimLineBreaks(const AText: string): string;
+begin
+  Result := AText;
+  while (Result <> '') and ((Result[Length(Result)] = #10) or (Result[Length(Result)] = #13)) do
+    Delete(Result, Length(Result), 1);
+end;
+
+{ TBoldOclEditorState }
+
+constructor TBoldOclEditorState.Create(AContext: TBoldElementTypeInfo; AVariables: TBoldExternalVariableList;
+  AEvaluator: TBoldEvaluator);
+begin
+  inherited Create;
+  fContext := AContext;
+  fVariables := AVariables;
+  fEvaluator := AEvaluator;
+  fMemberOptions := [omoDerived, omoPersistent, omoTransient];
+  fKindFilter := ocfAll;
+  Update;
+end;
+
+procedure TBoldOclEditorState.Update;
+var
+  Text: string;
+begin
+  Text := Trim(fExpression);
+  fLastCheck := BoldCheckOclExpression(Text, fContext, fVariables, fEvaluator);
+  fStatusText := BoldOclCheckResultAsText(Text, fLastCheck, fShowSyntaxErrors);
+  BoldOclListCompletions(Text, fLastCheck, fContext, fMemberOptions, fAllCompletions, fEvaluator);
+  BoldOclListVariables(fContext, fVariables, fVariableItems, fEvaluator);
+  ApplyFilter;
+end;
+
+procedure TBoldOclEditorState.ApplyFilter;
+var
+  i: Integer;
+begin
+  fShownCompletions := nil;
+  for i := 0 to High(fAllCompletions) do
+    if BoldOclCompletionPasses(fAllCompletions[i], fKindFilter, fFilterText) then
+    begin
+      SetLength(fShownCompletions, Length(fShownCompletions) + 1);
+      fShownCompletions[High(fShownCompletions)] := i;
+    end;
+end;
+
+procedure TBoldOclEditorState.Changed;
+begin
+  if Assigned(fOnChange) then
+    fOnChange(Self);
+end;
+
+procedure TBoldOclEditorState.SetExpression(const AValue: string);
+begin
+  fExpression := BoldOclTrimLineBreaks(AValue);
+  Update;
+  Changed;
+end;
+
+procedure TBoldOclEditorState.SetMemberOptions(AValue: TBoldOclMemberOptions);
+begin
+  fMemberOptions := AValue;
+  Update;
+  Changed;
+end;
+
+procedure TBoldOclEditorState.SetShowSyntaxErrors(AValue: Boolean);
+begin
+  fShowSyntaxErrors := AValue;
+  fStatusText := BoldOclCheckResultAsText(Trim(fExpression), fLastCheck, fShowSyntaxErrors);
+  Changed;
+end;
+
+procedure TBoldOclEditorState.SetFilter(AKindFilter: Integer; const AText: string);
+begin
+  fKindFilter := AKindFilter;
+  if AKindFilter = ocfText then
+    fFilterText := AText
+  else
+    fFilterText := '';
+  ApplyFilter;
+  Changed;
+end;
+
+function TBoldOclEditorState.GetCompletionCount: Integer;
+begin
+  Result := Length(fShownCompletions);
+end;
+
+function TBoldOclEditorState.GetCompletion(AIndex: Integer): TBoldOclCompletion;
+begin
+  Result := fAllCompletions[fShownCompletions[AIndex]];
+end;
+
+function TBoldOclEditorState.GetVariableCount: Integer;
+begin
+  Result := Length(fVariableItems);
+end;
+
+function TBoldOclEditorState.GetVariable(AIndex: Integer): TBoldOclCompletion;
+begin
+  Result := fVariableItems[AIndex];
+end;
+
+function TBoldOclEditorState.GetModelErrors: string;
+begin
+  Result := '';
+  if Assigned(fContext) and (fContext.SystemTypeInfo is TBoldSystemTypeInfo) and
+    (TBoldSystemTypeInfo(fContext.SystemTypeInfo).InitializationLog.Count > 0) then
+    Result := TBoldSystemTypeInfo(fContext.SystemTypeInfo).InitializationLog.Text;
+end;
+
+procedure TBoldOclEditorState.AddCompletion(AIndex: Integer);
+var
+  Addition: string;
+begin
+  if (AIndex < 0) or (AIndex >= CompletionCount) then
+    Exit;
+  Addition := Completions[AIndex].InsertText;
+  // A typed filter has done its work
+  if fKindFilter = ocfText then
+  begin
+    fKindFilter := ocfAll;
+    fFilterText := '';
+  end;
+  Expression := fExpression + Addition;
+end;
+
+procedure TBoldOclEditorState.AddVariable(AIndex: Integer);
+begin
+  if (AIndex < 0) or (AIndex >= VariableCount) then
+    Exit;
+  Expression := fExpression + Variables[AIndex].InsertText;
+end;
+
+procedure TBoldOclEditorState.RemoveLast;
+begin
+  Expression := BoldOclRemoveLast(fExpression);
+end;
+
+procedure TBoldOclEditorState.Clear;
+begin
+  Expression := '';
+end;
+
+function TBoldOclEditorState.MessagesAsText: string;
+begin
+  Result := '';
+  if Assigned(fContext) then
+    Result := sOclEditorCopyContext + fContext.ExpressionName + sLineBreak;
+  Result := Result + sOclEditorCopyExpression + sLineBreak + fExpression + sLineBreak + sLineBreak +
+    sOclEditorCopyParserMessages + sLineBreak + fStatusText;
 end;
 
 end.

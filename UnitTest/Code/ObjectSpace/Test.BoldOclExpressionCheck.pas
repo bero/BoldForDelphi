@@ -52,6 +52,38 @@ type
     procedure TestPlaceholderAt;
   end;
 
+  { TBoldOclEditorState: what the Lazarus and the FMX dialog hold between
+    the user's steps, without their controls }
+  {$IFNDEF FPC}
+  [Category('OCL')]
+  {$ENDIF}
+  TTestBoldOclEditorState = class(TBoldTestCase)
+  private
+    fChanges: Integer;
+    function SomeClass: TBoldElementTypeInfo;
+    function NewState: TBoldOclEditorState;
+    function IndexOf(AState: TBoldOclEditorState; const AInsertText: string): Integer;
+    function VariableIndexOf(AState: TBoldOclEditorState; const AInsertText: string): Integer;
+    procedure StateChanged(Sender: TObject);
+  protected
+    procedure SetUp; override;
+  published
+    procedure TestStartsWithTheContextChecked;
+    procedure TestExpressionIsCheckedWhenSet;
+    procedure TestLineBreaksAtTheEndAreDropped;
+    procedure TestInvalidExpressionListsNothing;
+    procedure TestKindFilter;
+    procedure TestTextFilterGivesWayAfterAnAddition;
+    procedure TestKindFilterStaysAfterAnAddition;
+    procedure TestMemberOptions;
+    procedure TestShowSyntaxErrors;
+    procedure TestRemoveLastClearAndVariables;
+    procedure TestIndexOutsideTheListAddsNothing;
+    procedure TestNoContext;
+    procedure TestMessagesAsText;
+    procedure TestOnChange;
+  end;
+
 implementation
 
 const
@@ -370,7 +402,313 @@ begin
   Assert.IsFalse(BoldOclPlaceholderAt('', 0, Start, Count), 'no text');
 end;
 
+{ TTestBoldOclEditorState }
+
+procedure TTestBoldOclEditorState.SetUp;
+begin
+  inherited;
+  EnsureDM;
+  fChanges := 0;
+end;
+
+function TTestBoldOclEditorState.SomeClass: TBoldElementTypeInfo;
+begin
+  Result := dmUndoRedo.BoldSystemHandle1.StaticSystemTypeInfo.ClassTypeInfoByExpressionName['SomeClass'];
+end;
+
+function TTestBoldOclEditorState.NewState: TBoldOclEditorState;
+begin
+  Result := TBoldOclEditorState.Create(SomeClass, nil);
+end;
+
+function TTestBoldOclEditorState.IndexOf(AState: TBoldOclEditorState; const AInsertText: string): Integer;
+begin
+  for Result := 0 to AState.CompletionCount - 1 do
+    if AState.Completions[Result].InsertText = AInsertText then
+      Exit;
+  Result := -1;
+end;
+
+function TTestBoldOclEditorState.VariableIndexOf(AState: TBoldOclEditorState; const AInsertText: string): Integer;
+begin
+  for Result := 0 to AState.VariableCount - 1 do
+    if AState.Variables[Result].InsertText = AInsertText then
+      Exit;
+  Result := -1;
+end;
+
+procedure TTestBoldOclEditorState.StateChanged(Sender: TObject);
+begin
+  Inc(fChanges);
+end;
+
+procedure TTestBoldOclEditorState.TestStartsWithTheContextChecked;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    Assert.AreEqual('', State.Expression);
+    Assert.IsTrue(State.LastCheck.Valid, 'the empty expression is valid');
+    Assert.AreEqual('Empty Expression', State.StatusText);
+    Assert.IsTrue(IndexOf(State, 'aString') >= 0, 'the members of the context are listed');
+    Assert.AreEqual(ocfAll, State.KindFilter);
+    Assert.IsTrue(State.MemberOptions = [omoDerived, omoPersistent, omoTransient], 'all members');
+    Assert.IsFalse(State.ShowSyntaxErrors, 'parser errors hidden');
+    Assert.IsTrue(VariableIndexOf(State, 'today') >= 0, 'the evaluator''s variables');
+    Assert.AreEqual('', State.ModelErrors);
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestExpressionIsCheckedWhenSet;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    State.Expression := 'part';
+    Assert.AreEqual('part', State.Expression);
+    Assert.IsTrue(State.LastCheck.Valid, 'valid');
+    Assert.AreEqual('Syntax is OK' + sLineBreak + sLineBreak + 'Current type is: Collection(SomeClass)',
+      State.StatusText);
+    Assert.IsTrue(IndexOf(State, '.aString') >= 0, 'the members follow with a dot');
+    Assert.IsTrue(IndexOf(State, '->size') >= 0, 'and the operations');
+    // Spaces around the expression are not checked, but kept
+    State.Expression := '  part ';
+    Assert.AreEqual('  part ', State.Expression);
+    Assert.IsTrue(State.LastCheck.Valid, 'valid with spaces');
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestLineBreaksAtTheEndAreDropped;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    State.Expression := 'part' + sLineBreak;
+    Assert.AreEqual('part', State.Expression);
+    State.Expression := 'next' + #13#10 + '.part' + #10;
+    Assert.AreEqual('next' + #13#10 + '.part', State.Expression, 'only those at the end');
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestInvalidExpressionListsNothing;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    State.Expression := 'part.nosuch';
+    Assert.IsFalse(State.LastCheck.Valid, 'not valid');
+    Assert.AreEqual(0, State.CompletionCount);
+    Assert.AreEqual('part.nosuch' + sLineBreak + '     ^-------' + sLineBreak + '5:nosuch is not a member of SomeClass',
+      State.StatusText);
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestKindFilter;
+var
+  State: TBoldOclEditorState;
+  All, i: Integer;
+begin
+  State := NewState;
+  try
+    State.Expression := 'part';
+    All := State.CompletionCount;
+    State.SetFilter(ocfSingleLinks);
+    Assert.AreEqual(ocfSingleLinks, State.KindFilter);
+    Assert.IsTrue((State.CompletionCount > 0) and (State.CompletionCount < All), 'fewer lines');
+    for i := 0 to State.CompletionCount - 1 do
+      Assert.IsTrue(State.Completions[i].Kind = ockSingleLink, State.Completions[i].Name);
+    State.SetFilter(ocfText, 'STRING');
+    Assert.AreEqual('STRING', State.FilterText);
+    Assert.IsTrue(IndexOf(State, '.aString') >= 0, 'a text in any case');
+    Assert.IsTrue(IndexOf(State, '.next') = -1, 'not in .next');
+    State.SetFilter(ocfAll, 'ignored');
+    Assert.AreEqual('', State.FilterText, 'the text belongs to ocfText');
+    Assert.AreEqual(All, State.CompletionCount);
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestTextFilterGivesWayAfterAnAddition;
+var
+  State: TBoldOclEditorState;
+  Filtered: Integer;
+begin
+  State := NewState;
+  try
+    State.SetFilter(ocfText, 'astring');
+    Filtered := State.CompletionCount;
+    Assert.AreEqual('aString', State.Completions[0].InsertText);
+    State.AddCompletion(0);
+    Assert.AreEqual('aString', State.Expression);
+    Assert.AreEqual(ocfAll, State.KindFilter);
+    Assert.AreEqual('', State.FilterText);
+    Assert.IsTrue(State.CompletionCount > Filtered, 'all lines again');
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestKindFilterStaysAfterAnAddition;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    State.Expression := 'part';
+    State.SetFilter(ocfOperations);
+    State.AddCompletion(IndexOf(State, '->select(«Boolean»)'));
+    Assert.AreEqual('part->select(«Boolean»)', State.Expression);
+    Assert.IsFalse(State.LastCheck.Valid, 'the placeholder is not OCL');
+    Assert.AreEqual(ocfOperations, State.KindFilter);
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestMemberOptions;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    // aString is a persistent attribute
+    State.MemberOptions := [omoDerived, omoTransient];
+    Assert.IsTrue(IndexOf(State, 'aString') = -1, 'not without Persistent');
+    State.MemberOptions := [omoPersistent];
+    Assert.IsTrue(IndexOf(State, 'aString') >= 0, 'with Persistent only');
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestShowSyntaxErrors;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    State.Expression := 'part->';
+    Assert.AreEqual('Unable to complete parse, syntax error', State.StatusText);
+    State.ShowSyntaxErrors := True;
+    Assert.IsTrue(Pos('SSYacc', State.StatusText) > 0, State.StatusText);
+    State.ShowSyntaxErrors := False;
+    Assert.AreEqual('Unable to complete parse, syntax error', State.StatusText);
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestRemoveLastClearAndVariables;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    State.Expression := 'part';
+    State.AddCompletion(IndexOf(State, '.next'));
+    Assert.AreEqual('part.next', State.Expression);
+    State.RemoveLast;
+    Assert.AreEqual('part', State.Expression);
+    State.Clear;
+    Assert.AreEqual('', State.Expression);
+    Assert.AreEqual('Empty Expression', State.StatusText);
+    State.AddVariable(VariableIndexOf(State, 'today'));
+    Assert.AreEqual('today', State.Expression);
+    Assert.AreEqual('Syntax is OK' + sLineBreak + sLineBreak + 'Current type is: Date', State.StatusText);
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestIndexOutsideTheListAddsNothing;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    State.Expression := 'part';
+    State.AddCompletion(-1);
+    State.AddCompletion(State.CompletionCount);
+    State.AddVariable(-1);
+    State.AddVariable(State.VariableCount);
+    Assert.AreEqual('part', State.Expression);
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestNoContext;
+var
+  State: TBoldOclEditorState;
+begin
+  State := TBoldOclEditorState.Create(nil, nil);
+  try
+    State.Expression := 'part';
+    Assert.IsFalse(State.LastCheck.Checked, 'not checked');
+    Assert.AreEqual('No Context, No design support', State.StatusText);
+    Assert.AreEqual(0, State.CompletionCount);
+    Assert.AreEqual(0, State.VariableCount);
+    Assert.AreEqual('', State.ModelErrors);
+    Assert.AreEqual('OCL Expression: ' + sLineBreak + 'part' + sLineBreak + sLineBreak + 'Parser messages: ' +
+      sLineBreak + 'No Context, No design support', State.MessagesAsText, 'no context line');
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestMessagesAsText;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    State.Expression := 'part';
+    Assert.AreEqual('Context: SomeClass' + sLineBreak + 'OCL Expression: ' + sLineBreak + 'part' + sLineBreak +
+      sLineBreak + 'Parser messages: ' + sLineBreak + State.StatusText, State.MessagesAsText);
+  finally
+    State.Free;
+  end;
+end;
+
+procedure TTestBoldOclEditorState.TestOnChange;
+var
+  State: TBoldOclEditorState;
+begin
+  State := NewState;
+  try
+    State.OnChange := StateChanged;
+    State.Expression := 'part';
+    Assert.AreEqual(1, fChanges, 'Expression');
+    State.SetFilter(ocfOperations);
+    Assert.AreEqual(2, fChanges, 'SetFilter');
+    State.MemberOptions := [omoPersistent];
+    Assert.AreEqual(3, fChanges, 'MemberOptions');
+    State.ShowSyntaxErrors := True;
+    Assert.AreEqual(4, fChanges, 'ShowSyntaxErrors');
+    State.AddCompletion(0);
+    Assert.AreEqual(5, fChanges, 'AddCompletion, once');
+    State.AddCompletion(-1);
+    Assert.AreEqual(5, fChanges, 'nothing added, no change');
+  finally
+    State.Free;
+  end;
+end;
+
 initialization
   BoldRegisterTest(TTestBoldOclExpressionCheck);
+  BoldRegisterTest(TTestBoldOclEditorState);
 
 end.

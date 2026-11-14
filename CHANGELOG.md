@@ -49,6 +49,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   main thread with `TThread.Queue`, so it runs on the next `CheckSynchronize`,
   which VCL and FMX call from their idle loops and a console application calls
   itself. `BoldSharedClock` is the instance shared by the application (#119)
+- Bold's OCL editor as an FMX dialog for Windows, macOS and Linux (#124):
+  `BoldOclExpressionDialogFMX` (`Source/ObjectSpace/UtilsGUI/FMX`), with
+  `BoldEditOclExpressionFMX` to open it on an expression. It and the Lazarus
+  dialog are views over the new `TBoldOclEditorState` in
+  `BoldOclExpressionCheck`, which holds the expression, the check, the lists,
+  the filter and the member options between the user's steps, so the two
+  share that logic and their captions (in `BoldCoreConsts`). The Invoicing
+  FMX client opens it with **Edit OCL**, and its `--selftest` drives it; the
+  state has tests `TTestBoldOclEditorState` (Delphi and Free Pascal)
 
 ### Changed
 - The OCL editor (`BoldOclPropEditor`) takes its checking, parser messages

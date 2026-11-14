@@ -46,7 +46,9 @@ done
 lazres ../boldlazarusreg.res $FILES
 
 # The icons of the OCL editor's lists (attribute, class, single link, multi
-# link, operation), in dclBold's property editor of Expression: the image
+# link, operation), in dclBold's property editor of Expression and in Delphi's
+# FMX dialog Source/ObjectSpace/UtilsGUI/FMX/boldoclexpressiondialogfmx.pas,
+# which links the same .res: the image
 # list of Delphi's editor, Source/ObjectSpace/UtilsGUI/boldoclpropeditor.dfm,
 # 16x16 each, with its mask as transparency.
 python3 - "$HERE/../../../ObjectSpace/UtilsGUI/boldoclpropeditor.dfm" "$HERE" <<'PY'

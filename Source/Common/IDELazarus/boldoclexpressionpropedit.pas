@@ -10,8 +10,10 @@ unit BoldOclExpressionPropEdit;
   with a pointer at the error. At the right what can follow the expression:
   the members of its type (or the classes, for the system) and the
   operations, with a filter; a double click or Enter adds the line to the
-  expression. At the left the OCL variables. BoldOclExpressionCheck does the
-  checking and makes the lists.
+  expression. At the left the OCL variables. The dialog holds a
+  TBoldOclEditorState (BoldOclExpressionCheck), as the FMX dialog
+  BoldOclExpressionDialogFMX does: that checks, makes the lists and applies
+  the filter, and the dialog shows it.
 
   Not here from the Delphi editor: the font button and the list of recently
   used expressions, which are kept in the Windows registry. }
@@ -35,8 +37,7 @@ type
   { TBoldOclExpressionDialog }
   TBoldOclExpressionDialog = class(TForm)
   private
-    fContext: TBoldElementTypeInfo;
-    fVariables: TBoldExternalVariableList;
+    fState: TBoldOclEditorState;
     fExpressionMemo: TMemo;
     fMessagesMemo: TMemo;
     fSyntaxCheckBox: TCheckBox;
@@ -47,13 +48,10 @@ type
     fDerivedCheckBox, fPersistentCheckBox, fTransientCheckBox: TCheckBox;
     fModelErrorsButton: TButton;
     fIcons: array[TBoldOclCompletionKind] of TPortableNetworkGraphic;
-    fLastCheck: TBoldOclCheckResult;
-    fAllCompletions: TBoldOclCompletions;
-    { The lines of the list at the right: indexes into fAllCompletions }
-    fShownCompletions: array of Integer;
-    fVariableItems: TBoldOclCompletions;
+    { While the dialog sets its controls from fState, their events do nothing }
     fUpdating: Boolean;
     function GetExpression: string;
+    function GetLastCheck: TBoldOclCheckResult;
     function GetStatusText: string;
     function GetCompletionCount: Integer;
     function GetCompletion(AIndex: Integer): TBoldOclCompletion;
@@ -64,9 +62,11 @@ type
     function GetShowSyntaxErrors: Boolean;
     procedure SetShowSyntaxErrors(AValue: Boolean);
     procedure SetExpression(const AValue: string);
+    { The memo's text, without the line break a memo ends it with }
+    function MemoExpression: string;
     procedure LoadIcons;
     procedure BuildControls;
-    procedure UpdateAll;
+    procedure ShowState(Sender: TObject);
     procedure ShowCompletions;
     procedure SelectPlaceholder;
     procedure ExpressionChanged(Sender: TObject);
@@ -99,7 +99,7 @@ type
     { The icons of the lists, one for each kind of line }
     function IconCount: Integer;
     property Expression: string read GetExpression write SetExpression;
-    property LastCheck: TBoldOclCheckResult read fLastCheck;
+    property LastCheck: TBoldOclCheckResult read GetLastCheck;
     { The parser messages under the expression }
     property StatusText: string read GetStatusText;
     property ShowSyntaxErrors: Boolean read GetShowSyntaxErrors write SetShowSyntaxErrors;
@@ -141,36 +141,13 @@ uses
   Clipbrd,
   Dialogs,
   BoldCoreConsts,
-  BoldControlPack,
-  BoldSystemRT;
+  BoldControlPack;
 
+{ The captions of the dialog are in BoldCoreConsts, shared with the FMX dialog }
 resourcestring
-  sCaption = 'OCL expression editor - Context: %s';
-  sUnknownContext = '<unknown>';
   sNotAnExpressionOwner = '%s has no OCL expression to edit';
-  sExpression = 'Expression';
-  sParserMessage = 'Parser Message:';
-  sShowOriginalParserErrors = 'Show Original Parser &Errors';
-  sRemoveLast = '&Remove Last';
-  sClear = '&Clear';
-  sAvailableExpressions = 'Available expressions';
-  sOclVariables = 'OCL Variables';
-  sDerived = '&Derived';
-  sPersistent = '&Persistent';
-  sTransient = '&Transient';
-  sFilterAll = '< All >';
-  sFilterAttributes = '< Attributes >';
-  sFilterSingleLinks = '< Single links >';
-  sFilterMultiLinks = '< Multi links >';
-  sFilterOperations = '< Operations >';
-  sShowInfo = 'Show Info';
-  sModelErrors = 'Model errors...';
-  sOK = '&OK';
-  sCancel = 'Cancel';
-  sCopyMessages = 'Copy messages to clipboard';
 
 const
-  cOclInfoUrl = 'https://www.omg.org/spec/OCL/2.0/PDF';
   cIconResources: array[TBoldOclCompletionKind] of string =
     ('BOLDOCLATTRIBUTE', 'BOLDOCLSINGLELINK', 'BOLDOCLMULTILINK', 'BOLDOCLCLASS', 'BOLDOCLOPERATION');
   cGap = 6;
@@ -203,12 +180,11 @@ constructor TBoldOclExpressionDialog.CreateDialog(AOwner: TComponent; AContext: 
   AVariables: TBoldExternalVariableList);
 begin
   inherited CreateNew(AOwner);
-  fContext := AContext;
-  fVariables := AVariables;
+  fState := TBoldOclEditorState.Create(AContext, AVariables);
   if Assigned(AContext) then
-    Caption := Format(sCaption, [AContext.AsString])
+    Caption := Format(sOclEditorCaption, [AContext.AsString])
   else
-    Caption := Format(sCaption, [sUnknownContext]);
+    Caption := Format(sOclEditorCaption, [sOclEditorUnknownContext]);
   Position := poScreenCenter;
   LoadIcons;
   // Setting up a check box clicks it
@@ -218,16 +194,21 @@ begin
   finally
     fUpdating := False;
   end;
-  UpdateAll;
+  fState.OnChange := ShowState;
+  ShowState(fState);
 end;
 
 destructor TBoldOclExpressionDialog.Destroy;
 var
   Kind: TBoldOclCompletionKind;
 begin
+  // The controls' events can come while the form destroys them; they read
+  // fState and the icons, which go after them
+  fUpdating := True;
+  inherited Destroy;
+  FreeAndNil(fState);
   for Kind := Low(Kind) to High(Kind) do
     FreeAndNil(fIcons[Kind]);
-  inherited Destroy;
 end;
 
 procedure TBoldOclExpressionDialog.LoadIcons;
@@ -325,22 +306,22 @@ begin
   BottomPanel.AutoSize := True;
   BottomPanel.BorderSpacing.Around := cGap;
   // Controls with alRight line up from the right in the order they are made
-  Button := NewButton(BottomPanel, sCancel, alRight, nil);
+  Button := NewButton(BottomPanel, sOclEditorCancel, alRight, nil);
   Button.ModalResult := mrCancel;
   Button.Cancel := True;
   Button.Left := 3000;
-  Button := NewButton(BottomPanel, sOK, alRight, nil);
+  Button := NewButton(BottomPanel, sOclEditorOK, alRight, nil);
   Button.ModalResult := mrOK;
   Button.Left := 2000;
-  Button := NewButton(BottomPanel, sShowInfo, alRight, ShowInfoClicked);
+  Button := NewButton(BottomPanel, sOclEditorShowInfo, alRight, ShowInfoClicked);
   Button.Left := 1000;
-  fModelErrorsButton := NewButton(BottomPanel, sModelErrors, alLeft, ModelErrorsClicked);
+  fModelErrorsButton := NewButton(BottomPanel, sOclEditorModelErrors, alLeft, ModelErrorsClicked);
   fModelErrorsButton.BorderSpacing.Left := 0;
 
   // Left: the OCL variables
   fVariablePanel := TGroupBox.Create(Self);
   fVariablePanel.Parent := Self;
-  fVariablePanel.Caption := sOclVariables;
+  fVariablePanel.Caption := sOclEditorVariables;
   fVariablePanel.Align := alLeft;
   fVariablePanel.Width := 200;
   fVariablePanel.BorderSpacing.Left := cGap;
@@ -355,7 +336,7 @@ begin
   // Right: what can follow the expression
   RightBox := TGroupBox.Create(Self);
   RightBox.Parent := Self;
-  RightBox.Caption := sAvailableExpressions;
+  RightBox.Caption := sOclEditorAvailableExpressions;
   RightBox.Align := alRight;
   RightBox.Width := 320;
   RightBox.BorderSpacing.Right := cGap;
@@ -365,19 +346,19 @@ begin
   fFilterCombo := TComboBox.Create(Self);
   fFilterCombo.Parent := RightPanel;
   fFilterCombo.Align := alTop;
-  fFilterCombo.Items.Add(sFilterAll);
-  fFilterCombo.Items.Add(sFilterAttributes);
-  fFilterCombo.Items.Add(sFilterSingleLinks);
-  fFilterCombo.Items.Add(sFilterMultiLinks);
-  fFilterCombo.Items.Add(sFilterOperations);
+  fFilterCombo.Items.Add(sOclEditorFilterAll);
+  fFilterCombo.Items.Add(sOclEditorFilterAttributes);
+  fFilterCombo.Items.Add(sOclEditorFilterSingleLinks);
+  fFilterCombo.Items.Add(sOclEditorFilterMultiLinks);
+  fFilterCombo.Items.Add(sOclEditorFilterOperations);
   fFilterCombo.ItemIndex := 0;
   fFilterCombo.OnChange := FilterChanged;
   fFilterCombo.OnExit := FilterExit;
   OptionRow := NewPanel(RightPanel, alBottom);
   OptionRow.AutoSize := True;
-  fDerivedCheckBox := NewCheckBox(OptionRow, sDerived, OptionClicked);
-  fPersistentCheckBox := NewCheckBox(OptionRow, sPersistent, OptionClicked);
-  fTransientCheckBox := NewCheckBox(OptionRow, sTransient, OptionClicked);
+  fDerivedCheckBox := NewCheckBox(OptionRow, sOclEditorDerived, OptionClicked);
+  fPersistentCheckBox := NewCheckBox(OptionRow, sOclEditorPersistent, OptionClicked);
+  fTransientCheckBox := NewCheckBox(OptionRow, sOclEditorTransient, OptionClicked);
   // In the order of Delphi's editor: Derived, Persistent, Transient
   fDerivedCheckBox.Left := 0;
   fPersistentCheckBox.Left := 100;
@@ -391,7 +372,7 @@ begin
   // Middle: the expression, and the parser messages under it
   ExpressionBox := TGroupBox.Create(Self);
   ExpressionBox.Parent := Self;
-  ExpressionBox.Caption := sExpression;
+  ExpressionBox.Caption := sOclEditorExpression;
   ExpressionBox.Align := alClient;
   ExpressionBox.BorderSpacing.Top := cGap;
   MiddlePanel := NewPanel(ExpressionBox, alClient);
@@ -404,16 +385,16 @@ begin
   with TLabel.Create(Self) do
   begin
     Parent := ButtonRow;
-    Caption := sParserMessage;
+    Caption := sOclEditorParserMessage;
     Align := alLeft;
     Layout := tlCenter;
     BorderSpacing.Right := cGap;
   end;
-  Button := NewButton(ButtonRow, sClear, alRight, ClearClicked);
+  Button := NewButton(ButtonRow, sOclEditorClear, alRight, ClearClicked);
   Button.Left := 2000;
-  Button := NewButton(ButtonRow, sRemoveLast, alRight, RemoveLastClicked);
+  Button := NewButton(ButtonRow, sOclEditorRemoveLast, alRight, RemoveLastClicked);
   Button.Left := 1000;
-  fSyntaxCheckBox := NewCheckBox(MessagePanel, sShowOriginalParserErrors, OptionClicked);
+  fSyntaxCheckBox := NewCheckBox(MessagePanel, sOclEditorShowOriginalParserErrors, OptionClicked);
   fSyntaxCheckBox.Align := alTop;
   fSyntaxCheckBox.Checked := False;
   fSyntaxCheckBox.Top := ButtonRow.Height + 1;
@@ -430,7 +411,7 @@ begin
   fMessagesMemo.Font.Pitch := fpFixed;
   MessagesMenu := TPopupMenu.Create(Self);
   MenuItem := TMenuItem.Create(Self);
-  MenuItem.Caption := sCopyMessages;
+  MenuItem.Caption := sOclEditorCopyMessages;
   MenuItem.OnClick := CopyMessagesClicked;
   MessagesMenu.Items.Add(MenuItem);
   fMessagesMemo.PopupMenu := MessagesMenu;
@@ -450,141 +431,133 @@ begin
   ActiveControl := fExpressionMemo;
 end;
 
+function TBoldOclExpressionDialog.MemoExpression: string;
+begin
+  Result := BoldOclTrimLineBreaks(fExpressionMemo.Lines.Text);
+end;
+
 function TBoldOclExpressionDialog.GetExpression: string;
 begin
-  // The memo ends its text with a line break
-  Result := fExpressionMemo.Lines.Text;
-  while (Result <> '') and ((Result[Length(Result)] = #10) or (Result[Length(Result)] = #13)) do
-    Delete(Result, Length(Result), 1);
+  Result := fState.Expression;
 end;
 
 procedure TBoldOclExpressionDialog.SetExpression(const AValue: string);
 begin
-  fUpdating := True;
-  try
-    fExpressionMemo.Lines.Text := AValue;
-    fExpressionMemo.SelStart := Length(AValue);
-  finally
-    fUpdating := False;
-  end;
-  // Not left to OnChange, which a memo without a window handle does not fire
-  UpdateAll;
+  // fState shows itself in the memo through ShowState; not left to the
+  // memo's OnChange, which a memo without a window handle does not fire
+  fState.Expression := AValue;
+end;
+
+function TBoldOclExpressionDialog.GetLastCheck: TBoldOclCheckResult;
+begin
+  Result := fState.LastCheck;
 end;
 
 function TBoldOclExpressionDialog.GetStatusText: string;
 begin
-  Result := TrimRight(fMessagesMemo.Lines.Text);
+  Result := fState.StatusText;
 end;
 
 function TBoldOclExpressionDialog.GetCompletionCount: Integer;
 begin
-  Result := Length(fShownCompletions);
+  Result := fState.CompletionCount;
 end;
 
 function TBoldOclExpressionDialog.GetCompletion(AIndex: Integer): TBoldOclCompletion;
 begin
-  Result := fAllCompletions[fShownCompletions[AIndex]];
+  Result := fState.Completions[AIndex];
 end;
 
 function TBoldOclExpressionDialog.GetVariableCount: Integer;
 begin
-  Result := Length(fVariableItems);
+  Result := fState.VariableCount;
 end;
 
 function TBoldOclExpressionDialog.GetVariable(AIndex: Integer): TBoldOclCompletion;
 begin
-  Result := fVariableItems[AIndex];
+  Result := fState.Variables[AIndex];
 end;
 
 function TBoldOclExpressionDialog.GetMemberOptions: TBoldOclMemberOptions;
 begin
-  Result := [];
-  if fDerivedCheckBox.Checked then
-    Include(Result, omoDerived);
-  if fPersistentCheckBox.Checked then
-    Include(Result, omoPersistent);
-  if fTransientCheckBox.Checked then
-    Include(Result, omoTransient);
+  Result := fState.MemberOptions;
 end;
 
 procedure TBoldOclExpressionDialog.SetMemberOptions(AValue: TBoldOclMemberOptions);
 begin
-  fUpdating := True;
-  try
-    fDerivedCheckBox.Checked := omoDerived in AValue;
-    fPersistentCheckBox.Checked := omoPersistent in AValue;
-    fTransientCheckBox.Checked := omoTransient in AValue;
-  finally
-    fUpdating := False;
-  end;
-  UpdateAll;
+  fState.MemberOptions := AValue;
 end;
 
 function TBoldOclExpressionDialog.GetShowSyntaxErrors: Boolean;
 begin
-  Result := fSyntaxCheckBox.Checked;
+  Result := fState.ShowSyntaxErrors;
 end;
 
 procedure TBoldOclExpressionDialog.SetShowSyntaxErrors(AValue: Boolean);
 begin
-  fUpdating := True;
-  try
-    fSyntaxCheckBox.Checked := AValue;
-  finally
-    fUpdating := False;
-  end;
-  UpdateAll;
+  fState.ShowSyntaxErrors := AValue;
 end;
 
-procedure TBoldOclExpressionDialog.UpdateAll;
+{ The OnChange of fState: the controls show it again }
+procedure TBoldOclExpressionDialog.ShowState(Sender: TObject);
 var
   i: Integer;
-  Text: string;
+  WasUpdating: Boolean;
 begin
-  if fUpdating then
-    Exit;
-  Text := Trim(Expression);
-  fLastCheck := BoldCheckOclExpression(Text, fContext, fVariables);
-  fMessagesMemo.Lines.Text := BoldOclCheckResultAsText(Text, fLastCheck, ShowSyntaxErrors);
-  BoldOclListCompletions(Text, fLastCheck, fContext, MemberOptions, fAllCompletions);
-  ShowCompletions;
-
-  BoldOclListVariables(fContext, fVariables, fVariableItems);
-  fVariableList.Items.BeginUpdate;
+  WasUpdating := fUpdating;
+  fUpdating := True;
   try
-    fVariableList.Items.Clear;
-    for i := 0 to High(fVariableItems) do
-      fVariableList.Items.Add(fVariableItems[i].Name + fVariableItems[i].Detail);
+    // Not while the user types, which would move the caret
+    if MemoExpression <> fState.Expression then
+    begin
+      fExpressionMemo.Lines.Text := fState.Expression;
+      fExpressionMemo.SelStart := Length(fState.Expression);
+    end;
+    fMessagesMemo.Lines.Text := fState.StatusText;
+    fSyntaxCheckBox.Checked := fState.ShowSyntaxErrors;
+    fDerivedCheckBox.Checked := omoDerived in fState.MemberOptions;
+    fPersistentCheckBox.Checked := omoPersistent in fState.MemberOptions;
+    fTransientCheckBox.Checked := omoTransient in fState.MemberOptions;
+    if (fState.KindFilter >= 0) and (fState.KindFilter < fFilterCombo.Items.Count) then
+    begin
+      // Also after a typed filter, which leaves the old line selected
+      if (fFilterCombo.ItemIndex <> fState.KindFilter) or
+        (fFilterCombo.Text <> fFilterCombo.Items[fState.KindFilter]) then
+      begin
+        fFilterCombo.ItemIndex := fState.KindFilter;
+        fFilterCombo.Text := fFilterCombo.Items[fState.KindFilter];
+      end;
+    end
+    else if (fState.KindFilter = ocfText) and (fFilterCombo.Text <> fState.FilterText) then
+    begin
+      fFilterCombo.ItemIndex := -1;
+      fFilterCombo.Text := fState.FilterText;
+    end;
+    ShowCompletions;
+    fVariableList.Items.BeginUpdate;
+    try
+      fVariableList.Items.Clear;
+      for i := 0 to fState.VariableCount - 1 do
+        fVariableList.Items.Add(fState.Variables[i].Name + fState.Variables[i].Detail);
+    finally
+      fVariableList.Items.EndUpdate;
+    end;
+    fVariablePanel.Visible := fState.VariableCount > 0;
+    fModelErrorsButton.Visible := fState.ModelErrors <> '';
   finally
-    fVariableList.Items.EndUpdate;
+    fUpdating := WasUpdating;
   end;
-  fVariablePanel.Visible := Length(fVariableItems) > 0;
-
-  fModelErrorsButton.Visible := Assigned(fContext) and (fContext.SystemTypeInfo is TBoldSystemTypeInfo) and
-    (TBoldSystemTypeInfo(fContext.SystemTypeInfo).InitializationLog.Count > 0);
 end;
 
 procedure TBoldOclExpressionDialog.ShowCompletions;
 var
-  i, KindFilter: Integer;
-  FilterText: string;
+  i: Integer;
 begin
-  // A line of the filter's list, or a text typed there
-  KindFilter := fFilterCombo.ItemIndex;
-  FilterText := fFilterCombo.Text;
-  if (KindFilter < 0) or (fFilterCombo.Items[KindFilter] <> fFilterCombo.Text) then
-    KindFilter := ocfText;
-  fShownCompletions := nil;
   fCompletionList.Items.BeginUpdate;
   try
     fCompletionList.Items.Clear;
-    for i := 0 to High(fAllCompletions) do
-      if BoldOclCompletionPasses(fAllCompletions[i], KindFilter, FilterText) then
-      begin
-        SetLength(fShownCompletions, Length(fShownCompletions) + 1);
-        fShownCompletions[High(fShownCompletions)] := i;
-        fCompletionList.Items.Add(fAllCompletions[i].Name + fAllCompletions[i].Detail);
-      end;
+    for i := 0 to fState.CompletionCount - 1 do
+      fCompletionList.Items.Add(fState.Completions[i].Name + fState.Completions[i].Detail);
   finally
     fCompletionList.Items.EndUpdate;
   end;
@@ -592,40 +565,27 @@ end;
 
 procedure TBoldOclExpressionDialog.SetFilter(AKindFilter: Integer; const AText: string);
 begin
-  if AKindFilter = ocfText then
-  begin
-    fFilterCombo.ItemIndex := -1;
-    fFilterCombo.Text := AText;
-  end
-  else
-    fFilterCombo.ItemIndex := AKindFilter;
-  ShowCompletions;
+  fState.SetFilter(AKindFilter, AText);
 end;
 
 procedure TBoldOclExpressionDialog.AddCompletion(AIndex: Integer);
-var
-  Addition: string;
 begin
-  Addition := Completions[AIndex].InsertText;
-  // A typed filter has done its work
-  if (fFilterCombo.ItemIndex < 0) or (fFilterCombo.Items[fFilterCombo.ItemIndex] <> fFilterCombo.Text) then
-    fFilterCombo.ItemIndex := 0;
-  Expression := Expression + Addition;
+  fState.AddCompletion(AIndex);
 end;
 
 procedure TBoldOclExpressionDialog.AddVariable(AIndex: Integer);
 begin
-  Expression := Expression + Variables[AIndex].InsertText;
+  fState.AddVariable(AIndex);
 end;
 
 procedure TBoldOclExpressionDialog.RemoveLast;
 begin
-  Expression := BoldOclRemoveLast(Expression);
+  fState.RemoveLast;
 end;
 
 procedure TBoldOclExpressionDialog.ClearExpression;
 begin
-  Expression := '';
+  fState.Clear;
 end;
 
 procedure TBoldOclExpressionDialog.SelectPlaceholder;
@@ -642,7 +602,8 @@ end;
 
 procedure TBoldOclExpressionDialog.ExpressionChanged(Sender: TObject);
 begin
-  UpdateAll;
+  if not fUpdating then
+    fState.Expression := MemoExpression;
 end;
 
 procedure TBoldOclExpressionDialog.ExpressionKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -658,11 +619,27 @@ end;
 
 procedure TBoldOclExpressionDialog.OptionClicked(Sender: TObject);
 var
+  Options: TBoldOclMemberOptions;
   OldIndex, OldTop: Integer;
 begin
+  if fUpdating then
+    Exit;
+  if Sender = fSyntaxCheckBox then
+  begin
+    fState.ShowSyntaxErrors := fSyntaxCheckBox.Checked;
+    Exit;
+  end;
+  Options := [];
+  if fDerivedCheckBox.Checked then
+    Include(Options, omoDerived);
+  if fPersistentCheckBox.Checked then
+    Include(Options, omoPersistent);
+  if fTransientCheckBox.Checked then
+    Include(Options, omoTransient);
+  // The list keeps its place
   OldIndex := fCompletionList.ItemIndex;
   OldTop := fCompletionList.TopIndex;
-  UpdateAll;
+  fState.MemberOptions := Options;
   if OldIndex < fCompletionList.Items.Count then
     fCompletionList.ItemIndex := OldIndex;
   fCompletionList.TopIndex := OldTop;
@@ -670,16 +647,19 @@ end;
 
 procedure TBoldOclExpressionDialog.FilterChanged(Sender: TObject);
 begin
-  ShowCompletions;
+  if fUpdating then
+    Exit;
+  // A line of the filter's list, or a text typed there
+  if (fFilterCombo.ItemIndex < 0) or (fFilterCombo.Items[fFilterCombo.ItemIndex] <> fFilterCombo.Text) then
+    fState.SetFilter(ocfText, fFilterCombo.Text)
+  else
+    fState.SetFilter(fFilterCombo.ItemIndex);
 end;
 
 procedure TBoldOclExpressionDialog.FilterExit(Sender: TObject);
 begin
-  if (fFilterCombo.ItemIndex = -1) and (fFilterCombo.Text = '') then
-  begin
-    fFilterCombo.ItemIndex := 0;
-    ShowCompletions;
-  end;
+  if not fUpdating and (fFilterCombo.ItemIndex = -1) and (fFilterCombo.Text = '') then
+    fState.SetFilter(ocfAll);
 end;
 
 procedure TBoldOclExpressionDialog.ListDblClick(Sender: TObject);
@@ -717,15 +697,15 @@ begin
   List := Control as TListBox;
   if List = fVariableList then
   begin
-    if (Index < 0) or (Index > High(fVariableItems)) then
+    if (Index < 0) or (Index >= fState.VariableCount) then
       Exit;
-    Item := fVariableItems[Index];
+    Item := fState.Variables[Index];
   end
   else
   begin
-    if (Index < 0) or (Index > High(fShownCompletions)) then
+    if (Index < 0) or (Index >= fState.CompletionCount) then
       Exit;
-    Item := Completions[Index];
+    Item := fState.Completions[Index];
   end;
   List.Canvas.FillRect(ARect);
   if Assigned(fIcons[Item.Kind]) then
@@ -754,24 +734,17 @@ end;
 
 procedure TBoldOclExpressionDialog.ShowInfoClicked(Sender: TObject);
 begin
-  OpenURL(cOclInfoUrl);
+  OpenURL(cBoldOclInfoUrl);
 end;
 
 procedure TBoldOclExpressionDialog.ModelErrorsClicked(Sender: TObject);
 begin
-  ShowMessage(sModelContainsErrors + LineEnding + LineEnding +
-    TBoldSystemTypeInfo(fContext.SystemTypeInfo).InitializationLog.Text);
+  ShowMessage(sModelContainsErrors + LineEnding + LineEnding + fState.ModelErrors);
 end;
 
 procedure TBoldOclExpressionDialog.CopyMessagesClicked(Sender: TObject);
-var
-  Text: string;
 begin
-  Text := '';
-  if Assigned(fContext) then
-    Text := 'Context: ' + fContext.ExpressionName + LineEnding;
-  Clipboard.AsText := UTF8Encode(Text + 'OCL Expression: ' + LineEnding + Expression + LineEnding + LineEnding +
-    'Parser messages: ' + LineEnding + StatusText);
+  Clipboard.AsText := UTF8Encode(fState.MessagesAsText);
 end;
 
 { TBoldOclExpressionPropertyEditor }
