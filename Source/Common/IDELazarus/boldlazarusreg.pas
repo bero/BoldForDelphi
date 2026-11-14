@@ -40,6 +40,9 @@ uses
   BoldModelComponentEditor,
   BoldIDEConsts,
   BoldEnvironment,
+  // Registers Bold's environment for the LCL: in the form designer a
+  // component tells the IDE through it that the form has changed
+  BoldEnvironmentLCL,
   BoldHandles,
   BoldSystemHandle,
   BoldExpressionHandle,

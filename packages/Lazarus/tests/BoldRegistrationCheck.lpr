@@ -678,6 +678,12 @@ begin
 end;
 
 type
+  { A module as the form designer has it: its components are in design mode }
+  TDesignedModule = class(TCheckModule)
+  public
+    procedure BeDesigned;
+  end;
+
   { The component editor with a user who picks a file, or cancels, in place
     of the file dialog }
   TModelEditorWithAUser = class(TBoldModelComponentEditor)
@@ -688,6 +694,11 @@ type
     Asked: Integer;
   end;
 
+procedure TDesignedModule.BeDesigned;
+begin
+  SetDesigning(True);
+end;
+
 function TModelEditorWithAUser.AskForFileName(var AFileName: string): Boolean;
 begin
   Inc(Asked);
@@ -697,10 +708,13 @@ begin
 end;
 
 { The component editor of TBoldModel: Load model from file. A new form with
-  an empty model, a type info handle, a system handle and a list handle. }
+  an empty model, a type info handle, a system handle and a list handle, in
+  design mode: the model then tells the designer that it has changed, which
+  takes Bold's LCL environment (BoldEnvironmentLCL, linked by BoldLazarusReg). }
 procedure CheckTheModelEditor;
 var
-  Module, Reloaded: TCheckModule;
+  Module: TDesignedModule;
+  Reloaded: TCheckModule;
   Model, ReloadedModel: TBoldModel;
   TypeInfoHandle: TBoldSystemTypeInfoHandle;
   SystemHandle: TBoldSystemHandle;
@@ -717,11 +731,13 @@ begin
   BuildingFile := ExampleFileName('Compound/Building/Building.bld');
   NoModelFile := IncludeTrailingPathDelimiter(GetTempDir) + 'BoldRegistrationCheck-no-model.bld';
   Reloaded := nil;
-  Module := TCheckModule.CreateNew(nil);
+  Module := TDesignedModule.CreateNew(nil);
   try
     try
       Module.Name := 'CheckModule';
+      Module.BeDesigned;
       Model := TBoldModel.Create(Module);
+      Check('the model is in design mode', csDesigning in Model.ComponentState, 'csDesigning');
       Model.Name := 'BoldModel1';
       TypeInfoHandle := TBoldSystemTypeInfoHandle.Create(Module);
       TypeInfoHandle.Name := 'BoldSystemTypeInfoHandle1';
