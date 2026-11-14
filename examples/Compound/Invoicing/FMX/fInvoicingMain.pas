@@ -134,10 +134,14 @@ begin
     Inc(SeedFailures);
 end;
 
+{ A deployed program (Linux64 through PAServer) has the model next to it; one
+  run where it was built finds it in the repository's Model folder }
 function ModelFileName: string;
 begin
-  Result := TPath.GetFullPath(TPath.Combine(ExtractFilePath(ParamStr(0)),
-    '..' + PathDelim + 'Model' + PathDelim + 'Invoicing.bld'));
+  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'Invoicing.bld');
+  if not TFile.Exists(Result) then
+    Result := TPath.GetFullPath(TPath.Combine(ExtractFilePath(ParamStr(0)),
+      '..' + PathDelim + 'Model' + PathDelim + 'Invoicing.bld'));
 end;
 
 { TfrmInvoicingMain }

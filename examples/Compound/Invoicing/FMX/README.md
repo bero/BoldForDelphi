@@ -36,6 +36,10 @@ drains Bold's display queue by itself, so the form calls
 Build `InvoicingFMX.dproj` for Win32 or Win64 and run it. **Save changes**
 writes to the database.
 
+The project also has the Linux64 platform (tried with Delphi 13). Run from
+the IDE deploys through PAServer; the deployment holds `Invoicing.bld` next to
+the program, where the client looks for the model first, before `..\Model`.
+
 `InvoicingFMX --selftest` shows no window: it fills a temporary database,
 walks every customer and invoice, checks that the grids show the right rows,
 writes the checks to `InvoicingFMX.selftest.txt` and exits with the number of

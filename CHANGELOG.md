@@ -21,6 +21,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the Lazarus component palette, with the icons of the Delphi palette, and
   `dclBoldZeos.lpk` adds `TBoldDatabaseAdapterZeos`; the property and
   component editors of the Delphi package are not ported
+- The Invoicing FMX client (`examples/Compound/Invoicing/FMX`) has the Linux64
+  platform (#117): the project deploys `Invoicing.bld` next to the program,
+  where the client now looks for the model first
 - The Delphi test suite builds and runs on Linux64: `UnitTest\build.ps1
   -Platform Linux64` builds the console runner, and `UnitTest/README.md` says
   how to run it. Test units whose subject is Windows only are empty there, and
