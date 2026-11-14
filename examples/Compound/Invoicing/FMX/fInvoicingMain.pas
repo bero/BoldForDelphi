@@ -18,6 +18,14 @@
   The handles, datasets, grids and bindings are created in code, because
   TBoldDataSet is not on the component palette yet (#117 step 8).
 
+  Under the invoice grid a combo box shows the customer of the selected
+  invoice and picks another: a single link through datasets. The invoice
+  dataset has a field with the expression customer, the dataset of the
+  customers to choose from one with the expression self, and a
+  TLinkFillControlToField binds the combo box to the two. After a pick the
+  form moves the customer grid to the new customer, so that the invoice
+  stays in view. The LCL client (../LCL) shows the same.
+
   Edit OCL opens Bold's OCL editor as an FMX dialog (BoldOclExpressionDialogFMX,
   #124) on the Invoicing model, and evaluates the expression it gives back. }
 
@@ -34,6 +42,7 @@ uses
   FMX.Forms,
   FMX.StdCtrls,
   FMX.Layouts,
+  FMX.ListBox,
   FMX.Grid,
   FMX.Grid.Style,
   FMX.ScrollBox,
@@ -64,6 +73,13 @@ type
     FCustomerHandle: TBoldListHandle;
     FInvoiceHandle: TBoldListHandle;
     FLineHandle: TBoldListHandle;
+    FCustomerChoiceHandle: TBoldListHandle;
+    FCustomerChoice: TBoldDataSet;
+    FInvoiceCustomer: TComboBox;
+    FInvoiceSource: TBindSourceDB;
+    FFollowQueued: Boolean;
+    // A TInvoice; the model's classes are not named in the interface
+    FInvoiceToFollow: TObject;
     FCustomers: TBoldDataSet;
     FInvoices: TBoldDataSet;
     FLines: TBoldDataSet;
@@ -75,7 +91,11 @@ type
     FOclExpression: string;
     function AddListHandle(ARoot: TBoldElementHandle; const AExpression: string): TBoldListHandle;
     function AddDataSet(AHandle: TBoldListHandle; const AColumns: array of string): TBoldDataSet;
-    function AddGrid(const ACaption: string; ADataSet: TDataSet; AAlign: TAlignLayout; AHeight: Single): TStringGrid;
+    function AddGrid(const ACaption: string; ADataSet: TDataSet; AAlign: TAlignLayout; AHeight: Single;
+      out ASource: TBindSourceDB): TStringGrid;
+    procedure AddInvoiceCustomerRow;
+    procedure InvoiceCustomerChange(Sender: TObject);
+    procedure FollowTheInvoice;
     procedure AppIdle(Sender: TObject; var Done: Boolean);
     procedure SaveClick(Sender: TObject);
     procedure EditOclClick(Sender: TObject);
@@ -162,6 +182,7 @@ procedure TfrmInvoicingMain.FormCreate(Sender: TObject);
 var
   Bar: TLayout;
   Save, EditOcl: TButton;
+  Source: TBindSourceDB;
 begin
   FSelfTest := IsSelfTestRun;
   if FSelfTest then
@@ -183,7 +204,16 @@ begin
   FCustomers := AddDataSet(FCustomerHandle,
     ['number|Number', 'name|Name', 'email|Email', 'invoicedTotal|Invoiced', 'openBalance|Open balance', 'overdueCount|Overdue']);
   FInvoices := AddDataSet(FInvoiceHandle,
-    ['number|Number', 'invoiceDate|Date', 'dueDate|Due', 'status|Status', 'grossTotal|Total', 'balance|Balance']);
+    ['number|Number', 'invoiceDate|Date', 'dueDate|Due', 'status|Status', 'grossTotal|Total', 'balance|Balance',
+     'customer|Customer']);
+  // The link to the customer is a key, which the combo box shows as a name;
+  // not a grid column
+  FInvoices.FieldByName('Customer').Visible := False;
+  // The customers to choose from, for the combo box: a dataset of its own,
+  // so that the combo box does not move the customer grid. Its field self is
+  // the key that the invoices' field customer holds.
+  FCustomerChoiceHandle := AddListHandle(FData.BoldSystemHandle1, 'Customer.allInstances');
+  FCustomerChoice := AddDataSet(FCustomerChoiceHandle, ['self|self', 'name|Name']);
   FLines := AddDataSet(FLineHandle,
     ['description|Description', 'quantity|Quantity', 'unitPrice|Unit price', 'vatPercent|VAT %', 'grossAmount|Amount']);
 
@@ -214,9 +244,10 @@ begin
   EditOcl.OnClick := EditOclClick;
   FOclExpression := 'Customer.allInstances';
 
-  FCustomerGrid := AddGrid('Customers', FCustomers, TAlignLayout.Top, 220);
-  FInvoiceGrid := AddGrid('Invoices of the selected customer', FInvoices, TAlignLayout.Top, 200);
-  FLineGrid := AddGrid('Lines of the selected invoice', FLines, TAlignLayout.Client, 0);
+  FCustomerGrid := AddGrid('Customers', FCustomers, TAlignLayout.Top, 220, Source);
+  FInvoiceGrid := AddGrid('Invoices of the selected customer', FInvoices, TAlignLayout.Top, 164, FInvoiceSource);
+  AddInvoiceCustomerRow;
+  FLineGrid := AddGrid('Lines of the selected invoice', FLines, TAlignLayout.Client, 0, Source);
 
   Application.OnIdle := AppIdle;
   ShowStatus;
@@ -226,12 +257,15 @@ end;
 procedure TfrmInvoicingMain.FormDestroy(Sender: TObject);
 begin
   Application.OnIdle := nil;
+  FInvoiceToFollow := nil;
   // Details before masters, datasets before their handles, all before the system
   FreeAndNil(FLines);
   FreeAndNil(FInvoices);
+  FreeAndNil(FCustomerChoice);
   FreeAndNil(FCustomers);
   FreeAndNil(FLineHandle);
   FreeAndNil(FInvoiceHandle);
+  FreeAndNil(FCustomerChoiceHandle);
   FreeAndNil(FCustomerHandle);
   if Assigned(FData) and FData.IsOpen then
     FData.CloseSystem(False);
@@ -280,10 +314,9 @@ begin
 end;
 
 function TfrmInvoicingMain.AddGrid(const ACaption: string; ADataSet: TDataSet; AAlign: TAlignLayout;
-  AHeight: Single): TStringGrid;
+  AHeight: Single; out ASource: TBindSourceDB): TStringGrid;
 var
   Caption: TLabel;
-  Source: TBindSourceDB;
   Link: TLinkGridToDataSource;
 begin
   Caption := TLabel.Create(Self);
@@ -306,18 +339,106 @@ begin
   end;
   Result.Options := Result.Options + [TGridOption.RowSelect, TGridOption.AlwaysShowSelection] - [TGridOption.Editing];
 
-  Source := TBindSourceDB.Create(Self);
-  Source.DataSet := ADataSet;
+  ASource := TBindSourceDB.Create(Self);
+  ASource.DataSet := ADataSet;
   Link := TLinkGridToDataSource.Create(Self);
-  Link.DataSource := Source;
+  Link.DataSource := ASource;
   Link.GridControl := Result;
   Link.Active := True;
+end;
+
+{ The row under the invoice grid: the customer of the selected invoice in a
+  combo box. LiveBindings' lookup link fills the combo box from the choice
+  dataset (the names to show, and with each the key in the field self), and
+  binds its selection to the invoices' field customer, which holds such a
+  key: it shows the customer of the selected invoice, and a pick writes the
+  key of the customer that was picked. }
+procedure TfrmInvoicingMain.AddInvoiceCustomerRow;
+var
+  Row: TLayout;
+  Caption: TLabel;
+  ChoiceSource: TBindSourceDB;
+  Link: TLinkFillControlToField;
+begin
+  Row := TLayout.Create(Self);
+  Row.Parent := Self;
+  Row.Align := TAlignLayout.Top;
+  Row.Height := 36;
+  Row.Position.Y := ClientHeight;
+  Caption := TLabel.Create(Self);
+  Caption.Parent := Row;
+  Caption.Align := TAlignLayout.Left;
+  Caption.Width := 250;
+  Caption.Margins.Left := 8;
+  Caption.Text := 'Customer of the selected invoice:';
+  FInvoiceCustomer := TComboBox.Create(Self);
+  FInvoiceCustomer.Parent := Row;
+  FInvoiceCustomer.Align := TAlignLayout.Left;
+  FInvoiceCustomer.Position.X := 300;
+  FInvoiceCustomer.Width := 320;
+  FInvoiceCustomer.Margins.Rect := TRectF.Create(4, 4, 4, 4);
+
+  ChoiceSource := TBindSourceDB.Create(Self);
+  ChoiceSource.DataSet := FCustomerChoice;
+  Link := TLinkFillControlToField.Create(Self);
+  Link.DataSource := FInvoiceSource;
+  Link.FieldName := 'Customer';
+  Link.Control := FInvoiceCustomer;
+  Link.FillDataSource := ChoiceSource;
+  Link.FillDisplayFieldName := 'Name';
+  Link.FillValueFieldName := 'self';
+  Link.AutoFill := True;
+  Link.Active := True;
+  // After the link, which has its own way of hearing a pick
+  FInvoiceCustomer.OnChange := InvoiceCustomerChange;
+end;
+
+procedure TfrmInvoicingMain.InvoiceCustomerChange(Sender: TObject);
+begin
+  // A pick, or the invoice grid moved to another invoice. After a pick the
+  // invoice is about to leave the invoice grid, which shows the invoices of
+  // the selected customer: the form follows the invoice, once the combo box
+  // and its link are done with the pick.
+  // The invoice is noted now: once the pick is written it is no longer the
+  // selected one.
+  if Assigned(FInvoices) and FInvoices.Active and not FInvoices.IsEmpty then
+    FInvoiceToFollow := FInvoices.ActiveBoldObject;
+  if not FFollowQueued then
+  begin
+    FFollowQueued := True;
+    TThread.ForceQueue(nil, FollowTheInvoice);
+  end;
+end;
+
+procedure TfrmInvoicingMain.FollowTheInvoice;
+var
+  Invoice: TInvoice;
+begin
+  FFollowQueued := False;
+  if not Assigned(FInvoices) or not Assigned(FCustomers) or not (FInvoiceToFollow is TInvoice) then
+    Exit;
+  Invoice := TInvoice(FInvoiceToFollow);
+  FInvoiceToFollow := nil;
+  if not Assigned(Invoice.Customer) or (FCustomers.ActiveBoldObject = Invoice.Customer) then
+    Exit;
+  // The datasets follow a change when Bold's display queue is drained, which
+  // AppIdle does; here it is drained at once, so that the invoice dataset
+  // has let the invoice go before the customer grid moves
+  TBoldQueueable.DisplayAll;
+  if FCustomers.Locate('Number', Invoice.Customer.Number, []) then
+  begin
+    TBoldQueueable.DisplayAll;
+    FInvoices.Locate('Number', Invoice.Number, []);
+  end;
 end;
 
 procedure TfrmInvoicingMain.AppIdle(Sender: TObject; var Done: Boolean);
 begin
   // Brings the Bold-aware followers, TBoldDataSet's among them, up to date
   TBoldQueueable.DisplayAll;
+  // Without an invoice there is nothing to pick a customer for
+  if Assigned(FInvoiceCustomer) and Assigned(FInvoices) then
+    FInvoiceCustomer.Enabled := FInvoices.Active and not FInvoices.IsEmpty;
   ShowStatus;
   Done := True;
 end;
@@ -472,6 +593,114 @@ var
     end;
   end;
 
+  function ShownInTheComboBox: string;
+  begin
+    if Assigned(FInvoiceCustomer.Selected) then
+      Result := FInvoiceCustomer.Selected.Text
+    else
+      Result := '';
+  end;
+
+  { Picks an item of the combo box as the control does for a user: it asks
+    its LiveBindings observers whether the field may be edited (which puts
+    the dataset in edit mode), changes its selection, and tells them that
+    it has a new value to write. }
+  procedure PickInTheComboBox(AIndex: Integer);
+  var
+    Observers: TObservers;
+  begin
+    Observers := FInvoiceCustomer.Observers;
+    if Observers.IsObserving(TObserverMapping.EditLinkID) then
+    begin
+      if TLinkObservers.EditLinkEdit(Observers) then
+      begin
+        FInvoiceCustomer.ItemIndex := AIndex;
+        TLinkObservers.EditLinkModified(Observers);
+        TLinkObservers.EditLinkUpdate(Observers);
+      end
+      else
+        Log.Add('  the combo box may not edit the field');
+    end
+    else
+    begin
+      FInvoiceCustomer.ItemIndex := AIndex;
+      TLinkObservers.ControlChanged(FInvoiceCustomer);
+    end;
+    Settle;
+  end;
+
+  { The combo box under the invoice grid: a single link through datasets }
+  procedure CheckTheCustomerComboBox;
+  var
+    Customer, OtherCustomer: TCustomer;
+    Invoice: TInvoice;
+    InvoicesBefore, Choice: Integer;
+    IdleDone: Boolean;
+  begin
+    FCustomers.First;
+    while not FCustomers.Eof and (FInvoices.RecordCount = 0) do
+      FCustomers.Next;
+    Settle;
+    Customer := FCustomers.ActiveBoldObject as TCustomer;
+    FInvoices.First;
+    Settle;
+    Invoice := FInvoices.ActiveBoldObject as TInvoice;
+    InvoicesBefore := Customer.Invoices.Count;
+    Check('the invoice grid has no column for the customer key', FInvoiceGrid.ColumnCount = 6,
+      IntToStr(FInvoiceGrid.ColumnCount) + ' columns');
+    Check('the combo box lists every customer',
+      FInvoiceCustomer.Count = FData.BoldSystem.EvaluateExpressionAsInteger('Customer.allInstances->size'),
+      IntToStr(FInvoiceCustomer.Count));
+    Check('the combo box shows the customer of the selected invoice', ShownInTheComboBox = Customer.Name,
+      ShownInTheComboBox);
+    OtherCustomer := nil;
+    Choice := 0;
+    while (Choice < FInvoiceCustomer.Count) and (FInvoiceCustomer.ListItems[Choice].Text = Customer.Name) do
+      Inc(Choice);
+    PickInTheComboBox(Choice);
+    if Assigned(Invoice.Customer) then
+      OtherCustomer := Invoice.Customer;
+    Check('picking another customer in the combo box links the invoice to it',
+      Assigned(OtherCustomer) and (OtherCustomer <> Customer),
+      'invoice ' + IntToStr(Invoice.Number) + ' of ' + Invoice.Customer.Name);
+    Check('the invoice is no longer among the invoices of its former customer',
+      Customer.Invoices.Count = InvoicesBefore - 1, IntToStr(Customer.Invoices.Count) + ' invoices');
+    Check('the invoice dataset is not left editing', not (FInvoices.State in dsEditModes),
+      IntToStr(Ord(FInvoices.State)));
+    Check('the customer grid has moved to the new customer', FCustomers.ActiveBoldObject = OtherCustomer,
+      FCustomers.FieldByName('Name').AsString);
+    Check('the invoice grid shows that customer''s invoices, with the invoice selected',
+      (FInvoices.ActiveBoldObject = Invoice) and Assigned(OtherCustomer) and
+      (FInvoiceGrid.RowCount = OtherCustomer.Invoices.Count), IntToStr(FInvoiceGrid.RowCount) + ' rows');
+    Check('the combo box shows the new customer and can be used again',
+      FInvoiceCustomer.Enabled and Assigned(OtherCustomer) and (ShownInTheComboBox = OtherCustomer.Name),
+      ShownInTheComboBox);
+    if Customer.Invoices.Count = 0 then
+    begin
+      FCustomers.Locate('Number', Customer.Number, []);
+      Settle;
+      // What the idle loop does, where the combo box is enabled or not
+      Application.DoIdle(IdleDone);
+      Check('a customer without invoices: an empty invoice grid, and the combo box cannot be used',
+        (FCustomers.ActiveBoldObject = Customer) and (FInvoiceGrid.RowCount = 0) and not FInvoiceCustomer.Enabled,
+        Format('%d rows, enabled %s', [FInvoiceGrid.RowCount, BoolToStr(FInvoiceCustomer.Enabled, True)]));
+      if Assigned(OtherCustomer) then
+        FCustomers.Locate('Number', OtherCustomer.Number, []);
+      Settle;
+      Application.DoIdle(IdleDone);
+    end;
+    Choice := 0;
+    while (Choice < FInvoiceCustomer.Count) and (FInvoiceCustomer.ListItems[Choice].Text <> Customer.Name) do
+      Inc(Choice);
+    PickInTheComboBox(Choice);
+    Check('picking the former customer brings the invoice back to it',
+      (Invoice.Customer = Customer) and (Customer.Invoices.Count = InvoicesBefore),
+      'invoice ' + IntToStr(Invoice.Number) + ' of ' + Invoice.Customer.Name);
+    Check('and the form follows it there',
+      (FCustomers.ActiveBoldObject = Customer) and (FInvoices.ActiveBoldObject = Invoice) and
+      (ShownInTheComboBox = Customer.Name), FCustomers.FieldByName('Name').AsString + ', ' + ShownInTheComboBox);
+  end;
+
 var
   Customer: TCustomer;
   Invoice: TInvoice;
@@ -515,6 +744,8 @@ begin
     Check('invoices shown over all customers',
       InvoicesShown = FData.BoldSystem.EvaluateExpressionAsInteger('Invoice.allInstances->size'), IntToStr(InvoicesShown));
     Check('some lines shown', LinesShown > 0, IntToStr(LinesShown));
+
+    CheckTheCustomerComboBox;
 
     // Only an attribute changes, on the Bold side; the change is not saved.
     // TBoldDataSet's cell followers hear it, and LiveBindings fill the cell.

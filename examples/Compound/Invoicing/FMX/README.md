@@ -22,6 +22,32 @@ The data module is the one the console runner and the tests use
 `..\Model\Invoicing.bld`, and on the first run `InvoicingFMX.db` next to the exe
 is filled with the scenario from `..\Tests\InvoicingScenario.pas`.
 
+## The customer of an invoice: a link in a combo box
+
+Under the invoice grid a combo box shows the customer of the selected
+invoice, and picking another customer moves the invoice to it, as in the LCL
+client (`..\LCL`). A single link needs nothing more than a `TBoldDataSet` on
+each side and LiveBindings' lookup link:
+
+| | |
+|---|---|
+| `FInvoices`, the dataset that is edited | a field with the expression `customer`, the link. It holds a key of the linked object, or null. |
+| `FCustomerChoice`, the customers to choose from | a field with the expression `self`, named `self`: the same key. And `name`, to show. |
+| a `TLinkFillControlToField` | `DataSource`/`FieldName` = the invoices' `Customer` field, `FillDataSource` = the choice dataset, `FillValueFieldName` = `self`, `FillDisplayFieldName` = `Name`, `Control` = the `TComboBox` |
+
+The key is a 64-bit integer that is only good for the running program, so its
+field is not visible and the grid has no column for it. The choice dataset is
+one of its own, on a list handle of all customers, so that the combo box does
+not move the customer grid.
+
+The link is also what the invoice grid is built on: it shows the invoices of
+the selected customer. An invoice that gets another customer leaves that list
+at once; the dataset ends the edit and keeps the change. So that the invoice
+does not vanish from view, the form then follows it (`InvoiceCustomerChange`,
+`FollowTheInvoice`): the customer grid moves to the new customer, with the
+invoice selected and the combo box ready for another pick. While the invoice
+grid is empty the combo box is disabled.
+
 ## No VCL
 
 The project defines `BOLD_NO_VCL` (Project Options, Delphi Compiler, Conditional
