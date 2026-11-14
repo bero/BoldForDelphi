@@ -223,8 +223,12 @@ jobs:
 
       # The design-time package dclBoldZeos, and BoldZeosRegistrationCheck:
       # TBoldDatabaseAdapterZeos on the palette, and a data module with a
-      # TZConnection, the adapter and a persistence handle as form text.
+      # TZConnection, the adapter and a persistence handle as form text. It
+      # asks the IDE's interface which packages a project gets with the
+      # component, which links a widgetset (so the offscreen platform).
       - name: Build dclBoldZeos.lpk and check what it registers
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: >-
           ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0"
           LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config"

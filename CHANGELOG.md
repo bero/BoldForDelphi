@@ -26,7 +26,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   of Delphi's component editor in the form designer: Fields Editor (the
   field descriptions, also on a double click), Create default fields and
   Clear all columns. `TBoldModel` has the command Load model from file,
-  which reads a `.bld` file into the model of the form. The other property and component editors of the Delphi
+  which reads a `.bld` file into the model of the form. A project that gets
+  a Bold component in the form designer requires the runtime package, not
+  the design-time package. The other property and component editors of the Delphi
   package are not ported
 - The Invoicing FMX client (`examples/Compound/Invoicing/FMX`) has the Linux64
   platform (#117): the project deploys `Invoicing.bld` next to the program,

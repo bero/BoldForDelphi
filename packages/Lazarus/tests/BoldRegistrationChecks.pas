@@ -3,7 +3,8 @@ unit BoldRegistrationChecks;
 { What BoldRegistrationCheck and BoldZeosRegistrationCheck share (#117):
   catching the RegisterComponents calls of a design-time package's Register
   procedure without the IDE, writing a component as the text of a form file
-  and reading it back, and looking for a component's palette icon. }
+  and reading it back, looking for a component's palette icon, and asking which packages a
+  project gets when a component is dropped on a form. }
 
 interface
 
@@ -30,16 +31,73 @@ function ComponentToText(AComponent: TComponent): AnsiString;
 { Reads the text into AInstance (the root, already created) or, with nil,
   creates the component the text names }
 function TextToComponent(const AText: AnsiString; AInstance: TComponent): TComponent;
+{ The form text without its first line, which has the name of the root: with
+  the LCL linked in, a data module read while one of its name exists is
+  renamed (CheckModule_1) }
+function AfterFirstLine(const AText: AnsiString): AnsiString;
 procedure CheckEveryComponentRoundTrips;
 { The palette icon of a component is a PNG in a resource named after the
   class, which the registration unit links in. Returns its size as
   'width x height', or why there is none. }
 function PaletteIconSize(AClass: TComponentClass): string;
+{ When a component is dropped on a form, the IDE adds to the project the
+  package of the component's unit and the design-time package that
+  registered it, and then lets the component's requirements
+  (RegisterComponentRequirements) change that list. A project must get the
+  runtime package only: with the design-time package it would link the
+  registration code and the IDE's interface. }
+procedure CheckNoComponentRequiresTheDesignPackage(const ARuntimePackage, ADesignPackage: string);
 
 implementation
 
 uses
-  SysUtils;
+  SysUtils,
+  ComponentEditors;
+
+function AfterFirstLine(const AText: AnsiString): AnsiString;
+begin
+  Result := Copy(AText, Pos(AnsiString(#10), AText) + 1, MaxInt);
+end;
+
+procedure CheckNoComponentRequiresTheDesignPackage(const ARuntimePackage, ADesignPackage: string);
+var
+  i, Wrong: Integer;
+  Packages: TStringList;
+  Requirements: TComponentRequirements;
+  FirstWrong: string;
+begin
+  Wrong := 0;
+  FirstWrong := '';
+  Packages := TStringList.Create;
+  try
+    // As the IDE's list is
+    Packages.Sorted := True;
+    Packages.Duplicates := dupIgnore;
+    for i := 0 to High(Registered) do
+    begin
+      Packages.Clear;
+      Packages.Add(AnsiString(ARuntimePackage));
+      Packages.Add(AnsiString(ADesignPackage));
+      Requirements := GetComponentRequirements(Registered[i].ComponentClass);
+      if Assigned(Requirements) then
+        Requirements.RequiredPkgs(Packages);
+      if string(Packages.CommaText) <> ARuntimePackage then
+      begin
+        Inc(Wrong);
+        if FirstWrong = '' then
+          FirstWrong := string(Registered[i].ComponentClass.ClassName) + ' requires ' + string(Packages.CommaText);
+      end;
+    end;
+  finally
+    Packages.Free;
+  end;
+  if Wrong = 0 then
+    Check('a project that gets a component requires ' + ARuntimePackage + ', not ' + ADesignPackage, True,
+      IntToStr(Length(Registered)) + ' components')
+  else
+    Check('a project that gets a component requires ' + ARuntimePackage + ', not ' + ADesignPackage, False,
+      IntToStr(Wrong) + ' of ' + IntToStr(Length(Registered)) + ' components, e.g. ' + FirstWrong);
+end;
 
 procedure Check(const AWhat: string; APassed: Boolean; const AActual: string);
 begin

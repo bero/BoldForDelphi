@@ -8,7 +8,9 @@
 # Run from anywhere. Exit code 0 when both builds and every check passed.
 #
 # dclBoldZeos requires dclBold, whose property editor needs a widgetset:
-# LCL_WS, qt5 by default.
+# LCL_WS, qt5 by default. The check program asks the IDE's interface which
+# packages a project gets with the component, so it links the widgetset too;
+# without a display, set QT_QPA_PLATFORM=offscreen.
 #
 # LAZBUILD_OPTIONS adds lazbuild options, e.g. --pcp=<dir> for a Lazarus
 # configuration of its own.

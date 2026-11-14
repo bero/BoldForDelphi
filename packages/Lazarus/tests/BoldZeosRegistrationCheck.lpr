@@ -12,6 +12,8 @@ program BoldZeosRegistrationCheck;
 
 uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
+  // The checks ask the IDE's interface (IDEIntf), which needs the LCL and a widgetset
+  Interfaces,
   SysUtils,
   Classes,
   ZConnection,
@@ -71,8 +73,10 @@ begin
       // Not Written = WrittenAgain: a TZConnection that was read from a form
       // writes four more of its format settings (SecondFractionSeperator)
       // than a new one. From then on the text is stable, so a form saved
-      // twice in the designer does not change.
-      Check('the data module, once read, is written the same again', WrittenAgain = WrittenThird,
+      // twice in the designer does not change. (Compared after the first
+      // line, the module's name; see AfterFirstLine.)
+      Check('the data module, once read, is written the same again',
+        AfterFirstLine(WrittenAgain) = AfterFirstLine(WrittenThird),
         IntToStr(Length(WrittenAgain)) + ' characters, ' + IntToStr(Reloaded.ComponentCount) + ' components');
       Connection := Reloaded.FindComponent('ZConnection1') as TZConnection;
       Adapter := Reloaded.FindComponent('BoldDatabaseAdapterZeos1') as TBoldDatabaseAdapterZeos;
@@ -107,6 +111,7 @@ begin
     Check('TBoldDatabaseAdapterZeos is registered', IsRegistered(TBoldDatabaseAdapterZeos), 'TBoldDatabaseAdapterZeos');
     Check('TBoldDatabaseAdapterZeos has its palette icon', PaletteIconSize(TBoldDatabaseAdapterZeos) = '24 x 24',
       PaletteIconSize(TBoldDatabaseAdapterZeos));
+    CheckNoComponentRequiresTheDesignPackage('BoldZeos', 'dclBoldZeos');
 
     Writeln('Every component, written as form text and read back');
     CheckEveryComponentRoundTrips;

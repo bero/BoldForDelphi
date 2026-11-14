@@ -106,7 +106,12 @@ fields. A file that is not a model is refused and the model stays as it was.
 The form holds a copy: after a change of the file, load it again.
 
 A project never requires `dclBold`: it requires `Bold` (and `BoldLCL`), so an
-application links no registration code. `tests/BoldRegistrationCheck` checks
+application links no registration code. When a component is dropped on a
+form, Lazarus adds the package of its unit to the project and, by default,
+also the design-time package that registered it; `dclBold` and `dclBoldZeos`
+register requirements for their components that leave the design-time
+package out (`BoldLazarusRequirements`), so the project gets `Bold`, or
+`BoldZeos`, only. `tests/BoldRegistrationCheck` checks
 without the IDE what the package registers, that every component, and a
 data module of them that refer to each other, is written as form text and
 read back, that every component has its icon, and the OCL editor against the

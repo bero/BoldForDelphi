@@ -125,11 +125,6 @@ begin
   Field.FieldName := 'Open balance';
 end;
 
-function AfterFirstLine(const AText: AnsiString): AnsiString;
-begin
-  Result := Copy(AText, Pos(AnsiString(#10), AText) + 1, MaxInt);
-end;
-
 procedure CheckModuleRoundTrips;
 var
   Original, Reloaded, ReloadedAgain: TCheckModule;
@@ -865,6 +860,7 @@ begin
     Check('on the page Bold Persistence', CountOnPage('Bold Persistence') = 2, IntToStr(CountOnPage('Bold Persistence')));
     Check('on the page Bold Misc', CountOnPage('Bold Misc') = 5, IntToStr(CountOnPage('Bold Misc')));
     Check('TBoldDataSet is registered', IsRegistered(TBoldDataSet), 'TBoldDataSet');
+    CheckNoComponentRequiresTheDesignPackage('Bold', 'dclBold');
     Check('Bold knows that it runs in the IDE', BoldInternalRunningInIDE, BoolToStr(BoldInternalRunningInIDE, True));
 
     Writeln('Every component, written as form text and read back');

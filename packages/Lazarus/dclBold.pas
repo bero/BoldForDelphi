@@ -9,7 +9,8 @@ interface
 
 uses
   BoldLazarusReg, BoldOclExpressionPropEdit, BoldDataSetComponentEditor, 
-  BoldModelComponentEditor, BoldIDEConsts, LazarusPackageIntf;
+  BoldModelComponentEditor, BoldLazarusRequirements, BoldIDEConsts, 
+  LazarusPackageIntf;
 
 implementation
 

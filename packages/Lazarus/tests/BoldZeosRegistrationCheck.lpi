@@ -25,6 +25,12 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="IDEIntf"/>
+      </Item>
+      <Item>
+        <PackageName Value="LCL"/>
+      </Item>
+      <Item>
         <PackageName Value="BoldZeos"/>
         <DefaultFilename Value="../BoldZeos.lpk" Prefer="True"/>
       </Item>
@@ -47,7 +53,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="../../../Source/Common/Include;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../../Source/Persistence/Zeos/IDELazarus;../../../Source/Common/IDE"/>
+      <OtherUnitFiles Value="../../../Source/Persistence/Zeos/IDELazarus;../../../Source/Common/IDELazarus;../../../Source/Common/IDE"/>
       <UnitOutputDirectory Value="lib/zeos/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Other>

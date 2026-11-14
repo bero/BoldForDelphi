@@ -37,6 +37,10 @@
         <UnitName Value="BoldModelComponentEditor"/>
       </Item>
       <Item>
+        <Filename Value="../../Source/Common/IDELazarus/boldlazarusrequirements.pas"/>
+        <UnitName Value="BoldLazarusRequirements"/>
+      </Item>
+      <Item>
         <Filename Value="../../Source/Common/IDE/boldideconsts.pas"/>
         <UnitName Value="BoldIDEConsts"/>
       </Item>

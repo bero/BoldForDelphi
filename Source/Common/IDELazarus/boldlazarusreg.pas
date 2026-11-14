@@ -38,6 +38,7 @@ uses
   BoldOclExpressionPropEdit,
   BoldDataSetComponentEditor,
   BoldModelComponentEditor,
+  BoldLazarusRequirements,
   BoldIDEConsts,
   BoldEnvironment,
   // Registers Bold's environment for the LCL: in the form designer a
@@ -62,13 +63,8 @@ uses
   BoldExceptionHandlers,
   BoldDataSet;
 
-procedure Register;
-begin
-  // What BoldEnvironmentIDE does in the Delphi design package
-  BoldInternalRunningInIDE := True;
-
-  RegisterComponents(BOLDPAGENAME_HANDLES,
-    [
+const
+  cHandles: array[0..11] of TComponentClass = (
     TBoldModel,
     TBoldSystemHandle,
     TBoldSystemTypeInfoHandle,
@@ -81,22 +77,32 @@ begin
     TBoldReferenceHandle,
     TBoldOclVariables,
     TBoldUnloaderHandle
-    ]);
-
-  RegisterComponents(BOLDPAGENAME_PERSISTENCE,
-    [
+    );
+  cPersistence: array[0..1] of TComponentClass = (
     TBoldPersistenceHandleDB,
     TBoldPersistenceHandleFileXML
-    ]);
-
-  RegisterComponents(BOLDPAGENAME_MISC,
-    [
+    );
+  cMisc: array[0..4] of TComponentClass = (
     TBoldFilter,
     TBoldComparer,
     TBoldPlaceableSubscriber,
     TBoldExceptionHandler,
     TBoldDataSet
-    ]);
+    );
+
+procedure Register;
+begin
+  // What BoldEnvironmentIDE does in the Delphi design package
+  BoldInternalRunningInIDE := True;
+
+  RegisterComponents(BOLDPAGENAME_HANDLES, cHandles);
+  RegisterComponents(BOLDPAGENAME_PERSISTENCE, cPersistence);
+  RegisterComponents(BOLDPAGENAME_MISC, cMisc);
+
+  // A project that gets one of them requires the package Bold, not dclBold
+  RegisterComponentRequirements(cHandles, TBoldDclBoldNotRequired);
+  RegisterComponentRequirements(cPersistence, TBoldDclBoldNotRequired);
+  RegisterComponentRequirements(cMisc, TBoldDclBoldNotRequired);
 
   // TBoldExpression is string itself, so each property is named
   RegisterPropertyEditor(TypeInfo(TBoldExpression), TBoldListHandle, 'Expression', TBoldOclExpressionPropertyEditor);
