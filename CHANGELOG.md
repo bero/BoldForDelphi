@@ -32,6 +32,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a Bold component in the form designer requires the runtime package, not
   the design-time package. The other property and component editors of the Delphi
   package are not ported
+- `TBoldDataSet` is on the Delphi component palette (page Bold Misc), with
+  its component editor: Fields Editor, Create default fields, Clear all
+  columns. The design package `dclBold` registers it, as the Lazarus package
+  does, so a form can hold the datasets that FMX's LiveBindings and the
+  data-aware controls show (#117)
 - The Invoicing FMX client (`examples/Compound/Invoicing/FMX`) has the Linux64
   platform (#117): the project deploys `Invoicing.bld` next to the program,
   where the client now looks for the model first

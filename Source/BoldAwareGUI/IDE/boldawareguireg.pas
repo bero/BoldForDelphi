@@ -60,6 +60,8 @@ uses
   BoldComboBox,
   BoldPageControl,
   BoldAction,
+  BoldDataSet,
+  BoldDataSetPropertyEditors,
   BoldIDEConsts;
 
 {$R BoldAwareGUIReg.res}
@@ -121,6 +123,8 @@ begin
 
   {$ENDIF}
   RegisterComponentEditor(TBoldCustomGrid, TBoldColumnsEditor);
+  // Fields Editor (the field descriptions), Create default fields, Clear all columns
+  RegisterComponentEditor(TBoldAbstractDataSet, TBoldDataSetEditor);
   RegisterComponentEditor(TBoldPropertiesController,TBoldPropertiesControllerComponentEditor);
   RegisterPropertyEditor(TypeInfo(String), TBoldDrivenProperty, 'PropertyName', TPropertyNameProperty);
   RegisterPropertyEditor(TypeInfo(TComponent), TBoldDrivenProperty, 'VCLComponent', TVCLComponentProperty);
@@ -133,9 +137,12 @@ end;
 procedure RegisterComponentsOnPalette;
 begin
 {$IFNDEF BOLDCOMCLIENT}
+  // TBoldDataSet is how FMX (through LiveBindings) and any data-aware
+  // control show Bold objects; the Lazarus package has it on this page too
   RegisterComponents(BOLDPAGENAME_MISC,
   [
-    TBoldExceptionHandler
+    TBoldExceptionHandler,
+    TBoldDataSet
   ]);
 {$ENDIF}
 

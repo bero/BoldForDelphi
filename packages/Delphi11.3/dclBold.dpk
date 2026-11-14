@@ -127,6 +127,8 @@ contains
   BoldCursorGuard in '..\..\Source\Common\UtilsGUI\BoldCursorGuard.pas',
   BoldCursorHandle in '..\..\Source\Handles\Core\BoldCursorHandle.pas',
   BoldDBActions in '..\..\Source\Persistence\DB\BoldDBActions.pas',
+  BoldDataSet in '..\..\Source\BoldAwareGUI\BoldControls\BoldDataSet.pas',
+  BoldDataSetPropertyEditors in '..\..\Source\BoldAwareGUI\IDE\BoldDataSetPropertyEditors.pas',
   BoldDBInterfaces in '..\..\Source\Persistence\DB\BoldDBInterfaces.pas',
   BoldDTDParser in '..\..\Source\UMLModel\ModelLinks\XMI\BoldDTDParser.pas',
   BoldDataBlock in '..\..\Source\Common\HTTP\BoldDataBlock.pas',

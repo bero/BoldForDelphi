@@ -218,6 +218,8 @@
         <DCCReference Include="..\..\Source\Common\UtilsGUI\BoldCursorGuard.pas"/>
         <DCCReference Include="..\..\Source\Handles\Core\BoldCursorHandle.pas"/>
         <DCCReference Include="..\..\Source\Persistence\DB\BoldDBActions.pas"/>
+        <DCCReference Include="..\..\Source\BoldAwareGUI\BoldControls\BoldDataSet.pas"/>
+        <DCCReference Include="..\..\Source\BoldAwareGUI\IDE\BoldDataSetPropertyEditors.pas"/>
         <DCCReference Include="..\..\Source\Persistence\DB\BoldDBInterfaces.pas"/>
         <DCCReference Include="..\..\Source\UMLModel\ModelLinks\XMI\BoldDTDParser.pas"/>
         <DCCReference Include="..\..\Source\Common\HTTP\BoldDataBlock.pas"/>
