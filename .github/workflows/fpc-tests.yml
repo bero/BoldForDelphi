@@ -183,9 +183,13 @@ jobs:
         run: LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config" sh examples/Compound/Invoicing/LCL/build.sh
 
       # The design-time package dclBold, and BoldRegistrationCheck: without
-      # the IDE it catches what the package registers and writes every
-      # component as form text and reads it back.
+      # the IDE it catches what the package registers, writes every
+      # component as form text and reads it back, and checks OCL expressions
+      # against the model through the property editor of Expression, whose
+      # dialog it creates and never shows (so the offscreen platform).
       - name: Build dclBold.lpk and check what it registers
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config" sh packages/Lazarus/tests/build.sh
 
       # The same archive and cache as in the fpc job.

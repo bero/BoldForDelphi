@@ -13,8 +13,11 @@ unit BoldLazarusReg;
   The palette icons are the bitmaps of the Delphi package (Images/Components)
   as PNG, in boldlazarusreg.res; images/make_res.sh makes that file.
 
-  Only registration so far: the property and component editors of the Delphi
-  package are written against Delphi's design-time API and are not ported. }
+  One property editor: Expression of the handles and of a TBoldDataSet field
+  opens a dialog that checks the expression against the model
+  (BoldOclExpressionPropEdit). The other property and component editors of
+  the Delphi package are written against Delphi's design-time API and are
+  not ported. }
 
 interface
 
@@ -26,6 +29,10 @@ implementation
 
 uses
   Classes,
+  PropEdits,
+  BoldDefs,
+  BoldControlPack,
+  BoldOclExpressionPropEdit,
   BoldIDEConsts,
   BoldEnvironment,
   BoldHandles,
@@ -82,6 +89,13 @@ begin
     TBoldExceptionHandler,
     TBoldDataSet
     ]);
+
+  // TBoldExpression is string itself, so each property is named
+  RegisterPropertyEditor(TypeInfo(TBoldExpression), TBoldListHandle, 'Expression', TBoldOclExpressionPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TBoldExpression), TBoldListHandle, 'MutableListExpression', TBoldOclExpressionPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TBoldExpression), TBoldExpressionHandle, 'Expression', TBoldOclExpressionPropertyEditor);
+  // The BoldProperties of a TBoldDataSet field
+  RegisterPropertyEditor(TypeInfo(TBoldExpression), TBoldFollowerController, 'Expression', TBoldOclExpressionPropertyEditor);
 end;
 
 end.

@@ -7,6 +7,9 @@
 # to Lazarus here; building them is lazbuild's job.
 # Run from anywhere. Exit code 0 when both builds and every check passed.
 #
+# dclBoldZeos requires dclBold, whose property editor needs a widgetset:
+# LCL_WS, qt5 by default.
+#
 # LAZBUILD_OPTIONS adds lazbuild options, e.g. --pcp=<dir> for a Lazarus
 # configuration of its own.
 set -e
@@ -23,8 +26,8 @@ for package in zcore zplain zparsesql zdbc zcomponent; do
   lazbuild $LAZBUILD_OPTIONS --add-package-link "$ZEOS/packages/lazarus/$package.lpk"
 done
 # shellcheck disable=SC2086
-lazbuild $LAZBUILD_OPTIONS "$HERE/../dclBoldZeos.lpk"
+lazbuild --ws="${LCL_WS:-qt5}" $LAZBUILD_OPTIONS "$HERE/../dclBoldZeos.lpk"
 # shellcheck disable=SC2086
-lazbuild $LAZBUILD_OPTIONS "$HERE/BoldZeosRegistrationCheck.lpi"
+lazbuild --ws="${LCL_WS:-qt5}" $LAZBUILD_OPTIONS "$HERE/BoldZeosRegistrationCheck.lpi"
 
 "$HERE/bin/BoldZeosRegistrationCheck"

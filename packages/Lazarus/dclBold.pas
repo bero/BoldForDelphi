@@ -8,7 +8,8 @@ unit dclBold;
 interface
 
 uses
-  BoldLazarusReg, BoldIDEConsts, LazarusPackageIntf;
+  BoldLazarusReg, BoldOclExpressionCheck, BoldOclExpressionPropEdit, 
+  BoldIDEConsts, LazarusPackageIntf;
 
 implementation
 

@@ -15,7 +15,7 @@
         <CustomOptions Value="-Mdelphiunicode"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Bold for Delphi, design time for Lazarus: puts Bold's non-visual components (handles, model, persistence handles, TBoldDataSet) on the component palette."/>
+    <Description Value="Bold for Delphi, design time for Lazarus: puts Bold's non-visual components (handles, model, persistence handles, TBoldDataSet) on the component palette, with a property editor that checks OCL expressions against the model."/>
     <License Value="MIT"/>
     <Version Major="26" Minor="9" Release="1"/>
     <Files>
@@ -25,11 +25,22 @@
         <UnitName Value="BoldLazarusReg"/>
       </Item>
       <Item>
+        <Filename Value="../../Source/Common/IDELazarus/boldoclexpressioncheck.pas"/>
+        <UnitName Value="BoldOclExpressionCheck"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/IDELazarus/boldoclexpressionpropedit.pas"/>
+        <UnitName Value="BoldOclExpressionPropEdit"/>
+      </Item>
+      <Item>
         <Filename Value="../../Source/Common/IDE/boldideconsts.pas"/>
         <UnitName Value="BoldIDEConsts"/>
       </Item>
     </Files>
     <RequiredPkgs>
+      <Item>
+        <PackageName Value="IDEIntf"/>
+      </Item>
       <Item>
         <PackageName Value="BoldLCL"/>
         <DefaultFilename Value="BoldLCL.lpk" Prefer="True"/>

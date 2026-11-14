@@ -19,8 +19,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   lazbuild and runs them on every push. The design-time package `dclBold.lpk`
   puts the handles, the model, the persistence handles and `TBoldDataSet` on
   the Lazarus component palette, with the icons of the Delphi palette, and
-  `dclBoldZeos.lpk` adds `TBoldDatabaseAdapterZeos`; the property and
-  component editors of the Delphi package are not ported
+  `dclBoldZeos.lpk` adds `TBoldDatabaseAdapterZeos`. `Expression` of the
+  handles and of a `TBoldDataSet` field has a property editor that checks
+  the OCL expression against the model and shows its result type or the
+  error; the other property and component editors of the Delphi package
+  are not ported
 - The Invoicing FMX client (`examples/Compound/Invoicing/FMX`) has the Linux64
   platform (#117): the project deploys `Invoicing.bld` next to the program,
   where the client now looks for the model first

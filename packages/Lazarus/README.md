@@ -60,11 +60,25 @@ module. A `TZConnection` read from a form writes four more of its format
 settings than a new one, so a form with one changes once, the first time it
 is saved again.
 
+`dclBold` also has a property editor for OCL expressions: `Expression` and
+`MutableListExpression` of a list handle, `Expression` of an expression
+handle, and `Expression` under `BoldProperties` of a `TBoldDataSet` field. The
+"..." button in the Object Inspector opens a dialog that names the type the
+expression is evaluated in and shows, as the expression is typed, the type of
+its result or the error and its position. The model must be in the form (a
+`TBoldModel` that the handles reach through their system handle); a handle
+that is not connected to one can be edited, but is not checked. It is a small
+stand-in for Delphi's OCL editor, without that editor's lists of members and
+operations. The package requires `IDEIntf` for it, so it is built for a
+widgetset (`lazbuild --ws=qt5`).
+
 A project never requires `dclBold`: it requires `Bold` (and `BoldLCL`), so an
 application links no registration code. `tests/BoldRegistrationCheck` checks
 without the IDE what the package registers, that every component, and a
 data module of them that refer to each other, is written as form text and
-read back, and that every component has its icon.
+read back, that every component has its icon, and that the property editor
+checks expressions against the Invoicing model and writes an edited
+expression back.
 
 ## Using it
 
@@ -95,8 +109,8 @@ written and read as components, but have no tests under Free Pascal yet:
 
 Not there yet:
 
-- The property and component editors of the Delphi design package (the OCL
-  editor, the model editor, the field editor of `TBoldDataSet`): they are
-  written against Delphi's design-time API. Properties are edited in the
-  Object Inspector as text.
+- The other property and component editors of the Delphi design package
+  (the full OCL editor, the model editor, the field editor of
+  `TBoldDataSet`): they are written against Delphi's design-time API. Other
+  properties are edited in the Object Inspector as text.
 - Bold's visual controls.
