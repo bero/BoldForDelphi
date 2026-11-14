@@ -51,7 +51,7 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # The downloaded .deb files are cached, so after the first run the install
       # needs no apt-get update and no mirror (one run got the 20 MB at
@@ -60,7 +60,7 @@ jobs:
       # version in the key when FPC_PACKAGES changes.
       - name: Cache the FPC packages
         id: fpc-debs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .ci-cache/fpc-debs
           key: fpc-debs-ubuntu-26.04-fpc-3.2.2-v1
@@ -91,7 +91,7 @@ jobs:
           fpc -iV
 
       - name: Cache the Zeos archive
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .ci-cache/zeosdbo-8.0.0-stable.zip
           key: zeosdbo-8.0.0-stable-${{ env.ZEOS_ZIP_SHA256 }}
@@ -131,7 +131,7 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Lazarus with the Qt5 widgetset is about 280 packages (270 MB), so the
       # downloaded .deb files are cached together with apt's package lists:
@@ -140,7 +140,7 @@ jobs:
       # version in the key when LAZARUS_PACKAGES changes.
       - name: Cache the Lazarus packages
         id: lazarus-debs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .ci-cache/lazarus
           key: lazarus-debs-ubuntu-26.04-lazarus-4.4-qt5-v3
@@ -197,7 +197,7 @@ jobs:
 
       # The same archive and cache as in the fpc job.
       - name: Cache the Zeos archive
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .ci-cache/zeosdbo-8.0.0-stable.zip
           key: zeosdbo-8.0.0-stable-${{ env.ZEOS_ZIP_SHA256 }}
