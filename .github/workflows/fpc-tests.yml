@@ -143,17 +143,20 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .ci-cache/lazarus
-          key: lazarus-debs-ubuntu-26.04-lazarus-4.4-qt5-v2
+          key: lazarus-debs-ubuntu-26.04-lazarus-4.4-qt5-v3
 
       - name: Install Lazarus
         # lcl-utils has lazbuild, lcl-units the compiled LCL, lcl-qt5 and
         # libqt5pas-dev the widgetset the client is built for, and
-        # fp-units-misc a unit the LCL's clipboard support uses. gcc and
+        # fp-units-misc a unit the LCL's clipboard support uses. lazarus-src
+        # has the source of BuildIntf, which IDEIntf (dclBold's property
+        # editor) uses and Ubuntu ships uncompiled; lazbuild compiles it. gcc and
         # libc6-dev provide the C runtime to link against. libsqlite3-0 is
         # what the Zeos runner loads; curl, ca-certificates and unzip get Zeos.
         env:
           LAZARUS_PACKAGES: >-
             lcl-utils-4.4 lcl-units-4.4 lcl-qt5-4.4 libqt5pas-dev fp-units-misc-3.2.2
+            lazarus-src-4.4
             gcc libc6-dev libsqlite3-0 curl ca-certificates unzip
           CACHE_HIT: ${{ steps.lazarus-debs.outputs.cache-hit }}
         run: |

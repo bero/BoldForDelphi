@@ -70,7 +70,9 @@ its result or the error and its position. The model must be in the form (a
 that is not connected to one can be edited, but is not checked. It is a small
 stand-in for Delphi's OCL editor, without that editor's lists of members and
 operations. The package requires `IDEIntf` for it, so it is built for a
-widgetset (`lazbuild --ws=qt5`).
+widgetset (`lazbuild --ws=qt5`). On Debian and Ubuntu `lazbuild` needs the
+package `lazarus-src` for that: `IDEIntf` uses `BuildIntf`, which those
+distributions ship as source only.
 
 A project never requires `dclBold`: it requires `Bold` (and `BoldLCL`), so an
 application links no registration code. `tests/BoldRegistrationCheck` checks
