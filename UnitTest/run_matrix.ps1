@@ -7,12 +7,13 @@
 # before UnitTest.ini, so the ini is never edited.
 #
 # USAGE:
-#   .\run_matrix.ps1 [-Engines SQLite,SQLServer] [-Filter <DUnitX --run filter>]
+#   .\run_matrix.ps1 [-Engines SQLite,SQLServer,PostgreSQL] [-Filter <DUnitX --run filter>]
 #                    [-SkipBuild] [-SkipUniDAC] [-UniDACFull] [-UniDACDelphiVersion 23.0]
 #
 # PARAMETERS:
-#   -Engines     : Engines for the FireDAC build (default: SQLite, SQLServer).
-#                  Each needs a section in UnitTest.ini.
+#   -Engines     : Engines for the FireDAC build (default: SQLite, SQLServer, and
+#                  PostgreSQL where it can run, see POSTGRESQL below). Each needs a
+#                  section in UnitTest.ini.
 #   -Filter      : Optional DUnitX filter, e.g. Test.BoldBatchQueries or
 #                  Test.BoldLinks.TTestBoldLinks.TestCollectRoleInPS_MatchesInMemory.
 #   -SkipBuild   : Reuse the existing executables.
@@ -21,12 +22,13 @@
 #                  the UniDAC environment variable points at an installation with the
 #                  SQLite provider (UniDAC 11), otherwise SQLServer only (the vendored
 #                  10.4 copy has no SQLite provider). PostgreSQL is added when -Engines is
-#                  left at its default and the installation has the PostgreSQL provider.
+#                  left at its default, the installation has the PostgreSQL provider and
+#                  the server answers.
 #   -UniDACFull  : Run the whole suite with the UniDAC build instead of only the
 #                  UniDAC fixtures (Test.PersistenceUniDAC, Test.PersistenceScenariosUniDAC,
-#                  Test.BoldDbEvolutorUniDAC). The PostgreSQL row runs the UniDAC fixtures
-#                  even then: the FireDAC tests in the same exe would load libpq, and current
-#                  PostgreSQL releases ship a 64-bit libpq only, which the Win32 exe cannot load.
+#                  Test.BoldDbEvolutorUniDAC). On PostgreSQL the FireDAC tests in that exe
+#                  need the libpq.dll of the FireDAC row; without one the PostgreSQL row
+#                  keeps to the UniDAC fixtures.
 #   -UniDACDelphiVersion : Delphi registry version for the UniDAC build. Default: 23.0
 #                  (Delphi 12) when the vendored Attracs-Common copy is used, because stock
 #                  UniDAC 10.4 does not compile on Delphi 13; the newest Delphi when the
@@ -38,7 +40,16 @@
 # tests done so far - out of the count in the previous log of the same row when
 # that log was written for the same filter (the first line of each log).
 #
-# Logs: UnitTest\matrix_<adapter>_<engine>.log. Exit code = number of failed runs.
+# POSTGRESQL: the PostgreSQL rows need the server of [PostgreSQL] in UnitTest.ini.
+# With -Engines left at its default, a row that cannot run is reported as skipped,
+# not failed. FireDAC also needs a 64-bit libpq.dll (the test exes are Win64): the
+# first one on the PATH, else the one in the bin folder of the newest PostgreSQL
+# installation under Program Files. Its folder is put first on the PATH while a
+# PostgreSQL row runs. UniDAC's provider talks to the server without it. The test
+# bases create the databases when the server does not have them.
+#
+# Logs: UnitTest\matrix_<adapter>_<engine>.log. Exit code = number of failed runs
+# (a skipped row is not one; a failed UniDAC build or a missing UniDAC exe is).
 
 param(
     [string[]]$Engines = @("SQLite", "SQLServer"),
@@ -57,7 +68,59 @@ $UniDACFixtures = "Test.PersistenceUniDAC,Test.PersistenceScenariosUniDAC,Test.B
 $MatrixActivity = "Adapter x Engine matrix"
 
 $Results = New-Object System.Collections.Generic.List[object]
+$Skipped = New-Object System.Collections.Generic.List[string]
+# Steps that leave no row in the table, a failed UniDAC build for one; each counts as a failed run
+$FailedSteps = New-Object System.Collections.Generic.List[string]
 $SavedEngine = $env:BOLD_TEST_ENGINE
+$SavedPath = $env:PATH
+# Set below for build.ps1 when unset. Left set, it would turn the default of
+# -UniDACDelphiVersion into the newest Delphi for the next run in the same session.
+$SavedUniDAC = $env:UniDAC
+
+# ---- PostgreSQL helpers (see POSTGRESQL above)
+# True when the file is a 64-bit (x64) PE image: the machine field of its header
+function Test-Pe64([string]$Path) {
+    try {
+        $Bytes = [IO.File]::ReadAllBytes($Path)
+        $PeHeader = [BitConverter]::ToInt32($Bytes, 0x3C)
+        return [BitConverter]::ToUInt16($Bytes, $PeHeader + 4) -eq 0x8664
+    } catch { return $false }
+}
+
+# The folder of a 64-bit libpq.dll: the first on the PATH, else the bin folder
+# of the newest PostgreSQL installation under Program Files; "" when there is none
+function Find-PostgreSQLBin {
+    foreach ($Dir in ($env:PATH -split ";")) {
+        if ($Dir -and (Test-Pe64 (Join-Path $Dir "libpq.dll"))) { return $Dir }
+    }
+    $ProgramFiles64 = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles }
+    $Root = Join-Path $ProgramFiles64 "PostgreSQL"
+    if (Test-Path -LiteralPath $Root) {
+        $Newest = Get-ChildItem -LiteralPath $Root -Directory |
+            Where-Object { ($_.Name -match '^\d+') -and (Test-Pe64 (Join-Path $_.FullName "bin\libpq.dll")) } |
+            Sort-Object { [int]($_.Name -replace '^(\d+).*$', '$1') } -Descending | Select-Object -First 1
+        if ($Newest) { return Join-Path $Newest.FullName "bin" }
+    }
+    return ""
+}
+
+# Server and port of [PostgreSQL] in UnitTest.ini, with the defaults of the test bases
+function Get-PostgreSQLServer {
+    $Server = "localhost"; $Port = 5432; $InSection = $false
+    foreach ($Line in (Get-Content (Join-Path $ScriptDir "UnitTest.ini") -ErrorAction SilentlyContinue)) {
+        if ($Line -match '^\s*\[(.+)\]') { $InSection = ($Matches[1] -eq "PostgreSQL"); continue }
+        if ($InSection -and ($Line -match '^\s*Server\s*=\s*(.*?)\s*$')) { $Server = $Matches[1] }
+        if ($InSection -and ($Line -match '^\s*Port\s*=\s*(\d+)')) { $Port = [int]$Matches[1] }
+    }
+    return @($Server, $Port)
+}
+
+function Test-TcpPort([string]$HostName, [int]$Port) {
+    $Client = New-Object System.Net.Sockets.TcpClient
+    try { return $Client.ConnectAsync($HostName, $Port).Wait(3000) -and $Client.Connected }
+    catch { return $false }
+    finally { $Client.Dispose() }
+}
 
 # ---- Plan the steps up front, so every header can show [k/N]
 $UniDACExe = Join-Path $ScriptDir "UniDAC\UnitTest.exe"
@@ -75,6 +138,26 @@ if (-not $SkipUniDAC) {
         if ($HasPostgreSQL -and -not $PSBoundParameters.ContainsKey("Engines")) { $UniDACEngines += "PostgreSQL" }
     }
 }
+$DefaultEngines = -not $PSBoundParameters.ContainsKey("Engines")
+$PgBin = ""
+if ($DefaultEngines -or ($Engines -contains "PostgreSQL") -or ($UniDACEngines -contains "PostgreSQL")) {
+    $PgBin = Find-PostgreSQLBin
+    $PgServer, $PgPort = Get-PostgreSQLServer
+    $PgAnswers = Test-TcpPort $PgServer $PgPort
+    # Rows the defaults add run only where they can; a row named in -Engines or
+    # -UniDACEngines runs regardless and fails when it cannot
+    if ($DefaultEngines) {
+        $NoServer = "no server answers at ${PgServer}:$PgPort ([PostgreSQL] in UnitTest.ini)"
+        if (-not $PgAnswers) { $Skipped.Add("FireDAC x PostgreSQL: $NoServer") }
+        elseif (-not $PgBin) { $Skipped.Add("FireDAC x PostgreSQL: no 64-bit libpq.dll on the PATH or in a PostgreSQL\<version>\bin folder under Program Files") }
+        else { $Engines += "PostgreSQL" }
+        if (($UniDACEngines -contains "PostgreSQL") -and -not $PgAnswers -and -not $PSBoundParameters.ContainsKey("UniDACEngines")) {
+            $UniDACEngines = @($UniDACEngines | Where-Object { $_ -ne "PostgreSQL" })
+            $Skipped.Add("UniDAC x PostgreSQL: $NoServer")
+        }
+    }
+}
+$Skipped | ForEach-Object { Write-Host "[SKIP] $_" -ForegroundColor Yellow }
 $TotalSteps = $Engines.Count
 if (-not $SkipBuild) { $TotalSteps++ }
 if ($UniDACAvailable) {
@@ -137,6 +220,8 @@ function Invoke-Run([string]$Adapter, [string]$Exe, [string]$Engine, [string]$Ru
     }
     Start-Step "RUN" $Name
     $env:BOLD_TEST_ENGINE = $Engine
+    # FireDAC loads libpq.dll from the PATH (see POSTGRESQL above)
+    $env:PATH = if (($Engine -eq "PostgreSQL") -and $PgBin) { "$PgBin;$SavedPath" } else { $SavedPath }
     $Args = @()
     if ($RunFilter) { $Args += "--run:$RunFilter" }
     $Started = Get-Date
@@ -158,6 +243,7 @@ function Invoke-Run([string]$Adapter, [string]$Exe, [string]$Engine, [string]$Ru
         $Line
     }
     $ErrorActionPreference = "Stop"
+    $env:PATH = $SavedPath
     Write-Progress -Id 2 -ParentId 1 -Activity $Name -Completed
     @($FilterLine) + @($Output) | Set-Content -Path $Log -Encoding UTF8
     $Elapsed = (Get-Date) - $Started
@@ -202,12 +288,16 @@ try {
             if (-not (Test-Path $UniDACExe)) { throw "Not found: $UniDACExe" }
             $UniFilter = if ($Filter) { $Filter } elseif ($UniDACFull) { "" } else { $UniDACFixtures }
             foreach ($Engine in $UniDACEngines) {
-                # FireDAC tests on PostgreSQL would load the 64-bit libpq (see -UniDACFull)
-                $EngineFilter = if (($Engine -eq "PostgreSQL") -and -not $Filter) { $UniDACFixtures } else { $UniFilter }
+                # Without a 64-bit libpq the FireDAC tests in that exe cannot reach
+                # PostgreSQL, so that row keeps to the UniDAC fixtures (see -UniDACFull)
+                $EngineFilter = if (($Engine -eq "PostgreSQL") -and -not $Filter -and -not $PgBin) { $UniDACFixtures } else { $UniFilter }
                 try { Invoke-Run "UniDAC" $UniDACExe $Engine $EngineFilter }
                 catch { Write-Host "  $_" -ForegroundColor Red }
             }
-        } catch { Write-Host "  $_" -ForegroundColor Red }
+        } catch {
+            Write-Host "  $_" -ForegroundColor Red
+            $FailedSteps.Add("UniDAC: $_")
+        }
     } elseif (-not $SkipUniDAC) {
         Write-Host ""
         Write-Host "[SKIP] UniDAC not found at $env:UniDAC (UniDAC is commercial and optional)" -ForegroundColor Yellow
@@ -216,13 +306,18 @@ try {
     Write-Progress -Id 1 -Activity $MatrixActivity -Completed
     if ($null -eq $SavedEngine) { Remove-Item Env:BOLD_TEST_ENGINE -ErrorAction SilentlyContinue }
     else { $env:BOLD_TEST_ENGINE = $SavedEngine }
+    $env:PATH = $SavedPath
+    if ($null -eq $SavedUniDAC) { Remove-Item Env:UniDAC -ErrorAction SilentlyContinue }
+    else { $env:UniDAC = $SavedUniDAC }
 }
 
 Write-Host ""
 Write-Host "Adapter x Engine matrix" -ForegroundColor Cyan
 $Results | Format-Table Adapter, Engine, Found, Passed, Ignored, Failed, Errored, Leak, Seconds, Result -AutoSize | Out-String | Write-Host
 $Results | ForEach-Object { Write-Host ("  log: {0}" -f $_.Log) -ForegroundColor Gray }
+$Skipped | ForEach-Object { Write-Host ("  skipped: {0}" -f $_) -ForegroundColor Yellow }
+$FailedSteps | ForEach-Object { Write-Host ("  failed: {0}" -f $_) -ForegroundColor Red }
 
-$FailedRuns = @($Results | Where-Object { $_.Result -ne "OK" }).Count
-if ($Results.Count -eq 0) { $FailedRuns = 1 }
+$FailedRuns = @($Results | Where-Object { $_.Result -ne "OK" }).Count + $FailedSteps.Count
+if ($Results.Count -eq 0) { $FailedRuns = [Math]::Max($FailedRuns, 1) }
 exit $FailedRuns

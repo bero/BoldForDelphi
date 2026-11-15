@@ -70,12 +70,13 @@ powershell -Command "$env:BOLD_TEST_ENGINE='SQLServer'; & '.\UnitTest\UnitTest.e
 
 Bold SQL generation depends on the engine, the adapter wrappers depend on the DAC, and only driver
 quirks depend on the pair. `UnitTest\run_matrix.ps1` runs the combinations that matter: the FireDAC build on
-SQLite and SQL Server, then the DebugUniDAC build on the same engines when the UniDAC installation has a
-SQLite provider (UniDAC 11), on SQL Server only otherwise (skipped when UniDAC is not installed at all).
-UniDAC also gets a PostgreSQL row, which runs only the UniDAC fixtures, even with `-UniDACFull`: the
-FireDAC tests in that exe would load libpq, and current PostgreSQL releases ship a 64-bit libpq only, which
-the Win32 test exe cannot load. That row needs a local PostgreSQL server (`[PostgreSQL]` in `UnitTest.ini`);
-the UniDAC test base creates the database when it is missing.
+SQLite, SQL Server and PostgreSQL, then the DebugUniDAC build on the same engines when the UniDAC installation
+has a SQLite provider (UniDAC 11), on SQL Server only otherwise, plus PostgreSQL when it has that provider
+(skipped when UniDAC is not installed at all). The PostgreSQL rows need the server of `[PostgreSQL]` in
+`UnitTest.ini`, and FireDAC needs a 64-bit `libpq.dll` (the test exes are Win64): the script takes the first
+on the PATH, else the one in the newest `C:\Program Files\PostgreSQL\<version>\bin`, and puts its folder first
+on the PATH for those rows. A PostgreSQL row that cannot run is reported as skipped, not failed. The test
+bases create the databases when the server does not have them.
 Run it when `Source\Persistence` or `Source\PMapper` change; the SQLite run alone is the everyday gate.
 
 ```powershell

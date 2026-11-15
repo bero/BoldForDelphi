@@ -101,12 +101,13 @@ Results are generated in `UnitTest/coverage_report/`. Open `CodeCoverage_summary
 `UnitTest/UnitTest.ini` selects the engine (`SQLite` by default, in a temporary file per run; `SQLServer`, `Interbase`, `Firebird`
 and `PostgreSQL` sections are provided). The environment variable `BOLD_TEST_ENGINE` overrides the ini, and
 `UnitTest/run_matrix.ps1` uses it to run the suite on each engine in turn, plus the UniDAC build when
-UniDAC is installed. PostgreSQL runs on the UniDAC build only: FireDAC needs libpq, which current PostgreSQL
-releases ship for 64-bit only, and the test executable is Win32.
+UniDAC is installed. The PostgreSQL rows need the server of `[PostgreSQL]` in the ini; FireDAC also needs a
+64-bit `libpq.dll`, which the script finds on the PATH or in the newest PostgreSQL installation. A PostgreSQL
+row that cannot run is reported as skipped.
 
 ```powershell
 cd UnitTest
-.\run_matrix.ps1                      # FireDAC on SQLite and SQL Server; UniDAC (if installed) on the same and PostgreSQL
+.\run_matrix.ps1                      # FireDAC on SQLite, SQL Server and PostgreSQL; UniDAC (if installed) on the same
 .\run_matrix.ps1 -Engines SQLite     # one engine
 .\run_matrix.ps1 -SkipBuild -Filter Test.BoldBatchQueries
 ```

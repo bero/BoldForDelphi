@@ -88,10 +88,10 @@ begin
 end;
 
 { BoldTestDatabaseConfig.CreateTestDatabase connects through FireDAC, which
-  would load libpq for PostgreSQL; the 64-bit libpq of current releases does
-  not load into the Win32 test exe. PostgreSQL has no CREATE DATABASE IF NOT
-  EXISTS and refuses CREATE DATABASE inside a transaction block, hence the
-  lookup first. }
+  needs libpq for PostgreSQL; UniDAC's provider talks to the server itself, so
+  the UniDAC fixtures need no client library. PostgreSQL has no CREATE
+  DATABASE IF NOT EXISTS and refuses CREATE DATABASE inside a transaction
+  block, hence the lookup first. }
 procedure CreatePostgreSQLDatabase;
 var
   Ini: TIniFile;
