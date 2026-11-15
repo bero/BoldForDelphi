@@ -65,6 +65,9 @@ type
     procedure TestEmptyListOpensEmpty;
     procedure TestPersistentFieldsAreKept;
     procedure TestAppendRecordCreatesOneObject;
+    // AppendRecord hands a string literal to the field as an AnsiString in
+    // Free Pascal; a text field must take one and give one back
+    procedure TestTextFieldWritesAndReadsAnAnsiString;
     procedure TestDateAndTimeFieldsRoundTrip;
     procedure TestBlobFieldReadsAndWrites;
     // BlockReadSize > 0 puts a dataset in the state dsBlockRead, in which
@@ -556,6 +559,22 @@ begin
     if ListObject(i).aString = 'four' then
       Inc(Found);
   Assert.AreEqual(1, Found, 'one object should hold the appended values');
+end;
+
+procedure TTestBoldDataSet.TestTextFieldWritesAndReadsAnAnsiString;
+var
+  Target: TClassA;
+begin
+  FDataSet.Open;
+  FDataSet.First;
+  Target := ListObject(0);
+  FDataSet.Edit;
+  FDataSet.FieldByName('aString').AsAnsiString := AnsiString('ansi text');
+  FDataSet.Post;
+  Assert.AreEqual('ansi text', Target.aString, 'an AnsiString written to the field should reach the object');
+  Target.aString := 'read back';
+  FDataSet.Refresh;
+  Assert.AreEqual('read back', string(FDataSet.FieldByName('aString').AsAnsiString), 'the field should give its text as an AnsiString');
 end;
 
 procedure TTestBoldDataSet.TestDateAndTimeFieldsRoundTrip;

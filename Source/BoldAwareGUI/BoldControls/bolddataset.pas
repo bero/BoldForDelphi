@@ -66,6 +66,23 @@ type
   TBoldDataSetFieldDescription = class;
   TBoldDataSetFieldDescriptions = class;
 
+{$IFDEF FPC}
+  { The text field a Bold dataset creates under Free Pascal (#117).
+    TWideStringField inherits its AnsiString accessors from TStringField,
+    which take the record buffer for single-byte text: reading gives the
+    first character at most, and writing converts the text to code page
+    1200, which gives UTF-16 on Linux and an empty string on Windows.
+    TDataSet.AppendRecord, InsertRecord and SetFields hand a string literal
+    to the field as an AnsiString. Here both accessors go through the
+    UnicodeString ones. A TWideStringField that a form file names as a
+    persistent field is not replaced. }
+  TBoldWideStringField = class(TWideStringField)
+  protected
+    function GetAsAnsiString: AnsiString; override;
+    procedure SetAsAnsiString(const AValue: AnsiString); override;
+  end;
+{$ENDIF}
+
   { TBoldDataSetFieldDescription }
   TBoldDataSetFieldDescription = class(TCollectionItem)
   private
@@ -254,6 +271,9 @@ type
     function GetCanModify: boolean; override;
     procedure InternalEdit; override;
     procedure InternalCancel; override;
+    {$IFDEF FPC}
+    function GetFieldClass(FieldType: TFieldType): TFieldClass; override;
+    {$ENDIF}
     function GetList: TBoldList;
     property List: TBoldList read GetList;
     property ListElementType: TBoldElementTypeInfo read GetListElementType;
@@ -2397,5 +2417,31 @@ begin
   Resync([]);
 end;
 
+{$IFDEF FPC}
+function TBoldAbstractDataSet.GetFieldClass(FieldType: TFieldType): TFieldClass;
+begin
+  if FieldType = ftWideString then
+    Result := TBoldWideStringField
+  else
+    Result := inherited GetFieldClass(FieldType);
+end;
+
+{ TBoldWideStringField }
+
+function TBoldWideStringField.GetAsAnsiString: AnsiString;
+begin
+  Result := AnsiString(GetAsUnicodeString);
+end;
+
+procedure TBoldWideStringField.SetAsAnsiString(const AValue: AnsiString);
+begin
+  SetAsUnicodeString(UnicodeString(AValue));
+end;
+
+initialization
+  // A persistent field made in the Lazarus fields editor is of this class
+  // and is read from the form file by its class name
+  RegisterClass(TBoldWideStringField);
+{$ENDIF}
 
 end.
