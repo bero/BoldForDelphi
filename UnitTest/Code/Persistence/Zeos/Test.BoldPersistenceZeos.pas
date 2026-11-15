@@ -1,8 +1,9 @@
 ﻿unit Test.BoldPersistenceZeos;
 
 { The database operation tests (BoldDatabaseOperationsTestCase) on Zeos under
-  Free Pascal: a private in-memory SQLite database per test, with no Bold
-  system. The Delphi counterpart on FireDAC is Test.BoldPersistence. }
+  Free Pascal: a private in-memory SQLite database per test, whatever engine
+  the run is on, with no Bold system. The Delphi counterpart on FireDAC is
+  Test.BoldPersistence. }
 
 interface
 
@@ -39,7 +40,7 @@ begin
   // A new name per test: an in-memory database of its own, gone when its only
   // connection closes, like FireDAC's :memory:.
   inc(DatabaseCounter);
-  FConnection := NewTestZeosConnection(nil, 'file:boldpersistencetest' + IntToStr(DatabaseCounter));
+  FConnection := NewTestZeosSQLiteConnection(nil, 'file:boldpersistencetest' + IntToStr(DatabaseCounter));
   FAdapter := NewTestZeosAdapter(nil, FConnection);
   FConnection.Connect;
   Result := FAdapter.DatabaseInterface;

@@ -1,10 +1,9 @@
 ﻿unit BoldTestDMZeos;
 
-{ The database for dmBoldTest under Free Pascal: Zeos with a shared-cache
-  in-memory SQLite database (BoldTestZeos), the counterpart of
+{ The database for dmBoldTest under Free Pascal: Zeos on the engine of the run
+  (BoldTestZeos: SQLite in memory, or PostgreSQL), the counterpart of
   BoldTestDMFireDAC on Delphi. Linking this unit (FPC/UnitTestFPC.lpr)
-  registers it as dmBoldTest's connector. UnitTest.ini is not read: SQLite is
-  the only engine so far.
+  registers it as dmBoldTest's connector.
 
   The connection and the adapter are created in code. On Delphi the adapter
   is streamed with SQL Server settings, but the SQLite path switches the
@@ -28,7 +27,7 @@ begin
   NewTestZeosKeepAlive(DataModule);
   Connection := NewTestZeosConnection(DataModule);
   DataModule.BoldPersistenceHandleDB1.DatabaseAdapter := NewTestZeosAdapter(DataModule, Connection);
-  WriteLn('BoldTestDM: Using SQLite in-memory through Zeos');
+  WriteLn('BoldTestDM: Using ', TestZeosEngineDescription);
   Connection.Connect;
 end;
 

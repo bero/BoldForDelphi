@@ -1,7 +1,8 @@
 ﻿unit maan_UndoRedoZeos;
 
-{ The database for dmUndoRedo (maan_UndoRedoBase) under Free Pascal: Zeos with
-  a shared-cache in-memory SQLite database (BoldTestZeos), the counterpart of
+{ The database for dmUndoRedo (maan_UndoRedoBase) under Free Pascal: Zeos on
+  the engine of the run (BoldTestZeos: SQLite in memory, or PostgreSQL), the
+  counterpart of
   maan_UndoRedoFireDAC on Delphi. Linking this unit (FPC/UnitTestFPC.lpr)
   registers it as dmUndoRedo's connector. Both systems get their own
   connection to the same database. }
@@ -30,21 +31,23 @@ begin
   Connection1.Connect;
 end;
 
-// A second shared-cache in-memory database, kept alive by a connection that
-// dmUndoRedo owns, so it goes when dmUndoRedo is freed.
+// On SQLite a second shared-cache in-memory database, kept alive by a
+// connection that dmUndoRedo owns, so it goes when dmUndoRedo is freed. On
+// PostgreSQL a sibling of the test database, <database>_dbcopy as on Delphi.
 function OpenSecondDatabase(DataModule: TdmUndoRedo): Boolean;
 const
-  cSecondDatabase = 'file:memdb_dbcopy';
+  cSecondDatabase = 'file:dbcopy';
 var
-  Connection2: TZConnection;
+  SecondDatabase, Connection2: TZConnection;
 begin
-  NewTestZeosKeepAlive(DataModule, cSecondDatabase);
+  SecondDatabase := NewTestZeosKeepAlive(DataModule, cSecondDatabase);
   Connection2 := (DataModule.BoldPersistenceHandleDB2.DatabaseAdapter as TBoldDatabaseAdapterZeos).Connection;
   if Connection2.Connected then
     Connection2.Disconnect;
-  Connection2.Database := cSecondDatabase;
+  // The name the engine of the run knows the database by
+  Connection2.Database := SecondDatabase.Database;
   Connection2.Connect;
-  Result := True;
+  Result := not TestZeosEngineIsPostgres;
 end;
 
 initialization

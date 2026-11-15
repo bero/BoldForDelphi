@@ -71,6 +71,10 @@ type
       implementor, so a test can later verify that the same instance is
       returned to the pool. }
     function PooledExecQueryImplementor: TObject;
+    { Ends the test as passed on an engine batching is not verified on (#95):
+      the save would be refused there, which TestUnverifiedEngineIsRejected
+      covers. Assert.Pass raises. }
+    procedure RequireVerifiedEngine;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -101,6 +105,7 @@ type
 implementation
 
 uses
+  TypInfo,
   BoldPersistenceControllerDefault;
 
 const
@@ -287,10 +292,18 @@ begin
   Database.ReleaseExecQuery(Query);
 end;
 
+procedure TTestBoldBatchQueries.RequireVerifiedEngine;
+begin
+  if not Config.BatchQueriesVerified then
+    Assert.Pass(Format('UseBatchQueries is not verified on %s (#95)',
+      [GetEnumName(TypeInfo(TBoldDatabaseEngine), Ord(Config.Engine))]));
+end;
+
 procedure TTestBoldBatchQueries.TestBatchedCreateRoundTrips;
 var
   i: Integer;
 begin
+  RequireVerifiedEngine;
   for i := 1 to 3 do
     TSomeClass.Create(GetSystem).aString := 'Batched ' + IntToStr(i);
   FCapture.Clear;
@@ -317,6 +330,7 @@ var
   ObjA, ObjB, ObjC: TSomeClass;
   SavedMaxParams: Integer;
 begin
+  RequireVerifiedEngine;
   ObjA := TSomeClass.Create(GetSystem);
   ObjA.aString := 'A';
   ObjB := TSomeClass.Create(GetSystem);
@@ -362,6 +376,7 @@ procedure TTestBoldBatchQueries.TestBatchReleasesQueryWithParamCheckRestored;
 var
   Query: IBoldExecQuery;
 begin
+  RequireVerifiedEngine;
   TSomeClass.Create(GetSystem).aString := 'ParamCheck';
   Save;
 
@@ -383,6 +398,7 @@ var
   Pooled: TObject;
   Query: IBoldExecQuery;
 begin
+  RequireVerifiedEngine;
   TSomeClass.Create(GetSystem).aString := 'First';
   Save;
   Pooled := PooledExecQueryImplementor;
@@ -418,10 +434,12 @@ end;
 procedure TTestBoldBatchQueries.TestUnverifiedEngineIsRejected;
 var
   Raised: string;
+  DatabaseEngine: TBoldDatabaseEngine;
 begin
   // Batching is verified on SQL Server and SQLite only. Only the engine field
-  // is changed here - the SQL generation settings stay those of the SQLite
-  // test database - so the guard is the only thing that can stop the save.
+  // is changed here - the SQL generation settings stay those of the test
+  // database - so the guard is the only thing that can stop the save.
+  DatabaseEngine := Config.Engine;
   Config.Engine := dbePostgres;
   TSomeClass.Create(GetSystem).aString := 'Guarded';
   Raised := '';
@@ -435,12 +453,15 @@ begin
   Assert.IsTrue(Pos('UseBatchQueries', Raised) > 0, 'the error must name the setting: ' + Raised);
   Assert.IsTrue(Pos('dbePostgres', Raised) > 0, 'the error must name the engine: ' + Raised);
 
-  // Back on a verified engine the pending objects save normally: the guard
-  // fired before anything was accumulated or sent.
-  Config.Engine := dbeGenericANSISQL92;
+  // Back on the engine of the test database the pending objects save
+  // normally: the guard fired before anything was accumulated or sent. In a
+  // batch where that engine is verified, one statement at a time where it is
+  // not (the suite on PostgreSQL).
+  Config.Engine := DatabaseEngine;
+  Config.UseBatchQueries := Config.BatchQueriesVerified;
   Save;
   Assert.AreEqual(1, SavedSomeClassCount,
-    'the same objects must save once the engine is verified again');
+    'the same objects must save once the engine is the database''s again');
 end;
 
 initialization

@@ -6,9 +6,9 @@
 {                                                                              }
 {  Concrete implementation of TBoldTestCasePersistence using Zeos, the         }
 {  counterpart of BoldTestCaseFireDAC and BoldTestCaseUniDAC on Delphi.        }
-{  The database is the shared-cache in-memory SQLite database of BoldTestZeos, }
-{  configured like the SQLite path of the Delphi bases. UnitTest.ini is not    }
-{  read: SQLite is the only engine under Free Pascal so far.                   }
+{  The database is the shared test database of BoldTestZeos on the engine of  }
+{  the run: SQLite in memory, configured like the SQLite path of the Delphi    }
+{  bases, or PostgreSQL.                                                       }
 {                                                                              }
 {******************************************************************************}
 

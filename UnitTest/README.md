@@ -187,6 +187,19 @@ Linux it does nothing.
 into `FPC/bin/zeos`, and then the tests in mode DelphiUnicode against those
 units. Output goes to `FPC/bin`; the exit code is 0 when every test passed.
 
+The database tests run on SQLite in memory by default. The engine is chosen
+as on Delphi: the environment variable `BOLD_TEST_ENGINE`, otherwise
+`[Database] Engine` in `UnitTest.ini`. Through Zeos, SQLite and PostgreSQL are
+set up (`Code/Persistence/Zeos/BoldTestZeos.pas`). PostgreSQL uses the server
+of `[PostgreSQL]` in `UnitTest.ini` and needs the client library (`libpq.so.5`,
+package `libpq5` on Debian and Ubuntu; `libpq.dll` on the `PATH` on Windows).
+`BOLD_TEST_PG_PORT` overrides the port of the ini, for a server that listens
+elsewhere. The test databases are created when the server does not have them:
+
+```sh
+BOLD_TEST_ENGINE=PostgreSQL BOLD_TEST_PG_PORT=5434 sh FPC/build.sh
+```
+
 GitHub Actions runs the same build on every push and pull request to
 `develop` (`.github/workflows/fpc-tests.yml`, in an Ubuntu 26.04 container, FPC
 3.2.2, the same as the Linux development machine): it

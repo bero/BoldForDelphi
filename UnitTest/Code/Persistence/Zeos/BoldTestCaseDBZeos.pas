@@ -1,7 +1,8 @@
 ﻿unit BoldTestCaseDBZeos;
 
-{ The database for TBoldTestCaseDB under Free Pascal: Zeos on the shared-cache
-  in-memory SQLite database of BoldTestZeos, as TBoldTestCaseZeos uses.
+{ The database for TBoldTestCaseDB under Free Pascal: Zeos on the shared test
+  database of BoldTestZeos (SQLite in memory, or PostgreSQL), as
+  TBoldTestCaseZeos uses.
   Linking this unit (FPC/UnitTestFPC.lpr) registers it as TBoldTestCaseDB's
   connector; the Delphi counterpart is BoldTestCaseDBFireDAC. }
 
