@@ -104,7 +104,9 @@ begin
 end;
 
 // On SQLite a second database file of the test run; on server engines a
-// sibling of the test database.
+// sibling of the test database. On PostgreSQL its name is in lower case, the
+// convention there, and the same as the Zeos tests use (maan_UndoRedoZeos), so
+// both builds share the one database on a server.
 function OpenSecondDatabase(DataModule: TdmUndoRedo): Boolean;
 var
   FireDACModule: TdmUndoRedoFireDAC;
@@ -116,6 +118,8 @@ begin
   else
   begin
     Database := GetTestDatabaseName + '_DbCopy';
+    if SameText(GetTestDatabaseEngine, 'PostgreSQL') then
+      Database := LowerCase(Database);
     CreateTestDatabase(Database);
   end;
   FireDACModule := UndoRedoFireDAC;

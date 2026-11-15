@@ -21,9 +21,10 @@ uses
   FireDAC.Comp.Client;
 
 procedure ConfigureConnection(Connection: TFDConnection; Adapter: TBoldDatabaseAdapterFireDAC);
-{ Creates the test database on server engines if it does not exist. With a
-  name, creates that database instead of the one in UnitTest.ini - for tests
-  that need a second database next to the shared one (e.g. a copy target). }
+{ Creates the test database on SQL Server and PostgreSQL if it does not
+  exist. With a name, creates that database instead of the one in
+  UnitTest.ini - for tests that need a second database next to the shared
+  one (e.g. a copy target). }
 procedure CreateTestDatabase(const ADatabaseName: string = '');
 procedure DropTestDatabase;
 { The engine to test against: the BOLD_TEST_ENGINE environment variable when
@@ -306,6 +307,29 @@ begin
 
       // Create database if it doesn't exist
       TempConn.ExecSQL('IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = ''' + Database + ''') CREATE DATABASE [' + Database + ']');
+      TempConn.Close;
+    end
+    else if SameText(Engine, 'PostgreSQL') then
+    begin
+      if ADatabaseName <> '' then
+        Database := ADatabaseName
+      else
+        Database := Ini.ReadString('PostgreSQL', 'Database', 'boldunittest');
+      // Connect to the database every server has to create the test database
+      TempConn.DriverName := 'PG';
+      TempConn.Params.Values['Server'] := Ini.ReadString('PostgreSQL', 'Server', 'localhost');
+      TempConn.Params.Values['Port'] := IntToStr(Ini.ReadInteger('PostgreSQL', 'Port', 5432));
+      TempConn.Params.Values['Database'] := 'postgres';
+      TempConn.Params.Values['User_Name'] := Ini.ReadString('PostgreSQL', 'User', 'postgres');
+      TempConn.Params.Values['Password'] := Ini.ReadString('PostgreSQL', 'Password', '');
+      TempConn.LoginPrompt := False;
+      TempConn.Open;
+      // PostgreSQL has no CREATE DATABASE IF NOT EXISTS and refuses CREATE
+      // DATABASE in a transaction block, hence the count first. The name is
+      // quoted: a connection asks for the database exactly as written, an
+      // unquoted name in CREATE DATABASE is folded to lower case.
+      if TempConn.ExecSQLScalar('SELECT count(*) FROM pg_catalog.pg_database WHERE datname = :DatabaseName', [Database]) = 0 then
+        TempConn.ExecSQL('CREATE DATABASE "' + Database + '"');
       TempConn.Close;
     end;
     // For other engines (SQLite, Firebird, etc.), database is created automatically or handled differently
