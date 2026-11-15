@@ -172,6 +172,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- PostgreSQL: `DatabaseExists` was True for every name (#126). The
+  `DatabaseExistsTemplate` was `select exists(...)`, which always returns one
+  row, and the FireDAC, UniDAC and Zeos adapters take a returned row for
+  "exists". So `CreateDatabase` with `DropExisting` tried to drop a database
+  that was not there. The template now selects the name, as the other engines'
+  templates do.
 - `TBase64.DecodeData` (`BoldBase64`) under Free Pascal on Windows decoded
   every byte from 128 up as `?`, so binary data that `BoldXMLStreaming`
   writes as base64, such as blobs in the XML file persistence, came back

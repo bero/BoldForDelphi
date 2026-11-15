@@ -1066,7 +1066,9 @@ begin
       fMultiRowInsertLimit := 1000;
       fIndexColumnExistsTemplate := 'select indexname name from pg_indexes where upper(tablename) = upper(''<TableName>'')';
       FColumnExistsTemplate := 'SELECT column_name FROM information_schema.columns WHERE upper(table_name)=upper(''<TableName>'') and upper(column_name)=upper(''<ColumnName>'')';
-      fDatabaseExistsTemplate := 'select exists(SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower(''<DatabaseName>''));';
+      // A row only when the database exists: the adapters take a returned row
+      // for "exists" and do not read its value (#126)
+      fDatabaseExistsTemplate := 'SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower(''<DatabaseName>'')';
 //      IndexInfoTemplate fields: IndexName, IsPrimary, IsUnique, ColumnName
 //      One row per indexed column in index order, as GetIndexDescriptionsViaQuery
 //      expects, and only the table the search path resolves to: Bold's SQL names no schema.

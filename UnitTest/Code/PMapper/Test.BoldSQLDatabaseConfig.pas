@@ -68,6 +68,9 @@ type
     procedure TestGetDropDatabaseQuery_EmptyTemplate;
     procedure TestGetDatabaseExistsQuery;
     procedure TestGetDatabaseExistsQuery_EmptyTemplate;
+    // The adapters take a returned row for "exists", so the query must return
+    // none for a missing database; select exists(...) always returns one (#126)
+    procedure TestDatabaseExistsQueryOfPostgresSelectsTheName;
 
     // Template expansion - Exists queries
     procedure TestGetColumnExistsQuery;
@@ -845,6 +848,21 @@ begin
     Cfg.InitializeDbEngineSettings(dbeSQLServer);
     Q := Cfg.GetDatabaseExistsQuery('MyDB');
     Assert.IsTrue(Pos('MyDB', Q) > 0);
+  finally
+    Cfg.Free;
+  end;
+end;
+
+procedure TTestBoldSQLDatabaseConfig.TestDatabaseExistsQueryOfPostgresSelectsTheName;
+var
+  Cfg: TBoldSQLDataBaseConfig;
+begin
+  Cfg := TBoldSQLDataBaseConfig.Create;
+  try
+    Cfg.InitializeDbEngineSettings(dbePostgres);
+    Assert.AreEqual(
+      'SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower(''MyDB'')',
+      Cfg.GetDatabaseExistsQuery('MyDB'));
   finally
     Cfg.Free;
   end;
