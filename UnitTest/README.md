@@ -193,8 +193,9 @@ as on Delphi: the environment variable `BOLD_TEST_ENGINE`, otherwise
 set up (`Code/Persistence/Zeos/BoldTestZeos.pas`). PostgreSQL uses the server
 of `[PostgreSQL]` in `UnitTest.ini` and needs the client library (`libpq.so.5`,
 package `libpq5` on Debian and Ubuntu; `libpq.dll` on the `PATH` on Windows).
-`BOLD_TEST_PG_PORT` overrides the port of the ini, for a server that listens
-elsewhere. The test databases are created when the server does not have them:
+`BOLD_TEST_PG_SERVER` and `BOLD_TEST_PG_PORT` override the host and the port
+of the ini, for a server that listens elsewhere. The test databases are created
+when the server does not have them:
 
 ```sh
 BOLD_TEST_ENGINE=PostgreSQL BOLD_TEST_PG_PORT=5434 sh FPC/build.sh
@@ -205,7 +206,8 @@ GitHub Actions runs the same build on every push and pull request to
 3.2.2, the same as the Linux development machine): it
 downloads the Zeos 8.0.0 release above, checks its SHA-256 and runs
 `FPC/build.sh`, so a change made in Delphi cannot break the Free Pascal build
-unnoticed. A second workflow (`.github/workflows/fpc-tests-windows.yml`) runs
+unnoticed. It runs the suite once more on PostgreSQL 18 through Zeos, on a
+server GitHub starts for the job (a service container). A second workflow (`.github/workflows/fpc-tests-windows.yml`) runs
 the same scripts in Git Bash on 64-bit Windows, with Lazarus 4.8 and its Free
 Pascal 3.2.2: Linux has UTF-8 as its system code page, which hides text lost in
 a Windows code page. The Delphi suite still runs on Windows only.

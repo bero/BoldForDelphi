@@ -3,7 +3,8 @@ name: FPC tests
 # Builds Bold and its unit tests with Free Pascal on Linux and runs the FPCUnit
 # suite (UnitTest/FPC/build.sh), so a change made and tested in Delphi cannot
 # break the Lazarus/Free Pascal build unnoticed (#117). A second run under
-# heaptrc catches memory leaks and uses of freed memory. A second job builds the
+# heaptrc catches memory leaks and uses of freed memory, and a third one runs
+# on PostgreSQL instead of SQLite. A second job builds the
 # Lazarus packages with lazbuild through the Invoicing example's LCL client,
 # whose self-test it runs, and its runner on SQLite through Zeos. The Delphi
 # suite still runs on Windows only.
@@ -49,6 +50,20 @@ jobs:
     timeout-minutes: 30
     env:
       DEBIAN_FRONTEND: noninteractive
+    # A PostgreSQL server for this job only, gone when the job ends. The job
+    # runs in a container, so the steps reach it by the name of the service,
+    # on port 5432. It takes any login without a password: only this job's
+    # containers can reach it. The job starts once pg_isready succeeds.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -63,19 +78,20 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .ci-cache/fpc-debs
-          key: fpc-debs-ubuntu-26.04-fpc-3.2.2-v1
+          key: fpc-debs-ubuntu-26.04-fpc-3.2.2-v2
 
-      - name: Install Free Pascal and SQLite
+      - name: Install Free Pascal, SQLite and the PostgreSQL client library
         # Only what the build loads: the compiler and the rtl, base (regexpr)
         # and fcl (db, fpcunit, xml) units. The fpc metapackage would add the
         # IDE and the gtk2, db, gfx, math, misc, multimedia and net units.
         # gcc and libc6-dev provide the C runtime the test runner links
         # against (cthreads, cwstring); curl, ca-certificates and unzip get
-        # Zeos. The container image has none of them.
+        # Zeos. libsqlite3-0 and libpq5 are what Zeos loads for SQLite and for
+        # PostgreSQL. The container image has none of them.
         env:
           FPC_PACKAGES: >-
             fp-compiler-3.2.2 fp-units-rtl-3.2.2 fp-units-base-3.2.2 fp-units-fcl-3.2.2
-            gcc libc6-dev libsqlite3-0 curl ca-certificates unzip
+            gcc libc6-dev libsqlite3-0 libpq5 curl ca-certificates unzip
           CACHE_HIT: ${{ steps.fpc-debs.outputs.cache-hit }}
         run: |
           DEBS="$GITHUB_WORKSPACE/.ci-cache/fpc-debs"
@@ -113,6 +129,15 @@ jobs:
       # the run leaves memory unfreed, printing the line that allocated it.
       - name: Run the FPC test suite under heaptrc
         run: BOLD_HEAPTRC=1 ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0" sh UnitTest/FPC/build.sh
+
+      # The same suite on the PostgreSQL service above instead of SQLite in
+      # memory (UnitTest/Code/Persistence/Zeos/BoldTestZeos.pas). The server
+      # starts empty; the tests create their databases.
+      - name: Run the FPC test suite on PostgreSQL through Zeos
+        run: >-
+          BOLD_TEST_ENGINE=PostgreSQL BOLD_TEST_PG_SERVER=postgres
+          ZEOS="$RUNNER_TEMP/zeosdbo-8.0.0"
+          sh UnitTest/FPC/build.sh
 
       # The Invoicing example's scenario runner and FPCUnit tests, on XML file
       # persistence (no Zeos).

@@ -9,8 +9,9 @@
   - SQLite: a shared-cache in-memory database, configured like the SQLite path
     of the Delphi test modules.
   - PostgreSQL: the server of [PostgreSQL] in UnitTest.ini. The environment
-    variable BOLD_TEST_PG_PORT overrides its port, for a server that does not
-    listen where the ini says. The databases are created when missing. }
+    variables BOLD_TEST_PG_SERVER and BOLD_TEST_PG_PORT override its host and
+    port, for a server that does not listen where the ini says. The databases
+    are created when missing. }
 
 interface
 
@@ -138,7 +139,9 @@ end;
 
 function PostgresServer: string;
 begin
-  Result := ReadTestSetting(cPostgresSection, 'Server', 'localhost');
+  Result := TestEnvironmentVariable('BOLD_TEST_PG_SERVER');
+  if Result = '' then
+    Result := ReadTestSetting(cPostgresSection, 'Server', 'localhost');
 end;
 
 function PostgresPort: Integer;
