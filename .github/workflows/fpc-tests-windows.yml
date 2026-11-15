@@ -1,0 +1,129 @@
+name: FPC tests (Windows)
+
+# The Free Pascal and Lazarus builds of fpc-tests.yml on 64-bit Windows, through
+# the same build.sh scripts in Git Bash (Tools/fpc-env.sh, #117). Linux has
+# UTF-8 as its system code page, which hides what a Windows code page (1252 on
+# the runner) shows: text that goes through an AnsiString and comes out as '?'
+# or empty. Until this job, only a manual run on Windows found that.
+# 32-bit Windows is not a target of the Free Pascal build.
+
+on:
+  push:
+    branches:
+      - develop
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  pull_request:
+    branches:
+      - develop
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fpc-tests-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The Lazarus installer brings Free Pascal 3.2.2 (x86_64-win64) with it. It,
+  # Zeos and the SQLite library are official releases, checked against these
+  # SHA-256 values before use and never vendored.
+  LAZARUS_EXE: lazarus-4.8-fpc-3.2.2-win64.exe
+  LAZARUS_EXE_URL: https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%204.8/lazarus-4.8-fpc-3.2.2-win64.exe
+  LAZARUS_EXE_SHA256: ed25ee171d55e23cf14e0633159fdd2325efba56e186f8ab817ad3bf97d267d7
+  ZEOS_ZIP_URL: https://downloads.sourceforge.net/project/zeoslib/Zeos%20Database%20Objects/zeosdbo-8.0.0-stable/zeosdbo-8.0.0-stable.zip
+  ZEOS_ZIP_SHA256: 21398d4015e3fb43c56e9c0b3101ae2a8f9e71fa41c66f826224cee493040e92
+  SQLITE_ZIP_URL: https://www.sqlite.org/2026/sqlite-dll-win-x64-3540100.zip
+  SQLITE_ZIP_SHA256: f436f53ad8f965af43f3817b42c99c0689e6787f6b7ace208fe38dab7ffc4971
+
+jobs:
+  windows:
+    name: FPC 3.2.2 + Zeos 8.0.0 and Lazarus 4.8, Windows x86_64
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        # Git Bash, which the build.sh scripts are written for
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # Paths are relative to the workspace, the folder the steps start in:
+      # in Git Bash the runner's variables hold Windows paths with backslashes.
+      - name: Cache the downloads
+        uses: actions/cache@v5
+        with:
+          path: .ci-cache
+          key: fpc-windows-downloads-${{ env.LAZARUS_EXE_SHA256 }}-${{ env.ZEOS_ZIP_SHA256 }}-${{ env.SQLITE_ZIP_SHA256 }}
+
+      - name: Get Lazarus, Zeos and SQLite
+        run: |
+          mkdir -p .ci-cache
+          get() {
+            if [ ! -f ".ci-cache/$1" ]; then
+              curl -fsSL --retry 5 --retry-delay 10 -o ".ci-cache/$1" "$2"
+            fi
+            echo "$3  .ci-cache/$1" | sha256sum -c -
+          }
+          get "$LAZARUS_EXE" "$LAZARUS_EXE_URL" "$LAZARUS_EXE_SHA256"
+          get zeosdbo-8.0.0-stable.zip "$ZEOS_ZIP_URL" "$ZEOS_ZIP_SHA256"
+          get sqlite-dll-win-x64.zip "$SQLITE_ZIP_URL" "$SQLITE_ZIP_SHA256"
+
+      # The installer is an Inno Setup program. PowerShell, because Git Bash
+      # would rewrite its /OPTIONS as paths. C:\lazarus is where
+      # Tools/fpc-env.sh looks for lazbuild and for fpc.
+      - name: Install Lazarus
+        shell: pwsh
+        run: |
+          $installer = Join-Path $env:GITHUB_WORKSPACE ".ci-cache\$env:LAZARUS_EXE"
+          $p = Start-Process -FilePath $installer -Wait -PassThru -ArgumentList `
+            '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/DIR=C:\lazarus'
+          if ($p.ExitCode -ne 0) { throw "The Lazarus installer ended with exit code $($p.ExitCode)" }
+          & C:\lazarus\lazbuild.exe --version
+
+      # Outside the workspace, so the builds do not find them as source. Zeos
+      # loads sqlite3.dll from the PATH.
+      - name: Unpack Zeos and SQLite
+        run: |
+          TEMP_DIR=$(cygpath -u "$RUNNER_TEMP")
+          unzip -q .ci-cache/zeosdbo-8.0.0-stable.zip -d "$TEMP_DIR/zeosdbo-8.0.0"
+          unzip -q .ci-cache/sqlite-dll-win-x64.zip -d "$TEMP_DIR/sqlite"
+          echo "ZEOS=$(cygpath -m "$TEMP_DIR/zeosdbo-8.0.0")" >> "$GITHUB_ENV"
+          echo "LAZBUILD_OPTIONS=--pcp=$(cygpath -m "$TEMP_DIR/lazarus-config")" >> "$GITHUB_ENV"
+          cygpath -w "$TEMP_DIR/sqlite" >> "$GITHUB_PATH"
+
+      - name: Show the code page and the compiler
+        run: |
+          powershell -NoProfile -Command "[System.Text.Encoding]::Default.CodePage; (Get-Culture).Name"
+          . Tools/fpc-env.sh
+          fpc -iV
+          fpc -iTP -iTO
+
+      - name: Build and run the FPC test suite
+        run: sh UnitTest/FPC/build.sh
+
+      - name: Run the FPC test suite under heaptrc
+        run: BOLD_HEAPTRC=1 sh UnitTest/FPC/build.sh
+
+      - name: Build and run the Invoicing example
+        run: sh examples/Compound/Invoicing/FPC/build.sh
+
+      # The LCL builds use the win32 widgetset here (Tools/fpc-env.sh); the
+      # self-test shows no window.
+      - name: Build Bold.lpk and the Invoicing LCL client, run its self-test
+        run: sh examples/Compound/Invoicing/LCL/build.sh
+
+      - name: Build dclBold.lpk and check what it registers
+        run: sh packages/Lazarus/tests/build.sh
+
+      - name: Build BoldZeos.lpk and the Invoicing runner on SQLite through Zeos, run it
+        run: sh examples/Compound/Invoicing/Zeos/build.sh
+
+      - name: Build dclBoldZeos.lpk and check what it registers
+        run: sh packages/Lazarus/tests/build-zeos.sh
