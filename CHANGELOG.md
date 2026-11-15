@@ -85,6 +85,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Bash from rewriting their arguments, finds Free Pascal and lazbuild in the
   Lazarus folder (`C:\lazarus` or `LAZARUS_DIR`) and builds the LCL for win32;
   on Linux it does nothing (#117)
+- The Free Pascal test suite also runs on PostgreSQL through the Zeos
+  adapter, next to SQLite. The engine is chosen as for the Delphi tests:
+  `BOLD_TEST_ENGINE`, otherwise `[Database] Engine` in `UnitTest.ini`;
+  `BOLD_TEST_PG_SERVER` and `BOLD_TEST_PG_PORT` override the host and the port
+  of `[PostgreSQL]` there, and the test databases are created when the server
+  does not have them. The Linux job of GitHub Actions runs the suite once
+  more on a PostgreSQL 18 service container on every push. On the Delphi
+  side the FireDAC test bases now create their database on PostgreSQL too,
+  the batch query and database copy fixtures run there, and
+  `run_matrix.ps1` has a FireDAC x PostgreSQL row. With that the whole suite
+  passes on PostgreSQL 18 with Delphi (FireDAC and UniDAC, Windows; FireDAC
+  on Linux64) and with Free Pascal (Zeos, Linux and Windows) (#117)
 
 ### Changed
 - The OCL editor (`BoldOclPropEditor`) takes its checking, parser messages
