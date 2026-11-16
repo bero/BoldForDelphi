@@ -13,7 +13,9 @@
 # PARAMETERS:
 #   -Engines     : Engines for the FireDAC build (default: SQLite, SQLServer, and
 #                  PostgreSQL where it can run, see POSTGRESQL below). Each needs a
-#                  section in UnitTest.ini.
+#                  section in UnitTest.ini. Through "powershell -File" a list such as
+#                  SQLite,SQLServer arrives as one string, so entries are split on
+#                  commas (-UniDACEngines too).
 #   -Filter      : Optional DUnitX filter, e.g. Test.BoldBatchQueries or
 #                  Test.BoldLinks.TTestBoldLinks.TestCollectRoleInPS_MatchesInMemory.
 #   -SkipBuild   : Reuse the existing executables.
@@ -50,6 +52,9 @@
 #
 # Logs: UnitTest\matrix_<adapter>_<engine>.log. Exit code = number of failed runs
 # (a skipped row is not one; a failed UniDAC build or a missing UniDAC exe is).
+# Every run that was started leaves a row: a log that cannot be read or written
+# (open in another program) costs only the log, and a run that could not be
+# carried out is a FAIL row without counts.
 
 param(
     [string[]]$Engines = @("SQLite", "SQLServer"),
@@ -62,6 +67,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# "powershell -File ... -Engines SQLite,SQLServer" binds the list as one string
+$Engines = @($Engines | ForEach-Object { $_ -split "," } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+$UniDACEngines = @($UniDACEngines | ForEach-Object { $_ -split "," } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $BuildScript = Join-Path $ScriptDir "build.ps1"
 $UniDACFixtures = "Test.PersistenceUniDAC,Test.PersistenceScenariosUniDAC,Test.BoldDbEvolutorUniDAC"
@@ -214,10 +222,14 @@ function Invoke-Run([string]$Adapter, [string]$Exe, [string]$Engine, [string]$Ru
     # long as it was written for the same filter (its first line).
     $FilterLine = "Filter: " + $(if ($RunFilter) { $RunFilter } else { "(none)" })
     $Expected = 0
-    if ((Test-Path $Log) -and ((Get-Content -Path $Log -TotalCount 1) -eq $FilterLine)) {
-        $Previous = Select-String -Path $Log -Pattern "^Tests Found\s*:\s*(\d+)" | Select-Object -First 1
-        if ($Previous) { $Expected = [int]$Previous.Matches[0].Groups[1].Value }
-    }
+    # Only the progress bar needs it: a log that cannot be read (open in another
+    # program) must not cost the run
+    try {
+        if ((Test-Path $Log) -and ((Get-Content -Path $Log -TotalCount 1) -eq $FilterLine)) {
+            $Previous = Select-String -Path $Log -Pattern "^Tests Found\s*:\s*(\d+)" | Select-Object -First 1
+            if ($Previous) { $Expected = [int]$Previous.Matches[0].Groups[1].Value }
+        }
+    } catch { $Expected = 0 }
     Start-Step "RUN" $Name
     $env:BOLD_TEST_ENGINE = $Engine
     # FireDAC loads libpq.dll from the PATH (see POSTGRESQL above)
@@ -245,7 +257,14 @@ function Invoke-Run([string]$Adapter, [string]$Exe, [string]$Engine, [string]$Ru
     $ErrorActionPreference = "Stop"
     $env:PATH = $SavedPath
     Write-Progress -Id 2 -ParentId 1 -Activity $Name -Completed
-    @($FilterLine) + @($Output) | Set-Content -Path $Log -Encoding UTF8
+    # The result is counted from $Output, so a log that cannot be written costs
+    # the log, not the row
+    $LogShown = $Log
+    try { @($FilterLine) + @($Output) | Set-Content -Path $Log -Encoding UTF8 }
+    catch {
+        Write-Host "  log not written: $_" -ForegroundColor Yellow
+        $LogShown = "$Log (not written)"
+    }
     $Elapsed = (Get-Date) - $Started
 
     $Counts = @{}
@@ -261,13 +280,26 @@ function Invoke-Run([string]$Adapter, [string]$Exe, [string]$Engine, [string]$Ru
         Adapter = $Adapter; Engine = $Engine
         Found = $Counts["Found"]; Passed = $Counts["Passed"]; Ignored = $Counts["Ignored"]
         Failed = $Counts["Failed"]; Errored = $Counts["Errored"]; Leak = $Leak
-        Seconds = [int]$Elapsed.TotalSeconds; Result = $(if ($Ok) { "OK" } else { "FAIL" }); Log = $Log
+        Seconds = [int]$Elapsed.TotalSeconds; Result = $(if ($Ok) { "OK" } else { "FAIL" }); Log = $LogShown
     })
     if (-not $Ok) {
         Write-Host ("  {0} failures/errors, leak={1}" -f ($Counts["Failed"] + $Counts["Errored"]), $Leak) -ForegroundColor Red
         $Failures | Select-Object -First 10 | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
     } else {
         Write-Host ("  {0} passed, {1} ignored, {2}s" -f $Counts["Passed"], $Counts["Ignored"], [int]$Elapsed.TotalSeconds) -ForegroundColor Green
+    }
+}
+
+# A run that threw (the exe could not be started, for one) still gets its row,
+# as FAIL without counts, unless Invoke-Run had added the row before it threw
+function Add-FailedRun([string]$Adapter, [string]$Engine, $ErrorRecord) {
+    Write-Host "  $ErrorRecord" -ForegroundColor Red
+    if (@($Results | Where-Object { ($_.Adapter -eq $Adapter) -and ($_.Engine -eq $Engine) }).Count -eq 0) {
+        $Results.Add([pscustomobject]@{
+            Adapter = $Adapter; Engine = $Engine
+            Found = -1; Passed = -1; Ignored = -1; Failed = -1; Errored = -1; Leak = $false
+            Seconds = 0; Result = "FAIL"; Log = "(no log) $ErrorRecord"
+        })
     }
 }
 
@@ -278,7 +310,7 @@ try {
     if (-not (Test-Path $FireDACExe)) { throw "Not found: $FireDACExe" }
     foreach ($Engine in $Engines) {
         try { Invoke-Run "FireDAC" $FireDACExe $Engine $Filter }
-        catch { Write-Host "  $_" -ForegroundColor Red }
+        catch { Add-FailedRun "FireDAC" $Engine $_ }
     }
 
     # ---- UniDAC build, one run per UniDAC engine
@@ -292,7 +324,7 @@ try {
                 # PostgreSQL, so that row keeps to the UniDAC fixtures (see -UniDACFull)
                 $EngineFilter = if (($Engine -eq "PostgreSQL") -and -not $Filter -and -not $PgBin) { $UniDACFixtures } else { $UniFilter }
                 try { Invoke-Run "UniDAC" $UniDACExe $Engine $EngineFilter }
-                catch { Write-Host "  $_" -ForegroundColor Red }
+                catch { Add-FailedRun "UniDAC" $Engine $_ }
             }
         } catch {
             Write-Host "  $_" -ForegroundColor Red
