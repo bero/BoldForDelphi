@@ -90,6 +90,7 @@ uses
   Test.BoldSQLDatabaseConfig in 'Code\PMapper\Test.BoldSQLDatabaseConfig.pas',
   BoldTestFramework in 'Code\Common\BoldTestFramework.pas',
   Test.BoldUtils in 'Code\Common\Test.BoldUtils.pas',
+  Test.BoldComponentPlatforms in 'Code\Common\Test.BoldComponentPlatforms.pas',
   Test.PersistenceFireDAC in 'Code\Persistence\Test.PersistenceFireDAC.pas',
   BoldPersistenceScenarios in 'Code\Persistence\BoldPersistenceScenarios.pas',
   Test.PersistenceScenariosFireDAC in 'Code\Persistence\Test.PersistenceScenariosFireDAC.pas',

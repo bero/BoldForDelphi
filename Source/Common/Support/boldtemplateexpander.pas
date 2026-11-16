@@ -60,7 +60,7 @@ type
   end;
 
   { TBoldTemplateHolder }
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldTemplateHolder = class(TComponent)
   private
     fTemplate: TStringList;

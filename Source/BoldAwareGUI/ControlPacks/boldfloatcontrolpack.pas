@@ -36,7 +36,7 @@ type
   end;
 
   { TBoldAsFloatRenderer }
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldAsFloatRenderer = class(TBoldSingleRenderer)
   private
     FOnGetAsFloat: TBoldGetAsFloatEvent;

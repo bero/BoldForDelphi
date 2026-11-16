@@ -17,7 +17,7 @@ type
   TBoldSortedHandle = class;
 
  { TBoldComparer }
-  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatforms(pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldComparer = class(TBoldSubscribableComponentViaBoldElem)
   private
     FOnCompare: TBoldElementCompare;

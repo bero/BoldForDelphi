@@ -23,7 +23,7 @@ type
   TBoldManipulatorSetter = procedure(Element: TBoldElement; const NewValue: string) of object;
 
   { TBoldManipulator }
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldManipulator = class(TBoldSubscribableComponentViaBoldElem)
   private
     fIdStringRepresentation: TBoldIdStringRepresentation;

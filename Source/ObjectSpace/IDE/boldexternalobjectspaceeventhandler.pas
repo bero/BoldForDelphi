@@ -59,7 +59,7 @@ type
 
   TIdListArray = array of TBoldObjectIdList;
 
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldExternalObjectSpaceEventHandler = class(TBoldStringDequeuer)
   private
     fBoldSystemHandle: TBoldSystemHandle;

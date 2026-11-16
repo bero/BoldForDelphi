@@ -14,7 +14,7 @@ uses
   BoldAbstractDataBaseAdapter;
 
 type
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldPersistenceHandleDB = class(TBoldAbstractPersistenceHandleDB)
   private
     fDatabaseAdapter: TBoldAbstractDatabaseAdapter;

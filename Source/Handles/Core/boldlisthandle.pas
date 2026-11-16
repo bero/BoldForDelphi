@@ -22,7 +22,7 @@ type
   TBoldListHandle = class;       
 
   {---TBoldListHandle---}
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldListHandle = class(TBoldCursorHandle, IBoldOCLComponent)
   private
     fExpressionHandle: TBoldExpressionHandle;

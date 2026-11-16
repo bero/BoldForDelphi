@@ -18,7 +18,7 @@ type
   TBoldDisplayExceptionEvent = procedure (E: Exception; Component: TComponent; Elem: TBoldElement) of object;
 
   { TBoldExceptionHandler }
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldExceptionHandler = class(TComponent)
   private
     fOnApplyException: TBoldApplyExceptionEvent;

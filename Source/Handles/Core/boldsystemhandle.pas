@@ -19,7 +19,7 @@ type
   TBoldSystemHandle = class;
 
   { TBoldSystemHandle }
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldSystemHandle = class(TBoldAbstractSystemHandle)
   private
     fBoldSystem: TBoldSystem;

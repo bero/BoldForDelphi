@@ -13,7 +13,7 @@ uses
   BoldExternalPersistenceControllerDataSet;
 
 type
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldExternalPersistenceHandleDataSet = class(TBoldAbstractPartiallyExternalPH)
   private
     FConfig: TBoldExternalPersistenceConfigDataSetItems;

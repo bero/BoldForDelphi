@@ -22,7 +22,7 @@ type
   TBoldLanguageSubscribe = procedure (aFollower: TBoldFollower; const Language: String; Subscriber: TBoldSubscriber) of object;
 
   { TBoldAsMLStringRenderer }
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldAsMLStringRenderer = class (TBoldAsStringRenderer)
   private
     fLanguage: String;

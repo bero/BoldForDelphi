@@ -63,7 +63,7 @@ type
     property Items[Index: Integer]: TBoldClassEventMapping read GetItem write SetItem; default;
   end;
 
-  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64)]{$ENDIF}
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldClassSubscriber = class(TBoldSystemExtensionComponent)
   private
     fEnabled: boolean;
