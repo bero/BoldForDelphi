@@ -305,6 +305,7 @@ type
   end;
 
   { TBoldDataSet }
+  {$IFNDEF FPC}[ComponentPlatformsAttribute (pidWin32 or pidWin64 or pidLinux64)]{$ENDIF}
   TBoldDataSet = class(TBoldAbstractDataSet)
   published
     {$IFNDEF T2H}

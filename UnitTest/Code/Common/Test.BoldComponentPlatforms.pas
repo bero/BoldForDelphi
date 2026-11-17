@@ -40,6 +40,7 @@ uses
   BoldConstraintValidator,
   BoldCursorHandle,
   BoldDatabaseAdapterFireDAC,
+  BoldDataSet,
   BoldDerivedHandle,
   BoldExceptionHandlers,
   BoldExpressionHandle,
@@ -78,7 +79,7 @@ uses
   BoldVariableHandle;
 
 const
-  cRuntimeComponents: array[0..41] of TComponentClass = (
+  cRuntimeComponents: array[0..42] of TComponentClass = (
     TBoldAbstractPersistenceNotifier,
     TBoldAsFloatRenderer,
     TBoldAsIntegerRenderer,
@@ -89,6 +90,7 @@ const
     TBoldConstraintValidator,
     TBoldCursorHandle,
     TBoldDatabaseAdapterFireDAC,
+    TBoldDataSet,
     TBoldDerivedHandle,
     TBoldExceptionHandler,
     TBoldExpressionHandle,
