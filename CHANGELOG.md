@@ -97,6 +97,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `run_matrix.ps1` has a FireDAC x PostgreSQL row. With that the whole suite
   passes on PostgreSQL 18 with Delphi (FireDAC and UniDAC, Windows; FireDAC
   on Linux64) and with Free Pascal (Zeos, Linux and Windows) (#117)
+- The components that run off Windows are offered for Linux64 on the Delphi
+  palette (#117): 43 non-visual classes carry `pidLinux64` in their
+  `ComponentPlatformsAttribute` (the handles, the persistence handles, the
+  FireDAC adapter, `TBoldModel`, `TBoldDataSet` and the string, integer and
+  float renderers), so they can be dropped on a data module or form while
+  Linux 64-bit is the active target; before they were greyed out there. The
+  VCL controls and the COM, SOAP, HTTP, propagator and DevExpress components
+  stay Windows-only, and macOS is not in the set yet.
+  `Test.BoldComponentPlatforms` keeps the list: it is part of the Linux64
+  build of the test runner, so a listed class must compile there.
 
 ### Changed
 - The OCL editor (`BoldOclPropEditor`) takes its checking, parser messages
