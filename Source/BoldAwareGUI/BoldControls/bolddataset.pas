@@ -96,6 +96,7 @@ type
     fRequired: boolean;
     fUseFieldSize: boolean;
     fInvalid: Boolean;
+    fValueIsAttribute: Boolean;
     function GetDataSet: TBoldAbstractDataSet;
     function GetExpression: string;
     function GetFieldDescriptions: TBoldDataSetFieldDescriptions;
@@ -107,6 +108,7 @@ type
     function GetFieldType: TFieldType;
     function GetRequired: boolean;
     function GetRTInfo: TBoldMemberRTInfo;
+    function GetReadOnly: Boolean;
     function GetUseFieldSize: boolean;
     procedure SetFieldName(const Value: String);
     function GetEffectiveFieldName: String;
@@ -128,6 +130,10 @@ type
     property ListelementType: TBoldElementTypeInfo read GetListelementType;
     property Required: boolean read GetRequired;
     property RTInfo: TBoldMemberRTInfo read GetRTInfo;
+    { True for a value a grid must not offer for editing: an attribute that is
+      not a member, such as aString.length, or a derived member that cannot
+      be reverse derived. Links and objects are not read-only. }
+    property ReadOnly: Boolean read GetReadOnly;
     property UseFieldSize: boolean read GetUseFieldSize;
     property Dataset: TBoldAbstractDataSet read GetDataset;
     property FieldDescriptions: TBoldDataSetFieldDescriptions read GetFieldDescriptions;
@@ -603,6 +609,7 @@ begin
     else
       fRTInfo := nil;
 
+    fValueIsAttribute := LFieldType is TBoldAttributeTypeInfo;
     if LFieldType is TBoldAttributeTypeInfo then
     begin
       DefineFieldType(TBoldAttributeTypeInfo(LFieldType).AttributeClass);
@@ -634,6 +641,13 @@ begin
     end;
     fInvalid := false;
   end;
+end;
+
+function TBoldDataSetFieldDescription.GetReadOnly: Boolean;
+begin
+  EnsureValid;
+  Result := fValueIsAttribute and not ((fRTInfo is TBoldAttributeRTInfo) and
+    (not fRTInfo.IsDerived or fRTInfo.IsReverseDerived));
 end;
 
 function TBoldDataSetFieldDescription.GetFieldDescriptions: TBoldDataSetFieldDescriptions;
@@ -1919,7 +1933,6 @@ begin
             result := not Attr.IsNull;
             if (Length(Buffer) >= SizeOf(Variant)) and (Field.DataType=ftVariant) then
               PVariant(@Buffer[0])^ := IndirectElement.Value.GetAsVariant;
-            Field.readOnly := not Attr.CanModify;
           end
           else if FieldType = ftLargeint then
           begin
@@ -1949,8 +1962,6 @@ begin
           Move((LRecBuf + 1)^, Buffer[0], Min(Length(Buffer), DataSize));
       end;
     end;
-    if (DataType = ftWideString) and (fRecordSize > 30) then
-      DisplayWidth := 30;
   end;
 end;
 
@@ -2165,6 +2176,9 @@ end;
 
 
 procedure TBoldAbstractDataSet.InternalOpen;
+var
+  i: Integer;
+  LField: TField;
 begin
   fInternalCursorReady := Assigned(BoldHandle) and BoldHandle.Enabled;
   if not fInternalCursorReady then Exit;
@@ -2185,6 +2199,19 @@ begin
   {$ENDIF}
 
   BindFields(True);
+  // The fields' ReadOnly and DisplayWidth are set here, once, from the model.
+  // They were set as each value was read, and a field whose property changes
+  // tells the dataset's controls that the layout changed: LiveBindings then
+  // rebuilds its grid and posts the row that is being edited, so the first
+  // row typed into an empty FMX grid was posted at once (#117).
+  for i := 0 to Fields.Count - 1 do
+  begin
+    LField := Fields[i];
+    if (LField.FieldNo > 0) and (LField.FieldNo <= FieldDescriptions.Count) then
+      LField.ReadOnly := FieldDescriptions[LField.FieldNo - 1].ReadOnly;
+    if (LField.DataType = ftWideString) and (fRecordSize > 30) then
+      LField.DisplayWidth := 30;
+  end;
 
   BookmarkSize := SizeOf(TBDSBookmarkInfo);
   FBookmarkOfs := FRecordSize + CalcFieldsSize;

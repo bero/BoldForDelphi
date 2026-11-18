@@ -194,6 +194,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet`: the first row typed into an empty FMX grid was posted at
+  once, so the grid's Insert or Append gave an object but no row to type in
+  (#117). Reading a value set the field's `ReadOnly` (from the attribute's
+  `CanModify`) and, for a wide string, its `DisplayWidth`; when the first row
+  changed them, the field told the dataset's controls that the layout had
+  changed, and LiveBindings rebuilt its grid and posted the row. Both are now
+  set once when the dataset opens: `ReadOnly` from the model, for an attribute
+  that is not a member (such as `aString.length`) or is derived and cannot be
+  reverse derived. Reading a row changes no field.
 - PostgreSQL: `DatabaseExists` was True for every name (#126). The
   `DatabaseExistsTemplate` was `select exists(...)`, which always returns one
   row, and the FireDAC, UniDAC and Zeos adapters take a returned row for

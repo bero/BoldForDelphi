@@ -206,10 +206,19 @@ type
     procedure TestCancelOfAnEditLeavesNothingToSave;
     procedure TestCancelKeepsWhatWasPostedBefore;
     procedure TestAppendInADetailLinksTheNewObjectToTheMaster;
+    // Insert, not Append: the Insert button of an FMX TBindNavigator
+    procedure TestInsertInADetailLinksTheNewObjectToTheMaster;
     procedure TestCancelOfAnAppendLeavesNoObject;
     procedure TestCancelOfAnEditOfANewObjectKeepsTheObject;
     procedure TestDeleteInADetailDeletesTheObject;
     procedure TestAFieldThatCannotBeSetIsReadOnly;
+    // Which fields are read-only is known when the dataset opens, and reading
+    // a row changes no field: a field whose ReadOnly or DisplayWidth changes
+    // tells the controls that the layout changed, and LiveBindings rebuilds
+    // its grid then and posts the row that is being inserted, so the first
+    // row typed into an empty FMX grid was posted at once
+    procedure TestReadOnlyIsKnownBeforeARowIsRead;
+    procedure TestReadingARowLeavesTheLayout;
     // A grid cell is being typed in, or a new row, and the user clicks
     // another row of the master grid: the detail grid shows the rows of that
     // master, and what was typed stays with the object it was typed for
@@ -235,6 +244,14 @@ uses
 type
   // Reaches the protected CellFollowerCount
   TBoldDataSetAccess = class(TBoldDataSet);
+
+  // Counts what a data-aware control hears as a change of the layout
+  TLayoutCountingLink = class(TDataLink)
+  protected
+    procedure LayoutChanged; override;
+  public
+    Count: Integer;
+  end;
   // Reaches the protected Destroying
   TComponentAccess = class(TComponent);
 
@@ -247,6 +264,12 @@ const
 function ExpectedDateTime(AIndex: Integer): TDateTime;
 begin
   Result := EncodeDate(2026, 11, 8 + AIndex) + EncodeTime(14, 30, 0, 0);
+end;
+
+procedure TLayoutCountingLink.LayoutChanged;
+begin
+  inherited;
+  Inc(Count);
 end;
 
 { TTestBoldDataSet }
@@ -1527,6 +1550,23 @@ begin
   Assert.AreEqual(3, FMaster.FieldByName('ChildCount').AsInteger, 'and the master row counts it');
 end;
 
+procedure TTestBoldDataSetEditing.TestInsertInADetailLinksTheNewObjectToTheMaster;
+var
+  Added: TSomeClass;
+begin
+  FDetail.Insert;
+  Assert.IsTrue(FDetail.State = dsInsert, 'Insert leaves the detail dataset inserting');
+  FDetail.FieldByName('aString').AsString := 'third';
+  FDetail.Post;
+  Settle;
+  Assert.AreEqual(3, TSomeClass(FParent).child.Count, 'the master has a third child');
+  Assert.AreEqual(3, FDetail.RecordCount, 'and the detail dataset a third row');
+  Assert.IsTrue(FDetail.ActiveBoldObject is TSomeClass, 'the new row is an object');
+  Added := TSomeClass(FDetail.ActiveBoldObject);
+  Assert.AreEqual('third', Added.aString, 'with the posted value');
+  Assert.IsTrue(Added.parent = FParent, 'linked to the master');
+end;
+
 procedure TTestBoldDataSetEditing.TestCancelOfAnAppendLeavesNoObject;
 var
   Before: Integer;
@@ -1597,6 +1637,34 @@ begin
   end;
   FMaster.Cancel;
   Assert.IsTrue(Raised, 'setting it is refused');
+end;
+
+procedure TTestBoldDataSetEditing.TestReadOnlyIsKnownBeforeARowIsRead;
+begin
+  // No value of the detail has been read since it opened
+  Assert.IsTrue(FDetail.FieldByName('Length').ReadOnly, 'aString.length is calculated, not an attribute to set');
+  Assert.IsFalse(FDetail.FieldByName('aString').ReadOnly, 'an attribute can be edited');
+end;
+
+procedure TTestBoldDataSetEditing.TestReadingARowLeavesTheLayout;
+var
+  Source: TDataSource;
+  Link: TLayoutCountingLink;
+begin
+  Source := TDataSource.Create(nil);
+  Link := TLayoutCountingLink.Create;
+  try
+    Source.DataSet := FDetail;
+    Link.DataSource := Source;
+    // What a grid reads for the first row it shows
+    FDetail.First;
+    Assert.AreEqual('first', FDetail.FieldByName('aString').AsString, 'the first row');
+    Assert.AreEqual(5, FDetail.FieldByName('Length').AsInteger, 'its calculated field');
+    Assert.AreEqual(0, Link.Count, 'reading a row does not change the layout');
+  finally
+    Link.Free;
+    Source.Free;
+  end;
 end;
 
 procedure TTestBoldDataSetEditing.TestMasterMovesWhileADetailRowIsEdited;
