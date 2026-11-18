@@ -139,6 +139,9 @@ implementation
 uses
   System.IOUtils,
   System.StrUtils,
+  {$IFDEF POSIX}
+  Posix.Unistd, // SysUtils.DeleteFile is inlined from it (H2443 without)
+  {$ENDIF}
   FMX.DialogService,
   FMX.DialogService.Sync,
   BoldQueue,

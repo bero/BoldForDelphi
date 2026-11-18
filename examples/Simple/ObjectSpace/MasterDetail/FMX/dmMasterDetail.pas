@@ -84,6 +84,11 @@ implementation
 
 {$R *.dfm}
 
+{$IFDEF POSIX}
+uses
+  Posix.Unistd; // SysUtils.DeleteFile is inlined from it (H2443 without)
+{$ENDIF}
+
 resourcestring
   sModelNotLoaded = 'Load the model with LoadModelFromFile before opening the system';
   sSystemAlreadyOpen = 'The system is already open on %s';

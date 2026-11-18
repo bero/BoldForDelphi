@@ -77,4 +77,7 @@ __pycache__/
 # and the log of --selftest
 examples/Compound/Invoicing/FMX/InvoicingFMX.res
 examples/Simple/ObjectSpace/MasterDetail/FMX/MasterDetailFMX.res
+# The Linux64 programs of the FMX clients (no extension)
+examples/Compound/Invoicing/FMX/InvoicingFMX
+examples/Simple/ObjectSpace/MasterDetail/FMX/MasterDetailFMX
 *.selftest.txt
