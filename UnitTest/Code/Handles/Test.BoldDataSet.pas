@@ -5,8 +5,8 @@
   Lazarus data-aware controls show Bold objects.
 
   Every Delphi target: without BOLD_VCL (Linux, macOS, or BOLD_NO_VCL on
-  Windows) TBoldDataSet and its control packs link no VCL unit. Not in the
-  Free Pascal runner yet: TBoldDataSet overrides Delphi's TDataSet API. }
+  Windows) TBoldDataSet and its control packs link no VCL unit. The Free
+  Pascal runner has these fixtures too. }
 
 interface
 

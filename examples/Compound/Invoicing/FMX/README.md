@@ -161,9 +161,9 @@ reported to Embarcadero:
 
 - The form file was written to match what the components write, and checked
   by running it on Windows and Linux64; it has not been opened and saved in
-  the Delphi form designer yet. Bold's handles are registered for the
-  Windows platforms, so the palette offers them only while a Windows target
-  platform is selected.
+  the Delphi form designer yet. The palette offers Bold's handles for the
+  Windows platforms and Linux64 (#117 step 8); macOS is not among them yet
+  (#127).
 - The model and the system handle are in the data module, which the code
   creates, so the two top list handles get their root in code. In the LCL
   client they are components on the form too.
