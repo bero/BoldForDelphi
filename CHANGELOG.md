@@ -107,6 +107,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   stay Windows-only, and macOS is not in the set yet.
   `Test.BoldComponentPlatforms` keeps the list: it is part of the Linux64
   build of the test runner, so a listed class must compile there.
+- The Master-Detail demo in FireMonkey
+  (`examples/Simple/ObjectSpace/MasterDetail/FMX`, #117): the handle chain of
+  the VCL demo, with each handle feeding a `TBoldDataSet` that LiveBindings
+  binds to an FMX grid and a `TBindNavigator`. It has its own framework-neutral
+  data module on SQLite and shares the model and its classes with the VCL
+  demo; `MasterDetailFMX --selftest` drives it without a window.
 
 ### Changed
 - The OCL editor (`BoldOclPropEditor`) takes its checking, parser messages

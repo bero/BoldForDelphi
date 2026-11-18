@@ -76,4 +76,5 @@ __pycache__/
 # InvoicingFMX: the resource file msbuild generates (the dpr links no .res),
 # and the log of --selftest
 examples/Compound/Invoicing/FMX/InvoicingFMX.res
+examples/Simple/ObjectSpace/MasterDetail/FMX/MasterDetailFMX.res
 *.selftest.txt

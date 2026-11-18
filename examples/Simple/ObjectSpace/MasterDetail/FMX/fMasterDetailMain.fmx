@@ -1,0 +1,408 @@
+object frmMasterDetailMain: TfrmMasterDetailMain
+  Left = 0
+  Top = 0
+  Caption = 'Bold Master-Detail Demo - FMX'
+  ClientHeight = 640
+  ClientWidth = 1000
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object layStatus: TLayout
+    Align = Bottom
+    Size.Width = 1000.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object btnDropDatabase: TButton
+      Align = Right
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 130.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Drop Database'
+      OnClick = DropDatabaseClick
+    end
+    object lblStatus: TLabel
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Size.Width = 850.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = ''
+    end
+  end
+  object layTop: TLayout
+    Align = Top
+    Size.Width = 1000.000000000000000000
+    Size.Height = 260.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object layProjectsHeader: TLayout
+      Align = Top
+      Size.Width = 1000.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object lblProjects: TLabel
+        Align = Left
+        Margins.Left = 8.000000000000000000
+        Size.Width = 70.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Projects'
+      end
+      object lblProjectCount: TLabel
+        Align = Left
+        Margins.Left = 4.000000000000000000
+        Size.Width = 80.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        Text = ''
+      end
+      object btnClear: TButton
+        Align = Right
+        Margins.Left = 4.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 8.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Size.Width = 130.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'Clear All Data'
+        OnClick = ClearClick
+      end
+    end
+    object navProjects: TBindNavigator
+      Align = Bottom
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 984.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      DataSource = bsProjects
+    end
+    object grdProjects: TStringGrid
+      Align = Client
+      CanFocus = True
+      ClipChildren = True
+      Margins.Left = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Size.Width = 400.000000000000000000
+      Size.Height = 150.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      RowCount = 0
+      Options = [Editing, ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+    end
+  end
+  object splTop: TSplitter
+    Align = Top
+    MinSize = 80.000000000000000000
+    Size.Width = 1000.000000000000000000
+    Size.Height = 6.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object layBottom: TLayout
+    Align = Client
+    TabOrder = 2
+    object layBottomLeft: TLayout
+      Align = Left
+      Size.Width = 470.000000000000000000
+      Size.Height = 300.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object lblProjectTasks: TLabel
+        Align = Top
+        Margins.Left = 8.000000000000000000
+        Size.Width = 470.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Tasks for Selected Project'
+      end
+      object navProjectTasks: TBindNavigator
+        Align = Bottom
+        Margins.Left = 8.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 8.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Size.Width = 454.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        DataSource = bsProjectTasks
+      end
+      object grdProjectTasks: TStringGrid
+        Align = Client
+        CanFocus = True
+        ClipChildren = True
+        Margins.Left = 8.000000000000000000
+        Margins.Right = 8.000000000000000000
+        Size.Width = 400.000000000000000000
+        Size.Height = 150.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        RowCount = 0
+        Options = [Editing, ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+      end
+    end
+    object splBottom: TSplitter
+      Align = Left
+      MinSize = 80.000000000000000000
+      Size.Width = 6.000000000000000000
+      Size.Height = 300.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object layBottomRight: TLayout
+      Align = Client
+      Size.Width = 524.000000000000000000
+      Size.Height = 300.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object lblTasks: TLabel
+        Align = Top
+        Margins.Left = 8.000000000000000000
+        Size.Width = 524.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'All Tasks'
+      end
+      object layTasksBar: TLayout
+        Align = Bottom
+        Size.Width = 524.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object navTasks: TBindNavigator
+          Align = Left
+          Margins.Left = 8.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 8.000000000000000000
+          Margins.Bottom = 4.000000000000000000
+          Size.Width = 300.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          DataSource = bsTasks
+        end
+        object btnSave: TButton
+          Align = Right
+          Margins.Left = 4.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 8.000000000000000000
+          Margins.Bottom = 4.000000000000000000
+          Size.Width = 130.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          Text = 'Save Changes'
+          OnClick = SaveClick
+        end
+      end
+      object grdTasks: TStringGrid
+        Align = Client
+        CanFocus = True
+        ClipChildren = True
+        Margins.Left = 8.000000000000000000
+        Margins.Right = 8.000000000000000000
+        Size.Width = 400.000000000000000000
+        Size.Height = 150.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        RowCount = 0
+        Options = [Editing, ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+      end
+    end
+  end
+  object lhaProjects: TBoldListHandle
+    Expression = 'Project.allInstances'
+    Left = 424
+    Top = 96
+  end
+  object lhaProjectTasks: TBoldListHandle
+    RootHandle = lhaProjects
+    Expression = 'tasks'
+    Left = 168
+    Top = 400
+  end
+  object lhaTasks: TBoldListHandle
+    Expression = 'Task.allInstances'
+    Left = 680
+    Top = 400
+  end
+  object bdsProjects: TBoldDataSet
+    FieldDescriptions = <
+      item
+        BoldProperties.Expression = 'name'
+        FieldName = 'Name'
+      end
+      item
+        BoldProperties.Expression = 'description'
+        FieldName = 'Description'
+      end
+      item
+        BoldProperties.Expression = 'startDate'
+        FieldName = 'Start Date'
+      end
+      item
+        BoldProperties.Expression = 'endDate'
+        FieldName = 'End Date'
+      end
+      item
+        BoldProperties.Expression = 'budget'
+        FieldName = 'Budget'
+      end>
+    BoldHandle = lhaProjects
+    Left = 520
+    Top = 96
+  end
+  object bdsProjectTasks: TBoldDataSet
+    FieldDescriptions = <
+      item
+        BoldProperties.Expression = 'title'
+        FieldName = 'Title'
+      end
+      item
+        BoldProperties.Expression = 'priority'
+        FieldName = 'Priority'
+      end
+      item
+        BoldProperties.Expression = 'isCompleted'
+        FieldName = 'Done'
+      end
+      item
+        BoldProperties.Expression = 'dueDate'
+        FieldName = 'Due Date'
+      end>
+    BoldHandle = lhaProjectTasks
+    Left = 264
+    Top = 400
+  end
+  object bdsTasks: TBoldDataSet
+    FieldDescriptions = <
+      item
+        BoldProperties.Expression = 'title'
+        FieldName = 'Title'
+      end
+      item
+        BoldProperties.Expression = 'priority'
+        FieldName = 'Pri'
+      end
+      item
+        BoldProperties.Expression = 'isCompleted'
+        FieldName = 'Done'
+      end
+      item
+        BoldProperties.Expression = 'project.name'
+        FieldName = 'Project'
+      end>
+    BoldHandle = lhaTasks
+    Left = 776
+    Top = 400
+  end
+  object bsProjects: TBindSourceDB
+    DataSet = bdsProjects
+    ScopeMappings = <>
+    Left = 616
+    Top = 96
+  end
+  object bsProjectTasks: TBindSourceDB
+    DataSet = bdsProjectTasks
+    ScopeMappings = <>
+    Left = 360
+    Top = 400
+  end
+  object bsTasks: TBindSourceDB
+    DataSet = bdsTasks
+    ScopeMappings = <>
+    Left = 872
+    Top = 400
+  end
+  object BindingsList1: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 520
+    Top = 200
+    object lnkProjects: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsProjects
+      GridControl = grdProjects
+      Columns = <
+        item
+          MemberName = 'Name'
+          Width = 180
+        end
+        item
+          MemberName = 'Description'
+          Width = 180
+        end
+        item
+          MemberName = 'Start Date'
+          Width = 180
+        end
+        item
+          MemberName = 'End Date'
+          Width = 180
+        end
+        item
+          MemberName = 'Budget'
+          Width = 180
+        end>
+    end
+    object lnkProjectTasks: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsProjectTasks
+      GridControl = grdProjectTasks
+      Columns = <
+        item
+          MemberName = 'Title'
+          Width = 140
+        end
+        item
+          MemberName = 'Priority'
+          Width = 70
+        end
+        item
+          MemberName = 'Done'
+          Width = 60
+        end
+        item
+          MemberName = 'Due Date'
+          Width = 110
+        end>
+    end
+    object lnkTasks: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsTasks
+      GridControl = grdTasks
+      Columns = <
+        item
+          MemberName = 'Title'
+          Width = 140
+        end
+        item
+          MemberName = 'Pri'
+          Width = 50
+        end
+        item
+          MemberName = 'Done'
+          Width = 60
+        end
+        item
+          MemberName = 'Project'
+          Width = 160
+        end>
+    end
+  end
+end

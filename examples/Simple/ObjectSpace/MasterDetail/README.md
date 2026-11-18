@@ -8,6 +8,9 @@ This is the demo to start with. It is the only one in this folder with a real
 `.dproj`, the only one in `examples\DelphiExamples.groupproj`, and the only one
 that runs against something other than InterBase.
 
+The same demo in FireMonkey, through `TBoldDataSet` and LiveBindings, is in
+`FMX` (#117); see its README.
+
 ## Running it
 
 1. Build `MasterDetail.dproj` with the **Debug** configuration.
