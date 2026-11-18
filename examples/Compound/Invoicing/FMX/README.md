@@ -98,6 +98,8 @@ without their VCL parts and link no VCL unit (see `BOLD_VCL` in
 `Source\Common\Include\bold.inc`). Without the VCL environment nothing
 drains Bold's display queue by itself, so the form calls
 `TBoldQueueable.DisplayAll` from `Application.OnIdle`.
+`UnitTest\check_no_vcl.ps1` builds this project and fails when its map file
+names a `Vcl.*` unit.
 
 ## Running it
 
