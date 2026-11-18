@@ -27,6 +27,8 @@ object frmMasterDetailMain: TfrmMasterDetailMain
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
+      Hint = 'Delete the database file, unsaved changes too, and start an empty database'
+      ShowHint = True
       Text = 'Drop Database'
       OnClick = DropDatabaseClick
     end
@@ -77,6 +79,8 @@ object frmMasterDetailMain: TfrmMasterDetailMain
         Size.Height = 28.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
+        Hint = 'Delete every project and its tasks; Save Changes writes it to the database'
+        ShowHint = True
         Text = 'Clear All Data'
         OnClick = ClearClick
       end
@@ -92,6 +96,11 @@ object frmMasterDetailMain: TfrmMasterDetailMain
       Size.PlatformDefault = False
       TabOrder = 2
       DataSource = bsProjects
+      ButtonsOptions.Insert.Hint = 'New project'
+      ButtonsOptions.Delete.Hint = 'Delete the selected project and its tasks'
+      ButtonsOptions.Post.Hint = 'Keep the edit; Save Changes writes it to the database'
+      ButtonsOptions.Cancel.Hint = 'Undo the edit'
+      ShowHint = True
     end
     object grdProjects: TStringGrid
       Align = Client
@@ -142,6 +151,11 @@ object frmMasterDetailMain: TfrmMasterDetailMain
         Size.PlatformDefault = False
         TabOrder = 1
         DataSource = bsProjectTasks
+        ButtonsOptions.Insert.Hint = 'New task for the selected project'
+        ButtonsOptions.Delete.Hint = 'Delete the selected task'
+        ButtonsOptions.Post.Hint = 'Keep the edit; Save Changes writes it to the database'
+        ButtonsOptions.Cancel.Hint = 'Undo the edit'
+        ShowHint = True
       end
       object grdProjectTasks: TStringGrid
         Align = Client
@@ -195,6 +209,11 @@ object frmMasterDetailMain: TfrmMasterDetailMain
           Size.PlatformDefault = False
           TabOrder = 0
           DataSource = bsTasks
+          ButtonsOptions.Insert.Hint = 'New task without a project'
+          ButtonsOptions.Delete.Hint = 'Delete the selected task'
+          ButtonsOptions.Post.Hint = 'Keep the edit; Save Changes writes it to the database'
+          ButtonsOptions.Cancel.Hint = 'Undo the edit'
+          ShowHint = True
         end
         object btnSave: TButton
           Align = Right
@@ -206,6 +225,8 @@ object frmMasterDetailMain: TfrmMasterDetailMain
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
+          Hint = 'Write all changes to the database'
+          ShowHint = True
           Text = 'Save Changes'
           OnClick = SaveClick
         end
