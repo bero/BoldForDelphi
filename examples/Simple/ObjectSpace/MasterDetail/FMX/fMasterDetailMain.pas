@@ -170,13 +170,14 @@ begin
     TFile.AppendAllText(SelfTestLog, S + sLineBreak);
 end;
 
-{ The model next to the program, else examples\Shared, where it is kept }
+{ The model next to the program, where the Linux64 deployment puts it, else
+  examples/Shared, where it is kept, for a program run where it was built }
 function ModelFileName: string;
 begin
   Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'DemoModel.bld');
   if not TFile.Exists(Result) then
     Result := TPath.GetFullPath(TPath.Combine(ExtractFilePath(ParamStr(0)),
-      '..\..\..\..\Shared\DemoModel.bld'));
+      '..' + PathDelim + '..' + PathDelim + '..' + PathDelim + '..' + PathDelim + 'Shared' + PathDelim + 'DemoModel.bld'));
 end;
 
 { TfrmMasterDetailMain }

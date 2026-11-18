@@ -64,6 +64,15 @@ unit (see `BOLD_VCL` in `Source\Common\Include\bold.inc`).
 
 Build `MasterDetailFMX.dproj` for Win32 or Win64 and run it.
 
+The project also has the Linux64 platform (Delphi 13 with FmxLinux). Its
+deployment puts `DemoModel.bld` next to the program, where the client looks
+for the model first, before `examples/Shared`; the Linux machine needs
+`libsqlite3-dev`. The build needs the two FmxLinux workarounds described in
+the Linux64 section of the Invoicing FMX client's README
+(`examples/Compound/Invoicing/FMX`). Its self-test passes on Linux64; the
+dialogs of Clear All Data, Drop Database and closing have not been tried by
+hand there.
+
 `MasterDetailFMX --selftest` shows no window: on a temporary database it
 makes projects and tasks through the navigators, selects projects, edits
 through the grids' datasets, saves, opens the system again, clears and drops,
