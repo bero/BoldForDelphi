@@ -210,6 +210,12 @@ type
     procedure TestInsertInADetailLinksTheNewObjectToTheMaster;
     procedure TestCancelOfAnAppendLeavesNoObject;
     procedure TestCancelOfAnEditOfANewObjectKeepsTheObject;
+    // The object of a row that is being inserted is new, and a new object is
+    // destroyed when it is deleted or discarded: in the FMX Master-Detail
+    // demo, Clear All Data while a task was typed in. Cancel must not touch
+    // the object then; it reached a destroyed object (access violation).
+    procedure TestCancelAfterTheInsertedObjectWasDeleted;
+    procedure TestCancelAfterTheSystemWasDiscarded;
     procedure TestDeleteInADetailDeletesTheObject;
     procedure TestAFieldThatCannotBeSetIsReadOnly;
     // Which fields are read-only is known when the dataset opens, and reading
@@ -1600,6 +1606,35 @@ begin
   Assert.AreEqual(3, TSomeClass(FParent).child.Count, 'the new child is still there');
   Assert.AreEqual(3, FDetail.RecordCount, 'and has its row');
   Assert.AreEqual('third', TSomeClass(Added).aString, 'with the value it was posted with');
+end;
+
+procedure TTestBoldDataSetEditing.TestCancelAfterTheInsertedObjectWasDeleted;
+var
+  Before: Integer;
+begin
+  Before := ObjectCount;
+  FDetail.Insert;
+  FDetail.FieldByName('aString').AsString := 'third';
+  (FDetail.ActiveBoldObject as TSomeClass).Delete;
+  FDetail.Cancel;
+  Settle;
+  Assert.IsTrue(FDetail.State = dsBrowse, 'browsing again');
+  Assert.AreEqual(Before, ObjectCount, 'the deleted object is gone, and no other');
+  Assert.AreEqual(2, TSomeClass(FParent).child.Count, 'the master has its two children');
+  Assert.AreEqual(2, FDetail.RecordCount, 'and the detail dataset its two rows');
+end;
+
+procedure TTestBoldDataSetEditing.TestCancelAfterTheSystemWasDiscarded;
+begin
+  FDetail.Insert;
+  FDetail.FieldByName('aString').AsString := 'third';
+  BoldTestDM.BoldSystemHandle1.System.Discard;
+  FDetail.Cancel;
+  Settle;
+  Assert.IsTrue(FDetail.State = dsBrowse, 'browsing again');
+  Assert.AreEqual(2, TSomeClass(FParent).child.Count, 'the master has its two saved children');
+  Assert.AreEqual(2, FDetail.RecordCount, 'and the detail dataset its two rows');
+  Assert.IsFalse(BoldTestDM.BoldSystemHandle1.System.BoldDirty, 'nothing is left to save');
 end;
 
 procedure TTestBoldDataSetEditing.TestDeleteInADetailDeletesTheObject;

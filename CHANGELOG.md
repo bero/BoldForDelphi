@@ -200,6 +200,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet`: an access violation when a row that was being inserted, or
+  a new object that was being edited, was cancelled after its object had been
+  deleted or discarded elsewhere (#117). A new object is destroyed at once
+  then; in the FMX Master-Detail demo, Clear All Data with a task row open
+  deleted it. The dataset now follows the object of the row it edits, lets
+  go of it when it is destroyed, and ends the row without touching it: Cancel
+  discards nothing, and Post or setting a field of that row is refused.
 - `TBoldDataSet`: the first row typed into an empty FMX grid was posted at
   once, so the grid's Insert or Append gave an object but no row to type in
   (#117). Reading a value set the field's `ReadOnly` (from the attribute's

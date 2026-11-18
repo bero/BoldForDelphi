@@ -535,6 +535,33 @@ begin
     Check('Drop Database: the counter starts again', Column(grdProjects, 'Name') = 'Project1',
       Column(grdProjects, 'Name'));
 
+    // A task row is open while Clear All Data deletes its project, and the
+    // new task with it, and then the row is cancelled. The dataset reached
+    // the destroyed task (access violation in TBoldObject.InternalDiscard).
+    bdsProjects.First;
+    Settle;
+    navProjectTasks.BtnClick(TNavigateButton.nbInsert);
+    bdsProjectTasks.FieldByName('Title').AsString := 'typed';
+    ClearAllData;
+    navProjectTasks.BtnClick(TNavigateButton.nbCancel);
+    Settle;
+    Check('a task row open while Clear All Data deletes it, then cancelled',
+      (bdsProjectTasks.State = dsBrowse) and (grdProjects.RowCount = 0) and (grdProjectTasks.RowCount = 0),
+      Format('state %d, %d projects, %d task rows', [Ord(bdsProjectTasks.State), grdProjects.RowCount, grdProjectTasks.RowCount]));
+    // The same when the changes are discarded, as No does when the window
+    // is closed with unsaved changes
+    InsertThrough(navProjects);
+    bdsProjects.First;
+    Settle;
+    navProjectTasks.BtnClick(TNavigateButton.nbInsert);
+    bdsProjectTasks.FieldByName('Title').AsString := 'typed';
+    FData.BoldSystem.Discard;
+    navProjectTasks.BtnClick(TNavigateButton.nbCancel);
+    Settle;
+    Check('a task row open while the changes are discarded, then cancelled',
+      (bdsProjectTasks.State = dsBrowse) and (grdProjects.RowCount = 0) and not FData.BoldSystem.BoldDirty,
+      Format('state %d, %d projects', [Ord(bdsProjectTasks.State), grdProjects.RowCount]));
+
     Check('no exception in the event loop', not FSelfTestException, BoolToStr(FSelfTestException, True));
   except
     on E: Exception do

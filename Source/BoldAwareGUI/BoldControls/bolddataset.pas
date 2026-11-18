@@ -188,6 +188,15 @@ type
     // The values of the row that is edited, as they were when the edit
     // started, one for each field description; Cancel puts them back
     fEditSnapshot: array of TBoldDataSetEditValue;
+    // Follows the object of the row that is edited or inserted. A new object
+    // is destroyed when it is deleted or discarded, by code or by the user
+    // (deleting its master, discarding the system), while the row still
+    // points at it; the dataset then lets go of it: fEditedObjectGone
+    fEditedObjectSubscriber: TBoldPassthroughSubscriber;
+    fEditedObjectGone: Boolean;
+    procedure FollowEditedObject;
+    procedure StopFollowingEditedObject;
+    procedure _ReceiveEditedObject(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
     procedure TakeEditSnapshot;
     procedure RestoreEditSnapshot;
     function GetIndexForElement(AElement: TBoldElement): integer;
@@ -343,6 +352,9 @@ uses
   Variants,
   BoldClock,
   BoldEnvironment;
+
+resourcestring
+  sObjectOfTheRowIsGone = 'The object of this row no longer exists';
 
 const
   // How long DebouncedResync collects further changes before it re-reads again
@@ -800,6 +812,7 @@ begin
   fLastKnownType := nil;
   fInternalCursorReady := false;
   FContextSubscriber := TBoldPassthroughSubscriber.Create(_ReceiveContext);
+  fEditedObjectSubscriber := TBoldPassthroughSubscriber.Create(_ReceiveEditedObject);
 
   FFieldDescriptions := TBoldDataSetFieldDescriptions.Create(self);
   FLayoutChanged := True;
@@ -822,6 +835,7 @@ begin
   if fRefreshWindowOpen and (BoldSharedClock <> nil) then
     BoldSharedClock.Cancel(DebouncedResyncDue);
   FRecordPos := -1;
+  FreeAndNil(fEditedObjectSubscriber);
   FreeAndNil(FContextSubscriber);
   FreeAndNil(FListFollower);
   FreeAndNil(FListFollowerController);
@@ -888,6 +902,7 @@ begin
     Flag := bfInserted;
     Element := LElement;
   end;
+  FollowEditedObject;
   BoldToBuffer(ABuffer);
 end;
 
@@ -994,7 +1009,42 @@ end;
 procedure TBoldAbstractDataSet.InternalEdit;
 begin
   inherited InternalEdit;
+  FollowEditedObject;
   TakeEditSnapshot;
+end;
+
+procedure TBoldAbstractDataSet.FollowEditedObject;
+var
+  Element: TBoldElement;
+begin
+  StopFollowingEditedObject;
+  fEditedObjectGone := False;
+  Element := ActiveBoldElement;
+  if Element is TBoldObject then
+    Element.AddSubscription(fEditedObjectSubscriber, beDestroying, beDestroying);
+end;
+
+procedure TBoldAbstractDataSet.StopFollowingEditedObject;
+begin
+  if Assigned(fEditedObjectSubscriber) then
+    fEditedObjectSubscriber.CancelAllSubscriptions;
+end;
+
+{ The object of the row that is edited or inserted is being destroyed. The
+  row's buffer lets go of it, so that nothing reads it again, and the edit is
+  ended as for a row that has left its list (EndEditOfARowThatLeftTheList),
+  without touching the object: Cancel discards nothing, and Post and setting
+  a field are refused. }
+procedure TBoldAbstractDataSet._ReceiveEditedObject(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
+var
+  RecBuf: TRecordBuffer;
+begin
+  if (RequestedEvent = beDestroying) and (State in [dsEdit, dsInsert]) then
+  begin
+    fEditedObjectGone := True;
+    if GetActiveRecBuf(RecBuf) and Assigned(RecBuf) and (GetBookmarkInfo(RecBuf)^.Element = Originator) then
+      GetBookmarkInfo(RecBuf)^.Element := nil;
+  end;
 end;
 
 { A field is written to the object when it is set, not when the row is
@@ -1136,8 +1186,9 @@ begin
   // back field by field (TakeEditSnapshot), which keeps what the object had
   // before the edit. Nothing is taken back when the edit is only ended
   // because the row has left the list (EndEditOfARowThatLeftTheList).
+  // Nor when the object has been destroyed meanwhile (_ReceiveEditedObject).
   try
-    if not fEditedRowLeftTheList then
+    if not fEditedRowLeftTheList and not fEditedObjectGone then
       if State = dsInsert then
       begin
         if Assigned(ActiveBoldObject) then
@@ -1147,6 +1198,8 @@ begin
         RestoreEditSnapshot;
   finally
     SetLength(fEditSnapshot, 0);
+    StopFollowingEditedObject;
+    fEditedObjectGone := False;
   end;
 {CHECKME Is this needed???
 
@@ -1423,7 +1476,8 @@ end;
 function TBoldAbstractDataSet.EndEditOfARowThatLeftTheList: Boolean;
 begin
   Result := (State in [dsEdit, dsInsert]) and not fEditedRowLeftTheList and
-    Assigned(ActiveBoldElement) and (GetIndexForElement(ActiveBoldElement) = -1);
+    (fEditedObjectGone or
+     (Assigned(ActiveBoldElement) and (GetIndexForElement(ActiveBoldElement) = -1)));
   if Result then
   begin
     fEditedRowLeftTheList := True;
@@ -1606,9 +1660,10 @@ begin
       FillChar(LFieldAdr^, BufferSize, 0);
       try
         LActiveElement := GetBookmarkInfo(ABuffer)^.Element;
-        //LActiveElement.EvaluateExpression(Expression, IndirectElement);
-        LActiveElement.EvaluateExpression(Expression, IndirectElement, False,
-          fBoldProperties.VariableList);
+        // nil: the object of a row that is edited was destroyed; the fields are empty
+        if Assigned(LActiveElement) then
+          LActiveElement.EvaluateExpression(Expression, IndirectElement, False,
+            fBoldProperties.VariableList);
         if Assigned(IndirectElement.Value) then
           case FieldType of
             ftBoolean: begin
@@ -1924,9 +1979,10 @@ begin
         IndirectElement := TBoldIndirectElement.Create;
         try
           LActiveElement := GetBookmarkInfo(LRecBuf)^.Element;
-          //LActiveElement.EvaluateExpression(Expression, IndirectElement);
-          LActiveElement.EvaluateExpression(Expression, IndirectElement, False,
-            fBoldProperties.VariableList);
+          // nil: the object of a row that is edited was destroyed; the fields are empty
+          if Assigned(LActiveElement) then
+            LActiveElement.EvaluateExpression(Expression, IndirectElement, False,
+              fBoldProperties.VariableList);
           if Assigned(IndirectElement.Value) and (IndirectElement.Value is TBoldAttribute) then
           begin
             Attr := TBoldAttribute(IndirectElement.Value);
@@ -1943,7 +1999,7 @@ begin
               result := IndirectElement.Value is TBoldObject;
           end
           else
-            result := True;
+            result := Assigned(LActiveElement);
         finally
           IndirectElement.Free;
         end;
@@ -1987,6 +2043,8 @@ begin
       if ReadOnly and not (State in [dsSetKey, dsFilter]) then
         DatabaseErrorFmt({$IFDEF FPC}SReadOnlyField{$ELSE}SFieldReadOnly{$ENDIF}, [DisplayName]);
       Validate({$IFDEF FPC}Pointer(Buffer){$ELSE}Buffer{$ENDIF});
+      if fEditedObjectGone then
+        DatabaseError(sObjectOfTheRowIsGone, Self);
       if FieldKind <> fkInternalCalc then
       begin
         with FieldDescriptions[Field.FieldNo - 1] do
@@ -2220,6 +2278,9 @@ end;
 
 procedure TBoldAbstractDataSet.InternalPost;
 begin
+  if fEditedObjectGone then
+    DatabaseError(sObjectOfTheRowIsGone, Self);
+  StopFollowingEditedObject;
   SetLength(fEditSnapshot, 0);
   FRecordPos := List.IndexOf(ActiveBoldElement);
   if (FRecordPos <> FListFollower.Follower.CurrentIndex) then
