@@ -22,6 +22,11 @@ uses
   dmMasterDetail in 'dmMasterDetail.pas' {dmMasterDetail: TDataModule},
   fMasterDetailMain in 'fMasterDetailMain.pas' {frmMasterDetailMain};
 
+// The resource file the build makes from the project: on Windows it holds
+// the manifest, whose dependency on the common controls version 6 the hints
+// need (FMX shows them as native tooltips there)
+{$R *.res}
+
 begin
   Application.Initialize;
   Application.CreateForm(TfrmMasterDetailMain, frmMasterDetailMain);
