@@ -24,6 +24,11 @@ uses
   InvoicingScenario in '..\Tests\InvoicingScenario.pas',
   fInvoicingMain in 'fInvoicingMain.pas' {frmInvoicingMain};
 
+// The resource file the build makes from the project: on Windows it holds
+// the manifest, with the common controls version 6 (which FMX's hints, native
+// tooltips there, need) and the DPI awareness
+{$R *.res}
+
 begin
   Application.Initialize;
   Application.CreateForm(TfrmInvoicingMain, frmInvoicingMain);

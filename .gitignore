@@ -73,8 +73,8 @@ site/
 # Decompiled Help/BfD.chm, input for Tools/chm2mkdocs.py
 .chm-decompiled/
 __pycache__/
-# InvoicingFMX: the resource file msbuild generates (the dpr links no .res),
-# and the log of --selftest
+# The FMX clients: the resource file the build makes from the project (with
+# the manifest; the dpr links it), and the log of --selftest
 examples/Compound/Invoicing/FMX/InvoicingFMX.res
 examples/Simple/ObjectSpace/MasterDetail/FMX/MasterDetailFMX.res
 # The Linux64 programs of the FMX clients (no extension)
