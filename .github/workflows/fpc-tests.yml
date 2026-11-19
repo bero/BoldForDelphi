@@ -144,6 +144,11 @@ jobs:
       - name: Build and run the Invoicing example
         run: sh examples/Compound/Invoicing/FPC/build.sh
 
+      # The standalone model editor's part without user interface and its
+      # FPCUnit tests (#128): open, save, generate code
+      - name: Build and run the model editor tests
+        run: sh Tools/ModelEditor/FPC/build.sh
+
   lazarus:
     name: Lazarus 4.4, the Bold packages, the LCL client and the Zeos runner, Ubuntu 26.04
     runs-on: ubuntu-latest

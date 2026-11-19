@@ -113,6 +113,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   binds to an FMX grid and a `TBindNavigator`. It has its own framework-neutral
   data module on SQLite and shares the model and its classes with the VCL
   demo; `MasterDetailFMX --selftest` drives it without a window.
+- A standalone model editor, begun (`Tools/ModelEditor`, #128): the part
+  without user interface opens a `.bld` file, saves it and generates the
+  business classes, as the Delphi IDE's Save and Generate does, with Delphi
+  and with Free Pascal. Its tests run in the Delphi and the Free Pascal test
+  programs of the tool, and in CI on Linux and Windows. An LCL and an FMX
+  client follow.
 
 ### Changed
 - The OCL editor (`BoldOclPropEditor`) takes its checking, parser messages
