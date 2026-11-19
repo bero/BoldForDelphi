@@ -411,11 +411,20 @@ begin
       Break;
   end;
   Result := Result + TempSource;
+  // A line that ends in a backslash continues on the next one: the backslash
+  // and the line break go. The text has the line breaks of the platform, LF
+  // under Free Pascal on Linux, where only CRLF was looked for (#128).
   p := pos('\' + BOLDCRLF, result);
   while p <> 0 do
   begin
     Delete(result, p, 3);
     p := pos('\' + BOLDCRLF, result);
+  end;
+  p := pos('\' + #10, result);
+  while p <> 0 do
+  begin
+    Delete(result, p, 2);
+    p := pos('\' + #10, result);
   end;
 end;
 

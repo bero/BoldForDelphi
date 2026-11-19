@@ -103,6 +103,7 @@ uses
   Test.BoldSystemPersistent,
   Test.BoldTaggedValueList,
   Test.BoldTaggedValueSupport,
+  Test.BoldTemplateExpander,
   Test.BoldTestFramework,
   Test.BoldThreadSafeLog,
   Test.BoldThreadSafeQueue,

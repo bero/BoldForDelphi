@@ -15,6 +15,7 @@ uses
   BoldTestCaseDB in 'Code\Persistence\BoldTestCaseDB.pas',
   BoldTestCaseDBFireDAC in 'Code\Persistence\BoldTestCaseDBFireDAC.pas',
   BoldTestCaseUniDAC,
+  Test.BoldTemplateExpander in 'Code\Common\Test.BoldTemplateExpander.pas',
   Test.BoldUMLTypes in 'Code\Common\Test.BoldUMLTypes.pas',
   jehoBCBoldTest in 'Code\ObjectSpace\jehoBCBoldTest.pas',
   Test.FetchInvalidAttribute in 'Code\ObjectSpace\Test.FetchInvalidAttribute.pas',

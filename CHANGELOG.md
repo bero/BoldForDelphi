@@ -200,6 +200,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- The code generator kept the line-continuation backslashes of its templates
+  in the code it generated under Free Pascal on Linux (#128).
+  `BoldTemplateExpander` joins a line that ends in a backslash with the next
+  one, but only looked for the backslash before CRLF; the expanded text has
+  the platform's line breaks, LF there. The code generated on Linux is now the
+  code generated on Windows.
 - `TBoldDataSet`: an access violation when a row that was being inserted, or
   a new object that was being edited, was cancelled after its object had been
   deleted or discarded elsewhere (#117). A new object is destroyed at once
