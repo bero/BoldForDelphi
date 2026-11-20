@@ -1,0 +1,418 @@
+object frmModelEditorMain: TfrmModelEditorMain
+  Left = 0
+  Top = 0
+  Caption = 'Bold Model Editor'
+  ClientHeight = 680
+  ClientWidth = 1000
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object layToolbar: TLayout
+    Align = Top
+    Size.Width = 1000.000000000000000000
+    Size.Height = 40.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object btnNew: TButton
+      Action = actNew
+      Align = Left
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 90.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      ShowHint = True
+    end
+    object btnOpen: TButton
+      Action = actOpen
+      Align = Left
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 100.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      ShowHint = True
+    end
+    object btnSave: TButton
+      Action = actSave
+      Align = Left
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 90.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      ShowHint = True
+    end
+    object btnSaveAs: TButton
+      Action = actSaveAs
+      Align = Left
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 110.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      ShowHint = True
+    end
+    object btnGenerate: TButton
+      Action = actGenerate
+      Align = Left
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 150.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      ShowHint = True
+    end
+  end
+  object layClasses: TLayout
+    Align = Top
+    Position.Y = 40.000000000000000000
+    Size.Width = 1000.000000000000000000
+    Size.Height = 280.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object layClassBar: TLayout
+      Align = Top
+      Size.Width = 1000.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object lblClasses: TLabel
+        Align = Left
+        Margins.Left = 8.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Classes'
+      end
+      object btnAddClass: TButton
+        Action = actAddClass
+        Align = Left
+        Margins.Left = 4.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 4.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        ShowHint = True
+      end
+      object btnDeleteClass: TButton
+        Action = actDeleteClass
+        Align = Left
+        Margins.Left = 4.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 4.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        ShowHint = True
+      end
+    end
+    object grdClasses: TStringGrid
+      Align = Client
+      CanFocus = True
+      ClipChildren = True
+      Margins.Left = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 984.000000000000000000
+      Size.Height = 200.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      RowCount = 0
+      Options = [Editing, ColumnResize, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+    end
+  end
+  object splGrids: TSplitter
+    Align = Top
+    Cursor = crVSplit
+    MinSize = 80.000000000000000000
+    Position.Y = 320.000000000000000000
+    Size.Width = 1000.000000000000000000
+    Size.Height = 6.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object layStatus: TLayout
+    Align = Bottom
+    Position.Y = 650.000000000000000000
+    Size.Width = 1000.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    object lblStatus: TLabel
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Size.Width = 992.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      Text = ''
+    end
+  end
+  object layAttributes: TLayout
+    Align = Client
+    Size.Width = 1000.000000000000000000
+    Size.Height = 324.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object layAttributeBar: TLayout
+      Align = Top
+      Size.Width = 1000.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object lblAttributes: TLabel
+        Align = Left
+        Margins.Left = 8.000000000000000000
+        Size.Width = 260.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Attributes'
+      end
+      object btnAddAttribute: TButton
+        Action = actAddAttribute
+        Align = Left
+        Margins.Left = 4.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 4.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        ShowHint = True
+      end
+      object btnDeleteAttribute: TButton
+        Action = actDeleteAttribute
+        Align = Left
+        Margins.Left = 4.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 4.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        ShowHint = True
+      end
+    end
+    object grdAttributes: TStringGrid
+      Align = Client
+      CanFocus = True
+      ClipChildren = True
+      Margins.Left = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 984.000000000000000000
+      Size.Height = 200.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      RowCount = 0
+      Options = [Editing, ColumnResize, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+    end
+  end
+  object mnuMain: TMainMenu
+    Left = 600
+    Top = 120
+    object mnuFile: TMenuItem
+      Text = '&File'
+      object mniNew: TMenuItem
+        Action = actNew
+      end
+      object mniOpen: TMenuItem
+        Action = actOpen
+      end
+      object mniSave: TMenuItem
+        Action = actSave
+      end
+      object mniSaveAs: TMenuItem
+        Action = actSaveAs
+      end
+      object mniFileSep1: TMenuItem
+        Text = '-'
+      end
+      object mniGenerate: TMenuItem
+        Action = actGenerate
+      end
+      object mniFileSep2: TMenuItem
+        Text = '-'
+      end
+      object mniExit: TMenuItem
+        Action = actExit
+      end
+    end
+    object mnuModel: TMenuItem
+      Text = '&Model'
+      object mniAddClass: TMenuItem
+        Action = actAddClass
+      end
+      object mniDeleteClass: TMenuItem
+        Action = actDeleteClass
+      end
+      object mniModelSep1: TMenuItem
+        Text = '-'
+      end
+      object mniAddAttribute: TMenuItem
+        Action = actAddAttribute
+      end
+      object mniDeleteAttribute: TMenuItem
+        Action = actDeleteAttribute
+      end
+    end
+  end
+  object alActions: TActionList
+    OnUpdate = alActionsUpdate
+    Left = 680
+    Top = 120
+    object actNew: TAction
+      Text = '&New'
+      Hint = 'A new, empty model'
+      ShortCut = 16462
+      OnExecute = actNewExecute
+    end
+    object actOpen: TAction
+      Text = '&Open...'
+      Hint = 'Open a model file (.bld)'
+      ShortCut = 16463
+      OnExecute = actOpenExecute
+    end
+    object actSave: TAction
+      Text = '&Save'
+      Hint = 'Save the model to its file'
+      ShortCut = 16467
+      OnExecute = actSaveExecute
+    end
+    object actSaveAs: TAction
+      Text = 'Save &as...'
+      Hint = 'Save the model to another file'
+      ShortCut = 24659
+      OnExecute = actSaveAsExecute
+    end
+    object actGenerate: TAction
+      Text = '&Generate code...'
+      Hint = 'Generate the business classes of the model into a folder'
+      ShortCut = 16455
+      OnExecute = actGenerateExecute
+    end
+    object actExit: TAction
+      Text = 'E&xit'
+      Hint = 'Close the model editor'
+      OnExecute = actExitExecute
+    end
+    object actAddClass: TAction
+      Text = 'Add class'
+      Hint = 'Add a class to the model'
+      OnExecute = actAddClassExecute
+    end
+    object actDeleteClass: TAction
+      Text = 'Delete class'
+      Hint = 'Delete the selected class; its subclasses get its superclass'
+      OnExecute = actDeleteClassExecute
+    end
+    object actAddAttribute: TAction
+      Text = 'Add attribute'
+      Hint = 'Add an attribute to the selected class'
+      OnExecute = actAddAttributeExecute
+    end
+    object actDeleteAttribute: TAction
+      Text = 'Delete attribute'
+      Hint = 'Delete the selected attribute'
+      OnExecute = actDeleteAttributeExecute
+    end
+  end
+  object bsClasses: TBindSourceDB
+    ScopeMappings = <>
+    Left = 600
+    Top = 200
+  end
+  object bsAttributes: TBindSourceDB
+    ScopeMappings = <>
+    Left = 680
+    Top = 200
+  end
+  object BindingsList1: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 760
+    Top = 200
+    object lnkClasses: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsClasses
+      GridControl = grdClasses
+      Columns = <
+        item
+          MemberName = 'Name'
+          Width = 260
+        end
+        item
+          MemberName = 'Superclass'
+          Width = 220
+        end
+        item
+          MemberName = 'Abstract'
+          Width = 100
+        end
+        item
+          MemberName = 'Persistent'
+          Width = 100
+        end>
+    end
+    object lnkAttributes: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsAttributes
+      GridControl = grdAttributes
+      Columns = <
+        item
+          MemberName = 'Name'
+          Width = 260
+        end
+        item
+          MemberName = 'Type'
+          Width = 160
+        end
+        item
+          MemberName = 'Persistent'
+          Width = 100
+        end
+        item
+          MemberName = 'Derived'
+          Width = 100
+        end>
+    end
+  end
+  object dlgOpen: TOpenDialog
+    DefaultExt = 'bld'
+    Title = 'Open a model'
+    Left = 600
+    Top = 280
+  end
+  object dlgSave: TSaveDialog
+    DefaultExt = 'bld'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
+    Title = 'Save the model as'
+    Left = 680
+    Top = 280
+  end
+end

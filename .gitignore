@@ -77,9 +77,11 @@ __pycache__/
 # the manifest; the dpr links it), and the log of --selftest
 examples/Compound/Invoicing/FMX/InvoicingFMX.res
 examples/Simple/ObjectSpace/MasterDetail/FMX/MasterDetailFMX.res
+Tools/ModelEditor/FMX/ModelEditorFMX.res
 # The resource file the build makes for the model editor's test program
 Tools/ModelEditor/Tests/ModelEditorTests.res
 # The Linux64 programs of the FMX clients (no extension)
 examples/Compound/Invoicing/FMX/InvoicingFMX
 examples/Simple/ObjectSpace/MasterDetail/FMX/MasterDetailFMX
+Tools/ModelEditor/FMX/ModelEditorFMX
 *.selftest.txt

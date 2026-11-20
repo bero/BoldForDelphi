@@ -6,8 +6,7 @@ classes, for Delphi and Lazarus projects alike, without the Delphi IDE.
 
 It follows the pattern of the Invoicing example: a part without user
 interface, and two programs on top of it, an LCL client built with Lazarus and
-an FMX client built with Delphi, both for Windows and Linux. The shared part
-and the LCL client are here; the FMX client follows.
+an FMX client built with Delphi, both for Windows and Linux.
 
 ## Layout
 
@@ -15,6 +14,7 @@ and the LCL client are here; the FMX client follows.
 | --- | --- |
 | `Core` | what both clients share: `BoldModelDocument.pas` (open a `.bld` file, save it, generate the business classes) and `BoldModelEditorData.pas` (the handles, the datasets and the commands of the editor) |
 | `LCL` | the LCL client, `ModelEditorLCL.lpi`, with `build.sh` |
+| `FMX` | the FMX client, `ModelEditorFMX.dproj` (Win32, Win64, Linux64) |
 | `Tests` | the tests and the Delphi test program `ModelEditorTests.dpr` with `build.ps1` |
 | `FPC` | the Free Pascal test program `ModelEditorTests.lpr` with `build.sh` |
 
@@ -95,6 +95,35 @@ writes the checks to `bin/ModelEditorLCL.selftest.txt` and exits with the
 number of failed checks. Without a display, `QT_QPA_PLATFORM=offscreen`
 does for the Qt5 widgetset.
 
+## The FMX client
+
+`FMX/ModelEditorFMX.dproj`, for Win32, Win64 and Linux64 (Delphi 13 with
+FmxLinux): the same two grids, `TStringGrid`s bound to the shared datasets
+through LiveBindings (a `TBindSourceDB` and a `TLinkGridToDataSource` each;
+the form gives the bind sources their datasets when it makes the data
+module). An action per command feeds the File and Model menus and the
+buttons, with a hint each; the boolean columns show `True` and `False`. The
+project defines `BOLD_NO_VCL` and its unit search path leaves out
+`Source\UMLModel\Editor`; `UnitTest\check_no_vcl.ps1` builds it and checks
+that it links no VCL unit. As in the other FMX clients, the dpr links the
+resource file with the manifest that the hints need on Windows.
+
+```text
+ModelEditorFMX [model.bld]
+ModelEditorFMX --selftest model.bld
+```
+
+The self-test is the LCL client's, on the grids: it selects a class with
+`SelectRow`, as a click does (setting `Row` moves the grid but not the
+dataset), and checks that the attribute grid follows, that the commands add,
+delete, save and generate (into a temporary folder), and that the title and
+the status follow; the checks go to `ModelEditorFMX.selftest.txt` next to the
+program and the exit code is the number of failed checks. It found a bug in
+`TBoldDataSet` (the handle followed every row while LiveBindings filled a grid,
+#128), fixed with its tests in `UnitTest/Code/Handles/Test.BoldDataSet.pas`.
+FMX programs need a desktop session: on Windows run the self-test there, not
+over SSH.
+
 ## Tests
 
 The test units are the same source for Delphi (DUnitX) and Free Pascal
@@ -117,4 +146,5 @@ The Delphi test program defines `BOLD_NO_VCL` and has no `Vcl` unit scope,
 so a VCL unit in the shared part fails its build.
 
 Both CI jobs (Linux and Windows) run the Free Pascal tests and the LCL
-client's self-test on every push.
+client's self-test on every push. The FMX client is built and run with
+Delphi, which CI does not have.

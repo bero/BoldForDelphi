@@ -125,8 +125,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   selected class in two `TDBGrid`s that edit them in place, with a menu and
   buttons for the commands; `ModelEditorLCL model.bld` opens a model. The
   tests run in the Delphi and the Free Pascal test programs of the tool, and
-  in CI on Linux and Windows with the LCL client's self-test. An FMX client
-  follows.
+  in CI on Linux and Windows with the LCL client's self-test. The FMX client
+  (`Tools/ModelEditor/FMX`, Win32, Win64 and Linux64) has the same grids,
+  bound to the shared datasets through LiveBindings, the same commands and a
+  self-test; `check_no_vcl.ps1` checks that it links no VCL unit.
 
 ### Changed
 - The Lazarus package `Bold.lpk` holds the code generator (`BoldGen`, the

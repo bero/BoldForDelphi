@@ -90,8 +90,10 @@ with `FrameworkType=None`: the Bold core links no GUI framework, and a VCL
 application links `BoldEnvironmentVCL` itself.
 `examples\Compound\Invoicing\FMX` adds `TBoldDataSet`, the control packs it
 builds on and LiveBindings, with `FrameworkType=FMX` and `BOLD_NO_VCL` (#117 step 9).
-`check_no_vcl.ps1` builds both with a detailed map file and fails when either
-links any `Vcl.*` unit, naming the units; with `-Run` it also runs the console's
+`Tools\ModelEditor\FMX`, the standalone model editor's FMX client (#128), adds
+the UML model, the code generator and the data module it shares with the LCL
+client. `check_no_vcl.ps1` builds the three with a detailed map file and fails
+when any links a `Vcl.*` unit, naming the units; with `-Run` it also runs the console's
 101-check scenario. An FMX project knows no `Vcl` unit scope, so an unscoped VCL
 import (`Controls`, `Forms`) outside `BOLD_VCL` already fails its build with F2613;
 a scoped one (`Vcl.Controls`) builds and is caught in the map file.
@@ -100,9 +102,9 @@ designer: its `{%CLASSGROUP 'System.Classes.TPersistent'}` keeps the designer
 from adding `BoldEnvironmentVCL` to its uses clause.
 
 ```powershell
-.\check_no_vcl.ps1                      # build both Debug/Win64, check the map files
+.\check_no_vcl.ps1                      # build the three Debug/Win64, check the map files
 .\check_no_vcl.ps1 -Run                 # ... and run the scenario against ..\Model\Invoicing.bld
-.\check_no_vcl.ps1 -Project FMX         # only the FMX client (Console for only the console)
+.\check_no_vcl.ps1 -Project FMX         # only the Invoicing FMX client (Console, ModelEditor: the others)
 ```
 
 ## Cross-platform XML backend check
