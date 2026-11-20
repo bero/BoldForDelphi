@@ -8,7 +8,7 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../../Source/Common/Include"/>
-        <OtherUnitFiles Value="../../Source/BoldAwareGUI/BoldControls;../../Source/BoldAwareGUI/ControlPacks;../../Source/BoldAwareGUI/Core;../../Source/Common/Core;../../Source/Common/Environment;../../Source/Common/Logging;../../Source/Common/Queue;../../Source/Common/Stubs;../../Source/Common/Subscription;../../Source/Common/Support;../../Source/Common/TaggedValues;../../Source/Common/UML;../../Source/FreestandingValueSpace/Core;../../Source/Handles/Core;../../Source/Handles/UnLoader;../../Source/MoldModel/Bld;../../Source/MoldModel/Core;../../Source/MoldModel/Handles;../../Source/MoldModel/IDE;../../Source/MoldModel/TypeNameDictionary;../../Source/ObjectSpace/BORepresentation;../../Source/ObjectSpace/COM;../../Source/ObjectSpace/Core;../../Source/ObjectSpace/IDE;../../Source/ObjectSpace/Interfaces;../../Source/ObjectSpace/Ocl;../../Source/ObjectSpace/PessimisticLocking;../../Source/ObjectSpace/RTModel;../../Source/ObjectSpace/Undo;../../Source/ObjectSpace/Unloader;../../Source/PMapper/Core;../../Source/PMapper/DBEvolutor;../../Source/PMapper/Default;../../Source/PMapper/SQL;../../Source/PMapper/Validator;../../Source/Persistence/Core;../../Source/Persistence/DB;../../Source/Persistence/File;../../Source/Persistence/IDE;../../Source/Persistence/ObjectUpgrading;../../Source/Persistence/Propagation;../../Source/UMLModel/Core;../../Source/UMLModel/Handles;../../Source/ValueSpace/Condition;../../Source/ValueSpace/ExternalEvents;../../Source/ValueSpace/Id;../../Source/ValueSpace/Interfaces;../../Source/ValueSpace/XMLStreaming"/>
+        <OtherUnitFiles Value="../../Source/BoldAwareGUI/BoldControls;../../Source/BoldAwareGUI/ControlPacks;../../Source/BoldAwareGUI/Core;../../Source/Common/Core;../../Source/Common/Environment;../../Source/Common/Logging;../../Source/Common/Queue;../../Source/Common/Stubs;../../Source/Common/Subscription;../../Source/Common/Support;../../Source/Common/TaggedValues;../../Source/Common/UML;../../Source/FreestandingValueSpace/Core;../../Source/Handles/Core;../../Source/Handles/UnLoader;../../Source/MoldModel/Bld;../../Source/MoldModel/CodeGenerator;../../Source/MoldModel/Core;../../Source/MoldModel/Handles;../../Source/MoldModel/IDE;../../Source/MoldModel/TypeNameDictionary;../../Source/ObjectSpace/BORepresentation;../../Source/ObjectSpace/COM;../../Source/ObjectSpace/Core;../../Source/ObjectSpace/IDE;../../Source/ObjectSpace/Interfaces;../../Source/ObjectSpace/Ocl;../../Source/ObjectSpace/PessimisticLocking;../../Source/ObjectSpace/RTModel;../../Source/ObjectSpace/Undo;../../Source/ObjectSpace/Unloader;../../Source/PMapper/Core;../../Source/PMapper/DBEvolutor;../../Source/PMapper/Default;../../Source/PMapper/SQL;../../Source/PMapper/Validator;../../Source/Persistence/Core;../../Source/Persistence/DB;../../Source/Persistence/File;../../Source/Persistence/IDE;../../Source/Persistence/ObjectUpgrading;../../Source/Persistence/Propagation;../../Source/UMLModel/Core;../../Source/UMLModel/Handles;../../Source/ValueSpace/Condition;../../Source/ValueSpace/ExternalEvents;../../Source/ValueSpace/Id;../../Source/ValueSpace/Interfaces;../../Source/ValueSpace/XMLStreaming"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
@@ -172,6 +172,10 @@
         <UnitName Value="BoldExternalizedReferences"/>
       </Item>
       <Item>
+        <Filename Value="../../Source/Common/Support/boldfilehandler.pas"/>
+        <UnitName Value="BoldFileHandler"/>
+      </Item>
+      <Item>
         <Filename Value="../../Source/Common/Support/boldguard.pas"/>
         <UnitName Value="BoldGuard"/>
       </Item>
@@ -230,6 +234,10 @@
       <Item>
         <Filename Value="../../Source/Common/Support/boldsorter.pas"/>
         <UnitName Value="BoldSorter"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/Support/boldtemplateexpander.pas"/>
+        <UnitName Value="BoldTemplateExpander"/>
       </Item>
       <Item>
         <Filename Value="../../Source/Common/Support/bolduri.pas"/>
@@ -342,6 +350,18 @@
       <Item>
         <Filename Value="../../Source/MoldModel/Bld/boldbld.pas"/>
         <UnitName Value="BoldBld"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/CodeGenerator/boldgen.pas"/>
+        <UnitName Value="BoldGen"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/CodeGenerator/boldgeneratortemplates.pas"/>
+        <UnitName Value="BoldGeneratorTemplates"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/MoldModel/CodeGenerator/boldgeneratortemplatesdelphi.pas"/>
+        <UnitName Value="BoldGeneratorTemplatesDelphi"/>
       </Item>
       <Item>
         <Filename Value="../../Source/MoldModel/Core/boldmeta.pas"/>

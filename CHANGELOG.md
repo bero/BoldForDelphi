@@ -121,6 +121,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   client follow.
 
 ### Changed
+- The Lazarus package `Bold.lpk` holds the code generator (`BoldGen`, the
+  Delphi templates, `BoldTemplateExpander`, `BoldFileHandler`), so a Lazarus
+  program can generate the business classes of a model; the standalone model
+  editor's LCL client does (#128).
 - The OCL editor (`BoldOclPropEditor`) takes its checking, parser messages
   and lists of members, operations and variables from the new unit
   `BoldOclExpressionCheck` (`Source/ObjectSpace/Ocl`), which the Lazarus OCL

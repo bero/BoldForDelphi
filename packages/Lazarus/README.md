@@ -8,8 +8,10 @@ Zeos database adapter to it.
 
 `Bold.lpk` is the runtime package of Bold for Lazarus / Free Pascal (#117 step
 17). It holds the framework-neutral units that build with Free Pascal: object
-space, OCL, handles, persistence mappers, XML file persistence and
-`TBoldDataSet`. It requires only the FCL: no LCL unit and no database library.
+space, OCL, handles, persistence mappers, XML file persistence,
+`TBoldDataSet` and the code generator that writes the business classes of a
+model (`BoldGen` with the Delphi templates). It requires only the FCL: no LCL
+unit and no database library.
 
 `BoldLCL.lpk` requires `Bold` and the LCL. It holds `BoldEnvironmentLCL`
 (`Source/Common/EnvironmentLCL`), the twin of `BoldEnvironmentVCL`: name it in
@@ -160,7 +162,10 @@ The units of `Bold` are the ones that the Free Pascal test suite
 tested on each push. Four more are there for the palette and are built, and
 written and read as components, but have no tests under Free Pascal yet:
 `BoldDerivedHandle`, `BoldVariableHandle`, `BoldReferenceHandle` and
-`BoldPlaceableSubscriber`. `Bold.pas`, `BoldLCL.pas`, `BoldZeos.pas`, `dclBold.pas` and
+`BoldPlaceableSubscriber`. The code generator (`BoldGen`,
+`BoldGeneratorTemplates`, `BoldGeneratorTemplatesDelphi`, `BoldTemplateExpander`
+and `BoldFileHandler`) is tested by the standalone model editor's tests
+(`Tools/ModelEditor`), whose LCL client is built on this package. `Bold.pas`, `BoldLCL.pas`, `BoldZeos.pas`, `dclBold.pas` and
 `dclBoldZeos.pas` are the packages' main units, which Lazarus writes.
 
 `BoldZeos` is built and run on each push too, by the Invoicing runner in
@@ -169,8 +174,8 @@ written and read as components, but have no tests under Free Pascal yet:
 Not there yet:
 
 - The other property and component editors of the Delphi design package
-  (the model editor among them: a model is made in Delphi and
-  loaded from its `.bld` file): they are written against Delphi's
-  design-time API. Other properties are edited in the Object Inspector as
+  (the model editor among them): they are written against Delphi's
+  design-time API. A model is edited with the standalone model editor
+  (`Tools/ModelEditor`, #128) or in Delphi, and loaded from its `.bld` file. Other properties are edited in the Object Inspector as
   text.
 - Bold's visual controls.
