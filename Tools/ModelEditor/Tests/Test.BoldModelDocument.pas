@@ -43,66 +43,13 @@ implementation
 uses
   SysUtils,
   Classes,
-  {$IFNDEF FPC}
-  System.IOUtils,
-  {$ENDIF}
   BoldUMLModel,
-  BoldModelDocument;
+  BoldModelDocument,
+  ModelEditorTestSupport;
 
 const
   // The files the Delphi IDE generated from Invoicing.bld
   cGeneratedFiles: array[0..1] of string = ('InvoicingClasses.pas', 'InvoicingClasses_Interface.inc');
-
-function TempFolder: string;
-begin
-  {$IFDEF FPC}
-  Result := GetTempDir;
-  {$ELSE}
-  Result := TPath.GetTempPath;
-  {$ENDIF}
-end;
-
-{ The repository's root: the first folder above the program that holds the
-  examples folder }
-function RepositoryFile(const ARelativePath: string): string;
-var
-  Folder, Parent: string;
-begin
-  Folder := ExcludeTrailingPathDelimiter(ExtractFilePath(ExpandFileName(ParamStr(0))));
-  repeat
-    Result := IncludeTrailingPathDelimiter(Folder) +
-      StringReplace(ARelativePath, '/', PathDelim, [rfReplaceAll]);
-    if FileExists(Result) then
-      Exit;
-    Parent := ExcludeTrailingPathDelimiter(ExtractFilePath(Folder));
-    if (Parent = Folder) or (Parent = '') then
-      Break;
-    Folder := Parent;
-  until False;
-  raise Exception.CreateFmt('%s not found above %s', [ARelativePath, ParamStr(0)]);
-end;
-
-{ A file's text with its line breaks as LF, so that a file checked out with
-  CRLF and one with LF compare equal }
-function TextOf(const AFileName: string): string;
-var
-  Stream: TFileStream;
-  Bytes: TBytes;
-begin
-  Stream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
-  try
-    SetLength(Bytes, Stream.Size);
-    if Stream.Size > 0 then
-      Stream.ReadBuffer(Bytes[0], Stream.Size);
-  finally
-    Stream.Free;
-  end;
-  Result := TEncoding.UTF8.GetString(Bytes);
-  // A UTF-8 byte order mark
-  if (Result <> '') and (Result[1] = #$FEFF) then
-    Delete(Result, 1, 1);
-  Result := StringReplace(Result, #13#10, #10, [rfReplaceAll]);
-end;
 
 { The text without the line that holds the time it was generated }
 function WithoutGeneratedLine(const AText: string): string;
@@ -157,33 +104,12 @@ begin
     Assert.Fail(AWhat + ' differs, ' + FirstDifference(AExpected, AActual));
 end;
 
-procedure DeleteFolder(const AFolder: string);
-var
-  Search: TSearchRec;
-begin
-  if FindFirst(IncludeTrailingPathDelimiter(AFolder) + '*', faAnyFile, Search) = 0 then
-  try
-    repeat
-      if (Search.Attr and faDirectory) = 0 then
-        SysUtils.DeleteFile(IncludeTrailingPathDelimiter(AFolder) + Search.Name);
-    until FindNext(Search) <> 0;
-  finally
-    FindClose(Search);
-  end;
-  RemoveDir(AFolder);
-end;
-
 { TTestBoldModelDocument }
 
 procedure TTestBoldModelDocument.SetUp;
-var
-  GUID: TGUID;
 begin
   inherited;
-  CreateGUID(GUID);
-  FTempFolder := IncludeTrailingPathDelimiter(TempFolder) + 'BoldModelDocument-' +
-    Copy(GUIDToString(GUID), 2, 36);
-  ForceDirectories(FTempFolder);
+  FTempFolder := NewTempFolder('BoldModelDocument');
 end;
 
 procedure TTestBoldModelDocument.TearDown;

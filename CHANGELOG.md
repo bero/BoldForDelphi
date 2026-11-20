@@ -116,9 +116,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A standalone model editor, begun (`Tools/ModelEditor`, #128): the part
   without user interface opens a `.bld` file, saves it and generates the
   business classes, as the Delphi IDE's Save and Generate does, with Delphi
-  and with Free Pascal. Its tests run in the Delphi and the Free Pascal test
-  programs of the tool, and in CI on Linux and Windows. An LCL and an FMX
-  client follow.
+  and with Free Pascal. A data module that the LCL and the FMX client share
+  holds the Bold handles on the model, the datasets of its classes and of the
+  attributes of the selected class, the commands (new, open, save, generate,
+  add and delete a class or an attribute) and the question about unsaved
+  changes; it uses no VCL, LCL or FMX unit. Its tests run in the Delphi and
+  the Free Pascal test programs of the tool, and in CI on Linux and Windows.
+  An LCL and an FMX client follow.
 
 ### Changed
 - The Lazarus package `Bold.lpk` holds the code generator (`BoldGen`, the

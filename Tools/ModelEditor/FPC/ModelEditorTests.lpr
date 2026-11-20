@@ -10,7 +10,8 @@ uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Classes,
   consoletestrunner,
-  Test.BoldModelDocument;
+  Test.BoldModelDocument,
+  Test.BoldModelEditorData;
 
 var
   App: TTestRunner;

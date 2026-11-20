@@ -13,13 +13,19 @@ unit BoldModelDocument;
   (TBoldModelConverter.UMLModelToMold) and writes it as the .bld link of the
   IDE does, with CRLF line breaks on every platform, so that a file saved on
   Linux and on Windows is the same. GenerateCode runs TBoldGenerator with
-  the Delphi templates into a folder of the caller's choice. }
+  the Delphi templates into a folder of the caller's choice.
+
+  Modified follows every change of the UML model, through the broadcast of
+  member events of its object space (TBoldUMLSupport.SubscribeToEntireModel),
+  so a change made in a client's grid counts as one made in code. }
 
 interface
 
 uses
   SysUtils,
   Classes,
+  BoldSubscription,
+  BoldMeta,
   BoldModel,
   BoldUMLModel;
 
@@ -30,11 +36,19 @@ type
   private
     FModel: TBoldModel;
     FFileName: string;
+    FModified: Boolean;
+    FChangeSubscriber: TBoldPassthroughSubscriber;
+    // Above zero while the document changes the model for itself
+    FIgnoreChanges: Integer;
     function GetUMLModel: TUMLModel;
-    procedure NewModel;
+    procedure ReplaceModel(AMoldModel: TMoldModel);
+    procedure ReceiveChange(Originator: TObject; OriginalEvent: TBoldEvent;
+      RequestedEvent: TBoldRequestedEvent);
   public
     constructor Create;
     destructor Destroy; override;
+    { An empty model with no file name; the model before is dropped }
+    procedure NewModel;
     { Reads a .bld file; the model read before is dropped }
     procedure Open(const AFileName: string);
     { Writes the model to the file it was read from, or to AFileName }
@@ -49,15 +63,18 @@ type
     procedure GenerateCode(const AFolder: string);
     property Model: TBoldModel read FModel;
     property UMLModel: TUMLModel read GetUMLModel;
+    { Empty for a new model that was not saved yet }
     property FileName: string read FFileName;
+    { The model was changed since it was opened, made or saved }
+    property Modified: Boolean read FModified;
   end;
 
 implementation
 
 uses
-  BoldMeta,
   BoldBld,
   BoldUMLModelConverter,
+  BoldUMLModelSupport,
   BoldGen,
   BoldGeneratorTemplatesDelphi; // registers the Delphi templates TBoldGenerator uses
 
@@ -73,19 +90,35 @@ resourcestring
 constructor TBoldModelDocument.Create;
 begin
   inherited Create;
+  FChangeSubscriber := TBoldPassthroughSubscriber.Create(ReceiveChange);
   NewModel;
 end;
 
 destructor TBoldModelDocument.Destroy;
 begin
+  FreeAndNil(FChangeSubscriber);
   FreeAndNil(FModel);
   inherited;
 end;
 
-procedure TBoldModelDocument.NewModel;
+procedure TBoldModelDocument.ReplaceModel(AMoldModel: TMoldModel);
 begin
+  // A TBoldModel of its own for each model: the UML model of a TBoldModel is
+  // made once, from the model it has then
+  FChangeSubscriber.CancelAllSubscriptions;
   FreeAndNil(FModel);
   FModel := TBoldModel.Create(nil);
+  if Assigned(AMoldModel) then
+    FModel.SetFromModel(AMoldModel);
+  TBoldUMLSupport.SubscribeToEntireModel(FModel.EnsuredUMLModel, FChangeSubscriber);
+  FModified := False;
+end;
+
+procedure TBoldModelDocument.ReceiveChange(Originator: TObject;
+  OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
+begin
+  if FIgnoreChanges = 0 then
+    FModified := True;
 end;
 
 function TBoldModelDocument.GetUMLModel: TUMLModel;
@@ -93,12 +126,15 @@ begin
   Result := FModel.EnsuredUMLModel;
 end;
 
+procedure TBoldModelDocument.NewModel;
+begin
+  ReplaceModel(nil);
+  FFileName := '';
+end;
+
 procedure TBoldModelDocument.Open(const AFileName: string);
 begin
-  // A model of its own for each file: the UML model of a TBoldModel is made
-  // once, from the model it has then
-  NewModel;
-  FModel.SetFromModel(TMoldBLDRW.ModelFromFile(AFileName));
+  ReplaceModel(TMoldBLDRW.ModelFromFile(AFileName));
   FFileName := AFileName;
 end;
 
@@ -140,6 +176,7 @@ begin
     Stream.Free;
   end;
   FFileName := AFileName;
+  FModified := False;
 end;
 
 procedure TBoldModelDocument.GenerateCode(const AFolder: string);
@@ -148,16 +185,24 @@ var
 begin
   if not DirectoryExists(AFolder) then
     raise EBoldModelDocument.CreateFmt(sNoFolder, [AFolder]);
-  Generator := TBoldGenerator.Create(FModel.TypeNameDictionary);
+  // TBoldModel makes its stored model from the UML model when that changed:
+  // it flattens and boldifies the UML model for that and undoes it after,
+  // which is no change of the document
+  Inc(FIgnoreChanges);
   try
-    Generator.BaseFilePath := IncludeTrailingPathDelimiter(AFolder);
-    Generator.UseTypedLists := True;
-    Generator.MoldModel := FModel.MoldModel;
-    Generator.GenerateBusinessObjectCode;
-    Generator.EnsureMethodImplementations;
+    Generator := TBoldGenerator.Create(FModel.TypeNameDictionary);
+    try
+      Generator.BaseFilePath := IncludeTrailingPathDelimiter(AFolder);
+      Generator.UseTypedLists := True;
+      Generator.MoldModel := FModel.MoldModel;
+      Generator.GenerateBusinessObjectCode;
+      Generator.EnsureMethodImplementations;
+    finally
+      // The generator writes its files when it is freed
+      Generator.Free;
+    end;
   finally
-    // The generator writes its files when it is freed
-    Generator.Free;
+    Dec(FIgnoreChanges);
   end;
 end;
 

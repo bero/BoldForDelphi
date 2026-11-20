@@ -15,10 +15,15 @@ EDITOR="$ROOT/Tools/ModelEditor"
 OUT="$HERE/bin"
 mkdir -p "$OUT"
 
-UNITPATHS=$(find "$ROOT/Source" -type d \
-  -not -path '*/Deprecated*' -not -path '*/BoldAwareGUI*' -not -path '*/Unassigned*' \
-  -not -path '*/EnvironmentLCL*' -not -path '*/IDELazarus*' \
-  | sed 's/^/-Fu/')
+# As in UnitTest/FPC/build.sh: of BoldAwareGUI only the control packs, BoldGUI
+# and TBoldDataSet build without the VCL; the shared data module of the
+# clients (Core/BoldModelEditorData) needs TBoldDataSet.
+UNITPATHS=$( { find "$ROOT/Source" -type d \
+    -not -path '*/Deprecated*' -not -path '*/BoldAwareGUI*' -not -path '*/Unassigned*' \
+    -not -path '*/EnvironmentLCL*' -not -path '*/IDELazarus*'; \
+  echo "$ROOT/Source/BoldAwareGUI/ControlPacks"; \
+  echo "$ROOT/Source/BoldAwareGUI/Core"; \
+  echo "$ROOT/Source/BoldAwareGUI/BoldControls"; } | sed 's/^/-Fu/')
 
 # shellcheck disable=SC2086
 fpc -Mdelphiunicode -vew \

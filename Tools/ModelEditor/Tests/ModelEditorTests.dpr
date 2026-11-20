@@ -8,6 +8,7 @@ program ModelEditorTests;
   test fails. Build with build.ps1 next to this file.
 
   Usage: ModelEditorTests [--run:Test.BoldModelDocument.TTestBoldModelDocument.<Test>]
+                          [--run:Test.BoldModelEditorData.]
                           [--consolemode:Quiet|Verbose] [--exit:Pause] }
 
 {$APPTYPE CONSOLE}
@@ -22,8 +23,11 @@ uses
   DUnitX.Loggers.Xml.NUnit,
   DUnitX.TestFramework,
   BoldModelDocument in '..\Core\BoldModelDocument.pas',
+  BoldModelEditorData in '..\Core\BoldModelEditorData.pas' {dmModelEditor: TDataModule},
   BoldTestFramework in '..\..\..\UnitTest\Code\Common\BoldTestFramework.pas',
-  Test.BoldModelDocument in 'Test.BoldModelDocument.pas';
+  ModelEditorTestSupport in 'ModelEditorTestSupport.pas',
+  Test.BoldModelDocument in 'Test.BoldModelDocument.pas',
+  Test.BoldModelEditorData in 'Test.BoldModelEditorData.pas';
 
 var
   Runner: ITestRunner;
