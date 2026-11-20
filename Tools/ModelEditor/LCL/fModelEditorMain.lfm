@@ -1,0 +1,286 @@
+object frmModelEditorMain: TfrmModelEditorMain
+  Left = 200
+  Height = 640
+  Top = 120
+  Width = 960
+  Caption = 'Bold Model Editor'
+  ClientHeight = 640
+  ClientWidth = 960
+  Menu = mnuMain
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  ShowHint = True
+  object pnlClasses: TPanel
+    Left = 0
+    Height = 300
+    Top = 0
+    Width = 960
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 300
+    ClientWidth = 960
+    TabOrder = 0
+    object pnlClassBar: TPanel
+      Left = 0
+      Height = 36
+      Top = 0
+      Width = 960
+      Align = alTop
+      BevelOuter = bvNone
+      ClientHeight = 36
+      ClientWidth = 960
+      TabOrder = 0
+      object lblClasses: TLabel
+        Left = 8
+        Height = 17
+        Top = 10
+        Width = 60
+        Caption = 'Classes'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object btnAddClass: TButton
+        Left = 120
+        Height = 28
+        Top = 4
+        Width = 120
+        Action = actAddClass
+        TabOrder = 0
+      end
+      object btnDeleteClass: TButton
+        Left = 246
+        Height = 28
+        Top = 4
+        Width = 120
+        Action = actDeleteClass
+        TabOrder = 1
+      end
+    end
+    object grdClasses: TDBGrid
+      Left = 0
+      Height = 264
+      Top = 36
+      Width = 960
+      Align = alClient
+      Color = clWindow
+      Columns = <>
+      DataSource = dsClasses
+      Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgCancelOnExit, dgDisableDelete, dgDisableInsert]
+      TabOrder = 1
+    end
+  end
+  object splGrids: TSplitter
+    Cursor = crVSplit
+    Left = 0
+    Height = 6
+    Top = 300
+    Width = 960
+    Align = alTop
+    ResizeAnchor = akTop
+  end
+  object pnlAttributes: TPanel
+    Left = 0
+    Height = 311
+    Top = 306
+    Width = 960
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 311
+    ClientWidth = 960
+    TabOrder = 1
+    object pnlAttributeBar: TPanel
+      Left = 0
+      Height = 36
+      Top = 0
+      Width = 960
+      Align = alTop
+      BevelOuter = bvNone
+      ClientHeight = 36
+      ClientWidth = 960
+      TabOrder = 0
+      object lblAttributes: TLabel
+        Left = 8
+        Height = 17
+        Top = 10
+        Width = 70
+        Caption = 'Attributes'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object btnAddAttribute: TButton
+        Left = 300
+        Height = 28
+        Top = 4
+        Width = 120
+        Action = actAddAttribute
+        TabOrder = 0
+      end
+      object btnDeleteAttribute: TButton
+        Left = 426
+        Height = 28
+        Top = 4
+        Width = 120
+        Action = actDeleteAttribute
+        TabOrder = 1
+      end
+    end
+    object grdAttributes: TDBGrid
+      Left = 0
+      Height = 275
+      Top = 36
+      Width = 960
+      Align = alClient
+      Color = clWindow
+      Columns = <>
+      DataSource = dsAttributes
+      Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgCancelOnExit, dgDisableDelete, dgDisableInsert]
+      TabOrder = 1
+    end
+  end
+  object sbStatus: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 617
+    Width = 960
+    Panels = <>
+    SimplePanel = True
+  end
+  object mnuMain: TMainMenu
+    Left = 600
+    Top = 120
+    object mnuFile: TMenuItem
+      Caption = '&File'
+      object mniNew: TMenuItem
+        Action = actNew
+      end
+      object mniOpen: TMenuItem
+        Action = actOpen
+      end
+      object mniSave: TMenuItem
+        Action = actSave
+      end
+      object mniSaveAs: TMenuItem
+        Action = actSaveAs
+      end
+      object mniFileSep1: TMenuItem
+        Caption = '-'
+      end
+      object mniGenerate: TMenuItem
+        Action = actGenerate
+      end
+      object mniFileSep2: TMenuItem
+        Caption = '-'
+      end
+      object mniExit: TMenuItem
+        Action = actExit
+      end
+    end
+    object mnuModel: TMenuItem
+      Caption = '&Model'
+      object mniAddClass: TMenuItem
+        Action = actAddClass
+      end
+      object mniDeleteClass: TMenuItem
+        Action = actDeleteClass
+      end
+      object mniModelSep1: TMenuItem
+        Caption = '-'
+      end
+      object mniAddAttribute: TMenuItem
+        Action = actAddAttribute
+      end
+      object mniDeleteAttribute: TMenuItem
+        Action = actDeleteAttribute
+      end
+    end
+  end
+  object alActions: TActionList
+    OnUpdate = alActionsUpdate
+    Left = 680
+    Top = 120
+    object actNew: TAction
+      Caption = '&New'
+      Hint = 'A new, empty model'
+      OnExecute = actNewExecute
+      ShortCut = 16462
+    end
+    object actOpen: TAction
+      Caption = '&Open...'
+      Hint = 'Open a model file (.bld)'
+      OnExecute = actOpenExecute
+      ShortCut = 16463
+    end
+    object actSave: TAction
+      Caption = '&Save'
+      Hint = 'Save the model to its file'
+      OnExecute = actSaveExecute
+      ShortCut = 16467
+    end
+    object actSaveAs: TAction
+      Caption = 'Save &as...'
+      Hint = 'Save the model to another file'
+      OnExecute = actSaveAsExecute
+      ShortCut = 24659
+    end
+    object actGenerate: TAction
+      Caption = '&Generate code...'
+      Hint = 'Generate the business classes of the model into a folder'
+      OnExecute = actGenerateExecute
+      ShortCut = 16455
+    end
+    object actExit: TAction
+      Caption = 'E&xit'
+      Hint = 'Close the model editor'
+      OnExecute = actExitExecute
+    end
+    object actAddClass: TAction
+      Caption = 'Add class'
+      Hint = 'Add a class to the model'
+      OnExecute = actAddClassExecute
+    end
+    object actDeleteClass: TAction
+      Caption = 'Delete class'
+      Hint = 'Delete the selected class; its subclasses get its superclass'
+      OnExecute = actDeleteClassExecute
+    end
+    object actAddAttribute: TAction
+      Caption = 'Add attribute'
+      Hint = 'Add an attribute to the selected class'
+      OnExecute = actAddAttributeExecute
+    end
+    object actDeleteAttribute: TAction
+      Caption = 'Delete attribute'
+      Hint = 'Delete the selected attribute'
+      OnExecute = actDeleteAttributeExecute
+    end
+  end
+  object dsClasses: TDataSource
+    Left = 600
+    Top = 200
+  end
+  object dsAttributes: TDataSource
+    Left = 680
+    Top = 200
+  end
+  object dlgOpen: TOpenDialog
+    Title = 'Open a model'
+    DefaultExt = '.bld'
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
+    Left = 600
+    Top = 280
+  end
+  object dlgSave: TSaveDialog
+    Title = 'Save the model as'
+    DefaultExt = '.bld'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    Left = 680
+    Top = 280
+  end
+  object dlgCodeFolder: TSelectDirectoryDialog
+    Title = 'Generate the business classes into'
+    Left = 760
+    Top = 280
+  end
+end

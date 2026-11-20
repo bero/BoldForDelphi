@@ -124,6 +124,9 @@ jobs:
       - name: Build Bold.lpk and the Invoicing LCL client, run its self-test
         run: sh examples/Compound/Invoicing/LCL/build.sh
 
+      - name: Build the model editor's LCL client, run its self-test
+        run: sh Tools/ModelEditor/LCL/build.sh
+
       - name: Build dclBold.lpk and check what it registers
         run: sh packages/Lazarus/tests/build.sh
 

@@ -120,9 +120,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   holds the Bold handles on the model, the datasets of its classes and of the
   attributes of the selected class, the commands (new, open, save, generate,
   add and delete a class or an attribute) and the question about unsaved
-  changes; it uses no VCL, LCL or FMX unit. Its tests run in the Delphi and
-  the Free Pascal test programs of the tool, and in CI on Linux and Windows.
-  An LCL and an FMX client follow.
+  changes; it uses no VCL, LCL or FMX unit. The LCL client
+  (`Tools/ModelEditor/LCL`) shows the classes and the attributes of the
+  selected class in two `TDBGrid`s that edit them in place, with a menu and
+  buttons for the commands; `ModelEditorLCL model.bld` opens a model. The
+  tests run in the Delphi and the Free Pascal test programs of the tool, and
+  in CI on Linux and Windows with the LCL client's self-test. An FMX client
+  follows.
 
 ### Changed
 - The Lazarus package `Bold.lpk` holds the code generator (`BoldGen`, the

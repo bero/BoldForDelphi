@@ -215,6 +215,14 @@ jobs:
           QT_QPA_PLATFORM: offscreen
         run: LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config" sh examples/Compound/Invoicing/LCL/build.sh
 
+      # The standalone model editor's LCL client (#128), on Bold.lpk, which
+      # holds the code generator; its self-test opens the Invoicing model and
+      # saves and generates into a temporary folder.
+      - name: Build the model editor's LCL client, run its self-test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: LAZBUILD_OPTIONS="--pcp=$RUNNER_TEMP/lazarus-config" sh Tools/ModelEditor/LCL/build.sh
+
       # The design-time package dclBold, and BoldRegistrationCheck: without
       # the IDE it catches what the package registers, writes every
       # component as form text and reads it back, and checks OCL expressions
