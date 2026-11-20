@@ -128,6 +128,23 @@ type
     // being destroyed; what it does to the objects then (Discard, say) still
     // reaches the handles and the datasets
     procedure TestObjectSpaceChangeWhileTheFormIsBeingDestroyed;
+    // LiveBindings reads a dataset to fill an FMX grid with the controls
+    // disabled: it goes through every row and back to the one it started on.
+    // The handle stayed with each row it passed, so the handles rooted on it
+    // followed each row too (#128: the model editor's attribute grid, on a
+    // derived list, raised an assertion when a class was clicked).
+    procedure TestTheHandleStaysWhileTheDataSetIsReadWithControlsDisabled;
+    // A row that code moves to with the controls disabled is the handle's
+    // current element once they are enabled again
+    procedure TestTheHandleFollowsWhenTheControlsAreEnabled;
+    // And when an edit was started there before they were enabled, and is
+    // cancelled after: Cancel does not scroll (found by the VM's review)
+    procedure TestTheHandleFollowsAnEditStartedWithControlsDisabledAndCancelled;
+    // The same as it happened: a detail on a derived list, which a data link
+    // reads as LiveBindings does whenever the dataset changes, and another
+    // master row. Bold's list follower found its list replaced while it
+    // brought the detail up to date (an assertion where they are on).
+    procedure TestADetailOnADerivedListThatIsReadAsAGridIsFilled;
   end;
 
   { A single link as a dataset field (#117): the field of an expression that
@@ -261,6 +278,20 @@ type
   // Reaches the protected Destroying
   TComponentAccess = class(TComponent);
 
+  // Reads its dataset as LiveBindings reads it to fill an FMX grid
+  // (TBindScopeDBEnumerator): whenever the dataset changes, every row with
+  // the controls disabled, and back to the row it started on
+  TGridFillingLink = class(TDataLink)
+  private
+    FFilling: Boolean;
+  protected
+    procedure DataSetChanged; override;
+  public
+    // Reads only while armed, so that the test's own walks are not disturbed
+    Armed: Boolean;
+    Fills: Integer;
+  end;
+
 const
   // A Discard of one new object makes the two list handles tell four times
   // that their value changed; this is well above that
@@ -276,6 +307,33 @@ procedure TLayoutCountingLink.LayoutChanged;
 begin
   inherited;
   Inc(Count);
+end;
+
+procedure TGridFillingLink.DataSetChanged;
+var
+  StartRecNo: Integer;
+begin
+  inherited;
+  // EnableControls tells of a change too
+  if FFilling or not Armed or not Active then
+    Exit;
+  FFilling := True;
+  try
+    Inc(Fills);
+    StartRecNo := DataSet.RecNo;
+    DataSet.DisableControls;
+    try
+      DataSet.First;
+      while not DataSet.Eof do
+        DataSet.Next;
+      if StartRecNo >= 1 then
+        DataSet.MoveBy(StartRecNo - DataSet.RecNo);
+    finally
+      DataSet.EnableControls;
+    end;
+  finally
+    FFilling := False;
+  end;
 end;
 
 { TTestBoldDataSet }
@@ -967,6 +1025,100 @@ begin
   Assert.AreEqual(FMaster.FieldByName('ChildCount').AsInteger, FDetail.RecordCount, 'the detail count on the second Own');
   FMaster.First;
   Assert.IsTrue(WaitForDetail(3000), 'the detail should follow back to the first Own, got ' + DetailValues);
+end;
+
+procedure TTestBoldDataSetMasterDetail.TestTheHandleStaysWhileTheDataSetIsReadWithControlsDisabled;
+begin
+  AddOwn(['a1']);
+  AddOwn(['b1']);
+  AddOwn(['c1']);
+  FMaster.Open;
+  FMaster.First;
+  Assert.AreEqual(0, FMasterHandle.CurrentIndex, 'the handle is on the first row');
+  // As LiveBindings fills a grid (TBindScopeDBEnumerator)
+  FMaster.DisableControls;
+  try
+    FMaster.Next;
+    FMaster.Next;
+    Assert.AreEqual(0, FMasterHandle.CurrentIndex, 'while the controls are disabled the handle stays');
+    FMaster.First;
+  finally
+    FMaster.EnableControls;
+  end;
+  Assert.AreEqual(0, FMasterHandle.CurrentIndex, 'after the walk the handle is on the row it was on');
+end;
+
+procedure TTestBoldDataSetMasterDetail.TestTheHandleFollowsWhenTheControlsAreEnabled;
+begin
+  AddOwn(['a1']);
+  AddOwn(['b1']);
+  FMaster.Open;
+  FMaster.First;
+  FMaster.DisableControls;
+  try
+    FMaster.Next;
+  finally
+    FMaster.EnableControls;
+  end;
+  Assert.AreEqual(1, FMasterHandle.CurrentIndex, 'the handle is on the row the dataset was moved to');
+end;
+
+procedure TTestBoldDataSetMasterDetail.TestTheHandleFollowsAnEditStartedWithControlsDisabledAndCancelled;
+begin
+  AddOwn(['a1']);
+  AddOwn(['b1']);
+  FMaster.Open;
+  FMaster.First;
+  FMaster.DisableControls;
+  try
+    FMaster.Next;
+    FMaster.Edit;
+  finally
+    FMaster.EnableControls;
+  end;
+  FMaster.Cancel;
+  Assert.AreEqual(FMaster.RecNo - 1, FMasterHandle.CurrentIndex, 'after Cancel the handle is on the dataset''s row');
+end;
+
+procedure TTestBoldDataSetMasterDetail.TestADetailOnADerivedListThatIsReadAsAGridIsFilled;
+var
+  Source: TDataSource;
+  Link: TGridFillingLink;
+  i: Integer;
+begin
+  // A list the expression makes, as feature->filterOnType(UMLAttribute) in
+  // the model editor; childMapped alone is the list of the link
+  FDetailHandle.Expression := 'childMapped->orderBy(c)';
+  AddOwn(['a1', 'a2']);
+  AddOwn(['b1', 'b2', 'b3']);
+  Source := TDataSource.Create(nil);
+  Link := TGridFillingLink.Create;
+  try
+    Source.DataSet := FDetail;
+    Link.DataSource := Source;
+    FMaster.Open;
+    FDetail.Open;
+    FMaster.First;
+    Assert.IsTrue(WaitForDetail(3000), 'the detail should show the first Own''s children, got ' + DetailValues);
+    // Another master row, and the detail brought up to date as the idle
+    // loop does it, while the link reads the detail whenever it changes
+    Link.Armed := True;
+    try
+      FMaster.Next;
+      for i := 1 to 5 do
+      begin
+        TBoldQueueable.DisplayAll;
+        CheckSynchronize(20);
+      end;
+    finally
+      Link.Armed := False;
+    end;
+    Assert.IsTrue(Link.Fills > 0, 'the link read the dataset as a grid does');
+    Assert.IsTrue(WaitForDetail(3000), 'the detail should follow to the second Own, got ' + DetailValues);
+  finally
+    Link.Free;
+    Source.Free;
+  end;
 end;
 
 procedure TTestBoldDataSetMasterDetail.TestDetailFollowsANewChild;

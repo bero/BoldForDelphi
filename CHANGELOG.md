@@ -218,6 +218,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldDataSet` moved its handle's current element with every row while the
+  dataset was read with the controls disabled, as LiveBindings reads it to fill
+  an FMX grid, so the handles rooted on it followed every row (#128). With a
+  detail on a derived list, as the attributes of the selected class in the
+  model editor's FMX client, a click on a master row raised an assertion in
+  Bold's list follower. The handle now stays while the controls are disabled
+  and is put on the dataset's row when they are enabled again, or, when an
+  edit or insert is open then, when it ends.
 - The code generator kept the line-continuation backslashes of its templates
   in the code it generated under Free Pascal on Linux (#128).
   `BoldTemplateExpander` joins a line that ends in a backslash with the next

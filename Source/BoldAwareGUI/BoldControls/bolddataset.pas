@@ -194,6 +194,9 @@ type
     // points at it; the dataset then lets go of it: fEditedObjectGone
     fEditedObjectSubscriber: TBoldPassthroughSubscriber;
     fEditedObjectGone: Boolean;
+    // The dataset moved while the controls were disabled, and the handle was
+    // left where it was: see DoAfterScroll
+    fMovedWhileControlsDisabled: Boolean;
     procedure FollowEditedObject;
     procedure StopFollowingEditedObject;
     procedure _ReceiveEditedObject(Originator: TObject; OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
@@ -283,6 +286,7 @@ type
     function GetRecordCount: Integer; override;
     function GetRecNo: Integer; override;
     procedure DoAfterScroll; override;
+    procedure DataEvent(Event: TDataEvent; Info: {$IFDEF FPC}PtrInt{$ELSE}NativeInt{$ENDIF}); override;
     function GetCanModify: boolean; override;
     procedure InternalEdit; override;
     procedure InternalCancel; override;
@@ -1228,11 +1232,39 @@ begin
   end;
 end;
 
+{ The handle's current element follows the row of the dataset, but not
+  while the controls are disabled: code that disables them reads the dataset
+  row by row, and the handles rooted on this one would follow each row.
+  LiveBindings fills an FMX grid that way and comes back to the row it
+  started on. DataEvent puts the handle on the dataset's row when the
+  controls are enabled again, or, when an edit or insert is open then, when
+  it ends: Cancel does not scroll. }
 procedure TBoldAbstractDataSet.DoAfterScroll;
 begin
-  if (FListFollower.Follower.CurrentIndex <> RecNo - 1) then
-    fListFollower.SetFollowerIndex(RecNo - 1);  
+  if ControlsDisabled then
+    fMovedWhileControlsDisabled := True
+  else if (FListFollower.Follower.CurrentIndex <> RecNo - 1) then
+    fListFollower.SetFollowerIndex(RecNo - 1);
   inherited ;
+end;
+
+procedure TBoldAbstractDataSet.DataEvent(Event: TDataEvent; Info: {$IFDEF FPC}PtrInt{$ELSE}NativeInt{$ENDIF});
+begin
+  inherited;
+  // EnableControls tells the controls that the dataset changed. An edit or
+  // insert that is open then keeps the note until Cancel or Post ends it in
+  // dsBrowse, which is told here too.
+  if fMovedWhileControlsDisabled and not ControlsDisabled then
+  begin
+    if not Active then
+      fMovedWhileControlsDisabled := False
+    else if State = dsBrowse then
+    begin
+      fMovedWhileControlsDisabled := False;
+      if FListFollower.Follower.CurrentIndex <> RecNo - 1 then
+        fListFollower.SetFollowerIndex(RecNo - 1);
+    end;
+  end;
 end;
 
 function TBoldAbstractDataSet.ValuesInFields(AFields: TBoldDataSetFieldList; const KeyValues: Variant; Options: TLocateOptions): Boolean;
