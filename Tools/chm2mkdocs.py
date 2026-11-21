@@ -331,6 +331,11 @@ def parse_unit(path: Path, conv: Converter) -> dict:
     cells = content_cells(soup)
     summary = conv.inline(cells[0]).strip() if cells else ''
     description = conv.block(cells[1]) if len(cells) > 1 else ''
+    # Time2HELP's placeholder for an unpublished unit topic ("Advanced or internal topic ...
+    # automatically generated topic") puts the unit's whole listing in the first cell. The class
+    # table of the unit page covers it, so the unit gets no summary of its own.
+    if 'automatically generated topic' in summary:
+        summary = ''
     classes = []
     grey = soup.find('td', class_='grey', string=re.compile(r'^\s*Classes\s*$'))
     if grey:
@@ -414,7 +419,7 @@ def write(path: Path, text: str):
 def update_nav(mkdocs_yml: Path, units: list, unit_classes: dict):
     text = mkdocs_yml.read_text(encoding='utf-8')
     nl = '\r\n' if '\r\n' in text else '\n'
-    lines = ['  - Reference:', '    - reference/index.md']
+    lines = ['  - Class Reference:', '    - reference/index.md']
     for unit in units:
         lines.append(f'    - {unit}:')
         lines.append(f'      - Overview: reference/{unit}/index.md')
@@ -505,7 +510,8 @@ def main():
            'not listed. The hand-written [class guides](../classes/index.md) cover usage patterns and examples.', '',
            '| Unit | Summary | Classes |', '|---|---|---|']
     for unit in units:
-        out.append(f'| [{unit}]({unit}/index.md) | {unit_info[unit]["summary"].replace("|", "/")} | {len(unit_classes[unit])} |')
+        summary = unit_info[unit]["summary"].replace("|", "/") or 'Advanced or internal unit'
+        out.append(f'| [{unit}]({unit}/index.md) | {summary} | {len(unit_classes[unit])} |')
     write(OUT / 'index.md', '\n'.join(out) + '\n')
 
     if conv.images_used:
