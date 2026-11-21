@@ -101,6 +101,7 @@ uses
   Test.BoldSubscription,
   Test.BoldSystem,
   Test.BoldSystemPersistent,
+  Test.BoldExceptionTrace,
   Test.BoldTaggedValueList,
   Test.BoldTaggedValueSupport,
   Test.BoldTemplateExpander,

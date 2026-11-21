@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `BoldExceptionTrace` (`Source/Common/Logging`, #130): an exception with its
+  call stack, for Bold's log (`BoldLogException`, `BoldExceptionReport`,
+  `BoldExceptionCallStack`). Bold names no stack-trace library: under Delphi it
+  reads `Exception.StackTrace`, which a provider such as Stacker fills, and
+  gives the raise address when there is none; under Free Pascal it reads the
+  RTL's own frames (`-gl` for names and lines). The Free Pascal test programs
+  are now compiled with `-gl`.
 - Lazarus packages in `packages/Lazarus` (#117): `Bold.lpk`, the
   framework-neutral runtime that builds with Free Pascal; `BoldLCL.lpk` with
   `BoldEnvironmentLCL`, the LCL twin of `BoldEnvironmentVCL`; and

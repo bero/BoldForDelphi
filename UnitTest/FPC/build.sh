@@ -67,7 +67,9 @@ UNITPATHS=$( { find "$ROOT/Source" -type d \
   find "$ROOT/UnitTest/Code" -type d; } | sed 's/^/-Fu/')
 
 # shellcheck disable=SC2086
-fpc -Mdelphiunicode -vew $HEAPTRC_OPTIONS \
+# -gl: line information, so that the call stacks of exceptions name their
+# routines (Test.BoldExceptionTrace, #130)
+fpc -Mdelphiunicode -vew -gl $HEAPTRC_OPTIONS \
   -Fi"$ROOT/Source/Common/Include" $UNITPATHS -Fu"$ZOUT" \
   -FE"$OUT" -FU"$OUT" \
   "$HERE/UnitTestFPC.lpr"

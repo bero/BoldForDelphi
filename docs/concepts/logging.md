@@ -336,6 +336,43 @@ Use when you need progress bars and hierarchical display:
 - Implement `IBoldLogReceiver` for custom UI components
 - Show/Hide/Clear operations on log windows
 
+## Call Stacks of Exceptions
+
+`BoldExceptionTrace` (#130) writes an exception to the log with its call stack, so that an error a user
+reports can be traced to the routine that raised it.
+
+```pascal
+uses
+  BoldExceptionTrace;
+
+procedure TMainForm.AppException(Sender: TObject; E: Exception);
+begin
+  BoldLogException(E);           // to BoldLogManager, as an error
+  Application.ShowException(E);
+end;
+
+// In FormCreate: Application.OnException := AppException;
+```
+
+Call it in the handler or `except` block that handles the exception. `BoldExceptionReport(E)` gives the
+same text without logging it, and `BoldExceptionCallStack(E)` the call stack alone.
+
+Bold names no stack-trace library, so the library can be exchanged without a change in Bold:
+
+| Compiler | Where the call stack comes from | Without it |
+|----------|---------------------------------|------------|
+| Free Pascal / Lazarus | the RTL's own frames; compile with `-gl` for routine, line and file | addresses only |
+| Delphi | `Exception.StackTrace`, which a provider fills through the RTL's hooks (`Exception.GetExceptionStackInfoProc` and two more) | the raise address and the load address of its module, which the detailed map file resolves |
+
+A Delphi program chooses its provider in its `.dpr`. [Stacker](https://codeberg.org/sivv/stacker) (MIT;
+Win32, Win64, Linux64, macOS, Android; Delphi 12 or later) installs the hooks itself: name its unit first
+in the uses clause and import its `build/Stacker.targets` in the `.dproj`, before
+`CodeGear.Delphi.Targets`; a post-link step embeds the symbols in the program, so no map file is shipped.
+The model editor's FMX client (`Tools/ModelEditor/FMX`) shows how to make that optional: the import and
+the unit are only used when the environment variable `STACKER` points to a checkout of Stacker. The lines
+that a provider writes before the raising routine (its capture routines and the RTL's raise routines) are
+left out of the report.
+
 ## Thread Safety
 
 All three logging systems are thread-safe:
@@ -365,3 +402,4 @@ TThread.CreateAnonymousThread(
 | `Source/Common/Logging/BoldLogSinks.pas` | Sink implementations |
 | `Source/Common/Logging/BoldLogHandler.pas` | Legacy UI logging |
 | `Source/Common/Logging/BoldLogReceiverInterface.pas` | Receiver interfaces |
+| `Source/Common/Logging/BoldExceptionTrace.pas` | Exceptions with their call stacks |
