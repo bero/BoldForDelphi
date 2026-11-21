@@ -13,6 +13,10 @@ and others in a Bold database, and neither side knows about the other.
 Its twin, `ExternalPersistence2`, does the same job declaratively. See **How this
 differs from ExternalPersistence2** at the end.
 
+The demo no longer runs as shipped: it needs the BDE, the Paradox demo tables
+and an InterBase server. It is a VCL application with only a `.dpr`. See
+**Notes**.
+
 ## The projects
 
 One project, in this folder.

@@ -11,8 +11,9 @@ writing attribute classes and registering them. That is a fair description.
 
 ## Running it
 
-There is no `.dproj`. Open `BE_CustomAttributes.dpr` in the IDE and let Delphi
-create one. The two `.dpk` files are Delphi 6 and Delphi 7 design-time packages
+There is no `.dproj`, only `BE_CustomAttributes.dpr`, a VCL program for
+Windows. Open it in the IDE and let Delphi create a project file. The two `.dpk`
+files are Delphi 6 and Delphi 7 design-time packages
 for the same units; the `.dpr` compiles the units directly and does not need
 them.
 
@@ -20,10 +21,14 @@ It needs a database: InterBase through `TBoldDatabaseAdapterIB`, `sysdba` /
 `masterkey`, and **`IBDatabase1.DatabaseName` is empty**, so set it first. Then
 **Create DB** and **Open system**.
 
-`MainForm.dfm` is a binary form file that the repository's
-`*.dfm text eol=crlf` rule inflates on checkout (16440 bytes against 16290 in
-the object store); restore it with `git show HEAD:<path> > <path>` before
-opening it.
+The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
+under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
+so put that folder on the unit search path.
+
+`MainForm.dfm` is a binary form file that the repository's `*.dfm text eol=crlf`
+rule inflates on checkout (16440 bytes against 16290 in the object store);
+restore it with `git show HEAD:<path> > <path>` before opening it. Run that from
+cmd or Git Bash; the `>` of Windows PowerShell re-encodes the bytes.
 
 ## The five attribute types
 

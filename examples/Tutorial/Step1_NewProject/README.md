@@ -1,57 +1,57 @@
 # Step 1: New Project Setup
 
-In this step, you will learn what Bold is and how to create your first Bold project. We start with the fundamentals: the BoldSystem, the UML Model, and how Bold persists objects to a database.
+In this step you learn what Bold is and create your first Bold project: the UML model, the object space, and the
+persistence that stores objects in a database.
 
-By the end, you will have a working project that opens a Bold system and connects to SQLite.
+By the end, you have a working project that opens a Bold system and connects to SQLite.
 
 ## What You Will Learn
 
-- What is Bold for Delphi?
-- What is a BoldModel and how does it define your application's structure?
-- What is a BoldSystem and how does it hold all your objects in memory?
-- How does persistence work? How does Bold talk to the database?
-- How does Bold auto-create database tables from your model?
+- What Bold for Delphi is
+- How a model (`TBoldModel`) defines the structure of your application
+- How the object space (`TBoldSystem`) holds your objects in memory
+- How persistence works: how Bold talks to the database
+- How Bold creates the database tables from your model
 
 ## What is Bold?
 
-Bold for Delphi is an **Object-Relational Mapping (ORM) framework**. Here's what that means:
+Bold for Delphi is a model-driven framework with an **object-relational mapper (ORM)**:
 
-- **Object-oriented**: You work with normal Delphi classes (TCustomer, TInvoice) instead of SQL and tables
-- **Relational**: Data is stored in a traditional relational database (SQLite, SQL Server, PostgreSQL, etc.)
-- **Mapping**: Bold automatically translates between objects in memory and rows in the database
+- **Object**: you work with ordinary Delphi classes (`TCustomer`, `TInvoice`) instead of SQL and tables. Bold
+  generates these classes from a UML model.
+- **Relational**: the data is stored in a relational database (SQLite, SQL Server, PostgreSQL and others).
+- **Mapping**: Bold translates between the objects in memory and the rows in the database.
 
-Without Bold, if you wanted to load a customer, you would write SQL:
+Without Bold, to load a customer you would write SQL:
 
 ```sql
-SELECT * FROM Customers WHERE Id = 1
+SELECT * FROM Customer WHERE ...
 ```
 
-Then manually create a Delphi object and copy values from the result set.
+and then create a Delphi object and copy the values from the result set by hand.
 
-With Bold, you write one line:
+With Bold, you ask for the objects:
 
 ```pascal
-var Customer: TCustomer;
+var
+  Customer: TCustomer;
 begin
-  Customer := TCustomer(BoldSystem.Get(1));
-  ShowMessage(Customer.Name);  // Bold loaded the name from the database
+  Customer := dmInvoice.BoldSystemHandle1.System.ClassByExpressionName['Customer'][0] as TCustomer;
+  ShowMessage(Customer.Name);  // Bold loaded the customer from the database
 end;
 ```
 
-Bold handles the SQL, the result set parsing, and the object creation. You work with objects, not SQL.
+Bold writes the SQL, reads the result set and creates the objects. You work with objects, not SQL.
 
-![Step 1 running - Bold System Open](../images/step1-running.png)
-*The Step 1 application showing "Bold System: OPEN" — your first Bold project is working*
+## The Model
 
-## Creating the Bold Model
+Bold uses a **UML model** to define the structure of your application. The model says:
 
-Bold uses a **UML Model** to define the structure of your application. The model says:
+- Which classes there are (Customer, Invoice, InvoiceItem)
+- Which attributes they have (Customer.Name, Invoice.InvoiceDate)
+- How they are related (a customer has many invoices)
 
-- What classes do you have? (Customer, Invoice, InvoiceItem)
-- What attributes do they have? (Customer.Name, Invoice.InvoiceDate)
-- What are the relationships? (Customer has many Invoices)
-
-Here is the complete model you will create:
+This is the model you will create:
 
 ```
  ╔═══════════════════╗         ╔═════════════════════╗        ╔═════════════════════╗
@@ -59,7 +59,7 @@ Here is the complete model you will create:
  ╠═══════════════════╣         ╠═════════════════════╣        ╠═════════════════════╣
  ║ Name       String ║         ║ InvoiceNumber  Int  ║        ║ Description String  ║
  ║ Address    String ║         ║ InvoiceDate   Date  ║        ║ Quantity       Int  ║
- ║ City       String ║ 1     * ║ DueDate       Date  ║ 1    * ║ UnitPrice Currency  ║
+ ║ City       String ║ 0..1  * ║ DueDate       Date  ║ 0..1 * ║ UnitPrice Currency  ║
  ║ Phone      String ╠═════════╣ IsPaid     Boolean  ╠════════╣ /LineTotal Currency ║
  ║ Email      String ║invoices ║ /TotalAmt  Currency ║ items  ║                     ║
  ╚═══════════════════╝         ╚═════════════════════╝        ╚═════════════════════╝
@@ -67,27 +67,27 @@ Here is the complete model you will create:
 
 ### How to Read the Diagram
 
-**Associations** are the `═══` lines between classes. Each has a multiplicity (`1` and `*`) and a role name:
+**Associations** are the `═══` lines between classes. Each end has a multiplicity and a role name:
 
 | Association | Meaning | Multiplicity |
-|------------|---------|-------------|
-| Customer ═══ Invoice | One customer can have **many** invoices | 1 to * |
-| Invoice ═══ InvoiceItem | One invoice can have **many** line items | 1 to * |
+|-------------|---------|--------------|
+| Customer ═══ Invoice | A customer can have **many** invoices; an invoice has at most one customer | 0..1 to * |
+| Invoice ═══ InvoiceItem | An invoice can have **many** line items; an item belongs to at most one invoice | 0..1 to * |
 
-The role name (e.g., `invoices`, `items`) is how you navigate the association in code.
+The role name (`invoices`, `items`) is how you navigate the association.
 
-**Navigating forward** (one → many) gives you a **list**:
+The **many** end gives you a **list**:
 
 ```pascal
-MyCustomer.Invoices          // all invoices for this customer (a list)
+MyCustomer.Invoices          // all invoices of this customer (a list)
 MyCustomer.Invoices[0]       // the first invoice
 MyCustomer.Invoices.Count    // how many invoices
 
-MyInvoice.Items              // all line items for this invoice
+MyInvoice.Items              // all line items of this invoice
 MyInvoice.Items[2]           // the third item
 ```
 
-**Navigating backward** (many → one) gives you a **single object**:
+The **one** end gives you a **single object**:
 
 ```pascal
 MyInvoice.Customer           // the customer this invoice belongs to
@@ -97,208 +97,243 @@ MyItem.Invoice               // the invoice this item belongs to
 MyItem.Invoice.InvoiceNumber // that invoice's number
 ```
 
-**Derived attributes** are prefixed with `/`. Bold calculates them automatically using OCL:
+**Derived attributes** have a `/` prefix. Bold calculates them from an OCL expression:
 
-| Attribute | OCL Expression | Meaning |
-|-----------|---------------|---------|
-| `/TotalAmount` | `items.lineTotal->sum` | Sum of all line item totals |
-| `/LineTotal` | `quantity * unitPrice` | This item's quantity × unit price |
+| Attribute | OCL expression | Meaning |
+|-----------|----------------|---------|
+| `/TotalAmount` | `items.lineTotal->sum` | Sum of the line totals of all items |
+| `/LineTotal` | `quantity * unitPrice` | This item's quantity times its unit price |
 
-You do not set these values — they update automatically when the underlying data changes.
+You never set these values; they follow the data they are calculated from. You add them in Step 3.
 
-You create this model visually using the **Bold Model Editor** in the Delphi IDE.
+You create the model in the **Bold model editor**, inside the Delphi IDE.
 
-![Bold Model Editor with Invoice model](../images/step1-model-editor.png)
-*The Bold Model Editor showing the Customer, Invoice, and InvoiceItem classes with their associations*
+## Build It Yourself (Recommended)
 
-### Build It Yourself (Recommended)
+Create everything from scratch. The `Shared/` folder holds the finished files as an answer key; open them whenever
+you get stuck.
 
-This is the proper way to learn Bold — create everything from scratch. The `Shared/` folder already contains **completed versions** of all files as a reference. You can compare your work against them at any point.
+### 1. Create the project and the data module
 
-> **Tip**: If you get stuck, open the corresponding file in `Shared/` to see the working version.
+1. Start from an empty VCL application. The step folder has one, `Step1User.dproj`; `Step_1.groupproj` opens it
+   together with the finished `Step1.dproj`. You can also create your own with **File > New > Windows VCL
+   Application**.
+2. Give the project Bold's search path: copy it from `Step1.dproj` (**Project > Options > Building > Delphi
+   Compiler > Search path**). Without it the project does not find Bold's units.
+3. Add a data module with **File > New > Other > Delphi Files > Data Module** and save it as
+   `MyInvoiceDataModule.pas`.
+4. Drop a `TBoldModel` from the **Bold Handles** page of the Tool Palette on the data module.
+5. Double-click `BoldModel1` to open the **Bold model editor**.
 
-#### 1. Create a New Data Module
+If the Bold pages are missing from the Tool Palette, the Bold design package is not installed. See Troubleshooting
+in the [tutorial README](../README.md#troubleshooting).
 
-1. In Delphi, open the Step 1 project (`examples/Tutorial/Step1_NewProject/Step1.dproj`)
-2. Go to **File > New > Other > Delphi Files > Data Module**
-3. Save it as `MyInvoiceDataModule.pas` in the step folder (or any location you prefer)
-4. Drop a `TBoldModel` component from the Bold tab of the Component Palette onto the data module
-5. Double-click `BoldModel1` to open the **Bold Model Editor**
+### 2. Name the generated unit
 
-If you cannot find the Bold tab, Bold for Delphi may not be installed in your Delphi IDE. See the main README's Troubleshooting section.
+Select the model, the top node of the tree, and set its **Unit name** to `InvoiceClasses`. The code generator names
+the unit after it; the default is `BusinessClasses`.
 
-#### 2. Create the Customer Class
+### 3. Create the Customer class
 
-In the Model Editor:
+1. Right-click in the tree and choose **New Class**. Bold adds a class called `NewClass`.
+2. Change its **Name** to `Customer`.
+3. Right-click the class and choose **New Attribute**. Bold adds `NewAttribute`, of type String. Set its **Name**
+   and **Type**. Add these attributes:
+   - Name (String)
+   - Address (String)
+   - City (String)
+   - Phone (String)
+   - Email (String)
 
-1. Right-click in the main area and select "New Class"
-2. Name it `Customer`
-3. Add these attributes:
-   - Name (Type: String)
-   - Address (Type: String)
-   - City (Type: String)
-   - Phone (Type: String)
-   - Email (Type: String)
+### 4. Create the Invoice class
 
-To add an attribute:
-- Right-click the Customer class and select "New Attribute"
-- Type the name and select the type from the dropdown
+Add the class `Invoice` with these attributes:
 
-#### 3. Create the Invoice Class
+- InvoiceNumber (Integer)
+- InvoiceDate (Date)
+- DueDate (Date)
+- IsPaid (Boolean)
 
-1. Right-click and select "New Class"
-2. Name it `Invoice`
-3. Add these attributes:
-   - InvoiceNumber (Type: Integer)
-   - InvoiceDate (Type: Date)
-   - DueDate (Type: Date)
-   - IsPaid (Type: Boolean)
+Do not add TotalAmount yet. It becomes a derived attribute in Step 3.
 
-Do NOT add a TotalAmount attribute yet. We will make it a derived (computed) attribute in Step 4.
+### 5. Create the InvoiceItem class
 
-#### 4. Create the InvoiceItem Class
+Add the class `InvoiceItem` with these attributes:
 
-1. Right-click and select "New Class"
-2. Name it `InvoiceItem`
-3. Add these attributes:
-   - Description (Type: String)
-   - Quantity (Type: Integer)
-   - UnitPrice (Type: Currency)
+- Description (String)
+- Quantity (Integer)
+- UnitPrice (Currency)
 
-Do NOT add LineTotal yet — that will also be derived in Step 4.
+Do not add LineTotal yet. It also becomes a derived attribute in Step 3.
 
-#### 5. Create Associations (Relationships)
+### 6. Create the associations
 
-Associations link classes together. Create two:
+Right-click the model's package and choose **New Association**. Bold adds an association with two ends,
+`AssociationEnd0` and `AssociationEnd1`. Select each end and set its **Name**, **Class** and **Multiplicity**. The
+class of an end is the class you reach through it.
 
-**Association 1: Customer 1-to-Many Invoices**
-- Select the Customer class, right-click, "New Association"
-- Target: Invoice
-- Role name (from Customer): `invoices` (one customer has many invoices)
-- Role name (from Invoice): `customer` (one invoice belongs to one customer)
-- Multiplicity: Customer 1, Invoice *
+**Association 1**: name it `CustomerInvoices`. A customer has many invoices.
 
-**Association 2: Invoice 1-to-Many InvoiceItems**
-- Select the Invoice class, right-click, "New Association"
-- Target: InvoiceItem
-- Role name (from Invoice): `items`
-- Role name (from InvoiceItem): `invoice`
-- Multiplicity: Invoice 1, InvoiceItem *
+| End name | Class | Multiplicity |
+|----------|-------|--------------|
+| `Invoices` | Invoice | `*` |
+| `Customer` | Customer | `0..1` |
 
-#### 6. Generate Code
+**Association 2**: name it `InvoiceItems`. An invoice has many items.
 
-Once your model is complete:
+| End name | Class | Multiplicity |
+|----------|-------|--------------|
+| `Items` | InvoiceItem | `*` |
+| `Invoice` | Invoice | `0..1` |
 
-1. In the Model Editor, go to **File > Generate Code**
-2. Select the target folder where you want the generated files
-3. Choose your Delphi version from the dropdown
-4. Click "Generate"
+In Delphi the names stay as you typed them (`MyCustomer.Invoices`). In OCL a member name starts with a lowercase
+letter (`invoices`).
 
-This creates:
-- `InvoiceClasses.pas` — Your domain classes (TCustomer, TInvoice, TInvoiceItem)
-- `InvoiceClasses_Interface.inc` — Class declarations and properties
+### 7. Generate the code
 
-Save the model. You now have a Bold model definition!
+Choose **Tools > Generate Code** in the model editor. Bold checks the model and writes the business classes into
+the folder of the data module:
 
-**Compare your result**: Open `Shared/InvoiceClasses.pas` and `Shared/InvoiceClasses_Interface.inc` to see the reference versions.
+- `InvoiceClasses.pas`: your classes (`TCustomer`, `TInvoice`, `TInvoiceItem`)
+- `InvoiceClasses_Interface.inc`: their declarations and properties
 
-### Use the Pre-Built Files (Quick Start)
+**File > Save and Generate All** does the same and also saves the model to a `.bld` file; the first time it asks
+for the file name.
 
-If you prefer to skip model creation and jump straight to understanding how Bold works, the `Shared/` folder already contains everything ready to compile and run:
+Then:
 
-- `InvoiceDataModule.pas` + `.dfm` — The data module with model and persistence
-- `InvoiceClasses.pas` + `InvoiceClasses_Interface.inc` — Generated business classes
-- `InvoiceModel.bld` — The model definition file
+1. Add `InvoiceClasses.pas` to the project. It must be in the `uses` clause of the `.dpr`: its initialization
+   section registers the classes with Bold.
+2. Save the data module. The model is stored in its `.dfm`.
 
-The project is already wired to use these files. Just build and run.
+**Compare your result** with `Shared/InvoiceClasses.pas` and `Shared/InvoiceClasses_Interface.inc`.
 
-## Setting Up the Data Module
+### 8. Complete the data module
 
-The data module (`InvoiceDataModule.pas`) is where you set up the BoldSystem, persistence, and database connection. Let's understand what each component does.
+Drop these components on the data module and set their properties as in the table under
+[The Components](#the-components) below:
+
+- a `TBoldSystemTypeInfoHandle` and a `TBoldSystemHandle` (page **Bold Handles**)
+- a `TActionList` with a `TBoldActivateSystemAction` (right-click the action list, **New Standard Action**,
+  category **Bold Actions**)
+
+Then copy the code of `Shared/InvoiceDataModule.pas` into your unit: the units of its `uses` clause, the private
+fields, `GetIniFileName`, `DatabaseName`, `SetupPersistence`, `EnsureDatabaseExists`, `OpenSystem` and the event
+handlers. Without an `.ini` file next to the executable, `DatabaseName` names the database after the executable,
+for example `Step1User.db`. The next section explains what the code does.
+
+## Use the Finished Files (Quick Start)
+
+To skip the model creation and see how Bold works first, use `Step1.dproj`. It is ready to compile and run, with
+the files in `Shared/`:
+
+- `InvoiceDataModule.pas` and `.dfm`: the data module with the model and the persistence
+- `InvoiceClasses.pas` and `InvoiceClasses_Interface.inc`: the generated business classes
+- `InvoiceModel.bld`: the model as a `.bld` file
+
+## The Data Module
+
+The data module (`InvoiceDataModule.pas`) holds the model, the system handle, the persistence and the database
+connection. Every form of the application uses it.
 
 ### The Components
 
-![Data Module with Bold components](../images/step1-datamodule.png)
-*The InvoiceDataModule showing the Bold components wired together: BoldModel, SystemTypeInfoHandle, SystemHandle, FireDAC connection, and persistence*
+| Component | Class | Set in | Points to |
+|-----------|-------|--------|-----------|
+| `BoldModel1` | `TBoldModel` | `.dfm` | the model, stored in the `.dfm` |
+| `BoldSystemTypeInfoHandle1` | `TBoldSystemTypeInfoHandle` | `.dfm` | `BoldModel` = `BoldModel1` |
+| `BoldSystemHandle1` | `TBoldSystemHandle` | `.dfm` | `SystemTypeInfoHandle` = `BoldSystemTypeInfoHandle1`, `IsDefault` = True, `PersistenceHandle` = `FPersistenceHandleDB` (set in code) |
+| `BoldActivateSystemAction1` | `TBoldActivateSystemAction` | `.dfm` | `BoldSystemHandle` = `BoldSystemHandle1` |
+| `FFDConnection` | `TFDConnection` | code | the SQLite file |
+| `FFireDACAdapter` | `TBoldDatabaseAdapterFireDAC` | code | `Connection` = `FFDConnection` |
+| `FPersistenceHandleDB` | `TBoldPersistenceHandleDB` | code | `BoldModel` = `BoldModel1`, `DatabaseAdapter` = `FFireDACAdapter` |
+
+The last three are created in code, in `SetupPersistence`, so that you can read exactly what each piece does. You
+could drop them on the data module instead; the classes are on the **Bold Persistence** page and the FireDAC pages
+of the Tool Palette.
 
 #### TBoldModel
-```
-BoldModel1: TBoldModel
-```
 
-This component holds your UML model definition. It loads the model file you created in the Model Editor. Bold uses this to know the structure of your classes (what attributes they have, what associations exist).
+Holds your UML model. The model is stored in the data module's `.dfm`; the model editor edits it there. Bold reads
+from it which classes there are, which attributes they have and which associations connect them.
 
 #### TBoldSystemTypeInfoHandle
-```
-BoldSystemTypeInfoHandle1: TBoldSystemTypeInfoHandle
-```
 
-This component connects the BoldModel to the BoldSystem. It provides "runtime type information" — it tells the BoldSystem what the classes look like at runtime. When Bold creates an object, it looks at this handle to know what attributes and methods the class has.
+Builds the run-time type information from the model: what the classes look like when the application runs. The
+system handle and the other handles get the type information from it.
 
 #### TBoldSystemHandle
-```
-BoldSystemHandle1: TBoldSystemHandle
-  TypeInfoHandle: BoldSystemTypeInfoHandle1
-```
 
-The BoldSystemHandle creates and manages the **BoldSystem**. The BoldSystem is the heart of Bold:
+Creates and manages the **object space**, the `TBoldSystem`. The object space is the heart of Bold:
 
-- It is an **in-memory object database**
-- When you load a customer from the SQL database, it lives in the BoldSystem
-- When you create a new customer, it is added to the BoldSystem
-- When you modify a customer's name, the BoldSystem tracks that the object is "dirty"
-- When you call `UpdateDatabase`, the BoldSystem writes all dirty objects back to the SQL database
+- It holds your objects in memory.
+- A customer you load from the database lives in the object space.
+- A customer you create is added to the object space.
+- When you change a customer's name, the object space marks the customer as **dirty**.
+- When you call `UpdateDatabase`, it writes all dirty objects to the database.
 
-**Key concept**: The BoldSystem is not the SQL database. It is a separate in-memory pool of objects. Bold syncs between the BoldSystem and the database.
+**Key concept**: the object space is not the database. It is a separate set of objects in memory, and Bold keeps
+the two in step.
 
 #### TFDConnection (FireDAC)
+
 ```
 FFDConnection: TFDConnection
   DriverID: SQLite
-  Database: Step1.db
+  Database: Step1.db (from Step1.ini)
+  CreateDatabase=True
 ```
 
-This opens a connection to SQLite. FireDAC is Delphi's multi-database driver layer. Bold uses FireDAC to talk to the database.
+Opens the SQLite database. FireDAC is Delphi's database access library; `CreateDatabase=True` makes SQLite create
+the file when it does not exist.
 
 #### TBoldDatabaseAdapterFireDAC
+
 ```
 FFireDACAdapter: TBoldDatabaseAdapterFireDAC
   Connection: FFDConnection
+  DatabaseEngine: dbeInterbaseSQLDialect3
 ```
 
-This adapter tells Bold how to use FireDAC. It translates Bold's persistence requests into FireDAC SQL calls.
+Lets Bold use a FireDAC connection. `DatabaseEngine` tells Bold which SQL dialect to generate.
 
 #### TBoldPersistenceHandleDB
+
 ```
 FPersistenceHandleDB: TBoldPersistenceHandleDB
+  BoldModel: BoldModel1
   DatabaseAdapter: FFireDACAdapter
-  SystemHandle: BoldSystemHandle1
 ```
 
-This component connects the BoldSystem to the database. When you call `UpdateDatabase`:
+Connects the object space to the database: `BoldSystemHandle1.PersistenceHandle` points to it. When you call
+`UpdateDatabase`:
 
-1. The persistence handle asks the BoldSystem which objects are dirty
-2. It generates SQL INSERT/UPDATE/DELETE statements
-3. It executes them via FireDAC
-4. The database is updated
+1. Bold collects the dirty objects of the object space.
+2. The persistence handle generates the SQL INSERT, UPDATE and DELETE statements.
+3. It runs them through the adapter and FireDAC.
+4. The database is updated.
 
 #### TBoldActivateSystemAction
+
 ```
 BoldActivateSystemAction1: TBoldActivateSystemAction
-  SystemHandle: BoldSystemHandle1
+  BoldSystemHandle: BoldSystemHandle1
+  OnExecute: BoldActivateSystemAction1Execute
 ```
 
-This action opens and closes the BoldSystem. Calling `Execute` on this action:
+Opens and closes the object space; its caption changes between "Open system" and "Close system". In this tutorial
+its `OnExecute` handler in the data module does the work:
 
-1. Loads the model from the database
-2. Initializes the BoldSystem
-3. Fires `OnSystemOpened` event
+- **Opening**: `EnsureDatabaseExists` creates the database tables if there are none, then the handler sets
+  `BoldSystemHandle1.Active := True`.
+- **Closing**: if there are dirty objects, it asks whether to save them (`UpdateDatabase`), discard them
+  (`Discard`) or cancel, then sets `Active := False`.
 
-Closing calls `OnSystemClosed`.
+The action fires `OnSystemOpened` when the system opens and `OnSystemClosed` when it closes.
 
 ### Putting It Together
 
-In the data module's `Create` method:
+When the data module is created, it builds the persistence chain:
 
 ```pascal
 procedure TInvoiceDataModule.DataModuleCreate(Sender: TObject);
@@ -307,126 +342,139 @@ begin
 end;
 ```
 
-`SetupPersistence` creates and wires all the persistence components above. Later, when the system is activated (via `BoldActivateSystemAction1`), `EnsureDatabaseExists` checks if Bold's schema tables exist. If not, Bold creates the database schema automatically.
+`SetupPersistence` creates the connection, the adapter and the persistence handle and connects them to
+`BoldSystemHandle1`. When the form then opens the system (`OpenSystem`, which executes
+`BoldActivateSystemAction1`), `EnsureDatabaseExists` checks whether Bold's table `BOLD_TYPE` exists. If it does
+not, `CreateDataBaseSchema` creates all tables from the model.
 
 ### Persistence: How Objects Get to the Database
 
-Here is the flow:
+1. **Create**: you create an object: `Customer := TCustomer.Create(dmInvoice.BoldSystemHandle1.System);`
+2. **Modify**: you change attributes: `Customer.Name := 'Acme Corp';`
+3. **Track**: the object space marks the customer as dirty.
+4. **Save**: you call `dmInvoice.BoldSystemHandle1.System.UpdateDatabase;`
+5. **SQL**: Bold generates the INSERT statements for the customer's tables.
+6. **Commit**: the statements run in one transaction.
+7. **Clean**: the object space clears the dirty marks.
 
-1. **Create**: You create a new object: `Customer := TCustomer.Create(BoldSystem.ObjectSpace);`
-2. **Modify**: You change attributes: `Customer.Name := 'Acme Corp';`
-3. **Track**: The BoldSystem tracks that Customer is "dirty"
-4. **Save**: You call `BoldSystem.UpdateDatabase;`
-5. **SQL**: Bold generates: `INSERT INTO Customers (Name, Address, ...) VALUES ('Acme Corp', ...);`
-6. **Commit**: The SQL is executed in a transaction
-7. **Reload**: The BoldSystem resets its dirty flags
-
-**Important**: Changes in memory (the BoldSystem) are invisible to the database until you call `UpdateDatabase`. If you modify an object and then restart the application without saving, the changes are lost.
+**Important**: the database does not see changes in the object space until you call `UpdateDatabase`. If you
+close the application without saving, the changes are lost. This is why every form of the tutorial asks before it
+closes.
 
 ## The Form
 
-Step 1's form (`Step1Form.pas`) is minimal. It just demonstrates that the system opens:
+Step 1's form (`Step1Form.pas`) only shows that the system opens:
 
 ```pascal
 procedure TfrmStep1.FormCreate(Sender: TObject);
 begin
   dmInvoice.BoldActivateSystemAction1.OnSystemOpened := HandleSystemOpened;
   dmInvoice.BoldActivateSystemAction1.OnSystemClosed := HandleSystemClosed;
-  dmInvoice.OpenSystem;  // Open the BoldSystem
+  dmInvoice.OpenSystem;  // open the object space
 end;
 
 procedure TfrmStep1.HandleSystemOpened(Sender: TObject);
 begin
-  lblBoldStatus.Caption := 'Bold System: OPEN';
+  UpdateStatusLabels;  // shows "Bold System: Active" and the database file
 end;
 ```
 
 When you run the application:
 
-1. The form calls `OpenSystem`
-2. The BoldSystem loads the model and initializes
-3. The `OnSystemOpened` event fires, and the label updates
-4. The form displays the database filename and status
+1. The form calls `OpenSystem`.
+2. The data module creates the database tables on the first run and activates the system.
+3. `OnSystemOpened` fires and the labels update.
+4. The form shows the `.ini` file, the database file and "Bold System: Active".
 
-That is it! Step 1 is just foundation-building. The real UI work starts in Step 2.
+The **Open system / Close system** button is connected to `BoldActivateSystemAction1`. When you close the form
+with unsaved changes, `FormCloseQuery` asks whether to save them.
+
+That is all for Step 1: it lays the foundation. The UI work starts in Step 2.
 
 ## Key Concepts
 
-### BoldSystem = In-Memory Object Database
+### The Object Space Holds Your Objects
 
-Think of the BoldSystem as a cache:
+Think of the object space as a cache of objects:
 
-- **Before**: You query the SQL database directly with SQL queries
-- **Now**: You load objects into the BoldSystem once, then work with them in memory
-- **Benefit**: Faster access, automatic change tracking, type safety
+- **Before**: you query the database with SQL every time you need data.
+- **Now**: Bold loads objects into the object space, and you work with them in memory.
+- **Benefit**: fast access, change tracking, and typed Delphi classes.
 
-### Persistence = Automatic
+### Persistence Without SQL
 
-You do not write SQL. You manipulate objects, and Bold handles the database:
+You change objects, and Bold handles the database:
 
 ```pascal
-Customer.Name := 'New Name';        // Change object in memory
-BoldSystem.UpdateDatabase;          // Bold generates SQL and updates database
+Customer.Name := 'New Name';                        // change the object in memory
+dmInvoice.BoldSystemHandle1.System.UpdateDatabase;  // Bold generates the SQL and updates the database
 ```
 
-### Model = Source of Truth
+### The Model Is the Source of Truth
 
-The UML model you create in the Model Editor is the source of truth for your application's structure. When you generate code, Bold creates Delphi classes that match the model.
-
-If you add an attribute to the model, you regenerate, and the Delphi class gets the new property. If you modify the model, regenerate to update the Delphi classes.
+The UML model you create in the model editor defines the structure of your application. The generated Delphi
+classes follow the model: add an attribute to the model, generate the code again, and the Delphi class has the new
+property.
 
 ## Try It Yourself
 
-### Exercise 1: Add a New Attribute
+### Exercise 1: Add an Attribute
 
-1. Open the Bold model in the Model Editor (double-click `BoldModel1` in InvoiceDataModule)
-2. Select the Customer class
-3. Right-click and "New Attribute"
-4. Name it `Website` with type String
-5. Go to File > Generate Code
-6. Rebuild the project
+Do this in the project you built yourself; the model in `Shared/` is the one Steps 2 to 4 use.
 
-Now the TCustomer class has a new `Website` property. Try reading it in the form:
+1. Double-click `BoldModel1` to open the model editor.
+2. Add the attribute `Website` (String) to the Customer class.
+3. Choose **Tools > Generate Code** and rebuild the project.
+4. Delete the step's `.db` file: the data module creates the tables only when the database has none, so the new
+   column needs a fresh database.
+
+`TCustomer` now has a `Website` property. Try it in the form (add `InvoiceClasses` to its `uses` clause, and use
+the name of your data module where the answer key has `dmInvoice`):
 
 ```pascal
-ShowMessage(dmInvoice.BoldSystemHandle1.System.AllInstances[0].ClassOfObject.ClassName);
+var
+  Customer: TCustomer;
+begin
+  Customer := TCustomer.Create(dmInvoice.BoldSystemHandle1.System);
+  Customer.Website := 'https://example.com';
+  ShowMessage(Customer.Website);
+end;
 ```
 
-### Exercise 2: Change the Database
+### Exercise 2: Change the Database File
 
-By default, the application stores data in `Step1.db` (next to the executable).
+The application stores its data in `Step1.db`, next to the executable.
 
-1. Open `Step1.ini` (next to the executable)
-2. Change the filename: `Database=MyData.db`
-3. Restart the application
+1. Open `Step1.ini`, next to the executable.
+2. Change the file name in the `[SQLite]` section: `Database=MyData.db`
+3. Run the application again.
 
-Bold creates a new database file. The old `Step1.db` is unchanged. This shows that the database location is configurable.
+Bold creates the new database file; `Step1.db` stays as it was. The location of the database is configuration, not
+code.
 
 ### Exercise 3: Inspect the Database
 
-The SQLite database file can be inspected with any SQLite viewer (e.g., [DB Browser for SQLite](https://sqlitebrowser.org/)).
+Open the SQLite file in any SQLite viewer, for example [DB Browser for SQLite](https://sqlitebrowser.org/):
 
-1. Stop the application
-2. Open `Step1.db` in DB Browser
-3. Look at the schema: Bold created tables for Customer, Invoice, InvoiceItem
-4. The table columns match the attributes you defined in the model
+1. Stop the application.
+2. Open `Step1.db` in the viewer.
+3. Look at the tables: one per class (Customer, Invoice, InvoiceItem), plus Bold's own tables, whose names start
+   with `BOLD_`.
+4. The columns of a class table match the attributes of the class in the model.
 
-This shows how Bold auto-creates the database schema from the model.
-
-![SQLite database with Bold tables](../images/step1-sqlite-tables.png)
-*DB Browser for SQLite showing the auto-created tables matching the Bold model*
+Bold created this schema from the model.
 
 ## Next Step
 
-Now that the foundation is in place, you are ready to build a real UI!
-
-Proceed to [`Step2_CustomerCRUD/README.md`](../Step2_CustomerCRUD/README.md) to learn how to create, read, update, and delete customers through a user interface.
+The foundation is in place. Go to [`Step2_CustomerCRUD/README.md`](../Step2_CustomerCRUD/README.md) to create,
+read, update and delete customers through a user interface.
 
 ---
 
 **Key Takeaways**:
-- Bold is an ORM that maps objects to database tables
-- The BoldModel defines your class structure
-- The BoldSystem is an in-memory object cache
-- The data module wires everything together
-- Database persistence is automatic and transaction-safe
+
+- Bold maps Delphi objects to database tables
+- The model (`TBoldModel`) defines your classes; Bold generates the Delphi code from it
+- The object space (`TBoldSystem`) holds your objects in memory
+- The data module wires the model, the object space and the database together
+- `UpdateDatabase` writes all changes to the database in one transaction

@@ -11,9 +11,10 @@ driving a `TBoldTreeView` whose node shape depends on the class of the object.
 
 ## Running it
 
-Open `ProdStruct.dpr`. There is no `.dproj`.
+Open `ProdStruct.dpr`. There is no `.dproj`. It is a VCL application, so it runs
+on Windows only.
 
-This demo needs Interbase. `dm1.dfm` holds a `TIBDatabase` with
+This demo needs InterBase. `dm1.dfm` holds a `TIBDatabase` with
 `DatabaseName = 'ProdStruct.gdb'`, `user_name=sysdba`, `password=masterkey`,
 dialect 3, behind a `TBoldDatabaseAdapterIB`. Note that the IBX adapter units
 now live under `Source\Deprecated\Persistance\IBX` and are not part of the
@@ -123,8 +124,8 @@ descriptions:
 
 | Description | Context | List parts | Text expression |
 | --- | --- | --- | --- |
-| `Assembly` | Assembly | `'PartOf'` and `'Parts'` | |
-| `Simple_Product` | Simple_Product | `'PartOf'` | |
+| `Assembly` | Assembly | `'PartOf'` and `'Parts'` | `name` |
+| `Simple_Product` | Simple_Product | `'PartOf'` | `name` |
 | `PartOf` | | element `partOf` | `'Part of ' + partOf->size.asString + if partOf->size=1 then ' assembly' else ' assemblies' endif` |
 | `Parts` | | element `parts` | `parts->size.asString + if parts->size=1 then ' part' else ' parts' endif` |
 
@@ -136,8 +137,8 @@ list arithmetically:
 6+parts->size.min(3)
 ```
 
-All four have `HideNodeWithNoChildren` set, so a simple product that is not part
-of anything shows no empty branch.
+Only `PartOf` has `HideNodeWithNoChildren` set, so a product that is not part of
+anything shows no empty "Part of" branch.
 
 The two buttons show the two ways to root a Bold tree, which are mutually
 exclusive:

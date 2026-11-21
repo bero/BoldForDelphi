@@ -10,24 +10,12 @@ qualified association used as a two-dimensional index, and reverse derivation.
 
 ## Running it
 
-Open `Conway.dpr`. There is no `.dproj` in this folder, so the IDE will offer
-to create one. Accept, but note that **the generated project will not compile as
-it stands**. The IDE writes a project file with an empty unit search path, and
-the first Bold unit then fails:
+Open `Conway.dproj`. It carries Bold's source folders as relative paths
+(`..\..\..\Source\...`), so it builds from the repository as it stands. It is a
+VCL application and the project targets Win32 only.
 
-```
-[dcc32 Fatal Error] fMain.pas(15): F2613 Unit 'BoldSubscription' not found.
-```
-
-The unit is present, at `Source\Common\Subscription\BoldSubscription.pas`. The
-compiler simply has nowhere to look. Add Bold's source folders to the project's
-unit search path, using the relative form `..\..\..\Source\...` so the project
-stays portable. The quickest source of a correct list is the search path in
-`examples\Simple\Tools\OclWorkbench\OclWorkbench.dproj`, which sits one level
-deeper, so replace its leading `..\..\..\..\` with `..\..\..\`.
-
-With that done the project builds clean, at roughly 229,000 lines. The one hint
-that remains, an unused private `ActiveCount`, comes from the generated
+The project builds clean, at roughly 229,000 lines. The one hint that remains,
+an unused private `ActiveCount`, comes from the generated
 `ConwayClasses_Interface.inc` and is not worth chasing.
 
 No database is involved. `BoldSystemHandle1` has no `PersistenceHandle` and
@@ -48,7 +36,7 @@ Then:
    just past the end of a row extends that row, which is how you draw on an
    empty board.
 3. **One generation** advances the board once, **Start ticking** runs it on a
-   timer.
+   timer, and **Clear the board** removes every cell.
 4. **Help** explains the controls and states the rules.
 5. The two track bars change the timer interval and the memo font size. Both are
    bound to model attributes, not to the controls. **The timer interval starts
@@ -87,6 +75,7 @@ Two classes, both descending from `BusinessClassesRoot`.
 | | `xMin`, `xMax`, `yMin`, `yMax` | transient, the current extent of the live board |
 | | `xSize` | derived, `xMax - xMin + 1` |
 | | `board` | Blob, derived **and** reverse derived, transient |
+| | `InactiveCount` | `Bold.AttributeKind=Delphi`, the count `Tick` uses to decide on garbage collection |
 | `Cell` | `x`, `y`, `Active` | persistent scalars |
 | | `ActiveCount` | derived, `if active then 1 else 0 endif` |
 | | `neighbours` | derived, the sum of the eight neighbours' `activeCount` |
@@ -206,8 +195,8 @@ Both use `ApplyPolicy = bapChange`, and the track bars write back to the same
 attributes. `Timer1.Interval` is 0 in the form file; it gets its value from the
 model as soon as the system opens.
 
-The two labels at the left are ordinary `TBoldLabel`s, one on `generations` and
-one on:
+The read-outs are ordinary `TBoldLabel`s: `generations`, `timerTime`,
+`fontSize`, the `collecting` flag, and
 
 ```
 cell->select(active)->size
@@ -219,12 +208,12 @@ which is the live count of living cells.
 
 | File | What it holds |
 | --- | --- |
-| `Conway.dpr` | creates only `TfrmMain` |
+| `Conway.dpr` / `.dproj` | the program, which creates only `TfrmMain`, and its project file |
 | `fMain.pas` / `.dfm` | the form, the handles, and the model itself in `BoldModel1.Model` |
 | `ConwayClasses_Interface.inc` | generated class declarations |
 | `ConwayClasses.inc` | every method body: `Tick`, the two board derivations, `EnsureNeighbours`, `GarbageCollect` |
-| `Instructions.txt` | shown in a message box at startup |
-| `Initial.txt`, `zip2.lif.txt` | patterns to paste into the memo |
+| `Instructions.txt` | the old instructions; nothing loads it, **Help** shows its own text |
+| `Initial.txt`, `zip2.lif.txt` | patterns for **Load pattern** |
 
 There is no separate data module and no `.bld` file. The model is stored only
 inside `fMain.dfm`, as the `Model` property of `BoldModel1`.

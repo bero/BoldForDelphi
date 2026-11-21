@@ -10,8 +10,8 @@ The model here is two classes: `Product` with `prodName` and `net_Price`, and
 
 ## Running it
 
-There is no `.dproj`. Open `BE_DerivedAttribDemo.dpr` in the IDE and let Delphi
-create one.
+There is no `.dproj`, only `BE_DerivedAttribDemo.dpr`, a VCL program for
+Windows. Open it in the IDE and let Delphi create a project file.
 
 It needs a database: InterBase through `TBoldDatabaseAdapterIB`, `sysdba` /
 `masterkey`, and **`IBDatabase1.DatabaseName` is empty**, so set it first. Then
@@ -19,13 +19,17 @@ It needs a database: InterBase through `TBoldDatabaseAdapterIB`, `sysdba` /
 edit the VAT box. The label next to it says what to watch for: *Change this
 value and see the derived attribute 'Retail Price' recalculate.*
 
+The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
+under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
+so put that folder on the unit search path.
+
 ## The derivation
 
 `Product.retail_Price` is a Currency attribute tagged
 `Derived=True,persistence=Transient` with
 
 ```
-if global_VAT > 0 then net_price * (100 + global_VAT) / 100 else net_Price endif
+if global_VAT>0 then net_price * (100 + global_VAT) / 100 else net_Price endif
 ```
 
 `global_VAT` is not in the model. It is an OCL variable registered into the
@@ -50,7 +54,7 @@ in `BoldGrid1` with no code in between. The grid column is simply
 
 ## The same problem solved differently
 
-The `OclVariables` demo next door computes exactly the same retail price
+The [`OclVariables`](../OclVariables/README.md) demo next door computes exactly the same retail price
 without a derived attribute. It puts the arithmetic in the grid column and
 supplies `global_VAT` from a `TBoldOclVariables` component in the DFM. Reading
 the two side by side is the quickest way to see what a derived attribute buys:

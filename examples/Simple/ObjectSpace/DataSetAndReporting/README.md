@@ -10,16 +10,18 @@ datasets.
 
 ## Running it
 
-There is no `.dproj`. Open `BE_DataSetAndReporting.dpr` in the IDE and let
-Delphi create one.
+There is no `.dproj`, only `BE_DataSetAndReporting.dpr`, a VCL program for
+Windows. Open it in the IDE and let Delphi create a project file.
 
-**The report form needs QuickReport**, which has not shipped with Delphi for a
-long time. `FfrmReport.pas` uses `QuickRpt` and `Qrctrls` and will not compile
-without it. The main form and the data module do not.
+**The program needs QuickReport**, which has not shipped with Delphi for a long
+time. `FfrmReport.pas` uses `QuickRpt` and `Qrctrls`, and `fMain` uses
+`FfrmReport` for its report button, so the program does not compile without it.
 
 It needs a database: InterBase through `TBoldDatabaseAdapterIB` on the data
 module, `sysdba` / `masterkey`, and **`IBDatabase1.DatabaseName` is empty**, so
-set it first.
+set it first. The Bold IBX units, `BoldDatabaseAdapterIB` and
+`BoldIBDatabaseAction`, live under `Source\Deprecated\Persistance\IBX` and are
+in no current Bold package, so put that folder on the unit search path.
 
 Startup runs `TfrmStart` modally before anything else. It has three buttons:
 **Create schema** (`BoldIBDatabaseAction1`), **Open system**

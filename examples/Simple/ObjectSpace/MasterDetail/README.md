@@ -4,20 +4,24 @@ A detail list that follows the selected master row, with no code. Root one
 `TBoldListHandle` on another and give it a role name as its expression; Bold
 tracks the master's cursor and re-evaluates the role for whatever is current.
 
-This is the demo to start with. It is the only one in this folder with a real
-`.dproj`, the only one in `examples\DelphiExamples.groupproj`, and the only one
-that runs against something other than InterBase.
+This is the demo to start with. Together with its FMX twin it is the only demo
+under `ObjectSpace` with a `.dproj` and the only one that needs no InterBase:
+it runs on SQLite through FireDAC out of the box. It is in
+`examples\DelphiExamples.groupproj`. It is a VCL program, so it runs on
+Windows.
 
 The same demo in FireMonkey, through `TBoldDataSet` and LiveBindings, is in
-`FMX` (#117); see its README.
+[`FMX`](FMX/README.md) (#117). It also runs on Linux64.
 
 ## Running it
 
-1. Build `MasterDetail.dproj` with the **Debug** configuration.
+1. Build `MasterDetail.dproj` with the **Debug** configuration for Win64 (the
+   project still has Win32, which compiles but is no longer tested).
 2. Check `MasterDetail.ini`. It ships with `Persistence=FireDAC` and
    `Type=SQLite`, writing `BoldDemo.db` next to the executable, which needs
-   nothing installed. Sections for SQL Server, PostgreSQL, Firebird, MySQL,
-   MariaDB, Oracle and an XML file are there too.
+   nothing installed. To use another engine, change `Type` and fill in that
+   engine's section; the keys are described in
+   [Database configuration](../../../../docs/examples/index.md#database-configuration).
 3. Run. The form opens the system on create and offers to create the database
    if it is not there.
 
@@ -28,7 +32,7 @@ discards anything dirty, and drops it, so you can start over.
 
 ## The handle chain
 
-Three list handles, all pointing at `DemoDataModule.BoldSystemHandle1`:
+Three list handles; the system handle is `DemoDataModule.BoldSystemHandle1`:
 
 | Handle | Root | Expression | Grid |
 | --- | --- | --- | --- |
@@ -36,7 +40,7 @@ Three list handles, all pointing at `DemoDataModule.BoldSystemHandle1`:
 | `lhaProjectTasks` | **`lhaProjects`** | `tasks` | `grdTasks`, bottom left |
 | `lhaTasks` | the system handle | `Task.allInstances` | `BoldGrid1`, bottom right |
 
-Only the root differs between the second and the third, and that single
+The second handle is rooted on the first, not on the system, and that single
 property is the whole master-detail mechanism. Select a different project and
 the bottom left grid changes while the bottom right one does not.
 
@@ -60,14 +64,16 @@ so a task shows a due date only once it belongs to a project.
 
 ## The shared model
 
-The classes come from `examples\Shared`, not from this folder:
-`DemoClasses.pas` generated from `DemoModel.bld`, and `TDemoDataModule` which
-reads the `.ini` and builds the FireDAC, UniDAC or XML persistence chain. The
-OCL Workbench demo uses the same model, so changes here are visible there.
+The classes come from [`examples/Shared`](../../../Shared), not from this
+folder: `DemoClasses.pas` generated from `DemoModel.bld`, and `TDemoDataModule`
+which reads the `.ini` and builds the FireDAC, UniDAC or XML persistence chain
+(UniDAC only when the project defines `UNIDAC`). The OCL Workbench and Save and
+Generate demos in `Tools` use the same model, so changes here are visible
+there.
 
 `TProject.CompleteCreate` and `TTask.CompleteCreate` name new objects
-`Project1`, `Task1` and so on from a module-level counter. A counter in a
-variable would restart at 1 after every run and collide with what is already
+`Project1`, `Task1` and so on from a module-level counter. On its own that
+counter would restart at 1 after every run and collide with what is already
 saved, so `HandleSystemOpened` calls `TProject.InitializeCounter` and
 `TTask.InitializeCounter`, which scan the existing objects for the highest
 number already used and continue from there.
@@ -100,7 +106,8 @@ objects asks first.
 | `MasterDetail.dpr` | creates `TDemoDataModule`, then `TMainForm` |
 | `DemoForm.pas` / `.dfm` | the three handles, three grids, status strip |
 | `MasterDetail.ini` | persistence type and per-engine connection settings |
-| `BoldDemo.db`, `BoldDemo.xml` | sample data left behind by earlier runs |
 
 The model, the generated classes and the data module live in
-`examples\Shared`.
+[`examples/Shared`](../../../Shared). `BoldDemo.db` (or `BoldDemo.xml` with XML
+persistence) is created next to the executable by the first run and is not in
+the repository.

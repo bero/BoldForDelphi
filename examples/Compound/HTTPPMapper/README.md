@@ -24,9 +24,12 @@ Three shared units in `Common\`:
 | --- | --- | --- |
 | `dmCoreUnit` | `BoldModel1`, the one `TBoldModel` | all three projects |
 | `dmPersistenceUnit` | `TBoldPersistenceHandleDB`, `TBoldDatabaseAdapterIB`, `TIBDatabase` | server and `DBGen` only |
-| `BuildingClasses.pas` and the `.inc` files | generated classes and method bodies | client and server |
+| `BuildingClasses.pas` and the `.inc` files | generated classes and method bodies | client only; the relay needs no business classes |
 
 The client's project file deliberately does not include `dmPersistenceUnit`.
+
+The demo is Windows only (an ISAPI extension and two VCL programs) and has only
+`.dpr` files.
 
 ## Running it
 
@@ -34,9 +37,10 @@ The client's project file deliberately does not include `dmPersistenceUnit`.
    `EnsureInterbaseDatabase` and then `CreateDataBaseSchema`, logging in as
    `sysdba` / `masterkey`.
 2. Put `httpPMapper.gdb` next to the deployed DLL. Both projects share
-   `dmPersistenceUnit`, whose `IBDatabase1BeforeConnect` resolves the file
-   relative to the running module, so `DBGen` creates it beside `DBGen.exe` and
-   the server looks for it beside `BoldHTTPServer.dll`.
+   `dmPersistenceUnit`, whose `IBDatabase1BeforeConnect` is meant to resolve the
+   file relative to the running module, so that `DBGen` creates it beside
+   `DBGen.exe` and the server looks for it beside `BoldHTTPServer.dll`. As
+   written it builds a wrong path; see the first note.
 3. Deploy `BoldHTTPServer.dll` to an IIS virtual directory that may execute
    ISAPI extensions. The client's stored URL assumes the directory is called
    `Bold`.
@@ -121,4 +125,3 @@ demo data ended up with streets called Bold Drive and Rose Path.
   original Boldsoft build machine.
 - Persistence is IBX and InterBase through `TBoldDatabaseAdapterIB`, from
   `Source/Deprecated/Persistance/IBX`.
-- There are no `.dproj` files here, only `.dpr`.

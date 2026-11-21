@@ -1,8 +1,9 @@
 # Default Bold Project
 
 Not a demo of a feature, but the skeleton a new Bold application used to start
-from: the five persistence components wired together, an empty model waiting to
-be replaced, and a main form that contains its own instructions.
+from: the model, the handles and the persistence components wired together, an
+empty model waiting to be replaced, and a main form that contains its own
+instructions. It is a VCL application for Delphi on Windows.
 
 It is worth reading for one reason. Every other example in this repository
 arrives with its model, its handles and its database already set up, so it never
@@ -73,8 +74,8 @@ a main form whose controls have no live system behind them.
 
 ## The main form
 
-`fMain` is a read-only memo holding the instructions, plus a menu: **File,
-Update database** is the action; **Debug, SystemDebugger** opens
+`fMain` is a memo holding the instructions, plus a menu: **File, Update DB** is
+`BoldUpdateDBAction1`; **Debug, SystemDebugger** opens
 
 ```pascal
 TBoldSystemDebuggerFrm.CreateWithSystem(self, dmMain.bshMain.System).show;

@@ -42,7 +42,9 @@ others makes no difference.
 4. Start `LockingPServer.exe`. Its `TdmPServer.Loaded` activates the database
    handle and the SOAP server handle (deliberately in `Loaded` rather than
    `OnCreate`, because the first client can arrive before `OnCreate` runs). Its
-   propagator and lock manager connection handles have `AutoConnect = True`.
+   propagator and lock manager handles share one connection to
+   `BoldPropagator.exe`, `BoldComConnectionHandle1`, which has
+   `AutoConnect = True`.
 5. Start two copies of `LockingDemo.exe`. In each one type the server's machine
    name into **Server Machine Name**, a *different* name into **User Name**,
    tick the boxes you want, and press **Start System**.
@@ -101,10 +103,11 @@ Region1[OrderLine]:     quantity, PurchaseOrder
 ```
 
 A region names the members it covers and, after the bar, the regions it drags in
-with it. Locking an `Item` therefore also locks its `Colour`, and locking an
-`OrderLine` also locks its `PurchaseOrder`. The comment notes that this model
-does not use a default region, so an object outside these definitions is not
-locked at all.
+with it. After the bar the name in brackets is a role to navigate, not a class:
+`Region1[Colour]` on `Item` is `Region1` of the item's `Colour`. Locking an
+`Item` therefore also locks its `Colour`, and locking a `PurchaseOrder` also
+locks its order lines. The comment notes that this model does not use a default
+region, so an object outside these definitions is not locked at all.
 
 ### What contention looks like
 
@@ -191,6 +194,7 @@ for a client that died holding locks before its lease expired.
   It never takes effect because **Start System** overwrites it from the edit box.
 - Running the clients and the servers on different machines means configuring
   DCOM. Everything on one machine is much easier and shows the same behaviour.
+  COM makes the demo Windows only, and all four projects are VCL.
 - Persistence is IBX and InterBase through `TBoldDatabaseAdapterIB`, from
   `Source/Deprecated/Persistance/IBX`, which this repository does not maintain.
   There are no `.dproj` files here either, only `.dpr` and one Delphi 5 era

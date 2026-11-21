@@ -10,8 +10,9 @@ there is nowhere else for that salary to live.
 
 ## Running it
 
-There is no `.dproj`. Open `BE_AssocClass.dpr` in the IDE and let Delphi create
-one; this demo is not part of `examples\DelphiExamples.groupproj`.
+There is no `.dproj`, only `BE_AssocClass.dpr`, a VCL program for Windows. Open
+it in the IDE and let Delphi create a project file; this demo is not part of
+`examples\DelphiExamples.groupproj`.
 
 It needs a database. Persistence is `TBoldPersistenceHandleDB` to
 `TBoldDatabaseAdapterIB` to `TIBDatabase`, that is InterBase, with
@@ -19,11 +20,16 @@ It needs a database. Persistence is `TBoldPersistenceHandleDB` to
 **`IBDatabase1.DatabaseName` is empty**, so fill it in before running. Then
 press **Create DB**, which is a `TBoldIBDatabaseAction`, and **Open system**.
 
+The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
+under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
+so put that folder on the unit search path.
+
 `MainForm.dfm` is a binary form file. The repository's `.gitattributes` applies
-`*.dfm text eol=crlf`, which inflates every LF byte in it on checkout (17408
-bytes in the working tree against 17305 in the object store), and the form will
-not stream. Restore the bytes with `git show HEAD:<path> > <path>` before
-opening it.
+`*.dfm text eol=crlf`, which turns every LF byte in it into CR LF on checkout
+(17408 bytes in the working tree against 17305 in the object store), and the
+form will not stream. Restore the bytes with `git show HEAD:<path> > <path>`
+before opening it. Run that from cmd or Git Bash; the `>` of Windows PowerShell
+re-encodes the bytes.
 
 ## Navigating an association class
 

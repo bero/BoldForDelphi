@@ -10,13 +10,13 @@ lives in the node descriptions rather than in the data.
 
 ## Running it
 
-There is no `.dproj`, only `BE_SimpleTreeView.dpr`. Open it in Delphi and let the
-IDE create a project file. Persistence is IBX (`TBoldDatabaseAdapterIB`,
-`TBoldIBDatabaseAction`, `TIBDatabase`), whose units live under
-`Source\Deprecated\Persistance\IBX` and are in no current Bold package, so put
-that folder on the unit search path.
+There is no `.dproj`, only `BE_SimpleTreeView.dpr`, a VCL program for Windows.
+Open it in Delphi and let the IDE create a project file. Persistence is IBX
+(`TBoldDatabaseAdapterIB`, `TBoldIBDatabaseAction`, `TIBDatabase`); the two Bold
+units live under `Source\Deprecated\Persistance\IBX` and are in no current
+Bold package, so put that folder on the unit search path.
 
-`IBDatabase1` has credentials but **no `DatabaseName`** - set it, then press
+`IBDatabase1` has credentials but **no `DatabaseName`**, so set it, then press
 **Create DB** and **Open system**. Nothing seeds any data, so the trees start
 empty: use the three navigators to add a company, then departments, then
 employees, and both trees fill in as you type. **Save** calls `UpdateDatabase`.

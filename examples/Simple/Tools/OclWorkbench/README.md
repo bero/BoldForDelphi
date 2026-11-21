@@ -8,13 +8,20 @@ used. This demo puts both to work and shows what each is for.
 
 ## Running it
 
-1. Build with the **Debug** configuration. No DevExpress, no UniDAC, nothing
-   beyond a stock Delphi with FireDAC.
-2. Run `OclWorkbench.exe`. It offers to create `OclWorkbench.db`, a SQLite file
-   next to the executable. Answer yes. If you answer no, everything that needs a
-   live system greys out until you choose **File, Open system**.
-3. Choose **File, Create sample data**, then say yes when it offers to save.
-4. Pick an expression from the tree on the left and press **Evaluate**, or F9.
+1. Build `OclWorkbench.dproj` with the **Debug** configuration for Win64 (the
+   project still has Win32, which compiles but is no longer tested). No
+   DevExpress, no UniDAC, nothing beyond a stock Delphi with FireDAC. It is a
+   VCL program, so it runs on Windows.
+2. Choose the engine. The shipped `OclWorkbench.ini` selects SQL Server
+   (`Type=MSSQL`, database `BoldOclWorkbench`, Windows authentication). For a
+   start with nothing installed, set `Type=SQLite` in its `[Database]` section,
+   or pick **SQLite** from the **Database** menu once the program runs, which
+   writes the same setting back to the `.ini`.
+3. Run `OclWorkbench.exe`. With SQLite it offers to create `OclWorkbench.db`, a
+   SQLite file next to the executable. Answer yes. If you answer no, everything
+   that needs a live system greys out until you choose **File, Open system**.
+4. Choose **File, Create sample data**, then say yes when it offers to save.
+5. Pick an expression from the tree on the left and press **Evaluate**, or F9.
 
 **File, Clear all data** deletes every object in the model and saves, after asking
 first. Use it to get back to an empty system without deleting the database file,
@@ -29,7 +36,7 @@ quickest way to see the difference between a snapshot result and a live one: wit
 the system closed the Result tab keeps what it last printed, while the Live list
 tab empties.
 
-The sample data is written to the database once you save it, so step 3 is a
+The sample data is written to the database once you save it, so step 4 is a
 one-off. Anything you create or change afterwards is held in memory until you
 save; closing the window with unsaved objects asks you first and names the
 count.
@@ -120,8 +127,9 @@ One consequence worth knowing when you run this under the IDE debugger: a refusa
 reaches the workbench as an exception that it catches. Delphi still notifies you
 on the raise, so expect an exception notification on every expression that cannot
 be translated, not just on the ones that end in an error. Press Continue. If that
-becomes tiring, add `EBoldOCLError` and `ESSYacc` to the ignore list under Tools,
-Options, Debugger, Embarcadero Debuggers, Language Exceptions.
+becomes tiring, add `EBoldOCLError` and the OCL parser's `SSException` (unit
+`BoldSSExcept`) to the ignore list under Tools, Options, Debugger, Embarcadero
+Debuggers, Language Exceptions.
 
 ### BoldOclPropEditor
 
@@ -161,9 +169,11 @@ somebody and evaluate `current.ownedBuildings` or `current.assignedTasks`.
 
 ## Changing the database engine
 
-The **Database** menu lists every engine the shared `.ini` has a section for:
-SQLite, SQL Server, PostgreSQL, Firebird, MariaDB, Oracle and an XML file. The
-menu title names the one in force, and the chosen one is ticked.
+The **Database** menu lists the seven engines the workbench knows: SQLite, SQL
+Server, PostgreSQL, Firebird, MariaDB, Oracle and an XML file. The menu title
+names the one in force, and the chosen one is ticked. The keys of each `.ini`
+section are described in
+[Database configuration](../../../../docs/examples/index.md#database-configuration).
 
 Picking one does not just change a setting. It first walks a ladder of
 preconditions and refuses to switch if any rung fails, because switching to an
@@ -209,10 +219,12 @@ looks like this:
 Rung 4 earns its place. Installing a 64-bit PostgreSQL puts a 64-bit `libpq.dll`
 at exactly the path the `.ini` names, and a 32-bit demo cannot load it. The path
 is right, the file is there, and nothing works. FireDAC does mention bitness,
-but only after the connection fails and only as a hint.
+but only after the connection fails and only as a hint. The check works both
+ways, so for the Win64 build it catches a `VendorLib` that names a 32-bit
+client.
 
-**Tools, Check preconditions** runs the same ladder against the engine already
-in force, which is the quickest way to find out why a working setup stopped
+**Tools, Check preconditions for the current engine** runs the same ladder
+against the engine already in force, which is the quickest way to find out why a working setup stopped
 working.
 
 Rungs 5 and 6 open a real connection, so a check takes a moment and the cursor
@@ -259,15 +271,16 @@ One wrinkle if you edit that form. `TBoldGridColumn.Width` is declared
 do not exist while the form is streaming. Widths therefore cannot live in the
 `.dfm`, and `SetColumnWidths` applies them from `FormCreate` instead.
 
-The **DevEx** build configuration is now redundant. It still exists and still
-builds, but it defines a symbol nothing reads and produces the same executable as
-Debug. It can be deleted.
+`OclWorkbench.dproj` has only the Debug and Release configurations. The `DevEx`
+folder holds nothing but a copy of `OclWorkbench.ini` (with `Type=SQLite`), and
+no build configuration uses it.
 
 ## The model
 
 Everything runs against the shared `DemoModel` in `examples\Shared`, the same
-model the Master-Detail demo uses. It is worth knowing its shape, because the
-sample expressions are built around it:
+model the [Master-Detail](../../ObjectSpace/MasterDetail/README.md) demo uses.
+It is worth knowing its shape, because the sample expressions are built around
+it:
 
 - `Person` with `firstName`, `lastName`, `assets`, `birthDate`, `isActive` and a
   derived `fullName`.

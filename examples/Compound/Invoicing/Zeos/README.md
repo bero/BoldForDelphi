@@ -4,7 +4,9 @@ The Invoicing scenario on a SQL database under Free Pascal (#117 step 17):
 SQLite through [Zeos](https://sourceforge.net/projects/zeoslib) 8.0 and Bold's
 Zeos adapter. It is the Free Pascal twin of `..\Console`, which runs the same
 scenario on SQLite through FireDAC in Delphi, and of `..\FPC`, which stores in
-an XML file and needs no database library.
+an XML file and needs no database library. The GUI clients on the same model
+are in `..\FMX` (Delphi) and `..\LCL` (Lazarus); the
+[LCL README](../LCL/README.md) describes what they show.
 
 `InvoicingZeos` loads `..\Model\Invoicing.bld`, creates `InvoicingZeos.db` next
 to the program with Bold's schema, runs the scenario from

@@ -11,8 +11,8 @@ offending cells, listing every broken constraint in the system, and blocking
 
 ## Running it
 
-There is no `.dproj`. Open `BE_ConstraintsDemo.dpr` in the IDE and let Delphi
-create one.
+There is no `.dproj`, only `BE_ConstraintsDemo.dpr`, a VCL program for Windows.
+Open it in the IDE and let Delphi create a project file.
 
 It needs a database. Persistence is InterBase through
 `TBoldPersistenceHandleDB` / `TBoldDatabaseAdapterIB` / `TIBDatabase`, with
@@ -20,10 +20,15 @@ It needs a database. Persistence is InterBase through
 so set it first. Then **Create DB**, then **Open system**, then add a customer,
 an order and some order items and watch the bottom grid fill up.
 
+The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
+under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
+so put that folder on the unit search path.
+
 `fConstraintsMain.dfm` is a binary form file that the repository's
 `*.dfm text eol=crlf` rule inflates on checkout (20254 bytes against 20148 in
 the object store), so it will not stream until you restore it with
-`git show HEAD:<path> > <path>`.
+`git show HEAD:<path> > <path>`. Run that from cmd or Git Bash; the `>` of
+Windows PowerShell re-encodes the bytes.
 
 ## The constraints in the model
 
@@ -68,14 +73,13 @@ rather than through expressions:
 
 | Column | Representation | What it returns |
 | --- | --- | --- |
-| Name | 13 | the owning element's `DisplayName` |
+| Name | 10 | the constraint's model name |
 | Message | 11 | the constraint's message |
 | Expr | 12 | the constraint's OCL text |
-| ElementType | 13 | the owning element's `DisplayName` again |
+| ElementType | 13 | the owning element's `DisplayName` |
 | Offending Element | 14 | the owning element `AsString` |
 
-Columns 1 and 4 carry the same representation, so they show the same text.
-Representation 10, the constraint's own model name, is the one that is missing.
+`TBAConstraint.GetStringRepresentation` in `BoldAttributes` defines all five.
 
 Double-clicking a row jumps to the object at fault:
 

@@ -1,124 +1,127 @@
 # Step 4: OCL Expressions
 
-In this final step, you will master **Object Constraint Language (OCL)**, Bold's query language. You will learn how to:
+In this step you learn the **Object Constraint Language (OCL)**, Bold's query language. You will:
 
-- Use OCL to filter collections (select)
-- Transform and aggregate data (collect, sum, size)
-- Write dynamic expressions in handles and labels
-- Build real-time dashboards with BoldLabel
+- Filter collections (`select`)
+- Transform and aggregate them (`collect`, `sum`, `size`)
+- Write expressions in handles and labels
+- Build a dashboard that updates by itself with `TBoldLabel`
 
-By the end, you will be able to write complex queries without touching SQL.
+By the end, you can write complex queries without SQL.
 
 ## What is OCL?
 
-**Object Constraint Language** is a standard query language from the UML specification. It is designed to work with objects, not tables.
+The **Object Constraint Language** is a query language from the UML standard. It works on objects, not tables.
 
-Instead of SQL:
+In SQL you would write:
 
 ```sql
-SELECT SUM(lineTotal) FROM InvoiceItems WHERE invoiceId = 5
+SELECT SUM(i.Quantity * i.UnitPrice)
+FROM InvoiceItem i JOIN Invoice v ON ...
+WHERE v.InvoiceNumber = 5
 ```
 
-With OCL, you write:
+In OCL you write:
 
 ```
-invoices[invoiceNumber = 5].items.lineTotal->sum
+Invoice.allInstances->select(invoiceNumber = 5).items.lineTotal->sum
 ```
 
-Which reads naturally: "The sum of line totals from the items of the invoice with number 5."
+It reads: "the sum of the line totals of the items of the invoice with number 5".
 
 OCL is:
 
-- **Object-oriented**: Works with classes and references, not tables and joins
-- **Expression-based**: Always evaluates to a value (doesn't execute side effects)
-- **Type-safe**: Catches errors at parse time
+- **Object-oriented**: it works with classes and references, not tables and joins.
+- **Expression-based**: it always evaluates to a value and changes nothing.
+- **Type-checked**: Bold checks the names and types when it parses an expression.
 
 ## Why OCL Instead of SQL?
 
-1. **No joins needed**: Relationships are properties. `invoice.customer.name` is simpler than a SQL join.
-2. **Type-safe**: You get compile-time checking (in Bold's OCL compiler) instead of SQL runtime errors.
-3. **Works in-memory**: OCL expressions work on objects in the BoldSystem, not just the database.
-4. **Less code**: No parsing result sets. Objects are already objects.
+1. **No joins**: relationships are members. `invoice.customer.name` is simpler than a join.
+2. **Checked early**: Bold reports a misspelled member when it parses the expression, with its position.
+3. **Works in memory**: OCL works on the objects in the object space, including changes not saved yet.
+4. **Less code**: no result sets to read; objects stay objects.
 
 ## OCL Basics
 
 ### Navigation
 
-Access an object's attributes and associations using dot notation:
+Reach an object's attributes and associations with a dot:
 
 ```
-customer.name                    → The name of the customer
-invoice.customer.city            → The city of the invoice's customer
-customer.invoices                → The list of invoices (a collection)
+customer.name                    → the name of the customer
+invoice.customer.city            → the city of the invoice's customer
+customer.invoices                → the invoices of the customer (a collection)
 ```
 
 ### Collections
 
-Collections are groups of objects. You use the arrow operator `->` for collection operations:
+A collection is a group of objects or values. Collection operations take an arrow, `->`:
 
 ```
-customer.invoices->size          → How many invoices this customer has
-customer.invoices->first         → The first invoice
-customer.invoices->last          → The last invoice
+customer.invoices->size          → how many invoices this customer has
+customer.invoices->first         → the first invoice
+customer.invoices->last          → the last invoice
 ```
 
 ### Select (Filter)
 
-`select()` filters a collection based on a condition:
+`select()` keeps the elements that satisfy a condition:
 
 ```
-invoices->select(isPaid)         → All paid invoices
-invoices->select(not isPaid)     → All unpaid invoices
-invoices->select(totalAmount > 1000)  → Invoices over 1000
-items->select(quantity > 5)      → Items with quantity > 5
+invoices->select(isPaid)               → all paid invoices
+invoices->select(not isPaid)           → all unpaid invoices
+invoices->select(totalAmount > 1000)   → invoices over 1000
+items->select(quantity > 5)            → items with a quantity over 5
 ```
 
-Read it naturally: "Invoices where isPaid is true."
+Read it as: "the invoices where isPaid is true".
 
-**In Code**:
+**In code**:
 
 ```pascal
-lhaUnpaidInvoices.Expression := 'invoices->select(not isPaid)';
+lhaInvoices.Expression := 'invoices->select(not isPaid)';
 ```
 
-Now the handle shows only unpaid invoices. As you mark invoices as paid, they disappear from the list automatically.
+The handle now holds only unpaid invoices. When you mark an invoice as paid, it leaves the list.
 
 ### Collect (Transform)
 
-`collect()` extracts a specific attribute from each element in a collection:
+`collect()` takes a value from each element of a collection:
 
 ```
-invoices->collect(totalAmount)   → A list of the total amounts
-items->collect(description)      → A list of item descriptions
+invoices->collect(totalAmount)   → a list of the invoice totals
+items->collect(description)      → a list of the item descriptions
 ```
 
-**Practical use**: Get just the amounts for further processing:
+You can work on the result further:
 
 ```
-invoices->collect(totalAmount)->sum  → The total of all invoice amounts
+invoices->collect(totalAmount)->sum  → the total of all invoice amounts
 ```
 
-This works because:
-1. `invoices` is a collection of Invoice objects
-2. `->collect(totalAmount)` extracts the totalAmount from each (a collection of Currency)
-3. `->sum` sums all the Currency values
+Step by step:
+
+1. `invoices` is a collection of Invoice objects.
+2. `->collect(totalAmount)` takes the totalAmount of each, a collection of Currency values.
+3. `->sum` adds the values up.
 
 ### Sum (Aggregate)
 
-`sum` adds up numeric values in a collection:
+`sum` adds up the numbers of a collection:
 
 ```
-items->collect(lineTotal)->sum       → Total of all items in an invoice
-invoices->collect(totalAmount)->sum  → Total of all invoices for a customer
+items->collect(lineTotal)->sum       → the total of the items of an invoice
+invoices->collect(totalAmount)->sum  → the total of the invoices of a customer
 ```
 
-Shorthand: Since lineTotal is a single attribute, you can skip collect:
+A shorthand: navigating with a dot from a collection collects too, so you can leave `collect` out:
 
 ```
-items.lineTotal->sum  → Same as: items->collect(lineTotal)->sum
+items.lineTotal->sum                 → the same as items->collect(lineTotal)->sum
 ```
 
-Here is how the derived attributes chain through the model:
+This is how the derived attributes chain through the model:
 
 ```
  ╔═══════════════╗       ╔═══════════════╗       ╔═══════════════╗
@@ -132,297 +135,271 @@ Here is how the derived attributes chain through the model:
                     items.lineTotal->sum        quantity * unitPrice
                          = 150 + ...                  = 3 * 50
 
- / = Derived. Bold evaluates the OCL expression automatically.
-   When Quantity changes from 3→5, LineTotal updates to 250,
-   which cascades: TotalAmount recalculates too. No code needed.
+ / = derived. Bold evaluates the OCL expression.
+   When Quantity changes from 3 to 5, LineTotal becomes 250,
+   and TotalAmount follows. No code is needed.
 ```
-
-![Derived attributes in action](../images/step4-derived-attributes.png)
-*Derived attributes cascade: changing Quantity recalculates LineTotal, which recalculates TotalAmount — all automatic*
 
 ### Size (Count)
 
-`size` returns the number of elements:
+`size` gives the number of elements:
 
 ```
-invoices->size       → How many invoices this customer has
-items->size          → How many items in this invoice
-customers->size      → Total customers in the system
+invoices->size                  → how many invoices this customer has
+items->size                     → how many items this invoice has
+Customer.allInstances->size     → how many customers there are
 ```
 
 ### Other Useful Operations
 
 ```
-->isEmpty            → True if the collection is empty
-->includes(obj)      → True if obj is in the collection
-->notEmpty           → True if the collection has at least one element
-->asString           → Convert to string (useful for display)
-->sortedBy(attr)     → Sort by an attribute
+->isEmpty                  → true if the collection is empty
+->notEmpty                 → true if the collection has at least one element
+->includes(obj)            → true if obj is in the collection
+->orderby(attr)            → the collection sorted by an attribute
+->orderdescending(attr)    → sorted, largest first
+.asString                  → the value as a string, for display
 ```
 
 Examples:
 
 ```
-invoices->notEmpty                    → Does this customer have any invoices?
-invoices->sortedBy(invoiceDate)       → Invoices in chronological order
-items->select(quantity < 0).asString  → Items with negative quantity (data error)
+invoices->notEmpty                       → does this customer have invoices?
+invoices->orderby(invoiceDate)           → invoices in date order
+items->select(quantity < 0)->size        → items with a negative quantity (a data error)
 ```
 
-## BoldLabel: Dynamic Read-Only Text
+## TBoldLabel: Read-Only Text That Updates Itself
 
-A **BoldLabel** displays a value that updates automatically. Unlike TBoldEdit, it is read-only.
+A **TBoldLabel** shows the value of an OCL expression and updates when the value changes. Unlike `TBoldEdit`, it is
+read-only.
 
 ### Use Cases
 
-- Display totals
-- Show counts
-- Display derived fields
-- Real-time dashboards
+- Totals
+- Counts
+- Derived values
+- Dashboards
 
-### How to Use
+### How to Use It
 
-Drop a TBoldLabel on the form:
-
-```
-TBoldLabel
-  Handle: lhaCustomers
-  BoldAttribute: 'name'  // Shows the current customer's name
-```
-
-Now when you select a different customer, the label updates automatically.
-
-### Dynamic Expressions with asString
-
-For calculated values, use `asString` to convert to a string:
+Drop a `TBoldLabel` (page **Bold Controls**) on the form and set:
 
 ```
 TBoldLabel
-  Handle: lhaCustomers
-  BoldAttribute: 'invoices->size.asString'  // Number of invoices
+  BoldHandle: lhaCustomers
+  BoldProperties.Expression: 'name'    // the current customer's name
 ```
 
-This shows a number like "5". As you add or delete invoices, the count updates in real-time.
+When you select another customer, the label shows its name.
 
-## Building Step 4: The Dashboard
+### Text and Numbers in One Expression
 
-Let's build a form with these BoldLabels:
+The label shows the result of the expression, so put the text in the expression too. `+` joins strings, and
+`asString` turns a number into a string:
 
 ```
-┌─────────────────────────────────────┐
-│      Invoice Management             │
-├─────────────────────────────────────┤
-│ Total Customers: 15                 │
-│ Selected Customer: Acme Corp         │
-├─────────────────────────────────────┤
-│ Customers Grid                      │
-│ [Insert] [Delete]                   │
-│ ┌─────────────────────────────────┐ │
-│ │ Name       | Address | City      │ │
-│ └─────────────────────────────────┘ │
-├─────────────────────────────────────┤
-│ Invoices for Selected Customer: 7   │
-│ Unpaid Invoices: 3                  │
-│ Total Unpaid Amount: $4,567.89      │
-├─────────────────────────────────────┤
-│ Invoices Grid                       │
-│ [Insert] [Delete]                   │
-│ ┌─────────────────────────────────┐ │
-│ │ Number | Date | Total | IsPaid  │ │
-│ └─────────────────────────────────┘ │
-├─────────────────────────────────────┤
-│ Items Grid                          │
-│ [Insert] [Delete]                   │
-│ ┌─────────────────────────────────┐ │
-│ │ Description | Quantity | Price   │ │
-│ └─────────────────────────────────┘ │
-└─────────────────────────────────────┘
+TBoldLabel
+  BoldHandle: lhaCustomers
+  BoldProperties.Expression: ('Invoices: ' + invoices->size.asString)
 ```
 
-![Step 4 dashboard with OCL labels](../images/step4-dashboard.png)
-*The complete dashboard: BoldLabels show live counts and totals, the unpaid invoices grid filters automatically*
+The label shows "Invoices: 5", and the number follows as you add or delete invoices. OCL strings use single quotes;
+in Delphi code you double them, as in any Delphi string.
 
-### Step 1: Add BoldLabels with Simple Expressions
+## The Step 4 Form: a Dashboard
 
-```pascal
-procedure TfrmStep4.CreateLabels;
-begin
-  // Total customer count
-  lblTotalCustomers := TBoldLabel.Create(Self);
-  lblTotalCustomers.Handle := lhaCustomers;
-  lblTotalCustomers.BoldAttribute := 'Customer.allInstances->size.asString';
-  lblTotalCustomers.Caption := 'Total Customers: ' + lblTotalCustomers.Text;
+The finished form (`Step4Form.pas`) looks like this:
 
-  // Selected customer name
-  lblSelectedCustomer := TBoldLabel.Create(Self);
-  lblSelectedCustomer.Handle := lhaCustomers;
-  lblSelectedCustomer.BoldAttribute := 'name';
-  lblSelectedCustomer.Caption := 'Selected: ' + lblSelectedCustomer.Text;
-end;
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Step 4: OCL Expressions                     Total Customers: 15 │
+├─────────────────────────────────────────────────────────────────┤
+│ All Unpaid Invoices (OCL filter)                                │
+│ Customer | Invoice # | Due Date | Amount                        │
+├──────────────────────────┬──────────────────────────────────────┤
+│ Customers                │ Invoices for Customer (7)            │
+│ Name       | City        │ Invoice # | Date | Paid | Total      │
+│                          │ [|<] [<] [>] [>|] [+] [-]            │
+│                          │ Invoice Line Items                   │
+│ Outstanding: 4567.89     │ Description | Qty | Unit Price | ... │
+│ [|<] [<] [>] [>|] [+] [-]│ [|<] [<] [>] [>|] [+] [-]            │
+├──────────────────────────┴──────────────────────────────────────┤
+│ [Save Changes] [Open/Close system]   status                     │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-Wait, that is not quite right. Let us try a cleaner approach using design-time dropped labels.
+It has the handle chain of Step 3 (`lhaCustomers`, `lhaInvoices`, `lhaItems`), one more list handle, and three
+labels.
 
-### Step 2: Design-Time Labels
+### The Labels
 
-1. Drop a TBoldLabel
-   - Handle: lhaCustomers
-   - BoldAttribute: 'Customer.allInstances->size.asString'
-   - Set an initial Caption like "Total: 0"
+All three labels have `BoldHandle` = `lhaCustomers`:
 
-2. Drop another TBoldLabel
-   - Handle: lhaCustomers
-   - BoldAttribute: 'invoices->size.asString'
-   - Caption: "Invoices: 0"
+| Label | `BoldProperties.Expression` |
+|-------|-----------------------------|
+| `lblCustomerCount` | `('Total Customers: ' + Customer.allInstances->size.asString)` |
+| `lblInvoiceCount` | `('(' + invoices->size.asString + ')')` |
+| `lblOutstanding` | `('Outstanding: ' + invoices->select(not isPaid)->collect(totalAmount)->sum.asString)` |
 
-3. Drop another for unpaid count
-   - Handle: lhaCustomers
-   - BoldAttribute: 'invoices->select(not isPaid)->size.asString'
-   - Caption: "Unpaid: 0"
+`Customer.allInstances` starts from a class, so it gives the same result whichever customer is current. The other
+two start from the current customer.
 
-4. Drop another for total unpaid amount
-   - Handle: lhaCustomers
-   - BoldAttribute: 'invoices->select(not isPaid)->collect(totalAmount)->sum.asString'
-   - Caption: "Total Unpaid: 0"
+The last expression reads:
 
-That last one is complex, but it reads clearly:
-- Start with `invoices` (the customer's invoices)
-- Filter with `->select(not isPaid)` (keep only unpaid)
-- Extract amounts with `->collect(totalAmount)` (get the total of each)
-- Sum with `->sum` (add them all)
-- Convert to string with `.asString`
+- Start with `invoices`, the current customer's invoices.
+- Keep the unpaid ones: `->select(not isPaid)`.
+- Take the amount of each: `->collect(totalAmount)`.
+- Add them up: `->sum`.
+- Turn the result into a string: `.asString`.
 
-**Result**: A live-updating label showing the customer's total unpaid invoice amount.
+**Result**: a label with the customer's unpaid amount, which updates as you edit invoices and items.
+
+### The Unpaid Invoices Grid
+
+The fourth list handle, `lhaUnpaidInvoices`, is not part of the chain:
+
+```
+lhaUnpaidInvoices: TBoldListHandle
+  RootHandle: BoldSystemHandle1
+  Expression: 'Invoice.allInstances->select(not isPaid)'
+```
+
+The grid `grdUnpaid` shows it, with the columns `customer.name`, `invoiceNumber`, `dueDate` and `totalAmount`. A
+column expression can navigate too: `customer.name` shows the name of each invoice's customer. Mark an invoice as
+paid, and it leaves this grid.
 
 ## OCL Reference: Common Patterns
 
 ### Counting
 
 ```
-items->size                          Number of items
-invoices->select(isPaid)->size       Number of paid invoices
-invoices->notEmpty.asString          "true" or "false"
+items->size                          number of items
+invoices->select(isPaid)->size       number of paid invoices
+invoices->notEmpty.asString          'True' or 'False'
 ```
 
 ### Aggregation
 
 ```
-items.lineTotal->sum                 Total of all items
-invoices.totalAmount->sum            Sum of all invoices
-items->collect(quantity)->sum        Total quantity ordered
+items.lineTotal->sum                 total of all items
+invoices.totalAmount->sum            sum of all invoices
+items->collect(quantity)->sum        total quantity ordered
 ```
 
 ### Filtering
 
 ```
-invoices->select(isPaid)             Only paid invoices
-invoices->select(totalAmount > 1000) Only large invoices
-items->select(quantity = 0)          Items with no quantity (data error)
+invoices->select(isPaid)             only paid invoices
+invoices->reject(isPaid)             only unpaid invoices
+invoices->select(totalAmount > 1000) only large invoices
+items->select(quantity = 0)          items without a quantity (a data error)
 ```
 
 ### Sorting
 
 ```
-invoices->sortedBy(invoiceDate)      Invoices in date order
-items->sortedBy(description)         Items alphabetically
-invoices->sortedBy(invoiceNumber)->reverse  Invoices in reverse order
+invoices->orderby(invoiceDate)           invoices in date order
+items->orderby(description)              items alphabetically
+invoices->orderdescending(invoiceNumber) invoices, highest number first
 ```
 
-### Checking Membership
+### Membership and Position
 
 ```
-invoices->includes(myInvoice)        True if myInvoice is in the list
-invoices->first                      First invoice (or null if empty)
-invoices->last                       Last invoice
+invoices->includes(myInvoice)        true if myInvoice is in the list
+invoices->first                      the first invoice (nil if there is none)
+invoices->last                       the last invoice
 ```
 
-### String Operations
+### Strings
 
 ```
-customers.name->select(...)          Filter by name matching
-items->sortedBy(description)         Sort alphabetically
+name.toUpper                                     the name in capitals
+name.length                                      the length of the name
+Customer.allInstances->select(name.sqlLike('A%'))  customers whose name starts with A
 ```
 
 ## Try It Yourself
 
-### Exercise 1: Create an Unpaid Invoices View
+### Exercise 1: An Unpaid Invoices View per Customer
 
-In the form, create a handle that shows only unpaid invoices:
-
-```pascal
-lhaUnpaidInvoices := TBoldListHandle.Create(nil);
-lhaUnpaidInvoices.RootHandle := lhaCustomers;
-lhaUnpaidInvoices.Expression := 'invoices->select(not isPaid)';
-
-grdUnpaidInvoices.Handle := lhaUnpaidInvoices;
-```
-
-Now add a grid bound to this handle. As you mark invoices as paid, they disappear from the grid automatically. No code needed — the subscription system handles it.
-
-### Exercise 2: Add a Filtered Items View
-
-Show only items with quantity > 10:
+The form's unpaid grid shows the unpaid invoices of all customers. Add a handle for those of the current customer
+only:
 
 ```pascal
-lhaLargeItems := TBoldListHandle.Create(nil);
-lhaLargeItems.RootHandle := lhaItems;
-lhaLargeItems.Expression := 'select(quantity > 10)';
+lhaUnpaidOfCustomer.RootHandle := lhaCustomers;
+lhaUnpaidOfCustomer.Expression := 'invoices->select(not isPaid)';
+grdUnpaidOfCustomer.BoldHandle := lhaUnpaidOfCustomer;
 ```
 
-### Exercise 3: Calculate Total Revenue
+Mark an invoice as paid, and it leaves the grid. The subscriptions do it; you write no code.
 
-Create a BoldLabel showing the total of all invoices across all customers:
+### Exercise 2: A Filtered Items View
+
+Show only the items of the current invoice with a quantity over 10:
+
+```pascal
+lhaLargeItems.RootHandle := lhaInvoices;
+lhaLargeItems.Expression := 'items->select(quantity > 10)';
+```
+
+### Exercise 3: Total Revenue
+
+Add a `TBoldLabel` with the total of all invoices of all customers:
 
 ```
 TBoldLabel
-  Handle: lhaCustomers
-  BoldAttribute: 'Customer.allInstances->collect(invoices)->collect(totalAmount)->sum.asString'
+  BoldHandle: lhaCustomers
+  BoldProperties.Expression: Customer.allInstances->collect(invoices)->collect(totalAmount)->sum.asString
 ```
 
-This is complex, but it demonstrates chaining multiple collection operations.
+Step by step:
 
-![Total revenue label](../images/step4-total-revenue.png)
-*A single OCL expression calculates total revenue across all customers — no SQL, no loops, just objects*
+- `Customer.allInstances`: all customers
+- `->collect(invoices)`: all their invoices, in one collection
+- `->collect(totalAmount)`: the total of each invoice
+- `->sum`: added up
 
-Breakdown:
-- `Customer.allInstances` - all customers
-- `->collect(invoices)` - flatten all their invoices into one big collection
-- `->collect(totalAmount)` - extract the total of each invoice
-- `->sum` - add them all up
+### Exercise 4: Overdue Invoices
 
-### Exercise 4: Dynamic Date Filtering
-
-Many real-world queries filter by date. Try:
+Many real queries filter on dates. `today` is a variable that OCL always knows: today's date. Count the unpaid
+invoices of the current customer whose due date has passed:
 
 ```
-invoices->select(invoiceDate >= today - 30)->size.asString
+invoices->select((not isPaid) and (dueDate < today))->size.asString
 ```
 
-Shows invoices from the last 30 days. (Note: `today` is an OCL constant.)
+## Advanced OCL: forAll and exists
 
-## Advanced OCL: forAll, exists
-
-For more complex conditions:
+For conditions on a whole collection:
 
 ```
-items->forAll(quantity > 0)          True if all items have quantity > 0
-items->exists(quantity = 0)          True if any item has quantity = 0
+items->forAll(quantity > 0)          true if every item has a quantity over 0
+items->exists(quantity = 0)          true if any item has a quantity of 0
 ```
 
 These are less common in UI expressions but useful for validation.
 
 ## Common Pitfalls
 
-### OCL is Case-Sensitive
+### Names in OCL
+
+OCL uses the expression names of the model, which differ from the Delphi names in one letter:
+
+- A member name starts with a lowercase letter: the attribute `IsPaid` is `isPaid` in OCL.
+- A class name starts with an uppercase letter: `Customer.allInstances`.
+
+At the start of an expression, and alone inside `select(...)`, a name that starts with an uppercase letter is read
+as a class name, so `select(IsPaid)` is an error.
 
 ```
-invoices->select(isPaid)             RIGHT (matches the attribute name)
-invoices->select(is_paid)            WRONG (doesn't exist)
-invoices->select(ISPAID)             WRONG (case matters)
+invoices->select(isPaid)             RIGHT
+invoices->select(IsPaid)             WRONG: read as a class name
+invoices->select(is_paid)            WRONG: no such member
 ```
 
-Always match the exact case from your model.
-
-### Collection Operations Must Come After a Collection
+### Collection Operations Need a Collection
 
 This is wrong:
 
@@ -430,109 +407,101 @@ This is wrong:
 customer.name->select(length > 3)    ERROR: name is a String, not a collection
 ```
 
-Name is a single value. You can only use `->` on collections. This would be:
+`name` is a single value, and `select` works on collections only. This is right:
 
 ```
-customer.invoices->select(totalAmount > 1000)  RIGHT: invoices is a collection
+customer.invoices->select(totalAmount > 1000)   RIGHT: invoices is a collection
 ```
 
-### Arrow vs. Dot
+### Arrow and Dot
 
-- **Dot (.)** for accessing attributes: `customer.name`
-- **Arrow (->)** for collection operations: `invoices->size`
+- The **dot** (`.`) for attributes and associations: `customer.name`
+- The **arrow** (`->`) for collection operations: `invoices->size`
 
-Remember: Arrow for collections (the `-` points to "multiple").
+### No Current Element
 
-### Null Handling
+When a handle has no current element, for example when the customer list is empty, the labels and grids that
+depend on it have nothing to show.
 
-If the current element is null, `customer.invoices` also returns null (empty). OCL does not throw errors on null. It just propagates null gracefully.
+### Performance of Complex Expressions
 
-```
-if CurrentElement is null:
-  invoices->size returns 0
-  invoices->select(...) returns empty collection
-```
-
-### Performance: Complex Expressions
-
-Very complex expressions can be slow if they involve many objects. For dashboards, this is usually fine. For high-frequency updates, consider caching or using stored calculated attributes.
+An expression over many objects can be slow, because Bold loads the objects it navigates. For a dashboard this is
+usually fine. When a value is needed very often, consider a derived attribute or a stored value instead.
 
 ## What's Next
 
-You have completed the full tutorial! You now understand:
+You have learned:
 
-1. **Step 1**: How Bold models structure with UML and persists to databases
-2. **Step 2**: How to build CRUD UIs with handles and grids
-3. **Step 3**: How associations model relationships and enable master-detail
-4. **Step 4**: How OCL queries replace SQL
+1. **Step 1**: how a Bold model defines the structure and how Bold persists objects
+2. **Step 2**: how to build a CRUD UI with handles and grids
+3. **Step 3**: how associations model relationships and give master-detail views
+4. **Step 4**: how OCL queries replace SQL
+
+In Step 5 the model grows with inheritance and a lookup class. Go to
+[`Step5_InheritanceVAT/README.md`](../Step5_InheritanceVAT/README.md).
 
 ## Further Learning
 
-- **MasterDetail Example**: Open `examples/Simple/ObjectSpace/MasterDetail/` for a real-world master-detail application
-- **Bold Wiki**: https://delphi.fandom.com/wiki/Bold_for_Delphi — comprehensive documentation
-- **Bold Blog**: http://boldfordelphi.blogspot.com/ — tips and tricks
-- **Object Constraint Language Standard**: https://www.omg.org/spec/OCL/ — formal specification
+- **MasterDetail example**: `examples/Simple/ObjectSpace/MasterDetail/`, another master-detail application
+- **OCL Queries**: https://bero.github.io/BoldForDelphi/concepts/ocl/
+- **Bold Wiki**: https://delphi.fandom.com/wiki/Bold_for_Delphi
+- **Bold Blog**: http://boldfordelphi.blogspot.com/
+- **The OCL standard**: https://www.omg.org/spec/OCL/
 
-## Final Exercises
+## More Exercises
 
-### 1. Build a Invoice Report
+### 1. An Invoice Report
 
-Create a form that displays:
-
-```
-Customer: [name]
-Total Invoices: [invoices->size]
-Paid: [invoices->select(isPaid)->size]
-Unpaid: [invoices->select(not isPaid)->size]
-Total Unpaid: [invoices->select(not isPaid)->collect(totalAmount)->sum]
-```
-
-All fields update live as you modify data.
-
-### 2. Implement Data Validation
-
-Add a BoldLabel showing errors:
+Build a form that shows, for the current customer:
 
 ```
-Data Issues:
-- [items->select(quantity < 0)->size] items with negative quantity
-- [items->select(unitPrice < 0)->size] items with negative price
+Customer:     name
+Invoices:     invoices->size
+Paid:         invoices->select(isPaid)->size
+Unpaid:       invoices->select(not isPaid)->size
+Total Unpaid: invoices->select(not isPaid)->collect(totalAmount)->sum
 ```
 
-Users can immediately see data quality issues.
+Each line is a `TBoldLabel`; add `.asString` to the numbers. All values update as you change data.
 
-### 3. Create a Dashboard
+### 2. Data Validation
 
-Combine multiple grids and labels:
+Add labels that show data problems:
+
+```
+items->select(quantity < 0)->size     items with a negative quantity
+items->select(unitPrice < 0)->size    items with a negative price
+```
+
+Users see data quality issues at once.
+
+### 3. A Dashboard
+
+Combine grids and labels:
 
 ```
 ┌──────────────────────────────┐
-│ Active Customers: [count]    │
-│ Total Revenue: [sum]         │
+│ Customers:        [count]    │
+│ Total Revenue:    [sum]      │
 │ Overdue Invoices: [count]    │
 ├──────────────────────────────┤
-│ [Customer Grid]              │
-│ [Invoice Grid]               │
-│ [Items Grid]                 │
+│ [Customer grid]              │
+│ [Invoice grid]               │
+│ [Items grid]                 │
 └──────────────────────────────┘
 ```
 
-Each section updates independently.
-
-## Conclusion
-
-Bold for Delphi is a powerful framework that eliminates boilerplate code. By understanding models, handles, associations, and OCL, you can build sophisticated data applications quickly and correctly.
-
-The key insight: **Design objects, not tables. The rest follows automatically.**
+Each part updates by itself.
 
 ---
 
 **Key Takeaways**:
-- OCL is a query language designed for objects, not tables
-- `->select()` filters collections
-- `->collect()` transforms and extracts
-- `->sum`, `->size` aggregate data
-- `->sortedBy()` orders results
-- BoldLabel with `.asString` creates live-updating read-only text
-- Complex expressions are built by chaining operations
-- No SQL, no result set parsing, just objects and collections
+
+- OCL is a query language for objects, not tables
+- `->select()` filters a collection
+- `->collect()` takes a value from each element
+- `->sum` and `->size` aggregate
+- `->orderby()` sorts
+- A `TBoldLabel` shows an OCL expression and updates by itself; `asString` and `+` build its text
+- Complex expressions are chains of simple operations
+- No SQL, no result sets: objects and collections

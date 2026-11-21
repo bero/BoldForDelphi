@@ -17,16 +17,19 @@ Bold system to the internet. Both halves are worth understanding.
 | `OrgChartISAPI.dpr` | ISAPI library | HTTP in, XML request out over COM, HTML back |
 
 Neither has a `.dproj`. A built `OrgChart.exe` and a populated `ORGCHART.GDB`
-are checked into the folder.
+are checked into the folder. COM and ISAPI make the demo Windows only.
+`dmServer.pas`, `Webmodule.pas` and the exporter units use a unit `MSXML_TLB`,
+which is not in the repository; Bold's own import of the MSXML type library is
+`Bold_MSXML_TLB`, in `Source\Common\MSXML`.
 
 ## Running it
 
 1. Run `OrgChart.exe`. `ServerCode.pas` registers it as
    `OrgChart.OrgChart`, class id `{AE605A6F-9C63-4CA4-90FC-B4D75614D4D7}`.
-2. The database is Interbase, `OrgChart.gdb`, through a
+2. The database is InterBase, `OrgChart.gdb`, through a
    `TBoldDatabaseAdapterIB` (now under `Source\Deprecated\Persistance\IBX`).
    **Create DB**, then **Open system**.
-3. Press the button wired to `dmMain.GenerateData` to seed companies, offices,
+3. Press **Generate Data** (`dmMain.GenerateData`) to seed companies, offices,
    departments and people.
 4. For the browser half, deploy `OrgChartISAPI.dll` with `OrgChart.htm`,
    `LastPage.htm` and the `XSL\` folder beside it, and request
@@ -148,8 +151,9 @@ which produces, for a search on Mary Ananian:
 Person.allInstances->select(firstName.sqlLIkeCaseInsensitive('%Mary%') and lastName.sqlLIkeCaseInsensitive('%Ananian%'))
 ```
 
-The same two expressions are on the admin form as `blhSearchPerson` and
-`blhFiltered`, which is a useful place to try them before going through the web.
+The admin form holds the same expression in `blhSearchPerson`, and a company
+search on `companyName` in `blhFiltered`. That is a useful place to try an
+expression before going through the web.
 
 `sqlLikeCaseInsensitive` is the operation you want here: it is one of the
 expressions Bold can translate into SQL, so the filtering happens in the
@@ -166,8 +170,8 @@ service.
 `MainForm` is an ordinary Bold VCL form over the same system: grids of companies
 and people, the offices of the current company, its departments and employees, a
 `TBoldImage` on `logo` with a Load-from-file button, an address group box bound
-through a `TBoldExpressionHandle` on `address`, and an Add Address action that
-creates a `TAddress` when the current office has none.
+through a `TBoldExpressionHandle` on `address`, and a **New Address** button
+(`AddAddressAction`) that creates a `TAddress` when the current office has none.
 
 Two of the columns are worth copying:
 

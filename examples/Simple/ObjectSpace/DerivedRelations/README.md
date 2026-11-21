@@ -11,8 +11,8 @@ of two stored ones, so you can watch a derivation feed a derivation.
 
 ## Running it
 
-There is no `.dproj`. Open `BE_DerivedRelations.dpr` in the IDE and let Delphi
-create one.
+There is no `.dproj`, only `BE_DerivedRelations.dpr`, a VCL program for Windows.
+Open it in the IDE and let Delphi create a project file.
 
 It needs a database: InterBase through `TBoldDatabaseAdapterIB`, `sysdba` /
 `masterkey`, and **`IBDatabase1.DatabaseName` is empty**, so set it first. Then
@@ -20,10 +20,15 @@ It needs a database: InterBase through `TBoldDatabaseAdapterIB`, `sysdba` /
 people onto **Participators**. Names are random; both classes override
 `CompleteCreate` to pick from a fixed list.
 
+The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
+under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
+so put that folder on the unit search path.
+
 `fDerivedRelationsMain.dfm` is a binary form file that the repository's
 `*.dfm text eol=crlf` rule inflates on checkout (14165 bytes against 14095 in
 the object store), so it will not stream until you restore it with
-`git show HEAD:<path> > <path>`.
+`git show HEAD:<path> > <path>`. Run that from cmd or Git Bash; the `>` of
+Windows PowerShell re-encodes the bytes.
 
 ## What is stored and what is computed
 
@@ -86,5 +91,5 @@ The three list boxes are `dmAutomatic`, so linking is done by dragging.
 | `DerivedHandleExampleClasses.inc` | `CompleteCreate` for both classes, random names |
 | `DerivedHandleExampleClasses*.pas/.inc` | generated `Project`, `Person`, `ProjectParticipators` |
 
-The generated unit shares its name with the one in the `DerivedHandle` demo but
+The generated unit shares its name with the one in the [`DerivedHandle`](../DerivedHandle/README.md) demo but
 holds a different model. They are not interchangeable.

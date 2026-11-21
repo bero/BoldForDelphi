@@ -2,6 +2,9 @@
 
 The Invoicing example in FireMonkey (#117 step 10): customers, the invoices of
 the selected customer and the lines of the selected invoice, in three grids.
+The Lazarus client in `..\LCL` has the same form; its
+[README](../LCL/README.md) describes what the two clients share. This one
+covers what differs in FMX.
 
 ## How it works
 
@@ -10,21 +13,18 @@ dataset and a `TLinkGridToDataSource` to an FMX `TStringGrid`. FMX has no
 data-aware controls of its own, and LiveBindings is its standard way to bind a
 `TDataSet`.
 
-Each dataset sits on a `TBoldListHandle`. The invoice handle is rooted on the
-customer handle with the expression `invoices`, the line handle on the invoice
-handle with `lines`. Selecting a row moves the dataset, the dataset moves its
-handle's current element, and the grids below follow with no code. The derived
-attributes of the model, such as `openBalance`, `grossTotal` and `status`, are
-ordinary columns, and a change made on the Bold side shows in the grids.
+The datasets sit on chained `TBoldListHandle`s, as in the LCL client (see
+[How it works](../LCL/README.md#how-it-works) there): selecting a row moves the
+grids below with no code, and the derived attributes are ordinary columns.
 
 All of it is in the form file, `fInvoicingMain.fmx`, as the form designer
 writes it with the design package `dclBold` installed (`TBoldDataSet` is on
 its page Bold Misc): the four list handles, the four datasets with their
 fields, the bind sources, the bindings list with its links, and the labels,
 grids, combo box and buttons are components on the form, wired through their
-properties. The Lazarus client has the same form in `..\LCL\fInvoicingMain.lfm`.
-The code in `fInvoicingMain.pas` opens the database, roots the two lists of
-all customers on the data module's system handle, and opens the datasets.
+properties. The code in `fInvoicingMain.pas` opens the database, roots the two
+lists of all customers on the data module's system handle, and opens the
+datasets.
 
 The data module is the one the console runner and the tests use
 (`..\Data\dmInvoicing.pas`); it links no VCL unit. The model is
@@ -34,46 +34,34 @@ is filled with the scenario from `..\Tests\InvoicingScenario.pas`.
 ## The customer of an invoice: a link in a combo box
 
 Under the invoice grid a combo box shows the customer of the selected
-invoice, and picking another customer moves the invoice to it, as in the LCL
-client (`..\LCL`). A single link needs nothing more than a `TBoldDataSet` on
-each side and LiveBindings' lookup link:
+invoice, and picking another customer moves the invoice to it. The two
+datasets behind it, `bdsInvoices` with the link field `customer` and
+`bdsCustomerChoice` with the fields `self` and `name`, are those of the LCL
+client; see
+[its combo box section](../LCL/README.md#the-customer-of-an-invoice-a-link-in-a-combo-box)
+for the key they share and why the form follows a moved invoice. In FMX the
+combo box is a plain `TComboBox`, bound by LiveBindings' lookup link:
 
 | | |
 |---|---|
-| `bdsInvoices`, the dataset that is edited | a field with the expression `customer`, the link. It holds a key of the linked object, or null. |
-| `bdsCustomerChoice`, the customers to choose from | a field with the expression `self`, named `self`: the same key. And `name`, to show. |
 | `lnkInvoiceCustomer`, a `TLinkFillControlToField` | `DataSource`/`FieldName` = the invoices' `Customer` field, `FillDataSource` = the choice dataset, `FillValueFieldName` = `self`, `FillDisplayFieldName` = `Name`, `Control` = the `TComboBox` |
 
-The key is a 64-bit integer that is only good for the running program, so its
-field is not among the columns of the invoice grid's link. The choice dataset is
-one of its own, on a list handle of all customers, so that the combo box does
-not move the customer grid.
-
-The link is also what the invoice grid is built on: it shows the invoices of
-the selected customer. An invoice that gets another customer leaves that list
-at once; the dataset ends the edit and keeps the change. So that the invoice
-does not vanish from view, the form then follows it (`InvoiceCustomerChange`,
-`FollowTheInvoice`): the customer grid moves to the new customer, with the
-invoice selected and the combo box ready for another pick. The combo box is
-disabled for a posted invoice, which is frozen, and while the invoice grid is
+The key field is not among the columns of the invoice grid's link. The form
+follows a moved invoice in `InvoiceCustomerChange` and `FollowTheInvoice`, and
+disables the combo box for a posted invoice and while the invoice grid is
 empty.
 
 ## Editing the lines of an invoice in the grid
 
-As in the LCL client: **New invoice** makes a draft for the selected customer
-(`Customer.NewInvoice`) and gives it its first line, ready to be typed in, the lines of a draft are edited in the lines grid,
-and **Post invoice** posts it (`Invoice.Post`), after which its lines are
-frozen. **Delete invoice** deletes a draft, with its lines. **Add line** gives the
-grid a new row to type in, which an FMX grid
-needs while it is empty: it has no row to start in. **Delete line** deletes
-the selected one. The grid link (`TLinkGridToDataSource`) writes a cell to the dataset
-field, and `TBoldDataSet` writes the field to the line; a new row is a new
-line of the selected invoice, because the dataset asks the list of its handle
-for it; the derived column `Amount` is a read-only field. The frozen rule is
-in the model's business methods, not on each attribute, so the form follows
-it: `UpdateInvoiceControls` makes the lines grid read-only and disables the
-customer combo box when the selected invoice is posted. Only a draft gets
-lines, or another customer.
+**New invoice**, **Post invoice**, **Delete invoice**, **Add line** and
+**Delete line** work as in the LCL client; see
+[Editing the lines of an invoice in the grid](../LCL/README.md#editing-the-lines-of-an-invoice-in-the-grid).
+Two things differ in FMX. **Add line** is the way to start typing in an empty
+lines grid: an FMX grid has no row to start in. And it is the grid link
+(`TLinkGridToDataSource`) that writes a cell to the dataset field, which
+`TBoldDataSet` then writes to the line. `UpdateInvoiceControls` makes the lines
+grid read-only and disables the customer combo box when the selected invoice is
+posted.
 
 ## The look of the LCL client
 
@@ -103,11 +91,11 @@ names a `Vcl.*` unit.
 
 ## Running it
 
-Build `InvoicingFMX.dproj` for Win32 or Win64 and run it. **Save changes**
-writes to the database.
+Build `InvoicingFMX.dproj` for Win64 (Win32 still compiles) and run it, or for
+Linux64 (see below). **Save changes** writes to the database.
 
-**Edit OCL** opens Bold's OCL editor as an FMX dialog
-(`Source\ObjectSpace\UtilsGUI\FMX\BoldOclExpressionDialogFMX.pas`) on the
+**Edit OCL...** opens Bold's OCL editor as an FMX dialog
+(`Source\ObjectSpace\UtilsGUI\FMX\boldoclexpressiondialogfmx.pas`) on the
 Invoicing model. It checks the expression as you type, shows the type of the
 result or the error, and lists the members, operations and variables that
 can follow it. After **OK** the client evaluates the expression and shows the

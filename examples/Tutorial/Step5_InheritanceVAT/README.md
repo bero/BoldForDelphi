@@ -1,25 +1,26 @@
-# Step 5: Inheritance & VAT
+# Step 5: Inheritance and VAT
 
-In this step, you will learn two fundamental object-oriented concepts as they apply to Bold for Delphi:
+In this step you learn two object-oriented concepts as Bold applies them:
 
-1. **Inheritance** - Modeling "is-a" relationships (a Company *is a* Customer)
-2. **Lookup classes** - Reference data that other objects point to (VAT rates)
+1. **Inheritance**: "is-a" relationships (a Company *is a* Customer)
+2. **Lookup classes**: reference data that other objects point to (VAT rates)
 
-By the end, you will understand how Bold handles class hierarchies in the database, how to create objects of specific subtypes, and how derived attributes can navigate associations.
+By the end, you know how Bold stores a class hierarchy in the database, how to create objects of a given subclass,
+and how a derived attribute navigates an association.
 
 ## What You Will Learn
 
-- How to model inheritance in a Bold UML model
-- How Bold maps inheritance to a single database table (Table-Per-Hierarchy)
-- How `Customer.allInstances` returns both Company and PrivatePerson objects
-- How to create specific subtypes using `CreateNewObjectByExpressionName`
-- How lookup/reference classes work with associations
-- How derived attributes navigate associations (VATAmount = lineTotal * vatRate.percentage / 100)
-- How the BoldGrid VAT Rate column uses `LookUpProperties` for dropdown selection
+- How to model inheritance in a Bold model
+- How Bold stores a class hierarchy in database tables
+- Why `Customer.allInstances` returns both Company and PrivatePerson objects
+- How to create objects of a given subclass with `CreateNewObjectByExpressionName`
+- How a lookup class works with an association
+- How a derived attribute navigates an association (`VATAmount = lineTotal * vatRate.percentage / 100`)
+- How a `TBoldGrid` column offers a drop-down list through `LookUpProperties`
 
 ## The Extended Model
 
-Step 5 extends the model from Steps 1-4 with inheritance and a new lookup class:
+Step 5 extends the model of Steps 1 to 4 with inheritance and a lookup class:
 
 ```
  ╔═══════════════════╗
@@ -29,7 +30,7 @@ Step 5 extends the model from Steps 1-4 with inheritance and a new lookup class:
  ║ Address    String ║
  ║ PostAddress String║
  ║ City       String ║        ╔═════════════════════╗
- ║ Country    String ╠═1══*═══╣      Invoice        ║
+ ║ Country    String ╠0..1═*══╣      Invoice        ║
  ╚════════╤══════════╝        ╠═════════════════════╣
      ┌────┴────┐              ║ InvoiceNumber  Int  ║
      │         │              ║ InvoiceDate   Date  ║
@@ -37,7 +38,7 @@ Step 5 extends the model from Steps 1-4 with inheritance and a new lookup class:
  ║ Company ║ ║PrivatePerson║ ║ IsPaid     Boolean  ║
  ╠═════════╣ ╠═════════════╣ ║ /TotalAmt  Currency ║
  ║ VATNum  ║ ║ (no extra   ║ ╚══════════╤══════════╝
- ║ VATExem ║ ║  attributes)║        1   │   *
+ ║ VATExem ║ ║  attributes)║       0..1 │   *
  ╚═════════╝ ╚═════════════╝  ╔═════════╧═══════════╗
                                ║    InvoiceItem      ║
  ╔═══════════════════╗         ╠═════════════════════╣
@@ -49,69 +50,79 @@ Step 5 extends the model from Steps 1-4 with inheritance and a new lookup class:
                                ╚═════════════════════╝
 ```
 
-### What Changed from Steps 1-4
+### What Changed from Steps 1 to 4
 
-| Change | Before (Steps 1-4) | After (Step 5) |
-|--------|-------------------|-----------------|
-| Customer | Concrete class with Phone, Email | Abstract base with PostAddress, Country |
-| Subtypes | None | Company (VATNumber, VATExempt), PrivatePerson |
+| Change | Before (Steps 1 to 4) | After (Step 5) |
+|--------|-----------------------|----------------|
+| Customer | Concrete class with Phone, Email | Abstract base class with PostAddress, Country |
+| Subclasses | None | Company (VATNumber, VATExempt), PrivatePerson |
 | VATRate | Did not exist | New lookup class with Name, Percentage |
-| InvoiceItem.VATRate | Did not exist | New 0..1 association to VATRate |
+| InvoiceItem.VATRate | Did not exist | New association to VATRate (0..1) |
 | InvoiceItem.VATAmount | Did not exist | New derived attribute: `lineTotal * vatRate.percentage / 100` |
 
 ## Concept 1: Inheritance in Bold
 
 ### What is Inheritance?
 
-Inheritance models "is-a" relationships. A Company **is a** Customer. A PrivatePerson **is a** Customer. Both share the base Customer attributes (Name, Address, City, Country) but Company adds its own fields (VATNumber, VATExempt).
+Inheritance models "is-a" relationships. A Company **is a** Customer, and so is a PrivatePerson. Both have the
+attributes of Customer (Name, Address, City, Country), and Company adds its own (VATNumber, VATExempt).
 
-### How Bold Maps Inheritance to the Database
+### How Bold Stores Inheritance in the Database
 
-Bold uses **Table-Per-Hierarchy (TPH)**: all customer types share one database table. The table has columns for ALL attributes across the entire hierarchy, plus a `BOLD_TYPE` column that stores which concrete type each row represents.
+By default every class gets its own table (the class's table mapping is `Own`), and a table holds only the
+attributes its class defines:
 
 ```
-CUSTOMER table
-┌──────────┬──────┬─────────┬──────┬─────────┬───────────┬───────────┐
-│BOLD_TYPE │ Name │ Address │ City │ Country │ VATNumber │ VATExempt │
-├──────────┼──────┼─────────┼──────┼─────────┼───────────┼───────────┤
-│ Company  │ Acme │ 123 St  │ NYC  │ US      │ US123456  │ False     │
-│ PrivPrsn │ John │ 456 Ave │ LA   │ US      │ NULL      │ NULL      │
-└──────────┴──────┴─────────┴──────┴─────────┴───────────┴───────────┘
+Customer table
+┌────────┬───────────┬──────┬─────────┬─────────────┬──────┬─────────┐
+│BOLD_ID │ BOLD_TYPE │ Name │ Address │ PostAddress │ City │ Country │
+├────────┼───────────┼──────┼─────────┼─────────────┼──────┼─────────┤
+│ 101    │ (Company) │ Acme │ 123 St  │ ...         │ NYC  │ US      │
+│ 102    │ (Person)  │ John │ 456 Ave │ ...         │ LA   │ US      │
+└────────┴───────────┴──────┴─────────┴─────────────┴──────┴─────────┘
+
+Company table
+┌────────┬───────────┬───────────┬───────────┐
+│BOLD_ID │ BOLD_TYPE │ VATNumber │ VATExempt │
+├────────┼───────────┼───────────┼───────────┤
+│ 101    │ (Company) │ US123456  │ False     │
+└────────┴───────────┴───────────┴───────────┘
 ```
 
-**Advantages of TPH:**
-- No joins needed to query all customers
-- `Customer.allInstances` is a single SELECT
-- Simple and fast
+- Every table has the columns `BOLD_ID`, the object's identity, and `BOLD_TYPE`, a number for its class. Bold's
+  table `BOLD_TYPE` lists the class names.
+- A company is one row in `Customer` and one in `Company`, with the same `BOLD_ID`.
 
-**Trade-off:**
-- VATNumber and VATExempt columns are NULL for PrivatePerson rows (wasted space, but minimal)
+The **Table mapping** of a class in the model editor (tagged value `TableMapping`) changes this. With `Parent`, a
+class stores its attributes in its superclass's table, so a whole hierarchy can live in one table.
 
 ### Polymorphic Queries with OCL
 
-The power of inheritance shows in OCL queries:
+OCL queries follow the class hierarchy:
 
 ```
-Customer.allInstances                    → All customers (Company + PrivatePerson)
-Company.allInstances                     → Only companies
-PrivatePerson.allInstances               → Only private persons
-Customer.allInstances->size              → Total customer count
-Company.allInstances->size               → Company count only
+Customer.allInstances                    → all customers (Company and PrivatePerson)
+Company.allInstances                     → only companies
+PrivatePerson.allInstances               → only private persons
+Customer.allInstances->size              → number of customers
+Company.allInstances->size               → number of companies
 ```
 
-These work because Bold knows the class hierarchy. `Customer.allInstances` returns every object whose type IS Customer or any subclass of Customer.
+Bold knows the class hierarchy: `Customer.allInstances` returns every object whose class is Customer or a subclass
+of it.
 
-### Type Checking in OCL
+### Type Checks in OCL
 
 ```
-customer.oclIsTypeOf(Company)            → True if this exact type is Company
-customer.oclIsKindOf(Customer)           → True if this is any kind of Customer
-customer.oclAsType(Company).vatNumber    → Cast to Company to access Company-specific attrs
+customer.oclIsTypeOf(Company)            → true if the class is exactly Company
+customer.oclIsKindOf(Customer)           → true if the class is Customer or a subclass of it
+customer.oclAsType(Company).vatNumber    → cast to Company to reach a Company attribute
 ```
 
-### Creating Subtype Objects
+### Creating Objects of a Subclass
 
-Because Customer is abstract (in our model), you cannot create a Customer directly. You must create a specific subtype:
+Customer is abstract in this model, so you cannot create a Customer; you create a Company or a PrivatePerson. The
+form does it by expression name:
 
 ```pascal
 // Create a Company
@@ -121,120 +132,161 @@ dmStep5.BoldSystemHandle1.System.CreateNewObjectByExpressionName('Company');
 dmStep5.BoldSystemHandle1.System.CreateNewObjectByExpressionName('PrivatePerson');
 ```
 
-The new object automatically appears in:
-- `Customer.allInstances` (because Company is-a Customer)
-- `Company.allInstances` (because it IS a Company)
+With `InvoiceClasses` in the `uses` clause, the generated class does the same:
 
-### Why Not Use the Navigator's Insert Button?
+```pascal
+TCompany.Create(dmStep5.BoldSystemHandle1.System);
+```
 
-The TBoldNavigator Insert button creates objects based on the handle's expression type. For `Customer.allInstances`, it would try to create a `Customer` — but Customer is abstract. Instead, we use explicit buttons for each concrete type.
+The new object appears in:
+
+- `Customer.allInstances`, because a Company is a Customer
+- `Company.allInstances`, because it is a Company
+
+### Why Not the Navigator's Insert Button?
+
+The Insert button of a `TBoldNavigator` creates an object of the list's class. For `Customer.allInstances` that is
+Customer, and Bold refuses to create an object of an abstract class. So the form has a button for each concrete
+class instead.
 
 ## Concept 2: Lookup Classes (VATRate)
 
 ### What is a Lookup Class?
 
-A lookup class is a simple reference table. `VATRate` has just two attributes:
-- **Name**: Human-readable label (e.g., "Standard 24%", "Reduced 14%", "Zero")
-- **Percentage**: The actual rate as a number (e.g., 24.0, 14.0, 0.0)
+A lookup class is a simple reference table. `VATRate` has two attributes:
 
-Invoice items **point to** a VATRate via an association. This is the Bold equivalent of a foreign key to a lookup table in SQL.
+- **Name**: a readable label, such as "Standard 24%", "Reduced 14%" or "Zero"
+- **Percentage**: the rate as a number, such as 24.0, 14.0 or 0.0
+
+Invoice items **point to** a VATRate through an association. This is Bold's version of a foreign key to a lookup
+table in SQL.
 
 ### The InvoiceItem-VATRate Association
 
 ```
-InvoiceItem  ──── 0..1 ────  VATRate
+InvoiceItem  * ──────── 0..1  VATRate
+     invoiceItems     vatRate
 ```
 
-Each InvoiceItem can optionally have one VATRate (0..1). A VATRate can be used by many InvoiceItems. When you assign a VATRate to an item, the derived VATAmount recalculates automatically.
+An InvoiceItem has at most one VATRate (`0..1`); a VATRate can be used by many InvoiceItems. When you assign a
+VATRate to an item, the item's VATAmount follows.
 
-### VATAmount Derived Attribute
+### The VATAmount Derived Attribute
 
 ```
 VATAmount = lineTotal * vatRate.percentage / 100
 ```
 
-This OCL expression **navigates the association**: it reads `vatRate.percentage` from the linked VATRate object. When you:
-- Change the quantity or unit price (which changes lineTotal)
-- Or change which VATRate is linked
-- Or change the VATRate's percentage
+This expression **navigates the association**: it reads `vatRate.percentage` from the linked VATRate. VATAmount
+follows when you:
 
-...the VATAmount automatically updates. This is Bold's reactive derivation in action.
+- change the quantity or the unit price (which changes lineTotal),
+- link another VATRate, or
+- change the percentage of the linked VATRate.
 
-### Dropdown Selection in BoldGrid
+### A Drop-Down List in the Grid
 
-The Items grid shows a "VAT Rate" column that works as a dropdown selector. This is configured via the grid column's `LookUpProperties`:
+The Items grid has a "VAT Rate" column that offers a drop-down list. The grid column's `LookUpProperties` set it
+up:
 
 ```
-Column.BoldProperties.Expression = 'vatRate'
+Column.BoldProperties.Expression   = 'vatRate'
 Column.LookUpProperties.Expression = 'VATRate.allInstances'
 ```
 
-The `LookUpProperties.Expression` tells Bold to show all VATRate instances as choices. The user picks one, and Bold sets the association automatically.
+`LookUpProperties.Expression` gives the choices, all VATRate objects. The user picks one, and Bold sets the
+association.
 
 ## Building Step 5
 
-### Build Command
+### Running the Finished Step
 
-```powershell
-C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "examples\Tutorial\Step5_InheritanceVAT\Step5.dproj" -VerboseOutPut
-```
-
-Or open `Step5.dproj` in the Delphi IDE and press F9.
+Open `Step5.dproj` in Delphi, choose the Win64 target platform, and press F9.
 
 ### Why Step 5 Has Its Own Data Module
 
-Steps 1-4 share the model in `Shared/InvoiceDataModule.dfm`. Step 5 uses an extended model with new classes (Company, PrivatePerson, VATRate) and new associations. Since the Bold model is embedded in the DFM, Step 5 needs its own data module (`Step5DataModule`) with the extended model. The Pascal code is identical in structure.
+Steps 1 to 4 share the model in `Shared/InvoiceDataModule.dfm`. Step 5 has new classes (Company, PrivatePerson,
+VATRate) and a new association. The model is stored in the data module's `.dfm`, so Step 5 has its own data
+module, `Step5DataModule`, and its own generated `InvoiceClasses.pas`. The Pascal code of the data module is the
+same as in `Shared/`.
+
+### Extending the Model Yourself
+
+Start from a copy of your project of Step 4, and in the model editor:
+
+1. Select the Customer class and check **Abstract**. Delete its attributes Phone and Email, and add PostAddress
+   and Country (String).
+2. Right-click Customer and choose **Add Subclass**. Rename the new class to `Company` and add VATNumber (String)
+   and VATExempt (Boolean).
+3. Add a second subclass of Customer, `PrivatePerson`, with no attributes.
+4. Add the class `VATRate` with Name (String) and Percentage (Float).
+5. Add an association `InvoiceItemVATRate` with these ends:
+
+   | End name | Class | Multiplicity |
+   |----------|-------|--------------|
+   | `VATRate` | VATRate | `0..1` |
+   | `InvoiceItems` | InvoiceItem | `*` |
+
+6. Add the attribute `VATAmount` (Currency) to InvoiceItem: check **Derived**, clear **Persistent**, and set
+   **Derivation OCL** to `lineTotal * vatRate.percentage / 100`.
+7. Generate the code (**Tools > Generate Code**), and delete the old database file: the model has new tables.
+
+Compare your result with `Step5DataModule.dfm` and `InvoiceClasses_Interface.inc` in the step folder.
 
 ### First Run: Setting Up Data
 
-When you first run Step 5, the database is empty. Here is a suggested workflow:
+On the first run the database is empty. A suggested order:
 
-1. **Create VAT rates first** (they are needed for invoice items):
-   - Click in the VAT Rates grid, use the navigator to Insert
-   - Add "Standard 24%" with Percentage 24.0
-   - Add "Reduced 14%" with Percentage 14.0
-   - Add "Zero" with Percentage 0.0
+1. **Create the VAT rates first**; the invoice items need them.
+   - Click **Insert** in the VAT Rates navigator.
+   - Add "Standard 24%" with Percentage 24.0.
+   - Add "Reduced 14%" with Percentage 14.0.
+   - Add "Zero" with Percentage 0.0.
 
 2. **Create customers**:
-   - Click "New Company" — fill in Name, Address, City, Country, VATNumber
-   - Click "New Person" — fill in Name, Address, City, Country
-   - Notice the "Type" column shows "Company" or "PrivatePerson"
+   - Click **New Company** and type a Name and a City in the grid.
+   - Click **New Person** and do the same.
+   - The "Type" column shows "Company" or "PrivatePerson".
+
+   The customer grid shows only Type, Name and City. To edit Address, Country or VATNumber, add columns or edit
+   fields for them.
 
 3. **Create invoices and items**:
-   - Select a customer, use the Invoices navigator to Insert
-   - Select the invoice, use the Items navigator to Insert
-   - Fill in Description, Quantity, UnitPrice
-   - Select a VAT Rate from the dropdown
-   - Watch LineTotal and VATAmount calculate automatically
+   - Select a customer and click **Insert** in the Invoices navigator.
+   - Select the invoice and click **Insert** in the Items navigator.
+   - Type a Description, a Quantity and a Unit Price.
+   - Pick a VAT rate from the drop-down list.
+   - Watch Line Total and VAT Amount follow.
 
-4. **Save** — click "Save Changes" to persist everything to SQLite
+4. **Save**: click **Save Changes** to write everything to SQLite.
 
 ## Key Code Patterns
 
-### Creating Objects by Type Name
+### Creating Objects by Class Name
 
 ```pascal
-// Instead of: TCompany.Create(BoldSystem)
-// Use: BoldSystem.CreateNewObjectByExpressionName('Company')
-// This ensures Bold's internal tracking is set up correctly.
+// By expression name; the form needs no reference to the generated classes:
+dmStep5.BoldSystemHandle1.System.CreateNewObjectByExpressionName('Company');
+
+// With the generated class:
+TCompany.Create(dmStep5.BoldSystemHandle1.System);
 ```
 
 ### Polymorphic Delete
 
 ```pascal
-// lhaCustomers.CurrentBoldObject is typed as TCustomer
-// but the actual object is TCompany or TPrivatePerson
-// Delete works regardless of the concrete type:
+// CurrentBoldObject is a TBoldObject; the object itself is a TCompany or a TPrivatePerson.
+// Delete works whatever the concrete class:
 lhaCustomers.CurrentBoldObject.Delete;
 ```
 
-### Derived Attributes Navigating Associations
+### Derived Attributes That Navigate Associations
 
 ```
 InvoiceItem.VATAmount = lineTotal * vatRate.percentage / 100
 ```
 
-When `vatRate` is not assigned (nil), the expression evaluates to undefined, and the cell shows empty. Once you assign a VATRate, the amount appears instantly.
+Until an item has a VAT rate, `vatRate` is nil and `vatRate.percentage` has no value. Pick a VAT rate for each item.
 
 ## Handle Chain
 
@@ -242,7 +294,7 @@ When `vatRate` is not assigned (nil), the expression evaluates to undefined, and
 BoldSystemHandle1
      |
      +--> lhaCustomers       Expression='Customer.allInstances'
-     |         |               (returns BOTH Company and PrivatePerson)
+     |         |               (returns both Company and PrivatePerson)
      |         |
      |         +--> lhaInvoices  Expression='invoices'
      |                   |
@@ -253,26 +305,35 @@ BoldSystemHandle1
      +--> lhaCompanies       Expression='Company.allInstances'
 ```
 
-Note: `lhaCompanies` is available for future use (e.g., a Companies-only grid or a company count label). The current form uses `lhaCustomers` which shows all types.
+`lhaCompanies` is there for your own use, for example a grid of companies only or a company count. The form shows
+all customers through `lhaCustomers`.
 
 ## OCL Reference for Inheritance
 
 | Expression | Returns |
-|-----------|---------|
-| `Customer.allInstances` | All customers (both types) |
+|------------|---------|
+| `Customer.allInstances` | All customers (both classes) |
 | `Company.allInstances` | Only companies |
 | `PrivatePerson.allInstances` | Only private persons |
-| `oclType.name` | The type name as a string ("Company" or "PrivatePerson") |
-| `oclIsTypeOf(Company)` | True if exact type is Company |
-| `oclIsKindOf(Customer)` | True if type is Customer or any subclass |
-| `oclAsType(Company).vatNumber` | Cast to Company, access VATNumber |
+| `oclType.name` | The class name as a string ("Company" or "PrivatePerson") |
+| `oclIsTypeOf(Company)` | True if the class is exactly Company |
+| `oclIsKindOf(Customer)` | True if the class is Customer or a subclass of it |
+| `oclAsType(Company).vatNumber` | Cast to Company, then read VATNumber |
 | `Company.allInstances->select(vatExempt)` | All VAT-exempt companies |
+
+The form's customer count label combines several of them:
+
+```
+('Customers: ' + Customer.allInstances->size.asString +
+ '  (Companies: ' + Company.allInstances->size.asString +
+ ', Persons: ' + PrivatePerson.allInstances->size.asString + ')')
+```
 
 ## Try It Yourself
 
-### Exercise 1: Company-Only Invoice Total
+### Exercise 1: Invoice Total of Companies
 
-Create a BoldLabel showing the total of all invoices for companies only:
+Add a `TBoldLabel` with the total of all invoices of companies:
 
 ```
 Company.allInstances->collect(invoices)->collect(totalAmount)->sum.asString
@@ -280,7 +341,7 @@ Company.allInstances->collect(invoices)->collect(totalAmount)->sum.asString
 
 ### Exercise 2: VAT Summary
 
-Create a BoldLabel showing total VAT across all items:
+Add a `TBoldLabel` with the total VAT of all items:
 
 ```
 InvoiceItem.allInstances->collect(vatAmount)->sum.asString
@@ -288,7 +349,7 @@ InvoiceItem.allInstances->collect(vatAmount)->sum.asString
 
 ### Exercise 3: Conditional Display
 
-In a real application, you might want to show VATNumber only for companies. Try adding a column with:
+Show the VAT number for companies only. Add a column to the customer grid with this expression:
 
 ```
 if oclIsTypeOf(Company) then oclAsType(Company).vatNumber else '' endif
@@ -296,31 +357,34 @@ if oclIsTypeOf(Company) then oclAsType(Company).vatNumber else '' endif
 
 ## Common Pitfalls
 
-### Cannot Create Abstract Classes Directly
+### You Cannot Create an Object of an Abstract Class
 
-If Customer is marked abstract, `TBoldNavigator` Insert on `Customer.allInstances` will fail. Use explicit `CreateNewObjectByExpressionName` for each concrete type instead.
+Customer is abstract, so **Insert** of a `TBoldNavigator` on `Customer.allInstances` fails. Create each concrete
+class with `CreateNewObjectByExpressionName` or its generated class instead.
 
-### Null Navigation in Derived Attributes
+### Navigating to Nothing in a Derived Attribute
 
-If an InvoiceItem has no VATRate assigned, `vatRate.percentage` navigates to null. The VATAmount will show as empty/undefined. This is correct behavior — the user should assign a VAT rate first.
+An InvoiceItem without a VATRate has no `vatRate.percentage` to calculate VATAmount from. Assign a VAT rate to
+each item.
 
 ### Database Schema Changes
 
-Step 5 uses its own database file (`Step5.db`). If you previously ran Steps 1-4, those databases are separate and unaffected. If you need to reset Step 5, simply delete `Step5.db` and re-run.
+Step 5 has its own database file, `Step5.db`. The databases of Steps 1 to 4 are separate and stay as they are. To
+start Step 5 again, delete `Step5.db` and run again.
 
 ## What's Next
 
-You have completed all five tutorial steps! You now understand:
+You have completed all five steps. You now understand:
 
-1. **Step 1**: Bold model structure and database persistence
+1. **Step 1**: the Bold model and database persistence
 2. **Step 2**: CRUD UIs with handles and grids
-3. **Step 3**: Associations and master-detail relationships
+3. **Step 3**: associations and master-detail relationships
 4. **Step 4**: OCL queries for filtering and aggregation
-5. **Step 5**: Inheritance hierarchies and lookup references
+5. **Step 5**: class hierarchies and lookup classes
 
-These concepts cover the core of Bold for Delphi. For advanced topics, explore:
+These cover the core of Bold for Delphi. For more, explore:
 
-- **Undo/Redo**: Bold's built-in undo mechanism (`TBoldUndoHandler`)
-- **Constraints**: Model-level validation rules
-- **Subscription system**: How Bold automatically refreshes UI when data changes
-- **Database evolution**: Migrating schemas as your model evolves
+- **Undo and redo**: Bold's built-in undo mechanism (`TBoldUndoHandler`)
+- **Constraints**: validation rules in the model
+- **Subscriptions**: how Bold refreshes the UI when data changes
+- **Database evolution**: changing the database schema as your model evolves

@@ -23,13 +23,18 @@ None has a `.dproj`; open the `.dpr` files. `ServerAndClient` exists so that you
 can debug both halves under one debugger; it still goes through the COM layer,
 it just does not cross a process boundary.
 
+COM makes the demo Windows only, and both sides are VCL. The client's `Com`
+handles and controls live in `Source\ClientHandlesCom` and `Source\ClientGuiCom`,
+which no package in `packages\` includes, so the IDE does not have them on its
+palette.
+
 ## Running it
 
 1. Build and run **Server.exe**. `Server\ServerCode.pas` registers it through
    `TBoldComServerConnectionFactory` as `Server.BoldServer`, class id
    `{D7724C3F-9082-460F-9321-CB47C232CA29}`.
 2. On the server console: **Create DB**, then **Open system**. The database is
-   Interbase, `Bios.gdb`, behind a `TBoldDatabaseAdapterIB`. That adapter and
+   InterBase, `Bios.gdb`, behind a `TBoldDatabaseAdapterIB`. That adapter and
    `BoldBDEInterfaces`, which `DMCore` also pulls in, both live under
    `Source\Deprecated` and are not in the maintained package set.
 3. Leave the server running and start **Client.exe**. It connects on demand;
@@ -170,7 +175,7 @@ are the same screen written against the two APIs:
 
 | | `Gui\` | `ClientGui\` |
 | --- | --- | --- |
-| first line | `{$UNDEF BOLDCOMCLIENT}` | `{$DEFINE BOLDCOMCLIENT}` |
+| conditional define | `{$UNDEF BOLDCOMCLIENT}` | `{$DEFINE BOLDCOMCLIENT}` |
 | controls | `TBoldGrid`, `TBoldEdit`, `TBoldListBox` | `TBoldGridCom`, `TBoldEditCom`, `TBoldListBoxCom` |
 | handles | `TBoldListHandle`, `TBoldExpressionHandle` | `TBoldListHandleCom`, `TBoldExpressionHandleCom` |
 | objects | `TPerson`, `TResidential_Building` | `IPerson`, `IResidential_Building` |

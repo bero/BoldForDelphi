@@ -4,6 +4,11 @@ A standalone model editor for Bold (#128): a program that opens and saves
 `.bld` model files, shows the model for editing and generates the business
 classes, for Delphi and Lazarus projects alike, without the Delphi IDE.
 
+Use it where the Delphi IDE is not at hand: with Lazarus or on Linux. Bold's
+classic model editor (`Source/UMLModel/Editor`) is VCL and runs inside the
+Delphi IDE, through the design package `dclBold`. So far the standalone editor
+edits the classes and their attributes.
+
 It follows the pattern of the Invoicing example: a part without user
 interface, and two programs on top of it, an LCL client built with Lazarus and
 an FMX client built with Delphi, both for Windows and Linux.
@@ -14,7 +19,7 @@ an FMX client built with Delphi, both for Windows and Linux.
 | --- | --- |
 | `Core` | what both clients share: `BoldModelDocument.pas` (open a `.bld` file, save it, generate the business classes) and `BoldModelEditorData.pas` (the handles, the datasets and the commands of the editor) |
 | `LCL` | the LCL client, `ModelEditorLCL.lpi`, with `build.sh` |
-| `FMX` | the FMX client, `ModelEditorFMX.dproj` (Win32, Win64, Linux64) |
+| `FMX` | the FMX client, `ModelEditorFMX.dproj` (Win64, Linux64) |
 | `Tests` | the tests and the Delphi test program `ModelEditorTests.dpr` with `build.ps1` |
 | `FPC` | the Free Pascal test program `ModelEditorTests.lpr` with `build.sh` |
 
@@ -66,8 +71,9 @@ in `Source/UMLModel/Editor`. It holds:
   before New, Open and closing, asks through `OnAskSave` (save, discard or
   cancel), and `SaveModel` asks for a file through `OnChooseSaveFile` when
   the model has none yet. A client sets the two events to its own dialogs;
-- the window title (`Title`: the file name, a `*` when modified) and the
-  model file named on the command line (`ModelFileFromCommandLine`).
+- the window title (`Title`: the file name, a `*` when modified); the unit
+  also has `ModelFileFromCommandLine`, the model file named on the command
+  line.
 
 A client adds only its controls: the grids bound to the two datasets, a menu
 item or button per command, and the dialogs.
@@ -97,16 +103,17 @@ does for the Qt5 widgetset.
 
 ## The FMX client
 
-`FMX/ModelEditorFMX.dproj`, for Win32, Win64 and Linux64 (Delphi 13 with
-FmxLinux): the same two grids, `TStringGrid`s bound to the shared datasets
-through LiveBindings (a `TBindSourceDB` and a `TLinkGridToDataSource` each;
-the form gives the bind sources their datasets when it makes the data
-module). An action per command feeds the File and Model menus and the
-buttons, with a hint each; the boolean columns show `True` and `False`. The
-project defines `BOLD_NO_VCL` and its unit search path leaves out
-`Source\UMLModel\Editor`; `UnitTest\check_no_vcl.ps1` builds it and checks
-that it links no VCL unit. As in the other FMX clients, the dpr links the
-resource file with the manifest that the hints need on Windows.
+`FMX/ModelEditorFMX.dproj`, for Win64 and Linux64 (Delphi 13 with FmxLinux;
+Win32 still compiles but is not tested): the same two grids, `TStringGrid`s
+bound to the shared datasets through LiveBindings (a `TBindSourceDB` and a
+`TLinkGridToDataSource` each; the form gives the bind sources their datasets
+when it makes the data module). An action per command feeds the File and
+Model menus and the buttons, with a hint each; the boolean columns show
+`True` and `False`. The project defines `BOLD_NO_VCL` and its unit search
+path leaves out `Source\UMLModel\Editor`; `UnitTest\check_no_vcl.ps1` builds
+it and checks that it links no VCL unit. As in the other FMX clients, the
+dpr links the resource file with the manifest that the hints need on
+Windows.
 
 ```text
 ModelEditorFMX [model.bld]
@@ -171,5 +178,5 @@ The Delphi test program defines `BOLD_NO_VCL` and has no `Vcl` unit scope,
 so a VCL unit in the shared part fails its build.
 
 Both CI jobs (Linux and Windows) run the Free Pascal tests and the LCL
-client's self-test on every push. The FMX client is built and run with
-Delphi, which CI does not have.
+client's self-test on every push and pull request to `develop`. The FMX
+client is built and run with Delphi, which CI does not have.

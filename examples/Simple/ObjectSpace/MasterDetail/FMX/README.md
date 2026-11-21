@@ -1,8 +1,8 @@
 # Master-Detail - FMX
 
-The Master-Detail demo of the folder above in FireMonkey (#117 step 10):
-projects at the top, the tasks of the selected project at the bottom left, and
-all tasks at the bottom right.
+The [Master-Detail demo](../README.md) of the folder above in FireMonkey (#117
+step 10): projects at the top, the tasks of the selected project at the bottom
+left, and all tasks at the bottom right.
 
 ## How it works
 
@@ -14,18 +14,19 @@ The handle chain is the one of the VCL demo:
 | `lhaProjectTasks` | **`lhaProjects`** | `tasks` | `grdProjectTasks`, bottom left |
 | `lhaTasks` | the system handle | `Task.allInstances` | `grdTasks`, bottom right |
 
-Only the root differs between the second and the third, and that single
+The second handle is rooted on the first, not on the system, and that single
 property is the whole master-detail mechanism: select another project and the
 bottom left grid follows, with no code.
 
-FMX has no Bold-aware controls, so the grids are reached the way the Invoicing
-FMX client (`examples\Compound\Invoicing\FMX`) reaches them: each handle feeds
-a `TBoldDataSet`, and LiveBindings binds the dataset to an FMX `TStringGrid`
-(a `TBindSourceDB` and a `TLinkGridToDataSource`). A `TBindNavigator` on each
-bind source takes the place of `TBoldNavigator`: its Insert button makes a new
-object in the list of its handle, so a task inserted at the bottom left belongs
-to the selected project at once. The grids are editable; the derived `dueDate`
-(the end date of the project plus 7 days) is read-only.
+FMX has no Bold-aware controls, so the grids are reached the way the [Invoicing
+FMX client](../../../../Compound/Invoicing/FMX/README.md) reaches them: each
+handle feeds a `TBoldDataSet`, and LiveBindings binds the dataset to an FMX
+`TStringGrid` (a `TBindSourceDB` and a `TLinkGridToDataSource`). A
+`TBindNavigator` on each bind source takes the place of `TBoldNavigator`: its
+Insert button makes a new object in the list of its handle, so a task inserted
+at the bottom left belongs to the selected project at once. The grids are
+editable; the derived `dueDate` (the end date of the project plus 7 days) is
+read-only.
 
 The handles, datasets, bindings and controls are components in the form file,
 `fMasterDetailMain.fmx`. The system handle is in the data module, which the
@@ -62,14 +63,15 @@ unit (see `BOLD_VCL` in `Source\Common\Include\bold.inc`).
 
 ## Running it
 
-Build `MasterDetailFMX.dproj` for Win32 or Win64 and run it.
+Build `MasterDetailFMX.dproj` for Win64 and run it. The project still has
+Win32, which compiles but is no longer tested.
 
 The project also has the Linux64 platform (Delphi 13 with FmxLinux). Its
 deployment puts `DemoModel.bld` next to the program, where the client looks
 for the model first, before `examples/Shared`; the Linux machine needs
 `libsqlite3-dev`. The build needs the two FmxLinux workarounds described in
-the Linux64 section of the Invoicing FMX client's README
-(`examples/Compound/Invoicing/FMX`). Its self-test passes on Linux64; the
+the [Linux64 section](../../../../Compound/Invoicing/FMX/README.md#linux64) of
+the Invoicing FMX client's README. Its self-test passes on Linux64; the
 dialogs of Clear All Data, Drop Database and closing have not been tried by
 hand there.
 

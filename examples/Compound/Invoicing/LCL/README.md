@@ -2,7 +2,9 @@
 
 The Invoicing example in Lazarus (#117 step 17): customers, the invoices of
 the selected customer and the lines of the selected invoice, in three grids.
-It is the Lazarus twin of the FMX client in `..\FMX`.
+It is the Lazarus twin of the FMX client in `..\FMX`, and this README describes
+what the two clients share: the chain of handles, the customer combo box and
+the editing of the lines. The FMX README covers only what differs in FMX.
 
 ## How it works
 
@@ -19,10 +21,10 @@ ordinary columns, and a change made on the Bold side shows in the grids.
 All of it is in the form file, `fInvoicingMain.lfm`, as the form designer
 writes it with the design-time package `dclBold` installed
 (`packages\Lazarus`): a `TBoldModel`, the system, type info and persistence
-handles, the three list handles, the three datasets with their fields, the
-data sources and the grids are components on the form, wired through their
-properties. The code in `fInvoicingMain.pas` names the data file, opens the
-system and the datasets, and fills an empty database.
+handles, the four list handles, the four datasets with their fields, the data
+sources, the grids, the lookup combo box and the buttons are components on the
+form, wired through their properties. The code in `fInvoicingMain.pas` names
+the data file, opens the system and the datasets, and fills an empty database.
 
 `BoldModel1` holds the model in the form file, as in a Delphi data module, so
 the handles' OCL expressions are checked against it as soon as the form is
@@ -74,8 +76,8 @@ name in the list until then.
 
 **New invoice** makes a draft for the selected customer, through the model's
 business method `Customer.NewInvoice`, and gives it its first line, ready to
-be typed in; the next lines are added with **Add line**. The lines of a draft are edited in the
-lines grid, a plain `TDBGrid` on a `TBoldDataSet`:
+be typed in; the next lines are added with **Add line**. The lines of a draft
+are edited in the lines grid, a plain `TDBGrid` on a `TBoldDataSet`:
 
 - typing in a cell changes the line; the derived columns of the line, the
   invoice and the customer follow. A field is written to the object when it
@@ -120,10 +122,10 @@ bin/InvoicingLCL      # the client
 ```
 
 `build.sh` builds for the Qt5 widgetset, on Windows for win32;
-`LCL_WS=gtk2 ./build.sh` chooses another. The project requires the packages `Bold` and `BoldLCL`
-(`packages\Lazarus`), which lazbuild compiles first, and compiles its
-own units in the mode `delphiunicode` (Project Options, Custom Options:
-`-Mdelphiunicode`).
+`LCL_WS=gtk2 ./build.sh` chooses another. The project requires the packages
+`Bold` and `BoldLCL` (`packages\Lazarus`), which lazbuild compiles first, and
+compiles its own units in the mode `delphiunicode` (Project Options, Custom
+Options: `-Mdelphiunicode`).
 
 On the first run, filling the empty data file raises six `EBold` exceptions
 on purpose: the scenario checks that the model refuses a payment on a draft
@@ -145,10 +147,10 @@ same button, with the same editor as an FMX dialog.
 walks every customer and invoice, checks what the grids are bound to and that
 the LCL environment drains Bold's display queue, picks another customer for
 an invoice in the combo box as a user does, makes a new invoice and edits its
-lines through the grid's dataset, posts it, writes
-the checks to `InvoicingLCL.selftest.txt` and exits with the number of failed
-checks. A `TDBGrid` counts only the rows it paints, and it paints nothing
-without a window, so the row checks read the dataset behind each grid.
+lines through the grid's dataset, posts it, writes the checks to
+`InvoicingLCL.selftest.txt` and exits with the number of failed checks. A
+`TDBGrid` counts only the rows it paints, and it paints nothing without a
+window, so the row checks read the dataset behind each grid.
 
 ## Not yet
 

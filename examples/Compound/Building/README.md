@@ -11,7 +11,8 @@ demonstrates exactly one thing.
 
 ## Running it
 
-Open `BldOwn.dpr`. There is no `.dproj`, so the IDE will create one.
+Open `BldOwn.dpr`. There is no `.dproj`, so the IDE will create one. It is a VCL
+application, so it runs on Windows only.
 
 This demo needs a database and there is no `.ini` file; the connection settings
 live in `Datamod.dfm`. As shipped, `BoldPersistenceHandleDB1.DatabaseAdapter`
@@ -138,8 +139,9 @@ moves in. The homelessness rule cannot, because a half-finished edit will
 legitimately violate it; it only has to hold at the moment the changes are
 written, so it runs pre-update.
 
-The grids have `BoldShowConstraints` set, so a violated constraint is visible in
-the row rather than only raised at save time.
+The grids leave `BoldShowConstraints` False. Set it to True and the grid adds a
+column on `constraints->exists(c|not c)` that marks each row with a violated
+constraint.
 
 ## Undo and redo
 
@@ -154,7 +156,7 @@ time. Double-clicking an entry calls `UndoBlock` or `RedoBlock` **by name**, not
 by index, which is how Bold's named undo blocks are meant to be used. A
 `TBoldPlaceableSubscriber` keeps the lists current by subscribing to
 `beUndoChanged`, `beUndoBlock`, `beRedoBlock` and `beUndoSetCheckpoint`, all
-requesting `beUndoChanged`. **Set checkpoint** closes the current block.
+requesting `beUndoChanged`. **Set check point** closes the current block.
 
 ## Auto forms
 
@@ -177,8 +179,8 @@ BoldUMLModelEdit.UMLModelEditor.ShowEditFormForBoldModel(DataModule1.BoldModel1)
 ```
 
 opens the IDE's model editor against the running application's model. The same
-menu also carries **Evolve DB**, **Validate DB structure**, **Validate DB data**
-and **Generate schema**, so the schema half of the design-time tooling is
+menu also carries **Evolve DB**, **Validate DB Structure**, **Validate DB Data**
+and **Generate Schema**, so the schema half of the design-time tooling is
 reachable here too.
 
 ## Logging

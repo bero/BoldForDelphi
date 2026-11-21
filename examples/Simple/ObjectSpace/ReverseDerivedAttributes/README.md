@@ -11,13 +11,17 @@ shows two of those policies and one attribute that deliberately has none.
 
 ## Running it
 
-There is no `.dproj`. Open `BE_ReverseDerivedAttribDemo.dpr` in the IDE and let
-Delphi create one.
+There is no `.dproj`, only `BE_ReverseDerivedAttribDemo.dpr`, a VCL program for
+Windows. Open it in the IDE and let Delphi create a project file.
 
 It needs a database: InterBase through `TBoldDatabaseAdapterIB`, `sysdba` /
 `masterkey`, and **`IBDatabase1.DatabaseName` is empty**, so set it first. Then
 **Create DB** and **Open system**, add a person, and type a full name into the
 first grid column.
+
+The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
+under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
+so put that folder on the unit search path.
 
 `fRDExamMain.dfm` is a binary form file that the repository's
 `*.dfm text eol=crlf` rule inflates on checkout, 13366 bytes against 13306 in
@@ -27,7 +31,8 @@ Restoring it from `HEAD` is NOT enough for this particular file. It is one of
 three binary form files in the repository that also lost a byte permanently when
 line endings were normalised: the original import holds 13307 bytes, and the
 normalising commit collapsed the one genuine `0D 0A` pair inside the binary
-stream to `0A`. Recover it from the import instead:
+stream to `0A`. Recover it from the import instead, from cmd or Git Bash (the
+`>` of Windows PowerShell re-encodes the bytes):
 
 ```
 git show e4dd87f:examples/Delphi/Simple/ObjectSpace/ReverseDerivedAttributes/fRDExamMain.dfm > fRDExamMain.dfm

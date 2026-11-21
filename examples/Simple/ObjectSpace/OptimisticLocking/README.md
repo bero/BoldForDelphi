@@ -10,8 +10,8 @@ cause the collision and then see what the failure gives you to work with.
 
 ## Running it
 
-There is no `.dproj`. Open `BE_OptimisticLocking.dpr` in the IDE and let Delphi
-create one.
+There is no `.dproj`, only `BE_OptimisticLocking.dpr`, a VCL program for
+Windows. Open it in the IDE and let Delphi create a project file.
 
 It needs InterBase, `sysdba` / `masterkey`. Unlike the other demos here the
 database name **is** filled in: both `IBDatabase1` and `IBDatabase2` point at
@@ -20,6 +20,10 @@ each group box.
 
 Then: change the same car's colour in App 1 and in App 2, press **Update
 Database** in App 1, and press it in App 2.
+
+The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
+under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
+so put that folder on the unit search path.
 
 ## Two systems in one process
 
@@ -46,9 +50,11 @@ One tagged value on the model root:
 Bold.OptimisticLocking=Member
 ```
 
-`Member` means the comparison is per member. Two users editing different
-attributes of the same car do not collide; two users editing the same attribute
-do. The alternative settings trade that precision for cheaper bookkeeping.
+`Member` is the old name of `ModifiedMembers`, and Bold still accepts it (see
+`BoldDefaultTaggedValues`). The comparison is per member: two users editing
+different attributes of the same car do not collide; two users editing the same
+attribute do. The other values are `Off`, `AllMembers` (old name `Class`) and
+`TimeStamp`.
 
 ## Handling the failure
 

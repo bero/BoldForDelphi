@@ -10,22 +10,33 @@ is what makes the set of languages editable at runtime rather than compiled in.
 
 ## Running it
 
-There is no `.dproj`, only `BE_MultiLang.dpr`. Open it in Delphi and let the IDE
-create a project file. Persistence is IBX (`TBoldDatabaseAdapterIB`,
-`TBoldIBDatabaseAction`, `TIBDatabase`), whose units live under
-`Source\Deprecated\Persistance\IBX` and are in no current Bold package, so put
-that folder on the unit search path.
+There is no `.dproj`, only `BE_MultiLang.dpr`, a VCL program for Windows. Open
+it in Delphi and let the IDE create a project file. Persistence is IBX
+(`TBoldDatabaseAdapterIB`, `TBoldIBDatabaseAction`, `TIBDatabase`); the two Bold
+units live under `Source\Deprecated\Persistance\IBX` and are in no current
+Bold package, so put that folder on the unit search path.
 
-`IBDatabase1` has credentials but **no `DatabaseName`** - set it, then press
+`MainForm.dfm` is a binary form file, and the copy in the repository is
+damaged: the commit that normalised line endings collapsed two genuine `0D 0A`
+pairs inside it, so it is 28007 bytes against 28009 in the original import, and
+the `*.dfm text eol=crlf` rule inflates it further on checkout. Restoring it
+from `HEAD` is not enough. Recover it from the import, from cmd or Git Bash
+(the `>` of Windows PowerShell re-encodes the bytes):
+
+```
+git show e4dd87f:examples/Delphi/Simple/GUIControls/MultiLang/MainForm.dfm > MainForm.dfm
+```
+
+`IBDatabase1` has credentials but **no `DatabaseName`**, so set it, then press
 **Create DB** and **Open system**. Opening the system seeds English, Swedish and
-Norweigan, three person categories, two house kinds and a few people and
+`Norweigan` (sic), three person categories, two house kinds and a few people and
 buildings, with Swedish translations written through
 `M_Description.AsStringByLanguage['Swedish']`. Then switch the primary and
 secondary language from the **Language** tab and watch the other two tabs change.
 
 The three `MLTestAttributesD4/D5/D6.dpk` files are Delphi 4, 5 and 6 design-time
-packages requiring `Bold30D4` and `Bold31D6`, neither of which exists here. They
-are historical and are not needed to run the demo.
+packages requiring `Bold30D4`, `Bold31D5` and `Bold31D6`, none of which exists
+here. They are historical and are not needed to run the demo.
 
 ## Telling Bold how languages are modelled
 
@@ -94,9 +105,10 @@ That is the whole reason the renderer exists.
 
 ## A note on ordering
 
-The three value-set list handles pair an ordered expression with a plain one,
-for example `'HouseKindClass.allInstances->orderby(intvalue)'` as `Expression`
-and `'HouseKindClass.allInstances'` as `MutableListExpression`. An `orderBy`
-result is a derived list and cannot be inserted into; `MutableListExpression`
-names the list the navigator should add to instead, which is what keeps the
-insert button working on a sorted grid.
+The three list handles over `LanguageClass`, `HouseKindClass` and
+`PersonCategoryClass` pair an ordered expression with a plain one, for example
+`'HouseKindClass.allInstances->orderby(intvalue)'` as `Expression` and
+`'HouseKindClass.allInstances'` as `MutableListExpression`. An `orderBy` result
+is a derived list and cannot be inserted into; `MutableListExpression` names the
+list the navigator should add to instead, which is what keeps the insert button
+working on a sorted grid.

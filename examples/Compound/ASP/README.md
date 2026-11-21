@@ -10,7 +10,7 @@ the client never learns which. The second endpoint shows the other half of the
 picture, business logic that has to run on the server because that is where the
 objects live.
 
-## Obsolete before you start
+## Status
 
 Nothing here is ASP. There is no `.asp` file in the folder and no scripting
 host involved. The server is a Delphi WebBroker **ISAPI DLL**
@@ -53,6 +53,54 @@ What follows describes what the code does, which is still worth reading.
 The server does **not** use `Common\ModelDM.pas`. `MainWebModule.dfm` carries
 its own `TBoldModel` with its own copy of the model text. The two copies have
 to stay in step by hand.
+
+The demo is Windows only: the server is an ISAPI extension, the client needs a
+registered COM type library, and both executables are VCL. All three `.dproj`
+files target Win32 only.
+
+## How it works
+
+### The persistence endpoint
+
+`TBoldHTTPServerPersistenceHandlePassthrough` is the server end of Bold's
+persistence protocol. The whole web action is three lines:
+
+```pascal
+BoldHTTPServerPersistenceHandlePassthrough1.Get(Request.Content, reply);
+Response.Content := Reply;
+Handled := true;
+```
+
+On the client, `TBoldHTTPClientPersistenceHandle` is the mirror image. It is
+assigned to `BoldSystemHandle1.PersistenceHandle` exactly where a
+`TBoldPersistenceHandleDB` would go, and it posts to a `TBoldWebConnection`.
+That one substitution is the entire client-side change.
+
+### The server keeps a live object space
+
+The passthrough does not sit on the database handle. It sits on a
+`TBoldPersistenceHandleSystem`, which in turn wraps the server's own
+`TBoldSystemHandle`. So the server holds real Bold objects in memory and answers
+client requests out of them. `WebModuleCreate` activates both handles on the
+first request.
+
+That is what makes the second endpoint possible.
+
+### The action endpoint
+
+`TBoldXMLDispatcher` maps an action name in an XML request to an event handler.
+Two are registered:
+
+| Action | What it does |
+| --- | --- |
+| `SaveToDB` | calls `BoldSystemHandle1.UpdateDatabase` on the server's own object space and returns `OK` or the exception message |
+| `ChargeRent` | reads the `Building` parameter as a `TBoldDefaultId`, looks the locator up in `PersistenceControllerSystem.LocatorById`, and calls `ChargeRent` on the object |
+
+The client builds those requests with `TBoldXMLRequest.CreateInitialized` and
+posts them through `TBoldHTTPSOAPService` over the second web connection. Note
+what `btnChargeRentClick` checks first: `anObjectId.IsStorable`. A building
+created in the client but not yet saved has no server-side identity, so the
+demo says so rather than sending a request that cannot resolve.
 
 ## Running it
 
@@ -326,15 +374,16 @@ not as established behaviour.
   around the body of `wmASPServerSOAPCallsAction` is the fix. `/persistence`
   never touches the DOM, so it can work while `/soapcalls` fails - that is not a
   networking problem.
-- **The message box.** `TResidential_Building.ChargeRent` calls `ShowMessage` on
-  eviction, as the notes below say. Inside `w3wp.exe` that blocks the request
-  thread with nobody to dismiss it, so **Charge rent** hangs rather than errors.
+- **The message box.** `TResidential_Building.ChargeRent` calls `ShowMessage`
+  when it evicts a resident who has run out of money. Inside `w3wp.exe` that
+  blocks the request thread with nobody to dismiss it, so **Charge rent** hangs
+  rather than errors.
 
 ## Using another database engine
 
 SQLite is only the default, chosen so the demo needs nothing installed. Bold
 itself speaks a range of dialects - the `TBoldDataBaseEngine` values in
-`Source\PMapper\SQL\BoldSQLDatabaseConfig.pas` are `dbeInterbaseSQLDialect1`,
+`Source\PMapper\SQL\boldsqldatabaseconfig.pas` are `dbeInterbaseSQLDialect1`,
 `dbeInterbaseSQLDialect3`, `dbeGenericANSISQL92`, `dbeSQLServer`, `dbePostgres`,
 `dbeMySQL`, `dbeDBISAM`, `dbeOracle`, `dbeAdvantage`, `dbeParadox` and
 `dbeInformix`.
@@ -367,50 +416,6 @@ before it tries, see `examples\Simple\Tools\OclWorkbench` - it drives the shared
 `examples\Shared\DemoDataModule.pas`, which reads its engine from an ini. This
 ASP demo predates that and uses its own `Common\ModelDM.pas` instead.
 
-## The main idea
-
-### The persistence endpoint
-
-`TBoldHTTPServerPersistenceHandlePassthrough` is the server end of Bold's
-persistence protocol. The whole web action is three lines:
-
-```pascal
-BoldHTTPServerPersistenceHandlePassthrough1.Get(Request.Content, reply);
-Response.Content := Reply;
-Handled := true;
-```
-
-On the client, `TBoldHTTPClientPersistenceHandle` is the mirror image. It is
-assigned to `BoldSystemHandle1.PersistenceHandle` exactly where a
-`TBoldPersistenceHandleDB` would go, and it posts to a `TBoldWebConnection`.
-That one substitution is the entire client-side change.
-
-### The server keeps a live object space
-
-The passthrough does not sit on the database handle. It sits on a
-`TBoldPersistenceHandleSystem`, which in turn wraps the server's own
-`TBoldSystemHandle`. So the server holds real Bold objects in memory and answers
-client requests out of them. `WebModuleCreate` activates both handles on the
-first request.
-
-That is what makes the second endpoint possible.
-
-### The action endpoint
-
-`TBoldXMLDispatcher` maps an action name in an XML request to an event handler.
-Two are registered:
-
-| Action | What it does |
-| --- | --- |
-| `SaveToDB` | calls `BoldSystemHandle1.UpdateDatabase` on the server's own object space and returns `OK` or the exception message |
-| `ChargeRent` | reads the `Building` parameter as a `TBoldDefaultId`, looks the locator up in `PersistenceControllerSystem.LocatorById`, and calls `ChargeRent` on the object |
-
-The client builds those requests with `TBoldXMLRequest.CreateInitialized` and
-posts them through `TBoldHTTPSOAPService` over the second web connection. Note
-what `btnChargeRentClick` checks first: `anObjectId.IsStorable`. A building
-created in the client but not yet saved has no server-side identity, so the
-demo says so rather than sending a request that cannot resolve.
-
 ## Notes
 
 - **Locating the database.** The old `IBDatabase1BeforeConnect` built the path as
@@ -424,9 +429,6 @@ demo says so rather than sending a request that cannot resolve.
   The module handle matters here rather than `Application.ExeName`: inside an
   ISAPI extension the executable is the IIS worker process, so a database
   located relative to the exe would be looked for under `System32\inetsrv`.
-- `TResidential_Building.ChargeRent` calls `ShowMessage` when a resident runs
-  out of money and is evicted. Invoked through `ChargeRent` that message box
-  opens inside the IIS worker process, where nobody can dismiss it.
 - All three projects now have a `.dproj`, and all three are in
   `examples\DelphiExamples.groupproj`. `ASPDemoClient` has to be in the group:
   its main form links to `dmClient`, and opening the form without the project

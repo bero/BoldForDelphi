@@ -10,18 +10,24 @@ settings differently, which is the shortest way to see what each one is for.
 
 ## Running it
 
-There is no `.dproj`, only `BE_ComboBox.dpr`. Open it in Delphi and let the IDE
-create a project file. The persistence chain is IBX
-(`TBoldDatabaseAdapterIB`, `TBoldIBDatabaseAction`, `TIBDatabase`); those units
-live under `Source\Deprecated\Persistance\IBX` and belong to no current Bold
-package, so add that folder to the unit search path.
+There is no `.dproj`, only `BE_ComboBox.dpr`, a VCL program for Windows. Open
+it in Delphi and let the IDE create a project file. The persistence chain is IBX
+(`TBoldDatabaseAdapterIB`, `TBoldIBDatabaseAction`, `TIBDatabase`); the two Bold
+units live under `Source\Deprecated\Persistance\IBX` and belong to no current
+Bold package, so add that folder to the unit search path.
+
+`fMain.dfm` is a binary form file that the repository's `*.dfm text eol=crlf`
+rule inflates on checkout (13660 bytes against 13598 in the object store), so
+it will not stream until you restore it with `git show HEAD:<path> > <path>`,
+run from cmd or Git Bash (the `>` of Windows PowerShell re-encodes the bytes).
 
 `IBDatabase1` has `user_name=sysdba` and `password=masterkey` but **no
-`DatabaseName`** - fill it in first. Then press **Create DB** and **Open
-system**. On `OnSystemOpened` the form reads `Food.txt` and `School.txt` from
-the working directory and creates one object per line, so the drop-downs are not
-empty. Press **Add** under Person to create people; `TPerson.CompleteCreate`
-in `ComboBoxClasses.inc` gives each a random name.
+`DatabaseName`**, so fill it in first. Then press **Create DB** and **Open
+system**. On `OnSystemOpened` the form fills an empty `Food` or `School` class
+from `Food.txt` and `School.txt` in the working directory, one object per line,
+and saves, so the drop-downs are not empty. Press **Add** under Person to create
+people; `TPerson.CompleteCreate` in `ComboBoxClasses.inc` gives each a random
+name.
 
 ## The four combo boxes
 
@@ -86,5 +92,5 @@ Raggae and Rap.
 `BoldListBox1`, `blstFood` and `blstSchool` are `TBoldListBox` controls with
 `BoldRowProperties.Expression = 'name'` over `blhPerson`, `blhFood` and
 `blhSchool`. The **Add** and **Delete** buttons next to Food and School call
-`List.AddNew` and `Delete` on those handles, so you can watch the drop-downs
-follow along without touching the combos.
+`List.AddNew` on those handles and `Delete` on their current object, so you can
+watch the drop-downs follow along without touching the combos.

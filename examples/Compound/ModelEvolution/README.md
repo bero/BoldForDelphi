@@ -15,24 +15,26 @@ full below.
 | --- | --- | --- |
 | `ModelEv_v1` | `Version1\` | the old application, model version 1 |
 | `ModelEv_v2` | `Version2\` | the new application, model version 2, plus an **Evolve DB** button |
-| `BatchUpgrader` | `Version2\` | a headless upgrader that walks the database in batches |
+| `BatchUpgrader` | `Version2\` | an upgrader with a small control window that walks the database in batches |
 
-`Common\` holds the three units all of them share: `dSystem` (the system handle
-and the Bold actions), `dSystemTypeInfo`, and `fBatchUpgraderGui`. Each version
-has its own `dModel`, `dPersistence`, `ModelEvClasses`, `fStart` and `fMain`.
+`Common\` holds three shared units: `dSystem` (the system handle and the Bold
+actions), used by both applications; `dSystemTypeInfo`, used by all three; and
+`fBatchUpgraderGui`, the window of `BatchUpgrader`. Each version has its own
+`dModel`, `dPersistence`, `ModelEvClasses`, `fStart` and `fMain`.
 
-None of the three has a `.dproj`; open the `.dpr` files.
+None of the three has a `.dproj`; open the `.dpr` files. All three are VCL
+programs, so they run on Windows only.
 
 ## Running it, in order
 
-All three point at the same Interbase database, `..\ModelEvolution.gdb`
+All three point at the same InterBase database, `..\ModelEvolution.gdb`
 relative to the version folder, with `user_name=sysdba` / `password=masterkey`
 through a `TBoldDatabaseAdapterIB`. That adapter now lives under
 `Source\Deprecated\Persistance\IBX` and is not in the maintained package set, so
 the search path needs it.
 
-1. Run **ModelEv_v1**. The start dialog offers **Create schema**, **Open system**
-   and **Cancel**. Create the schema, then open the system.
+1. Run **ModelEv_v1**. The start dialog offers **Create DB**, **Open system**
+   and **Cancel**. Create the database, then open the system.
 2. Enter data: persons with a `fullName`, products with a `cost`, orders with a
    `discount`, and order items joining orders to products. **Save and Reload**
    writes and reopens.
@@ -216,13 +218,16 @@ Order** and **Save and Reload**.
 
 `Version2\fMain` is the same form with a fifth grid for `Discount.allInstances`,
 `firstname` and `lastName` columns instead of `fullName`, `costEuro` instead of
-`cost`, a `theDiscount.percent` column titled Discount, and a second button,
+`cost`, a `theDiscount.percent` column titled Discount, and a third button,
 **Connect Current order to Discount**:
 
 ```pascal
 (blhOrders.CurrentBoldObject as TOrder).theDiscount :=
   blhDiscounts.CurrentBoldObject as TDiscount;
 ```
+
+Its other two buttons are captioned **>>** (add to order) and **Save and
+Restart**.
 
 Putting the two side by side is the quickest way to see what the upgrade
 produced.

@@ -12,12 +12,14 @@ either all of them happen or none of them do.
 
 ## Running it
 
-There is no `.dproj`. Open `Transaction.dpr` in the IDE and let Delphi create
-one.
+There is no `.dproj`, only `Transaction.dpr`, a VCL program for Windows. Open it
+in the IDE and let Delphi create a project file.
 
 It needs a database: InterBase through `TBoldDatabaseAdapterIB` on `dmMain`,
 `sysdba` / `masterkey`, and **`IBDatabase1.DatabaseName` is empty**, so set it
-first.
+first. The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`,
+live under `Source\Deprecated\Persistance\IBX` and are in no current Bold
+package, so put that folder on the unit search path.
 
 `TfrmStart` runs modally before the main form: **Create** schema, **Open**
 system (`ModalResult` 1) or **Cancel**, and the main form is only created if

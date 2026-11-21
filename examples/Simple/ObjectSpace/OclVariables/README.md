@@ -10,8 +10,8 @@ altogether.
 
 ## Running it
 
-There is no `.dproj`. Open `BE_OclVariables.dpr` in the IDE and let Delphi
-create one.
+There is no `.dproj`, only `BE_OclVariables.dpr`, a VCL program for Windows.
+Open it in the IDE and let Delphi create a project file.
 
 It needs a database: InterBase through `TBoldDatabaseAdapterIB`, `sysdba` /
 `masterkey`, and **`IBDatabase1.DatabaseName` is empty**, so set it first. Then
@@ -19,10 +19,14 @@ It needs a database: InterBase through `TBoldDatabaseAdapterIB`, `sysdba` /
 the VAT box. The label says what to watch: *Change this value and see the value
 'Retail Price' recalculate.*
 
-`MainForm.dfm` is a binary form file that the repository's
-`*.dfm text eol=crlf` rule inflates on checkout (8867 bytes against 8825 in the
-object store), so it will not stream until you restore it with
-`git show HEAD:<path> > <path>`.
+The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
+under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
+so put that folder on the unit search path.
+
+`MainForm.dfm` is a binary form file that the repository's `*.dfm text eol=crlf`
+rule inflates on checkout (8867 bytes against 8825 in the object store), so it
+will not stream until you restore it with `git show HEAD:<path> > <path>`. Run
+that from cmd or Git Bash; the `>` of Windows PowerShell re-encodes the bytes.
 
 ## The one idea
 
@@ -67,7 +71,7 @@ end;
 
 ## The same problem solved differently
 
-`DerivedAttributes` next door produces the same retail price from a derived
+[`DerivedAttributes`](../DerivedAttributes/README.md) next door produces the same retail price from a derived
 model attribute, with `global_VAT` registered through
 `System.Evaluator.DefineVariable` instead of a DFM component. The models are
 almost identical, which makes the pair a fair comparison. A variable list is

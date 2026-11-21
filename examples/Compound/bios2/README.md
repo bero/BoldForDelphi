@@ -15,15 +15,19 @@ each way. Pressing both and noticing the difference is the whole demo.
 | `AccountServer.dpr` | the COM server: the model, the database, a console window, and a plain COM service object |
 | `AccountServerClient.dpr` | a four-control client |
 
-Neither has a `.dproj`; open the `.dpr` files.
+Neither has a `.dproj`; open the `.dpr` files. COM makes the demo Windows only,
+and both sides are VCL. The client's `TBoldSystemHandleCom` and
+`TBoldListHandleCom` live in `Source\ClientHandlesCom`, which no package in
+`packages\` includes.
 
 ## Running it
 
 1. Build and run **AccountServer.exe**. `server\ServerCode.pas` registers it as
    `BoldServer`, class id `{5BC282A9-970A-4DE1-8644-2EB4465000FC}`.
 2. On the console: **Create DB**, then **Open system**. The database is
-   Interbase, `bios2.gdb`, behind a `TBoldDatabaseAdapterIB`, which lives under
+   InterBase, `bios2.gdb`, behind a `TBoldDatabaseAdapterIB`, which lives under
    `Source\Deprecated\Persistance\IBX` and is not in the maintained package set.
+   The **Create DB** action, `TBoldIBDatabaseAction`, lives there too.
 3. Use the navigator to create accounts. Each new account gets a random number
    and a random credit from `CompleteCreate`. Create a few hundred if you want
    the two buttons on the client to feel different. **Update DB**.
@@ -38,9 +42,9 @@ One class.
 | --- | --- |
 | `Account` | `Number: String`, `Credit: Integer`, `Total: Integer` |
 
-`TAccount.CompleteCreate` builds a number by appending random three-digit groups
+`TAccount.CompleteCreate` builds a number by appending random numbers below 900
 until it is at least six characters long, then sets `Credit` to a random value
-between 100 and 90100 and copies it into `Total`.
+from 100 to 90099 and copies it into `Total`.
 
 `AccountClasses.inc` also holds `ReceiveQueryFromOwned` and `MayDelete`
 overrides that do nothing but call `inherited`. They are generated stubs that
@@ -50,7 +54,7 @@ were never filled in.
 
 ### Navigate the object space remotely
 
-`client\FMain.pas`, **Fetch accounts**. The client has a `TBoldListHandleCom` on
+`client\FMain.pas`, **Fetch Accounts from server**. The client has a `TBoldListHandleCom` on
 
 ```
 Account.allInstances
@@ -72,8 +76,8 @@ expected.
 
 ### Call a service object
 
-**Validate**. The server also publishes an ordinary COM object that is not part
-of the object space at all:
+**Validate using account validator service**. The server also publishes an
+ordinary COM object that is not part of the object space at all:
 
 ```pascal
 obj := DM.ClientObjectHandle.ComObject;

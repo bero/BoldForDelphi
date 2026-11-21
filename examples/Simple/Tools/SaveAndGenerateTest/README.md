@@ -15,11 +15,18 @@ from a build script or a migration tool.
 
 ## Running it
 
-1. Build with the **Debug** configuration.
+1. Build `TestSaveAndGenerate.dproj` with the **Debug** configuration for Win64
+   (the project still has Win32, which compiles but is no longer tested). It is
+   a VCL program, so it runs on Windows.
 2. Edit `TestSaveAndGenerate.ini` if you want a database. The last step needs
-   one; everything before it works without.
-3. Run, and press the buttons top to bottom, or **Save and Generate All** to run
-   the whole pipeline in order.
+   one; everything before it works without. The shipped file selects SQL Server
+   (`Type=MSSQL`, database `BoldDemo`); the keys are described in
+   [Database configuration](../../../../docs/examples/index.md#database-configuration).
+   The database must exist already: the last step does not create it, and its
+   log tells you to create it with the
+   [Master-Detail](../../ObjectSpace/MasterDetail/README.md) demo.
+3. Run, and press the numbered buttons top to bottom, or **Save and Generate
+   All** to run the whole pipeline in order.
 
 The log pane timestamps every step and names every file path it wrote, so
 nothing happens that you cannot see.
@@ -43,12 +50,13 @@ all the demos in this repository share one model file.
 
 ### 3. Generate the business classes
 
-`TBoldGenerator` turns the model into Delphi source. Two settings are worth
-noticing in `GenerateCode`:
+`TBoldGenerator` turns the model into Delphi source. `GenerateCode` sets one
+property and makes two calls worth noticing:
 
-| Setting | Effect |
+| Member | Effect |
 | --- | --- |
-| `UseTypedLists` | generates a typed list class per class, so `TPersonList` instead of a bare `TBoldObjectList` |
+| `UseTypedLists := True` | generates a typed list class per class, so `TPersonList` instead of a bare `TBoldObjectList` |
+| `GenerateBusinessObjectCode` | writes the business-class units |
 | `EnsureMethodImplementations` | adds empty bodies for methods the model declares but the code does not implement yet |
 
 `EnsureMethodImplementations` is the one that makes regeneration safe to repeat.
@@ -72,6 +80,8 @@ is worth knowing before you rely on it.
 
 ### 5. Detect schema changes and evolve
 
+The button for this step is **5. Generate SQL**.
+
 The demo creates a `TBoldModelChangeTracker` at startup and captures the model
 as a baseline. After generation it captures the model again and asks
 `RequiresSqlEvolution` whether anything changed that the database would care
@@ -87,7 +97,7 @@ there is no database handle, or when the database does not exist yet.
 
 ## The model editor
 
-**Model Editor** opens `UMLModelEditor.EnsureFormForBoldModel`, the same model
+**Change Model** opens `UMLModelEditor.EnsureFormForBoldModel`, the same model
 editor form the IDE hosts, inside this plain VCL application. Edit the model
 there, close it, then run the pipeline to see your change propagate through all
 five steps.
@@ -109,7 +119,7 @@ ordinary runtime code, not an IDE plugin.
 | File | What it holds |
 | --- | --- |
 | `TestSaveAndGenerate.dpr` | creates the shared data module before the form |
-| `TestMainForm.pas` | the five steps, one private method each |
+| `TestMainForm.pas` / `.dfm` | the five steps, one private method each |
 | `TestSaveAndGenerate.ini` | persistence type and connection settings |
 
 The model, the generated classes and the data module live in

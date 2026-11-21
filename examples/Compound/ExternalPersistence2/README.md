@@ -44,9 +44,10 @@ folder.
 3. Press **Open system**.
 4. Closing the window runs **Update DB**.
 
-No BDE is involved, which makes this the more revivable of the two demos: it
-needs an InterBase or Firebird server and the old demo database, nothing else
-that has been withdrawn.
+No BDE component is involved, which makes this the more revivable of the two
+demos: it needs an InterBase or Firebird server and the old demo database,
+nothing else that has been withdrawn. The uses clause still names BDE units;
+see **Notes**.
 
 ## The main idea
 
@@ -141,9 +142,10 @@ persistence declaration differs, which is the point the pair of demos is making.
 
 ## Notes
 
-- `dMain.pas` still lists `BoldDatabaseAdapterBDE` and `BoldPersistenceHandleIB`
-  in its uses clause although neither component is on the data module. Both live
-  in `Source/Deprecated/Persistance`.
+- `dMain.pas` still lists `DBTables`, `BoldDatabaseAdapterBDE` and
+  `BoldPersistenceHandleIB` in its uses clause although no component from them
+  is on the data module. `DBTables` is the BDE's VCL unit; the two Bold units
+  live in `Source/Deprecated/Persistance`.
 - The Bold side uses `TBoldDatabaseAdapterIB` and IBX, from
   `Source/Deprecated/Persistance/IBX`.
 - The two `TIBDatabase` components run at different SQL dialects, 1 for the

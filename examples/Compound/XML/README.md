@@ -16,8 +16,10 @@ ask.
 | `XMLDispatcher.dpr` | VCL application, also a COM server | owns the budget model, the database, and a `TBoldXMLDispatcher` with two actions |
 | `WebApplicationDll.dpr` | ISAPI library | receives HTTP, builds an XML request, calls the COM server, applies `Budget.xsl`, returns HTML |
 
-`XMLDispatcher` is the only project in `examples\Compound` with a real `.dproj`
-(Win32, Debug and Release).
+`XMLDispatcher` has a `.dproj` (Win32 only, Debug and Release) with no unit
+search path, so Bold's source folders have to be on the IDE's library path.
+`WebApplicationDll` has only the `.dpr`. COM and ISAPI make the demo Windows
+only.
 
 ## Running it
 
@@ -25,14 +27,17 @@ ask.
    the class id `{DCDA95FC-5719-4A65-B04E-89DE2DCC6DE5}`, name
    `XMLDispatcher.XMLDispatcher`, through `TBoldComServerConnectionFactory` in
    `ServerCode.pas`.
-2. The database is Interbase. `BoldAppDataModUnit.dfm` names it
+2. The database is InterBase. `BoldAppDataModUnit.dfm` names it
    `XMLDISPATCHER.GDB`, and `IBDatabase1BeforeConnect` rewrites that at runtime
-   into `localhost:<exe directory>XMLDISPATCHER.GDB`. Press **Create DB**, then
-   **Open system**. The IBX adapter is under `Source\Deprecated\Persistance\IBX`
-   and is not in the maintained package set.
+   into `'localhost:' + GetModuleFileNameAsString(True) + 'XMLDISPATCHER.GDB'`.
+   `GetModuleFileNameAsString(True)` includes the exe's own file name, so the
+   path comes out as `...\XMLDispatcher.exeXMLDISPATCHER.GDB`; it needs
+   `ExtractFilePath` around it. Press **Create DB**, then **Open system**. The
+   IBX adapter is under `Source\Deprecated\Persistance\IBX` and is not in the
+   maintained package set.
 3. Create budgets, rows and columns from the popup menu on each grid, then press
-   **Create cells** to fill in the grid of cells, and **Update DB**.
-4. Type a budget name into the edit box and press the button next to it. The
+   **Create Cells** to fill in the grid of cells, and **Update DB**.
+4. Type a budget name into the edit box and press **Get XML** next to it. The
    memo fills with the raw XML that the dispatcher would return, which is the
    fastest way to see what the producer emits without involving a web server.
 5. For the browser half, deploy `WebApplicationDll.dll` to a web server and put
@@ -56,8 +61,9 @@ Budget.ACell[colnum, rownum]
 ```
 
 which is how `AddRow` and `CreateCells` look a cell up by position rather than
-by searching. A budget also has plain multi-roles `row` and `col`, and each cell
-has single roles to its `Row`, its `Col` and its `Budget`.
+by searching. A budget also has the multi-roles `row` and `col`, through the link
+classes `RowBudget` and `ColBudget`, and each cell has single roles to its
+`Row`, its `Col` and its `Budget`.
 
 `CompleteCreate` on `TBudget` and `TACell` seeds random names and values, so a
 new budget is never empty.
@@ -171,15 +177,15 @@ result as the response content.
   working-draft XSL dialect, not XSLT 1.0. MSXML supports it only in legacy
   modes. The stylesheets in the sibling `XML2` demo use the real
   `http://www.w3.org/1999/XSL/Transform` namespace.
-- The whole XML and COM layer is built on `MSXML_TLB` and Bold's COM object
-  space, both Win32 and both dated.
+- The whole XML and COM layer is built on MSXML and Bold's COM object space.
+  `webModule.pas` and `dmXMLProducerForBudget.pas` use a unit `MSXML_TLB`, which
+  is not in the repository; Bold's own import of the MSXML type library is
+  `Bold_MSXML_TLB`, in `Source\Common\MSXML`.
 - `TdmMain.GetElementById` and `GetIdForElement` in `BoldAppDataModUnit.pas`
   implement a second, hand-rolled id scheme of the form
   `<object id>:<member index>`. Nothing in the demo calls either of them; the
   manipulator does that job. `GetElementById` also creates its
   `TBoldDefaultId` twice, leaking the first one.
-- `__history\` and `__recovery\` folders from the Delphi IDE are checked in
-  alongside the source.
 
 ## Files
 

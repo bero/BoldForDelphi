@@ -1,39 +1,41 @@
 # Bold for Delphi Invoice Tutorial
 
-Welcome! This tutorial teaches you how to build a real-world application using Bold for Delphi, from absolute zero. No prior knowledge of Bold, ORM, or object-oriented databases required.
+This tutorial builds an invoicing application with Bold for Delphi, in five steps, from an empty project. You need
+no earlier knowledge of Bold, ORM or object-oriented databases.
+
+The tutorial is a VCL application for Delphi on Windows. It uses the Bold-aware VCL controls (`TBoldGrid`,
+`TBoldEdit`, `TBoldNavigator`, `TBoldLabel`), which exist only for the VCL. For FireMonkey (FMX) or Lazarus (LCL),
+which bind through `TBoldDataSet` instead, start from the Invoicing example's
+[FMX](../Compound/Invoicing/FMX/README.md) or [LCL](../Compound/Invoicing/LCL/README.md) client.
 
 ## What You Will Learn
 
-This five-step tutorial guides you through building an Invoice Management System:
-
 1. **Step 1**: Create a model and set up a Bold project
 2. **Step 2**: Build a Customer CRUD interface (Create, Read, Update, Delete)
-3. **Step 3**: Add Invoices and learn about relationships between objects
+3. **Step 3**: Add invoices and learn about associations between objects
 4. **Step 4**: Write OCL expressions to query and calculate data
-5. **Step 5**: Model inheritance (Company/PrivatePerson) and lookup tables (VAT rates)
+5. **Step 5**: Model inheritance (Company and PrivatePerson) and a lookup class (VAT rates)
 
 By the end, you will understand:
 
-- How Bold models represent real-world concepts as objects
-- How the BoldSystem acts as an in-memory object database
+- How a Bold model represents real-world concepts as classes
+- How the object space (the `TBoldSystem`) holds your objects in memory
 - How to connect UI components to Bold objects without writing data-binding code
 - How OCL expressions replace SQL for querying objects
-- How Bold automatically tracks changes and writes to the database
-- How inheritance maps to the database and enables polymorphic queries
-- How lookup/reference classes work with derived attributes that navigate associations
+- How Bold tracks changes and writes them to the database
+- How inheritance maps to the database and how OCL queries a class hierarchy
+- How a derived attribute can navigate an association to a lookup class
 
 ## Prerequisites
 
-- **Delphi 12+** with VCL (Visual Component Library)
-- **Bold for Delphi** installed and compiled in your Delphi IDE
-- **SQLite** (included in FireDAC, no separate install needed)
-- Basic Delphi knowledge (how to create a form, drop components on a form, add event handlers)
-
-If you have never used Bold before, that is fine. This tutorial expects no prior ORM or Bold experience.
+- **Delphi 12.3 Athens or 13.1 Florence** on Windows, with the Bold design package `dclBold` installed
+  (`packages/Delphi12.3` or `packages/Delphi13`). See [Installation](../../docs/getting-started/installation.md).
+- **SQLite** through FireDAC. FireDAC brings the SQLite driver, so there is nothing else to install.
+- Basic Delphi knowledge: create a form, drop components on it, add event handlers.
 
 ## The Domain Model
 
-The tutorial teaches you to build this simple three-class model:
+Steps 1 to 4 use this three-class model:
 
 ```
  ╔═══════════════════╗         ╔═════════════════════╗        ╔═════════════════════╗
@@ -41,22 +43,20 @@ The tutorial teaches you to build this simple three-class model:
  ╠═══════════════════╣         ╠═════════════════════╣        ╠═════════════════════╣
  ║ Name       String ║         ║ InvoiceNumber  Int  ║        ║ Description String  ║
  ║ Address    String ║         ║ InvoiceDate   Date  ║        ║ Quantity       Int  ║
- ║ City       String ║ 1     * ║ DueDate       Date  ║ 1    * ║ UnitPrice Currency  ║
+ ║ City       String ║ 0..1  * ║ DueDate       Date  ║ 0..1 * ║ UnitPrice Currency  ║
  ║ Phone      String ╠═════════╣ IsPaid     Boolean  ╠════════╣ /LineTotal Currency ║
  ║ Email      String ║invoices ║ /TotalAmt  Currency ║ items  ║                     ║
  ╚═══════════════════╝         ╚═════════════════════╝        ╚═════════════════════╝
 ```
 
-![Tutorial domain model in Bold Model Editor](images/step1-model-editor.png)
-*The three-class Invoice model as it appears in the Bold Model Editor*
-
 **Reading the diagram:**
 
-- The `═══` lines are **associations** (relationships). `1` and `*` show multiplicity: one customer has many (`*`) invoices
-- The role names (`invoices`, `items`) are how you navigate in code
-- `/` prefix marks **derived attributes** — Bold calculates them automatically via OCL
+- The `═══` lines are **associations**. The multiplicities say that a customer has any number (`*`) of invoices
+  and an invoice has at most one (`0..1`) customer.
+- The role names (`invoices`, `items`) are how you navigate from one class to the other.
+- The `/` prefix marks a **derived attribute**: Bold calculates it from an OCL expression.
 
-**Navigating in code** — forward (one→many) returns a list, backward (many→one) returns a single object:
+**Navigating in code**: the "many" end gives a list, the "one" end a single object:
 
 ```pascal
 MyCustomer.Invoices          // list of invoices for this customer
@@ -67,136 +67,150 @@ MyInvoice.Items              // list of line items
 MyItem.Invoice               // the invoice this item belongs to
 ```
 
-## Building the Tutorial Steps
+## Running the Steps
 
-Each step is a standalone Delphi project. Build them using the PowerShell script:
+Each step is a Delphi project of its own, with the finished form. To run one:
 
-```powershell
-C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1 -Projectfile "examples\Tutorial\Step1_NewProject\Step1.dproj" -VerboseOutPut
-```
+1. Open the step's `.dproj` in Delphi, for example `Step1_NewProject\Step1.dproj`.
+2. Choose the **Win64** target platform. Win32 still compiles but is no longer tested.
+3. Press F9.
 
-Replace `Step1_NewProject\Step1.dproj` with `Step2_CustomerCRUD\Step2.dproj`, `Step3_Invoices\Step3.dproj`, `Step4_OclExpressions\Step4.dproj`, or `Step5_InheritanceVAT\Step5.dproj` as needed.
+The projects find Bold's sources through relative search paths (`..\..\..\Source\...`), so keep them where they
+are in the repository.
 
-If the script is not available on your system, you can build manually in the Delphi IDE:
-1. Open the .dproj file in Delphi
-2. Press F9 to compile and run
+## Two Ways to Learn
+
+**Build it yourself (recommended)**: each step's README tells you how to create the model, the data module and the
+forms yourself, in the Bold model editor and the Delphi IDE. You understand every piece because you built it.
+Design the classes in the model editor, generate the code, then build the UI.
+
+**Use the finished files as the answer key**: the `Shared/` folder holds the finished model, generated classes and
+data module of Steps 1 to 4, and each step folder holds the finished form. Compare your work with them at any point,
+or run them to skip ahead.
 
 ## Shared Files
 
-All steps share these files in the `Shared/` folder:
+Steps 1 to 4 share these files in `Shared/`:
 
-- **InvoiceClasses.pas** and **InvoiceClasses_Interface.inc** — Auto-generated Bold domain classes (Customer, Invoice, InvoiceItem) and their attributes/associations
-- **InvoiceDataModule.pas** — The BoldSystem, persistence, and database connection setup
+- **InvoiceModel.bld**: the model as a `.bld` file
+- **InvoiceClasses.pas** and **InvoiceClasses_Interface.inc**: the business classes Bold generated from the model
+  (`TCustomer`, `TInvoice`, `TInvoiceItem`)
+- **InvoiceDataModule.pas** and **.dfm**: the model component, the system handle, the persistence and the database
+  connection
 
-The tutorial teaches you to create the model that generates InvoiceClasses. If you prefer to skip the model creation step, you can use the pre-built classes in `Shared/` and focus on learning how to build UIs on top of Bold.
+Step 5 extends the model, so it has its own data module (`Step5DataModule`) and its own generated
+`InvoiceClasses.pas`.
 
 ## Database Setup
 
-Each step uses its own SQLite database file:
-
-- Step 1: `Step1.db`
-- Step 2: `Step2.db`
-- Step 3: `Step3.db`
-- Step 4: `Step4.db`
-- Step 5: `Step5.db`
-
-These files are in the same directory as the executable and are created automatically on first run. You can delete them to start fresh. The database schema is created automatically from the Bold model.
+Each step uses its own SQLite database file, `Step1.db` to `Step5.db`. The file name comes from the step's `.ini`
+file (`[SQLite] Database=`). Both lie in the step folder, next to the executable. On the first run the data module
+creates the file and Bold creates the tables from the model. Delete the `.db` file to start again with an empty
+database.
 
 ## Step Overview
 
 ### Step 1: New Project Setup
-Learn what a BoldSystem is, how to create a UML model, how persistence works, and how Bold auto-creates database tables. This step is mostly setup; the form just shows that the system opens and connects to the database.
 
-**Key Components**: BoldModel, BoldSystem, BoldSystemHandle, Persistence, Database
+What the object space is, how to create a UML model, how persistence works, and how Bold creates the database
+tables. This step is mostly setup; its form only shows that the system opens and connects to the database.
+
+**Key components**: `TBoldModel`, `TBoldSystemTypeInfoHandle`, `TBoldSystemHandle`, `TBoldPersistenceHandleDB`,
+`TBoldDatabaseAdapterFireDAC`
 
 **Read**: [`Step1_NewProject/README.md`](Step1_NewProject/README.md)
 
 ### Step 2: Customer CRUD
-Build a complete UI for managing customers. Learn about TBoldListHandle, TBoldGrid, TBoldNavigator, and TBoldEdit. Understand how Bold objects stay synchronized across UI components.
 
-**Key Components**: TBoldListHandle, TBoldGrid, TBoldNavigator, TBoldEdit
+A complete UI for managing customers with `TBoldListHandle`, `TBoldGrid`, `TBoldNavigator` and `TBoldEdit`, and
+how Bold keeps the controls in step with the objects.
+
+**Key components**: `TBoldListHandle`, `TBoldGrid`, `TBoldNavigator`, `TBoldEdit`
 
 **Read**: [`Step2_CustomerCRUD/README.md`](Step2_CustomerCRUD/README.md)
 
-![Step 2 Customer CRUD](images/step2-form.png)
-*Step 2: A complete customer management UI built with zero SQL*
-
 ### Step 3: Invoices and Associations
-Add Invoices and learn how Bold models relationships between objects. Build a master-detail UI using handle chaining: select a customer to see their invoices, select an invoice to see its items.
 
-**Key Components**: Handle chaining, Master-Detail relationships, Derived attributes
+How Bold models relationships between objects. A master-detail UI through handle chaining: select a customer to see
+its invoices, select an invoice to see its items. The first derived attributes.
+
+**Key concepts**: associations, handle chaining, derived attributes
 
 **Read**: [`Step3_Invoices/README.md`](Step3_Invoices/README.md)
 
 ### Step 4: OCL Expressions
-Write Object Constraint Language (OCL) expressions to filter, aggregate, and calculate data. Learn BoldLabel for dynamic read-only text that updates automatically.
 
-**Key Components**: OCL select, collect, sum, BoldLabel, Dynamic expressions
+OCL expressions that filter, aggregate and calculate, and `TBoldLabel` for read-only text that updates by itself.
+
+**Key concepts**: `select`, `collect`, `sum`, `size`, `TBoldLabel`
 
 **Read**: [`Step4_OclExpressions/README.md`](Step4_OclExpressions/README.md)
 
-![Step 4 OCL Dashboard](images/step4-dashboard.png)
-*Step 4: Live-updating dashboard with OCL-driven labels and filtered lists*
+### Step 5: Inheritance and VAT
 
-### Step 5: Inheritance & VAT
-Extend the model with class inheritance (Customer becomes a base class for Company and PrivatePerson) and a lookup table (VATRate). Learn how Bold maps inheritance to a single database table, how to create specific subtypes, and how derived attributes can navigate associations to calculate VAT amounts.
+The model grows: `Customer` becomes an abstract base class of `Company` and `PrivatePerson`, and a lookup class
+`VATRate` arrives. How Bold stores a class hierarchy in the database, how to create objects of a given subclass, and
+how a derived attribute navigates an association to calculate the VAT amount.
 
-**Key Concepts**: Inheritance, Table-Per-Hierarchy, Abstract classes, Lookup classes, Association navigation in derived attributes
+**Key concepts**: inheritance, abstract classes, lookup classes, association navigation in derived attributes
 
 **Read**: [`Step5_InheritanceVAT/README.md`](Step5_InheritanceVAT/README.md)
 
-## Important Notes
-
-### Two Ways to Learn
-
-**Build from scratch (recommended)**: Each step's README guides you through creating the model, data module, and forms yourself using the Bold Model Editor and Delphi IDE. This is the best way to learn — you understand every piece because you built it.
-
-**Use the pre-built files as reference**: The `Shared/` folder contains completed versions of the model, generated classes, and data module. Each step folder contains the completed form. These serve as the **answer key** — compare your work against them at any point, or use them directly if you want to skip ahead.
-
-If you are new to Bold, we strongly recommend building from scratch. The Model Editor instructions teach the correct mental model: design your objects in the UML editor, generate code, then build UI.
-
 ## What Happens Inside Bold
 
-When you interact with a UI component (like TBoldGrid):
+When you work with a Bold-aware control such as `TBoldGrid`:
 
-1. You type in a cell or click a button
-2. The component updates a Bold object in memory
-3. Bold tracks that the object is "dirty" (has unsaved changes)
-4. When you call `UpdateDatabase`, Bold generates SQL INSERT/UPDATE statements
-5. The database is updated in a single transaction
+1. You type in a cell or click a button.
+2. The control changes a Bold object in memory.
+3. Bold marks the object as **dirty** (it has unsaved changes).
+4. When you call `UpdateDatabase`, Bold generates the SQL INSERT, UPDATE and DELETE statements.
+5. The database is updated in a single transaction.
 
-From the Delphi side, you don't write SQL. You just manipulate objects like normal Delphi instances, and Bold handles all the database persistence.
+You do not write SQL. You work with objects like ordinary Delphi instances, and Bold handles the persistence.
 
 ## What's Next
 
-After completing all five steps, you will be ready to:
+After the five steps you can:
 
-- Build your own applications from scratch using the Model Editor
-- Read the Bold wiki and example projects
-- Understand OCL well enough to write complex queries
-- Handle associations, inheritance, and constraints in your models
-- Use Bold's undo/redo and subscription system for advanced features
+- Build your own applications with the model editor
+- Read the other examples in this repository
+- Write OCL queries of your own
+- Model associations, inheritance and constraints
+- Explore Bold's undo/redo and subscription system
 
 ## Troubleshooting
 
-### Database file not found or locked
-Delete the .db file (e.g., Step1.db) and re-run. Bold will create a fresh database.
-
 ### "Unit 'Bold...' not found"
-Make sure Bold for Delphi packages are installed in your Delphi IDE. Open `packages/Delphi12.3/dclBold.dpk` (or the appropriate version) and click "Install".
+
+The step projects find Bold's units through relative search paths. If you moved a project out of the repository,
+or you build a project of your own, put Bold's source folders on its search path, as
+[Installation, Step 3](../../docs/getting-started/installation.md#step-3-let-your-projects-find-bolds-source)
+describes. Copying the search path of a step project is the easiest way.
+
+### The Bold components are missing from the Tool Palette
+
+Install the design package: open `packages/Delphi12.3/dclBold.dproj` (or `packages/Delphi13/dclBold.dproj` for
+Delphi 13), build it, then right-click the package in the Projects pane and choose **Install**. See
+[Installation, Step 2](../../docs/getting-started/installation.md#step-2-build-and-install-the-design-time-package).
 
 ### Form or model file missing
-Each step has its own .dproj file and form. Make sure you are opening the correct project. Do not mix Step 1 and Step 2 source files.
 
-### SQLite database locked during execution
-Close all instances of the application before rebuilding. SQLite does not allow concurrent writers.
+Each step has its own `.dproj` and form. Make sure you open the right project, and do not mix the source files of
+different steps.
+
+### Database file locked, or an error after a model change
+
+Close every running instance of the step before you rebuild it; SQLite allows only one writer at a time. The data
+module creates the tables only when the database has none, so after a change to the model, delete the step's `.db`
+file and run again.
 
 ## Resources
 
+- **Documentation**: https://bero.github.io/BoldForDelphi/
 - **Bold for Delphi Wiki**: https://delphi.fandom.com/wiki/Bold_for_Delphi
 - **Bold Blog**: http://boldfordelphi.blogspot.com/
-- **Discord Community**: https://discord.gg/C6frzsn
-- **This Project on GitHub**: https://github.com/BoldForDelphi/BoldForDelphi
+- **Discord**: https://discord.gg/C6frzsn
+- **GitHub**: https://github.com/bero/BoldForDelphi
 
 ---
 

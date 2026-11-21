@@ -1,16 +1,40 @@
 # Bold Log Bridge Example
 
-This example demonstrates how to integrate Bold's logging system with your application's existing logging infrastructure.
+This example shows how to send Bold's log messages to the logging system your
+application already has.
 
-## The Problem
+## Running it
 
-Bold framework has internal logging calls (`BoldLog(...)`) for diagnostics, warnings, and errors. Your application likely has its own logging system (file logger, database logger, etc.). You want Bold's log messages to appear in your application's logs alongside your own messages.
+Open `LogBridgeDemo.dproj` in Delphi and run it. It is a console program that
+uses only `BoldLogInterfaces` and `BoldLogSinks`; the project enables only the
+Win32 platform so far. It registers the built-in `TBoldFileLogSink`, writes a
+few messages at different levels, narrows the sink to errors and back, and
+writes everything to `LogBridgeDemo.log` in the working directory. It then
+waits for Enter.
 
-## The Solution
+The demo program does not use `BoldAppLogSink.pas`. That unit is the bridge
+sink to copy into your own project, as described below.
 
-Bold uses an interface-based logging system with pluggable "sinks". A sink is any class that implements `IBoldLogSink` and receives log messages. You can register multiple sinks simultaneously.
+## The problem
 
-### How It Works
+Bold has its own log: `BoldLog(...)` and `BoldLogManager` in
+`BoldLogInterfaces`. Inside the framework, `BoldLogException` (unit
+`BoldExceptionTrace`) writes exceptions with their call stacks to it (#130),
+and your own code can write to it as well. Your application likely has its own
+logging system (file logger, database logger, etc.), and you want Bold's
+messages to appear there alongside your own.
+
+`BoldThreadSafeLog` has a `BoldLog` of its own, a plain file logger that the
+propagator uses. It has nothing to do with sinks, so mind which unit comes last
+in a `uses` clause that names both.
+
+## The solution
+
+Bold's log is interface based, with pluggable "sinks". A sink is any class that
+implements `IBoldLogSink` and receives log messages. You can register several
+sinks at the same time.
+
+### How it works
 
 ```
 Your Application Code          Bold Framework Code
@@ -25,9 +49,10 @@ Your Application Code          Bold Framework Code
 +------------------------------------------+
 ```
 
-By creating a custom sink that forwards Bold's messages to your logging system, all logs end up in the same place.
+By creating a custom sink that forwards Bold's messages to your logging system,
+all logs end up in the same place.
 
-## Creating a Custom Sink
+## Creating a custom sink
 
 Implement the `IBoldLogSink` interface:
 
@@ -46,6 +71,9 @@ type
     function GetLevels: TBoldLogLevels;
     procedure SetLevels(Value: TBoldLogLevels);
     function GetName: string;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
+    property Levels: TBoldLogLevels read GetLevels write SetLevels;
+    property Name: string read GetName;
   end;
 
 procedure TMyAppLogSink.WriteLog(const Msg: string; Level: TBoldLogLevel;
@@ -73,7 +101,7 @@ begin
 end;
 ```
 
-## Log Levels
+## Log levels
 
 Bold defines these log levels:
 
@@ -85,34 +113,45 @@ Bold defines these log levels:
 | `llWarning` | Warning conditions |
 | `llError` | Error conditions |
 
-You can filter which levels your sink receives:
+You can filter which levels a sink receives. The built-in sinks start with
+`DefaultBoldLogLevels` (info, warning and error), so trace and debug messages
+are dropped until you widen the set:
 
 ```pascal
 Sink.Levels := [llWarning, llError];  // Only warnings and errors
-Sink.Levels := AllBoldLogLevels;       // Everything
+Sink.Levels := AllBoldLogLevels;      // Everything
 ```
 
-## Multiple Sinks
+## Multiple sinks
 
-You can register multiple sinks for different purposes:
+You can register several sinks for different purposes:
 
 ```pascal
-// Log everything to file
-BoldLogManager.RegisterSink(TBoldFileLogSink.Create('bold.log'));
+// Log everything to a file
+var FileSink: IBoldLogSink := TBoldFileLogSink.Create('bold.log');
+FileSink.Levels := AllBoldLogLevels;
+BoldLogManager.RegisterSink(FileSink);
 
-// Also send errors to your app's main log
-var AppSink := TMyAppLogSink.Create;
+// Also send errors to your application's main log
+var AppSink: IBoldLogSink := TMyAppLogSink.Create;
 AppSink.Levels := [llError];
 BoldLogManager.RegisterSink(AppSink);
 ```
 
-## Files in This Example
+Declare the variables as `IBoldLogSink`, not as the class: the sinks are
+reference counted.
 
-- `BoldAppLogSink.pas` - Example sink implementation
-- `LogBridgeDemo.dpr` - Console demo showing the concept
-- `LogBridgeDemo.dproj` - Delphi project file
+## Files in this example
 
-## See Also
+| File | What it holds |
+| --- | --- |
+| `BoldAppLogSink.pas` | `TBoldAppLogSink`, an example bridge sink to copy into your project |
+| `LogBridgeDemo.dpr` | the console demo, with the built-in file sink |
+| `LogBridgeDemo.dproj` | the Delphi project |
 
-- `Source/Common/Logging/BoldLogInterfaces.pas` - Interface definitions
-- `Source/Common/Logging/BoldLogSinks.pas` - Built-in sink implementations
+## See also
+
+- [`boldloginterfaces.pas`](../../../Source/Common/Logging/boldloginterfaces.pas)
+  (unit `BoldLogInterfaces`): `IBoldLogSink`, `BoldLogManager`, `BoldLog`
+- [`boldlogsinks.pas`](../../../Source/Common/Logging/boldlogsinks.pas)
+  (unit `BoldLogSinks`): the file, console, debug and memory sinks

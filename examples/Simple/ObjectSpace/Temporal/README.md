@@ -10,18 +10,23 @@ document; everyone else sees the last version the author published.
 
 ## Running it
 
-**This demo needs a licence.** `FormCreate` opens with a message box saying so:
-*This example needs a deployment key for Object Versioning Extension. If you
-miss the key request it in the License Manager found in the About box.* Without
-that key the versioning behaviour is not available, and the demo is worth
-reading rather than running.
+`FormCreate` opens with a message box left over from the commercial Boldsoft
+product: *This example needs a deployment key for Object Versioning Extension.
+If you miss the key request it in the License Manager found in the About box.*
+Bold for Delphi is MIT licensed now, there are no deployment keys, and nothing
+in `Source` checks for one. Close the box and go on.
 
-There is no `.dproj`. Open `DocVersions.dpr` in the IDE and let Delphi create
-one. It needs InterBase through `TBoldDatabaseAdapterIB` on `dmMain`, `sysdba`
-/ `masterkey`, and **`IBDatabase1.DatabaseName` is empty**, so set it first.
-Then **Create DB**, **Open system**, and create a user with the button, because
+There is no `.dproj`, only `DocVersions.dpr`, a VCL program for Windows. Open it
+in the IDE and let Delphi create a project file. It needs InterBase through
+`TBoldDatabaseAdapterIB` on `dmMain`, `sysdba` / `masterkey`, and
+**`IBDatabase1.DatabaseName` is empty**, so set it first. Then **Create DB**,
+**Open system**, and create a user with the button, because
 `TDocument.CompleteCreate` stamps the author from the current user and there
 must be one.
+
+The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
+under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
+so put that folder on the unit search path.
 
 ## What is versioned
 
