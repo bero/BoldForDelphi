@@ -57,7 +57,8 @@ uses
   BoldSystemHandle,
   BoldModel,
   BoldPersistenceHandleFileXML,
-  BoldDataSet;
+  BoldDataSet,
+  BoldLogInterfaces;
 
 type
   TfrmInvoicingMain = class(TForm)
@@ -111,6 +112,9 @@ type
     FDatabase: string;
     FSelfTest: Boolean;
     FSelfTestException: Boolean;
+    // Bold's log in <program>.log, which gets the exceptions with their
+    // call stacks (#130)
+    FLogSink: IBoldLogSink;
     { What Edit OCL opens with: the expression of the last OK }
     FOclExpression: string;
     // A TInvoice; the model's classes are not named in the interface
@@ -122,6 +126,7 @@ type
     procedure ShowStatus;
     procedure Settle;
     procedure SelfTestException(Sender: TObject; E: Exception);
+    procedure AppException(Sender: TObject; E: Exception);
   public
     { Checks what the grids are bound to, as the lpr's --selftest describes,
       and returns the number of failed checks, or 100 after an exception }
@@ -146,6 +151,8 @@ implementation
 uses
   Dialogs,
   BoldQueue,
+  BoldLogSinks,
+  BoldExceptionTrace,
   BoldOclExpressionCheck,
   BoldOclExpressionDialogLCL,
   BoldEnvironment,
@@ -254,6 +261,14 @@ begin
   end
   else
     FDatabase := ChangeFileExt(ParamStr(0), '.xml');
+  if not FSelfTest then
+  begin
+    // Exceptions go to <program>.log next to the program with their call
+    // stacks (#130), then to the user
+    FLogSink := TBoldFileLogSink.Create(ChangeFileExt(ParamStr(0), '.log'));
+    BoldLogManager.RegisterSink(FLogSink);
+    Application.OnException := AppException;
+  end;
   SelfTestTrace('form created; database ' + FDatabase);
   OpenData;
   SelfTestTrace('system open');
@@ -278,6 +293,8 @@ end;
 
 procedure TfrmInvoicingMain.FormDestroy(Sender: TObject);
 begin
+  if Assigned(FLogSink) then
+    BoldLogManager.UnregisterSink(FLogSink);
   Application.OnIdle := nil;
   Application.RemoveAsyncCalls(Self);
   // The form would free its components in the order of the form file, the
@@ -511,7 +528,7 @@ end;
 
 procedure TfrmInvoicingMain.SelfTestException(Sender: TObject; E: Exception);
 begin
-  SelfTestTrace('EXCEPTION ' + E.ClassName + ': ' + E.Message);
+  SelfTestTrace('EXCEPTION ' + BoldExceptionReport(E));
   FSelfTestException := True;
 end;
 
@@ -531,10 +548,23 @@ begin
   until GetTickCount64 - Start > 300;
 end;
 
+procedure TfrmInvoicingMain.AppException(Sender: TObject; E: Exception);
+begin
+  BoldLogException(E, ExtractFileName(ParamStr(0)));
+  Application.ShowException(E);
+end;
+
+{ Raises for the self-test's check of the call stack }
+procedure RaiseForTheSelfTest;
+begin
+  raise Exception.Create('raised for the self-test');
+end;
+
 function TfrmInvoicingMain.RunSelfTest: Integer;
 var
   Log: TStringList;
   Failures: Integer;
+  Report: string;
 
   procedure Check(const AWhat: string; APassed: Boolean; const AActual: string);
   begin
@@ -907,6 +937,17 @@ begin
 
     CheckTheOclEditor;
     CheckEditingTheLines;
+    // The report of an exception (#130)
+    Report := '';
+    try
+      RaiseForTheSelfTest;
+    except
+      on E: Exception do
+        Report := BoldExceptionReport(E);
+    end;
+    // Free Pascal's own frames, with line information from -gl
+    Check('the report of an exception names the routine that raised it',
+      Pos('RAISEFORTHESELFTEST', UpperCase(Report)) > 0, Report);
     Log.Add(IntToStr(Failures) + ' failed');
     SelfTestTrace(Log.Text);
   finally

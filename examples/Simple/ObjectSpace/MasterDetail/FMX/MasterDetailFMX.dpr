@@ -14,6 +14,9 @@ program MasterDetailFMX;
   number of failed checks. }
 
 uses
+  {$IFDEF BOLD_STACKER}
+  Stacker, // the optional stack-trace provider (#130), first so that its hooks are in place
+  {$ENDIF}
   System.StartUpCopy,
   System.SysUtils,
   FMX.Forms,

@@ -53,6 +53,7 @@ uses
   BoldHandles,
   BoldListHandle,
   BoldDataSet,
+  BoldLogInterfaces,
   dmMasterDetail;
 
 type
@@ -104,6 +105,9 @@ type
     FDatabase: string;
     FSelfTest: Boolean;
     FSelfTestException: Boolean;
+    // Bold's log in <program>.log, which gets the exceptions with their
+    // call stacks (#130)
+    FLogSink: IBoldLogSink;
     procedure OpenData;
     procedure SystemOpened;
     procedure OpenDataSets;
@@ -114,6 +118,7 @@ type
     procedure ShowStatus;
     procedure Settle;
     procedure SelfTestException(Sender: TObject; E: Exception);
+    procedure AppException(Sender: TObject; E: Exception);
   public
     { Drives the form as a user would, through its navigators, datasets and
       buttons, checks what the grids show, and returns the number of failed
@@ -145,6 +150,8 @@ uses
   FMX.DialogService,
   FMX.DialogService.Sync,
   BoldQueue,
+  BoldLogSinks,
+  BoldExceptionTrace,
   BoldSystem,
   DemoClasses;
 
@@ -196,6 +203,14 @@ begin
   end
   else
     FDatabase := ChangeFileExt(ParamStr(0), '.db');
+  if not FSelfTest then
+  begin
+    // Exceptions go to <program>.log next to the program with their call
+    // stacks (#130), then to the user
+    FLogSink := TBoldFileLogSink.Create(ChangeFileExt(ParamStr(0), '.log'));
+    BoldLogManager.RegisterSink(FLogSink);
+    Application.OnException := AppException;
+  end;
   SelfTestTrace('form created; database ' + FDatabase);
   OpenData;
   SelfTestTrace('system open');
@@ -217,6 +232,8 @@ end;
 
 procedure TfrmMasterDetailMain.FormDestroy(Sender: TObject);
 begin
+  if Assigned(FLogSink) then
+    BoldLogManager.UnregisterSink(FLogSink);
   Application.OnIdle := nil;
   // Details before masters, datasets before their handles, all before the system
   FreeAndNil(bdsTasks);
@@ -368,7 +385,7 @@ end;
 procedure TfrmMasterDetailMain.SelfTestException(Sender: TObject; E: Exception);
 begin
   // No Halt: the dpr frees the form before Bold's units are finalized
-  SelfTestTrace('EXCEPTION ' + E.ClassName + ': ' + E.Message);
+  SelfTestTrace('EXCEPTION ' + BoldExceptionReport(E));
   FSelfTestException := True;
 end;
 
@@ -385,10 +402,23 @@ begin
   ShowStatus;
 end;
 
+procedure TfrmMasterDetailMain.AppException(Sender: TObject; E: Exception);
+begin
+  BoldLogException(E, ExtractFileName(ParamStr(0)));
+  Application.ShowException(E);
+end;
+
+{ Raises for the self-test's check of the call stack }
+procedure RaiseForTheSelfTest;
+begin
+  raise Exception.Create('raised for the self-test');
+end;
+
 function TfrmMasterDetailMain.RunSelfTest: Integer;
 var
   Log: TStringList;
   Failures: Integer;
+  Report: string;
 
   procedure Check(const AWhat: string; APassed: Boolean; const AActual: string);
   begin
@@ -566,6 +596,23 @@ begin
       (bdsProjectTasks.State = dsBrowse) and (grdProjects.RowCount = 0) and not FData.BoldSystem.BoldDirty,
       Format('state %d, %d projects', [Ord(bdsProjectTasks.State), grdProjects.RowCount]));
 
+    // The report of an exception (#130)
+    Report := '';
+    try
+      RaiseForTheSelfTest;
+    except
+      on E: Exception do
+        Report := BoldExceptionReport(E);
+    end;
+    // With Stacker linked it names the routine that raised it; without a
+    // provider it gives the address
+    {$IFDEF BOLD_STACKER}
+    Check('the report of an exception names the routine that raised it (Stacker)',
+      Pos('RAISEFORTHESELFTEST', UpperCase(Report)) > 0, Report);
+    {$ELSE}
+    Check('the report of an exception gives where it was raised (no provider)',
+      Pos('Raised at $', Report) > 0, Report);
+    {$ENDIF}
     Check('no exception in the event loop', not FSelfTestException, BoolToStr(FSelfTestException, True));
   except
     on E: Exception do

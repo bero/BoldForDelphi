@@ -67,6 +67,7 @@ uses
   BoldHandles,
   BoldListHandle,
   BoldDataSet,
+  BoldLogInterfaces,
   dmInvoicing;
 
 type
@@ -126,6 +127,9 @@ type
     FDatabase: string;
     FSelfTest: Boolean;
     FSelfTestException: Boolean;
+    // Bold's log in <program>.log, which gets the exceptions with their
+    // call stacks (#130)
+    FLogSink: IBoldLogSink;
     FFollowQueued: Boolean;
     // A TInvoice; the model's classes are not named in the interface
     FInvoiceToFollow: TObject;
@@ -139,6 +143,7 @@ type
     procedure ShowStatus;
     procedure Settle;
     procedure SelfTestException(Sender: TObject; E: Exception);
+    procedure AppException(Sender: TObject; E: Exception);
   public
     { Checks what the grids show, as the dpr's --selftest describes, and
       returns the number of failed checks, or 100 after an exception }
@@ -168,6 +173,8 @@ uses
   {$ENDIF}
   FMX.DialogService,
   BoldQueue,
+  BoldLogSinks,
+  BoldExceptionTrace,
   BoldOclExpressionCheck,
   BoldOclExpressionDialogFMX,
   InvoicingClasses,
@@ -225,6 +232,14 @@ begin
   end
   else
     FDatabase := ChangeFileExt(ParamStr(0), '.db');
+  if not FSelfTest then
+  begin
+    // Exceptions go to <program>.log next to the program with their call
+    // stacks (#130), then to the user
+    FLogSink := TBoldFileLogSink.Create(ChangeFileExt(ParamStr(0), '.log'));
+    BoldLogManager.RegisterSink(FLogSink);
+    Application.OnException := AppException;
+  end;
   SelfTestTrace('form created; database ' + FDatabase);
   OpenData;
   SelfTestTrace('system open');
@@ -254,6 +269,8 @@ end;
 
 procedure TfrmInvoicingMain.FormDestroy(Sender: TObject);
 begin
+  if Assigned(FLogSink) then
+    BoldLogManager.UnregisterSink(FLogSink);
   Application.OnIdle := nil;
   FInvoiceToFollow := nil;
   // Details before masters, datasets before their handles, all before the system
@@ -602,7 +619,7 @@ end;
 procedure TfrmInvoicingMain.SelfTestException(Sender: TObject; E: Exception);
 begin
   // No Halt: the dpr frees the form before Bold's units are finalized
-  SelfTestTrace('EXCEPTION ' + E.ClassName + ': ' + E.Message);
+  SelfTestTrace('EXCEPTION ' + BoldExceptionReport(E));
   FSelfTestException := True;
 end;
 
@@ -618,10 +635,23 @@ begin
   until TThread.GetTickCount - Start > 300;
 end;
 
+procedure TfrmInvoicingMain.AppException(Sender: TObject; E: Exception);
+begin
+  BoldLogException(E, ExtractFileName(ParamStr(0)));
+  Application.ShowException(E);
+end;
+
+{ Raises for the self-test's check of the call stack }
+procedure RaiseForTheSelfTest;
+begin
+  raise Exception.Create('raised for the self-test');
+end;
+
 function TfrmInvoicingMain.RunSelfTest: Integer;
 var
   Log: TStringList;
   Failures: Integer;
+  Report: string;
 
   procedure Check(const AWhat: string; APassed: Boolean; const AActual: string);
   begin
@@ -1063,6 +1093,23 @@ begin
       grdCustomers.Cells[1, bdsCustomers.RecNo - 1] = Customer.Name, grdCustomers.Cells[1, bdsCustomers.RecNo - 1]);
     CheckTheOclEditor;
     CheckEditingTheLines;
+    // The report of an exception (#130)
+    Report := '';
+    try
+      RaiseForTheSelfTest;
+    except
+      on E: Exception do
+        Report := BoldExceptionReport(E);
+    end;
+    // With Stacker linked it names the routine that raised it; without a
+    // provider it gives the address
+    {$IFDEF BOLD_STACKER}
+    Check('the report of an exception names the routine that raised it (Stacker)',
+      Pos('RAISEFORTHESELFTEST', UpperCase(Report)) > 0, Report);
+    {$ELSE}
+    Check('the report of an exception gives where it was raised (no provider)',
+      Pos('Raised at $', Report) > 0, Report);
+    {$ENDIF}
     Log.Add(Format('%d failed', [Failures]));
     SelfTestTrace(Log.Text);
   finally

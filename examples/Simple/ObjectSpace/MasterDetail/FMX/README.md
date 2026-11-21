@@ -81,6 +81,18 @@ through the grids' datasets, saves, opens the system again, clears and drops,
 checks what the grids show, writes the checks to
 `MasterDetailFMX.selftest.txt` and exits with the number of failed checks.
 
+## Exceptions and their call stacks
+
+An exception that reaches the application's exception handler goes to
+`MasterDetailFMX.log` next to the program, with its call stack, and is then shown
+(`BoldExceptionTrace`, #130; see `docs/concepts/logging.md`). Without a
+stack-trace provider the log gives the address the exception was raised at,
+which `MasterDetailFMX.map` resolves. When the environment variable `STACKER` points to
+a checkout of [Stacker](https://codeberg.org/sivv/stacker), the project links
+it, and the frames name the routines: with line and file on Windows, from
+DWARF without lines on Linux64. Without `STACKER` the project builds as
+before. The self-test checks the report of one exception either way.
+
 ## Files
 
 | File | What it holds |

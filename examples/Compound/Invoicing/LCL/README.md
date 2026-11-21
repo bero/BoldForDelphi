@@ -152,6 +152,15 @@ lines through the grid's dataset, posts it, writes the checks to
 `TDBGrid` counts only the rows it paints, and it paints nothing without a
 window, so the row checks read the dataset behind each grid.
 
+## Exceptions and their call stacks
+
+An exception that reaches the application's exception handler goes to
+`InvoicingLCL.log` next to the program, with its call stack, and is then shown
+(`BoldExceptionTrace`, #130; see `docs/concepts/logging.md`). The project is
+compiled with `-gl`, so the frames name routine, line and file. The self-test
+writes the call stack of an unexpected exception to its log and checks the
+report of one.
+
 ## Not yet
 
 - The form file was written to match what the components write, and checked

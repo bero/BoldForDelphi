@@ -23,7 +23,8 @@ uses
   FireDAC.ConsoleUI.Wait,
   dmInvoicing in '..\Data\dmInvoicing.pas' {dmInvoicing: TDataModule},
   InvoicingClasses in '..\Model\InvoicingClasses.pas',
-  InvoicingScenario in '..\Tests\InvoicingScenario.pas';
+  InvoicingScenario in '..\Tests\InvoicingScenario.pas',
+  BoldExceptionTrace;
 
 var
   Failures: Integer = 0;
@@ -92,7 +93,8 @@ begin
   except
     on E: Exception do
     begin
-      Writeln(E.ClassName, ': ', E.Message);
+      // The class, the message and the call stack (#130)
+      Writeln(BoldExceptionReport(E));
       ExitCode := 1;
     end;
   end;

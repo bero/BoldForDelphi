@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The model editor's clients write their exceptions with call stacks to a log
   file next to the program; the FMX client uses Stacker as its provider when
   the environment variable `STACKER` points to a checkout of it (#130).
+- So do the examples' clients (Invoicing LCL and FMX, Master-Detail FMX), the
+  FMX ones with the same optional Stacker; the Invoicing console runner prints
+  the call stack of an exception that stops it (#130).
 - Lazarus packages in `packages/Lazarus` (#117): `Bold.lpk`, the
   framework-neutral runtime that builds with Free Pascal; `BoldLCL.lpk` with
   `BoldEnvironmentLCL`, the LCL twin of `BoldEnvironmentVCL`; and
