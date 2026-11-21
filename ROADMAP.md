@@ -1,13 +1,10 @@
 # Bold for Delphi Roadmap
 
-This roadmap outlines the development direction for Bold for Delphi. It is a living document that evolves based on community feedback and contributions.
-
-**Current Version**: 26.9.1
-**Status**: Active Development
+This roadmap outlines the development direction for Bold for Delphi. It is a living document that evolves based on community feedback and contributions. What each release contained is in the [Changelog](https://bero.github.io/BoldForDelphi/changelog/).
 
 ## Vision
 
-Make Bold for Delphi a modern, well-documented, and reliable ORM framework for Delphi developers who value model-driven architecture.
+Make Bold a modern, well-documented and reliable model-driven framework and ORM for Object Pascal developers, in Delphi and in Lazarus, on Windows, Linux and macOS.
 
 ## Status Legend
 
@@ -18,7 +15,9 @@ Make Bold for Delphi a modern, well-documented, and reliable ORM framework for D
 | Planned | Scheduled for future release |
 | Considering | Under evaluation |
 
-## 1. Delphi Version Support
+## 1. Platforms and Toolchains
+
+### Delphi versions
 
 | Status | Version |
 |--------|---------|
@@ -29,6 +28,19 @@ Make Bold for Delphi a modern, well-documented, and reliable ORM framework for D
 
 **Goal**: Support each new Delphi version within 30 days of release.
 
+### Cross-platform
+
+| Status | Item |
+|--------|------|
+| Done | Framework-neutral runtime: the object space, OCL, handles and persistence build without the VCL (#117) |
+| Done | Lazarus / Free Pascal: runtime packages `Bold`, `BoldLCL`, `BoldZeos` and design-time packages `dclBold`, `dclBoldZeos` (#117) |
+| Done | Free Pascal test suite on Linux and Windows, run by GitHub Actions on every push (#117) |
+| Done | FireMonkey clients through `TBoldDataSet` and LiveBindings (#117) |
+| Done | Delphi on Linux64: FMX (through FmxLinux), console programs and the test suite (#117) |
+| In Progress | Standalone model editor with LCL and FMX clients, `Tools/ModelEditor` (#128) |
+| Planned | macOS (#127) |
+| Planned | Bold-aware user interface components for FMX and LCL |
+
 ## 2. Documentation
 
 | Status | Item |
@@ -38,7 +50,7 @@ Make Bold for Delphi a modern, well-documented, and reliable ORM framework for D
 | Done | About dialog in IDE |
 | Done | Changelog |
 | Done | Documentation website (GitHub Pages + MkDocs) |
-| Planned | Complete API reference |
+| In Progress | API reference: class guides, plus the class reference converted from the Bold 4.0 help |
 | Planned | OCL language reference |
 | Planned | Component reference guide |
 | Planned | Video tutorials |
@@ -57,7 +69,8 @@ Make Bold for Delphi a modern, well-documented, and reliable ORM framework for D
 | Done | XML | File-based |
 | In Progress | FireDAC | MySQL |
 | In Progress | FireDAC | MariaDB |
-| Done | UniDAC | SQL Server and SQLite (optional: UniDAC is commercial; the adapter tests run on both engines) |
+| Done | UniDAC | SQL Server, SQLite and PostgreSQL (optional: UniDAC is commercial) |
+| Done | Zeos (Free Pascal) | SQLite and PostgreSQL |
 
 ### Planned Improvements
 
@@ -72,11 +85,12 @@ Make Bold for Delphi a modern, well-documented, and reliable ORM framework for D
 |--------|------|
 | Done | DUnitX test framework migration |
 | Done | Code coverage reporting with DelphiCodeCoverage |
-| Done | Adapter x engine test matrix (`UnitTest\run_matrix.ps1`: FireDAC and UniDAC on SQLite and SQL Server) |
+| Done | Adapter x engine test matrix (`UnitTest\run_matrix.ps1`: FireDAC and UniDAC on SQLite, SQL Server and PostgreSQL) |
+| Done | Memory checks: FastMM4 FullDebugMode for Delphi, heaptrc for Free Pascal |
 | In Progress | Increase code coverage |
 | In Progress | Performance benchmarks (id-list SQL benchmarks exist) |
-| Considering | Automated CI builds (GitHub Actions) |
-| Considering | Automated test runs on pull requests |
+| Done | GitHub Actions: the Free Pascal suite on every push and pull request, on Linux and Windows, SQLite and PostgreSQL |
+| Considering | Delphi builds and tests in CI |
 
 ### Code Coverage Progress
 
@@ -108,6 +122,9 @@ Make Bold for Delphi a modern, well-documented, and reliable ORM framework for D
 | Done | MasterDetail demo (basic CRUD) |
 | Done | XML persistence demo |
 | Done | LogBridge demo (logging integration) |
+| Done | Five-step tutorial (`examples/Tutorial`) |
+| Done | Invoicing example with FMX, LCL and console clients |
+| Done | A README for every example |
 | In Progress | Building/Person demo (associations) |
 | Planned | REST API integration example |
 | Planned | Real-world application template |
@@ -159,31 +176,17 @@ Make Bold for Delphi a modern, well-documented, and reliable ORM framework for D
 |--------|------|
 | Done | GitHub repository with issue tracking |
 | Done | Discord community |
-| Planned | Contribution guidelines |
+| Done | Contribution guidelines |
 | Planned | Issue templates for bugs/features |
 | Considering | boldfordelphi.org domain |
 
 ## How to Contribute
 
-1. **Report issues** - Use GitHub Issues for bugs and feature requests
-2. **Submit PRs** - Fork the repo and submit pull requests
-3. **Documentation** - Help improve docs and examples
-4. **Testing** - Report compatibility issues with different databases/Delphi versions
-5. **Spread the word** - Blog posts, conference talks, social media
+See [Contributing](https://bero.github.io/BoldForDelphi/contributing/).
 
 ## Release History
 
-| Version | Date | Highlights |
-|---------|------|------------|
-| 26.9.1 | 2026-09-16 | Win64 DPM packages for Delphi 12 and 13, ASP example ported to FireDAC and SQLite, HTTP transport sends bytes not characters, OCL workbench demo, OCL Explorer off DevExpress |
-| 26.9.0 | 2026-09-06 | `collect(role)` in PS evaluation, UseBatchQueries fixed on both adapters, FireDAC PMCreate corruption fix, UniDAC leak fixes, package managers |
-| 26.8.1 | 2026-08-16 | Parameterized ID-list SQL for SQL Server, read-transaction fix, SQL parameter logging |
-| 26.8.0 | 2026-08-03 | XML roundtrip tests for OLW nodes and conditions |
-| 26.1.0 | 2026-01-06 | Oracle support in the persistence mappers |
-| 25.12.1 | 2025-12-30 | SQLite and Firebird support in the MasterDetail demo |
-| 25.12.0 | 2025-12-22 | Delphi 13 support, improved examples, documentation |
-| 25.10.0 | 2025-11-01 | DUnitX migration, code coverage |
-| 4.0.1.0 | 2004-04-23 | Original Boldsoft release |
+See the [Changelog](https://bero.github.io/BoldForDelphi/changelog/).
 
 ## Feedback
 

@@ -4,8 +4,9 @@ Tag scheme: `Year.Month.build`, **unpadded** (e.g. 26.8.1 -> next 26.8.2 or 26.9
 Never zero-pad the month (Boss/semver rejects leading zeros).
 
 ## Build & release
-- [ ] CHANGELOG.md updated (docs/changelog.md includes it, do not edit that file); grep docs for stale
-      "Current Version" lines (docs/index.md, ROADMAP.md) and add the release to the ROADMAP.md history table
+- [ ] CHANGELOG.md updated (docs/changelog.md includes it, do not edit that file). It is the only
+      version history: README.md, docs/index.md and ROADMAP.md link to it instead of naming the version.
+      Move finished items in ROADMAP.md to Done
 - [ ] Build the 3 design packages for **Win32** (auto-named since LIBSUFFIX AUTO):
       `dclBold280.bpl` (11.3), `dclBold290.bpl` (12.x), `dclBold370.bpl` (13) -> `packages/Bin`
 - [ ] Win64 is not part of the release build: 12.3 and 13 can build it (-> `packages/Bin64`),

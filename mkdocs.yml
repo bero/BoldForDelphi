@@ -1,5 +1,5 @@
 site_name: Bold for Delphi
-site_description: Documentation for Bold for Delphi - Model-Driven Architecture (MDA) and ORM Framework
+site_description: Documentation for Bold for Delphi, the model-driven framework and ORM for Delphi and Lazarus
 site_url: https://bero.github.io/BoldForDelphi/
 repo_url: https://github.com/bero/BoldForDelphi
 repo_name: bero/BoldForDelphi
@@ -75,7 +75,7 @@ nav:
     - Persistence: concepts/persistence.md
     - Subscriptions: concepts/subscriptions.md
     - Logging: concepts/logging.md
-  - API Reference:
+  - Class Guides:
     - classes/index.md
     - Core Classes:
       - TBoldElement: classes/TBoldElement.md
@@ -127,13 +127,14 @@ nav:
     - development/index.md
     - Unit Testing: development/testing.md
     - Codecov Setup: development/codecov.md
+    - Parallel SQL (proposal): development/parallel-sql-execution.md
   - Resources:
     - FAQ: faq.md
     - Roadmap: roadmap.md
     - Changelog: changelog.md
     - Contributing: contributing.md
 # BEGIN generated reference nav
-  - Reference:
+  - Class Reference:
     - reference/index.md
     - BoldAbstractListHandle:
       - Overview: reference/BoldAbstractListHandle/index.md

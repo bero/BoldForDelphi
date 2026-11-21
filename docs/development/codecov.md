@@ -16,13 +16,8 @@ $env:CODECOV_TOKEN = "your-token-here"
 .\UnitTest\run_coverage.ps1 -Upload
 ```
 
-### Flags
-
-| Flag | Description |
-|------|-------------|
-| `-SkipBuild` | Skip compilation, use existing UnitTest.exe |
-| `-OpenReport` | Open HTML report in browser after completion |
-| `-Upload` | Upload coverage to Codecov.io (requires CODECOV_TOKEN) |
+The other options of `run_coverage.ps1`, and what it needs on the machine, are in
+[UnitTest/README.md](https://github.com/bero/BoldForDelphi/blob/develop/UnitTest/README.md#code-coverage).
 
 ## Files
 
@@ -99,10 +94,13 @@ The Codecov JSON format requires line-level data. If you see this error:
 1. Ensure coverage HTML reports exist in `UnitTest/coverage_report/`
 2. Check that source files match paths in the git repository
 
-### Decimal separator issues
+### Decimal separators
 
-The converter uses proper number formatting regardless of system locale.
+The converter writes numbers the same way whatever the Windows locale, so a comma as decimal separator does not
+break the JSON.
 
 ## See Also
 
-- [Unit Testing](testing.md) - Running tests and coverage locally
+- [Unit Testing](testing.md): writing tests
+- [UnitTest/README.md](https://github.com/bero/BoldForDelphi/blob/develop/UnitTest/README.md): running the tests and
+  the coverage locally

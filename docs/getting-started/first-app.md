@@ -1,305 +1,220 @@
 # First Application
 
-This guide walks you through creating your first Bold application - a simple app with **Person** and **Building** objects where persons can own buildings.
+This guide builds a small Bold application from an empty Delphi VCL project: **persons** and the **buildings** they
+own, stored in SQLite. It takes about half an hour and shows every piece a Bold application needs.
 
-!!! tip "Quick Alternative"
-    Want to skip ahead? Open the ready-made example at:
-    `examples\Simple\ObjectSpace\MasterDetail\MasterDetail.dpr`
+!!! tip "Other routes"
+    - To see a finished application first, run the [Quick Start](../quickstart.md) example.
+    - For a longer guided course with explanations, follow the
+      [Tutorial](https://github.com/bero/BoldForDelphi/tree/develop/examples/Tutorial), which builds an invoicing
+      application in five steps.
+    - For FireMonkey or Lazarus, start from the Invoicing example's
+      [FMX](https://github.com/bero/BoldForDelphi/tree/develop/examples/Compound/Invoicing/FMX) or
+      [LCL](https://github.com/bero/BoldForDelphi/tree/develop/examples/Compound/Invoicing/LCL) client: those
+      frameworks bind through `TBoldDataSet` instead of the VCL controls used here.
 
-## Step 1: Create a New VCL Application
+Before you start, [install](installation.md) the Bold package in Delphi.
 
-1. **File → New → VCL Forms Application**
-2. Save the project (e.g., `Building.dproj`)
+## Step 1: Create the project
 
-## Step 2: Add a Data Module
+1. **File → New → Windows VCL Application** and save the project, for example as `Building.dproj`.
+2. Put Bold's source folders on the project's search path, as
+   [Installation, Step 3](installation.md#step-3-let-your-projects-find-bolds-source) describes. Skip this if you
+   installed Bold with a package manager.
 
-1. **File → New → Other → Delphi Files → Data Module**
-2. Save as `DataModule1.pas`
+## Step 2: Add a data module
 
-## Step 3: Add Core Bold Components
+**File → New → Other → Delphi Files → Data Module**, and save it as `DataModule1.pas`. The Bold components that
+are not visual live here, so every form can share them.
 
-Drop these components on your DataModule from the Bold palette:
+## Step 3: Add the Bold components
 
-| Component | Purpose |
-|-----------|---------|
-| `TBoldModel` | Holds your UML model |
-| [`TBoldSystemHandle`](../classes/TBoldSystemHandle.md) | Main runtime system |
-| `TBoldSystemTypeInfoHandle` | Type information for design-time |
-| `TBoldPersistenceHandleDB` | Database persistence |
+Drop these components on the data module:
 
-Connect them:
+| Component | Palette page | Purpose |
+|-----------|--------------|---------|
+| `TBoldModel` | Bold Handles | Holds the UML model |
+| `TBoldSystemTypeInfoHandle` | Bold Handles | The run-time type information built from the model |
+| [`TBoldSystemHandle`](../classes/TBoldSystemHandle.md) | Bold Handles | The object space at run time |
+| `TBoldPersistenceHandleDB` | Bold Persistence | Loads and saves objects through a database adapter |
 
-- `BoldSystemHandle1.BoldModel` → `BoldModel1`
-- `BoldSystemHandle1.PersistenceHandle` → `BoldPersistenceHandleDB1`
+Connect them in the Object Inspector:
+
 - `BoldSystemTypeInfoHandle1.BoldModel` → `BoldModel1`
+- `BoldSystemHandle1.SystemTypeInfoHandle` → `BoldSystemTypeInfoHandle1`
+- `BoldSystemHandle1.PersistenceHandle` → `BoldPersistenceHandleDB1`
+- `BoldPersistenceHandleDB1.BoldModel` → `BoldModel1`
 
-## Step 4: Add Database Connection
+## Step 4: Connect the database
 
-1. Drop a `TFDConnection` (FireDAC) on the DataModule
-2. Drop a `TBoldDatabaseAdapterFireDAC` component
-3. Connect them:
-   - `BoldDatabaseAdapterFireDAC1.Connection` → `FDConnection1`
-   - `BoldPersistenceHandleDB1.DatabaseAdapter` → `BoldDatabaseAdapterFireDAC1`
+1. Drop a `TFDConnection` (FireDAC) on the data module. Set `DriverName` to `SQLite`, set `Params.Database` to a
+   file name such as `Building.db`, and set `LoginPrompt` to `False`. FireDAC creates the file when it first
+   connects.
+2. Drop a `TBoldDatabaseAdapterFireDAC` (page Bold Persistence) and set:
+    - `Connection` → `FDConnection1`
+    - `DatabaseEngine` → `dbeGenericANSISQL92`, the SQL dialect Bold generates for SQLite
+    - under `SQLDatabaseConfig`: `ColumnTypeForText`, `ColumnTypeForUnicodeText` and `ColumnTypeForAnsiText` →
+      `TEXT`, and `ColumnTypeForInt64` → `INTEGER`, SQLite's own column types. This is the setup Bold's tests use.
+3. Set `BoldPersistenceHandleDB1.DatabaseAdapter` → `BoldDatabaseAdapterFireDAC1`.
 
-### Database Configuration
+Another database needs another FireDAC driver and another `DatabaseEngine`;
+[Persistence](../concepts/persistence.md#adapters) lists them. Every database except SQLite also needs its client
+library; see [Troubleshooting](#database-client-libraries) below.
 
-Create an INI file with your database settings. Here are examples for each supported database:
+## Step 5: Create the model
 
-=== "SQLite (Easiest)"
+1. Double-click `BoldModel1` to open the model editor.
+2. Right-click in the tree and choose **New Class**. Bold adds a class called `NewClass`; change its **Name** to
+   `Person`. Right-click the class and choose **New Attribute** for each attribute, and set its **Name** and
+   **Type**:
+    - `FirstName`: String
+    - `LastName`: String
+    - `Assets`: Currency
+3. Add a second class, `Building`, with:
+    - `Address`: String
+    - `ZipCode`: Integer
+4. Right-click the model's package and choose **New Association**. Name it `Ownership`. It has two ends,
+   `AssociationEnd0` and `AssociationEnd1`; select each and set its **Name**, **Class** and **Multiplicity**. The
+   class of an end is the class you reach through it:
 
-    ```ini
-    [Database]
-    Persistence=FireDAC
-    Type=SQLite
+    | End name | Class | Multiplicity |
+    |----------|-------|--------------|
+    | `OwnedBuildings` | Building | `0..*` |
+    | `Owners` | Person | `0..*` |
 
-    [SQLite]
-    Database=BoldDemo.db
-    ```
+    A person then has `OwnedBuildings` and a building has `Owners`.
+5. Choose **File → Save and Generate All**. Bold validates the model, saves it to a `.bld` file (the first time it
+   asks for the file name), and generates the business classes next to the data module: `BusinessClasses.pas` with
+   `BusinessClasses_Interface.inc`, and `BusinessClasses.inc` for the bodies of any methods you add to the model.
+   When the model has a persistence handle, it then asks whether to check the database for schema changes.
+   **Tools → Generate Code** generates the classes without saving a `.bld` file.
 
-    No server installation needed - the database file is created automatically.
+The unit is called `BusinessClasses` unless you set the model's **Unit name** (select the model, the top node of
+the tree).
 
-=== "SQL Server"
+## Step 6: Use the business classes
 
-    ```ini
-    [Database]
-    Persistence=FireDAC
-    Type=MSSQL
-
-    [MSSQL]
-    Server=localhost
-    Database=BoldDemo
-    OSAuthent=True
-    User=sa
-    Password=
-    ```
-
-=== "PostgreSQL"
-
-    ```ini
-    [Database]
-    Persistence=FireDAC
-    Type=PostgreSQL
-
-    [PostgreSQL]
-    Server=localhost
-    Database=bolddemo
-    VendorLib=C:\Program Files\PostgreSQL\18\bin\libpq.dll
-    User=postgres
-    Password=<your_password>
-    ```
-
-=== "Firebird"
-
-    ```ini
-    [Database]
-    Persistence=FireDAC
-    Type=Firebird
-
-    [Firebird]
-    Server=localhost
-    Database=C:\Data\BoldDemo.fdb
-    VendorLib=C:\Program Files\Firebird\Firebird_5_0\fbclient.dll
-    User=SYSDBA
-    Password=<your_password>
-    ```
-
-=== "MariaDB/MySQL"
-
-    ```ini
-    [Database]
-    Persistence=FireDAC
-    Type=MariaDB
-
-    [MariaDB]
-    Server=localhost
-    Port=3306
-    Database=bolddemo
-    User=root
-    Password=<your_password>
-    VendorLib=C:\Program Files\MariaDB\MariaDB Connector C 64-bit\lib\libmariadb.dll
-    ```
-
-=== "Oracle"
-
-    ```ini
-    [Database]
-    Persistence=FireDAC
-    Type=Oracle
-
-    [Oracle]
-    Database=//localhost:1521/XEPDB1
-    User=bolduser
-    Password=<your_password>
-    VendorLib=C:\oracle\instantclient_23_7\oci.dll
-    ```
-
-## Step 5: Create Your Model
-
-1. Double-click `BoldModel1` to open the Model Editor
-
-2. **Create the Person class:**
-   - Right-click → Add Class → Name: `Person`
-   - Add attributes:
-     - `FirstName`: String
-     - `LastName`: String
-     - `Assets`: Currency
-
-3. **Create the Building class:**
-   - Add Class → Name: `Building`
-   - Add attributes:
-     - `Address`: String
-     - `ZipCode`: Integer
-
-4. **Create an association (Ownership):**
-   - Select both classes
-   - Right-click → Add Association
-   - Name: `Ownership`
-   - Person side: `OwnedBuildings` (0..*)
-   - Building side: `Owners` (0..*)
-
-5. **File → Save & Generate all files**
-
-This creates `BusinessClasses.pas` with strongly-typed classes.
-
-## Step 6: Add Business Classes to Project
-
-1. Add the generated `BusinessClasses.pas` to your project
-2. Add to DataModule uses clause:
+Add `BusinessClasses.pas` to the project, so that it is in the `uses` clause of the `.dpr` (its initialization
+section registers the classes with Bold), and to the `uses` clause of the data module:
 
 ```pascal
 uses
   BusinessClasses;
 ```
 
-## Step 7: Design the Main Form
+The unit holds a Delphi class per model class, `TPerson` and `TBuilding`, with a property per attribute and per
+association end.
 
-On your main form, add:
+## Step 7: Design the main form
 
-### List Handles (from Bold Handles palette)
+Add `DataModule1` to the main form's `uses` clause, then drop these components on the form.
 
-```pascal
-// TBoldListHandle named blhAllPersons
-blhAllPersons.RootHandle := DataModule1.BoldSystemHandle1;
-blhAllPersons.Expression := 'Person.allInstances';
+**List handles** (page Bold Handles), one per list the form shows:
 
-// TBoldListHandle named blhAllBuildings
-blhAllBuildings.RootHandle := DataModule1.BoldSystemHandle1;
-blhAllBuildings.Expression := 'Building.allInstances';
-```
+| Name | `RootHandle` | `Expression` |
+|------|--------------|--------------|
+| `blhAllPersons` | `DataModule1.BoldSystemHandle1` | `Person.allInstances` |
+| `blhAllBuildings` | `DataModule1.BoldSystemHandle1` | `Building.allInstances` |
 
-### GUI Components (from Bold Controls palette)
+**Controls** (page Bold Controls):
 
-- `TBoldGrid` for persons → `BoldHandle` = `blhAllPersons`
-- `TBoldGrid` for buildings → `BoldHandle` = `blhAllBuildings`
-- `TBoldNavigator` → `BoldHandle` = `blhAllPersons`
+- a `TBoldGrid` with `BoldHandle` = `blhAllPersons`
+- a `TBoldGrid` with `BoldHandle` = `blhAllBuildings`
+- a `TBoldNavigator` with `BoldHandle` = `blhAllPersons`, to add and delete persons
 
-### Actions (from Bold Actions palette)
+**Actions**: drop a `TActionList`, and add with **New Standard Action** (category Bold Actions):
 
-- `TBoldActivateSystemAction` → Opens the database
-- `TBoldUpdateDBAction` → Saves changes to database
-- Add buttons linked to these actions
+- `TBoldActivateSystemAction`, which opens and closes the system
+- `TBoldUpdateDBAction`, which saves the changes
+- `TBoldCreateDatabaseAction`, which creates the tables
 
-## Step 8: Initialize the System
+Set the `BoldSystemHandle` property of each action to `DataModule1.BoldSystemHandle1`, and give each one a button.
 
-In your main form's OnCreate:
+## Step 8: Run it
 
-```pascal
-procedure TForm1.FormCreate(Sender: TObject);
-begin
-  // Activate opens/creates the database and loads the model
-  BoldActivateSystemAction1.Execute;
-end;
-```
+1. Press **F9**.
+2. The first time, click the button of the create database action: Bold creates a table for each class.
+3. Click the button of the activate action to open the system.
+4. Add persons with the navigator and type in the grid. The grid shows each change at once.
+5. Click the button of the update action to save.
 
-## Step 9: Run It!
+That is a working Bold application. To create the tables in code instead, call
+`BoldPersistenceHandleDB1.CreateDataBaseSchema` before the system is opened, for example when the database file does
+not exist yet.
 
-1. Press **F9** to run
-2. Click **Open System** to activate
-3. Use the navigator to add Person records
-4. The grid automatically displays them
-5. Click **Update DB** to save
+## Working with objects in code
 
-**Congratulations!** You have a working Bold application.
+The generated classes are ordinary Delphi classes that live in the object space.
 
-## Working with Objects in Code
-
-### Creating Objects
+### Create objects and links
 
 ```pascal
 var
   Person: TPerson;
   Building: TBuilding;
 begin
-  // Create objects - Bold tracks them automatically
-  Person := TPerson.Create(BoldSystemHandle1.System);
+  Person := TPerson.Create(DataModule1.BoldSystemHandle1.System);
   Person.FirstName := 'John';
   Person.LastName := 'Doe';
   Person.Assets := 50000;
 
-  Building := TBuilding.Create(BoldSystemHandle1.System);
+  Building := TBuilding.Create(DataModule1.BoldSystemHandle1.System);
   Building.Address := '123 Main Street';
   Building.ZipCode := 12345;
 
-  // Create relationship
-  Person.OwnedBuildings.Add(Building);
+  Person.OwnedBuildings.Add(Building);   // Building.Owners now holds Person too
 end;
 ```
 
-### Querying with OCL
+### Query with OCL
 
 ```pascal
 var
   RichPeople: TBoldObjectList;
+  i: Integer;
 begin
-  // Find all persons with assets > 100000
-  RichPeople := BoldSystemHandle1.System.EvaluateExpressionAsNewElement(
-    'Person.allInstances->select(assets > 100000)'
-  ) as TBoldObjectList;
-
-  // Iterate results
-  for var i := 0 to RichPeople.Count - 1 do
-    ShowMessage(TPerson(RichPeople[i]).FirstName);
+  RichPeople := DataModule1.BoldSystemHandle1.System.EvaluateExpressionAsNewElement(
+    'Person.allInstances->select(assets > 100000)') as TBoldObjectList;
+  try
+    for i := 0 to RichPeople.Count - 1 do
+      ShowMessage((RichPeople[i] as TPerson).FirstName);
+  finally
+    RichPeople.Free;   // AsNewElement: the caller owns the result
+  end;
 end;
 ```
 
-### Saving to Database
+### Save or discard changes
 
 ```pascal
-// Save all changes
-BoldSystemHandle1.UpdateDatabase;
-
-// Or discard changes
-BoldSystemHandle1.System.Discard;
+DataModule1.BoldSystemHandle1.UpdateDatabase;   // write every change, in one database transaction
+DataModule1.BoldSystemHandle1.System.Discard;   // or throw away the unsaved changes
 ```
 
 ## Troubleshooting
 
-### Database errors on first run
+### Errors about missing tables when the system opens
 
-Use `TBoldCreateDatabaseAction` to create the schema first, or call:
+The database has no schema yet. Run `TBoldCreateDatabaseAction` once, or call
+`BoldPersistenceHandleDB1.CreateDataBaseSchema`.
 
-```pascal
-BoldPersistenceHandleDB1.CreateDataBaseSchema;
-```
+### Database client libraries
 
-### "libpq.dll not found" (PostgreSQL)
+FireDAC loads each database's client library at run time. Put the library next to the executable or on the `PATH`,
+or name it in the connection's `VendorLib` parameter. The library must match the program: 64-bit for a Win64
+program.
 
-Copy `libpq.dll` and dependencies from PostgreSQL's `bin` folder to your executable folder.
+| Database | Library | Where to get it |
+|----------|---------|-----------------|
+| SQLite | none on Windows: FireDAC links SQLite in | — |
+| PostgreSQL | `libpq.dll` and the DLLs next to it | the `bin` folder of a PostgreSQL installation |
+| Firebird | `fbclient.dll` | the Firebird installation folder |
+| MariaDB | `libmariadb.dll` | [MariaDB Connector/C](https://mariadb.com/downloads/connectors/) (MariaDB Server does not include it) |
+| MySQL | `libmysql.dll` | the MySQL installation |
+| Oracle | `oci.dll` | [Oracle Instant Client](https://www.oracle.com/database/technologies/instant-client/downloads.html); the database is named in Easy Connect form, `//host:port/service_name` |
 
-### "fbclient.dll not found" (Firebird)
+## Next steps
 
-Copy `fbclient.dll` from your Firebird installation folder.
-
-### "libmysql.dll not found" (MariaDB/MySQL)
-
-Download MariaDB Connector/C from [mariadb.com](https://mariadb.com/downloads/connectors/) and set VendorLib path.
-
-### "oci.dll not found" (Oracle)
-
-Download Oracle Instant Client and set VendorLib to point to `oci.dll`.
-
-## Next Steps
-
-- [OCL Queries](../concepts/ocl.md) - Learn the query language
-- [Persistence](../concepts/persistence.md) - Understand database mapping
-- [Examples](../examples/index.md) - Explore more examples
+- [OCL](../concepts/ocl.md): the query language
+- [Persistence](../concepts/persistence.md): how objects map to tables
+- [Examples](../examples/index.md): one example program per feature

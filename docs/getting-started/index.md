@@ -1,51 +1,32 @@
-# Introduction to Bold for Delphi
+# Getting Started
 
-Bold for Delphi is a powerful framework that implements Model-Driven Architecture (MDA) principles. It allows you to design your application's domain model in UML and automatically generates the corresponding Delphi code.
-
-## What is Model-Driven Architecture?
-
-MDA separates business logic from platform-specific implementation details:
-
-1. **Platform-Independent Model (PIM)** - Your UML domain model
-2. **Platform-Specific Model (PSM)** - Generated Delphi code
-3. **Runtime** - Object Space with persistence
-
-## Core Components
-
-### Object Space
-The Object Space is Bold's in-memory object graph. All domain objects live here during runtime.
+Bold is model-driven: you describe the business domain as a UML class model, and Bold turns the model into running
+code. A Bold application has four layers, and every guide in this section builds the same four:
 
 ```mermaid
 graph LR
-    A[TBoldSystem] --> B[Class Extents]
-    B --> C[TBoldObject instances]
-    C --> D[TBoldAttribute values]
-    C --> E[TBoldObjectReference links]
+    M["Model<br/>TBoldModel"] --> S["Object space<br/>TBoldSystemHandle"]
+    S --> P["Persistence<br/>TBoldPersistenceHandleDB<br/>+ database adapter"]
+    S --> H["Handles<br/>list and expression handles"]
+    H --> C["Controls<br/>VCL controls or TBoldDataSet"]
 
-    click A href "../classes/TBoldSystem/" "TBoldSystem documentation"
-    click C href "../classes/TBoldObject/" "TBoldObject documentation"
-    click D href "../classes/TBoldAttribute/" "TBoldAttribute documentation"
-    click E href "../classes/TBoldObjectReference/" "TBoldObjectReference documentation"
+    click S href "../classes/TBoldSystemHandle/" "TBoldSystemHandle"
+    click H href "../classes/TBoldListHandle/" "TBoldListHandle"
 ```
 
-### Persistence Layer
-Bold automatically maps your objects to database tables:
+- The **model** holds the classes, attributes, associations and constraints. Bold generates a Delphi class for each
+  model class.
+- The **object space** holds the objects at run time and tracks every change.
+- **Persistence** maps the objects to database tables (a class to a table, an attribute to a column, an association
+  to a foreign key or a link table) and creates the schema from the model.
+- **Handles** evaluate OCL expressions against the object space, and **controls** show what the handles hold. When
+  an object changes, the handles and controls that depend on it update by themselves.
 
-| UML Concept | Database Mapping |
-|-------------|-----------------|
-| Class | Table |
-| Attribute | Column |
-| Association | Foreign Key / Link Table |
-| Inheritance | Type Column + Subtype Tables |
+## Suggested path
 
-### Subscription System
-Bold uses an observer pattern for automatic updates:
-
-- Objects notify subscribers when they change
-- UI controls automatically refresh
-- Derived values recalculate automatically
-
-## Next Steps
-
-- [Installation](installation.md) - Set up Bold in your Delphi IDE
-- [First Application](first-app.md) - Build your first Bold application
+1. [Quick Start](../quickstart.md): install Bold and run a ready-made example.
+2. [Installation](installation.md): the details for Delphi and for Lazarus.
+3. [First Application](first-app.md): build a small application from an empty project.
+4. The [Tutorial](https://github.com/bero/BoldForDelphi/tree/develop/examples/Tutorial): a five-step course that
+   builds an invoicing application.
+5. [Core Concepts](../concepts/index.md), when you want to know how it works inside.

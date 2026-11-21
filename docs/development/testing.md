@@ -1,332 +1,158 @@
 # Unit Testing
 
-This document describes how to set up, run, and develop unit tests for Bold for Delphi.
+Bold has one test suite that runs under two compilers: Delphi runs it with DUnitX, Free Pascal with FPCUnit. This page
+is about writing tests. How to install the test frameworks, build the runners and run the suite (on Windows, on
+Linux, against several database engines, under memory checks and with code coverage) is in
+[UnitTest/README.md](https://github.com/bero/BoldForDelphi/blob/develop/UnitTest/README.md), next to the scripts.
 
-## Overview
-
-Bold for Delphi uses the **DUnitX** testing framework. Tests are located in the `UnitTest/` folder:
+## Layout
 
 ```
 UnitTest/
-├── UnitTest.dpr           # Main test project
-├── UnitTest.dproj
-├── run_coverage.ps1       # Coverage script
+├── UnitTest.dpr / .dproj      # Delphi console runner (DUnitX)
+├── UnitTestGUI.dpr / .dproj   # Delphi GUI runner (DUnitX VCL logger)
+├── FPC/UnitTestFPC.lpr        # Free Pascal runner (FPCUnit), built by FPC/build.sh
 ├── Code/
-│   ├── Common/            # Tests for Common units
-│   ├── ObjectSpace/       # Tests for ObjectSpace units
-│   └── Main/              # Test model classes
-└── coverage_report/       # Generated coverage reports
+│   ├── Common/                # BoldTestFramework.pas and tests of Source/Common
+│   ├── ObjectSpace/           # tests of the object space, OCL and attributes
+│   ├── Persistence/           # tests that need a database; one base per adapter
+│   ├── Mocks/                 # Delphi-Mocks tests of the database interfaces
+│   └── ...                    # one folder per area of Source/
+├── UnitTest.ini               # the database engine for the persistence tests
+└── build.ps1, run_matrix.ps1, run_coverage.ps1, check_memory.ps1, check_no_vcl.ps1
 ```
 
-## Prerequisites
+## Writing a test
 
-### DUnitX Environment Variable
-
-The `$(DUNITX)` system environment variable must be set to the DUnitX installation folder:
-
-- **Windows**: System Properties > Environment Variables
-- **Delphi IDE**: Tools > Options > IDE > Environment Variables
-
-Example: `DUNITX=C:\DUnitX`
-
-### Delphi-Mocks Environment Variable
-
-The `$(DelphiMocks)` system environment variable must be set to the Delphi-Mocks installation folder:
-
-Example: `DelphiMocks=C:\Delphi-Mocks\Source`
-
-### Free Pascal: Zeos is mandatory
-
-The Free Pascal build of the tests (`UnitTest/FPC/build.sh`, on Linux or in Git
-Bash on Windows) **requires
-[Zeos](https://sourceforge.net/projects/zeoslib/) 8.0**: under Free Pascal Bold
-uses its Zeos database adapter, under Delphi FireDAC. Set the `ZEOS` environment
-variable to the Zeos root folder (the one that contains `src/`); `build.sh`
-stops with an error when it is not set. See
-[UnitTest/README.md](https://github.com/bero/BoldForDelphi/blob/develop/UnitTest/README.md#free-pascal--lazarus-linux)
-for setup.
-
-## Mocking with Delphi-Mocks
-
-Bold uses the **Delphi-Mocks** framework to create mock objects for unit testing. This is particularly valuable for testing database operations without requiring an actual database connection.
-
-### Why Mock Database Operations?
-
-Testing Bold persistence code against a real database has several problems:
-
-| Problem | Impact |
-|---------|--------|
-| **Slow tests** | Database connections and queries add significant time |
-| **Test isolation** | Tests can interfere with each other through shared data |
-| **Setup complexity** | Need to create/maintain test databases and data |
-| **Error simulation** | Hard to test error handling (connection failures, deadlocks) |
-| **CI/CD environments** | Build servers may not have database access |
-
-Mocking solves these by replacing database interfaces with controlled test doubles.
-
-### Bold Database Interfaces
-
-Bold uses interfaces for database abstraction, making them ideal for mocking:
-
-- `IBoldDatabase` - Database connection and transactions
-- `IBoldQuery` - SQL query execution
-- `IBoldField` - Field value access
-
-### Example: Mocking a Database Connection
+A test unit uses `BoldTestFramework` instead of DUnitX or FPCUnit directly. That unit is the only one that differs
+between the two compilers, so the same test unit compiles for both:
 
 ```pascal
-uses
-  Delphi.Mocks,
-  BoldDBInterfaces;
-
-procedure TMyTest.TestWithMockedDatabase;
-var
-  MockDb: TMock<IBoldDatabase>;
-  MockQuery: TMock<IBoldQuery>;
-begin
-  // Create mocks
-  MockDb := TMock<IBoldDatabase>.Create;
-  MockQuery := TMock<IBoldQuery>.Create;
-
-  // Setup: Database returns our mock query
-  MockDb.Setup
-    .WillReturn(TValue.From<IBoldQuery>(MockQuery.Instance))
-    .When.GetQuery;
-
-  // Setup: Simulate connected state
-  MockDb.Setup.WillReturn(True).When.GetConnected;
-
-  // Setup: Query returns expected data
-  MockQuery.Setup.WillReturn(42).When.FieldByName('Id').AsInteger;
-
-  // Test code using MockDb.Instance as IBoldDatabase
-  var Db: IBoldDatabase := MockDb.Instance;
-  Assert.IsTrue(Db.Connected);
-
-  var Query := Db.GetQuery;
-  Assert.AreEqual(42, Query.FieldByName('Id').AsInteger);
-end;
-```
-
-### Testing Error Conditions
-
-Mocks excel at simulating errors that are hard to reproduce with real databases:
-
-```pascal
-procedure TMyTest.TestConnectionFailure;
-var
-  MockDb: TMock<IBoldDatabase>;
-begin
-  MockDb := TMock<IBoldDatabase>.Create;
-
-  // Simulate connection failure
-  MockDb.Setup.WillReturn(False).When.GetConnected;
-  MockDb.Setup
-    .WillRaise(EBoldDatabaseError, 'Connection timeout')
-    .When.StartTransaction;
-
-  // Test that your code handles the error correctly
-  Assert.WillRaise(
-    procedure begin
-      SomeCodeThatNeedsDatabase(MockDb.Instance);
-    end,
-    EBoldDatabaseError
-  );
-end;
-```
-
-### Verifying Expectations
-
-Mocks can verify that expected methods were called:
-
-```pascal
-procedure TMyTest.TestTransactionCommitted;
-var
-  MockDb: TMock<IBoldDatabase>;
-begin
-  MockDb := TMock<IBoldDatabase>.Create;
-
-  // Set expectations
-  MockDb.Setup.Expect.Once.When.StartTransaction;
-  MockDb.Setup.Expect.Once.When.Commit;
-  MockDb.Setup.Expect.Never.When.Rollback;
-
-  // Run code under test
-  PerformDatabaseOperation(MockDb.Instance);
-
-  // Verify expectations were met
-  MockDb.Verify;  // Fails if expectations not satisfied
-end;
-```
-
-### Mock Test Location
-
-Mock-based tests are in `UnitTest/Code/Mocks/`. See `Test.BoldDBInterfacesMock.pas` for complete examples.
-
-## Running Tests
-
-### Command Line
-
-```batch
-cd UnitTest
-UnitTest.exe --exit:Continue
-```
-
-Use `--exit:Pause` to pause before exit:
-
-```batch
-UnitTest.exe --exit:Pause
-```
-
-### From Delphi IDE
-
-1. Open `UnitTest.dproj` in Delphi
-2. Build (Shift+F9)
-3. Run (F9)
-
-## TestInsight
-
-**TestInsight** is a Delphi IDE plugin that enables running and debugging individual tests directly from the IDE.
-
-### Installing TestInsight
-
-1. Download from: [https://bitbucket.org/sglienke/testinsight/downloads/](https://bitbucket.org/sglienke/testinsight/downloads/)
-2. Run the installer
-3. Restart Delphi IDE
-4. TestInsight panel appears in **View > TestInsight Explorer**
-
-### Using TestInsight
-
-1. Open `UnitTest.dproj` in Delphi
-2. Open **View > TestInsight Explorer**
-3. Build the project (Shift+F9)
-4. Tests appear in the TestInsight panel
-5. **Run single test**: Click the green arrow next to a test
-6. **Debug test**: Right-click > Debug Selected Tests
-7. **Run all**: Click Run All in the toolbar
-
-### TestInsight Features
-
-- Run/debug individual tests without running the entire suite
-- See test results inline in the IDE
-- Double-click failures to jump to the failing line
-- Filter tests by name or status
-- Re-run failed tests only
-
-### TESTINSIGHT Conditional Define
-
-| TESTINSIGHT | Behavior |
-|-------------|----------|
-| **Defined** | Tests run via TestInsight plugin only |
-| **Undefined** | Tests run as console application |
-
-Toggle via: Right-click project > **Enable TestInsight** (or Disable)
-
-## Writing Tests
-
-### Test Structure
-
-```pascal
-unit Test.MyUnit;
+{$IFDEF FPC}{$mode delphiunicode}{$ENDIF}
+unit Test.BoldSomething;
 
 interface
 
 uses
-  DUnitX.TestFramework;
+  SysUtils,
+  BoldTestFramework;
 
 type
-  [TestFixture]
-  TTestMyUnit = class
-  public
-    [Setup]
-    procedure Setup;
-
-    [TearDown]
-    procedure TearDown;
-
-    [Test]
-    procedure TestSomething;
+  TTestBoldSomething = class(TBoldTestCase)
+  protected
+    procedure SetUp; override;      // optional; also TearDown, SetUpOnce, TearDownOnce
+    procedure TearDown; override;
+  published
+    procedure TestTheValueIsKept;   // every published method is a test
   end;
 
 implementation
 
-procedure TTestMyUnit.Setup;
+procedure TTestBoldSomething.SetUp;
 begin
-  // Initialize before each test
+  inherited;
+  // runs before each test
 end;
 
-procedure TTestMyUnit.TearDown;
+procedure TTestBoldSomething.TearDown;
 begin
-  // Cleanup after each test
+  // runs after each test
+  inherited;
 end;
 
-procedure TTestMyUnit.TestSomething;
+procedure TTestBoldSomething.TestTheValueIsKept;
 begin
-  Assert.AreEqual(Expected, Actual, 'Description');
+  Assert.AreEqual(42, 6 * 7, 'the product');
 end;
 
 initialization
-  TDUnitX.RegisterTestFixture(TTestMyUnit);
+  BoldRegisterTest(TTestBoldSomething);
 
 end.
 ```
 
-### Adding Tests to the Project
+Rules that keep a test portable:
 
-1. Create test file in appropriate `Code/` subfolder
-2. Add to `UnitTest.dpr` uses clause:
+- Every published method is a test. Put helpers and hooks in a `private` or `protected` section, never under
+  `published`.
+- `Assert` has the DUnitX method names on both compilers (`AreEqual`, `IsTrue`, `IsNull`, `Contains`,
+  `WillRaise`, ...). `Assert.WillRaise` takes a method of the test class, not an anonymous method.
+- Free an object that the test also uses through an interface with `FreeAfterTest(Obj)` instead of `Obj.Free`:
+  Free Pascal keeps the result of an `as` cast in a hidden temporary until the end of the routine.
+- Under Free Pascal each test runs on its own instance, so `SetUpOnce` and `TearDownOnce` must keep fixture-wide
+  state in globals or class variables, not in fields.
+- A test of something that exists only under one compiler or platform goes under `{$IFDEF FPC}`, `{$IFDEF MSWINDOWS}`
+  and so on, in both the declaration and the implementation.
+
+### Adding the unit to the runners
+
+1. Put the unit in the `Code/` folder of the area it tests.
+2. Add it to the `uses` clause of `UnitTest.dpr` and to `UnitTest.dproj`.
+3. Run `sync_gui_dpr.ps1`, which copies the unit list to `UnitTestGUI.dpr`.
+4. Add it to the `uses` clause of `FPC/UnitTestFPC.lpr`. `FPC/build.sh` finds every folder under `Code/` by itself.
+
+### Tests that need a database
+
+The persistence tests derive from the test base of their adapter (FireDAC under Delphi, Zeos under Free Pascal,
+UniDAC in the `DebugUniDAC` build) and get the engine that `UnitTest.ini` or the `BOLD_TEST_ENGINE` environment
+variable selects; SQLite is the default. Look at an existing unit in `Code/Persistence` before writing a new one.
+
+## Mocking database interfaces
+
+Under Delphi on Windows, the database interfaces (`IBoldDatabase`, `IBoldQuery`, `IBoldField`, in `BoldDBInterfaces`)
+can be replaced by [Delphi-Mocks](https://github.com/VSoftTechnologies/Delphi-Mocks) test doubles. That makes it
+easy to test error handling, such as a failed connection or a failing commit, without a database. Delphi-Mocks does
+not compile for Linux64 or with Free Pascal, so these tests are Windows only. They are in
+`UnitTest/Code/Mocks/Test.BoldDBInterfacesMock.pas`.
+
+A query that returns a field:
 
 ```pascal
-Test.MyUnit in 'Code\SubFolder\Test.MyUnit.pas';
+var
+  MockQuery: TMock<IBoldQuery>;
+  MockField: TMock<IBoldField>;
+begin
+  MockQuery := TMock<IBoldQuery>.Create;
+  MockField := TMock<IBoldField>.Create;
+
+  MockField.Setup.WillReturn(42).When.GetAsInteger;
+  MockQuery.Setup.WillReturn(TValue.From<IBoldField>(MockField.Instance))
+    .When.FieldByName(It0.IsAny<string>);
+
+  Assert.AreEqual(42, MockQuery.Instance.FieldByName('Id').AsInteger);
+end;
 ```
 
-### Common Assertions
+Expectations on calls, checked by `Verify`:
 
 ```pascal
-Assert.AreEqual(Expected, Actual);
-Assert.IsTrue(Condition);
-Assert.IsFalse(Condition);
-Assert.IsNull(Value);
-Assert.IsNotNull(Value);
-Assert.WillRaise(procedure begin ... end, EExpectedException);
+var
+  MockDb: TMock<IBoldDatabase>;
+begin
+  MockDb := TMock<IBoldDatabase>.Create;
+  MockDb.Setup.Expect.Once.When.StartTransaction;
+  MockDb.Setup.Expect.Once.When.Commit;
+  MockDb.Setup.Expect.Never.When.RollBack;
+
+  PerformDatabaseOperation(MockDb.Instance);   // the code under test
+
+  MockDb.Verify('one transaction, committed');
+end;
 ```
 
-## Code Coverage
+## TestInsight
 
-Code coverage analysis helps identify untested code paths. Bold uses **DelphiCodeCoverage**.
+[TestInsight](https://bitbucket.org/sglienke/testinsight/downloads/) is a Delphi IDE plugin that runs and debugs
+single tests from the IDE. Open `UnitTest.dproj`, enable TestInsight for the project in its context menu in the
+Projects pane, which defines `TESTINSIGHT`, build, and run the tests from **View → TestInsight Explorer**. With
+`TESTINSIGHT` defined, the runner (`Code/Main/TestRunner.pas`) reports to TestInsight instead of the console.
 
-### Running Coverage
+## Code coverage
 
-```powershell
-cd UnitTest
-.\run_coverage.ps1
-```
+`run_coverage.ps1` runs the Delphi suite under
+[DelphiCodeCoverage](https://github.com/DelphiCodeCoverage/DelphiCodeCoverage) and writes an HTML report to
+`UnitTest/coverage_report/`; [UnitTest/README.md](https://github.com/bero/BoldForDelphi/blob/develop/UnitTest/README.md#code-coverage)
+says how to run it. [Codecov Setup](codecov.md) describes the upload to Codecov.io.
 
-Options:
-
-| Flag | Description |
-|------|-------------|
-| `-SkipBuild` | Skip compilation, use existing executable |
-| `-OpenReport` | Open HTML report in browser |
-| `-Upload` | Upload to Codecov.io |
-
-### Viewing Results
-
-Open `coverage_report\CodeCoverage_summary.html` in a browser.
-
-- **Green lines** - Executed during tests
-- **Red lines** - Not executed during tests
-
-### Tips for Improving Coverage
-
-1. **Focus on uncovered lines** - Check the report and target specific uncovered code paths
-2. **Test edge cases** - Error handling, boundary conditions, exception paths
-3. **Use persistence tests** - Many code paths require database operations
-4. **Test different configurations** - Transient vs persistent mode
-
-## See Also
-
-- [Codecov Setup](codecov.md) - Upload coverage to Codecov.io
-- [Contributing](../contributing.md) - Contribution guidelines
-- [DUnitX](https://github.com/VSoftTechnologies/DUnitX) - Unit testing framework
-- [Delphi-Mocks](https://github.com/VSoftTechnologies/Delphi-Mocks) - Mocking framework
+When you add tests for coverage, target the lines the report shows as not covered, usually error paths and edge
+cases, instead of adding more tests of code that is already covered.

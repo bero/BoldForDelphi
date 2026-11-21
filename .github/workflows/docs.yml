@@ -9,6 +9,7 @@ on:
       - 'mkdocs.yml'
       - 'CHANGELOG.md'  # included into docs/changelog.md
       - 'ROADMAP.md'    # included into docs/roadmap.md
+      - 'README.md'     # sections included into docs/index.md and installation.md
   workflow_dispatch:
 
 permissions:

@@ -1,9 +1,13 @@
 # Bold for Delphi - Unit Tests
 
-This folder contains the DUnitX test suite for Bold for Delphi
-(2100+ tests). **The test projects require two external frameworks that
-are not part of this repository** - if you just tried to build
-`UnitTest.dproj` and got
+This folder contains Bold's test suite. Delphi runs it with DUnitX, Free
+Pascal runs the same test units with FPCUnit; the main
+[README](../README.md#tests-and-code-coverage) has the current test count and
+coverage. How to write a test is in
+[Unit Testing](../docs/development/testing.md).
+
+**The Delphi test projects require two external frameworks that are not part
+of this repository.** If you just tried to build `UnitTest.dproj` and got
 
 ```
 F2613 Unit 'DUnitX.Loggers.Console' not found
@@ -20,6 +24,7 @@ they are test-only dependencies.
 | [DUnitX](https://github.com/VSoftTechnologies/DUnitX) | `DUnitX` | Unit testing framework |
 | [Delphi-Mocks](https://github.com/VSoftTechnologies/Delphi-Mocks) | `DelphiMocks` | Mocking framework for interface testing |
 | [FastMM4](https://github.com/pleriche/FastMM4) (optional) | `FastMM4` | Memory check `check_memory.ps1` only; MPL 1.1 / LGPL 2.1, not distributed with Bold |
+| [DelphiCodeCoverage](https://github.com/DelphiCodeCoverage/DelphiCodeCoverage) (optional) | - | Code coverage, `run_coverage.ps1` only (see [Code Coverage](#code-coverage)) |
 
 The `.dproj` search paths reference them as `$(DUnitX)` and
 `$(DelphiMocks)`. Each variable must point to the framework's **Source**
@@ -75,17 +80,49 @@ it reads environment variables at startup.
 .\UnitTest.exe               # run all tests
 ```
 
-Run a specific fixture or test:
+Run a specific fixture or test. The filter is `UnitName.ClassName[.TestName]`:
 
 ```powershell
 .\UnitTest.exe --run:Test.BoldUndoHandler.TTestBoldUndoHandler --consolemode:Verbose
+.\UnitTest.exe --exit:Pause            # wait for a key before the console closes
 ```
+
+## Database engines
+
+The persistence tests run against the engine that `UnitTest.ini` selects in
+`[Database] Engine=`: `SQLite` by default, in a temporary file per run.
+`SQLServer`, `Interbase`, `Firebird` and `PostgreSQL` sections are provided.
+The environment variable `BOLD_TEST_ENGINE` overrides the ini without editing
+it:
+
+```powershell
+$env:BOLD_TEST_ENGINE = 'SQLServer'; .\UnitTest.exe --run:Test.BoldBatchQueries
+```
+
+`run_matrix.ps1` uses that variable to run the suite on each engine in turn:
+the FireDAC build on SQLite, SQL Server and PostgreSQL, then the `DebugUniDAC`
+build on the same engines when UniDAC is installed (on SQL Server only with a
+UniDAC installation that has no SQLite provider). The PostgreSQL rows need the
+server of `[PostgreSQL]` in the ini, and FireDAC needs a 64-bit `libpq.dll`,
+which the script finds on the `PATH` or in the newest PostgreSQL installation.
+A PostgreSQL row that cannot run is reported as skipped, not failed. The test
+bases create the databases when the server does not have them. Logs go to
+`matrix_<adapter>_<engine>.log`; the exit code is the number of failed runs.
+
+```powershell
+.\run_matrix.ps1                                  # the full matrix
+.\run_matrix.ps1 -Engines SQLite                  # one engine
+.\run_matrix.ps1 -SkipBuild -Filter Test.BoldBatchQueries
+```
+
+Run the matrix after a change in `Source\Persistence` or `Source\PMapper`; the
+SQLite run alone is the everyday check.
 
 ## VCL-free runtime check
 
 The Bold runtime (object space, OCL, handles, persistence, XML streaming) must
-build without the VCL, for console and service applications now and for FMX and
-Free Pascal later (#117). `examples\Compound\Invoicing\Console` is that build,
+build without the VCL, for console and service applications, FMX and Free
+Pascal (#117). `examples\Compound\Invoicing\Console` is that build,
 with `FrameworkType=None`: the Bold core links no GUI framework, and a VCL
 application links `BoldEnvironmentVCL` itself.
 `examples\Compound\Invoicing\FMX` adds `TBoldDataSet`, the control packs it
@@ -152,7 +189,7 @@ fixtures, because Delphi-Mocks does not compile for Linux64. The leak checks
 read a counting wrapper around libc's `malloc` that `BoldTestFramework` installs
 on Linux.
 
-## Free Pascal / Lazarus (Linux)
+## Free Pascal / Lazarus
 
 Most of the suite also builds with Free Pascal through `FPC/build.sh`. The
 FPCUnit runner is `FPC/UnitTestFPC.lpr`, and the test units are shared with
@@ -282,11 +319,22 @@ its default DUnitX leak monitor measures nothing.
 ## Code Coverage
 
 ```powershell
-.\run_coverage.ps1
+.\run_coverage.ps1                    # build, run the suite under coverage, open the report
+.\run_coverage.ps1 -SkipBuild         # reuse the existing UnitTest.exe and map file
+.\run_coverage.ps1 -OpenReport:$false # do not open the report
+.\run_coverage.ps1 -Upload            # also upload to Codecov.io (needs CODECOV_TOKEN)
 ```
 
-Builds, runs all tests under
+The script builds `UnitTest.exe` with a detailed map file, runs the whole
+suite under
 [DelphiCodeCoverage](https://github.com/DelphiCodeCoverage/DelphiCodeCoverage)
-(expected at `C:\Attracs\DelphiCodeCoverage\`), and opens the HTML report
-from `coverage_report/`. See the main [README](../README.md) for current
-statistics and Codecov upload.
+and writes the HTML report to `coverage_report/`; open
+`CodeCoverage_summary.html`. `coverage_units.lst` names the units that are
+measured, and `coverage_source_paths.lst` the folders their source is in: add a
+new `Source` unit or folder there, or it shows no coverage.
+
+The script still has the paths of the maintainer's machine at its top:
+DelphiCodeCoverage in `C:\Attracs\DelphiCodeCoverage\build\Win32\`, the
+build script `C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1` and the
+repository in `C:\Attracs\BoldForDelphi`. Change them to run it elsewhere.
+[Codecov Setup](../docs/development/codecov.md) describes the upload.

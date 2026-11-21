@@ -1,134 +1,135 @@
 # Frequently Asked Questions
 
-## Getting Started
+Short answers to common tasks. The examples use a `TCustomer` class with an `Orders` association and a `TOrder`
+class with a `Customer` end; replace them with the classes of your own model. `BoldSystem` is the `TBoldSystem` of
+your application, for example `BoldSystemHandle1.System`.
 
-### How do I create a new object?
+## Objects
+
+### How do I create an object?
 
 ```pascal
-// Method 1: Using typed constructor
-var Customer := TCustomer.Create(BoldSystem);
+// With the generated class
+Customer := TCustomer.Create(BoldSystem);
 
-// Method 2: Using class extent
-var Customer := BoldSystem.Classes['Customer'].CreateNewObject as TCustomer;
+// By the name of the model class, when the class is only known at run time
+Customer := BoldSystem.CreateNewObjectByExpressionName('Customer') as TCustomer;
 ```
 
 ### How do I save changes to the database?
 
 ```pascal
-BoldSystemHandle1.UpdateDatabase;
-// or
-BoldSystem.UpdateDatabase;
+BoldSystem.UpdateDatabase;          // or BoldSystemHandle1.UpdateDatabase
 ```
+
+`UpdateDatabase` writes every new, changed and deleted object in one database transaction: either all of it is
+saved or, on an error, none of it.
 
 ### How do I delete an object?
 
 ```pascal
-Customer.Delete;
-BoldSystem.UpdateDatabase;  // Actually removes from DB
+Customer.Delete;              // deletes it in the object space
+BoldSystem.UpdateDatabase;    // removes it from the database
 ```
 
 ### How do I check for unsaved changes?
 
 ```pascal
-if BoldSystem.DirtyObjects.Count > 0 then
-  ShowMessage('You have unsaved changes');
+if BoldSystem.BoldDirty then
+  ShowMessage(Format('%d unsaved objects', [BoldSystem.DirtyObjects.Count]));
 ```
 
----
-
-## OCL Queries
-
-### How do I get all instances of a class?
+### How do I throw away unsaved changes?
 
 ```pascal
-// Method 1: OCL
-var Customers := BoldSystem.EvaluateExpressionAsNewElement(
-  'Customer.allInstances', nil) as TBoldObjectList;
+BoldSystem.Discard;
+```
 
-// Method 2: Direct access
-var Customers := BoldSystem.Classes['Customer'].BoldObjects;
+## OCL queries
+
+`EvaluateExpressionAsNewElement` returns a new element that the caller owns and must free. The other
+`EvaluateExpressionAs...` functions return a plain value. See [OCL](concepts/ocl.md) for the language.
+
+### How do I get all objects of a class?
+
+```pascal
+// The class extent: a list owned by the system, do not free it
+Customers := BoldSystem.ClassByExpressionName['Customer'];
+
+// The same through OCL: a new list, free it when done
+Customers := BoldSystem.EvaluateExpressionAsNewElement('Customer.allInstances') as TBoldObjectList;
 ```
 
 ### How do I filter objects?
 
 ```pascal
-// Find active customers
-var ActiveCustomers := BoldSystem.EvaluateExpressionAsNewElement(
-  'Customer.allInstances->select(active = true)', nil) as TBoldObjectList;
+Active := BoldSystem.EvaluateExpressionAsNewElement(
+  'Customer.allInstances->select(active)') as TBoldObjectList;
 
-// Find customers with orders
-var CustomersWithOrders := BoldSystem.EvaluateExpressionAsNewElement(
-  'Customer.allInstances->select(orders->notEmpty)', nil) as TBoldObjectList;
+WithOrders := BoldSystem.EvaluateExpressionAsNewElement(
+  'Customer.allInstances->select(orders->notEmpty)') as TBoldObjectList;
 ```
 
 ### How do I sort a list?
 
 ```pascal
-// Sort by name
-var Sorted := BoldSystem.EvaluateExpressionAsNewElement(
-  'Customer.allInstances->orderBy(name)', nil) as TBoldObjectList;
+ByName := BoldSystem.EvaluateExpressionAsNewElement(
+  'Customer.allInstances->orderBy(name)') as TBoldObjectList;
 
-// Sort descending
-var Sorted := BoldSystem.EvaluateExpressionAsNewElement(
-  'Customer.allInstances->orderDescending(createdDate)', nil) as TBoldObjectList;
+NewestFirst := BoldSystem.EvaluateExpressionAsNewElement(
+  'Customer.allInstances->orderDescending(createdDate)') as TBoldObjectList;
 ```
 
-### How do I calculate a sum?
+### How do I calculate a sum or a count?
 
 ```pascal
-var Total := BoldSystem.EvaluateExpressionAsFloat(
-  'Order.allInstances->collect(total)->sum', nil);
+Total := BoldSystem.EvaluateExpressionAsFloat('Order.allInstances.total->sum');
+Count := Customer.EvaluateExpressionAsInteger('orders->size');
 ```
-
----
 
 ## Associations
 
 ### How do I link two objects?
 
 ```pascal
-// One-to-many: Add order to customer
+// One-to-many: either end
 Customer.Orders.Add(Order);
+Order.Customer := Customer;     // the same link
 
-// Or set the reverse
-Order.Customer := Customer;
-
-// Many-to-many: Add to either side
+// Many-to-many: either end
 Student.Courses.Add(Course);
-// or
-Course.Students.Add(Student);
+Course.Students.Add(Student);   // the same link
 ```
 
-### How do I unlink objects?
+Bold keeps both ends consistent: after either line of a pair, both ends show the link.
+
+### How do I remove a link?
 
 ```pascal
-// Remove from list
 Customer.Orders.Remove(Order);
-
-// Or set reference to nil
-Order.Customer := nil;
+Order.Customer := nil;          // the same
 ```
 
 ### How do I navigate associations?
 
 ```pascal
-// One-to-many
-for Order in Customer.Orders do
-  ProcessOrder(Order);
+var
+  Order: TOrder;
+begin
+  for Order in Customer.Orders do       // Delphi: generated lists have typed enumerators
+    ProcessOrder(Order);
 
-// Get parent
-var Customer := Order.Customer;
-
-// Chain navigation
-for Line in Customer.Orders[0].OrderLines do
-  ProcessLine(Line);
+  Customer := Order.Customer;           // the single end
+end;
 ```
 
----
+Under Free Pascal the generated lists have no typed enumerator; use an index loop over `Customer.Orders[i]`.
 
-## Null Values
+## Null values
 
-### How do I check if an attribute is null?
+### How do I check whether an attribute is null?
+
+Each attribute has an `M_` property that gives the attribute object itself:
 
 ```pascal
 if Customer.M_Email.IsNull then
@@ -141,53 +142,27 @@ if Customer.M_Email.IsNull then
 Customer.M_Email.SetToNull;
 ```
 
-### How do I handle nulls safely?
-
-```pascal
-var Email: string;
-if Customer.M_Email.IsNull then
-  Email := 'N/A'
-else
-  Email := Customer.Email;
-```
-
----
-
 ## Transactions
 
-### How do I use transactions?
+### What are Bold transactions for?
 
-```pascal
-BoldSystem.StartTransaction;
-try
-  // Make changes
-  Customer.Name := 'New Name';
-  Order.Delete;
+`StartTransaction`, `CommitTransaction` and `RollbackTransaction` work on the object space, not on the database. A
+rollback restores every object to the values it had when the transaction started, without a database round trip, so
+a group of in-memory changes becomes all-or-nothing. Saving does not need a Bold transaction: `UpdateDatabase`
+always writes in one database transaction.
 
-  BoldSystem.CommitTransaction;
-  BoldSystem.UpdateDatabase;
-except
-  BoldSystem.RollbackTransaction;
-  raise;
-end;
-```
+[Object Space: Transactions](concepts/object-space.md#transactions) has the code pattern and how nested transactions
+behave, and the
+[Transaction example](https://github.com/bero/BoldForDelphi/tree/develop/examples/Simple/ObjectSpace/Transaction)
+shows a batch that is committed or rolled back as a whole.
 
-### What happens if I don't use transactions?
-
-Changes are still tracked but won't be atomic. Multiple changes could partially save if an error occurs during `UpdateDatabase`.
-
----
-
-## UI Binding
+## User interface
 
 ### How do I bind a grid to a list?
 
 ```pascal
-// Set up list handle
 BoldListHandle1.RootHandle := BoldSystemHandle1;
 BoldListHandle1.Expression := 'Customer.allInstances';
-
-// Bind grid
 BoldGrid1.BoldHandle := BoldListHandle1;
 ```
 
@@ -198,94 +173,95 @@ BoldEdit1.BoldHandle := CustomerHandle;
 BoldEdit1.BoldProperties.Expression := 'name';
 ```
 
-### Why isn't my UI updating?
+The Bold-aware controls are VCL controls. In FireMonkey and in the LCL, bind a `TBoldDataSet` to the handle and use
+LiveBindings or the LCL's data-aware controls.
 
-1. Check that handles are connected properly
-2. Verify the expression is correct
-3. Ensure object is part of the system
-4. Check that subscriptions are not blocked
+### Why does my user interface not update?
 
----
+1. Check that each handle's `RootHandle` chain ends at the system handle, and that the system is active.
+2. Check the expression: an OCL error leaves the handle empty.
+3. Check that the object is in the same object space as the handle.
 
 ## Performance
 
-### How do I prefetch related objects?
+### How do I fetch related objects in fewer queries?
 
 ```pascal
-// Fetch customers and their orders in fewer queries
+// Fetch the orders of all customers in the list at once
 BoldSystem.FetchLinksWithObjects(CustomerList, 'orders');
+
+// Fetch all objects of a list that are not loaded yet
+CustomerList.EnsureObjects;
 ```
 
 ### Why are my queries slow?
 
-1. Use batch fetching instead of lazy loading
-2. Add database indexes on frequently queried columns
-3. Use OCL `->select()` to filter in database, not in memory
-4. Avoid `allInstances` on large tables without filtering
+1. OCL is evaluated in memory by default, so `Customer.allInstances->select(...)` loads every customer first.
+   Pass `EvaluateInPS = True` to `EvaluateExpressionAsNewElement` to translate the expression to SQL instead, or
+   use `TBoldSQLHandle` for a hand-written `WHERE` clause.
+2. Fetch links in batches, as above, instead of one object at a time.
+3. Add database indexes on the columns you filter on.
 
-### How do I reduce memory usage?
+### How do I reduce memory use?
 
-```pascal
-// Unload objects not currently needed
-BoldSystem.Classes['LargeClass'].UnloadAll;
-```
+`TBoldUnloaderHandle` (palette page Bold Handles) unloads objects that have not been used for a while. Unloaded
+objects are fetched again when they are next needed.
 
----
+## Errors
 
-## Troubleshooting
+### "Member is read-only derived"
 
-### "Object not found" error
+The code assigns a derived attribute. A derived attribute is computed from its derivation, so it cannot be set,
+unless the model marks it reverse-derived and the class implements the reverse derivation (see the
+[Reverse-Derived Attributes example](https://github.com/bero/BoldForDelphi/tree/develop/examples/Simple/ObjectSpace/ReverseDerivedAttributes)).
 
-The object may have been deleted or not yet saved. Check:
-```pascal
-if (Obj <> nil) and (Obj.BoldExistenceState = esExisting) then
-  // Safe to use
-```
+### `UpdateDatabase` fails
 
-### "Cannot modify read-only object"
+The whole update is rolled back, and the objects stay dirty in the object space. Check the exception message for
+the SQL error, typically a constraint violation, a missing table or column (the schema is older than the model), or
+a lost connection.
 
-The object may be from a derived list or unloaded. Ensure you have the actual object from the system.
+### An OCL expression gives an error
 
-### Database update fails
+1. Check that the class and member names match the names in the model.
+2. Check the navigation path one step at a time, for example in the
+   [OCL Workbench example](https://github.com/bero/BoldForDelphi/tree/develop/examples/Simple/Tools/OclWorkbench)
+   or with the OCL editor of a handle's `Expression` property.
 
-1. Check for constraint violations
-2. Verify database connection is active
-3. Look for objects with invalid foreign keys
-4. Check for circular dependencies
+## Model and schema changes
 
-### OCL expression error
+### How do I update the database schema after a model change?
 
-1. Verify class and attribute names match the model
-2. Check for typos in navigation paths
-3. Ensure types are compatible in comparisons
-4. Use parentheses to clarify complex expressions
-
----
-
-## Migration
-
-### How do I update the database schema?
-
-Use Bold's DbEvolutor to generate migration scripts:
+In the IDE, **File → Save and Generate All** in the model editor offers to check the database for schema changes
+and evolve it. In code, `TBoldDataBaseEvolutor` (unit `BoldDbEvolutor`) compares the model with the database while
+the persistence handle is inactive:
 
 ```pascal
-BoldDbEvolutor1.GenerateScript;
-// Review and execute the generated SQL
+Evolutor := TBoldDataBaseEvolutor.Create(BoldPersistenceHandleDB1);
+try
+  Evolutor.CalculateScript;
+  if Evolutor.HasSchemaChanges then
+    Evolutor.ExecuteScript;     // or GenerateScript(DbScript, MappingScript) to review the SQL first
+finally
+  Evolutor.Free;
+end;
 ```
+
+The [Model Evolution example](https://github.com/bero/BoldForDelphi/tree/develop/examples/Compound/ModelEvolution)
+shows a model change that keeps the existing data.
 
 ### Can I use Bold with an existing database?
 
-Yes, but you need to:
+Yes, in two ways:
 
-1. Create a UML model matching the existing schema.
-2. Create a new database with Bold.
-3. Configure table/column mappings in tagged values.
-4. Import existing data carefully.
+- Let Bold own a new database and import the old data into it. The tagged values `TableName` and `ColumnName` let
+  the model choose the table and column names.
+- Keep the external database and map it by hand with external persistence, as the
+  [External Persistence example](https://github.com/bero/BoldForDelphi/tree/develop/examples/Compound/ExternalPersistence)
+  does.
 
----
+## More help
 
-## Resources
-
-- [GitHub Repository](https://github.com/bero/BoldForDelphi)
-- [Bold Wiki](https://delphi.fandom.com/wiki/Bold_for_Delphi)
-- [Discord Community](https://discord.gg/C6frzsn)
+- [Discord](https://discord.gg/C6frzsn)
+- [GitHub issues](https://github.com/bero/BoldForDelphi/issues)
+- [Bold for Delphi wiki](https://delphi.fandom.com/wiki/Bold_for_Delphi)
