@@ -23,7 +23,7 @@ Bold pays off in line-of-business applications with a rich domain: ERP-style sys
 
 ### Where it does not
 
-For a small CRUD tool with five tables, or an application that is mostly reporting over an existing database you do not own, the model layer is more machinery than you need. Bold also assumes it owns the schema, and it is VCL and Windows only.
+For a small CRUD tool with five tables, or an application that is mostly reporting over an existing database you do not own, the model layer is more machinery than you need. Bold also assumes it owns the schema, and it runs on Windows and Linux only (VCL, FMX and LCL clients); macOS is planned, mobile platforms are not.
 
 ### How it compares to what you know
 
