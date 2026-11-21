@@ -1,28 +1,34 @@
 # TBoldObjectList
 
-`TBoldObjectList` represents a collection of Bold objects. It's used for multi-valued associations (one-to-many, many-to-many) and query results.
+`TBoldObjectList` (unit `BoldSystem`) is a list of Bold objects. Bold uses it for multi-valued association ends (one-to-many, many-to-many), for class extents (`allInstances`) and for OCL results.
 
 ## Class Definition
 
+Public members, abridged. Several come from `TBoldList`:
+
 ```pascal
-TBoldObjectList = class(TBoldMember)
+TBoldObjectList = class(TBoldList)
 public
   // Access
-  property BoldObjects[Index: Integer]: TBoldObject;
+  property BoldObjects[index: Integer]: TBoldObject; default;
   property Count: Integer;
-  function First: TBoldObject;
-  function Last: TBoldObject;
+  property First: TBoldObject;
+  property Last: TBoldObject;
+  property Locators[index: Integer]: TBoldObjectLocator;
 
   // Modification
-  function Add(AObject: TBoldObject): Integer;
-  procedure Insert(Index: Integer; AObject: TBoldObject);
-  function Remove(AObject: TBoldObject): Integer;
-  procedure RemoveByIndex(Index: Integer);
+  procedure Add(BoldObject: TBoldObject);
+  function AddNew: TBoldElement;
+  procedure Insert(index: Integer; BoldObject: TBoldObject);
+  procedure Remove(Item: TBoldElement; ARaiseIfNotFound: Boolean = True);
+  procedure RemoveByIndex(index: Integer);
   procedure Clear;
+  procedure Move(CurIndex, NewIndex: Integer);
 
   // Query
-  function IndexOf(AObject: TBoldObject): Integer;
-  function Includes(AObject: TBoldObject): Boolean;
+  function IndexOf(BoldObject: TBoldObject): Integer;
+  function Includes(BoldObject: TBoldObject): Boolean;
+  property Empty: Boolean;
 
   // Iteration
   function GetEnumerator: TBoldObjectListEnumerator;
@@ -33,7 +39,8 @@ end;
 
 ```mermaid
 classDiagram
-    TBoldMember <|-- TBoldObjectList
+    TBoldMember <|-- TBoldList
+    TBoldList <|-- TBoldObjectList
     TBoldObjectList <|-- TCustomerList
     TBoldObjectList <|-- TOrderList
 
@@ -43,6 +50,8 @@ classDiagram
 
     click TBoldMember href "../TBoldMember/" "TBoldMember documentation"
 ```
+
+The generated lists inherit from the list class of the model's root class, which inherits from `TBoldObjectList`.
 
 ## Properties
 
@@ -65,7 +74,7 @@ end;
 
 ### First / Last
 
-Quick access to endpoints:
+The first and last element:
 
 ```pascal
 var
@@ -80,7 +89,7 @@ end;
 
 ### Add
 
-Add object to list:
+Add an object to the list:
 
 ```pascal
 var
@@ -94,12 +103,14 @@ end;
 
 ### Remove
 
-Remove object from list:
+Remove an object from the list:
 
 ```pascal
 Customer.Orders.Remove(SomeOrder);
-// Object still exists, just not in this list
+// The object still exists, just not in this list
 ```
+
+`Remove` raises when the object is not in the list, unless `ARaiseIfNotFound` is False.
 
 ### Clear
 
@@ -115,12 +126,16 @@ Customer.Orders.Clear;
 Check membership:
 
 ```pascal
-if Customer.Orders.Includes(AnOrder) then
-  ShowMessage('Order belongs to this customer');
+var
+  Index: Integer;
+begin
+  if Customer.Orders.Includes(AnOrder) then
+    ShowMessage('Order belongs to this customer');
 
-var Index := Customer.Orders.IndexOf(AnOrder);
-if Index >= 0 then
-  ShowMessage('Found at index ' + IntToStr(Index));
+  Index := Customer.Orders.IndexOf(AnOrder);
+  if Index >= 0 then
+    ShowMessage('Found at index ' + IntToStr(Index));
+end;
 ```
 
 ## Iteration
@@ -136,6 +151,8 @@ begin
 end;
 ```
 
+A typed loop variable needs the enumerator of the generated list, which `bold.inc` enables for Delphi (`UseBoldListEnumerator`). On a plain `TBoldObjectList`, the loop variable is a `TBoldObject`.
+
 ### Traditional Loop
 
 ```pascal
@@ -143,33 +160,40 @@ var
   i: Integer;
 begin
   for i := 0 to Customer.Orders.Count - 1 do
-    ProcessOrder(Customer.Orders[i] as TOrder);
+    ProcessOrder(Customer.Orders[i]);
 end;
 ```
 
-### Reverse Iteration (for deletion)
+### Reverse Iteration (for removal)
 
 ```pascal
 var
   i: Integer;
 begin
   for i := Customer.Orders.Count - 1 downto 0 do
-    if ShouldDelete(Customer.Orders[i]) then
+    if ShouldRemove(Customer.Orders[i]) then
       Customer.Orders.RemoveByIndex(i);
 end;
 ```
 
 ## Generated Typed Lists
 
-Code generation creates typed list classes:
+Code generation creates a typed list class for each class in the model:
 
 ```pascal
-// Generated in BusinessClasses.pas
-TOrderList = class(TBoldObjectList)
+// Generated in the business classes unit
+TOrderList = class(TBusinessClassesRootList)
+protected
+  function GetBoldObject(index: Integer): TOrder;
+  procedure SetBoldObject(index: Integer; NewObject: TOrder);
 public
-  property Items[Index: Integer]: TOrder; default;
-  function First: TOrder;
-  function Last: TOrder;
+  function GetEnumerator: TOrderListEnumerator;  // {$IFDEF UseBoldListEnumerator}
+  function Includes(anObject: TOrder): Boolean;
+  function IndexOf(anObject: TOrder): Integer;
+  procedure Add(NewObject: TOrder);
+  function AddNew: TOrder;
+  procedure Insert(index: Integer; NewObject: TOrder);
+  property BoldObjects[index: Integer]: TOrder read GetBoldObject write SetBoldObject; default;
 end;
 ```
 
@@ -180,10 +204,15 @@ var
   Order: TOrder;
 begin
   // Type-safe access
-  Order := Customer.Orders[0];  // Returns TOrder, not TBoldObject
-  Order := Customer.Orders.First;
+  Order := Customer.Orders[0];               // Returns TOrder, not TBoldObject
+  Order := Customer.Orders.AddNew;           // Creates a new TOrder in the list
+  Order := Customer.Orders.First as TOrder;  // First and Last are not typed
 end;
 ```
+
+## Standalone Lists
+
+`TBoldObjectList.Create` makes a list that no object owns, for example for a selection. The caller frees it. Adding an object to it does not link anything.
 
 ## Common Patterns
 
@@ -192,10 +221,9 @@ end;
 ```pascal
 function GetPaidOrders(Orders: TOrderList): TBoldObjectList;
 begin
-  Result := Orders.BoldSystem.EvaluateExpressionAsNewElement(
-    'self->select(paid = true)',
-    Orders
-  ) as TBoldObjectList;
+  // The caller frees the result
+  Result := Orders.EvaluateExpressionAsNewElement(
+    'self->select(paid = true)') as TBoldObjectList;
 end;
 ```
 
@@ -211,17 +239,14 @@ begin
     Result := Result + Order.Total;
 end;
 
-// Or with OCL
+// Or with OCL (Total is a Currency attribute)
 function TotalOrderValueOCL(Orders: TOrderList): Currency;
 begin
-  Result := Orders.BoldSystem.EvaluateExpressionAsFloat(
-    'self->collect(total)->sum',
-    Orders
-  );
+  Result := Orders.EvaluateExpressionAsCurrency('self->collect(total)->sum');
 end;
 ```
 
-### Copy to Standard List
+### Copy to a Generic List
 
 ```pascal
 function ToGenericList(BoldList: TBoldObjectList): TList<TBoldObject>;
@@ -236,6 +261,8 @@ end;
 
 ## See Also
 
+- [TBoldObjectList reference](../reference/BoldSystem/TBoldObjectList.md) - Generated API reference
+- [TBoldList reference](../reference/BoldSystem/TBoldList.md) - Generated API reference for the base class
 - [TBoldObject](TBoldObject.md) - Elements in the list
 - [TBoldMember](TBoldMember.md) - Base class
 - [OCL Queries](../concepts/ocl.md) - Query collections

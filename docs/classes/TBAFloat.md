@@ -1,6 +1,6 @@
 # TBAFloat
 
-`TBAFloat` stores `Double` (64-bit IEEE floating-point) attribute values. Used for general numeric data where exact decimal precision is not critical.
+`TBAFloat` (unit `BoldAttributes`) stores `Double` (64-bit IEEE floating-point) attribute values. The model types Float and Double map to it. Use it for numeric data where exact decimal precision is not critical.
 
 ## Class Hierarchy
 
@@ -21,7 +21,6 @@ classDiagram
         +CreateWithValue()
     }
 
-    click TBANumeric href "../TBAInteger/" "TBAInteger documentation"
     click TBACurrency href "../TBACurrency/" "TBACurrency documentation"
     click TBAInteger href "../TBAInteger/" "TBAInteger documentation"
     click TBAMoment href "../TBAMoment/" "TBAMoment documentation"
@@ -73,10 +72,12 @@ The OCL engine supports several operations on float values:
 
 ```
 self.unitPrice.formatFloat('#,##0.00')   // Format for display
-self.unitPrice.simpleRound               // Round to integer (returns float!)
-self.unitPrice.simpleRoundTo(2)          // Round to N decimals (returns float!)
-self.safediv(self.total, self.quantity)   // Safe division (zero → INF, not 0)
+self.unitPrice.simpleRound               // Round to integer (the value is a Float)
+self.unitPrice.simpleRoundTo(-2)         // Math.SimpleRoundTo; -2 rounds to 2 decimals (the value is a Float)
+self.total.safediv(self.quantity)        // Division that does not raise when the divisor is zero
 ```
+
+Read the result of `simpleRound` with `EvaluateExpressionAsFloat`, not `EvaluateExpressionAsInteger`.
 
 !!! warning "Locale Sensitivity"
     `StrToFloat` is locale-sensitive. In tests, use `FloatToStr()` to generate portable string values rather than hardcoding decimal separators.
@@ -104,6 +105,7 @@ Assert.AreEqual(Double(29.99), Product.M_UnitPrice.AsFloat);
 
 ## See Also
 
+- [TBAFloat reference](../reference/BoldAttributes/TBAFloat.md) - Generated API reference
 - [TBACurrency](TBACurrency.md) - Fixed-point alternative for financial data
 - [TBAInteger](TBAInteger.md) - Integer sibling
 - [TBoldAttribute](TBoldAttribute.md) - Base class

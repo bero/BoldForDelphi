@@ -1,6 +1,6 @@
 # TBAInteger
 
-`TBAInteger` stores integer attribute values and serves as the base class for range-checked integer subtypes (`TBASmallInt`, `TBAWord`, `TBAByte`, `TBAShortInt`).
+`TBAInteger` (unit `BoldAttributes`) stores integer attribute values and is the base class for range-checked integer subtypes (`TBASmallInt`, `TBAWord`, `TBAByte`, `TBAShortInt`).
 
 ## Class Hierarchy
 
@@ -21,14 +21,13 @@ classDiagram
     TBAInteger : +CheckRange()
     TBAInteger : +CreateWithValue()
 
-    click TBANumeric href "../TBAFloat/" "TBANumeric via TBAFloat"
 ```
 
 ## Integer Subtypes
 
-| Type | Delphi Type | Range | Typical UML Mapping |
+| Type | Delphi Type | Range | Model Type |
 |------|-------------|-------|---------------------|
-| `TBAInteger` | `Integer` | -2,147,483,648 to 2,147,483,647 | Integer |
+| `TBAInteger` | `Integer` | -2,147,483,648 to 2,147,483,647 | Integer, Int |
 | `TBASmallInt` | `SmallInt` | -32,768 to 32,767 | SmallInt |
 | `TBAShortInt` | `ShortInt` | -128 to 127 | ShortInt |
 | `TBAWord` | `Word` | 0 to 65,535 | Word |
@@ -82,12 +81,11 @@ if Person.M_Age.IsNullOrZero then
 
 ### Range Checking
 
-Subtypes automatically validate ranges:
+Each subtype overrides `CheckRange`. Setting a value outside the range raises:
 
 ```pascal
-// TBAByte.CheckRange returns False for values outside 0..255
-// This is enforced when setting values
-SmallIntAttr.AsSmallInt := 40000;  // raises exception: out of range
+// TBASmallInt.CheckRange returns False for values outside -32768..32767
+SmallIntAttr.AsInteger := 40000;  // raises: out of range
 ```
 
 ## Common Patterns
@@ -111,6 +109,7 @@ Total := Order.M_Quantity.AsFloat * Order.M_UnitPrice.AsFloat;
 
 ## See Also
 
+- [TBAInteger reference](../reference/BoldAttributes/TBAInteger.md) - Generated API reference
 - [TBoldAttribute](TBoldAttribute.md) - Base class
 - [TBAFloat](TBAFloat.md) - Floating-point sibling
 - [TBACurrency](TBACurrency.md) - Fixed-point sibling

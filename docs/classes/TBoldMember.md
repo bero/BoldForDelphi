@@ -1,31 +1,38 @@
 # TBoldMember
 
-`TBoldMember` is the abstract base class for all member types in Bold objects: attributes, references, and lists.
+`TBoldMember` (unit `BoldSystem`) is the abstract base class for the members of Bold objects: attributes, single references and lists.
 
 ## Class Definition
+
+Public members, abridged:
 
 ```pascal
 TBoldMember = class(TBoldDomainElement)
 public
-  // Owning object
+  // Owner and type information
   property OwningObject: TBoldObject;
   property BoldSystem: TBoldSystem;
-
-  // Type information
   property BoldMemberRTInfo: TBoldMemberRTInfo;
-  property DisplayName: string;
+  property DisplayName: string;                  // from TBoldElement
 
   // Value access
-  property AsString: string;
-  property IsNull: Boolean;
+  property AsString: string;                     // from TBoldElement
 
   // State
-  property BoldDirty: Boolean;
+  property BoldDirty: Boolean;                   // from TBoldDomainElement
+  property BoldPersistenceState: TBoldValuePersistenceState;
+  property Derived: Boolean;
+  property IsReadOnly: Boolean;
+  function CanModify: Boolean;
+  procedure Invalidate; override;
+  procedure EnsureContentsCurrent;
 
   // Subscriptions
-  procedure DefaultSubscribe(Subscriber: TBoldSubscriber);
+  procedure DefaultSubscribe(Subscriber: TBoldSubscriber; RequestedEvent: TBoldEvent = breReEvaluate); virtual; abstract;
 end;
 ```
+
+`IsNull` belongs to [TBoldAttribute](TBoldAttribute.md), not to `TBoldMember`.
 
 ## Inheritance
 
@@ -34,11 +41,13 @@ classDiagram
     TBoldDomainElement <|-- TBoldMember
     TBoldMember <|-- TBoldAttribute
     TBoldMember <|-- TBoldObjectReference
-    TBoldMember <|-- TBoldObjectList
+    TBoldMember <|-- TBoldList
+    TBoldList <|-- TBoldObjectList
+    TBoldList <|-- TBoldMemberList
 
     TBoldMember : +OwningObject
     TBoldMember : +AsString
-    TBoldMember : +IsNull
+    TBoldMember : +BoldDirty
 
     click TBoldAttribute href "../TBoldAttribute/" "TBoldAttribute documentation"
     click TBoldObjectReference href "../TBoldObjectReference/" "TBoldObjectReference documentation"
@@ -57,21 +66,21 @@ classDiagram
 
 ### OwningObject
 
-Get the object that owns this member:
+The object that owns this member:
 
 ```pascal
 var
   Member: TBoldMember;
   Owner: TBoldObject;
 begin
-  Member := Customer.BoldMemberByName['Name'];
+  Member := Customer.BoldMemberByExpressionName['Name'];
   Owner := Member.OwningObject;  // Returns Customer
 end;
 ```
 
 ### AsString
 
-Universal string representation:
+The default string representation:
 
 ```pascal
 var
@@ -86,18 +95,11 @@ begin
 end;
 ```
 
-### IsNull
-
-Check if member has no value:
-
-```pascal
-if Customer.M_Email.IsNull then
-  ShowMessage('No email address');
-```
+`DisplayName` includes the owning object. For the member name alone, use `Member.BoldMemberRTInfo.ExpressionName`.
 
 ### BoldDirty
 
-Check if member has unsaved changes:
+Check whether the member has unsaved changes:
 
 ```pascal
 if Customer.M_Name.BoldDirty then
@@ -112,7 +114,7 @@ Members support the subscription pattern:
 // Subscribe to changes
 Customer.M_Name.DefaultSubscribe(MySubscriber);
 
-// When Name changes, subscriber is notified
+// When Name changes, the subscriber is notified
 ```
 
 ## Accessing Members
@@ -121,7 +123,7 @@ Customer.M_Name.DefaultSubscribe(MySubscriber);
 
 ```pascal
 // Preferred - type safe
-CustomerName := Customer.Name;  // string
+CustomerName := Customer.Name;      // string
 CustomerOrders := Customer.Orders;  // TOrderList
 ```
 
@@ -135,32 +137,36 @@ Member := Customer.BoldMembers[0];
 ### By Name
 
 ```pascal
-// Dynamic access
-Member := Customer.BoldMemberByName['Name'];
+// Dynamic access; raises EBold if the class has no such member
+Member := Customer.BoldMemberByExpressionName['Name'];
+
+// Returns nil if the class has no such member
+Member := Customer.FindBoldMemberByExpressionName('Name');
 ```
 
 ## Member Naming Convention
 
-Generated code uses `M_` prefix for raw member access:
+Generated code has an `M_` property that returns the member object:
 
 ```pascal
-TCustomer = class(TBoldObject)
+TCustomer = class(TBusinessClassesRoot)
 private
-  // Raw member access (internal)
   function _Get_M_Name: TBAString;
+  function _GetName: String;
+  procedure _SetName(const NewValue: String);
 public
-  // Typed property (use this)
-  property Name: string read GetName write SetName;
-
-  // Raw member access (advanced use)
+  // Raw member access
   property M_Name: TBAString read _Get_M_Name;
+
+  // Typed value property
+  property Name: String read _GetName write _SetName;
 end;
 ```
 
-Use `M_Name` when you need:
-- To check `IsNull`
-- To subscribe to changes
-- To access metadata
+Use `M_Name` when you need to:
+- check `IsNull`
+- subscribe to changes
+- read metadata through `BoldMemberRTInfo`
 
 ## Common Patterns
 
@@ -199,6 +205,8 @@ end;
 
 ## See Also
 
+- [TBoldMember reference](../reference/BoldSystem/TBoldMember.md) - Generated API reference
 - [TBoldAttribute](TBoldAttribute.md) - Value attributes
 - [TBoldObjectList](TBoldObjectList.md) - Multi-valued associations
 - [TBoldObject](TBoldObject.md) - Owner of members
+- [TBoldMemberRTInfo](TBoldMemberRTInfo.md) - Member metadata

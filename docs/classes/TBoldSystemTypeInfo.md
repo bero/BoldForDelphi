@@ -1,6 +1,6 @@
 # TBoldSystemTypeInfo
 
-`TBoldSystemTypeInfo` provides runtime type information for the entire Bold model. It is the central registry for looking up class types, attribute types, list types, and other model metadata at runtime.
+`TBoldSystemTypeInfo` (unit `BoldSystemRT`) provides runtime type information for the entire Bold model. It is the central registry for looking up class types, attribute types, list types, and other model metadata at runtime.
 
 ## Class Hierarchy
 
@@ -42,8 +42,8 @@ public
   property MemberTypeInfoByQualifiedName[const AClassName, AMemberName: string]: TBoldMemberRTInfo;
   property ListTypeInfoByElement[Element: TBoldElementTypeInfo]: TBoldListTypeInfo;
   function FindElement(const AText: string;
-    ASearchOptions: TBoldTypeInfoSearchOptions;
-    ASearchTypes: TBoldSearchTypes): TBoldMetaElement;
+    ASearchOptions: TBoldTypeInfoSearchOptions = cDefaultSearchTypeOptions;
+    ASearchTypes: TBoldSearchTypes = cDefaultSearchTypes): TBoldMetaElement;
 
   // List types
   property ListTypes: TBoldListTypeInfoList;
@@ -67,9 +67,15 @@ end;
 ## Accessing SystemTypeInfo
 
 ```pascal
-// Via TBoldSystem
-var SystemTypeInfo: TBoldSystemTypeInfo;
-SystemTypeInfo := BoldSystem.BoldSystemTypeInfo;
+var
+  SystemTypeInfo: TBoldSystemTypeInfo;
+begin
+  // From a running system
+  SystemTypeInfo := BoldSystem.BoldSystemTypeInfo;
+
+  // From any handle, also before the system is active
+  SystemTypeInfo := BoldSystemTypeInfoHandle1.StaticSystemTypeInfo;
+end;
 ```
 
 ## Working with TBoldSystemTypeInfo
@@ -115,11 +121,12 @@ if MemberInfo.IsDerived then
 
 ### Search Across All Types
 
+`FindElement` compares expression names without regard to case and returns the first match. With `soPartialMatch` the text can be any part of the name. `TBoldSearchType` is `stClass`, `stAttribute`, `stRole`, `stMethod` or `stType`; by default all are searched.
+
 ```pascal
-// Partial match search across classes, attributes, roles
 var Found: TBoldMetaElement;
 Found := SystemTypeInfo.FindElement('Cust', [soPartialMatch], [stClass]);
-// Returns TBoldClassTypeInfo for 'Customer'
+// Returns the TBoldClassTypeInfo for 'Customer' (the first class whose name contains 'Cust')
 ```
 
 ### Model Versioning

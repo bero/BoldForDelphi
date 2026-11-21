@@ -1,33 +1,41 @@
 # TBoldObject
 
-`TBoldObject` is the base class for all domain objects in Bold. Your generated business classes inherit from this class.
+`TBoldObject` (unit `BoldSystem`) is the base class for all domain objects in Bold. The business classes that Bold generates from the model inherit from it.
 
 ## Class Definition
+
+Public members, abridged:
 
 ```pascal
 TBoldObject = class(TBoldDomainElement)
 public
-  // System access
+  constructor Create(AOwningElement: TBoldDomainElement; Persistent: Boolean = True);
+
+  // System and type information
   property BoldSystem: TBoldSystem;
   property BoldClassTypeInfo: TBoldClassTypeInfo;
 
   // Members
-  property BoldMembers[Index: Integer]: TBoldMember;
+  property BoldMembers[index: Integer]: TBoldMember;
   property BoldMemberCount: Integer;
-  property BoldMemberByName[const Name: string]: TBoldMember;
+  property BoldMemberByExpressionName[const name: string]: TBoldMember;   // raises if not found
+  function FindBoldMemberByExpressionName(const Name: string): TBoldMember; // nil if not found
 
   // Identity
-  property BoldObjectLocator: TBoldObjectLocator;
-  function BoldObjectId: TBoldObjectId;
+  property BoldObjectLocator: TBoldObjectLocator;   // BoldObjectLocator.BoldObjectID is the ID
 
   // State
   property BoldExistenceState: TBoldExistenceState;
-  property BoldPersistenceState: TBoldPersistenceState;
-  property BoldDirty: Boolean;
+  property BoldPersistenceState: TBoldValuePersistenceState;
+  property BoldDirty: Boolean;                       // from TBoldDomainElement
+  property BoldObjectIsNew: Boolean;
+  property BoldObjectIsDeleted: Boolean;
 
   // Operations
   procedure Delete;
-  procedure Undelete;
+  function CanDelete: Boolean;
+  procedure Discard;
+  procedure ReRead;
 end;
 ```
 
@@ -51,26 +59,34 @@ classDiagram
 
 ### Existence State
 
+`TBoldExistenceState` is declared in `BoldValueSpaceInterfaces`.
+
 ```mermaid
 stateDiagram-v2
-    [*] --> esExisting: Create/Fetch
-    esExisting --> esDeleted: Delete()
-    esDeleted --> esExisting: Undelete()
-    esDeleted --> [*]: UpdateDatabase
+    [*] --> besExisting: Create / fetch
+    besExisting --> besDeleted: Delete
+    besDeleted --> besExisting: Discard (before UpdateDatabase)
+    besDeleted --> [*]: UpdateDatabase
 ```
 
 | State | Description |
 |-------|-------------|
-| `esExisting` | Object exists and is active |
-| `esDeleted` | Object marked for deletion |
+| `besNotCreated` | Not yet created |
+| `besExisting` | The object exists |
+| `besDeleted` | Deleted; removed from the database by the next `UpdateDatabase` |
 
 ### Persistence State
 
+`TBoldValuePersistenceState` (unit `BoldDefs`) is shared with members:
+
 | State | Description |
 |-------|-------------|
-| `psNew` | Created, not yet saved |
-| `psClean` | Saved, no pending changes |
-| `psModified` | Has unsaved modifications |
+| `bvpsCurrent` | In step with the database |
+| `bvpsModified` | Changed in memory and not saved. For an object: created or deleted. |
+| `bvpsInvalid` | Not loaded; fetched on access |
+| `bvpsTransient` | Not persistent; never saved |
+
+A saved object stays `bvpsCurrent` when only its attributes change. Use `BoldDirty` to find unsaved changes.
 
 ## Properties
 
@@ -80,6 +96,7 @@ Access attributes and references by index:
 
 ```pascal
 var
+  i: Integer;
   Member: TBoldMember;
 begin
   for i := 0 to Customer.BoldMemberCount - 1 do
@@ -90,22 +107,22 @@ begin
 end;
 ```
 
-### BoldMemberByName
+### BoldMemberByExpressionName
 
-Access by name:
+Access a member by its expression name:
 
 ```pascal
 var
   NameAttr: TBoldAttribute;
 begin
-  NameAttr := Customer.BoldMemberByName['Name'] as TBoldAttribute;
+  NameAttr := Customer.BoldMemberByExpressionName['Name'] as TBoldAttribute;
   NameAttr.AsString := 'New Name';
 end;
 ```
 
 ### BoldDirty
 
-Check if object has unsaved changes:
+Check whether the object has unsaved changes:
 
 ```pascal
 if Customer.BoldDirty then
@@ -116,39 +133,46 @@ if Customer.BoldDirty then
 
 ### Delete
 
-Mark object for deletion:
+Delete the object:
 
 ```pascal
 Customer.Delete;
-// Object still exists until UpdateDatabase
+// A saved object stays in memory as deleted until UpdateDatabase
 BoldSystem.UpdateDatabase;
-// Now removed from database
+// Now removed from the database
 ```
 
-### Undelete
+A new object that was never saved is destroyed at once. Bold applies the delete action of each association end in the model: `daCascade` deletes the linked objects, `daAllow` unlinks them, and `daProhibit` makes `CanDelete` return False while links exist.
 
-Restore a deleted object (before UpdateDatabase):
+### Discard
+
+Drop the object's unsaved changes. For a deleted object that is not saved yet, `Discard` makes it exist again; a new object is destroyed. `Discard` raises inside an object space transaction.
 
 ```pascal
 Customer.Delete;
 // Changed my mind
-Customer.Undelete;
+Customer.Discard;
 ```
+
+There is no `Undelete` method. Inside a transaction, `BoldSystem.RollbackTransaction` also restores deleted objects.
 
 ## Generated Properties
 
 Code generation creates typed properties for your model:
 
 ```pascal
-// Generated in BusinessClasses.pas
-TCustomer = class(TBoldObject)
+// Generated in the business classes unit
+TCustomer = class(TBusinessClassesRoot)
 private
-  function GetName: string;
-  procedure SetName(const Value: string);
-  function GetOrders: TOrderList;
+  function _Get_M_Name: TBAString;
+  function _GetName: String;
+  procedure _SetName(const NewValue: String);
+  function _GetOrders: TOrderList;
 public
-  property Name: string read GetName write SetName;
-  property Orders: TOrderList read GetOrders;
+  property M_Name: TBAString read _Get_M_Name;
+  property M_Orders: TOrderList read _GetOrders;
+  property Name: String read _GetName write _SetName;
+  property Orders: TOrderList read _GetOrders;
 end;
 ```
 
@@ -157,6 +181,7 @@ Usage:
 ```pascal
 var
   Customer: TCustomer;
+  Order: TOrder;
 begin
   Customer := TCustomer.Create(BoldSystem);
   Customer.Name := 'Acme Corp';
@@ -166,6 +191,8 @@ begin
 end;
 ```
 
+The typed `for..in` loop needs the generated list enumerator, which `bold.inc` enables for Delphi (`UseBoldListEnumerator`).
+
 ## Common Patterns
 
 ### Check Before Delete
@@ -173,14 +200,14 @@ end;
 ```pascal
 procedure SafeDelete(Obj: TBoldObject);
 begin
-  if Obj.BoldExistenceState = esExisting then
+  if (Obj.BoldExistenceState = besExisting) and Obj.CanDelete then
     Obj.Delete;
 end;
 ```
 
 ### Clone Object
 
-Bold doesn't have built-in cloning. Manual approach:
+`TBoldObject` has no clone method. Copy the members you need:
 
 ```pascal
 function CloneCustomer(Source: TCustomer): TCustomer;
@@ -194,6 +221,8 @@ end;
 
 ### Compare Objects
 
+An object space holds one locator per object, so two references to the same object have the same locator:
+
 ```pascal
 function SameObject(A, B: TBoldObject): Boolean;
 begin
@@ -203,6 +232,8 @@ end;
 
 ## See Also
 
-- [TBoldSystem](TBoldSystem.md) - Object Space manager
+- [TBoldObject reference](../reference/BoldSystem/TBoldObject.md) - Generated API reference
+- [TBoldSystem](TBoldSystem.md) - The object space
 - [TBoldMember](TBoldMember.md) - Attributes and references
 - [TBoldObjectList](TBoldObjectList.md) - Collections
+- [TBoldObjectId](TBoldObjectId.md) - Object identity

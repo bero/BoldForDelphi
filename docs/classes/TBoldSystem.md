@@ -1,44 +1,59 @@
 # TBoldSystem
 
-`TBoldSystem` is the central class that manages the **Object Space** - the in-memory graph of all domain objects.
+`TBoldSystem` (unit `BoldSystem`) is the **object space**: the in-memory graph of all domain objects. It creates and locates objects, tracks unsaved changes, runs object space transactions and saves to the database through its persistence controller. An application normally gets it from a `TBoldSystemHandle`.
 
 ## Class Definition
 
+Public members, abridged:
+
 ```pascal
-TBoldSystem = class(TBoldElement)
+TBoldSystem = class(TBoldDomainElement)
 public
-  // Class management
-  property Classes[const AClassName: string]: TBoldClassExtent;
-  property ClassCount: Integer;
+  // Class extents (all instances of a class)
+  property ClassByExpressionName[const ExpressionName: string]: TBoldObjectList;
+  property ClassByObjectClass[ObjectClass: TBoldObjectClass]: TBoldObjectList;
+  property Classes[index: Integer]: TBoldObjectList;   // index = TopSortedIndex
+  property BoldSystemTypeInfo: TBoldSystemTypeInfo;
 
-  // Object management
-  property DirtyObjects: TBoldObjectList;
-  property ObjectById[const Id: TBoldObjectId]: TBoldObject;
+  // Creating and locating objects
+  function CreateNewObjectByExpressionName(const ExpressionName: string; Persistent: Boolean = True): TBoldObject;
+  function CreateNewObjectFromClassTypeInfo(aClassTypeInfo: TBoldClassTypeInfo; Persistent: Boolean = True): TBoldObject;
+  property Locators: TBoldSystemLocatorList;
+  property EnsuredLocatorByID[ObjectID: TBoldObjectId]: TBoldObjectLocator;
 
-  // Transactions
-  procedure StartTransaction;
-  procedure CommitTransaction;
-  procedure RollbackTransaction;
-  property InTransaction: Boolean;
+  // Unsaved changes
+  property DirtyObjects: TList;                        // of TBoldObject
+  property DirtyObjectsAsBoldList: TBoldObjectList;    // new list, the caller frees it
+  property BoldDirty: Boolean;                         // from TBoldDomainElement
+
+  // Object space transactions
+  procedure StartTransaction(MinimalMode: TBoldSystemTransactionMode = stmNormal);
+  procedure CommitTransaction(MinimalMode: TBoldSystemTransactionMode = stmNormal);
+  procedure RollbackTransaction(MinimalMode: TBoldSystemTransactionMode = stmNormal);
+  function InTransaction: Boolean;
 
   // Persistence
   procedure UpdateDatabase;
-  procedure FetchObject(AObject: TBoldObject);
+  procedure UpdateDatabaseWithList(ObjectList: TBoldObjectList);
+  procedure FetchMembersWithObjects(aBoldObjectList: TBoldObjectList; const AMemberCommaList: string); overload;
+  procedure Discard; override;
 
-  // OCL evaluation
-  function EvaluateExpression(const Expression: string;
-    Context: TBoldElement): TBoldElement;
-  function EvaluateExpressionAsNewElement(const Expression: string;
-    Context: TBoldElement): TBoldElement;
+  // Events
+  property OnPreUpdate: TNotifyEvent;
+  property OnOptimisticLockingFailed: TBoldOptimisticLockingFailedEvent;
+  property OnCreateApproximateObjectError: TBoldCreateApproximateObjectError;
 end;
 ```
+
+OCL evaluation (`EvaluateExpressionAsNewElement` and the typed variants) is inherited from [TBoldElement](TBoldElement.md).
 
 ## Inheritance
 
 ```mermaid
 classDiagram
-    TBoldElement <|-- TBoldSystem
-    TBoldSystem : +Classes
+    TBoldElement <|-- TBoldDomainElement
+    TBoldDomainElement <|-- TBoldSystem
+    TBoldSystem : +ClassByExpressionName
     TBoldSystem : +DirtyObjects
     TBoldSystem : +StartTransaction()
     TBoldSystem : +UpdateDatabase()
@@ -46,24 +61,37 @@ classDiagram
     click TBoldElement href "../TBoldElement/" "TBoldElement documentation"
 ```
 
-## Properties
-
-### Classes
-
-Access class extents by name:
+## Getting the System
 
 ```pascal
 var
-  CustomerExtent: TBoldClassExtent;
+  System: TBoldSystem;
 begin
-  CustomerExtent := BoldSystem.Classes['Customer'];
-  ShowMessage(Format('%d customers', [CustomerExtent.BoldObjects.Count]));
+  System := BoldSystemHandle1.System;   // from a handle
+  System := SomeObject.BoldSystem;      // from an object
 end;
 ```
 
+## Properties
+
+### ClassByExpressionName
+
+The list of all instances of a class. It is the same list as `Customer.allInstances` in OCL:
+
+```pascal
+var
+  Customers: TBoldObjectList;
+begin
+  Customers := BoldSystem.ClassByExpressionName['Customer'];
+  ShowMessage(Format('%d customers', [Customers.Count]));
+end;
+```
+
+It raises `EBold` when the model has no class with that name.
+
 ### DirtyObjects
 
-List of objects with unsaved changes:
+The objects with unsaved changes:
 
 ```pascal
 if BoldSystem.DirtyObjects.Count > 0 then
@@ -73,25 +101,32 @@ begin
 end;
 ```
 
-### ObjectById
+### EnsuredLocatorByID
 
-Find object by its persistent ID:
+Find an object by its persistent ID. The locator copies the ID, so the caller frees its own ID object. `EnsuredBoldObject` fetches the object when it is not loaded yet.
 
 ```pascal
 var
+  Id: TBoldDefaultID;    // unit BoldDefaultId
   Customer: TBoldObject;
-  Id: TBoldObjectId;
 begin
-  Id := TBoldDefaultId.CreateWithClassIdAndId(CustomerClassId, 42);
-  Customer := BoldSystem.ObjectById[Id];
+  Id := TBoldDefaultID.CreateWithClassID(0, False);
+  try
+    Id.AsInteger := 42;
+    Customer := BoldSystem.EnsuredLocatorByID[Id].EnsuredBoldObject;
+  finally
+    Id.Free;
+  end;
 end;
 ```
+
+`Locators.ObjectByID[Id]` only looks in memory and returns nil for an object that is not loaded.
 
 ## Methods
 
 ### StartTransaction / CommitTransaction / RollbackTransaction
 
-Wrap modifications in a transaction:
+These are object space transactions, in memory. `RollbackTransaction` restores the values that the objects had at `StartTransaction`, including objects deleted in the transaction. They do not write to the database; call `UpdateDatabase` for that.
 
 ```pascal
 BoldSystem.StartTransaction;
@@ -107,38 +142,31 @@ end;
 
 ### UpdateDatabase
 
-Persist all dirty objects to database:
+Save all dirty objects to the database:
 
 ```pascal
 BoldSystem.UpdateDatabase;
 ```
 
-### EvaluateExpression
+`UpdateDatabaseWithList` saves only the objects in a list.
 
-Execute OCL query:
+### Evaluating OCL
 
 ```pascal
 var
   ActiveCustomers: TBoldObjectList;
 begin
   ActiveCustomers := BoldSystem.EvaluateExpressionAsNewElement(
-    'Customer.allInstances->select(active = true)',
-    nil
-  ) as TBoldObjectList;
+    'Customer.allInstances->select(active)') as TBoldObjectList;
+  try
+    // Use ActiveCustomers
+  finally
+    ActiveCustomers.Free;
+  end;
 end;
 ```
 
 ## Common Usage
-
-### Getting the System
-
-```pascal
-// From a handle
-var System: TBoldSystem := BoldSystemHandle1.System;
-
-// From an object
-var System: TBoldSystem := SomeObject.BoldSystem;
-```
 
 ### Creating Objects
 
@@ -146,8 +174,8 @@ var System: TBoldSystem := SomeObject.BoldSystem;
 var
   Customer: TCustomer;
 begin
-  Customer := BoldSystem.Classes['Customer'].CreateNewObject as TCustomer;
-  // or
+  Customer := BoldSystem.CreateNewObjectByExpressionName('Customer') as TCustomer;
+  // or, with the generated class
   Customer := TCustomer.Create(BoldSystem);
 end;
 ```
@@ -156,12 +184,12 @@ end;
 
 ```pascal
 var
-  Extent: TBoldClassExtent;
+  Customers: TBoldObjectList;
   i: Integer;
 begin
-  Extent := BoldSystem.Classes['Customer'];
-  for i := 0 to Extent.BoldObjects.Count - 1 do
-    ProcessCustomer(Extent.BoldObjects[i] as TCustomer);
+  Customers := BoldSystem.ClassByExpressionName['Customer'];
+  for i := 0 to Customers.Count - 1 do
+    ProcessCustomer(Customers[i] as TCustomer);
 end;
 ```
 
@@ -169,10 +197,15 @@ end;
 
 | Event | Description |
 |-------|-------------|
-| `OnPreUpdate` | Before saving to database |
-| `OnPostUpdate` | After saving to database |
+| `OnPreUpdate` | Called before objects are saved. `Sender` is the `TBoldObjectList` of objects about to be saved. |
+| `OnOptimisticLockingFailed` | Called when optimistic locking rejects a save, with the objects to save and the ones that failed. `TBoldSystemHandle` has the same event. |
+| `OnCreateApproximateObjectError` | Called after `CreateExistingObjectByID` created an object from an ID whose exact class is unknown. Without a handler, it raises instead. |
+
+`TBoldSystem` has no `OnPostUpdate` event. After a save the system sends `beEndUpdate` to its subscribers.
 
 ## See Also
 
+- [TBoldSystem reference](../reference/BoldSystem/TBoldSystem.md) - Generated API reference
 - [TBoldObject](TBoldObject.md) - Individual domain objects
+- [TBoldObjectId](TBoldObjectId.md) - Object identity
 - [Object Space Concept](../concepts/object-space.md) - Detailed explanation

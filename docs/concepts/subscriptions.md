@@ -1,383 +1,150 @@
 # Subscriptions
 
-Bold uses a **Subscription System** (observer pattern) to automatically notify interested parties when objects change. This enables reactive UI updates without manual refresh code.
+Bold uses a **subscription system** (the observer pattern) to tell interested parties when objects change. It keeps
+derived values and the user interface current without refresh code.
+
+Every subscribable element (an object, a member, a list, a handle) has a publisher. A subscriber registers with the
+publisher for the events it wants; when the element changes, the publisher calls the subscriber at once.
 
 ## How It Works
 
 ```mermaid
 sequenceDiagram
-    participant UI as UI Control
-    participant Handle as Bold Handle
+    participant UI as Bold-aware control
+    participant Handle as Bold handle
     participant Object as TBoldObject
-    participant Sub as Subscription Manager
+    participant Pub as Publisher of the member
+    participant Queue as Display queue
 
-    UI->>Handle: Bind to handle
-    Handle->>Sub: Subscribe to object
-    Note over Object: User modifies object
-    Object->>Sub: Notify change
-    Sub->>Handle: Deliver event
-    Handle->>UI: Refresh display
+    UI->>Handle: Bound to the handle
+    UI->>Pub: Subscribes through its expression
+    Note over Object: Code or the user changes a member
+    Pub->>UI: Event (beValueChanged)
+    UI->>Queue: Marks itself out of date
+    Queue->>UI: Repaints when the application is idle
 ```
 
 ## Subscription Events
 
-| Event | Description |
-|-------|-------------|
-| `beValueChanged` | Attribute value changed |
-| `beObjectCreated` | New object created |
-| `beObjectDeleted` | Object deleted |
-| `beItemAdded` | Item added to list |
-| `beItemRemoved` | Item removed from list |
-| `beMemberChanged` | Any member changed |
+The events are constants in the unit `BoldSubscription`. The most common:
+
+| Event | Sent when |
+|-------|-----------|
+| `beValueChanged` | The value of an attribute or a single link changed |
+| `beMemberChanged` | A member of the object changed (sent by the object) |
+| `beObjectCreated` | An object was created |
+| `beObjectDeleted` | An object was deleted |
+| `beItemAdded` | An element was added to a list |
+| `beItemDeleted` | An element was removed from a list |
+| `beItemReplaced` | An element of a list was replaced |
+| `beOrderChanged` | The order of a list changed |
+| `beDestroying` | The element is being destroyed |
 
 ## Automatic Subscriptions
 
-Bold handles and controls automatically subscribe to relevant objects:
+Bold handles and Bold-aware controls subscribe to what their expressions read:
 
 ```pascal
-// TBoldEdit automatically subscribes to the bound attribute
+// TBoldEdit subscribes to the attribute its expression reads
 BoldEdit1.BoldHandle := CustomerHandle;
 BoldEdit1.BoldProperties.Expression := 'name';
-// Edit updates automatically when Customer.Name changes
+// The edit updates when the customer's name changes
 ```
+
+OCL-derived attributes and associations subscribe in the same way, see [Derived Attributes](derived-attributes.md).
 
 ## Manual Subscriptions
 
-For custom logic, subscribe directly:
+For your own logic, subscribe with a `TBoldPassthroughSubscriber`, which calls a method of yours:
 
 ```pascal
 type
   TMyForm = class(TForm)
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     FSubscriber: TBoldPassthroughSubscriber;
-    procedure ObjectChanged(Originator: TObject;
-      OriginalEvent, RequestedEvent: TBoldEvent);
+    procedure CustomerChanged(Originator: TObject; OriginalEvent: TBoldEvent;
+      RequestedEvent: TBoldRequestedEvent);
   end;
 
 procedure TMyForm.FormCreate(Sender: TObject);
 begin
-  FSubscriber := TBoldPassthroughSubscriber.Create(ObjectChanged);
+  FSubscriber := TBoldPassthroughSubscriber.Create(CustomerChanged);
 
-  // Subscribe to a specific object
-  Customer.AddSubscription(FSubscriber, beValueChanged);
+  // Any member of this customer changes
+  Customer.AddSubscription(FSubscriber, beMemberChanged);
+  // Or: only the name changes
+  Customer.M_Name.DefaultSubscribe(FSubscriber);
 end;
 
-procedure TMyForm.ObjectChanged(Originator: TObject;
-  OriginalEvent, RequestedEvent: TBoldEvent);
+procedure TMyForm.CustomerChanged(Originator: TObject; OriginalEvent: TBoldEvent;
+  RequestedEvent: TBoldRequestedEvent);
 begin
-  // React to change
   UpdateCustomerDisplay;
 end;
 
 procedure TMyForm.FormDestroy(Sender: TObject);
 begin
+  // Freeing the subscriber cancels its subscriptions
   FSubscriber.Free;
 end;
 ```
 
+`AddSubscription(Subscriber, OriginalEvent, RequestedEvent)` subscribes to one event; `RequestedEvent` is passed on
+to the subscriber and defaults to `breReEvaluate`. `DefaultSubscribe(Subscriber)` subscribes to the events that
+mean the element's value changed.
+
+## Re-evaluate or Re-subscribe
+
+Derivers and other subscribers that compute a value distinguish two requested events:
+
+| Requested event | Effect on a deriver |
+|-----------------|---------------------|
+| `breReEvaluate` (the default) | Computes the value again and keeps the subscriptions |
+| `breReSubscribe` | Cancels the subscriptions, then computes the value again and subscribes anew |
+
+Use `breReSubscribe` for a link or list whose elements you also subscribe to. When the link points to another object
+or the list gets a new element, the subscriptions must follow:
+
+```pascal
+M_Orders.DefaultSubscribe(Subscriber, breReSubscribe);
+for Order in Orders do
+  Order.M_Status.DefaultSubscribe(Subscriber);
+```
+
 ## Derivers
 
-**Derivers** automatically recalculate values when dependencies change. In the UML model, mark a member as "derived" and choose how to implement the derivation logic.
+**Derivers** compute derived members. A deriver subscribes to every value the derivation reads; when one of them
+changes, the derived member is out of date and is computed again when it is read. The derivation is an OCL expression
+in the model or an Object Pascal method. [Derived Attributes](derived-attributes.md) covers both, together with
+derived links and reverse derivation.
 
-### Two Ways to Implement Derivers
+## Display Queue
 
-You can implement derivation using **OCL expressions** or **Delphi code**:
-
-#### OCL Expression (Declarative)
-
-Define the derivation directly in the UML model using OCL:
-
-```
-// In UML model, set the derivation expression for Order.Total:
-orderLines.subTotal->sum
-```
-
-#### Delphi Code (Procedural)
-
-Bold generates a `_DeriveAndSubscribe` method that you implement in code:
-
-```pascal
-procedure TOrder._TotalDeriveAndSubscribe(DerivedObject: TObject;
-  Subscriber: TBoldSubscriber);
-```
-
-### Comparison: OCL vs Delphi Code
-
-| Aspect | OCL Expression | Delphi Code |
-|--------|----------------|-------------|
-| **Simplicity** | Simple expressions are concise | Any complexity supported |
-| **Subscriptions** | Automatic | Automatic (can also add manual) |
-| **Debugging** | Harder to debug | Full debugger support |
-| **Performance** | Can evaluate in database | Always in memory |
-| **Flexibility** | Limited to OCL capabilities | Full Delphi power |
-| **Maintainability** | Visible in model | Scattered in code |
-
-### When to Use Each Approach
-
-**Use OCL when:**
-
-- The derivation is a simple calculation or navigation
-- You want automatic subscription management
-- The expression can benefit from database evaluation
-- You want the logic visible in the UML model
-
-```
-// Good OCL candidates:
-orderLines->size                           // Count
-orderLines.amount->sum                     // Sum
-orders->select(status = 'Active')          // Filter
-customer.orders->notEmpty                  // Boolean check
-```
-
-**Use Delphi code when:**
-
-- Complex business logic is required
-- You need conditional logic or loops
-- External services or APIs are involved
-- You need full debugging capabilities
-- Performance optimization is critical
-
-```pascal
-// Good Delphi code candidates:
-// - Multi-step calculations with intermediate variables
-// - Logic involving external data or services
-// - Complex date/time calculations
-// - Algorithms that OCL cannot express
-```
-
-### What Can Be Derived
-
-| Member Type | Example | Use Case |
-|-------------|---------|----------|
-| **Attribute** | `Order.Total` | Calculated values |
-| **Single Link** | `Person.Employer` | Derived references |
-| **Multi Link** | `Customer.ActiveOrders` | Filtered/computed collections |
-
-### Derived Attributes
-
-The most common case - a calculated value based on other attributes:
-
-```pascal
-// UML: Order.Total is marked as derived
-// Bold generates the method signature, you implement the body
-
-procedure TOrder._TotalDeriveAndSubscribe(DerivedObject: TObject;
-  Subscriber: TBoldSubscriber);
-var
-  Total: Currency;
-  Line: TOrderLine;
-begin
-  Total := 0;
-  for Line in OrderLines do
-  begin
-    // Subscribe to dependencies - when these change, Total recalculates
-    Line.M_Subtotal.DefaultSubscribe(Subscriber);
-    Total := Total + Line.Subtotal;
-  end;
-  M_Total.AsFloat := Total;
-end;
-```
-
-When any `OrderLine.Subtotal` changes, `Order.Total` automatically recalculates.
-
-### Derived Single Links
-
-A reference to another object that is computed, not stored:
-
-```pascal
-// UML: Person.Employer is marked as derived
-// Returns the company where this person has an active employment
-
-procedure TPerson._EmployerDeriveAndSubscribe(DerivedObject: TObject;
-  Subscriber: TBoldSubscriber);
-var
-  Employment: TEmployment;
-begin
-  // Subscribe to the employments list
-  M_Employments.DefaultSubscribe(Subscriber);
-
-  for Employment in Employments do
-  begin
-    // Subscribe to each employment's active status
-    Employment.M_Active.DefaultSubscribe(Subscriber);
-
-    if Employment.Active then
-    begin
-      M_Employer.BoldObject := Employment.Company;
-      Exit;
-    end;
-  end;
-
-  // No active employment found
-  M_Employer.BoldObject := nil;
-end;
-```
-
-### Derived Multi Links
-
-A collection that is computed from other data:
-
-```pascal
-// UML: Customer.ActiveOrders is marked as derived
-// Returns only orders that are not completed or cancelled
-
-procedure TCustomer._ActiveOrdersDeriveAndSubscribe(DerivedObject: TObject;
-  Subscriber: TBoldSubscriber);
-var
-  Order: TOrder;
-begin
-  // Subscribe to the main orders list
-  M_Orders.DefaultSubscribe(Subscriber);
-
-  // Clear and rebuild the derived list
-  M_ActiveOrders.Clear;
-
-  for Order in Orders do
-  begin
-    // Subscribe to each order's status
-    Order.M_Status.DefaultSubscribe(Subscriber);
-
-    if not (Order.Status in ['Completed', 'Cancelled']) then
-      M_ActiveOrders.Add(Order);
-  end;
-end;
-```
-
-## Reverse Derivation
-
-**Reverse derivation** allows a derived attribute to be set by the user. When the derived value is assigned, Bold calls a reverse deriver to update the underlying source values.
-
-### How Reverse Derivation Works
+Subscription events are delivered at once, but Bold-aware controls do not repaint at once. A control that receives
+an event marks itself out of date and joins Bold's display queue. The queue is processed later, so a loop that
+changes many values repaints each control once:
 
 ```mermaid
 flowchart LR
-    subgraph Forward["Forward Derivation"]
-        Source1[Quantity] --> Derived[Total]
-        Source2[UnitPrice] --> Derived
-    end
-
-    subgraph Reverse["Reverse Derivation"]
-        NewValue[New Total] --> ReverseDeriver[Reverse Deriver]
-        ReverseDeriver --> UpdateSource[Update Quantity or UnitPrice]
-    end
-```
-
-### Reverse Derivation Example
-
-Consider an order line where `Total = Quantity * UnitPrice`. If the user edits Total directly, the reverse deriver decides how to distribute the change:
-
-```pascal
-// UML: OrderLine.Total is marked as derived with reverse derivation enabled
-
-// Forward derivation - calculate Total from Quantity and UnitPrice
-procedure TOrderLine._TotalDeriveAndSubscribe(DerivedObject: TObject;
-  Subscriber: TBoldSubscriber);
-begin
-  M_Quantity.DefaultSubscribe(Subscriber);
-  M_UnitPrice.DefaultSubscribe(Subscriber);
-
-  M_Total.AsFloat := Quantity * UnitPrice;
-end;
-
-// Reverse derivation - when user sets Total, adjust Quantity
-procedure TOrderLine._TotalReverseDeriveAndSubscribe(DerivedObject: TObject;
-  Subscriber: TBoldSubscriber);
-var
-  NewTotal: Currency;
-begin
-  NewTotal := M_Total.AsFloat;
-
-  // Strategy: Keep UnitPrice fixed, adjust Quantity
-  if UnitPrice > 0 then
-    M_Quantity.AsInteger := Round(NewTotal / UnitPrice)
-  else
-    M_Quantity.AsInteger := 0;
-end;
-```
-
-### Another Reverse Derivation Example
-
-A person's full name derived from first and last name, with reverse derivation to parse input:
-
-```pascal
-// Forward: FullName = FirstName + ' ' + LastName
-procedure TPerson._FullNameDeriveAndSubscribe(DerivedObject: TObject;
-  Subscriber: TBoldSubscriber);
-begin
-  M_FirstName.DefaultSubscribe(Subscriber);
-  M_LastName.DefaultSubscribe(Subscriber);
-
-  M_FullName.AsString := FirstName + ' ' + LastName;
-end;
-
-// Reverse: Parse FullName into FirstName and LastName
-procedure TPerson._FullNameReverseDeriveAndSubscribe(DerivedObject: TObject;
-  Subscriber: TBoldSubscriber);
-var
-  Parts: TArray<string>;
-  FullName: string;
-begin
-  FullName := M_FullName.AsString;
-  Parts := FullName.Split([' '], 2);
-
-  if Length(Parts) >= 1 then
-    M_FirstName.AsString := Parts[0];
-  if Length(Parts) >= 2 then
-    M_LastName.AsString := Parts[1]
-  else
-    M_LastName.AsString := '';
-end;
-```
-
-### When to Use Reverse Derivation
-
-| Scenario | Example |
-|----------|---------|
-| **Editable calculated fields** | User can edit Total or Quantity |
-| **Composite values** | Full name ↔ First/Last name |
-| **Unit conversions** | Celsius ↔ Fahrenheit |
-| **Percentage allocations** | Adjust one item, rebalance others |
-
-### Important Considerations
-
-1. **Consistency** - Ensure forward and reverse derivation are logically consistent
-2. **Ambiguity** - When multiple sources exist, decide which one to update
-3. **Validation** - Validate input in the reverse deriver before applying
-4. **Avoid loops** - Be careful not to trigger infinite derivation cycles
-
-## Event Queue
-
-Bold batches subscription notifications for efficiency:
-
-```mermaid
-flowchart LR
-    Change1[Change 1] --> Queue[Event Queue]
+    Change1[Change 1] --> Queue[Display queue]
     Change2[Change 2] --> Queue
     Change3[Change 3] --> Queue
-    Queue --> Process[Process All]
-    Process --> UI[Update UI Once]
+    Queue --> Process[Process when idle]
+    Process --> UI[Repaint each control once]
 ```
 
-### Manual Queue Control
+- In a VCL application, `BoldEnvironmentVCL` processes the queue from the application's idle or message handling.
+- In an LCL application, `BoldEnvironmentLCL` processes it when the application is idle.
+- Without a GUI framework environment, for example in a console program, the application calls
+  `TBoldQueueable.DisplayAll` itself.
 
-```pascal
-// Pause notifications during batch updates
-BoldSystem.StartTransaction;
-try
-  // Many changes, no notifications yet
-  for i := 0 to 1000 do
-    Items[i].Value := NewValue;
-
-  BoldSystem.CommitTransaction;
-  // All notifications sent now
-except
-  BoldSystem.RollbackTransaction;
-end;
-```
+Transactions do not delay events: see [Object Space](object-space.md#transactions) for what they do.
 
 ## Best Practices
 
-1. **Let Bold handle subscriptions** - Use handles and controls when possible
-2. **Clean up manual subscriptions** - Always free subscribers in `OnDestroy`
-3. **Avoid circular dependencies** - Can cause infinite recalculation loops
-4. **Use transactions** - Batch changes to minimize notification overhead
+1. **Let Bold subscribe**: use handles and Bold-aware controls where you can.
+2. **Free your subscribers**: freeing a subscriber cancels its subscriptions; do it in `OnDestroy`.
+3. **Avoid circular dependencies**: they can cause endless recalculation.
+4. **Subscribe to what you read**: a deriver that reads a value without subscribing to it shows stale data.

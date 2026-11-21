@@ -1,8 +1,15 @@
 # Parallel SQL Execution for Bold
 
+!!! note "Status: design proposal, not implemented"
+
+    This page is a design note. None of the classes it proposes (`TBoldParallelQueryPool`, `TBoldParallelFetcher`,
+    `TBoldFetchResult`, `TBoldAsyncFetcher`, `TBoldParallelFetchConfig`) exist in Bold. It builds on the Flow
+    framework (`C:\Attracs\Attracs-Flow`), which is not part of this repository. The parts that describe the
+    current code have been checked against `Source/`.
+
 ## Summary
 
-Bold for Delphi currently executes **all SQL queries synchronously on the main VCL thread**. This means the GUI freezes during every database round-trip — whether fetching a single object or loading thousands of rows across multiple tables.
+Bold for Delphi currently executes **all SQL queries synchronously on the main thread**. This means the GUI freezes during every database round-trip — whether fetching a single object or loading thousands of rows across multiple tables.
 
 This document proposes **parallel SQL execution**: dispatching multiple SQL queries to worker threads (each with its own database connection), collecting the raw results, and feeding them back to the main thread for object population. This approach:
 
@@ -23,19 +30,21 @@ Every Bold data fetch follows this synchronous call chain on the main thread:
 
 ```
 UI action (navigate list, open form, expand grid)
-  → TBoldSystem.EnsureObjects / FetchMember
+  → TBoldObjectList.EnsureObjects / member access
     → TBoldSystemPersistenceHandler.PMFetch
-      → TBoldObjectSQLMapper.FetchObjects
-        → IBoldDatabase.OpenQuery          ← BLOCKS main thread (network I/O)
-        → Read result rows                 ← BLOCKS main thread
-        → Populate TBoldObject instances   ← CPU work on main thread
-      → TBoldPublisher.SendEvent           ← Subscription notifications
+      → PersistenceController.PMFetch → TBoldSystemSQLMapper.PMFetch
+        → TBoldObjectPersistenceMapper.PMFetchApproximateIDList
+          → TBoldObjectDefaultMapper.PMFetchExactIDList  (one class at a time)
+            → open the query                  ← BLOCKS main thread (network I/O)
+            → read result rows                ← BLOCKS main thread
+            → fill the value space            ← CPU work on main thread
+      → TBoldPublisher.SendEvent              ← Subscription notifications
     → UI components update via subscriptions
 ```
 
 **Problem 1: Sequential SQL.** When Bold needs data from 5 tables (e.g., Trip + Parcel + Invoice + Driver + Vehicle), it executes 5 queries **one after another**. Each query involves a network round-trip to the database server (typically 5-50ms per query). Total wall-clock time = sum of all queries.
 
-**Problem 2: Blocked GUI.** The main VCL message pump cannot process Windows messages while waiting for SQL results. The application appears frozen — no repainting, no mouse response, no progress indication.
+**Problem 2: Blocked GUI.** The main thread's message loop cannot process messages while waiting for SQL results. The application appears frozen — no repainting, no mouse response, no progress indication.
 
 **Problem 3: Single connection.** Bold uses one `IBoldDatabase` connection per `TBoldSystem`. Even if you wanted to run queries in parallel, a single database connection can only process one query at a time.
 
@@ -72,7 +81,7 @@ UI updates
 
 ### Why Flow Framework?
 
-The [Flow framework](file:///C:/Attracs/Attracs-Flow/) (`C:\Attracs\Attracs-Flow`) is a Delphi 12.3+ concurrent programming framework purpose-built for this kind of work:
+The Flow framework (`C:\Attracs\Attracs-Flow`, not part of this repository) is a Delphi 12.3+ concurrent programming framework purpose-built for this kind of work:
 
 | Need | Flow Provides |
 |------|---------------|
@@ -195,20 +204,21 @@ This record contains only primitive types and arrays — it is safe to create on
 
 ### 4. Integration Point in Bold
 
-The natural integration point is `TBoldObjectSQLMapper.FetchObjects` in `Source/PMapper/SQL/BoldPMappersSQL.pas`. This is where SQL queries are built and executed during a fetch operation.
+The natural integration point is `TBoldObjectDefaultMapper.PMFetchExactIDList` (unit `BoldPMappersDefault` in `Source/PMapper/Default`), which `TBoldObjectPersistenceMapper.PMFetchApproximateIDList` calls for each class of the fetch. This is where SQL queries are built and executed during a fetch operation.
 
 **Current flow (simplified):**
 ```
-TBoldObjectSQLMapper.FetchObjects
-  → BuildSQL for class
-  → OpenQuery (synchronous)
-  → ReadRows into objects
-  → Next class...
+TBoldObjectPersistenceMapper.PMFetchApproximateIDList
+  → PMFetchExactIDList for one class
+    → build the SQL
+    → open the query (synchronous)
+    → read the rows into the value space
+  → next class...
 ```
 
 **Proposed flow:**
 ```
-TBoldObjectSQLMapper.FetchObjects
+PMFetchApproximateIDList
   → BuildSQL for ALL classes in this fetch batch
   → IF query count > 1:
       Dispatch to TBoldParallelFetcher.FetchObjectsParallel
@@ -253,7 +263,7 @@ begin
 end;
 ```
 
-This pattern keeps the main thread completely free while queries execute. The VCL message pump runs normally — the UI stays responsive, progress indicators animate, and the user can interact with already-loaded data.
+This pattern keeps the main thread completely free while queries execute. The message loop runs normally — the UI stays responsive, progress indicators animate, and the user can interact with already-loaded data.
 
 ### 6. Reactive Stream Pattern (Advanced)
 
@@ -306,7 +316,7 @@ This approach gives the best user experience — tables appear progressively as 
 
 | Benefit | Explanation |
 |---------|-------------|
-| **Responsive GUI** | The async pattern keeps the VCL message pump running. No frozen windows. |
+| **Responsive GUI** | The async pattern keeps the message loop running. No frozen windows. |
 | **Progressive loading** | With the reactive pattern, data appears table-by-table as queries complete. |
 | **Cancellation support** | Flow's `IContext` with deadlines enables timeout on long-running queries without killing the connection. |
 | **Progress indication** | The main thread is free to update progress bars or status messages. |
@@ -346,7 +356,7 @@ This approach gives the best user experience — tables appear progressively as 
 | Challenge | Mitigation |
 |-----------|------------|
 | **Cross-table dependencies** | If object A references object B (foreign key), and both are fetched in parallel, B must be populated before A's reference is resolved. Solution: populate base classes first, then dependent classes, same as Bold already does in sequential mode. |
-| **Subscription storm** | Populating many objects triggers subscription notifications. This is the same as current behavior but happens in a burst after parallel fetch completes. Consider `TBoldSystem.DelaySubscriptions` during bulk population. |
+| **Subscription storm** | Populating many objects triggers subscription notifications. This is the same as current behavior but happens in a burst after parallel fetch completes. Bold has no API that delays subscription events during bulk population; one would be needed. |
 
 ### Error Handling
 
@@ -379,7 +389,7 @@ This approach gives the best user experience — tables appear progressively as 
 ### Phase 2: Parallel Fetch API (Medium Risk)
 
 - Create `TBoldParallelFetcher` class with `FetchObjectsParallel` method
-- Refactor `TBoldObjectSQLMapper.FetchObjects` to separate SQL execution from object population
+- Refactor `TBoldObjectDefaultMapper.PMFetchExactIDList` to separate SQL execution from object population
 - Add threshold: parallel path only when query count > 1
 - Integration tests: fetch same data via sequential and parallel paths, verify identical results
 
@@ -431,8 +441,8 @@ The speedup is most significant when there are **many independent queries** of s
 ## References
 
 - **Flow Framework**: `C:\Attracs\Attracs-Flow\` — Structured concurrency, TTask, TMainThreadDispatch
-- **BoldDbCopy**: `Source/Persistence/DB/BoldDbCopy.pas` — Existing 4-thread parallel pattern with `CreateAnotherDatabaseConnection` (not production-deployed)
-- **BoldDbValidator**: `Source/PMapper/Validator/BoldDbValidator.pas` — Production-proven multi-threaded worker pattern with `CreateAnotherDatabaseConnection`
-- **BoldThreadSafeQueue**: `Source/Common/Core/BoldThreadSafeQueue.pas` — Thread-safe queue (alternative to Flow channels)
-- **IBoldDatabase**: `Source/Persistence/DB/BoldDBInterfaces.pas` — `CreateAnotherDatabaseConnection` interface
-- **TBoldObjectSQLMapper**: `Source/PMapper/SQL/BoldPMappersSQL.pas` — Integration point for parallel fetch
+- **BoldDbCopy**: unit `BoldDbCopy` in `Source/Persistence/DB` — Existing 4-thread parallel pattern with `CreateAnotherDatabaseConnection` (not production-deployed)
+- **BoldDbValidator**: unit `BoldDbValidator` in `Source/PMapper/Validator` — Production-proven multi-threaded worker pattern with `CreateAnotherDatabaseConnection`
+- **BoldThreadSafeQueue**: unit `BoldThreadSafeQueue` in `Source/Common/Core` — Thread-safe queue (alternative to Flow channels)
+- **IBoldDatabase**: unit `BoldDBInterfaces` in `Source/Persistence/DB` — `CreateAnotherDatabaseConnection` interface
+- **TBoldObjectDefaultMapper.PMFetchExactIDList**: unit `BoldPMappersDefault` in `Source/PMapper/Default` — Integration point for parallel fetch

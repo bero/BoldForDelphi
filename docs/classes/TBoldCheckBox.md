@@ -1,6 +1,13 @@
 # TBoldCheckBox
 
-`TBoldCheckBox` is a data-aware checkbox that displays and edits a Boolean Bold attribute. It supports three states (checked, unchecked, grayed) for nullable boolean attributes.
+`TBoldCheckBox` is a check box that shows and edits a Boolean Bold attribute (`TBABoolean`). A null value shows as
+grayed, so a nullable Boolean has three states.
+
+!!! note "VCL only"
+    `TBoldCheckBox` is a VCL control for Delphi on Windows. FireMonkey (FMX) and Lazarus (LCL) applications show Bold
+    data through `TBoldDataSet`, with LiveBindings in FMX and the LCL's data-aware controls; see the Invoicing
+    example ([FMX](https://github.com/bero/BoldForDelphi/blob/develop/examples/Compound/Invoicing/FMX/README.md),
+    [LCL](https://github.com/bero/BoldForDelphi/blob/develop/examples/Compound/Invoicing/LCL/README.md)).
 
 ## Class Hierarchy
 
@@ -22,56 +29,55 @@ classDiagram
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `BoldHandle` | `TBoldElementHandle` | Handle providing the boolean value |
-| `BoldProperties` | `TBoldCheckBoxStateFollowerController` | Controls state mapping |
+| `BoldHandle` | `TBoldElementHandle` | Handle providing the Boolean value |
+| `BoldProperties` | `TBoldCheckBoxStateFollowerController` | Maps the value to a check box state; `BoldProperties.Expression` navigates from the handle's value |
 | `ReadOnly` | `Boolean` | Prevent toggling |
-| `AllowGrayed` | `Boolean` | Allow three-state for nullable booleans |
-| `Expression` | `string` | OCL expression |
+| `AllowGrayed` | `Boolean` | Let the user click the box to grayed, which sets the value to null |
 
 | Public Property | Type | Description |
 |-----------------|------|-------------|
-| `Checked` | `Boolean` | Current checked state (read-only from Bold) |
+| `Checked` | `Boolean` | Read-only; `True` when `State` is `cbChecked` |
 | `State` | `TCheckBoxState` | `cbChecked`, `cbUnchecked`, `cbGrayed` |
-| `EffectiveReadOnly` | `Boolean` | Combines ReadOnly + model constraints |
+| `EffectiveReadOnly` | `Boolean` | `True` when `ReadOnly` is set or the value cannot be modified |
 
 !!! note "Uses TBoldCheckBoxStateFollowerController"
-    Unlike most Bold controls that use `TBoldStringFollowerController`, the checkbox uses `TBoldCheckBoxStateFollowerController` which maps directly to checkbox states.
+    Unlike most Bold controls, which use `TBoldStringFollowerController`, the check box uses
+    `TBoldCheckBoxStateFollowerController`, which maps the value directly to check box states.
 
 ## Working with TBoldCheckBox
 
 ### Form Designer Setup
 
-1. Drop `TBoldCheckBox` on a form
-2. Set `BoldHandle` to an expression handle pointing to a boolean attribute
-3. Optionally enable `AllowGrayed` for nullable booleans
+1. Drop a `TBoldCheckBox` on a form.
+2. Set `BoldHandle` to an expression handle pointing to a Boolean attribute.
+3. Optionally set `AllowGrayed` for a nullable Boolean.
 
 ### Nullable Booleans (Three-State)
 
-```
-AllowGrayed = True
-
-cbChecked   → True
-cbUnchecked → False
-cbGrayed    → Null (unknown)
+```text
+cbChecked   -> True
+cbUnchecked -> False
+cbGrayed    -> Null (unknown)
 ```
 
-This is useful when a boolean attribute hasn't been set yet and you want to distinguish "not answered" from "no".
+A null value always shows as grayed. With `AllowGrayed = True` the user can also set it back to null. This is useful
+when you want to tell "not answered" from "no".
 
 ### Example Setup
 
 ```pascal
-// Expression handle points to the boolean attribute
+// The expression handle points to the Boolean attribute
 ExprHandle.RootHandle := CustomerListHandle;
 ExprHandle.Expression := 'active';
 
-// Connect checkbox
+// Connect the check box
 BoldCheckBox1.BoldHandle := ExprHandle;
 BoldCheckBox1.Caption := 'Active Customer';
-BoldCheckBox1.AllowGrayed := True;  // for nullable
+BoldCheckBox1.AllowGrayed := True;  // for a nullable attribute
 ```
 
 ## See Also
 
-- [TBABoolean](TBABoolean.md) - The boolean attribute class
+- [TBABoolean](TBABoolean.md) - The Boolean attribute class
 - [TBoldEdit](TBoldEdit.md) - Text editing
 - [TBoldGrid](TBoldGrid.md) - Grids with `AllowCheckBox` columns

@@ -1,6 +1,8 @@
 # TBoldPublisher
 
-`TBoldPublisher` is the sender side of Bold's subscription (observer) pattern. It manages a list of subscriptions and dispatches events to registered subscribers.
+`TBoldPublisher` is the sender side of Bold's subscription (observer) pattern. It holds a list of subscriptions and
+sends events to the subscribers. Bold objects, members and handles create one on their first subscription;
+application code rarely creates a publisher itself.
 
 ## Class Hierarchy
 
@@ -46,7 +48,8 @@ end;
 
 ## Event System
 
-Events are integers (`TBoldEvent = 0..100000`). Small events (0–29) can be combined in sets for efficient multi-event subscriptions.
+Events are integers (`TBoldEvent = 0..100000`). Small events (0–29) can be combined in sets, so one subscription
+can cover several of them.
 
 ### Core Event Constants
 
@@ -63,13 +66,13 @@ Events are integers (`TBoldEvent = 0..100000`). Small events (0–29) can be com
 | `breReSubscribe` | 10 | Request to resubscribe |
 | `beValueInvalid` | 12 | Value marked invalid |
 
-### Event Types
+### Sending Methods
 
 | Method | Purpose |
 |--------|---------|
-| `SendEvent` | One-way notification — subscribers are informed |
-| `SendExtendedEvent` | Notification with additional arguments |
-| `SendQuery` | Two-way — subscribers can veto the operation |
+| `SendEvent` | One-way notification; the publisher itself is the `Originator` |
+| `SendExtendedEvent` | Notification with an explicit `Originator` and extra arguments |
+| `SendQuery` | Two-way: subscribers can veto the operation |
 
 ## How It Works
 
@@ -89,34 +92,55 @@ sequenceDiagram
 
 ## Common Patterns
 
-### Direct Usage (Rare)
-
-Most Bold objects already embed a publisher via `TBoldSubscribableObject` or `TBoldSubscribableComponent`. Direct `TBoldPublisher` creation is rarely needed:
-
-```pascal
-var
-  fPublisher: TBoldPublisher;
-
-constructor TMyClass.Create;
-begin
-  fPublisher := TBoldPublisher.Create(fPublisher);
-end;
-
-// Send events
-fPublisher.SendEvent(beValueChanged);
-```
-
 ### Subscribable Base Classes
 
-In practice, use the convenience methods from subscribable base classes:
+Most Bold classes already own a publisher through `TBoldSubscribableObject`, `TBoldSubscribableComponent` or
+`TBoldSubscribablePersistent`. Use their methods:
 
 ```pascal
-// TBoldSubscribableObject provides:
+// TBoldSubscribableObject (objects, members):
 MyObject.AddSubscription(Subscriber, beValueChanged);
 MyObject.SendEvent(beValueChanged);
 
-// TBoldSubscribableComponent provides:
+// TBoldSubscribableComponent (handles):
 MyComponent.AddSmallSubscription(Subscriber, [beItemAdded, beItemDeleted]);
+MyComponent.SendEvent(Self, beItemAdded);
+```
+
+### Direct Usage (Rare)
+
+A class that cannot inherit from one of those base classes can own a publisher. The destructor must clear the
+subscriptions before it frees the publisher; `TBoldPublisher.Destroy` asserts that none are left.
+
+```pascal
+type
+  TMyClass = class
+  private
+    fPublisher: TBoldPublisher;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Changed;
+    property Publisher: TBoldPublisher read fPublisher;
+  end;
+
+constructor TMyClass.Create;
+begin
+  inherited;
+  fPublisher := TBoldPublisher.Create(fPublisher);
+end;
+
+destructor TMyClass.Destroy;
+begin
+  fPublisher.NotifySubscribersAndClearSubscriptions(Self); // sends beDestroying
+  FreeAndNil(fPublisher);
+  inherited;
+end;
+
+procedure TMyClass.Changed;
+begin
+  fPublisher.SendExtendedEvent(Self, beValueChanged, []);
+end;
 ```
 
 ## See Also
@@ -124,3 +148,4 @@ MyComponent.AddSmallSubscription(Subscriber, [beItemAdded, beItemDeleted]);
 - [TBoldSubscriber](TBoldSubscriber.md) - The receiver side
 - [TBoldPassthroughSubscriber](TBoldPassthroughSubscriber.md) - Concrete subscriber
 - [Subscriptions](../concepts/subscriptions.md) - Concept overview
+- [TBoldPublisher in the Class Reference](../reference/BoldSubscription/TBoldPublisher.md) - All members (2004 help)

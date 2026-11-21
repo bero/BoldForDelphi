@@ -1,6 +1,8 @@
 # TBoldSystemHandle
 
-`TBoldSystemHandle` is the main component that manages the connection between your application and the Bold Object Space. It creates and manages the `TBoldSystem` instance.
+`TBoldSystemHandle` is the component that creates and owns the object space, a `TBoldSystem`. It takes the model
+from a `TBoldSystemTypeInfoHandle` and, for a persistent system, the storage from a `TBoldPersistenceHandle`. A
+Bold application usually has one on its data module.
 
 ## Class Definition
 
@@ -8,7 +10,7 @@
 TBoldSystemHandle = class(TBoldAbstractSystemHandle)
 public
   // Core access
-  property System: TBoldSystem;
+  property System: TBoldSystem;            // nil while inactive
   property Active: Boolean;
 
   // Database operations
@@ -17,7 +19,7 @@ public
 
   // Configuration
   property AutoActivate: Boolean;
-  property Persistent: Boolean;
+  property Persistent: Boolean;            // read-only: True when PersistenceHandle is set
   property PersistenceHandle: TBoldPersistenceHandle;
   property SystemTypeInfoHandle: TBoldSystemTypeInfoHandle;
 
@@ -56,116 +58,14 @@ flowchart LR
     click Objects href "../TBoldObject/" "TBoldObject documentation"
 ```
 
-## Properties
-
-### System
-
-Access the underlying TBoldSystem:
-
-```pascal
-var
-  BoldSystem: TBoldSystem;
-begin
-  BoldSystem := BoldSystemHandle1.System;
-  // Work with objects
-end;
-```
-
-### Active
-
-Enable or disable the Object Space:
-
-```pascal
-// Activate manually
-BoldSystemHandle1.Active := True;
-
-// Check status
-if BoldSystemHandle1.Active then
-  ShowMessage('System is active');
-```
-
-### AutoActivate
-
-When True, automatically activates when the application starts:
-
-```pascal
-// Set at design time or before form creation
-BoldSystemHandle1.AutoActivate := True;
-```
-
-### PersistenceHandle
-
-Links to the persistence layer for database operations:
-
-```pascal
-// Connect to database persistence
-BoldSystemHandle1.PersistenceHandle := BoldPersistenceHandleDB1;
-```
-
-### SystemTypeInfoHandle
-
-Links to the model information (generated from UML):
-
-```pascal
-// Connect to model info
-BoldSystemHandle1.SystemTypeInfoHandle := BoldSystemTypeInfoHandle1;
-```
-
-## Methods
-
-### UpdateDatabase
-
-Save all dirty objects to the database:
-
-```pascal
-// Save changes
-BoldSystemHandle1.UpdateDatabase;
-```
-
-### Discard
-
-Discard all unsaved changes:
-
-```pascal
-// Revert to database state
-BoldSystemHandle1.Discard;
-```
-
-## Events
-
-### OnPreUpdate
-
-Fired before saving to database:
-
-```pascal
-procedure TForm1.BoldSystemHandle1PreUpdate(Sender: TObject);
-begin
-  // Validate before save
-  ValidateAllChanges;
-end;
-```
-
-### OnOptimisticLockingFailed
-
-Fired when concurrent modification is detected:
-
-```pascal
-procedure TForm1.BoldSystemHandle1OptimisticLockingFailed(
-  Sender: TObject; FailedObjects: TBoldObjectList);
-begin
-  ShowMessage('Another user modified these objects');
-  // Handle conflict
-end;
-```
-
 ## Typical Setup
 
 ### Design-Time Configuration
 
-1. Drop `TBoldSystemHandle` on a data module
-2. Drop `TBoldSystemTypeInfoHandle` and link to your model
-3. Drop `TBoldPersistenceHandleDB` and configure database
-4. Connect the components
+1. Drop a `TBoldSystemHandle` on a data module.
+2. Drop a `TBoldSystemTypeInfoHandle` and set its `BoldModel` to your model component.
+3. Drop a `TBoldPersistenceHandleDB` and a database adapter, and configure the database.
+4. Connect the components as below.
 
 ```mermaid
 flowchart TB
@@ -186,11 +86,111 @@ flowchart TB
 ```pascal
 procedure TDataModule1.DataModuleCreate(Sender: TObject);
 begin
-  // Configure connection
+  // Configure the connection
   FDConnection1.Params.Database := 'MyDatabase.db';
 
   // Activate the system
   BoldSystemHandle1.Active := True;
+end;
+```
+
+## Properties
+
+### System
+
+The object space. It is `nil` while the handle is inactive.
+
+```pascal
+var
+  BoldSystem: TBoldSystem;
+begin
+  BoldSystem := BoldSystemHandle1.System;
+  // Work with objects
+end;
+```
+
+### Active
+
+Setting `Active` to `True` activates the persistence handle, if one is set, and creates the system. Setting it to `False` frees
+the system; this raises an exception while the system has unsaved changes, so call `UpdateDatabase` or `Discard`
+first.
+
+```pascal
+// Activate manually
+BoldSystemHandle1.Active := True;
+
+// Check status
+if BoldSystemHandle1.Active then
+  ShowMessage('System is active');
+```
+
+### AutoActivate
+
+When `True`, the handle activates itself when its form or data module is loaded at run time (not in the IDE):
+
+```pascal
+// Usually set in the Object Inspector
+BoldSystemHandle1.AutoActivate := True;
+```
+
+### PersistenceHandle
+
+The persistence handle that reads and writes the objects. Leave it empty for a transient system.
+
+```pascal
+BoldSystemHandle1.PersistenceHandle := BoldPersistenceHandleDB1;
+```
+
+### SystemTypeInfoHandle
+
+The handle that provides the model information:
+
+```pascal
+BoldSystemHandle1.SystemTypeInfoHandle := BoldSystemTypeInfoHandle1;
+```
+
+## Methods
+
+### UpdateDatabase
+
+Saves all dirty objects to the database:
+
+```pascal
+BoldSystemHandle1.UpdateDatabase;
+```
+
+### Discard
+
+Discards all unsaved changes:
+
+```pascal
+BoldSystemHandle1.Discard;
+```
+
+## Events
+
+### OnPreUpdate
+
+Fires before changes are saved to the database:
+
+```pascal
+procedure TForm1.BoldSystemHandle1PreUpdate(Sender: TObject);
+begin
+  // Validate before save
+  ValidateAllChanges;
+end;
+```
+
+### OnOptimisticLockingFailed
+
+Fires when the objects to save were changed by someone else in the meantime:
+
+```pascal
+procedure TForm1.BoldSystemHandle1OptimisticLockingFailed(
+  UpdateList, FailureList: TBoldObjectList; const FailureReason: String);
+begin
+  ShowMessage('Another user modified these objects: ' + FailureReason);
+  // Handle the conflict
 end;
 ```
 
@@ -235,6 +235,8 @@ end;
 
 ## See Also
 
-- [TBoldSystem](TBoldSystem.md) - The Object Space
+- [TBoldSystem](TBoldSystem.md) - The object space
+- [TBoldPersistenceHandle](TBoldPersistenceHandle.md) - Database or file access
 - [TBoldListHandle](TBoldListHandle.md) - List queries
 - [Persistence](../concepts/persistence.md) - Database mapping
+- [TBoldSystemHandle in the Class Reference](../reference/BoldSystemHandle/TBoldSystemHandle.md) - All members (2004 help)

@@ -1,6 +1,6 @@
 # TBoldMemberRTInfo
 
-`TBoldMemberRTInfo` holds runtime metadata for a single member (attribute or association role) of a Bold class. It answers questions like "is this member persistent?", "is it derived?", "what type does it hold?", and "what class owns it?".
+`TBoldMemberRTInfo` (unit `BoldSystemRT`) holds runtime metadata for a single member (attribute or association role) of a Bold class. It answers questions like "is this member persistent?", "is it derived?", "what type does it hold?", and "what class owns it?".
 
 ## Class Hierarchy
 
@@ -10,6 +10,7 @@ classDiagram
     TBoldMetaElementWithConstraint <|-- TBoldMemberRTInfo
     TBoldMemberRTInfo <|-- TBoldAttributeRTInfo
     TBoldMemberRTInfo <|-- TBoldRoleRTInfo
+    TBoldClassTypeInfo o-- TBoldMemberRTInfo : AllMembers
 
     TBoldMemberRTInfo : +ClassTypeInfo
     TBoldMemberRTInfo : +IsAttribute / IsRole
@@ -30,7 +31,7 @@ public
   property ClassTypeInfo: TBoldClassTypeInfo;   // owning class
   property BoldType: TBoldElementTypeInfo;       // member's type
   property Index: Integer;                       // position in AllMembers
-  property StreamName: string;                   // persistence column name
+  property StreamName: string;                   // value content name, e.g. 'String' or 'ObjectIdRef'
   property Visibility: TVisibilityKind;
 
   // Kind flags
@@ -63,7 +64,7 @@ public
   property LinkClassTypeInfo: TBoldClassTypeInfo;   // nil if no link class
 
   // Association metadata
-  property RoleType: TBoldRoleType;    // rrRegular, rrLinkRole, rrInnerLinkRole
+  property RoleType: TBoldRoleType;    // rtRole, rtLinkRole, rtInnerLinkRole
   property Multiplicity: string;       // UML: '0..*', '1', '0..1'
   property Changeability: TChangeableKind;
   property Aggregation: TAggregationKind;
@@ -72,9 +73,21 @@ public
   // Convenience flags
   property IsNavigable: Boolean;
   property IsOrdered: Boolean;
-  property IsMandatory: Boolean;
+  property Mandatory: Boolean;
   property IsIndirect: Boolean;        // uses link class?
   property Qualifiers: TBoldMemberRTInfoList;
+end;
+```
+
+### TBoldAttributeRTInfo (Attributes)
+
+```pascal
+TBoldAttributeRTInfo = class(TBoldMemberRTInfo)
+public
+  property AllowNull: Boolean;
+  property Length: Integer;            // string length from the model; -1 = no limit
+  property InitialValue: string;
+  property HasInitialValue: Boolean;
 end;
 ```
 
@@ -93,11 +106,13 @@ begin
   begin
     var Member := ClassInfo.AllMembers[i];
     if Member.IsAttribute and Member.Persistent then
-      Log(Format('DB column: %s (type: %s)',
-        [Member.StreamName, Member.BoldType.ExpressionName]));
+      Log(Format('Persistent attribute: %s (type: %s)',
+        [Member.ExpressionName, Member.BoldType.ExpressionName]));
   end;
 end;
 ```
+
+The column names are not part of the runtime type information; the persistence mappers hold them.
 
 ### Inspecting Associations
 
@@ -131,7 +146,7 @@ begin
     Log(Format('Derived: %s = %s',
       [Member.ExpressionName, Member.DeriveExpression]));
     if Member.IsReverseDerived then
-      Log('  (bidirectional - can be edited)');
+      Log('  (reverse derived - a new value is passed to the reverse derive method)');
   end;
 end;
 ```

@@ -1,6 +1,6 @@
 # TBoldClassTypeInfo
 
-`TBoldClassTypeInfo` contains runtime type information for a single class in the Bold model. It provides metadata about the class's members, associations, methods, constraints, and position in the inheritance hierarchy.
+`TBoldClassTypeInfo` (unit `BoldSystemRT`) contains runtime type information for a single class in the Bold model. It provides metadata about the class's members, associations, methods, constraints, and position in the inheritance hierarchy.
 
 ## Class Hierarchy
 
@@ -9,6 +9,7 @@ classDiagram
     TBoldElementTypeInfo <|-- TBoldElementTypeInfoWithConstraint
     TBoldElementTypeInfoWithConstraint <|-- TBoldClassTypeInfo
     TBoldClassTypeInfo <|-- TBoldNilTypeInfo
+    TBoldSystemTypeInfo o-- TBoldClassTypeInfo : TopSortedClasses
     TBoldClassTypeInfo o-- TBoldMemberRTInfo : AllMembers
     TBoldClassTypeInfo o-- TBoldRoleRTInfo : AllRoles
 
@@ -51,7 +52,7 @@ public
   function LeastCommonSuperClass(Other: TBoldClassTypeInfo): TBoldClassTypeInfo;
 
   // Class metadata
-  property ObjectClass: TClass;         // Delphi class
+  property ObjectClass: TClass;         // the generated business class
   property Persistent: Boolean;
   property IsAbstract: Boolean;
   property IsLinkClass: Boolean;        // association class?
@@ -97,10 +98,11 @@ end;
 
 ```pascal
 var
-  CustomerInfo, PersonInfo: TBoldClassTypeInfo;
+  CustomerInfo, PersonInfo, SupplierInfo, Common: TBoldClassTypeInfo;
 begin
   CustomerInfo := SystemTypeInfo.ClassTypeInfoByExpressionName['Customer'];
   PersonInfo := SystemTypeInfo.ClassTypeInfoByExpressionName['Person'];
+  SupplierInfo := SystemTypeInfo.ClassTypeInfoByExpressionName['Supplier'];
 
   // Check if Customer is a subclass of Person
   if CustomerInfo.BoldIsA(PersonInfo) then
@@ -110,7 +112,7 @@ begin
   Log('Parent: ' + CustomerInfo.SuperClassTypeInfo.ExpressionName);
 
   // Find common superclass
-  var Common := CustomerInfo.LeastCommonSuperClass(SupplierInfo);
+  Common := CustomerInfo.LeastCommonSuperClass(SupplierInfo);
 end;
 ```
 
@@ -128,7 +130,7 @@ end;
 
 ### TBoldNilTypeInfo
 
-`TBoldNilTypeInfo` is a special subclass representing the `nil` type. It conforms to all classes (like `null` in Java/C#), which is essential for OCL type checking.
+`TBoldNilTypeInfo` is a special subclass for the type of `nil`. It conforms to every class type, which OCL type checking needs. `TBoldSystemTypeInfo.NilTypeInfo` returns it.
 
 ## See Also
 

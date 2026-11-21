@@ -1,6 +1,13 @@
 # TBoldLabel
 
-`TBoldLabel` is a data-aware label that displays a Bold attribute or OCL expression result as read-only text. It automatically updates when the underlying data changes.
+`TBoldLabel` is a label that shows a Bold value or the result of an OCL expression as read-only text. It updates
+itself when the value changes.
+
+!!! note "VCL only"
+    `TBoldLabel` is a VCL control for Delphi on Windows. FireMonkey (FMX) and Lazarus (LCL) applications show Bold
+    data through `TBoldDataSet`, with LiveBindings in FMX and the LCL's data-aware controls; see the Invoicing
+    example ([FMX](https://github.com/bero/BoldForDelphi/blob/develop/examples/Compound/Invoicing/FMX/README.md),
+    [LCL](https://github.com/bero/BoldForDelphi/blob/develop/examples/Compound/Invoicing/LCL/README.md)).
 
 ## Class Hierarchy
 
@@ -11,8 +18,7 @@ classDiagram
 
     TBoldLabel : +BoldHandle
     TBoldLabel : +BoldProperties
-    TBoldLabel : +Expression
-    TBoldLabel : +Caption (auto-set)
+    TBoldLabel : +Caption (read-only)
 
     click TBoldExpressionHandle href "../TBoldExpressionHandle/" "TBoldExpressionHandle"
 ```
@@ -22,25 +28,21 @@ classDiagram
 | Property | Type | Description |
 |----------|------|-------------|
 | `BoldHandle` | `TBoldElementHandle` | Handle providing the value |
-| `BoldProperties` | `TBoldStringFollowerController` | Controls rendering |
-| `Expression` | `string` | OCL expression for the displayed value |
+| `BoldProperties` | `TBoldStringFollowerController` | Rendering; `BoldProperties.Expression` is the OCL expression for the displayed value |
 | `Color` | `TColor` | Background color |
 | `Font` | `TFont` | Text font |
 
 | Public Property | Description |
 |-----------------|-------------|
-| `Caption` | Automatically set from the Bold value |
-| `EffectiveFont` | Font after renderer override |
-| `EffectiveColor` | Color after renderer override |
+| `Caption` | Read-only; set from the Bold value |
 
 ## Working with TBoldLabel
 
 ### Form Designer Setup
 
-1. Drop `TBoldLabel` on a form
-2. Set `BoldHandle` to an expression handle
-3. Optionally set `BoldProperties.Expression` for sub-navigation
-4. The label text updates automatically when data changes
+1. Drop a `TBoldLabel` on a form.
+2. Set `BoldHandle` to an expression handle.
+3. Optionally set `BoldProperties.Expression` to navigate from the handle's value.
 
 ### Display Patterns
 
@@ -61,14 +63,15 @@ BoldLabel4.BoldProperties.Expression := 'salary.formatFloat(''#,##0.00'')';
 
 ### Conditional Formatting
 
-Use a custom renderer to change appearance based on values:
+Put a `TBoldAsStringRenderer` on the form, assign it to `BoldProperties.Renderer`, and handle its `OnSetColor` or
+`OnSetFont` event. `aFollower.Element` is the value of `BoldHandle`:
 
 ```pascal
-// Via BoldProperties.OnGetColor
-procedure TMyForm.LabelGetColor(...)
+procedure TMyForm.BoldAsStringRenderer1SetColor(aFollower: TBoldFollower; var AColor: TColor);
 begin
-  if Element.EvaluateExpressionAsString('active') = 'False' then
-    aColor := clSilver;
+  if Assigned(aFollower.Element) and
+     not aFollower.Element.EvaluateExpressionAsBoolean('active') then
+    AColor := clSilver;
 end;
 ```
 
@@ -77,7 +80,7 @@ end;
 | Feature | TBoldLabel | TBoldEdit |
 |---------|-----------|-----------|
 | Editing | No | Yes |
-| Weight | Lightweight | Heavier (window handle) |
+| Weight | Lightweight (no window handle) | Heavier (window handle) |
 | Best for | Display, derived values | User input fields |
 
 ## See Also

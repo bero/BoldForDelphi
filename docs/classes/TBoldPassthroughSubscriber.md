@@ -1,6 +1,7 @@
 # TBoldPassthroughSubscriber
 
-`TBoldPassthroughSubscriber` is the most commonly used concrete subscriber. It delegates received events to a callback method, making it easy to react to Bold events without creating custom subscriber classes.
+`TBoldPassthroughSubscriber` is the most commonly used concrete subscriber. It passes each event it receives on to a
+method, so you can react to Bold events without writing a subscriber class.
 
 ## Class Hierarchy
 
@@ -57,10 +58,10 @@ type
 
 procedure TMyForm.FormCreate(Sender: TObject);
 begin
-  // Create subscriber with callback
+  // Create the subscriber with its callback
   fSubscriber := TBoldPassthroughSubscriber.Create(HandleEvent);
 
-  // Subscribe to value changes on a specific object
+  // Subscribe to value changes of one attribute
   Customer.M_Name.DefaultSubscribe(fSubscriber);
 end;
 
@@ -74,17 +75,17 @@ end;
 
 procedure TMyForm.FormDestroy(Sender: TObject);
 begin
-  fSubscriber.Free; // automatically cancels subscriptions
+  fSubscriber.Free; // cancels its subscriptions
 end;
 ```
 
-### Subscribing to Multiple Events
+### Subscribing to Several Events
 
 ```pascal
-// Subscribe to specific small events using a set
+// Subscribe to small events using a set
 Customer.AddSmallSubscription(fSubscriber,
   [beValueChanged, beObjectDeleted],
-  beValueChanged); // RequestedEvent for routing
+  beValueChanged); // RequestedEvent, for routing
 ```
 
 ### Extended Events with Arguments
@@ -98,7 +99,7 @@ procedure TMyForm.HandleExtendedEvent(Originator: TObject;
   RequestedEvent: TBoldRequestedEvent;
   const Args: array of const);
 begin
-  // Args contain additional event data
+  // Args hold additional event data
 end;
 ```
 
@@ -121,21 +122,17 @@ end;
 
 ## Subscribable Base Classes
 
-Most Bold objects inherit from a subscribable base class that embeds a `TBoldPublisher`:
+Most Bold classes inherit from a subscribable base class that owns a `TBoldPublisher`:
 
 | Base Class | Inherits From | Used By |
 |------------|---------------|---------|
-| `TBoldSubscribableObject` | `TBoldFlaggedObject` | Domain elements, members |
-| `TBoldSubscribableComponent` | `TComponent` | Handles, UI components |
-| `TBoldSubscribablePersistent` | `TPersistent` | Persistent settings |
+| `TBoldSubscribableObject` | `TBoldFlaggedObject` | Elements: objects, members, the system |
+| `TBoldSubscribableComponent` | `TComponent` | Handles and other non-visual Bold components |
+| `TBoldSubscribablePersistent` | `TPersistent` | Follower controllers (the `BoldProperties` of controls) |
 
-These all expose the same convenience methods:
-
-```pascal
-AddSubscription(Subscriber, Event, RequestedEvent);
-AddSmallSubscription(Subscriber, EventSet, RequestedEvent);
-SendEvent(Event);
-```
+All three have `AddSubscription(Subscriber, Event, RequestedEvent)` and
+`AddSmallSubscription(Subscriber, EventSet, RequestedEvent)`. To send an event, `TBoldSubscribableObject` has
+`SendEvent(Event)`; the other two take the originator as well, `SendEvent(Originator, Event)`.
 
 ## See Also
 
@@ -143,3 +140,4 @@ SendEvent(Event);
 - [TBoldPublisher](TBoldPublisher.md) - The sender side
 - [TBoldAbstractDeriver](TBoldAbstractDeriver.md) - Derivation subscriber
 - [Subscriptions](../concepts/subscriptions.md) - Concept overview
+- [TBoldPassthroughSubscriber in the Class Reference](../reference/BoldSubscription/TBoldPassthroughSubscriber.md) - All members (2004 help)

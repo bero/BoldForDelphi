@@ -1,6 +1,6 @@
 # TBoldObjectId
 
-`TBoldObjectId` is the abstract base class for object identity in Bold's persistence layer. Every Bold object has a unique ID that persists across sessions and is used for database storage, object lookup, and cross-system references.
+`TBoldObjectId` (unit `BoldId`) is the abstract base class for object identity in Bold. Every object has an ID. A saved object has a storable ID that stays the same across sessions; Bold uses it for database storage and object lookup.
 
 ## Class Hierarchy
 
@@ -13,8 +13,12 @@ classDiagram
     TBoldID <|-- TBoldMemberID
     TBoldID <|-- TBoldObjectId
     TBoldObjectId <|-- TBoldInternalObjectId
-    TBoldObjectId <|-- TBoldTimestampedDefaultId
-    TBoldObjectId <|-- TBoldGUID
+    TBoldObjectId <|-- TBoldExternalObjectID
+    TBoldObjectId <|-- TBoldNonExistingObjectId
+    TBoldObjectId <|-- TBoldGlobalId
+    TBoldExternalObjectID <|-- TBoldDefaultID
+    TBoldExternalObjectID <|-- TBoldStringID
+    TBoldDefaultID <|-- TBoldTimestampedDefaultId
 
     class TBoldObjectId {
         +TopSortedIndex
@@ -51,16 +55,26 @@ public
   property IsStorable: Boolean;          // can be persisted?
   property IsEqual[MatchId: TBoldObjectId]: Boolean;
   property NonExisting: Boolean;
+  property Hash: Cardinal;
+  property TimeStamp: TBoldTimeStampType;
+end;
+
+TBoldDefaultID = class(TBoldExternalObjectID)   // unit BoldDefaultId
+public
+  property AsInteger: Integer;
 end;
 ```
 
 ## ID Types
 
-| Type | Purpose | Storage |
-|------|---------|---------|
-| `TBoldInternalObjectId` | Temporary in-memory ID | Not persisted |
-| `TBoldTimestampedDefaultId` | Database integer + timestamp | DB integer column |
-| `TBoldGUID` | Globally unique identifier | GUID string |
+| Type | Unit | Purpose | `IsStorable` |
+|------|------|---------|--------------|
+| `TBoldInternalObjectId` | `BoldId` | Temporary ID of an object that is not saved yet | False |
+| `TBoldDefaultID` | `BoldDefaultId` | Integer ID from the database (`AsInteger`) | True |
+| `TBoldTimestampedDefaultId` | `BoldDefaultId` | `TBoldDefaultID` plus a timestamp, for an object read at a point in time (versioning) | True |
+| `TBoldStringID` | `BoldStringId` | External ID with a string value | True |
+| `TBoldGlobalId` | `BoldGlobalId` | Global ID string plus the class expression name | False |
+| `TBoldNonExistingObjectId` | `BoldId` | Refers to an object that does not exist (`NonExisting` is True) | False |
 
 ## Working with Object IDs
 
@@ -73,7 +87,7 @@ var
 begin
   ObjectId := Customer.BoldObjectLocator.BoldObjectID;
   IdString := ObjectId.AsString;
-  // e.g., "42" for integer ID, or a GUID string
+  // e.g. "42" for a TBoldDefaultID
 end;
 ```
 
@@ -84,9 +98,13 @@ var
   Locator: TBoldObjectLocator;
   Customer: TCustomer;
 begin
-  Locator := BoldSystem.Locators.ObjectByID[SomeObjectId];
+  // Only objects that are already loaded; nil otherwise
+  Locator := BoldSystem.Locators.LocatorByID[SomeObjectId];
   if Assigned(Locator) and Assigned(Locator.BoldObject) then
     Customer := Locator.BoldObject as TCustomer;
+
+  // Fetches the object from the database when needed
+  Customer := BoldSystem.EnsuredLocatorByID[SomeObjectId].EnsuredBoldObject as TCustomer;
 end;
 ```
 
@@ -103,12 +121,17 @@ var
   MemberId: TBoldMemberID;
 begin
   MemberId := TBoldMemberID.Create(0);  // first member
-  // Used internally for persistence operations
+  try
+    // Used internally for persistence operations
+  finally
+    MemberId.Free;
+  end;
 end;
 ```
 
 ## See Also
 
 - [TBoldObject](TBoldObject.md) - Domain objects that have IDs
-- [TBoldSystem](TBoldSystem.md) - Object Space with locator lookup
+- [TBoldSystem](TBoldSystem.md) - The object space, with locator lookup
+- [TBoldObjectLocator reference](../reference/BoldSystem/TBoldObjectLocator.md) - Generated API reference for the locator
 - [Persistence](../concepts/persistence.md) - Database mapping

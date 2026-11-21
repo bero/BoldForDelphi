@@ -1,28 +1,32 @@
 # Object Space
 
-The **Object Space** is Bold's in-memory object graph where all domain objects live during runtime. It's managed by `TBoldSystem` and provides:
+The **object space** holds the domain objects of a running Bold application in memory. A `TBoldSystem` manages it;
+a `TBoldSystemHandle` creates the system when it becomes active and gives access to it through its `System`
+property. The object space provides:
 
-- Object lifecycle management (create, modify, delete)
-- Identity management (each object has a unique ID)
-- Change tracking (dirty objects, undo/redo)
-- Transaction support
+- Object lifecycle: create, change and delete objects
+- Identity: each object has an ID, kept by its `BoldObjectLocator`
+- Change tracking: dirty objects, and undo/redo through the undo handler
+- Transactions in memory
+
+Changes stay in memory until `UpdateDatabase` saves them through the [persistence layer](persistence.md).
 
 ## Architecture
 
 ```mermaid
 classDiagram
     class TBoldSystem {
-        +Classes: TBoldClassList
-        +DirtyObjects: TBoldObjectList
+        +ClassByExpressionName(name) TBoldObjectList
+        +DirtyObjects: TList
         +StartTransaction()
         +CommitTransaction()
         +RollbackTransaction()
-        +EvaluateExpression()
+        +UpdateDatabase()
     }
 
-    class TBoldClassExtent {
-        +BoldObjects: TBoldObjectList
-        +CreateNewObject()
+    class TBoldObjectList {
+        +Count: Integer
+        +AddNew()
     }
 
     class TBoldObject {
@@ -32,33 +36,11 @@ classDiagram
         +Delete()
     }
 
-    TBoldSystem "1" --> "*" TBoldClassExtent : manages
-    TBoldClassExtent "1" --> "*" TBoldObject : contains
+    TBoldSystem "1" --> "*" TBoldObjectList : one list per class
+    TBoldObjectList "1" --> "*" TBoldObject : contains
 ```
 
-## Object States
-
-Objects in the Object Space have a state that tracks their lifecycle:
-
-```mermaid
-stateDiagram-v2
-    [*] --> New: Create
-    New --> Clean: SaveToDatabase
-    Clean --> Modified: Change attribute
-    Modified --> Clean: SaveToDatabase
-    Clean --> Deleted: Delete
-    Modified --> Deleted: Delete
-    Deleted --> [*]: SaveToDatabase
-```
-
-| State | Description |
-|-------|-------------|
-| **New** | Just created, not yet in database |
-| **Clean** | Matches database, no pending changes |
-| **Modified** | Has unsaved changes |
-| **Deleted** | Marked for deletion |
-
-## Working with Object Space
+## Working with the Object Space
 
 ### Accessing the System
 
@@ -76,72 +58,119 @@ end;
 var
   Customer: TCustomer;
 begin
-  // Method 1: Using class extent
-  Customer := System.Classes['Customer'].CreateNewObject as TCustomer;
-
-  // Method 2: Direct constructor (if generated)
+  // With the generated class
   Customer := TCustomer.Create(System);
+
+  // By the class name in the model
+  Customer := System.CreateNewObjectByExpressionName('Customer') as TCustomer;
 end;
 ```
 
 ### Finding Objects
 
+Each class in the model has a **class list** with all its instances. It is the same list as the OCL expression
+`Customer.allInstances`.
+
 ```pascal
-// Get all instances of a class
 var
   AllCustomers: TBoldObjectList;
-begin
-  AllCustomers := System.Classes['Customer'].BoldObjects;
-end;
-
-// Find by ID
-var
   Customer: TBoldObject;
 begin
-  Customer := System.ObjectById[SomeId];
+  // All instances of a class
+  AllCustomers := System.ClassByExpressionName['Customer'];
+
+  // An object that is already loaded, or nil
+  Customer := System.Locators.ObjectByID[SomeId];
+
+  // The object with this ID, fetched from the database if needed
+  Customer := System.EnsuredLocatorByID[SomeId].EnsuredBoldObject;
 end;
 ```
 
-### Transactions
+`SomeId` is a `TBoldObjectId`. To find objects by their values, use [OCL](ocl.md).
+
+### Deleting and Discarding
+
+`Order.Delete` marks the object as deleted; the next `UpdateDatabase` removes it from the database.
+`System.Discard` throws away all changes that are not saved yet.
+
+## Object States
+
+An object's state follows its lifecycle:
+
+```mermaid
+stateDiagram-v2
+    [*] --> New: Create
+    New --> Clean: UpdateDatabase
+    Clean --> Modified: Change attribute
+    Modified --> Clean: UpdateDatabase
+    Clean --> Deleted: Delete
+    Modified --> Deleted: Delete
+    Deleted --> [*]: UpdateDatabase
+```
+
+| State | Description | How to test it |
+|-------|-------------|----------------|
+| **New** | Just created, not yet in the database | `BoldObjectIsNew` |
+| **Clean** | Matches the database, no pending changes | `not BoldDirty` |
+| **Modified** | Has unsaved changes | `BoldDirty` |
+| **Deleted** | Marked for deletion, removed by the next `UpdateDatabase` | `BoldObjectIsDeleted` |
+
+The underlying properties are `BoldExistenceState` (`besNotCreated`, `besExisting`, `besDeleted`) and
+`BoldPersistenceState` (`bvpsCurrent`, `bvpsModified`, `bvpsInvalid`, `bvpsTransient`).
+
+## Transactions
+
+Object space transactions work in memory. `RollbackTransaction` restores every value that changed since
+`StartTransaction`; the database is not involved until `UpdateDatabase`.
 
 ```pascal
 System.StartTransaction;
 try
-  // Make changes
   Customer.Name := 'New Name';
   Order.Delete;
-
   System.CommitTransaction;
 except
   System.RollbackTransaction;
   raise;
 end;
+System.UpdateDatabase;
 ```
 
-## Class Extents
+`TryCommitTransaction` commits, or rolls back and returns `False` when the commit fails.
 
-Each class in your model has a **Class Extent** - a collection of all instances of that class:
+### Nested Transactions
 
-```pascal
-var
-  CustomerExtent: TBoldClassExtent;
-  Count: Integer;
-begin
-  CustomerExtent := System.Classes['Customer'];
-  Count := CustomerExtent.BoldObjects.Count;
-end;
-```
+Transactions nest, but there are no savepoints: only the outermost level commits or rolls back.
+
+| Call | Outermost level | Inner level |
+|------|-----------------|-------------|
+| `StartTransaction` | Starts recording old values | Increases `TransactionNesting` |
+| `CommitTransaction` | Keeps the changes; raises an exception if the transaction is marked rollback-only | Decreases `TransactionNesting` |
+| `RollbackTransaction` | Restores all values recorded since the outermost `StartTransaction` | Marks the whole transaction rollback-only and decreases `TransactionNesting` |
+
+A rollback at an inner level undoes nothing by itself. The outermost `CommitTransaction` then raises, and the
+outermost `RollbackTransaction` undoes the changes of all levels. With the `try ... except RollbackTransaction;
+raise; end` pattern on every level, an exception at any depth rolls back everything.
+
+Call `UpdateDatabase` after the outermost commit.
 
 ## Dirty Objects
 
 Bold tracks which objects have unsaved changes:
 
 ```pascal
-// Check if there are unsaved changes
-if System.DirtyObjects.Count > 0 then
-  ShowMessage('You have unsaved changes');
+var
+  i: Integer;
+begin
+  // Are there unsaved changes?
+  if System.BoldDirty then
+    ShowMessage('You have unsaved changes');
 
-// Get list of modified objects
-for i := 0 to System.DirtyObjects.Count - 1 do
-  ProcessDirtyObject(System.DirtyObjects[i]);
+  // The modified objects; DirtyObjects is a TList of TBoldObject
+  for i := 0 to System.DirtyObjects.Count - 1 do
+    ProcessDirtyObject(TBoldObject(System.DirtyObjects[i]));
+end;
 ```
+
+`System.DirtyObjectsAsBoldList` returns the same objects in a new `TBoldObjectList`, which the caller frees.

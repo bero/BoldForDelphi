@@ -1,6 +1,6 @@
 # TBAMoment
 
-`TBAMoment` is the abstract base class for all date/time attributes in Bold. It provides the shared functionality for `TBADateTime`, `TBADate`, and `TBATime`.
+`TBAMoment` (unit `BoldAttributes`) is the abstract base class for the date and time attributes in Bold. It provides the shared functionality for `TBADateTime`, `TBADate` and `TBATime`.
 
 ## Class Hierarchy
 
@@ -12,6 +12,9 @@ classDiagram
     class TBAMoment {
         <<abstract>>
         +AsDateTime: TDateTime
+    }
+    class TBADateTime {
+        +AsDate, AsTime
         +Seconds, Minutes, Hours
         +Days, Months, Years
     }
@@ -19,23 +22,25 @@ classDiagram
     TBAMoment <|-- TBADateTime
     TBAMoment <|-- TBADate
     TBAMoment <|-- TBATime
-
-    click TBANumeric href "../TBAInteger/" "TBANumeric"
 ```
 
 ## Date/Time Subtypes
 
-| Type | Stores | UML Type | DB Column |
-|------|--------|----------|-----------|
-| `TBADateTime` | Date + Time | DateTime / MomentType | DATETIME |
-| `TBADate` | Date only | Date | DATE |
-| `TBATime` | Time only | Time | TIME |
+| Type | Stores | Model Type | Column Type Setting |
+|------|--------|------------|---------------------|
+| `TBADateTime` | Date + time | DateTime, TimeStamp | `ColumnTypeForDateTime` |
+| `TBADate` | Date only | Date | `ColumnTypeForDate` |
+| `TBATime` | Time only | Time | `ColumnTypeForTime` |
+
+The column types come from the SQL database configuration of the persistence handle.
 
 ## Class Definition
 
 ```pascal
 TBAMoment = class(TBANumeric)
 public
+  // AsDate, AsTime and the Seconds..Years parts are protected here;
+  // the subclasses make the ones that apply public.
   function CanSetValue(NewValue: TDateTime; Subscriber: TBoldSubscriber): Boolean;
   function CompareToAs(CompType: TBoldCompareType; BoldElement: TBoldElement): Integer; override;
   function IsNullOrZero: Boolean; override;
@@ -55,6 +60,25 @@ public
   property Days: Word;
   property Months: Word;
   property Years: Word;
+end;
+
+TBADate = class(TBAMoment)
+public
+  constructor CreateWithValue(Value: TDateTime);
+  property AsDate: TDateTime;
+  property Days: Word;
+  property Months: Word;
+  property Years: Word;
+end;
+
+TBATime = class(TBAMoment)
+public
+  constructor CreateWithValue(Value: TDateTime);
+  property AsTime: TDateTime;
+  property AsSeconds: Cardinal;
+  property Seconds: Word;
+  property Minutes: Word;
+  property Hours: Word;
 end;
 ```
 
@@ -95,8 +119,8 @@ if Employee.M_HireDate.IsNullOrZero then
 
 ## OCL Date Operations
 
-!!! warning "Important: OCL date operations work on MomentType (DateTime), NOT on Date type"
-    If your UML model uses `Date` type, OCL operations like `day`, `month`, `year` will fail with "Attributes can not have members". Use `DateTime` / `MomentType` instead.
+!!! warning "Use DateTime for OCL date operations"
+    If your model uses the `Date` type, OCL operations like `day`, `month`, `year` will fail with "Attributes can not have members". Use `DateTime` instead.
 
 | OCL Operation | Returns | Example |
 |---------------|---------|---------|
@@ -135,6 +159,7 @@ Employee.allInstances->select(hireDate.dayOfWeek = 1)
 
 ## See Also
 
+- [TBAMoment reference](../reference/BoldAttributes/TBAMoment.md) - Generated API reference
 - [TBoldAttribute](TBoldAttribute.md) - Base class
 - [TBAInteger](TBAInteger.md) - Numeric sibling
 - [OCL Queries](../concepts/ocl.md) - OCL date operations

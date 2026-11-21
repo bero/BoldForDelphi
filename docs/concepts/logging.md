@@ -1,10 +1,20 @@
 # Logging
 
-Bold for Delphi provides flexible logging capabilities through three complementary systems, each suited for different use cases.
+Bold for Delphi has three logging systems for different needs. All three are in `Source/Common/Logging` and build
+with Delphi and Free Pascal.
+
+| System | Unit | Best for | Output | Thread-safe |
+|--------|------|----------|--------|-------------|
+| **Simple** | `BoldThreadSafeLog` | File logging | Log files | Yes |
+| **Multi-sink** | `BoldLogInterfaces`, `BoldLogSinks` | Applications that need levels and several outputs | Files, console, debugger, memory | Yes |
+| **Progress** | `BoldLogHandler` | Long operations with UI feedback | Log receivers such as log forms | No; use it from the main thread |
+
+All three units declare a routine named `BoldLog`. When a unit uses more than one of them, the unit listed last in
+the `uses` clause wins; qualify the name, for example `BoldThreadSafeLog.BoldLog(...)`, to choose.
 
 ## Quick Start
 
-The simplest way to add logging to your Bold application:
+The simplest way to add logging to a Bold application:
 
 ```pascal
 uses
@@ -22,17 +32,9 @@ BoldLogError('Database connection failed: %s', [ErrorMsg]);
 BoldDoneLog;
 ```
 
-## Logging Systems Overview
-
-| System | Best For | Output | Thread-Safe |
-|--------|----------|--------|-------------|
-| **Simple** (BoldThreadSafeLog) | File-based logging | Log files | Yes |
-| **Multi-Sink** (BoldLogManager) | Production apps with multiple outputs | Files, Console, Debugger, Memory | Yes |
-| **UI/Progress** (BoldLogHandler) | UI apps with progress tracking | UI forms | Yes |
-
 ## Simple File Logging
 
-The `BoldThreadSafeLog` unit provides straightforward file-based logging with automatic timestamps.
+The `BoldThreadSafeLog` unit writes to log files and adds a timestamp to every line.
 
 ### Setup
 
@@ -44,9 +46,9 @@ procedure InitializeLogging;
 begin
   // Parameters: MainLog, ErrorLog, ThreadLog, MaxFileSize
   BoldInitLog(
-    'logs\app.log',      // Main log file
-    'logs\error.log',    // Error-specific log
-    'logs\thread.log',   // Thread activity log (optional, use '' to skip)
+    'logs/app.log',      // Main log file
+    'logs/error.log',    // Error log
+    'logs/thread.log',   // Thread activity log; '' for none
     10 * 1024 * 1024     // Max 10 MB per file
   );
 end;
@@ -57,6 +59,9 @@ begin
 end;
 ```
 
+A file that grows beyond the maximum size is emptied and starts again; it is not rotated. Before `BoldInitLog` and
+after `BoldDoneLog`, the logging calls do nothing.
+
 ### Usage
 
 ```pascal
@@ -66,24 +71,32 @@ BoldLog('User logged in');
 // Formatted message
 BoldLog('Processed %d of %d items', [Current, Total]);
 
-// Error logging (always includes thread ID)
+// Error log; every entry includes the thread ID
 BoldLogError('Failed to save: %s', [E.Message]);
 
-// Thread activity logging
+// Thread activity log; ignored when no thread log file was given
 BoldLogThread('Worker thread started');
 ```
 
 ### Log File Format
 
+`app.log`:
+
 ```
 2025-01-15T10:30:45.123 Application started
 2025-01-15T10:30:45.456 Processing 100 records
+```
+
+`error.log`:
+
+```
 2025-01-15T10:30:46.789 Failed to connect (ThreadID=1234)
 ```
 
 ## Multi-Sink Logging
 
-The `BoldLogInterfaces` and `BoldLogSinks` units provide a flexible sink-based architecture for production applications.
+The `BoldLogInterfaces` and `BoldLogSinks` units send each message to every registered sink whose levels include the
+message's level.
 
 ### Log Levels
 
@@ -98,14 +111,16 @@ type
   );
 ```
 
+A new sink logs `llInfo`, `llWarning` and `llError` (`DefaultBoldLogLevels`).
+
 ### Available Sinks
 
 | Sink | Description |
 |------|-------------|
-| `TBoldFileLogSink` | Log to files with automatic size management |
-| `TBoldConsoleLogSink` | Output to console (WriteLn) |
-| `TBoldDebugLogSink` | OutputDebugString - visible in IDE debugger |
-| `TBoldMemoryLogSink` | In-memory buffer for UI display |
+| `TBoldFileLogSink` | Writes to a file; emptied when it exceeds the maximum size (default 10 MB) |
+| `TBoldConsoleLogSink` | Writes to the console (`WriteLn`) |
+| `TBoldDebugLogSink` | `OutputDebugString` on Windows, visible in the IDE debugger; standard error elsewhere |
+| `TBoldMemoryLogSink` | Keeps the last lines in memory, for display in the UI (default 10000 lines) |
 
 ### Basic Setup
 
@@ -118,11 +133,13 @@ procedure SetupLogging;
 var
   FileSink: TBoldFileLogSink;
 begin
-  // Create a file sink with 5 MB max size
+  // A file sink with 5 MB max size
   FileSink := TBoldFileLogSink.Create('app.log', 5 * 1024 * 1024);
   BoldLogManager.RegisterSink(FileSink);
 end;
 ```
+
+The sinks are reference-counted interfaces: the log manager keeps a registered sink alive until it is unregistered.
 
 ### Multiple Sinks
 
@@ -133,19 +150,19 @@ var
   ConsoleSink: TBoldConsoleLogSink;
   DebugSink: TBoldDebugLogSink;
 begin
-  // File: All levels
+  // File: information, warnings and errors
   FileSink := TBoldFileLogSink.Create('app.log');
   FileSink.Levels := [llInfo, llWarning, llError];
   BoldLogManager.RegisterSink(FileSink);
 
-  // Console: Errors only
+  // Console: errors only
   ConsoleSink := TBoldConsoleLogSink.Create;
   ConsoleSink.Levels := [llError];
   BoldLogManager.RegisterSink(ConsoleSink);
 
-  // Debug output: Everything during development
+  // Debug output: everything, during development
   DebugSink := TBoldDebugLogSink.Create;
-  DebugSink.Levels := [llTrace, llDebug, llInfo, llWarning, llError];
+  DebugSink.Levels := AllBoldLogLevels;
   BoldLogManager.RegisterSink(DebugSink);
 end;
 ```
@@ -169,6 +186,9 @@ begin
 end;
 ```
 
+`BoldLogManager` also has `Trace`, `Debug`, `Info`, `Warning` and `Error` methods, for example
+`BoldLogManager.Warning('Disk almost full')`.
+
 ### In-Memory Sink for UI
 
 ```pascal
@@ -177,7 +197,7 @@ var
 
 procedure SetupLogViewer;
 begin
-  // Keep last 1000 lines in memory
+  // Keep the last 1000 lines in memory
   MemorySink := TBoldMemoryLogSink.Create(1000);
   BoldLogManager.RegisterSink(MemorySink);
 end;
@@ -189,9 +209,12 @@ begin
 end;
 ```
 
-## UI Logging with Progress
+## Progress Logging
 
-The `BoldLogHandler` unit is the original Bold logging system. It provides logging with progress tracking, ideal for long-running operations with UI feedback. It uses Bold's subscription pattern to notify UI components.
+The `BoldLogHandler` unit is the original Bold logging system. It logs with indentation and progress tracking, for
+long operations with UI feedback. It sends its output through Bold's subscription mechanism to log receivers
+(`IBoldLogReceiver`), such as a log form. Bold itself logs through it, for example while it creates a database
+schema.
 
 ### Basic Usage
 
@@ -230,7 +253,7 @@ begin
     begin
       BoldLog.LogFmt('Record %d of %d', [I + 1, Records.Count]);
       ProcessRecord(Records[I]);
-      BoldLog.ProgressStep;  // Increment progress
+      BoldLog.ProgressStep;  // Advance the progress
     end;
   finally
     BoldLog.Dedent;
@@ -258,20 +281,21 @@ begin
     BoldLog.Log('Phase 3: Cleanup');
     Cleanup;
   finally
-    BoldLog.LogDedent;  // Log message and dedent
+    BoldLog.LogDedent('Operation complete');  // Dedent, then log
   end;
 end;
 ```
 
-Output:
+Output, when `ProcessItems` logs two lines:
+
 ```
-  Starting complex operation
-    Phase 1: Validation
-    Phase 2: Processing
-      Item 1 processed
-      Item 2 processed
-    Phase 3: Cleanup
-  Operation complete
+Starting complex operation
+  Phase 1: Validation
+  Phase 2: Processing
+    Item 1 processed
+    Item 2 processed
+  Phase 3: Cleanup
+Operation complete
 ```
 
 ### Log Types
@@ -281,60 +305,24 @@ BoldLog.Log('Information message', ltInfo);
 BoldLog.Log('Detailed debug info', ltDetail);
 BoldLog.Log('Warning: low memory', ltWarning);
 BoldLog.Log('Error: file not found', ltError);
-BoldLog.Log('', ltSeparator);  // Visual separator line
+BoldLog.Separator;  // Separator lines
 ```
+
+### Other Features
+
+- `Show`, `Hide` and `Clear` act on the log receivers, for example a log window.
+- Implement `IBoldLogReceiver` (unit `BoldLogReceiverInterface`) and register it with `RegisterLogReceiver` to show
+  the log in your own UI.
 
 ## Choosing the Right System
 
 | Need | Recommendation |
 |------|----------------|
-| Simple file log | BoldThreadSafeLog |
-| File log with levels | BoldLogManager + TBoldFileLogSink |
-| Display in TMemo | BoldLogManager + TBoldMemoryLogSink |
-| Progress tracking + UI | BoldLogHandler |
-
-### Simple File Logging (BoldThreadSafeLog)
-
-Best for straightforward file logging without UI:
-
-```pascal
-BoldInitLog('app.log', 'error.log', '', 10*1024*1024);
-BoldLog('Something happened');
-```
-
-### File Logging with Levels (BoldLogManager)
-
-Use when you need log level filtering (Debug, Info, Warning, Error):
-
-```pascal
-var Sink := TBoldFileLogSink.Create('app.log');
-Sink.Levels := [llInfo, llWarning, llError];  // Filter out Debug/Trace
-BoldLogManager.RegisterSink(Sink);
-
-BoldLog('Debug info', llDebug);    // Not written (filtered)
-BoldLog('Important', llInfo);       // Written
-```
-
-### UI Display without Progress (TBoldMemoryLogSink)
-
-Display logs in a TMemo or similar component:
-
-```pascal
-var MemorySink := TBoldMemoryLogSink.Create(1000);  // Keep 1000 lines
-BoldLogManager.RegisterSink(MemorySink);
-
-// In your UI refresh
-Memo1.Lines.Assign(MemorySink.Lines);
-```
-
-### UI with Progress Tracking (BoldLogHandler)
-
-Use when you need progress bars and hierarchical display:
-
-- Progress bars (ProgressMax, ProgressStep)
-- Hierarchical indentation (Indent/Dedent)
-- Implement `IBoldLogReceiver` for custom UI components
-- Show/Hide/Clear operations on log windows
+| Simple file log | `BoldThreadSafeLog` |
+| File log with levels | `BoldLogManager` + `TBoldFileLogSink` |
+| Display in a TMemo | `BoldLogManager` + `TBoldMemoryLogSink` |
+| Progress tracking and hierarchical display | `BoldLogHandler` |
+| Exceptions with their call stacks | `BoldExceptionTrace`, see below |
 
 ## Call Stacks of Exceptions
 
@@ -375,14 +363,13 @@ left out of the report.
 
 ## Thread Safety
 
-All three logging systems are thread-safe:
+- **Simple**: each log file is protected by a `TCriticalSection`.
+- **Multi-sink**: a `TCriticalSection` protects the sink list, and the file and memory sinks have their own.
+- **Progress**: `BoldLogHandler` has no locking and its receivers are usually forms. Use it from the main thread.
 
-- **Simple**: Uses `TCriticalSection` for file access
-- **Multi-Sink**: Uses `TCriticalSection` for the sink list and inside the file and memory sinks
-- **UI/Progress**: Uses subscription pattern with thread synchronization
+The simple and multi-sink logs can be called from any thread. A Delphi example (anonymous methods need Delphi):
 
 ```pascal
-// Safe to call from any thread
 TThread.CreateAnonymousThread(
   procedure
   begin
@@ -395,11 +382,13 @@ TThread.CreateAnonymousThread(
 
 ## Source Files
 
-| File | Description |
+All units are in `Source/Common/Logging`:
+
+| Unit | Description |
 |------|-------------|
-| `Source/Common/Logging/BoldThreadSafeLog.pas` | Simple file logging |
-| `Source/Common/Logging/BoldLogInterfaces.pas` | Modern sink interfaces |
-| `Source/Common/Logging/BoldLogSinks.pas` | Sink implementations |
-| `Source/Common/Logging/BoldLogHandler.pas` | Legacy UI logging |
-| `Source/Common/Logging/BoldLogReceiverInterface.pas` | Receiver interfaces |
-| `Source/Common/Logging/BoldExceptionTrace.pas` | Exceptions with their call stacks |
+| `BoldThreadSafeLog` | Simple file logging |
+| `BoldLogInterfaces` | Log levels, the sink interface and `BoldLogManager` |
+| `BoldLogSinks` | Sink implementations |
+| `BoldLogHandler` | Progress logging |
+| `BoldLogReceiverInterface` | `IBoldLogReceiver` and `TBoldLogReceiver` |
+| `BoldExceptionTrace` | Exceptions with their call stacks |

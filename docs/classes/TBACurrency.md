@@ -1,6 +1,6 @@
 # TBACurrency
 
-`TBACurrency` stores Delphi's `Currency` type — a 64-bit fixed-point value with 4 decimal places. Ideal for financial calculations where floating-point rounding errors are unacceptable.
+`TBACurrency` (unit `BoldAttributes`) stores the `Currency` type, a 64-bit fixed-point value with 4 decimal places. The model type Currency maps to it. Use it for money, where floating-point rounding errors are not acceptable.
 
 ## Class Hierarchy
 
@@ -49,7 +49,7 @@ end;
 | Precision | Exact to 4 decimal places | ~15 significant digits |
 | Range | ±922,337,203,685,477.5807 | ±1.7 × 10³⁰⁸ |
 | Best for | Money, invoices, accounting | Science, measurements |
-| Rounding | No rounding errors | Subject to IEEE rounding |
+| Rounding | No binary rounding of decimal fractions | Subject to IEEE rounding |
 
 ## Working with TBACurrency
 
@@ -70,14 +70,15 @@ Invoice.M_TotalAmount.AsFloat := 1500.50;
 ### Financial Calculations
 
 ```pascal
-// Currency arithmetic is exact
+// Currency values are exact to 4 decimals
 var Tax: Currency;
-Tax := Invoice.TotalAmount * 0.25;  // exact to 4 decimals
+Tax := Invoice.TotalAmount * 0.25;  // the result is rounded to 4 decimals
 Invoice.TaxAmount := Tax;
 ```
 
 ## See Also
 
+- [TBACurrency reference](../reference/BoldAttributes/TBACurrency.md) - Generated API reference
 - [TBAFloat](TBAFloat.md) - Floating-point alternative
 - [TBAInteger](TBAInteger.md) - Integer sibling
 - [TBoldAttribute](TBoldAttribute.md) - Base class

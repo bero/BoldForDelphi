@@ -1,6 +1,6 @@
 # TBoldGuard
 
-`TBoldGuard` provides automatic memory management for local objects using Delphi's interface reference counting. When the guard goes out of scope, all tracked objects are freed automatically — even if an exception occurs.
+`TBoldGuard` (unit `BoldGuard`) frees local objects automatically through interface reference counting, in Delphi and in Free Pascal. When the guard goes out of scope, it frees all tracked objects, also when an exception occurs.
 
 ## Class Hierarchy
 
@@ -38,9 +38,9 @@ end;
 2. Assign `TBoldGuard.Create(var1, var2, ...)` — constructor sets all variables to `nil`
 3. Create objects and assign to the tracked variables
 4. When the procedure exits (normally or by exception), the interface ref count drops to 0
-5. `Destroy` frees all non-nil tracked objects in reverse order
+5. `Destroy` frees the tracked objects that are not nil, in the order they were passed, and sets the variables to nil
 
-This pattern predates Delphi's ARC and is similar to Go's `defer` or Python's context managers.
+Pass only object variables: the constructor takes untyped `var` parameters and treats each one as a `TObject`.
 
 ## Before and After
 
@@ -51,20 +51,20 @@ procedure ProcessData;
 var
   List: TStringList;
   Stream: TFileStream;
-  Parser: TParser;
+  Buffer: TMemoryStream;
 begin
   List := nil;
   Stream := nil;
-  Parser := nil;
+  Buffer := nil;
   try
     List := TStringList.Create;
     Stream := TFileStream.Create('data.txt', fmOpenRead);
-    Parser := TParser.Create;
+    Buffer := TMemoryStream.Create;
 
     // ... use objects ...
 
   finally
-    Parser.Free;
+    Buffer.Free;
     Stream.Free;
     List.Free;
   end;
@@ -79,14 +79,14 @@ var
   Guard: IBoldGuard;
   List: TStringList;
   Stream: TFileStream;
-  Parser: TParser;
+  Buffer: TMemoryStream;
 begin
-  Guard := TBoldGuard.Create(List, Stream, Parser);
+  Guard := TBoldGuard.Create(List, Stream, Buffer);
   // All three are now nil and will be freed automatically
 
   List := TStringList.Create;
   Stream := TFileStream.Create('data.txt', fmOpenRead);
-  Parser := TParser.Create;
+  Buffer := TMemoryStream.Create;
 
   // ... use objects ...
   // No try/finally needed — Guard frees everything on exit
@@ -97,20 +97,22 @@ end;
 
 ### Bold Source Code Usage
 
-`TBoldGuard` is used extensively throughout Bold's source code:
+Bold's own source uses `TBoldGuard` throughout. This function is from `BoldSystem.pas`:
 
 ```pascal
-procedure TBoldOcl.Evaluate(const Expr: string);
+function GetValueFromValuespace(const ValueSpace: IBoldValueSpace; Id: TBoldObjectId; MemberIndex: integer): IBoldValue;
 var
-  Guard: IBoldGuard;
-  Env: TBoldOclEnvironment;
-  Node: TBoldOLWNode;
+  MemberId: TBoldMemberId;
+  ObjectContents: IBoldObjectContents;
+  G: IBoldGuard;
 begin
-  Guard := TBoldGuard.Create(Env, Node);
-  Env := TBoldOclEnvironment.Create;
-  Node := ParseExpression(Expr);
-  // ... evaluate ...
-end;  // Env and Node freed automatically
+  G := TBoldGuard.Create(MemberId);
+  Result := nil;
+  MemberId := TBoldMemberId.Create(MemberIndex);
+  ObjectContents := ValueSpace.ObjectContentsByObjectId[Id];
+  if Assigned(ObjectContents) then
+     Result := ObjectContents.ValueByMemberId[MemberId]
+end;  // MemberId is freed here
 ```
 
 ### Maximum 10 Variables
@@ -130,9 +132,9 @@ end;
 ```
 
 !!! tip "Variables are set to nil"
-    The constructor sets all passed variables to `nil`. You don't need to initialize them yourself. Only non-nil objects are freed in the destructor.
+    The constructor sets all passed variables to `nil`. You do not need to initialize them yourself. The destructor frees only the objects that are not nil.
 
 ## See Also
 
-- [TBoldSystem](TBoldSystem.md) - Object Space (uses guards internally)
+- [TBoldSystem](TBoldSystem.md) - The object space (uses guards internally)
 - [TBoldElement](TBoldElement.md) - Base element class

@@ -1,19 +1,26 @@
 # TBoldObjectReference
 
-`TBoldObjectReference` represents a single-valued association (relationship) between Bold objects. It stores a reference to one other object or nil.
+`TBoldObjectReference` (unit `BoldSystem`) is the member for a single-valued association end. It refers to one other object or to nil.
 
 ## Class Definition
+
+Public members, abridged:
 
 ```pascal
 TBoldObjectReference = class(TBoldMember)
 public
-  // Core access
-  property BoldObject: TBoldObject;
+  // The referenced object
+  property BoldObject: TBoldObject;        // fetches the object when needed
+  property Locator: TBoldObjectLocator;    // does not fetch the object
+  property IsEmpty: Boolean;               // True when no object is referenced
+  procedure Clear;
 
-  // Navigation
-  function GetController: TBoldAbstractController;
+  // Checks before a change
+  function CanSet(NewObject: TBoldObject; Subscriber: TBoldSubscriber): Boolean;
+  function CanClear(Subscriber: TBoldSubscriber): Boolean;
 
-  // State
+  // Metadata and state
+  property BoldRoleRTInfo: TBoldRoleRTInfo;
   property HasOldValues: Boolean;
 end;
 ```
@@ -24,7 +31,8 @@ end;
 classDiagram
     TBoldMember <|-- TBoldObjectReference
     TBoldMember <|-- TBoldAttribute
-    TBoldMember <|-- TBoldObjectList
+    TBoldMember <|-- TBoldList
+    TBoldList <|-- TBoldObjectList
 
     TBoldObjectReference : +BoldObject
     TBoldObjectReference : +HasOldValues
@@ -113,8 +121,9 @@ end;
 // Set to nil
 Order.customer := nil;
 
-// Or using raw member
+// Or using the raw member
 Order.M_customer.BoldObject := nil;
+Order.M_customer.Clear;
 ```
 
 ## Bidirectional Associations
@@ -153,8 +162,8 @@ var
 begin
   Ref := Order.M_customer;
 
-  // Check null state
-  if Ref.BoldObject = nil then
+  // Check for an empty reference without fetching the referenced object
+  if Ref.IsEmpty then
     ShowMessage('No customer');
 
   // Subscribe to changes
@@ -168,7 +177,7 @@ end;
 |--------|----------------|----------------------|
 | Stores | Simple values | Object pointer |
 | Example | Name: String | customer: TCustomer |
-| Null check | IsNull | BoldObject = nil |
+| Null check | IsNull | IsEmpty, or BoldObject = nil |
 | Generated property | Customer.Name | Order.customer |
 
 ## Common Patterns
@@ -212,11 +221,13 @@ BoldListHandle2.Expression := 'Order.allInstances->collect(customer)->asSet';
 
 ## Subscription
 
-Subscribe to reference changes:
+Subscribe to reference changes. `OrderCustomerSubscriber` is a `TBoldPassthroughSubscriber` field of the form:
 
 ```pascal
 procedure TForm1.SubscribeToCustomerChange(Order: TOrder);
 begin
+  if not Assigned(OrderCustomerSubscriber) then
+    OrderCustomerSubscriber := TBoldPassthroughSubscriber.Create(OrderCustomerSubscriberReceive);
   Order.M_customer.DefaultSubscribe(OrderCustomerSubscriber);
 end;
 
@@ -231,6 +242,7 @@ end;
 
 ## See Also
 
+- [TBoldObjectReference reference](../reference/BoldSystem/TBoldObjectReference.md) - Generated API reference
 - [TBoldMember](TBoldMember.md) - Base class
 - [TBoldObjectList](TBoldObjectList.md) - Multi-valued associations
 - [TBoldObject](TBoldObject.md) - Domain objects

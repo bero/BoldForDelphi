@@ -1,6 +1,8 @@
-# Class Reference
+# Class Guides
 
-This section documents the most important classes in Bold for Delphi.
+Hand-written usage guides for the classes you meet most often in Bold for Delphi: what each class is for, how to
+use it, and short examples. The full member reference, generated from the original Bold help of 2004, is the
+[Class Reference](../reference/index.md).
 
 ## Class Hierarchy
 
@@ -12,23 +14,26 @@ classDiagram
 
     class TBoldDomainElement {
         <<abstract>>
+        +OwningElement
     }
 
     class TBoldMember {
         <<abstract>>
-        +BoldObject
-        +OwningElement
+        +OwningObject
+        +BoldSystem
     }
 
     class TBoldAttribute {
         +AsString
-        +AsInteger
+        +AsVariant
         +IsNull
     }
 
     class TBoldObjectReference {
         +BoldObject
     }
+
+    class TBoldList
 
     class TBoldObjectList {
         +Count
@@ -43,18 +48,19 @@ classDiagram
     }
 
     class TBoldSystem {
-        +Classes
+        +ClassByExpressionName
         +DirtyObjects
         +UpdateDatabase()
     }
 
     TBoldElement <|-- TBoldDomainElement
-    TBoldDomainElement <|-- TBoldMember
+    TBoldDomainElement <|-- TBoldSystem
     TBoldDomainElement <|-- TBoldObject
+    TBoldDomainElement <|-- TBoldMember
     TBoldMember <|-- TBoldAttribute
     TBoldMember <|-- TBoldObjectReference
-    TBoldMember <|-- TBoldObjectList
-    TBoldElement <|-- TBoldSystem
+    TBoldMember <|-- TBoldList
+    TBoldList <|-- TBoldObjectList
 
     click TBoldElement href "TBoldElement/" "TBoldElement documentation"
     click TBoldSystem href "TBoldSystem/" "TBoldSystem documentation"
@@ -70,7 +76,7 @@ classDiagram
 | Class | Description |
 |-------|-------------|
 | [TBoldElement](TBoldElement.md) | Abstract base class for all Bold elements |
-| [TBoldSystem](TBoldSystem.md) | The Object Space - manages all objects |
+| [TBoldSystem](TBoldSystem.md) | The object space: holds and manages all objects |
 | [TBoldObject](TBoldObject.md) | Base class for all domain objects |
 | [TBoldObjectList](TBoldObjectList.md) | Collection of Bold objects |
 | [TBoldMember](TBoldMember.md) | Base class for attributes and references |
@@ -93,19 +99,19 @@ classDiagram
 
 | Class | Description |
 |-------|-------------|
-| [TBoldSystemHandle](TBoldSystemHandle.md) | Manages the Object Space connection |
-| [TBoldListHandle](TBoldListHandle.md) | OCL list expressions with filtering and sorting |
-| [TBoldExpressionHandle](TBoldExpressionHandle.md) | Single value OCL expressions |
-| [TBoldPersistenceHandle](TBoldPersistenceHandle.md) | Connects Object Space to database |
+| [TBoldSystemHandle](TBoldSystemHandle.md) | Creates and owns the object space (`TBoldSystem`) |
+| [TBoldListHandle](TBoldListHandle.md) | List from an OCL expression, with filtering, sorting and a current element |
+| [TBoldExpressionHandle](TBoldExpressionHandle.md) | Single value from an OCL expression |
+| [TBoldPersistenceHandle](TBoldPersistenceHandle.md) | Connects the object space to a database or file |
 
-## Subscription & Derivation
+## Subscription and Derivation
 
 | Class | Description |
 |-------|-------------|
-| [TBoldPublisher](TBoldPublisher.md) | Event sender — manages subscriptions |
-| [TBoldSubscriber](TBoldSubscriber.md) | Event receiver — abstract base |
-| [TBoldPassthroughSubscriber](TBoldPassthroughSubscriber.md) | Delegates events to callback methods |
-| [TBoldAbstractDeriver](TBoldAbstractDeriver.md) | Automatic value derivation engine |
+| [TBoldPublisher](TBoldPublisher.md) | Event sender: holds the subscriptions |
+| [TBoldSubscriber](TBoldSubscriber.md) | Event receiver: abstract base |
+| [TBoldPassthroughSubscriber](TBoldPassthroughSubscriber.md) | Passes events on to a method |
+| [TBoldAbstractDeriver](TBoldAbstractDeriver.md) | Derives values and recalculates them when their sources change |
 
 ## Runtime Type Info
 
@@ -115,21 +121,25 @@ classDiagram
 | [TBoldClassTypeInfo](TBoldClassTypeInfo.md) | Per-class metadata (members, hierarchy) |
 | [TBoldMemberRTInfo](TBoldMemberRTInfo.md) | Per-member metadata (type, persistence, derivation) |
 
-## GUI Components
+## VCL Controls
+
+These Bold-aware controls are VCL controls (Delphi on Windows). FireMonkey (FMX) and Lazarus (LCL) applications
+bind to Bold through `TBoldDataSet` instead.
 
 | Class | Description |
 |-------|-------------|
-| [TBoldGrid](TBoldGrid.md) | Data-aware grid for object lists |
-| [TBoldEdit](TBoldEdit.md) | Data-aware text edit |
-| [TBoldLabel](TBoldLabel.md) | Data-aware read-only label |
-| [TBoldComboBox](TBoldComboBox.md) | Data-aware combo box with lookup |
-| [TBoldCheckBox](TBoldCheckBox.md) | Data-aware boolean checkbox |
+| [TBoldGrid](TBoldGrid.md) | Grid that shows an object list |
+| [TBoldEdit](TBoldEdit.md) | Edit box for a single value |
+| [TBoldLabel](TBoldLabel.md) | Read-only label |
+| [TBoldComboBox](TBoldComboBox.md) | Combo box that picks a value from a list |
+| [TBoldCheckBox](TBoldCheckBox.md) | Check box for a Boolean attribute |
+| [TBoldNavigator](TBoldNavigator.md) | Navigation and insert/delete buttons for a list |
 
 ## Utilities
 
 | Class | Description |
 |-------|-------------|
-| [TBoldGuard](TBoldGuard.md) | Automatic memory management via interface ref counting |
+| [TBoldGuard](TBoldGuard.md) | Automatic memory management via interface reference counting |
 | [TBoldObjectId](TBoldObjectId.md) | Object identity for persistence |
 
 ## Relationship Between Classes
@@ -137,14 +147,14 @@ classDiagram
 ```mermaid
 flowchart TB
     System[TBoldSystem]
-    ClassExtent[TBoldClassExtent]
+    ClassList["Class list<br/>(TBoldObjectList)"]
     Object[TBoldObject]
     Attribute[TBoldAttribute]
     Reference[TBoldObjectReference]
     List[TBoldObjectList]
 
-    System -->|"manages"| ClassExtent
-    ClassExtent -->|"contains"| Object
+    System -->|"one per class"| ClassList
+    ClassList -->|"contains"| Object
     Object -->|"has members"| Attribute
     Object -->|"has members"| Reference
     Object -->|"has members"| List
@@ -163,35 +173,41 @@ flowchart TB
 ### Accessing Objects
 
 ```pascal
-// From system
-var System: TBoldSystem := BoldSystemHandle1.System;
+// From the system handle
+var BoldSystem: TBoldSystem := BoldSystemHandle1.System;
 
-// Get all instances of a class
-var Customers: TBoldObjectList := System.Classes['Customer'].BoldObjects;
+// All instances of a class
+var Customers: TBoldObjectList := BoldSystem.ClassByExpressionName['Customer'];
 
-// Navigate from object
+// Navigate from an object
 var Orders: TBoldObjectList := Customer.Orders;
 ```
 
 ### Modifying Objects
 
 ```pascal
-// Change attribute
+// Change an attribute
 Customer.Name := 'New Name';
 
-// Add to list
+// Add to a list
 Customer.Orders.Add(NewOrder);
 
-// Delete object
+// Delete an object
 Customer.Delete;
 ```
 
 ### Querying Objects
 
 ```pascal
-// OCL query
-var Result: TBoldObjectList := System.EvaluateExpressionAsNewElement(
-  'Customer.allInstances->select(active)',
-  nil
-) as TBoldObjectList;
+var
+  ActiveCustomers: TBoldObjectList;
+begin
+  ActiveCustomers := BoldSystem.EvaluateExpressionAsNewElement(
+    'Customer.allInstances->select(active)') as TBoldObjectList;
+  try
+    // Work with the list
+  finally
+    ActiveCustomers.Free; // the caller owns the new element
+  end;
+end;
 ```

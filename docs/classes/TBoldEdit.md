@@ -1,6 +1,13 @@
 # TBoldEdit
 
-`TBoldEdit` is a data-aware edit control that displays and edits a single Bold attribute value. It connects to a `TBoldElementHandle` or `TBoldExpressionHandle` and provides automatic validation and rendering.
+`TBoldEdit` is an edit box that shows and edits a single Bold value. It takes the value from an element handle,
+usually a `TBoldExpressionHandle`, and validates what the user types.
+
+!!! note "VCL only"
+    `TBoldEdit` is a VCL control for Delphi on Windows. FireMonkey (FMX) and Lazarus (LCL) applications show Bold
+    data through `TBoldDataSet`, with LiveBindings in FMX and the LCL's data-aware controls; see the Invoicing
+    example ([FMX](https://github.com/bero/BoldForDelphi/blob/develop/examples/Compound/Invoicing/FMX/README.md),
+    [LCL](https://github.com/bero/BoldForDelphi/blob/develop/examples/Compound/Invoicing/LCL/README.md)).
 
 ## Class Hierarchy
 
@@ -11,7 +18,6 @@ classDiagram
 
     TBoldEdit : +BoldHandle
     TBoldEdit : +BoldProperties
-    TBoldEdit : +Expression
     TBoldEdit : +ReadOnly
     TBoldEdit : +ButtonStyle
 
@@ -23,57 +29,57 @@ classDiagram
 | Property | Type | Description |
 |----------|------|-------------|
 | `BoldHandle` | `TBoldElementHandle` | Handle providing the value |
-| `BoldProperties` | `TBoldStringFollowerController` | Controls rendering and validation |
-| `Expression` | `string` | OCL expression for sub-navigation |
+| `BoldProperties` | `TBoldStringFollowerController` | Rendering and validation; `BoldProperties.Expression` navigates from the handle's value |
 | `ReadOnly` | `Boolean` | Prevent editing |
-| `ButtonStyle` | `TBoldEditButtonStyle` | None, ellipsis, or dropdown button |
+| `ButtonStyle` | `TBoldEditButtonStyle` | `bbsNone`, `bbsCombo`, `bbsEllipsis` or `bbsCustom` |
+| `OnButtonClick` | `TNotifyEvent` | Fires when the button is clicked |
 | `Alignment` | `TAlignment` | Text alignment |
-| `BeepOnInvalidKey` | `Boolean` | Audio feedback on invalid input |
 
 | Public Property | Description |
 |-----------------|-------------|
-| `EffectiveReadOnly` | Combines ReadOnly + model constraints |
+| `EffectiveReadOnly` | `True` when `ReadOnly` is set or the value cannot be modified |
 | `EffectiveFont` | Font after renderer override |
 | `EffectiveColor` | Color after renderer override |
-| `Follower` | The internal follower tracking the value |
+| `Button` | The speed button shown for `ButtonStyle` |
 
 ## Working with TBoldEdit
 
 ### Form Designer Setup
 
-1. Drop `TBoldEdit` on a form
-2. Set `BoldHandle` to an expression handle
-3. The edit automatically displays and allows editing the value
+1. Drop a `TBoldEdit` on a form.
+2. Set `BoldHandle` to an expression handle.
+3. Optionally set `BoldProperties.Expression` to navigate from the handle's value.
 
 ### Connecting to Attributes
 
 ```pascal
-// Expression handle connected to current customer's name
+// Expression handle on the first customer
 ExpressionHandle1.RootHandle := BoldSystemHandle1;
 ExpressionHandle1.Expression := 'Customer.allInstances->first';
 
+// The edit shows and edits the customer's name
 BoldEdit1.BoldHandle := ExpressionHandle1;
 BoldEdit1.BoldProperties.Expression := 'name';
 ```
 
 ### Validation
 
-`TBoldEdit` validates input automatically:
+`TBoldEdit` validates input through the renderer of `BoldProperties`:
 
-- **Per-keystroke**: `ValidateCharacter` prevents invalid characters
-- **On exit**: `ValidateString` checks the complete value
-- Invalid keys trigger a beep if `BeepOnInvalidKey` is `True`
+- **Per keystroke**: characters the renderer's `ValidateCharacter` rejects are dropped, with a beep.
+- **When applied**: the whole string is checked with `ValidateString` before it is written to the value. By default
+  the value is applied when the edit loses focus (`BoldProperties.ApplyPolicy = bapExit`).
+- **Esc** discards the change.
 
 ### Button Style
 
 ```pascal
-// Add an ellipsis button for custom editor
-BoldEdit1.ButtonStyle := besEllipsis;
+// Add an ellipsis button that opens a custom editor
+BoldEdit1.ButtonStyle := bbsEllipsis;
 BoldEdit1.OnButtonClick := HandleButtonClick;
 
 procedure TMyForm.HandleButtonClick(Sender: TObject);
 begin
-  // Open custom editor dialog
   ShowAddressEditor(CurrentCustomer);
 end;
 ```
@@ -81,5 +87,5 @@ end;
 ## See Also
 
 - [TBoldLabel](TBoldLabel.md) - Read-only display
-- [TBoldComboBox](TBoldComboBox.md) - Selection from list
+- [TBoldComboBox](TBoldComboBox.md) - Selection from a list
 - [TBoldExpressionHandle](TBoldExpressionHandle.md) - Data source

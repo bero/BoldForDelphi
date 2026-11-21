@@ -1,6 +1,6 @@
 # TBoldAttribute
 
-`TBoldAttribute` stores attribute values for Bold objects. Bold provides type-specific subclasses for different data types.
+`TBoldAttribute` (unit `BoldSystem`) is the base class of the members that hold a value. Each attribute type in the model has its own subclass in `BoldAttributes`, such as `TBAString` or `TBAInteger`.
 
 ## Class Hierarchy
 
@@ -11,10 +11,13 @@ classDiagram
     }
     TBoldMember <|-- TBoldAttribute
     TBoldAttribute <|-- TBAString
-    TBoldAttribute <|-- TBAInteger
-    TBoldAttribute <|-- TBAFloat
-    TBoldAttribute <|-- TBADateTime
-    TBoldAttribute <|-- TBABoolean
+    TBoldAttribute <|-- TBANumeric
+    TBANumeric <|-- TBAInteger
+    TBANumeric <|-- TBAFloat
+    TBANumeric <|-- TBACurrency
+    TBANumeric <|-- TBAMoment
+    TBoldAttribute <|-- TBAValueSet
+    TBAValueSet <|-- TBABoolean
     TBoldAttribute <|-- TBABlob
 
     TBoldAttribute : +IsNull
@@ -25,66 +28,55 @@ classDiagram
     click TBAString href "../TBAString/" "TBAString documentation"
     click TBAInteger href "../TBAInteger/" "TBAInteger documentation"
     click TBAFloat href "../TBAFloat/" "TBAFloat documentation"
+    click TBACurrency href "../TBACurrency/" "TBACurrency documentation"
+    click TBAMoment href "../TBAMoment/" "TBAMoment documentation"
     click TBABoolean href "../TBABoolean/" "TBABoolean documentation"
     click TBABlob href "../TBABlob/" "TBABlob documentation"
 ```
 
 ## Attribute Types
 
-| Bold Type | Delphi Type | UML Type |
-|-----------|-------------|----------|
-| [`TBAString`](TBAString.md) | `string` | String |
-| [`TBAInteger`](TBAInteger.md) | `Integer` | Integer |
-| [`TBAFloat`](TBAFloat.md) | `Double` | Float, Currency |
-| [`TBAMoment`](TBAMoment.md) | `TDateTime` | DateTime, Date |
-| [`TBABoolean`](TBABoolean.md) | `Boolean` | Boolean |
-| [`TBABlob`](TBABlob.md) | `TStream` | Blob |
-| [`TBACurrency`](TBACurrency.md) | `Currency` | Currency |
+The default type name dictionary maps the model types to these classes:
+
+| Bold Type | Model Type | Value Property | Generated Property Type |
+|-----------|------------|----------------|-------------------------|
+| [`TBAString`](TBAString.md) | String, AnsiString | `AsString` | `String` |
+| [`TBAInteger`](TBAInteger.md) | Integer, Int | `AsInteger` | `Integer` |
+| [`TBAFloat`](TBAFloat.md) | Float, Double | `AsFloat` | `Double` |
+| [`TBACurrency`](TBACurrency.md) | Currency | `AsCurrency` | `Currency` |
+| `TBADateTime` ([`TBAMoment`](TBAMoment.md)) | DateTime, TimeStamp | `AsDateTime` | `TDateTime` |
+| `TBADate` ([`TBAMoment`](TBAMoment.md)) | Date | `AsDate` | `TDate` |
+| `TBATime` ([`TBAMoment`](TBAMoment.md)) | Time | `AsTime` | `TTime` |
+| [`TBABoolean`](TBABoolean.md) | Boolean, Bool | `AsBoolean` | `Boolean` |
+| [`TBABlob`](TBABlob.md) | Blob | `AsStream`, `AsString` | `String` |
 
 ## Class Definition
+
+Public members, abridged:
 
 ```pascal
 TBoldAttribute = class(TBoldMember)
 public
   // Null handling
   property IsNull: Boolean;
-  procedure SetToNull;
+  procedure SetToNull; virtual;
+  function CanSetToNull(Subscriber: TBoldSubscriber): Boolean;
+  procedure SetEmptyValue; virtual;
 
-  // Universal access
-  property AsString: string;
+  // Value access
+  property AsString: string;              // from TBoldElement
+  property AsVariant: Variant;            // from TBoldElement
 
-  // Comparison
-  function CompareToAs(Other: TBoldAttribute): Integer;
-  function IsEqual(Other: TBoldAttribute): Boolean;
-end;
+  // Comparison and assignment
+  function CompareToAs(CompType: TBoldCompareType; BoldElement: TBoldElement): Integer; override;
+  procedure Assign(Source: TBoldElement); override;
 
-// Type-specific classes
-TBAString = class(TBoldAttribute)
-public
-  property AsString: string;
-  property Length: Integer;
-end;
-
-TBAInteger = class(TBoldAttribute)
-public
-  property AsInteger: Integer;
-end;
-
-TBAFloat = class(TBoldAttribute)
-public
-  property AsFloat: Double;
-end;
-
-TBADateTime = class(TBoldAttribute)
-public
-  property AsDateTime: TDateTime;
-end;
-
-TBABoolean = class(TBoldAttribute)
-public
-  property AsBoolean: Boolean;
+  // Metadata
+  property BoldAttributeRTInfo: TBoldAttributeRTInfo;
 end;
 ```
+
+The typed value properties (`AsInteger`, `AsFloat`, ...) are declared in the subclasses.
 
 ## Working with Attributes
 
@@ -118,25 +110,30 @@ Customer.Active := True;
 
 ### Null Handling
 
+The typed getters (`AsInteger`, `AsFloat`, `AsBoolean`, `AsDateTime`, ...) raise `EBoldAccessNullValue` when the value is null. `AsString` returns an empty string. `SetToNull` raises unless the model allows null for the attribute (`BoldAttributeRTInfo.AllowNull`).
+
 ```pascal
-// Check for null
-if Customer.M_Email.IsNull then
-  ShowMessage('No email');
+var
+  Email: string;
+begin
+  // Check for null
+  if Customer.M_Email.IsNull then
+    ShowMessage('No email');
 
-// Set to null
-Customer.M_Email.SetToNull;
+  // Set to null
+  Customer.M_Email.SetToNull;
 
-// Use default value for null
-var Email: string;
-if Customer.M_Email.IsNull then
-  Email := 'N/A'
-else
-  Email := Customer.Email;
+  // Use a default value for null
+  if Customer.M_Email.IsNull then
+    Email := 'N/A'
+  else
+    Email := Customer.Email;
+end;
 ```
 
 ## Raw Member Access
 
-Use `M_` prefix for raw attribute access:
+Use the `M_` property for the attribute object:
 
 ```pascal
 // Check null state
@@ -154,26 +151,24 @@ if Customer.M_Name.IsEqual(OtherCustomer.M_Name) then ...
 ```pascal
 var
   Attr: TBoldAttribute;
-  Info: TBoldMemberRTInfo;
+  Info: TBoldAttributeRTInfo;
 begin
   Attr := Customer.M_Name;
-  Info := Attr.BoldMemberRTInfo;
+  Info := Attr.BoldAttributeRTInfo;
 
   Log('Name: ' + Info.ExpressionName);
   Log('Type: ' + Info.BoldType.ExpressionName);
-  Log('Persistent: ' + BoolToStr(Info.IsPersistent, True));
+  Log('Persistent: ' + BoolToStr(Info.Persistent, True));
+  Log('Allows null: ' + BoolToStr(Info.AllowNull, True));
 end;
 ```
 
 ## Derived Attributes
 
-Attributes can be derived (calculated) from other values:
+A derived attribute with an OCL derivation expression needs no code. For a derived attribute without one, the generated class gets a `_<Member>_DeriveAndSubscribe` method that you implement:
 
 ```pascal
-// In UML model, mark Total as derived
-// Bold generates deriver code:
-
-procedure TOrder._TotalDeriveAndSubscribe(DerivedObject: TObject;
+procedure TOrder._Total_DeriveAndSubscribe(DerivedObject: TObject;
   Subscriber: TBoldSubscriber);
 begin
   // Subscribe to dependencies
@@ -185,14 +180,14 @@ begin
 end;
 ```
 
-The derived value automatically updates when dependencies change.
+Bold derives the value again when a dependency changes. See [Derived Attributes](../concepts/derived-attributes.md).
 
 ## Common Patterns
 
 ### Safe Value Access
 
 ```pascal
-function SafeString(Attr: TBAString; Default: string = ''): string;
+function SafeString(Attr: TBAString; const Default: string = ''): string;
 begin
   if Attr.IsNull then
     Result := Default
@@ -231,6 +226,7 @@ end;
 
 ## See Also
 
+- [TBoldAttribute reference](../reference/BoldSystem/TBoldAttribute.md) - Generated API reference
 - [TBoldMember](TBoldMember.md) - Base class
 - [TBoldObject](TBoldObject.md) - Attribute owner
 - [Subscriptions](../concepts/subscriptions.md) - Reacting to changes

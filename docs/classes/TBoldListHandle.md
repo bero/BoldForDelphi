@@ -1,29 +1,39 @@
 # TBoldListHandle
 
-`TBoldListHandle` is a powerful component for working with collections of Bold objects. It combines OCL expression evaluation, filtering, sorting, and cursor functionality.
+`TBoldListHandle` holds a list of Bold elements, usually objects, and a current element (a cursor). It evaluates an
+OCL expression relative to its root handle, optionally filters and sorts the result, and keeps the list up to date
+when the objects change. Grids, navigators and `TBoldDataSet` show their data through list handles.
 
 ## Class Definition
 
 ```pascal
 TBoldListHandle = class(TBoldCursorHandle)
 public
-  // Core access
+  // Core access (from TBoldAbstractListHandle)
   property List: TBoldList;
+  property Count: Integer;
   property CurrentElement: TBoldElement;
+  property CurrentBoldObject: TBoldObject;
   property CurrentIndex: Integer;
+  procedure First;
+  procedure Prior;
+  procedure Next;
+  procedure Last;
 
   // Configuration
   property Expression: TBoldExpression;
   property RootHandle: TBoldElementHandle;
   property Variables: TBoldOclVariables;
+  property MutableListExpression: TBoldExpression;
+  property AutoFirst: Boolean;             // default True
 
   // Processing
   property BoldFilter: TBoldFilter;
   property BoldComparer: TBoldComparer;
 
   // Performance
-  property EvaluateInPS: Boolean;
-  property UsePrefetch: Boolean;
+  property EvaluateInPS: Boolean;          // default False
+  property UsePrefetch: Boolean;           // default True
 end;
 ```
 
@@ -59,98 +69,96 @@ flowchart LR
 
 ## Properties
 
-### Expression
+### Expression and RootHandle
 
-OCL expression that evaluates to a list:
+`Expression` is evaluated relative to the value of `RootHandle`. For `allInstances` the root is the system handle;
+for a navigation it is the handle of the object to navigate from. The value of a list handle is its current
+element, so a list handle can be the root of another handle.
 
 ```pascal
-// Get all customers
+// All customers
+BoldListHandle1.RootHandle := BoldSystemHandle1;
 BoldListHandle1.Expression := 'Customer.allInstances';
 
-// Get orders for current customer
+// Orders of the current customer of BoldListHandle1
+BoldListHandle2.RootHandle := BoldListHandle1;
 BoldListHandle2.Expression := 'orders';
-BoldListHandle2.RootHandle := CustomerHandle;
-```
-
-### RootHandle
-
-The context element for expression evaluation:
-
-```pascal
-// Orders relative to a customer
-BoldListHandle1.RootHandle := BoldReferenceHandle1; // Points to a customer
-BoldListHandle1.Expression := 'orders';
 ```
 
 ### Variables
 
-OCL variables for parameterized expressions:
+A `TBoldOclVariables` component makes values from other handles available to the expression under a name. Add
+the variables at design time in its `Variables` collection (`VariableName` and `BoldHandle`), or in code:
 
 ```pascal
-// Filter by status variable
-BoldListHandle1.Expression := 'Order.allInstances->select(status = statusVar)';
-BoldListHandle1.Variables := BoldOclVariables1;
+// StatusHandle is a TBoldVariableHandle with ValueTypeName = 'String'
+StatusHandle.Value.AsString := 'Pending';
+BoldOclVariables1.AddVariable('statusVar', StatusHandle);
 
-// Set variable value (in code or at design-time)
-BoldOclVariables1.SetVariable('statusVar', 'Pending');
+BoldListHandle1.Variables := BoldOclVariables1;
+BoldListHandle1.Expression := 'Order.allInstances->select(status = statusVar)';
 ```
 
 ### BoldFilter
 
-Runtime filter (in addition to OCL):
+A `TBoldFilter` component removes elements in code. Its `OnFilter` event returns `True` for the elements to keep;
+its `OnSubscribe` event subscribes to what the filter reads, so the list is filtered again when that changes.
 
 ```pascal
-// Add dynamic filter
 BoldListHandle1.BoldFilter := BoldFilter1;
 
-// In filter component
-procedure TForm1.BoldFilter1Filter(Element: TBoldElement; var Accept: Boolean);
+function TForm1.BoldFilter1Filter(Element: TBoldElement): Boolean;
 begin
-  Accept := (Element as TCustomer).Active;
+  Result := (Element as TCustomer).Active;
+end;
+
+procedure TForm1.BoldFilter1Subscribe(Element: TBoldElement; Subscriber: TBoldSubscriber);
+begin
+  (Element as TCustomer).M_Active.DefaultSubscribe(Subscriber);
 end;
 ```
+
+The same filter in OCL: `Customer.allInstances->select(active)`. Prefer OCL when it can express the condition.
 
 ### BoldComparer
 
-Sort the results:
+A `TBoldComparer` component sorts in code. Its `OnCompare` event returns a negative number, zero or a positive
+number, like `CompareStr`; it has an `OnSubscribe` event too.
 
 ```pascal
-// Add sorting
 BoldListHandle1.BoldComparer := BoldComparer1;
 
-// In comparer component
-procedure TForm1.BoldComparer1Compare(Item1, Item2: TBoldElement; var Result: Integer);
+function TForm1.BoldComparer1Compare(Item1, Item2: TBoldElement): Integer;
 begin
-  Result := CompareStr(
-    (Item1 as TCustomer).Name,
-    (Item2 as TCustomer).Name
-  );
+  Result := CompareStr((Item1 as TCustomer).Name, (Item2 as TCustomer).Name);
 end;
 ```
 
+The same order in OCL: `Customer.allInstances->orderby(name)`, or `->orderdescending(name)`.
+
 ### List
 
-Access the resulting list:
+The resulting list:
 
 ```pascal
 var
   i: Integer;
 begin
-  for i := 0 to BoldListHandle1.List.Count - 1 do
+  for i := 0 to BoldListHandle1.Count - 1 do
     ProcessElement(BoldListHandle1.List[i]);
 end;
 ```
 
-### CurrentElement / CurrentIndex
+### CurrentElement and CurrentIndex
 
-Cursor functionality:
+The cursor. With `AutoFirst` (the default) the first element becomes current when the list is evaluated.
 
 ```pascal
 // Navigate
-BoldListHandle1.CurrentIndex := 0;  // First
-BoldListHandle1.CurrentIndex := BoldListHandle1.Count - 1;  // Last
+BoldListHandle1.First;
+BoldListHandle1.CurrentIndex := BoldListHandle1.Count - 1;  // last
 
-// Access current
+// Access the current element
 var
   Current: TCustomer;
 begin
@@ -160,84 +168,36 @@ end;
 
 ### EvaluateInPS
 
-When True, the OCL expression is evaluated in the database (Persistence Storage) instead of in memory. This is much faster for large datasets because only matching objects are fetched:
+When `True`, the expression is translated to SQL and evaluated in the database (PS = persistent storage) instead of
+in memory. Only the matching objects are fetched, which is much faster for large tables. The expression must
+return objects, and only the OCL operations that have an SQL translation can be used.
 
 ```pascal
-// Evaluate filter in database - fetches only active customers
+// Fetches only the active customers
 BoldListHandle1.EvaluateInPS := True;
 BoldListHandle1.Expression := 'Customer.allInstances->select(active = true)';
 
-// Without EvaluateInPS, all customers would be loaded into memory first, then filtered
+// Without EvaluateInPS all customers are loaded into memory first, then filtered
 ```
 
 ### UsePrefetch
 
-Prefetch related data for better performance:
-
-```pascal
-// Enable prefetching (default is True)
-BoldListHandle1.UsePrefetch := True;
-```
+When `True` (the default), the handle fetches the objects the expression navigates in one go before it evaluates
+the expression. It only has an effect when Bold is compiled with the `SpanFetch` define, which is off by default
+(see `bold.inc`).
 
 ## Common Patterns
 
-### Master-Detail Setup
+### Master-Detail
 
 ```pascal
-// Master: All customers
+// Master: all customers
+BoldListHandleCustomers.RootHandle := BoldSystemHandle1;
 BoldListHandleCustomers.Expression := 'Customer.allInstances';
 
-// Detail: Orders for selected customer
+// Detail: the orders of the selected customer
 BoldListHandleOrders.RootHandle := BoldListHandleCustomers;
 BoldListHandleOrders.Expression := 'orders';
-```
-
-### Filtered List
-
-```pascal
-// OCL filter
-BoldListHandle1.Expression := 'Customer.allInstances->select(active and balance > 1000)';
-
-// Or with runtime filter
-BoldListHandle1.Expression := 'Customer.allInstances';
-BoldListHandle1.BoldFilter := BoldFilter1;
-```
-
-### Sorted List
-
-```pascal
-// OCL sorting
-BoldListHandle1.Expression := 'Customer.allInstances->orderby(name)';
-
-// Or with runtime comparer
-BoldListHandle1.Expression := 'Customer.allInstances';
-BoldListHandle1.BoldComparer := BoldComparer1;
-```
-
-### Parameterized Query
-
-```pascal
-// Expression with variable
-BoldListHandle1.Expression := 'Order.allInstances->select(orderDate >= startDate)';
-
-// Set variable value
-BoldOclVariables1.SetVariable('startDate', DateToStr(Date - 30));
-```
-
-## Connecting to UI
-
-### With TBoldGrid
-
-```pascal
-// At design time, set:
-BoldGrid1.BoldHandle := BoldListHandle1;
-```
-
-### With TBoldNavigator
-
-```pascal
-// At design time, set:
-BoldNavigator1.BoldHandle := BoldListHandle1;
 ```
 
 ### Manual Iteration
@@ -256,15 +216,29 @@ begin
 end;
 ```
 
+## Connecting to UI
+
+In a VCL application, set the `BoldHandle` property of a [TBoldGrid](TBoldGrid.md) or
+[TBoldNavigator](TBoldNavigator.md) to the list handle:
+
+```pascal
+BoldGrid1.BoldHandle := BoldListHandle1;
+BoldNavigator1.BoldHandle := BoldListHandle1;
+```
+
+In FireMonkey (FMX) and Lazarus (LCL) applications, set the `BoldHandle` of a `TBoldDataSet` to the list handle
+and bind the dataset with LiveBindings (FMX) or data-aware controls (LCL).
+
 ## Performance Tips
 
-1. Use `EvaluateInPS := True` for large datasets
-2. Keep `UsePrefetch := True` for related data access
-3. Use OCL filters instead of runtime filters when possible
-4. Limit result sets with `->first(n)` or pagination
+1. Use `EvaluateInPS := True` for large tables.
+2. Use OCL filters and sorting instead of `TBoldFilter` and `TBoldComparer` when possible.
+3. Limit the result with `->subSequence(1, n)` (indexes start at 1).
 
 ## See Also
 
-- [TBoldExpressionHandle](TBoldExpressionHandle.md) - Single value expressions
+- [TBoldExpressionHandle](TBoldExpressionHandle.md) - Single-value expressions
 - [TBoldSystemHandle](TBoldSystemHandle.md) - System management
 - [OCL Queries](../concepts/ocl.md) - Query language reference
+- [TBoldListHandle in the Class Reference](../reference/BoldListHandle/TBoldListHandle.md) - All members (2004 help)
+- [TBoldAbstractListHandle in the Class Reference](../reference/BoldAbstractListHandle/TBoldAbstractListHandle.md) - Cursor members (2004 help)

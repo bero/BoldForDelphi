@@ -1,6 +1,8 @@
 # TBoldExpressionHandle
 
-`TBoldExpressionHandle` evaluates an OCL expression and provides access to a single value result. It's the foundation for data binding and derived values.
+`TBoldExpressionHandle` evaluates an OCL expression relative to its root handle and holds the single result. Use it
+to bind a control to one value, such as an attribute, a calculated value or a related object, or as the root of
+other handles.
 
 ## Class Definition
 
@@ -16,11 +18,13 @@ public
   property Variables: TBoldOclVariables;
 
   // Performance
-  property EvaluateInPS: Boolean;
-  property UsePrefetch: Boolean;
+  property EvaluateInPS: Boolean;          // default False
+  property InPSMaxAnswers: Integer;        // default -1 (no limit)
+  property InPSOffset: Integer;            // default -1
+  property UsePrefetch: Boolean;           // default True
 
   // Subscription
-  property Subscribe: Boolean;
+  property Subscribe: Boolean;             // default True
 end;
 ```
 
@@ -48,6 +52,9 @@ flowchart LR
     Eval --> Value
 ```
 
+The handle keeps its value until something it subscribed to changes; reading `Value` does not evaluate the
+expression again.
+
 ## Properties
 
 ### Expression
@@ -67,10 +74,11 @@ BoldExpressionHandle1.Expression := 'orders->select(status = ''Pending'')->colle
 
 ### RootHandle
 
-The context element for expression evaluation:
+The handle whose value is the context of the expression. With a list handle as root, the context is the list
+handle's current element:
 
 ```pascal
-// Evaluate expression relative to selected customer
+// Evaluate relative to the selected customer
 BoldExpressionHandle1.RootHandle := CustomerListHandle;
 BoldExpressionHandle1.Expression := 'orders->size';
 ```
@@ -90,32 +98,37 @@ end;
 
 ### Variables
 
-OCL variables for parameterized expressions:
+A `TBoldOclVariables` component makes values from other handles available to the expression under a name:
 
 ```pascal
-// Expression with parameter
-BoldExpressionHandle1.Expression := 'orders->select(total > minAmount)->size';
-BoldOclVariables1.SetVariable('minAmount', '1000');
+// MinAmountHandle is a TBoldVariableHandle with ValueTypeName = 'Integer'
+(MinAmountHandle.Value as TBAInteger).AsInteger := 1000;
+BoldOclVariables1.AddVariable('minAmount', MinAmountHandle);
+
 BoldExpressionHandle1.Variables := BoldOclVariables1;
+BoldExpressionHandle1.Expression := 'orders->select(total > minAmount)->size';
 ```
 
 ### Subscribe
 
-When True, automatically updates when source data changes:
+When `True` (the default), the handle subscribes to the values it read and evaluates again when they change:
 
 ```pascal
-// Enable auto-refresh
-BoldExpressionHandle1.Subscribe := True;
+// Evaluate once; do not follow changes
+BoldExpressionHandle1.Subscribe := False;
 ```
 
 ### EvaluateInPS
 
-When True, the OCL expression is evaluated in the database (Persistence Storage) instead of in memory. This is essential for aggregates on large datasets:
+When `True`, the expression is translated to SQL and evaluated in the database (PS = persistent storage) instead of
+in memory. The expression must return objects; the value is then an object list. `InPSOffset` skips the first
+matches and `InPSMaxAnswers` limits how many of the rest are fetched.
 
 ```pascal
-// Count active customers in database - fast even with millions of records
+// Fetch at most 50 of the active customers
 BoldExpressionHandle1.EvaluateInPS := True;
-BoldExpressionHandle1.Expression := 'Customer.allInstances->select(active)->size';
+BoldExpressionHandle1.InPSMaxAnswers := 50;
+BoldExpressionHandle1.Expression := 'Customer.allInstances->select(active)';
 ```
 
 ## Common Use Cases
@@ -123,16 +136,16 @@ BoldExpressionHandle1.Expression := 'Customer.allInstances->select(active)->size
 ### Display Calculated Values
 
 ```pascal
-// Show order total
+// Show the order total
 BoldExpressionHandle1.RootHandle := OrderHandle;
 BoldExpressionHandle1.Expression := 'items->collect(quantity * unitPrice)->sum';
-// Bind to TBoldEdit or TBoldLabel
+// Bind to a TBoldEdit or TBoldLabel
 ```
 
 ### Conditional Logic
 
 ```pascal
-// Check if customer has unpaid orders
+// Does the customer have unpaid orders?
 BoldExpressionHandle1.Expression := 'orders->exists(paid = false)';
 
 procedure CheckPaymentStatus;
@@ -145,10 +158,10 @@ begin
 end;
 ```
 
-### Navigation Property
+### Navigation
 
 ```pascal
-// Get related object
+// Get a related object
 BoldExpressionHandle1.RootHandle := OrderHandle;
 BoldExpressionHandle1.Expression := 'customer';
 
@@ -172,42 +185,34 @@ BoldExpressionHandle1.Expression := 'Order.allInstances->collect(total)->average
 BoldExpressionHandle1.Expression := 'Customer.allInstances->select(active)->size';
 ```
 
-## Binding to UI Components
+## Binding to Controls
 
-### With TBoldEdit
+In a VCL application, set the `BoldHandle` of a Bold control to the expression handle:
 
 ```pascal
-// Design time: Set BoldHandle property
+// Edit box
 BoldEdit1.BoldHandle := BoldExpressionHandle1;
-```
 
-### With TBoldLabel
-
-```pascal
-// Display calculated value
+// Label for a calculated value
 BoldLabel1.BoldHandle := BoldExpressionHandle1;
-```
 
-### With TBoldCheckBox
-
-```pascal
-// Boolean expression
+// Check box for a Boolean expression
 BoldExpressionHandle1.Expression := 'active';
 BoldCheckBox1.BoldHandle := BoldExpressionHandle1;
 ```
 
 ## Chaining Handles
 
-```pascal
-// System -> Customer List -> Current Customer -> Order Count
-BoldSystemHandle1                           // System
-  -> BoldListHandle1 (Customer.allInstances) // All customers
-    -> BoldExpressionHandle1 (orders->size)  // Order count for current
+```text
+BoldSystemHandle1                             // System
+  -> BoldListHandle1 (Customer.allInstances)  // All customers
+    -> BoldExpressionHandle1 (orders->size)   // Order count of the current customer
 ```
 
 ## Read-Only vs Editable
 
-Expression handles are typically read-only for complex expressions. For editable values, use simple attribute expressions:
+A calculated result is read-only. An expression that ends in an attribute gives that attribute itself, which a
+control can edit:
 
 ```pascal
 // Editable (simple attribute)
@@ -219,12 +224,12 @@ BoldExpressionHandle2.Expression := 'firstName + '' '' + lastName';
 
 ## Performance Tips
 
-1. Set `Subscribe := False` for one-time evaluations
-2. Use `EvaluateInPS := True` for aggregates on large datasets
-3. Cache results when expression is expensive and data rarely changes
+1. Set `Subscribe := False` for one-time evaluations.
+2. Use `EvaluateInPS := True` to select objects from large tables.
 
 ## See Also
 
 - [TBoldListHandle](TBoldListHandle.md) - List expressions
 - [TBoldSystemHandle](TBoldSystemHandle.md) - System management
 - [OCL Queries](../concepts/ocl.md) - Query language reference
+- [TBoldExpressionHandle in the Class Reference](../reference/BoldExpressionHandle/TBoldExpressionHandle.md) - All members (2004 help)

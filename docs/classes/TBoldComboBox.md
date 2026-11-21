@@ -1,6 +1,14 @@
 # TBoldComboBox
 
-`TBoldComboBox` is a data-aware combo box that combines a current value display with a dropdown list of selectable values. It connects to both an element handle (current value) and a list handle (available choices).
+`TBoldComboBox` is a combo box that shows a current value and lets the user pick a new one from a drop-down list.
+It connects to two handles: an element handle for the current value and a list handle for the choices. The usual
+use is to pick a related object, such as the customer of an order.
+
+!!! note "VCL only"
+    `TBoldComboBox` is a VCL control for Delphi on Windows. FireMonkey (FMX) and Lazarus (LCL) applications show Bold
+    data through `TBoldDataSet`, with LiveBindings in FMX and the LCL's data-aware controls; see the Invoicing
+    example ([FMX](https://github.com/bero/BoldForDelphi/blob/develop/examples/Compound/Invoicing/FMX/README.md),
+    [LCL](https://github.com/bero/BoldForDelphi/blob/develop/examples/Compound/Invoicing/LCL/README.md)).
 
 ## Class Hierarchy
 
@@ -22,46 +30,57 @@ classDiagram
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `BoldHandle` | `TBoldElementHandle` | Current value handle |
+| `BoldHandle` | `TBoldElementHandle` | Handle of the element that holds the current value |
 | `BoldListHandle` | `TBoldAbstractListHandle` | Available choices |
-| `BoldProperties` | `TBoldStringFollowerController` | Current value display |
+| `BoldProperties` | `TBoldStringFollowerController` | Display of the current value |
 | `BoldListProperties` | `TBoldComboListController` | List behavior |
-| `BoldRowProperties` | `TBoldStringFollowerController` | How each row renders |
-| `BoldSetValueExpression` | `string` | OCL expression for mapping selection |
-| `BoldSelectChangeAction` | `TBoldComboSelectChangeAction` | What happens on select |
+| `BoldRowProperties` | `TBoldStringFollowerController` | Display of each row in the drop-down list |
+| `BoldSetValueExpression` | `string` | OCL expression, relative to the value of `BoldHandle`, for the element the selection is assigned to |
+| `BoldSelectChangeAction` | `TBoldComboSelectChangeAction` | What a selection does (see below) |
+| `OnSelectChanged` | `TNotifyEvent` | Fires after a selection has been handled |
 | `ReadOnly` | `Boolean` | Prevent selection |
-| `AutoSearch` | `Boolean` | Type-ahead search in dropdown |
+
+### Select Change Actions
+
+| Value | What a selection does |
+|-------|-----------------------|
+| `bdscSetText` | Sets the text, which is then applied to the current value as a string (the default) |
+| `bdcsSetValue` | Evaluates `BoldSetValueExpression` on the value of `BoldHandle` (or takes that value when the expression is empty); an object reference gets the selected object, other elements get its string value |
+| `bdcsSetReference` | Makes the selected element the value of `BoldHandle`; needs a handle that accepts a value, such as `TBoldReferenceHandle` |
+| `bdcsSetListIndex` | Makes the selected element current in `BoldListHandle` |
+| `bdcsNone` | Nothing |
 
 ## Working with TBoldComboBox
 
 ### Selecting a Related Object
 
-The most common use: selecting a related object from a list (e.g., choosing a Customer for an Order).
+To choose the customer of an order:
 
-**Form Designer Setup:**
+1. Drop a `TBoldComboBox` on a form.
+2. Set `BoldHandle` to a handle whose value is the order.
+3. Set `BoldListHandle` to a list of all customers.
+4. Set `BoldProperties.Expression` to `customer.name` and `BoldRowProperties.Expression` to `name`.
+5. Set `BoldSetValueExpression` to `customer` and `BoldSelectChangeAction` to `bdcsSetValue`.
 
-1. Drop `TBoldComboBox` on a form
-2. Set `BoldHandle` to the current value (e.g., Order's customer reference)
-3. Set `BoldListHandle` to a list of choices (e.g., all Customers)
-4. Set `BoldRowProperties.Expression` for display text (e.g., `'name'`)
-5. Set `BoldSetValueExpression` for how selection maps to value
-
-### Example: Customer Selection
-
+```text
+BoldComboBox1.BoldHandle                  -> OrderHandle (value: the order)
+BoldComboBox1.BoldListHandle              -> CustomerListHandle (Customer.allInstances)
+BoldComboBox1.BoldProperties.Expression    = 'customer.name'
+BoldComboBox1.BoldRowProperties.Expression = 'name'
+BoldComboBox1.BoldSetValueExpression       = 'customer'
+BoldComboBox1.BoldSelectChangeAction       = bdcsSetValue
 ```
-BoldComboBox1.BoldHandle → OrderExpressionHandle (expression: 'customer')
-BoldComboBox1.BoldListHandle → CustomerListHandle (all customers)
-BoldComboBox1.BoldRowProperties.Expression → 'name'
-```
 
-When the user selects a customer from the dropdown, Bold automatically sets the order's customer reference.
+When the user selects a customer, the combo box sets the order's `customer` reference. The account combo boxes in
+`examples/Simple/ObjectSpace/Transaction` are set up this way.
 
 ### Selection Change Event
 
+`OnSelectChanged` fires after the select change action has run:
+
 ```pascal
-procedure TMyForm.ComboSelectChanged(Sender: TObject);
+procedure TMyForm.BoldComboBox1SelectChanged(Sender: TObject);
 begin
-  // React to selection change
   UpdateOrderDetails;
 end;
 ```
@@ -70,15 +89,16 @@ end;
 
 | Property | Description |
 |----------|-------------|
-| `NilElementMode` | How to handle nil (none, insert first, insert last) |
+| `NilElementMode` | Extra empty row: `neNone`, `neInsertFirst` or `neAddLast` |
 | `DragMode` | Drag behavior |
 | `DropMode` | Drop behavior |
 
-Setting `NilElementMode` to insert a nil element allows the user to clear the selection (choose "none").
+With `NilElementMode` set to `neInsertFirst` or `neAddLast`, the user can clear the selection by choosing the empty
+row.
 
 ## See Also
 
 - [TBoldEdit](TBoldEdit.md) - Simple text editing
 - [TBoldCheckBox](TBoldCheckBox.md) - Boolean selection
-- [TBoldListHandle](TBoldListHandle.md) - Provides choices
+- [TBoldListHandle](TBoldListHandle.md) - Provides the choices
 - [TBoldGrid](TBoldGrid.md) - Grid with lookup columns

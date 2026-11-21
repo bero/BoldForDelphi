@@ -1,6 +1,6 @@
 # TBAString
 
-`TBAString` is the base class for all string attributes in Bold. It stores Unicode strings (since Delphi 2009+) and provides validation, comparison, and null handling.
+`TBAString` (unit `BoldAttributes`) is the base class for all string attributes in Bold. It stores the compiler's `string` type, which is a Unicode string in Delphi and in Free Pascal (the Lazarus packages compile with `-Mdelphiunicode`). It adds length validation, comparison and null handling.
 
 ## Class Hierarchy
 
@@ -44,14 +44,16 @@ end;
 
 ## String Type Variants
 
-| Bold Type | Purpose | Max Length |
-|-----------|---------|-----------|
-| `TBAString` | Default Unicode string | Column length |
-| `TBAAnsiString` | Legacy ANSI string | Column length |
-| `TBAUnicodeString` | Explicit Unicode string | Column length |
-| `TBATrimmedString` | Auto-trims whitespace on set | Column length |
-| `TBAText` | Unlimited ANSI text (CLOB) | Unlimited |
-| `TBAUnicodeText` | Unlimited Unicode text (NCLOB) | Unlimited |
+| Bold Type | Model Type | Purpose | Length Check |
+|-----------|------------|---------|--------------|
+| `TBAString` | String, AnsiString | Default string | Model `Length` (-1 = none) |
+| `TBAAnsiString` | Not in the default type name dictionary | Rejects characters outside the ANSI code page | Model `Length` |
+| `TBAUnicodeString` | UnicodeString | Unicode string column | Model `Length` |
+| `TBATrimmedString` | Not in the default type name dictionary | Trims leading and trailing spaces when set through `AsString` | Model `Length` |
+| `TBAText` | Text | ANSI text, column type `ColumnTypeForText` | None |
+| `TBAUnicodeText` | UnicodeText | Unicode text, column type `ColumnTypeForUnicodeText` | None |
+
+The column types come from the SQL database configuration of the persistence handle.
 
 ## Working with TBAString
 
@@ -63,7 +65,7 @@ CustomerName := Customer.Name;
 Customer.Name := 'Acme Corp';
 
 // Raw member access via M_ prefix
-Customer.M_Name.AsString;  // read
+CustomerName := Customer.M_Name.AsString;
 ```
 
 ### Null and Empty Checking
@@ -87,13 +89,13 @@ Customer.M_Name.SetEmptyValue;
 ### Validation
 
 ```pascal
-// Check if a value can be set (respects constraints)
+// Check if a value can be set (CanSetValue calls the virtual MaySetValue)
 if Customer.M_Name.CanSetValue('New Name', nil) then
   Customer.Name := 'New Name';
 
-// ValidateString checks format against the attribute's rules
-if Customer.M_Name.ValidateString('test@email.com', brDefault) then
-  // Valid format
+// ValidateString checks the length against the model's Length
+if not Customer.M_Name.ValidateString(NewName, brDefault) then
+  ShowMessage('Name is too long');
 ```
 
 ## Common Patterns
@@ -112,10 +114,11 @@ end;
 
 ### Trimmed Strings
 
-`TBATrimmedString` automatically removes leading/trailing whitespace when a value is set. This is useful for name fields where accidental spaces are common.
+`TBATrimmedString` removes leading and trailing spaces and control characters when the value is set through `AsString`, which the generated property setter uses. This is useful for name fields where accidental spaces are common.
 
 ## See Also
 
+- [TBAString reference](../reference/BoldAttributes/TBAString.md) - Generated API reference
 - [TBoldAttribute](TBoldAttribute.md) - Base class
 - [TBoldMember](TBoldMember.md) - Member base class
 - [TBABlob](TBABlob.md) - For large text, consider blob storage

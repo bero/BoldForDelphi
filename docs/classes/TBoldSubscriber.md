@@ -1,6 +1,8 @@
 # TBoldSubscriber
 
-`TBoldSubscriber` is the abstract receiver side of Bold's subscription (observer) pattern. It receives events from publishers and manages its subscription registrations.
+`TBoldSubscriber` is the abstract receiver side of Bold's subscription (observer) pattern. It receives events from
+publishers and keeps track of its own subscriptions. Application code uses a descendant, usually
+`TBoldPassthroughSubscriber`.
 
 ## Class Hierarchy
 
@@ -45,23 +47,22 @@ end;
 
 ## Key Concepts
 
-### Abstract — Use Descendants
-
-`TBoldSubscriber` is abstract. In application code, use one of:
+### Abstract: Use Descendants
 
 | Class | Use Case |
 |-------|----------|
-| [TBoldPassthroughSubscriber](TBoldPassthroughSubscriber.md) | Simple event callback delegation |
+| [TBoldPassthroughSubscriber](TBoldPassthroughSubscriber.md) | Passes events on to a method |
 | [TBoldAbstractDeriver](TBoldAbstractDeriver.md) | Automatic value derivation |
 | Custom subclass | Complex subscription logic |
 
 ### Receive Method
 
-The `Receive` method is called when a subscribed event fires:
+`Receive` is called when a subscribed event fires:
 
-- **Originator** — the object that sent the event
-- **OriginalEvent** — the actual event that occurred (e.g., `beValueChanged`)
-- **RequestedEvent** — the event you subscribed for (for routing)
+- **Originator**: the object that sent the event
+- **OriginalEvent**: the event that occurred (e.g. `beValueChanged`)
+- **RequestedEvent**: the value passed as `RequestedEvent` when the subscription was placed; use it to route
+  events from several subscriptions
 
 ### Subscription Lifecycle
 
@@ -75,7 +76,8 @@ stateDiagram-v2
     Cancelled --> [*]
 ```
 
-Subscriptions are automatically cleaned up when either the publisher or subscriber is destroyed.
+Subscriptions are cleaned up automatically when either side is destroyed: freeing a subscriber cancels its
+subscriptions, and a Bold object, member or handle clears the subscriptions to its publisher when it is freed.
 
 ## Common Patterns
 
@@ -92,6 +94,8 @@ type
 procedure TMySubscriber.Receive(Originator: TObject;
   OriginalEvent: TBoldEvent; RequestedEvent: TBoldRequestedEvent);
 begin
+  // Subscribed with Member.DefaultSubscribe(MySubscriber) (requests beValueChanged)
+  // and Obj.AddSmallSubscription(MySubscriber, [beDestroying], beDestroying)
   case RequestedEvent of
     beValueChanged: HandleValueChange(Originator);
     beDestroying: HandleDestroyed(Originator);
@@ -101,11 +105,12 @@ end;
 
 ### Cleanup
 
+Freeing the subscriber is enough; `TBoldSubscriber.BeforeDestruction` calls `CancelAllSubscriptions`.
+
 ```pascal
 destructor TMyComponent.Destroy;
 begin
-  fSubscriber.CancelAllSubscriptions;
-  fSubscriber.Free;
+  fSubscriber.Free; // also cancels its subscriptions
   inherited;
 end;
 ```
@@ -116,3 +121,4 @@ end;
 - [TBoldPassthroughSubscriber](TBoldPassthroughSubscriber.md) - Concrete subscriber
 - [TBoldAbstractDeriver](TBoldAbstractDeriver.md) - Derivation subscriber
 - [Subscriptions](../concepts/subscriptions.md) - Concept overview
+- [TBoldSubscriber in the Class Reference](../reference/BoldSubscription/TBoldSubscriber.md) - All members (2004 help)

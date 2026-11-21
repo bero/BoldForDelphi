@@ -1,6 +1,6 @@
 # TBABlob
 
-`TBABlob` stores binary large object data using `TBoldBlobStream`. Suitable for files, images, documents, and any binary content.
+`TBABlob` (unit `BoldAttributes`) stores binary data through a `TBoldBlobStream`. The model type Blob maps to it. Use it for files, images, documents and other binary content.
 
 ## Class Hierarchy
 
@@ -17,11 +17,9 @@ classDiagram
     class TBABlob {
         +AsStream TBoldBlobStream
         +BlobSize Int64
+        +ContentType string
         +LoadFromFile()
         +SaveToFile()
-    }
-    class TBATypedBlob {
-        +ContentType string
     }
 
     click TBoldAttribute href "../TBoldAttribute/" "TBoldAttribute documentation"
@@ -43,12 +41,12 @@ public
   function CompareToAs(CompareType: TBoldCompareType; BoldElement: TBoldElement): Integer; override;
   property AsStream: TBoldBlobStream read GetAsStream;
   property BlobSize: Int64 read GetBlobSize;
-  property ContentType: string; // via StringRepresentation
+  property ContentType: string index brShort read GetStringRepresentation write SetStringRepresentation;
 end;
 
 TBATypedBlob = class(TBABlob)
 public
-  // Adds explicit ContentType property
+  // Stores ContentType with the data
   function CanSetContentType(Value: string; Subscriber: TBoldSubscriber): Boolean;
 end;
 ```
@@ -63,7 +61,7 @@ public
   procedure Clear;
   procedure Truncate;
   procedure LoadFromStream(Stream: TStream);
-  procedure LoadFromFile(const aFileName: string);
+  procedure LoadFromFile(const aFileName: string; aMode: Word = fmShareDenyNone);
   procedure SaveToStream(Stream: TStream);
   procedure SaveToFile(const FileName: string);
   function IsDataSame(AData: Pointer; ASize: Int64): Boolean;
@@ -76,10 +74,10 @@ end;
 
 ```pascal
 // Load a file into a blob attribute
-Document.M_Attachment.LoadFromFile('C:\Reports\annual.pdf');
+Document.M_Attachment.LoadFromFile('annual.pdf');
 
 // Save blob to file
-Document.M_Attachment.SaveToFile('C:\Temp\export.pdf');
+Document.M_Attachment.SaveToFile('export.pdf');
 ```
 
 ### Working with Streams
@@ -112,23 +110,24 @@ ShowMessage(Format('Size: %d bytes', [Product.M_Photo.BlobSize]));
 
 ### Typed Blobs
 
-`TBATypedBlob` adds a MIME-type content type:
+`ContentType` is declared on `TBABlob`, but only `TBATypedBlob` (model type TypedBlob) stores it. A plain `TBABlob` returns an empty content type and ignores an assignment. The image blobs have a fixed content type and raise when another one is assigned.
 
 ```pascal
-// Set content type for a typed blob
+// Attachment is a TypedBlob attribute
 Document.M_Attachment.ContentType := 'application/pdf';
 ```
 
 ## Blob Subtypes
 
-| Type | Purpose | Content Type |
-|------|---------|-------------|
-| `TBABlob` | Generic binary data | None |
-| `TBATypedBlob` | Binary with MIME type | User-defined |
-| `TBABlobImageJPEG` | JPEG images | image/jpeg |
-| `TBABlobImageBMP` | BMP images | image/bmp |
+| Type | Model Type | Purpose | Content Type |
+|------|------------|---------|--------------|
+| `TBABlob` | Blob | Generic binary data | Empty |
+| `TBATypedBlob` | TypedBlob | Binary with MIME type | Stored with the data |
+| `TBABlobImageJPEG` | BlobImageJPEG | JPEG images | `image/jpeg` |
+| `TBABlobImageBMP` | BlobImageBMP | BMP images | `image/bitmap` |
 
 ## See Also
 
+- [TBABlob reference](../reference/BoldAttributes/TBABlob.md) - Generated API reference
 - [TBoldAttribute](TBoldAttribute.md) - Base class
 - [TBAString](TBAString.md) - For text data, use string attributes

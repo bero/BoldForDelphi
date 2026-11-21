@@ -1,32 +1,47 @@
 # TBoldElement
 
-`TBoldElement` is the abstract base class for all elements in the Bold framework. It provides common functionality for string representation, comparison, assignment, and subscription.
+`TBoldElement` (unit `BoldElements`) is the abstract base class for everything OCL can evaluate: the object space, objects, members and the runtime type information. It provides string representation, comparison, assignment, OCL evaluation and subscription.
 
 ## Class Definition
+
+Public members, abridged:
 
 ```pascal
 TBoldElement = class(TBoldSubscribableObject)
 public
   // String representation
-  property AsString: string;
+  property AsString: string;                    // StringRepresentation[brDefault]
+  property StringRepresentation[Representation: TBoldRepresentation]: string;
+  property AsVariant: Variant;
   property DisplayName: string;
-  function GetStringRepresentation(Representation: TBoldRepresentation): string;
-  procedure SetStringRepresentation(Representation: TBoldRepresentation; const Value: string);
 
   // Comparison
   function CompareTo(BoldElement: TBoldElement): Integer;
+  function CompareToAs(CompareType: TBoldCompareType; BoldElement: TBoldElement): Integer; virtual;
   function IsEqual(BoldElement: TBoldElement): Boolean;
+  function IsEqualAs(CompareType: TBoldCompareType; BoldElement: TBoldElement): Boolean; virtual;
 
   // Assignment
-  procedure Assign(Source: TBoldElement);
-  function IsEqualAs(CompareType: TBoldCompareType; BoldElement: TBoldElement): Boolean;
+  procedure Assign(Source: TBoldElement); virtual;
 
-  // OCL evaluation
-  function EvaluateExpression(const Expression: string): TBoldElement;
-  function EvaluateExpressionAsNewElement(const Expression: string): TBoldElement;
+  // OCL evaluation (optional parameters omitted)
+  procedure EvaluateExpression(const Expression: TBoldExpression; ResultElement: TBoldIndirectElement);
+  function EvaluateExpressionAsDirectElement(const Expression: TBoldExpression): TBoldElement;
+  function EvaluateExpressionAsNewElement(const Expression: TBoldExpression): TBoldElement;
+  function EvaluateExpressionAsString(const Expression: TBoldExpression; Representation: TBoldRepresentation = brDefault): string;
+  function EvaluateExpressionAsBoolean(const Expression: TBoldExpression): Boolean;
+  function EvaluateExpressionAsInteger(const Expression: TBoldExpression): Integer;
+  function EvaluateExpressionAsFloat(const Expression: TBoldExpression): Double;
+  function EvaluateExpressionAsCurrency(const Expression: TBoldExpression): Currency;
+  function EvaluateExpressionAsDateTime(const Expression: TBoldExpression): TDateTime;
+
+  // Type and subscription
+  property BoldType: TBoldElementTypeInfo;
+  procedure DefaultSubscribe(Subscriber: TBoldSubscriber; RequestedEvent: TBoldEvent = breReEvaluate); virtual; abstract;
 
   // Mutability
   property Mutable: Boolean;
+  procedure MakeImmutable;
 end;
 ```
 
@@ -36,13 +51,14 @@ end;
 classDiagram
     TBoldSubscribableObject <|-- TBoldElement
     TBoldElement <|-- TBoldDomainElement
-    TBoldElement <|-- TBoldSystem
+    TBoldElement <|-- TBoldMetaElement
+    TBoldDomainElement <|-- TBoldSystem
     TBoldDomainElement <|-- TBoldObject
     TBoldDomainElement <|-- TBoldMember
 
     TBoldElement : +AsString
     TBoldElement : +CompareTo()
-    TBoldElement : +EvaluateExpression()
+    TBoldElement : +EvaluateExpressionAsNewElement()
 
     click TBoldSystem href "../TBoldSystem/" "TBoldSystem documentation"
     click TBoldObject href "../TBoldObject/" "TBoldObject documentation"
@@ -53,7 +69,7 @@ classDiagram
 
 ### AsString
 
-Universal string representation:
+The default string representation (`brDefault`). It is read and write for attributes:
 
 ```pascal
 var
@@ -65,7 +81,7 @@ end;
 
 ### DisplayName
 
-Human-readable name for display purposes:
+A name for log and error messages. For an object it is the class name with the object ID; for a member it is the owning object's display name plus the member's expression name.
 
 ```pascal
 ShowMessage('Working with: ' + Element.DisplayName);
@@ -73,7 +89,7 @@ ShowMessage('Working with: ' + Element.DisplayName);
 
 ### Mutable
 
-Indicates whether the element can be modified:
+False when the element has been made immutable with `MakeImmutable`. The OCL evaluator does this with the values it computes.
 
 ```pascal
 if Element.Mutable then
@@ -108,29 +124,31 @@ if Element1.IsEqual(Element2) then
 
 ### Assign
 
-Copy value from another element:
+Copy the value from another element. Attributes, references and lists implement it; `TBoldElement.Assign` itself raises `EBold`.
 
 ```pascal
 TargetElement.Assign(SourceElement);
 ```
 
-### EvaluateExpression
+### EvaluateExpression and the typed variants
 
-Evaluate an OCL expression with this element as context:
+Evaluate an OCL expression with this element as context. For a scalar result, use the typed function that matches the result type. Each one raises if the result has another type.
 
 ```pascal
 var
   Customer: TBoldObject;
-  OrderCount: TBoldElement;
+  OrderCount: Integer;
 begin
-  OrderCount := Customer.EvaluateExpression('self.orders->size');
-  ShowMessage('Orders: ' + OrderCount.AsString);
+  OrderCount := Customer.EvaluateExpressionAsInteger('orders->size');
+  ShowMessage('Orders: ' + IntToStr(OrderCount));
 end;
 ```
 
+`EvaluateExpressionAsDirectElement` returns an element that already exists, such as a member or an object. It returns nil when the result is a computed value.
+
 ### EvaluateExpressionAsNewElement
 
-Evaluate and return a new element (caller owns it):
+Evaluate and return an element that the caller owns:
 
 ```pascal
 var
@@ -150,36 +168,40 @@ end;
 
 ## String Representations
 
-Bold supports multiple string representations for different purposes:
+`TBoldRepresentation` is an integer. `BoldDefs` defines three constants:
 
-| Representation | Constant | Purpose |
-|----------------|----------|---------|
-| Default | `brDefault` | General display |
-| Short | `brShort` | Compact display |
-| Long | `brLong` | Detailed display |
+| Constant | Value |
+|----------|-------|
+| `brDefault` | 1 |
+| `brShort` | 2 |
+| `brLong` | 3 |
+
+What each representation means depends on the class. For example, `brShort` of a blob attribute is its content type. Read them through the `StringRepresentation` property:
 
 ```pascal
-// Get specific representation
 var
   ShortName: string;
 begin
-  ShortName := Element.GetStringRepresentation(brShort);
+  ShortName := Element.StringRepresentation[brShort];
 end;
 ```
 
 ## Derived Classes
 
-| Class | Description |
-|-------|-------------|
-| [TBoldSystem](TBoldSystem.md) | The Object Space manager |
-| TBoldDomainElement | Base for objects and members |
-| [TBoldObject](TBoldObject.md) | Domain object instances |
-| [TBoldMember](TBoldMember.md) | Attributes and references |
-| [TBoldAttribute](TBoldAttribute.md) | Simple values |
-| [TBoldObjectList](TBoldObjectList.md) | Collections |
+| Class | Parent | Description |
+|-------|--------|-------------|
+| TBoldDomainElement | `TBoldElement` | Base for the object space, objects and members |
+| [TBoldSystem](TBoldSystem.md) | `TBoldDomainElement` | The object space |
+| [TBoldObject](TBoldObject.md) | `TBoldDomainElement` | Domain object instances |
+| [TBoldMember](TBoldMember.md) | `TBoldDomainElement` | Attributes, references and lists |
+| [TBoldAttribute](TBoldAttribute.md) | `TBoldMember` | Simple values |
+| [TBoldObjectList](TBoldObjectList.md) | `TBoldList` (a `TBoldMember`) | Collections |
+| TBoldMetaElement | `TBoldElement` | Runtime type information, see [TBoldSystemTypeInfo](TBoldSystemTypeInfo.md) |
 
 ## See Also
 
-- [TBoldSystem](TBoldSystem.md) - Object Space manager
+- [TBoldElement reference](../reference/BoldElements/TBoldElement.md) - Generated API reference
+- [TBoldDomainElement reference](../reference/BoldDomainElement/TBoldDomainElement.md) - Generated API reference
+- [TBoldSystem](TBoldSystem.md) - The object space
 - [TBoldObject](TBoldObject.md) - Domain objects
 - [Subscriptions](../concepts/subscriptions.md) - Change notification
