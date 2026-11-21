@@ -141,19 +141,22 @@ exception to their logs and check one.
 
 - The LCL client is compiled with `-gl`, so Free Pascal's frames name routine,
   line and file.
-- The FMX client uses [Stacker](https://codeberg.org/sivv/stacker) when the
-  environment variable `STACKER` points to a checkout of it (tried at commit
-  `525dc8f`): the project then names the unit `Stacker` first in its uses
-  clause and imports Stacker's build step, which embeds the symbols in the
-  program. Without `STACKER` it builds as before, and the log gives the
-  address an exception was raised at, which `ModelEditorFMX.map` resolves.
-  Windows gets routine, line and file from the map; Linux64 gets routine
-  names from DWARF (the Linux64 build writes no map here).
+- The FMX client takes [Stacker](https://codeberg.org/sivv/stacker) as its
+  stack-trace provider, through `Tools/BoldStacker.targets`: from the
+  environment variable `STACKER`, else from a folder `stacker` next to the
+  repository. The project names the unit `Stacker` first in its uses clause
+  (under `BOLD_STACKER`) and imports Stacker's build step, which embeds the
+  symbols in the program. Windows gets routine, line and file from the map;
+  Linux64 gets routine names from DWARF (the Linux64 build writes no map
+  here). When Stacker is not there, the build stops with a message that gives
+  the commands to clone it at the tested commit, or says to build without it:
+  `STACKER=off`, and the log then gives the address an exception was raised
+  at, which `ModelEditorFMX.map` resolves.
 
 ```bat
-git clone https://codeberg.org/sivv/stacker.git C:\path\to\stacker
-git -C C:\path\to\stacker checkout 525dc8fe5d5ac36fea8e0e18c2da46188a517276
-set STACKER=C:\path\to\stacker
+rem next to the repository, at the version it is tested with
+git clone https://codeberg.org/sivv/stacker.git ..\stacker
+git -C ..\stacker checkout 525dc8fe5d5ac36fea8e0e18c2da46188a517276
 ```
 
 ## Tests

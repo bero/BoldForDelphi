@@ -134,6 +134,9 @@ when any links a `Vcl.*` unit, naming the units; with `-Run` it also runs the co
 101-check scenario. An FMX project knows no `Vcl` unit scope, so an unscoped VCL
 import (`Controls`, `Forms`) outside `BOLD_VCL` already fails its build with F2613;
 a scoped one (`Vcl.Controls`) builds and is caught in the map file.
+The FMX projects take Stacker as their stack-trace provider (`Tools/BoldStacker.targets`, #130): the
+script needs it in the environment variable `STACKER` or in a folder `stacker` next to the repository, or
+`STACKER=off` to build without it.
 Run it after a change under `Source`, and after saving `dmInvoicing` in the IDE
 designer: its `{%CLASSGROUP 'System.Classes.TPersistent'}` keeps the designer
 from adding `BoldEnvironmentVCL` to its uses clause.

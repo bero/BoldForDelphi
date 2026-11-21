@@ -1,0 +1,45 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets="BoldStackerCheck">
+    <!--
+      Stacker (https://codeberg.org/sivv/stacker, MIT), the stack-trace provider of
+      the Delphi programs of this repository (#130). Bold itself names no
+      stack-trace library: BoldExceptionTrace reads Exception.StackTrace, which
+      Stacker fills. A project imports this file after its own property groups
+      and before CodeGear.Delphi.Targets, as Stacker requires, and names the unit
+      Stacker first in its .dpr under {$IFDEF BOLD_STACKER}.
+
+      Where Stacker is looked for:
+        1. the environment variable STACKER, when it is set;
+        2. otherwise the folder "stacker" next to this repository.
+      STACKER=off builds without it: exceptions are then logged with the address
+      they were raised at instead of named frames.
+
+      When Stacker is not found and not switched off, the build stops before it
+      compiles, with a message that says how to get it or how to build without it.
+      BoldStackerCommit is the version this repository is tested with.
+    -->
+    <PropertyGroup>
+        <BoldStackerRepository>https://codeberg.org/sivv/stacker.git</BoldStackerRepository>
+        <BoldStackerCommit>525dc8fe5d5ac36fea8e0e18c2da46188a517276</BoldStackerCommit>
+        <BoldStackerOff Condition="'$(STACKER)'=='off'">true</BoldStackerOff>
+        <BoldStackerRoot Condition="'$(STACKER)'!='' and '$(BoldStackerOff)'!='true'">$(STACKER)</BoldStackerRoot>
+        <BoldStackerRoot Condition="'$(STACKER)'==''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\stacker'))</BoldStackerRoot>
+        <BoldStackerFound Condition="'$(BoldStackerOff)'!='true' and Exists('$(BoldStackerRoot)\build\Stacker.targets')">true</BoldStackerFound>
+    </PropertyGroup>
+
+    <!-- The Linux64 build writes no detailed map, and the platforms share the
+         project's folder, so Linux64 takes its symbols from DWARF and never from
+         a map that a Windows build left -->
+    <PropertyGroup Condition="'$(BoldStackerFound)'=='true'">
+        <StackerRoot>$(BoldStackerRoot)</StackerRoot>
+        <StackerEnabled>true</StackerEnabled>
+        <DCC_StackFrames>true</DCC_StackFrames>
+        <DCC_UnitSearchPath>$(BoldStackerRoot)\src;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_Define>BOLD_STACKER;$(DCC_Define)</DCC_Define>
+        <StackerSymbols Condition="'$(Platform)'=='Linux64'">dwarf</StackerSymbols>
+    </PropertyGroup>
+    <Import Project="$(BoldStackerRoot)\build\Stacker.targets" Condition="'$(BoldStackerFound)'=='true'"/>
+
+    <Target Name="BoldStackerCheck" Condition="'$(BoldStackerOff)'!='true' and '$(BoldStackerFound)'!='true'">
+        <Error Text="Stacker, the stack-trace provider of this project (#130), was not found at $(BoldStackerRoot).&#10;Either clone it there, the version this repository is tested with:&#10;  git clone $(BoldStackerRepository) &quot;$(BoldStackerRoot)&quot;&#10;  git -C &quot;$(BoldStackerRoot)&quot; checkout $(BoldStackerCommit)&#10;  (or set the environment variable STACKER to a checkout elsewhere),&#10;or build without it: set the environment variable STACKER=off. Exceptions are then logged with their address instead of named frames."/>
+    </Target>
+</Project>

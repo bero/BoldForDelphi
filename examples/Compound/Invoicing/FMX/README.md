@@ -151,13 +151,15 @@ reported to Embarcadero:
 
 An exception that reaches the application's exception handler goes to
 `InvoicingFMX.log` next to the program, with its call stack, and is then shown
-(`BoldExceptionTrace`, #130; see `docs/concepts/logging.md`). Without a
-stack-trace provider the log gives the address the exception was raised at,
-which `InvoicingFMX.map` resolves. When the environment variable `STACKER` points to
-a checkout of [Stacker](https://codeberg.org/sivv/stacker), the project links
-it, and the frames name the routines: with line and file on Windows, from
-DWARF without lines on Linux64. Without `STACKER` the project builds as
-before. The self-test checks the report of one exception either way.
+(`BoldExceptionTrace`, #130; see `docs/concepts/logging.md`). The project
+takes [Stacker](https://codeberg.org/sivv/stacker) as its stack-trace provider
+(`Tools/BoldStacker.targets`): from the environment variable `STACKER`, else
+from a folder `stacker` next to the repository. The frames then name the
+routines: with line and file on Windows, from DWARF without lines on Linux64.
+When Stacker is not there, the build stops with a message that gives the
+commands to clone it, or says to build without it: `STACKER=off`, and the log
+then gives the address the exception was raised at, which `InvoicingFMX.map`
+resolves. The self-test checks the report of one exception either way.
 
 ## Not yet
 

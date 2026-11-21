@@ -18,11 +18,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   lines). The Free Pascal test programs
   are now compiled with `-gl`.
 - The model editor's clients write their exceptions with call stacks to a log
-  file next to the program; the FMX client uses Stacker as its provider when
-  the environment variable `STACKER` points to a checkout of it (#130).
-- So do the examples' clients (Invoicing LCL and FMX, Master-Detail FMX), the
-  FMX ones with the same optional Stacker; the Invoicing console runner prints
-  the call stack of an exception that stops it (#130).
+  file next to the program (#130).
+- So do the examples' clients (Invoicing LCL and FMX, Master-Detail FMX); the
+  Invoicing console runner prints the call stack of an exception that stops
+  it (#130).
+- The FMX programs of this repository take Stacker as their stack-trace
+  provider (`Tools/BoldStacker.targets`, #130): from the environment variable
+  `STACKER`, else from a folder `stacker` next to the repository. When it is
+  not there the build stops with a message that gives the commands to clone
+  it at the tested commit, or how to build without it (`STACKER=off`).
 - Lazarus packages in `packages/Lazarus` (#117): `Bold.lpk`, the
   framework-neutral runtime that builds with Free Pascal; `BoldLCL.lpk` with
   `BoldEnvironmentLCL`, the LCL twin of `BoldEnvironmentVCL`; and

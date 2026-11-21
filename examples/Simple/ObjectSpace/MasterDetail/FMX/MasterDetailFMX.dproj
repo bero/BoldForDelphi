@@ -128,22 +128,10 @@
             </Deployment>
         </BorlandProject>
     </ProjectExtensions>
-    <!-- The optional stack-trace provider Stacker (#130), only when the environment
-         variable STACKER points to a checkout of it (https://codeberg.org/sivv/stacker,
-         tried at 525dc8f); without it the project builds as before, and the call
-         stacks of exceptions are addresses. Before CodeGear.Delphi.Targets, as
-         Stacker requires. The Linux64 build writes no detailed map, and all
-         platforms share this folder, so Linux64 takes its symbols from DWARF and
-         never from a map that a Windows build left. -->
-    <PropertyGroup Condition="'$(STACKER)'!='' and Exists('$(STACKER)\build\Stacker.targets')">
-        <StackerRoot>$(STACKER)</StackerRoot>
-        <StackerEnabled>true</StackerEnabled>
-        <DCC_StackFrames>true</DCC_StackFrames>
-        <DCC_UnitSearchPath>$(STACKER)\src;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-        <DCC_Define>BOLD_STACKER;$(DCC_Define)</DCC_Define>
-        <StackerSymbols Condition="'$(Platform)'=='Linux64'">dwarf</StackerSymbols>
-    </PropertyGroup>
-    <Import Project="$(STACKER)\build\Stacker.targets" Condition="'$(STACKER)'!='' and Exists('$(STACKER)\build\Stacker.targets')"/>
+    <!-- The stack-trace provider Stacker (#130): used when found (STACKER, else a
+         folder "stacker" next to the repository), the build stops with a message
+         when it is not; STACKER=off builds without it. See Tools\BoldStacker.targets. -->
+    <Import Project="..\..\..\..\..\Tools\BoldStacker.targets"/>
     <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
     <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
     <Import Project="$(MSBuildProjectName).deployproj" Condition="Exists('$(MSBuildProjectName).deployproj')"/>

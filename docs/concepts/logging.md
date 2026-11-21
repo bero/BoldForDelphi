@@ -358,8 +358,10 @@ A Delphi program chooses its provider in its `.dpr`. [Stacker](https://codeberg.
 Win32, Win64, Linux64, macOS, Android; Delphi 12 or later) installs the hooks itself: name its unit first
 in the uses clause and import its `build/Stacker.targets` in the `.dproj`, before
 `CodeGear.Delphi.Targets`; a post-link step embeds the symbols in the program, so no map file is shipped.
-The model editor's FMX client (`Tools/ModelEditor/FMX`) shows how to make that optional: the import and
-the unit are only used when the environment variable `STACKER` points to a checkout of Stacker. The lines
+The FMX programs of this repository do that through `Tools/BoldStacker.targets`: it looks for Stacker in the
+environment variable `STACKER`, else in a folder `stacker` next to the repository, and defines `BOLD_STACKER`,
+under which the `.dpr` names the unit; when Stacker is not there the build stops with a message that gives
+the commands to clone it at the tested commit, or says to build without it (`STACKER=off`). The lines
 that a provider writes before the raising routine (its capture routines and the RTL's raise routines) are
 left out of the report.
 
