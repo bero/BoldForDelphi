@@ -101,23 +101,51 @@ end;
 
 {$ELSE}
 
+{ True when ALine is the frame of the RTL's raise routine: System.@RaiseExcept
+  on Windows, System._RaiseExcept on Linux. A routine whose name only
+  contains the word, such as RaiseExceptionIfInvalid, is not it. }
+function IsTheRaiseFrame(const ALine: string): Boolean;
+const
+  cRaiseFrames: array[0..1] of string = ('System.@RaiseExcept', 'System._RaiseExcept');
+var
+  Name: string;
+  P, After: Integer;
+begin
+  Result := False;
+  for Name in cRaiseFrames do
+  begin
+    P := Pos(Name, ALine);
+    if P > 0 then
+    begin
+      After := P + Length(Name);
+      if (After > Length(ALine)) or not CharInSet(ALine[After], ['A'..'Z', 'a'..'z', '0'..'9', '_']) then
+        Exit(True);
+    end;
+  end;
+end;
+
 { The lines of a provider's text from the raising routine on: what comes
-  before it are the provider's capture routines and the RTL's raise routines
-  (System.@RaiseExcept on Windows, System._RaiseExcept on Linux), the last
-  of which names RaiseExcept }
+  before it are the provider's capture routines and the RTL's raise routines,
+  the last of which is the raise routine itself. The first raise frame is the
+  one of this exception: an exception raised while another one unwinds (in a
+  finally block or a destructor) has the other one's raise frame further
+  down, and the frames in between tell where this one came from. }
 function WithoutTheRaiseFrames(const AStackTrace: string): string;
 var
   Lines: TStringList;
-  i, LastRaise: Integer;
+  i, FirstRaise: Integer;
 begin
   Lines := TStringList.Create;
   try
     Lines.Text := AStackTrace;
-    LastRaise := -1;
+    FirstRaise := -1;
     for i := 0 to Lines.Count - 1 do
-      if Pos('RaiseExcept', Lines[i]) > 0 then
-        LastRaise := i;
-    for i := LastRaise downto 0 do
+      if IsTheRaiseFrame(Lines[i]) then
+      begin
+        FirstRaise := i;
+        Break;
+      end;
+    for i := FirstRaise downto 0 do
       Lines.Delete(i);
     Result := TrimRight(Lines.Text);
   finally

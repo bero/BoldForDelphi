@@ -32,6 +32,12 @@ type
     procedure TestTheProvidersCallStackStartsAtTheRaisingRoutine;
     // No provider: the report says where the exception was raised
     procedure TestWithoutAProviderTheReportSaysWhereItWasRaised;
+    // An exception raised while another one unwinds: its own raising
+    // routine first (found by the VM's review with a real Stacker run)
+    procedure TestARaiseWhileAnotherUnwindsStartsAtItsOwnRaisingRoutine;
+    // A caller whose name contains RaiseException is not taken for the RTL's
+    // raise routine
+    procedure TestACallerNamedRaiseExceptionStaysInTheCallStack;
     {$ENDIF}
   end;
 
@@ -108,6 +114,67 @@ end;
 
 procedure FakeCleanUpStackInfo(Info: Pointer);
 begin
+end;
+
+{ Stacker's text for an exception raised in a destructor while another
+  exception unwinds (taken from a real Win64 run): the other exception's raise
+  frame comes further down }
+function FakeNestedRaiseStackInfoString(Info: Pointer): string;
+begin
+  Result :=
+    'Provider.Capture.CaptureFrames (Line 30, "Provider.Capture.pas")' + sLineBreak +
+    'System.SysUtils.RaiseExceptObject' + sLineBreak +
+    'System.@InternalRaiseAtExcept' + sLineBreak +
+    'System.@RaiseExcept' + sLineBreak +
+    'Unit1.TThing.Destroy (Line 23, "Unit1.pas")' + sLineBreak +
+    'System.TObject.Free' + sLineBreak +
+    'Unit1.DoWork (Line 34, "Unit1.pas")' + sLineBreak +
+    'System.@DelphiExceptionHandler' + sLineBreak +
+    'System.@InternalRaiseAtExcept' + sLineBreak +
+    'System.@RaiseExcept' + sLineBreak +
+    'Unit1.FailFirst (Line 18, "Unit1.pas")' + sLineBreak +
+    'Unit1.DoWork (Line 32, "Unit1.pas")';
+end;
+
+{ A caller whose name contains the word RaiseException }
+function FakeNamedCallerStackInfoString(Info: Pointer): string;
+begin
+  Result :=
+    'Provider.Capture.CaptureFrames (Line 30, "Provider.Capture.pas")' + sLineBreak +
+    'System.SysUtils.RaiseExceptObject' + sLineBreak +
+    'System.@RaiseExcept' + sLineBreak +
+    'Unit1.Inner (Line 40, "Unit1.pas")' + sLineBreak +
+    'Unit1.RaiseExceptionIfInvalid (Line 45, "Unit1.pas")' + sLineBreak +
+    'Unit1.Main (Line 69, "Unit1.pas")';
+end;
+
+{ BoldExceptionCallStack of an exception raised while the fake provider with
+  the text of AGetString is installed }
+function CallStackFromProvider(AGetString: TGetStackInfoString): string;
+var
+  OldGetInfo: TGetExceptionStackInfo;
+  OldGetString: TGetStackInfoString;
+  OldCleanUp: TCleanUpStackInfo;
+begin
+  Result := '';
+  OldGetInfo := Exception.GetExceptionStackInfoProc;
+  OldGetString := Exception.GetStackInfoStringProc;
+  OldCleanUp := Exception.CleanUpStackInfoProc;
+  Exception.GetExceptionStackInfoProc := FakeGetExceptionStackInfo;
+  Exception.GetStackInfoStringProc := AGetString;
+  Exception.CleanUpStackInfoProc := FakeCleanUpStackInfo;
+  try
+    try
+      RaiseInAKnownRoutine;
+    except
+      on E: Exception do
+        Result := BoldExceptionCallStack(E);
+    end;
+  finally
+    Exception.GetExceptionStackInfoProc := OldGetInfo;
+    Exception.GetStackInfoStringProc := OldGetString;
+    Exception.CleanUpStackInfoProc := OldCleanUp;
+  end;
 end;
 {$ENDIF}
 
@@ -232,6 +299,25 @@ begin
   Assert.IsTrue(Pos('Raised at $', Report) > 0, 'the raise address: ' + Report);
   Assert.IsTrue(Pos('module loaded at $' + Format('%p', [nil]), Report) = 0,
     'the load address of the module is known: ' + Report);
+end;
+
+procedure TTestBoldExceptionTrace.TestARaiseWhileAnotherUnwindsStartsAtItsOwnRaisingRoutine;
+var
+  CallStack: string;
+begin
+  CallStack := CallStackFromProvider(FakeNestedRaiseStackInfoString);
+  Assert.AreEqual('Unit1.TThing.Destroy (Line 23, "Unit1.pas")', FirstLine(CallStack),
+    'the routine that raised this exception first: ' + CallStack);
+end;
+
+procedure TTestBoldExceptionTrace.TestACallerNamedRaiseExceptionStaysInTheCallStack;
+var
+  CallStack: string;
+begin
+  CallStack := CallStackFromProvider(FakeNamedCallerStackInfoString);
+  Assert.AreEqual('Unit1.Inner (Line 40, "Unit1.pas")', FirstLine(CallStack),
+    'the raising routine first: ' + CallStack);
+  Assert.AreEqual(3, LineCount(CallStack), 'the raising routine and its two callers: ' + CallStack);
 end;
 
 {$ENDIF}
