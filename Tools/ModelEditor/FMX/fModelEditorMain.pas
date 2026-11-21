@@ -135,6 +135,7 @@ type
     procedure ShowState;
     procedure Settle;
     procedure SelfTestException(Sender: TObject; E: Exception);
+    procedure AppException(Sender: TObject; E: Exception);
   public
     { Opens the model named on the command line, checks what the grids and
       the commands do, as the dpr's --selftest describes, and returns the
@@ -160,6 +161,7 @@ implementation
 uses
   System.IOUtils,
   FMX.DialogService.Sync,
+  BoldExceptionTrace,
   BoldUMLModel;
 
 resourcestring
@@ -198,10 +200,17 @@ var
   ModelFile: string;
 begin
   FSelfTest := IsSelfTestRun;
+  FData := TdmModelEditor.Create(Self);
   if FSelfTest then
     // No window to show an error in: the log gets it, and the exit code is 100
-    Application.OnException := SelfTestException;
-  FData := TdmModelEditor.Create(Self);
+    Application.OnException := SelfTestException
+  else
+  begin
+    // Exceptions go to ModelEditorFMX.log next to the program with their
+    // call stacks (#130), then to the user
+    FData.StartLogFile(ChangeFileExt(ParamStr(0), '.log'));
+    Application.OnException := AppException;
+  end;
   FData.OnAskSave := AskSave;
   FData.OnChooseSaveFile := ChooseSaveFile;
   // The grids are bound to the datasets of the data module through these
@@ -380,8 +389,20 @@ end;
 procedure TfrmModelEditorMain.SelfTestException(Sender: TObject; E: Exception);
 begin
   // No Halt: the dpr frees the form before Bold's units are finalized
-  SelfTestTrace('EXCEPTION ' + E.ClassName + ': ' + E.Message);
+  SelfTestTrace('EXCEPTION ' + BoldExceptionReport(E));
   FSelfTestException := True;
+end;
+
+procedure TfrmModelEditorMain.AppException(Sender: TObject; E: Exception);
+begin
+  FData.LogException(E);
+  Application.ShowException(E);
+end;
+
+{ Raises for the self-test's check of the call stack }
+procedure RaiseForTheSelfTest;
+begin
+  raise Exception.Create('raised for the self-test');
 end;
 
 procedure TfrmModelEditorMain.Settle;
@@ -457,6 +478,7 @@ var
 var
   Guid: TGUID;
   Row: Integer;
+  Report: string;
 begin
   Log := TStringList.Create;
   Failures := 0;
@@ -537,6 +559,23 @@ begin
       Settle;
       Check('Generate writes the unit', TFile.Exists(TPath.Combine(FSelfTestFolder, 'InvoicingClasses.pas')), '');
       Check('the status tells where', Pos(FSelfTestFolder, lblStatus.Text) > 0, lblStatus.Text);
+
+      // The report of an exception (#130): with Stacker linked it names the
+      // routine that raised it; without a provider it gives the address
+      Report := '';
+      try
+        RaiseForTheSelfTest;
+      except
+        on E: Exception do
+          Report := BoldExceptionReport(E);
+      end;
+      {$IFDEF BOLD_STACKER}
+      Check('the report of an exception names the routine that raised it (Stacker)',
+        Pos('RAISEFORTHESELFTEST', UpperCase(Report)) > 0, Report);
+      {$ELSE}
+      Check('the report of an exception gives where it was raised (no provider)',
+        Pos('Raised at $', Report) > 0, Report);
+      {$ENDIF}
 
       Check('no exception in the event loop', not FSelfTestException, BoolToStr(FSelfTestException, True));
     except

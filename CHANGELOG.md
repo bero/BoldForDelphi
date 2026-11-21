@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   gives the raise address when there is none; under Free Pascal it reads the
   RTL's own frames (`-gl` for names and lines). The Free Pascal test programs
   are now compiled with `-gl`.
+- The model editor's clients write their exceptions with call stacks to a log
+  file next to the program; the FMX client uses Stacker as its provider when
+  the environment variable `STACKER` points to a checkout of it (#130).
 - Lazarus packages in `packages/Lazarus` (#117): `Bold.lpk`, the
   framework-neutral runtime that builds with Free Pascal; `BoldLCL.lpk` with
   `BoldEnvironmentLCL`, the LCL twin of `BoldEnvironmentVCL`; and

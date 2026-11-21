@@ -109,6 +109,7 @@ type
     procedure ShowState;
     procedure Settle;
     procedure SelfTestException(Sender: TObject; E: Exception);
+    procedure AppException(Sender: TObject; E: Exception);
   public
     { Opens the model named on the command line, checks what the grids and
       the commands do, as the lpr's --selftest describes, and returns the
@@ -133,6 +134,7 @@ implementation
 
 uses
   BoldEnvironmentLCL, // registers Bold's LCL environment
+  BoldExceptionTrace,
   BoldUMLModel;
 
 resourcestring
@@ -210,10 +212,17 @@ var
   ModelFile: string;
 begin
   FSelfTest := IsSelfTestRun;
+  FData := TdmModelEditor.Create(Self);
   if FSelfTest then
     // No window to show an error in: the log gets it, and the exit code is 100
-    Application.OnException := SelfTestException;
-  FData := TdmModelEditor.Create(Self);
+    Application.OnException := SelfTestException
+  else
+  begin
+    // Exceptions go to ModelEditorLCL.log next to the program with their
+    // call stacks (#130), then to the user
+    FData.StartLogFile(ChangeFileExt(ParamStr(0), '.log'));
+    Application.OnException := AppException;
+  end;
   FData.OnAskSave := AskSave;
   FData.OnChooseSaveFile := ChooseSaveFile;
   dsClasses.DataSet := FData.bdsClasses;
@@ -385,7 +394,19 @@ end;
 
 procedure TfrmModelEditorMain.SelfTestException(Sender: TObject; E: Exception);
 begin
-  SelfTestTrace('EXCEPTION ' + E.ClassName + ': ' + E.Message);
+  SelfTestTrace('EXCEPTION ' + BoldExceptionReport(E));
+end;
+
+procedure TfrmModelEditorMain.AppException(Sender: TObject; E: Exception);
+begin
+  FData.LogException(E);
+  Application.ShowException(E);
+end;
+
+{ Raises for the self-test's check of the call stack }
+procedure RaiseForTheSelfTest;
+begin
+  raise Exception.Create('raised for the self-test');
 end;
 
 procedure TfrmModelEditorMain.Settle;
@@ -414,6 +435,7 @@ var
   Failures: Integer;
   Guid: TGUID;
   ClassCount: Integer;
+  Report: string;
 
   procedure Check(const AWhat: string; APassed: Boolean; const AActual: string);
   begin
@@ -494,6 +516,18 @@ begin
     Settle;
     Check('Generate writes the unit', FileExists(IncludeTrailingPathDelimiter(FSelfTestFolder) + 'InvoicingClasses.pas'), '');
     Check('the status bar tells where', Pos(FSelfTestFolder, sbStatus.SimpleText) > 0, sbStatus.SimpleText);
+
+    // The report of an exception names the routine that raised it: Free
+    // Pascal's own frames, with line information from -gl (#130)
+    Report := '';
+    try
+      RaiseForTheSelfTest;
+    except
+      on E: Exception do
+        Report := BoldExceptionReport(E);
+    end;
+    Check('the report of an exception names the routine that raised it',
+      Pos('RAISEFORTHESELFTEST', UpperCase(Report)) > 0, Report);
   finally
     Result := Failures;
     SelfTestTrace(Format('%d checks failed', [Failures]));

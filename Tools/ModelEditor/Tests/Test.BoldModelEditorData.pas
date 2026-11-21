@@ -60,6 +60,9 @@ type
     procedure TestCloseModelDiscards;
     procedure TestSaveModelOfANewModelAsksForAFile;
     procedure TestWhatCanBeDone;
+    // The exceptions the clients' handlers pass on go to the log file with
+    // their call stacks (#130)
+    procedure TestLogExceptionWritesTheExceptionToTheLogFile;
   end;
 
 implementation
@@ -459,6 +462,33 @@ begin
   SelectClassNamed('Payment');
   Assert.IsTrue(FData.CanDeleteClass, 'another class');
   Assert.IsTrue(FData.CanDeleteAttribute, 'the selected attribute of Payment');
+end;
+
+procedure TTestBoldModelEditorData.TestLogExceptionWritesTheExceptionToTheLogFile;
+var
+  LogFile, Text: string;
+begin
+  LogFile := IncludeTrailingPathDelimiter(FTempFolder) + 'ModelEditor.log';
+  FData.StartLogFile(LogFile);
+  OpenInvoicing;
+  SelectClassNamed('InvoicingRoot');
+  try
+    FData.DeleteClass;
+  except
+    on E: Exception do
+      FData.LogException(E);
+  end;
+  // The log file is closed with the data module
+  FreeAndNil(FData);
+  Text := TextOf(LogFile);
+  Assert.Contains(Text, 'EBoldModelEditor: The root class InvoicingRoot', 'the class and the message');
+  {$IFDEF FPC}
+  // The test program is compiled with -gl
+  Assert.Contains(UpperCase(Text), 'DELETECLASS', 'the call stack names the raising routine: ' + Text);
+  {$ELSE}
+  // The test program links no stack-trace provider
+  Assert.Contains(Text, 'Raised at $', 'where it was raised: ' + Text);
+  {$ENDIF}
 end;
 
 initialization

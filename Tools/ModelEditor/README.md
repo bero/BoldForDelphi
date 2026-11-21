@@ -124,6 +124,31 @@ program and the exit code is the number of failed checks. It found a bug in
 FMX programs need a desktop session: on Windows run the self-test there, not
 over SSH.
 
+## Exceptions and their call stacks
+
+Both clients write an exception that reaches their exception handler to a log
+file next to the program (`ModelEditorLCL.log`, `ModelEditorFMX.log`) with its
+call stack, then show it (`TdmModelEditor.StartLogFile` and `LogException`, on
+Bold's `BoldExceptionTrace`, #130). The self-tests write the call stack of an
+exception to their logs and check one.
+
+- The LCL client is compiled with `-gl`, so Free Pascal's frames name routine,
+  line and file.
+- The FMX client uses [Stacker](https://codeberg.org/sivv/stacker) when the
+  environment variable `STACKER` points to a checkout of it (tried at commit
+  `525dc8f`): the project then names the unit `Stacker` first in its uses
+  clause and imports Stacker's build step, which embeds the symbols in the
+  program. Without `STACKER` it builds as before, and the log gives the
+  address an exception was raised at, which `ModelEditorFMX.map` resolves.
+  Windows gets routine, line and file from the map; Linux64 gets routine
+  names from DWARF (the Linux64 build writes no map here).
+
+```bat
+git clone https://codeberg.org/sivv/stacker.git C:\path\to\stacker
+git -C C:\path\to\stacker checkout 525dc8fe5d5ac36fea8e0e18c2da46188a517276
+set STACKER=C:\path\to\stacker
+```
+
 ## Tests
 
 The test units are the same source for Delphi (DUnitX) and Free Pascal

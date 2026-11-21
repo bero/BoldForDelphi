@@ -76,7 +76,7 @@
       </Options>
     </Linking>
     <Other>
-      <CustomOptions Value="-Mdelphiunicode"/>
+      <CustomOptions Value="-Mdelphiunicode -gl"/>
     </Other>
   </CompilerOptions>
 </CONFIG>

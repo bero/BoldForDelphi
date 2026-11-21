@@ -26,7 +26,9 @@ UNITPATHS=$( { find "$ROOT/Source" -type d \
   echo "$ROOT/Source/BoldAwareGUI/BoldControls"; } | sed 's/^/-Fu/')
 
 # shellcheck disable=SC2086
-fpc -Mdelphiunicode -vew \
+# -gl: line information, so that the call stacks of exceptions name their
+# routines (#130)
+fpc -Mdelphiunicode -vew -gl \
   -Fi"$ROOT/Source/Common/Include" $UNITPATHS \
   -Fu"$ROOT/UnitTest/Code/Common" \
   -Fu"$EDITOR/Core" -Fu"$EDITOR/Tests" \
