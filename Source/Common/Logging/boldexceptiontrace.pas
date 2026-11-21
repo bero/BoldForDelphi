@@ -21,6 +21,9 @@ unit BoldExceptionTrace;
   - Free Pascal: the frames the RTL keeps for the exception while it is
     handled (RaiseList), each as BackTraceStrFunc writes it: routine, line
     and file when the program is compiled with -gl, the address otherwise.
+    The RTL keeps RaiseMaxFrameCount callers, 16 by default; this unit raises
+    that to 64, so a stack that comes through a GUI's message loop keeps its
+    outer callers.
 
   Call BoldExceptionCallStack, BoldExceptionReport and BoldLogException in the
   except block or exception handler that handles the exception: Free Pascal
@@ -63,6 +66,10 @@ resourcestring
   sRaisedAtUnknown = 'No call stack: the program has no stack-trace provider, and the exception is not the one being handled';
 
 {$IFDEF FPC}
+
+const
+  // How many callers Free Pascal records for an exception, at least
+  cMaxFrameCount = 64;
 
 function BoldExceptionCallStack(E: Exception): string;
 var
@@ -213,5 +220,14 @@ begin
   else
     BoldLogManager.Error(BoldExceptionReport(E));
 end;
+
+initialization
+  {$IFDEF FPC}
+  // The RTL records the callers when an exception is raised, at most
+  // RaiseMaxFrameCount of them (16 by default); a program that set more
+  // keeps its value
+  if RaiseMaxFrameCount < cMaxFrameCount then
+    RaiseMaxFrameCount := cMaxFrameCount;
+  {$ENDIF}
 
 end.

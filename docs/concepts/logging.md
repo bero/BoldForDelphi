@@ -349,7 +349,7 @@ Bold names no stack-trace library, so the library can be exchanged without a cha
 
 | Compiler | Where the call stack comes from | Without it |
 |----------|---------------------------------|------------|
-| Free Pascal / Lazarus | the RTL's own frames; compile with `-gl` for routine, line and file | addresses only |
+| Free Pascal / Lazarus | the RTL's own frames, up to 64 (the unit raises the RTL's `RaiseMaxFrameCount` from its default of 16); compile with `-gl` for routine, line and file | addresses only |
 | Delphi | `Exception.StackTrace`, which a provider fills through the RTL's hooks (`Exception.GetExceptionStackInfoProc` and two more) | the raise address and the load address of its module, which the detailed map file resolves |
 
 A Delphi program chooses its provider in its `.dpr`. [Stacker](https://codeberg.org/sivv/stacker) (MIT;

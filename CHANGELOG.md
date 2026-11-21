@@ -14,7 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `BoldExceptionCallStack`). Bold names no stack-trace library: under Delphi it
   reads `Exception.StackTrace`, which a provider such as Stacker fills, and
   gives the raise address when there is none; under Free Pascal it reads the
-  RTL's own frames (`-gl` for names and lines). The Free Pascal test programs
+  RTL's own frames, up to 64 instead of the RTL's 16 (`-gl` for names and
+  lines). The Free Pascal test programs
   are now compiled with `-gl`.
 - The model editor's clients write their exceptions with call stacks to a log
   file next to the program; the FMX client uses Stacker as its provider when

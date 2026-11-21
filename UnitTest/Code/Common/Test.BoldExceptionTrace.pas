@@ -26,6 +26,9 @@ type
     {$IFDEF FPC}
     // Free Pascal's own frames, the raising routine first
     procedure TestTheRaisingRoutineIsFirstInTheCallStack;
+    // A deep stack keeps more than the 16 callers Free Pascal records by
+    // default: one that comes through a GUI's message loop is that deep
+    procedure TestADeepCallStackKeepsMoreThanSixteenFrames;
     {$ELSE}
     // A provider's text, without its capture routines and the RTL's raise
     // routines, which come before the raising routine
@@ -55,6 +58,37 @@ const
 procedure RaiseInAKnownRoutine;
 begin
   raise EBoldTraceTest.Create(cMessage);
+end;
+
+var
+  Depth: Integer;
+
+{ Calls itself ADepth times, then raises }
+procedure RaiseAtDepth(ADepth: Integer);
+begin
+  if ADepth = 0 then
+    raise EBoldTraceTest.Create(cMessage);
+  RaiseAtDepth(ADepth - 1);
+  // Not a tail call: the frames stay
+  Depth := ADepth;
+end;
+
+{ How many lines of AText contain AName, in upper case }
+function LinesNaming(const AText, AName: string): Integer;
+var
+  Lines: TStringList;
+  i: Integer;
+begin
+  Result := 0;
+  Lines := TStringList.Create;
+  try
+    Lines.Text := UpperCase(AText);
+    for i := 0 to Lines.Count - 1 do
+      if Pos(UpperCase(AName), Lines[i]) > 0 then
+        Inc(Result);
+  finally
+    Lines.Free;
+  end;
 end;
 
 function LineCount(const AText: string): Integer;
@@ -235,6 +269,21 @@ begin
     'the raising routine first: ' + CallStack);
   Assert.IsTrue(Pos('TESTTHERAISINGROUTINEISFIRSTINTHECALLSTACK', UpperCase(CallStack)) > 0,
     'and its caller: ' + CallStack);
+end;
+
+procedure TTestBoldExceptionTrace.TestADeepCallStackKeepsMoreThanSixteenFrames;
+var
+  CallStack: string;
+begin
+  CallStack := '';
+  try
+    RaiseAtDepth(40);
+  except
+    on E: Exception do
+      CallStack := BoldExceptionCallStack(E);
+  end;
+  Assert.IsTrue(LinesNaming(CallStack, 'RAISEATDEPTH') > 40,
+    'the 41 calls of RaiseAtDepth: ' + IntToStr(LinesNaming(CallStack, 'RAISEATDEPTH')) + ' in ' + CallStack);
 end;
 
 {$ELSE}
