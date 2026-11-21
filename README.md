@@ -36,7 +36,21 @@ Install with a package manager: `tms install bero.boldfordelphi` ([TMS Smart Set
 
 ### Platform
 
-Bold for Delphi is **Windows only** (Win32/Win64). It is not compatible with cross-platform targets (Linux, macOS, iOS, Android).
+Bold for Delphi runs on Windows and Linux, built with Delphi or with Lazarus / Free Pascal (#117). macOS is planned (#127).
+
+| Toolchain | Frameworks | Windows | Linux |
+|-----------|------------|---------|-------|
+| Delphi | VCL | Win64 | — |
+| Delphi | FMX, console | Win64 | Linux64 (FMX through FmxLinux) |
+| Lazarus / Free Pascal | LCL, console | 64-bit | 64-bit |
+
+Programs (the examples, the tools such as the model editor, and the test programs) are built and tested as 64-bit
+programs. Win32 is no longer built or tested for them: the source still compiles for Win32, and a developer who needs a
+32-bit program builds it. The design-time packages (`dclBold`) are built for Win32 and Win64, for the 32-bit and the
+64-bit Delphi IDE.
+
+The Lazarus packages are in [packages/Lazarus](packages/Lazarus/README.md); under Free Pascal, SQL databases are reached
+through Zeos instead of FireDAC.
 
 ### Runtime Dependencies
 
