@@ -343,7 +343,9 @@ end;
 ```
 
 Call it in the handler or `except` block that handles the exception. `BoldExceptionReport(E)` gives the
-same text without logging it, and `BoldExceptionCallStack(E)` the call stack alone.
+same text without logging it, and `BoldExceptionCallStack(E)` the call stack alone. `BoldLogException` never raises: a log that
+cannot be written (its file locked by another instance, its folder read-only) leaves the exception to the
+handler, which goes on to show it.
 
 Bold names no stack-trace library, so the library can be exchanged without a change in Bold:
 

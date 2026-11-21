@@ -23,6 +23,10 @@ type
   published
     procedure TestTheReportHasTheClassAndTheMessage;
     procedure TestBoldLogExceptionWritesTheReportToTheLog;
+    // BoldLogException runs in exception handlers: a log that cannot be
+    // written (its file is locked, its folder read-only) must not replace the
+    // exception the handler is about to show
+    procedure TestALogThatCannotBeWrittenDoesNotRaise;
     {$IFDEF FPC}
     // Free Pascal's own frames, the raising routine first
     procedure TestTheRaisingRoutineIsFirstInTheCallStack;
@@ -212,6 +216,20 @@ begin
 end;
 {$ENDIF}
 
+type
+  { A log whose file cannot be opened }
+  TFailingLogSink = class(TBoldBaseLogSink)
+  protected
+    procedure DoWriteLog(const FormattedMsg: string); override;
+  end;
+
+procedure TFailingLogSink.DoWriteLog(const FormattedMsg: string);
+begin
+  // Delphi's EFileStreamError hides Exception.Create(string); CreateFmt
+  // compiles with both compilers
+  raise EFOpenError.CreateFmt('the log cannot be opened', []);
+end;
+
 { TTestBoldExceptionTrace }
 
 procedure TTestBoldExceptionTrace.TestTheReportHasTheClassAndTheMessage;
@@ -247,6 +265,32 @@ begin
     Assert.IsTrue(Pos('while testing', Memory.Lines.Text) > 0, 'the context is in the log: ' + Memory.Lines.Text);
     Assert.IsTrue(Pos('EBoldTraceTest: ' + cMessage, Memory.Lines.Text) > 0,
       'the class and the message are in the log: ' + Memory.Lines.Text);
+  finally
+    BoldLogManager.UnregisterSink(Sink);
+  end;
+end;
+
+procedure TTestBoldExceptionTrace.TestALogThatCannotBeWrittenDoesNotRaise;
+var
+  Sink: IBoldLogSink;
+  Raised: string;
+begin
+  Sink := TFailingLogSink.Create('failing');
+  BoldLogManager.RegisterSink(Sink);
+  try
+    Raised := '';
+    try
+      try
+        RaiseInAKnownRoutine;
+      except
+        on E: Exception do
+          BoldLogException(E, 'while testing');
+      end;
+    except
+      on E: Exception do
+        Raised := E.ClassName + ': ' + E.Message;
+    end;
+    Assert.AreEqual('', Raised, 'BoldLogException raised');
   finally
     BoldLogManager.UnregisterSink(Sink);
   end;

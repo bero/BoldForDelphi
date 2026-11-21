@@ -44,7 +44,9 @@ function BoldExceptionCallStack(E: Exception): string;
 function BoldExceptionReport(E: Exception): string;
 
 { BoldExceptionReport(E) to Bold's log (BoldLogManager) as an error, after
-  AContext when one is given }
+  AContext when one is given. It never raises: it runs in exception handlers,
+  and a log that cannot be written must not replace the exception the handler
+  goes on with }
 procedure BoldLogException(E: Exception; const AContext: string = '');
 
 implementation
@@ -214,11 +216,20 @@ begin
 end;
 
 procedure BoldLogException(E: Exception; const AContext: string);
+var
+  Report: string;
 begin
   if AContext <> '' then
-    BoldLogManager.Error(AContext + sLineBreak + BoldExceptionReport(E))
+    Report := AContext + sLineBreak + BoldExceptionReport(E)
   else
-    BoldLogManager.Error(BoldExceptionReport(E));
+    Report := BoldExceptionReport(E);
+  // A log that cannot be written (its file locked by another instance of the
+  // program, its folder read-only) leaves the exception to the handler that
+  // called this; there is nothing to fall back to
+  try
+    BoldLogManager.Error(Report);
+  except
+  end;
 end;
 
 initialization
