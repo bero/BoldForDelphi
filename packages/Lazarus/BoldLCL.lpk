@@ -15,13 +15,17 @@
         <CustomOptions Value="-Mdelphiunicode"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Bold for Delphi, the LCL side of the runtime: BoldEnvironmentLCL, which drains Bold's display queue from the LCL's idle handling and shows LCL dialogs, and Bold's OCL editor as an LCL dialog."/>
+    <Description Value="Bold for Delphi, the LCL side of the runtime: BoldEnvironmentLCL, which drains Bold's display queue from the LCL's idle handling and shows LCL dialogs, BoldExceptionLogLCL, which logs the exceptions of the LCL's message loop with their call stacks, and Bold's OCL editor as an LCL dialog."/>
     <License Value="MIT"/>
     <Version Major="26" Minor="9" Release="1"/>
     <Files>
       <Item>
         <Filename Value="../../Source/Common/EnvironmentLCL/boldenvironmentlcl.pas"/>
         <UnitName Value="BoldEnvironmentLCL"/>
+      </Item>
+      <Item>
+        <Filename Value="../../Source/Common/EnvironmentLCL/boldexceptionloglcl.pas"/>
+        <UnitName Value="BoldExceptionLogLCL"/>
       </Item>
       <Item>
         <Filename Value="../../Source/ObjectSpace/UtilsGUI/LCL/boldoclexpressiondialoglcl.pas"/>

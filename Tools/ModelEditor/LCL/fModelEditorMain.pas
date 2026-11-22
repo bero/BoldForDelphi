@@ -103,13 +103,15 @@ type
     // Where the self-test saves and generates, instead of asking
     FSelfTestFolder: string;
     FStatus: string;
+    // The self-test's own exception in the event loop (#130)
+    FExceptionExpected: Boolean;
+    FExpectedExceptionSeen: Boolean;
     function AskSave(const ADocumentName: string): TModelEditorSaveAnswer;
     function ChooseSaveFile(var AFileName: string): Boolean;
     procedure AppIdle(Sender: TObject; var Done: Boolean);
     procedure ShowState;
     procedure Settle;
     procedure SelfTestException(Sender: TObject; E: Exception);
-    procedure AppException(Sender: TObject; E: Exception);
   public
     { Opens the model named on the command line, checks what the grids and
       the commands do, as the lpr's --selftest describes, and returns the
@@ -134,7 +136,10 @@ implementation
 
 uses
   BoldEnvironmentLCL, // registers Bold's LCL environment
+  BoldLogInterfaces,
+  BoldLogSinks,
   BoldExceptionTrace,
+  BoldExceptionLog,
   BoldUMLModel;
 
 resourcestring
@@ -213,15 +218,14 @@ var
 begin
   FSelfTest := IsSelfTestRun;
   FData := TdmModelEditor.Create(Self);
+  // Exceptions go to ModelEditorLCL.log next to the program with their call
+  // stacks, then to the user: BoldExceptionLogLCL, named in the .lpr (#130)
   if FSelfTest then
-    // No window to show an error in: the log gets it, and the exit code is 100
-    Application.OnException := SelfTestException
-  else
   begin
-    // Exceptions go to ModelEditorLCL.log next to the program with their
-    // call stacks (#130), then to the user
-    FData.StartLogFile(ChangeFileExt(ParamStr(0), '.log'));
-    Application.OnException := AppException;
+    // No window to show an error in: the self-test log gets it. The exception
+    // log still logs it first, but not to its file
+    Application.OnException := SelfTestException;
+    BoldExceptionLogSink.Enabled := False;
   end;
   FData.OnAskSave := AskSave;
   FData.OnChooseSaveFile := ChooseSaveFile;
@@ -394,13 +398,12 @@ end;
 
 procedure TfrmModelEditorMain.SelfTestException(Sender: TObject; E: Exception);
 begin
+  if FExceptionExpected then
+  begin
+    FExpectedExceptionSeen := True;
+    Exit;
+  end;
   SelfTestTrace('EXCEPTION ' + BoldExceptionReport(E));
-end;
-
-procedure TfrmModelEditorMain.AppException(Sender: TObject; E: Exception);
-begin
-  FData.LogException(E);
-  Application.ShowException(E);
 end;
 
 { Raises for the self-test's check of the call stack }
@@ -436,6 +439,8 @@ var
   Guid: TGUID;
   ClassCount: Integer;
   Report: string;
+  Memory: TBoldMemoryLogSink;
+  MemoryRef: IBoldLogSink;
 
   procedure Check(const AWhat: string; APassed: Boolean; const AActual: string);
   begin
@@ -528,6 +533,30 @@ begin
     end;
     Check('the report of an exception names the routine that raised it',
       Pos('RAISEFORTHESELFTEST', UpperCase(Report)) > 0, Report);
+
+    // An exception in the event loop goes to Bold's log with its call
+    // stack, then to the program's own handler, here SelfTestException: the
+    // hook of BoldExceptionLogLCL took that handler over when the event
+    // loop started
+    Memory := TBoldMemoryLogSink.Create;
+    MemoryRef := Memory;
+    BoldLogManager.RegisterSink(MemoryRef);
+    FExceptionExpected := True;
+    try
+      try
+        RaiseForTheSelfTest;
+      except
+        // What the LCL's event loop does with an exception
+        Application.HandleException(Self);
+      end;
+    finally
+      FExceptionExpected := False;
+      BoldLogManager.UnregisterSink(MemoryRef);
+    end;
+    Check('an exception in the event loop goes to the log with its call stack',
+      Pos('RAISEFORTHESELFTEST', UpperCase(Memory.Lines.Text)) > 0, Memory.Lines.Text);
+    MemoryRef := nil;
+    Check('and then to the program''s own handler', FExpectedExceptionSeen, BoolToStr(FExpectedExceptionSeen, True));
   finally
     Result := Failures;
     SelfTestTrace(Format('%d checks failed', [Failures]));

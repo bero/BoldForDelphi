@@ -126,6 +126,9 @@ type
     FData: TdmModelEditor;
     FSelfTest: Boolean;
     FSelfTestException: Boolean;
+    // The self-test's own exception in the event loop (#130)
+    FExceptionExpected: Boolean;
+    FExpectedExceptionSeen: Boolean;
     // Where the self-test saves and generates, instead of asking
     FSelfTestFolder: string;
     FStatus: string;
@@ -135,7 +138,6 @@ type
     procedure ShowState;
     procedure Settle;
     procedure SelfTestException(Sender: TObject; E: Exception);
-    procedure AppException(Sender: TObject; E: Exception);
   public
     { Opens the model named on the command line, checks what the grids and
       the commands do, as the dpr's --selftest describes, and returns the
@@ -161,7 +163,10 @@ implementation
 uses
   System.IOUtils,
   FMX.DialogService.Sync,
+  BoldLogInterfaces,
+  BoldLogSinks,
   BoldExceptionTrace,
+  BoldExceptionLog,
   BoldUMLModel;
 
 resourcestring
@@ -201,15 +206,14 @@ var
 begin
   FSelfTest := IsSelfTestRun;
   FData := TdmModelEditor.Create(Self);
+  // Exceptions go to ModelEditorFMX.log next to the program with their call
+  // stacks, then to the user: BoldExceptionLogFMX, named in the .dpr (#130)
   if FSelfTest then
-    // No window to show an error in: the log gets it, and the exit code is 100
-    Application.OnException := SelfTestException
-  else
   begin
-    // Exceptions go to ModelEditorFMX.log next to the program with their
-    // call stacks (#130), then to the user
-    FData.StartLogFile(ChangeFileExt(ParamStr(0), '.log'));
-    Application.OnException := AppException;
+    // No window to show an error in: the self-test log gets it, and the exit
+    // code is 100. The exception log still logs it first, but not to its file
+    Application.OnException := SelfTestException;
+    BoldExceptionLogSink.Enabled := False;
   end;
   FData.OnAskSave := AskSave;
   FData.OnChooseSaveFile := ChooseSaveFile;
@@ -388,15 +392,14 @@ end;
 
 procedure TfrmModelEditorMain.SelfTestException(Sender: TObject; E: Exception);
 begin
+  if FExceptionExpected then
+  begin
+    FExpectedExceptionSeen := True;
+    Exit;
+  end;
   // No Halt: the dpr frees the form before Bold's units are finalized
   SelfTestTrace('EXCEPTION ' + BoldExceptionReport(E));
   FSelfTestException := True;
-end;
-
-procedure TfrmModelEditorMain.AppException(Sender: TObject; E: Exception);
-begin
-  FData.LogException(E);
-  Application.ShowException(E);
 end;
 
 { Raises for the self-test's check of the call stack }
@@ -479,6 +482,8 @@ var
   Guid: TGUID;
   Row: Integer;
   Report: string;
+  Memory: TBoldMemoryLogSink;
+  MemoryRef: IBoldLogSink;
 begin
   Log := TStringList.Create;
   Failures := 0;
@@ -576,6 +581,35 @@ begin
       Check('the report of an exception gives where it was raised (no provider)',
         Pos('Raised at $', Report) > 0, Report);
       {$ENDIF}
+
+      // An exception in the event loop goes to Bold's log with its call
+      // stack, then to the program's own handler, here SelfTestException: the
+      // hook of BoldExceptionLogFMX took that handler over when the event
+      // loop started
+      Memory := TBoldMemoryLogSink.Create;
+      MemoryRef := Memory;
+      BoldLogManager.RegisterSink(MemoryRef);
+      FExceptionExpected := True;
+      try
+        try
+          RaiseForTheSelfTest;
+        except
+          // What FMX's event loop does with an exception
+          Application.HandleException(Self);
+        end;
+      finally
+        FExceptionExpected := False;
+        BoldLogManager.UnregisterSink(MemoryRef);
+      end;
+      {$IFDEF BOLD_STACKER}
+      Check('an exception in the event loop goes to the log with its call stack',
+        Pos('RAISEFORTHESELFTEST', UpperCase(Memory.Lines.Text)) > 0, Memory.Lines.Text);
+      {$ELSE}
+      Check('an exception in the event loop goes to the log with where it was raised',
+        Pos('Raised at $', Memory.Lines.Text) > 0, Memory.Lines.Text);
+      {$ENDIF}
+      MemoryRef := nil;
+      Check('and then to the program''s own handler', FExpectedExceptionSeen, BoolToStr(FExpectedExceptionSeen, True));
 
       Check('no exception in the event loop', not FSelfTestException, BoolToStr(FSelfTestException, True));
     except

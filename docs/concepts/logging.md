@@ -117,7 +117,7 @@ A new sink logs `llInfo`, `llWarning` and `llError` (`DefaultBoldLogLevels`).
 
 | Sink | Description |
 |------|-------------|
-| `TBoldFileLogSink` | Writes to a file; emptied when it exceeds the maximum size (default 10 MB) |
+| `TBoldFileLogSink` | Writes to a file, or to the first of several files that opens; emptied when it exceeds the maximum size (default 10 MB) |
 | `TBoldConsoleLogSink` | Writes to the console (`WriteLn`) |
 | `TBoldDebugLogSink` | `OutputDebugString` on Windows, visible in the IDE debugger; standard error elsewhere |
 | `TBoldMemoryLogSink` | Keeps the last lines in memory, for display in the UI (default 10000 lines) |
@@ -322,30 +322,83 @@ BoldLog.Separator;  // Separator lines
 | File log with levels | `BoldLogManager` + `TBoldFileLogSink` |
 | Display in a TMemo | `BoldLogManager` + `TBoldMemoryLogSink` |
 | Progress tracking and hierarchical display | `BoldLogHandler` |
-| Exceptions with their call stacks | `BoldExceptionTrace`, see below |
+| Exceptions with their call stacks | `BoldExceptionLog` and its framework units, see below |
 
 ## Call Stacks of Exceptions
 
-`BoldExceptionTrace` (#130) writes an exception to the log with its call stack, so that an error a user
-reports can be traced to the routine that raised it.
+An exception a user reports can be traced to the routine that raised it when the program writes it to a
+log with its call stack (#130).
+
+### The exception log
+
+A program switches it on by naming one unit early in its uses clause, after a stack-trace provider if it
+has one:
+
+| Program | Unit |
+|---------|------|
+| VCL | `BoldExceptionLogVCL` |
+| FMX | `BoldExceptionLogFMX` |
+| LCL (Lazarus) | `BoldExceptionLogLCL` (in `BoldLCL.lpk`) |
+| Console | `BoldExceptionLog` |
 
 ```pascal
+program MyApp;
+
 uses
-  BoldExceptionTrace;
-
-procedure TMainForm.AppException(Sender: TObject; E: Exception);
-begin
-  BoldLogException(E);           // to BoldLogManager, as an error
-  Application.ShowException(E);
-end;
-
-// In FormCreate: Application.OnException := AppException;
+  Stacker,              // a Delphi stack-trace provider, if any: first
+  System.StartUpCopy,
+  BoldExceptionLogFMX,  // the exception log
+  FMX.Forms,
+  ...
 ```
 
-Call it in the handler or `except` block that handles the exception. `BoldExceptionReport(E)` gives the
-same text without logging it, and `BoldExceptionCallStack(E)` the call stack alone. `BoldLogException` never raises: a log that
-cannot be written (its file locked by another instance, its folder read-only) leaves the exception to the
-handler, which goes on to show it.
+What it does from its initialization on:
+
+- **The log file.** A sink of `BoldLogManager` writes to `<program>.log` next to the program. When another
+  instance of the program holds that file, it writes to `<program>-<process id>.log` there; when the
+  program's folder cannot be written (a program under Program Files or `/usr/bin`), to the same two in the
+  user's folder for logs: `%LOCALAPPDATA%\<program>` on Windows, `~/Library/Logs/<program>` on macOS,
+  `$XDG_STATE_HOME/<program>` or `~/.local/state/<program>` elsewhere. The file is opened at the first
+  entry, so a program that logs nothing leaves none. `BoldExceptionLogFileName` tells which file it is;
+  `BoldExceptionLogSink.Enabled := False` switches it off, as the self-tests of this repository do.
+- **The message loop** (the framework units). Every exception that the application's message loop handles
+  goes to the log with its call stack, then is shown as before. A handler that the program sets in
+  `Application.OnException` during its start-up (in a form's `OnCreate`) is called instead of the dialog:
+  the unit takes the handler over when the message loop starts.
+- **The last resort.** An exception that no handler takes (in the program's main block, in a unit
+  initialized later, in a console program) goes to the log through the RTL's last-resort handler
+  (`System.ExceptProc`) with its call stack; then the handler that was there reports it and the program
+  ends.
+
+Not covered: an exception that ends a thread. The RTL keeps it in the thread's `FatalException` and calls no
+handler, and Free Pascal's frames are gone once the thread's `except` block ends, so a thread logs it in its
+`Execute`:
+
+```pascal
+procedure TMyThread.Execute;
+begin
+  try
+    DoTheWork;
+  except
+    on E: Exception do
+    begin
+      BoldLogException(E, 'TMyThread');
+      raise;
+    end;
+  end;
+end;
+```
+
+### Logging an exception yourself
+
+`BoldExceptionTrace` gives the parts: `BoldLogException(E)` writes an exception to `BoldLogManager` as an
+error, `BoldExceptionReport(E)` gives the same text without logging it, and `BoldExceptionCallStack(E)` the
+call stack alone. Call them in the handler or `except` block that handles the exception: Free Pascal keeps
+the frames only until then. `BoldLogException` never raises: a log that cannot be written leaves the
+exception to the handler, which goes on to show it. `BoldUnhandledExceptionReport` makes the report from
+what the RTL's last-resort handler is given.
+
+### Where the call stack comes from
 
 Bold names no stack-trace library, so the library can be exchanged without a change in Bold:
 
@@ -386,7 +439,8 @@ TThread.CreateAnonymousThread(
 
 ## Source Files
 
-All units are in `Source/Common/Logging`:
+The units are in `Source/Common/Logging`, except `BoldExceptionLogLCL`, which is in
+`Source/Common/EnvironmentLCL`:
 
 | Unit | Description |
 |------|-------------|
@@ -396,3 +450,5 @@ All units are in `Source/Common/Logging`:
 | `BoldLogHandler` | Progress logging |
 | `BoldLogReceiverInterface` | `IBoldLogReceiver` and `TBoldLogReceiver` |
 | `BoldExceptionTrace` | Exceptions with their call stacks |
+| `BoldExceptionLog` | The exception log: the log file and the last-resort handler |
+| `BoldExceptionLogVCL`, `BoldExceptionLogFMX`, `BoldExceptionLogLCL` | The exception log in a VCL, FMX or LCL program, with the message loop |

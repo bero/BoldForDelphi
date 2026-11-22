@@ -42,7 +42,6 @@ uses
   BoldListHandle,
   BoldDataSet,
   BoldUMLModel,
-  BoldLogInterfaces,
   BoldModelDocument;
 
 type
@@ -65,7 +64,6 @@ type
     FDocument: TBoldModelDocument;
     FOnAskSave: TModelEditorAskSaveEvent;
     FOnChooseSaveFile: TModelEditorChooseFileEvent;
-    FLogSink: IBoldLogSink;
     procedure Connect;
     procedure Disconnect;
     function SelectRow(ADataSet: TBoldDataSet; AElement: TBoldElement): Boolean;
@@ -124,14 +122,6 @@ type
     function CanAddAttribute: Boolean;
     function CanDeleteAttribute: Boolean;
 
-    { The editor's log in AFileName: Bold's log (BoldLogManager), which gets
-      the exceptions of LogException with their call stacks }
-    procedure StartLogFile(const AFileName: string);
-    { An exception that reached the client's exception handler, to the log
-      with its call stack (BoldExceptionTrace, #130). Call it from the
-      handler: the call stack is that of the exception being handled. }
-    procedure LogException(E: Exception);
-
     { The file name of the model, or Untitled, with a * when modified }
     function DocumentName: string;
     { What a client's window title shows }
@@ -155,8 +145,6 @@ implementation
 uses
   BoldSystem,
   BoldQueue,
-  BoldLogSinks,
-  BoldExceptionTrace,
   BoldUMLModelSupport;
 
 {%CLASSGROUP 'System.Classes.TPersistent'}
@@ -206,23 +194,7 @@ begin
   FreeAndNil(lhClasses);
   FreeAndNil(rhModel);
   FreeAndNil(FDocument);
-  if Assigned(FLogSink) then
-    BoldLogManager.UnregisterSink(FLogSink);
-  FLogSink := nil;
   inherited;
-end;
-
-procedure TdmModelEditor.StartLogFile(const AFileName: string);
-begin
-  if Assigned(FLogSink) then
-    BoldLogManager.UnregisterSink(FLogSink);
-  FLogSink := TBoldFileLogSink.Create(AFileName);
-  BoldLogManager.RegisterSink(FLogSink);
-end;
-
-procedure TdmModelEditor.LogException(E: Exception);
-begin
-  BoldLogException(E, cModelEditorTitle);
 end;
 
 procedure TdmModelEditor.Connect;

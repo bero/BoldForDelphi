@@ -19,6 +19,7 @@ program ModelEditorLCL;
 uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Interfaces,
+  BoldExceptionLogLCL, // exceptions to ModelEditorLCL.log with their call stacks (#130)
   SysUtils,
   Forms,
   fModelEditorMain;

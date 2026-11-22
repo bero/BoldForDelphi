@@ -135,9 +135,13 @@ over SSH.
 
 Both clients write an exception that reaches their exception handler to a log
 file next to the program (`ModelEditorLCL.log`, `ModelEditorFMX.log`) with its
-call stack, then show it (`TdmModelEditor.StartLogFile` and `LogException`, on
-Bold's `BoldExceptionTrace`, #130). The self-tests write the call stack of an
-exception to their logs and check one.
+call stack, then show it; so does one that no handler takes. The programs name
+`BoldExceptionLogLCL` and `BoldExceptionLogFMX` in their uses clauses, which
+do that (#130; see `docs/concepts/logging.md`, also for where the log goes when
+the program's folder cannot be written). The self-tests write the call stack
+of an exception to their logs, check one, and check that an exception in the
+event loop goes to Bold's log with its call stack and then to their own
+handler.
 
 - The LCL client is compiled with `-gl`, so Free Pascal's frames name routine,
   line and file.

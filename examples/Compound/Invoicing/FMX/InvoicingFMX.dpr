@@ -19,6 +19,7 @@ uses
   Stacker, // the optional stack-trace provider (#130), first so that its hooks are in place
   {$ENDIF}
   System.StartUpCopy,
+  BoldExceptionLogFMX, // exceptions to <program>.log with their call stacks (#130)
   System.SysUtils,
   FMX.Forms,
   FireDAC.FMXUI.Wait,

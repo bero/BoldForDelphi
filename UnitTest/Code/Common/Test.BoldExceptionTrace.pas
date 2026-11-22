@@ -27,7 +27,14 @@ type
     // written (its file is locked, its folder read-only) must not replace the
     // exception the handler is about to show
     procedure TestALogThatCannotBeWrittenDoesNotRaise;
+    // The report of an exception that no handler took, made from what the
+    // RTL's last-resort handler (System.ExceptProc) is given
+    procedure TestTheUnhandledReportHasTheClassAndTheMessage;
+    // The RTL can be given an object that is not an Exception
+    procedure TestTheUnhandledReportOfAnObjectThatIsNoException;
     {$IFDEF FPC}
+    // Free Pascal gives ExceptProc the frames of the exception
+    procedure TestTheUnhandledReportHasTheFramesItIsGiven;
     // Free Pascal's own frames, the raising routine first
     procedure TestTheRaisingRoutineIsFirstInTheCallStack;
     // A deep stack keeps more than the 16 callers Free Pascal records by
@@ -45,6 +52,10 @@ type
     // A caller whose name contains RaiseException is not taken for the RTL's
     // raise routine
     procedure TestACallerNamedRaiseExceptionStaysInTheCallStack;
+    // Delphi gives ExceptProc no frames: the provider's call stack
+    procedure TestTheUnhandledReportHasTheProvidersCallStack;
+    // and without a provider, the address ExceptProc is given
+    procedure TestWithoutAProviderTheUnhandledReportSaysWhereItWasRaised;
     {$ENDIF}
   end;
 
@@ -186,9 +197,12 @@ begin
     'Unit1.Main (Line 69, "Unit1.pas")';
 end;
 
-{ BoldExceptionCallStack of an exception raised while the fake provider with
-  the text of AGetString is installed }
-function CallStackFromProvider(AGetString: TGetStackInfoString): string;
+type
+  TExceptionText = function(E: Exception): string;
+
+{ AText of an exception raised while the fake provider with the text of
+  AGetString is installed; with no provider at all when AGetString is nil }
+function TextFromProvider(AGetString: TGetStackInfoString; AText: TExceptionText): string;
 var
   OldGetInfo: TGetExceptionStackInfo;
   OldGetString: TGetStackInfoString;
@@ -198,21 +212,49 @@ begin
   OldGetInfo := Exception.GetExceptionStackInfoProc;
   OldGetString := Exception.GetStackInfoStringProc;
   OldCleanUp := Exception.CleanUpStackInfoProc;
-  Exception.GetExceptionStackInfoProc := FakeGetExceptionStackInfo;
-  Exception.GetStackInfoStringProc := AGetString;
-  Exception.CleanUpStackInfoProc := FakeCleanUpStackInfo;
+  if Assigned(AGetString) then
+  begin
+    Exception.GetExceptionStackInfoProc := FakeGetExceptionStackInfo;
+    Exception.GetStackInfoStringProc := AGetString;
+    Exception.CleanUpStackInfoProc := FakeCleanUpStackInfo;
+  end
+  else
+  begin
+    Exception.GetExceptionStackInfoProc := nil;
+    Exception.GetStackInfoStringProc := nil;
+    Exception.CleanUpStackInfoProc := nil;
+  end;
   try
     try
       RaiseInAKnownRoutine;
     except
       on E: Exception do
-        Result := BoldExceptionCallStack(E);
+        Result := AText(E);
     end;
   finally
     Exception.GetExceptionStackInfoProc := OldGetInfo;
     Exception.GetStackInfoStringProc := OldGetString;
     Exception.CleanUpStackInfoProc := OldCleanUp;
   end;
+end;
+
+{ BoldExceptionCallStack of an exception raised while the fake provider with
+  the text of AGetString is installed }
+function CallStackFromProvider(AGetString: TGetStackInfoString): string;
+begin
+  Result := TextFromProvider(AGetString, BoldExceptionCallStack);
+end;
+
+{ An address in this program, as the RTL gives ExceptProc one }
+function GivenAddress: Pointer;
+begin
+  Result := @RaiseInAKnownRoutine;
+end;
+
+{ What Delphi's ExceptProc is given: the exception and its address, no frames }
+function UnhandledReportOf(E: Exception): string;
+begin
+  Result := BoldUnhandledExceptionReport(E, GivenAddress, 0, nil);
 end;
 {$ENDIF}
 
@@ -296,7 +338,55 @@ begin
   end;
 end;
 
+procedure TTestBoldExceptionTrace.TestTheUnhandledReportHasTheClassAndTheMessage;
+var
+  Report: string;
+begin
+  Report := '';
+  try
+    RaiseInAKnownRoutine;
+  except
+    on E: Exception do
+      Report := BoldUnhandledExceptionReport(E, ExceptAddr, 0, nil);
+  end;
+  Assert.AreEqual('EBoldTraceTest: ' + cMessage, FirstLine(Report), 'the first line of the report');
+  Assert.IsTrue(LineCount(Report) > 1, 'a call stack or where it was raised follows: ' + Report);
+end;
+
+procedure TTestBoldExceptionTrace.TestTheUnhandledReportOfAnObjectThatIsNoException;
+var
+  Raised: TObject;
+  Report: string;
+begin
+  Raised := TStringList.Create;
+  try
+    Report := BoldUnhandledExceptionReport(Raised, nil, 0, nil);
+  finally
+    Raised.Free;
+  end;
+  Assert.AreEqual('TStringList', FirstLine(Report), 'the class of the object');
+  Assert.IsTrue(LineCount(Report) > 1, 'what is known of where it was raised follows: ' + Report);
+end;
+
 {$IFDEF FPC}
+
+procedure TTestBoldExceptionTrace.TestTheUnhandledReportHasTheFramesItIsGiven;
+var
+  Report: string;
+  Raising, Caller: Integer;
+begin
+  Report := '';
+  try
+    RaiseInAKnownRoutine;
+  except
+    // What Free Pascal gives ExceptProc
+    Report := BoldUnhandledExceptionReport(ExceptObject, ExceptAddr, ExceptFrameCount, ExceptFrames);
+  end;
+  Raising := Pos('RAISEINAKNOWNROUTINE', UpperCase(Report));
+  Caller := Pos('TESTTHEUNHANDLEDREPORTHASTHEFRAMESITISGIVEN', UpperCase(Report));
+  Assert.IsTrue(Raising > 0, 'the raising routine: ' + Report);
+  Assert.IsTrue(Caller > Raising, 'then its caller: ' + Report);
+end;
 
 procedure TTestBoldExceptionTrace.TestTheRaisingRoutineIsFirstInTheCallStack;
 var
@@ -411,6 +501,25 @@ begin
   Assert.AreEqual('Unit1.Inner (Line 40, "Unit1.pas")', FirstLine(CallStack),
     'the raising routine first: ' + CallStack);
   Assert.AreEqual(3, LineCount(CallStack), 'the raising routine and its two callers: ' + CallStack);
+end;
+
+procedure TTestBoldExceptionTrace.TestTheUnhandledReportHasTheProvidersCallStack;
+var
+  Report: string;
+begin
+  Report := TextFromProvider(FakeGetStackInfoString, UnhandledReportOf);
+  Assert.AreEqual(1, Pos('EBoldTraceTest: ' + cMessage + sLineBreak +
+    'Test.BoldExceptionTrace.RaiseInAKnownRoutine (Line 42, "Test.BoldExceptionTrace.pas")', Report),
+    'the class and the message, then the raising routine: ' + Report);
+end;
+
+procedure TTestBoldExceptionTrace.TestWithoutAProviderTheUnhandledReportSaysWhereItWasRaised;
+var
+  Report: string;
+begin
+  Report := TextFromProvider(nil, UnhandledReportOf);
+  Assert.IsTrue(Pos('Raised at $' + Format('%p', [GivenAddress]), Report) > 0,
+    'the address ExceptProc is given: ' + Report);
 end;
 
 {$ENDIF}

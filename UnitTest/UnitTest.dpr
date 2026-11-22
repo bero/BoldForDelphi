@@ -37,6 +37,7 @@ uses
   BoldTestCaseDBFireDAC in 'Code\Persistence\BoldTestCaseDBFireDAC.pas',
   BoldTestCaseUniDAC,
   Test.BoldExceptionTrace in 'Code\Common\Test.BoldExceptionTrace.pas',
+  Test.BoldExceptionLog in 'Code\Common\Test.BoldExceptionLog.pas',
   Test.BoldTemplateExpander in 'Code\Common\Test.BoldTemplateExpander.pas',
   Test.BoldUMLTypes in 'Code\Common\Test.BoldUMLTypes.pas',
   jehoBCBoldTest in 'Code\ObjectSpace\jehoBCBoldTest.pas',

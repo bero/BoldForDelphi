@@ -33,6 +33,8 @@ procedure BoldCoUninitialize;
 procedure BoldOutputDebugString(const s: string);
 // Id of the calling thread, as the log entries report it.
 function BoldCurrentThreadId: Cardinal;
+// Id of this process; the exception log names a second instance's file after it.
+function BoldCurrentProcessId: Cardinal;
 // Milliseconds since the system started, from a 64-bit counter that does not
 // wrap. For elapsed-time measurements only.
 function BoldTickCount: Int64;
@@ -227,6 +229,11 @@ begin
   Result := GetCurrentThreadId;
 end;
 
+function BoldCurrentProcessId: Cardinal;
+begin
+  Result := GetCurrentProcessId;
+end;
+
 function BoldTickCount: Int64;
 begin
   Result := Int64(GetTickCount64);
@@ -253,6 +260,15 @@ end;
 function BoldCurrentThreadId: Cardinal;
 begin
   Result := Cardinal(TThread.CurrentThread.ThreadID);
+end;
+
+function BoldCurrentProcessId: Cardinal;
+begin
+  {$IFDEF FPC}
+  Result := Cardinal(GetProcessID);
+  {$ELSE}
+  Result := Cardinal(getpid);
+  {$ENDIF}
 end;
 
 function BoldTickCount: Int64;

@@ -84,8 +84,10 @@ checks what the grids show, writes the checks to
 ## Exceptions and their call stacks
 
 An exception that reaches the application's exception handler goes to
-`MasterDetailFMX.log` next to the program, with its call stack, and is then shown
-(`BoldExceptionTrace`, #130; see `docs/concepts/logging.md`). The project
+`MasterDetailFMX.log` next to the program, with its call stack, and is then shown;
+so does one that no handler takes. The program names `BoldExceptionLogFMX` in
+its uses clause, which does that (#130; see `docs/concepts/logging.md`, also
+for where the log goes when the program's folder cannot be written). The project
 takes [Stacker](https://codeberg.org/sivv/stacker) as its stack-trace provider
 (`Tools/BoldStacker.targets`): from the environment variable `STACKER`, else
 from a folder `stacker` next to the repository. The frames then name the

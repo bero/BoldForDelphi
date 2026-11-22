@@ -21,6 +21,8 @@ type
     procedure TestOrderGivesMinusOneOrOne;
     procedure TestCaseInsensitiveIgnoresCase;
     procedure TestOnlyTheFirstNCharactersCount;
+    // The exception log names a second instance's file after it (#130)
+    procedure TestTheProcessIdIsTheSameOnEveryCall;
   end;
 
 implementation
@@ -53,6 +55,12 @@ procedure TTestBoldPlatform.TestOnlyTheFirstNCharactersCount;
 begin
   Assert.AreEqual(0, BoldUnicodeCompareLen(True, 'abcX', 'abcY', 3));
   Assert.AreEqual(-1, BoldUnicodeCompareLen(True, 'abcX', 'abcY', 4));
+end;
+
+procedure TTestBoldPlatform.TestTheProcessIdIsTheSameOnEveryCall;
+begin
+  Assert.IsTrue(BoldCurrentProcessId <> 0, 'a process id');
+  Assert.IsTrue(BoldCurrentProcessId = BoldCurrentProcessId, 'the same on every call');
 end;
 
 initialization

@@ -18,6 +18,7 @@ program InvoicingLCL;
 uses
   {$IFDEF UNIX}cthreads, cwstring,{$ENDIF}
   Interfaces,
+  BoldExceptionLogLCL, // exceptions to <program>.log with their call stacks (#130)
   SysUtils,
   Forms,
   fInvoicingMain;

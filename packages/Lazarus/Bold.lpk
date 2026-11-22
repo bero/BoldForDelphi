@@ -80,6 +80,10 @@
         <UnitName Value="BoldEnvironment"/>
       </Item>
       <Item>
+        <Filename Value="../../Source/Common/Logging/boldexceptionlog.pas"/>
+        <UnitName Value="BoldExceptionLog"/>
+      </Item>
+      <Item>
         <Filename Value="../../Source/Common/Logging/boldexceptiontrace.pas"/>
         <UnitName Value="BoldExceptionTrace"/>
       </Item>

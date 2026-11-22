@@ -102,6 +102,7 @@ uses
   Test.BoldSystem,
   Test.BoldSystemPersistent,
   Test.BoldExceptionTrace,
+  Test.BoldExceptionLog,
   Test.BoldTaggedValueList,
   Test.BoldTaggedValueSupport,
   Test.BoldTemplateExpander,

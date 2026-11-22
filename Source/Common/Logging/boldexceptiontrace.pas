@@ -28,7 +28,11 @@ unit BoldExceptionTrace;
   Call BoldExceptionCallStack, BoldExceptionReport and BoldLogException in the
   except block or exception handler that handles the exception: Free Pascal
   keeps the frames only until then, and the raise address is that of the
-  exception being handled. }
+  exception being handled. An exception that no handler takes reaches the
+  RTL's last-resort handler (System.ExceptProc) instead, which is given the
+  exception, its address and, from Free Pascal, its frames;
+  BoldUnhandledExceptionReport makes the report from those
+  (BoldExceptionLog installs that handler). }
 
 interface
 
@@ -49,6 +53,15 @@ function BoldExceptionReport(E: Exception): string;
   goes on with }
 procedure BoldLogException(E: Exception; const AContext: string = '');
 
+{ What the log gets for an exception that no handler took, from what the
+  RTL's last-resort handler (System.ExceptProc) is given: the raised object
+  (not always an Exception), the address it was raised at, and the frames of
+  its callers, which Free Pascal gives (AFrames points to AFrameCount code
+  addresses) and Delphi does not (0 and nil; the provider's call stack is
+  used, or the address) }
+function BoldUnhandledExceptionReport(AObject: TObject; AAddress: Pointer;
+  AFrameCount: Integer; AFrames: Pointer): string;
+
 implementation
 
 uses
@@ -66,6 +79,7 @@ uses
 resourcestring
   sRaisedAt = 'Raised at $%p (module loaded at $%p); no call stack: the program has no stack-trace provider';
   sRaisedAtUnknown = 'No call stack: the program has no stack-trace provider, and the exception is not the one being handled';
+  sNoCallStack = 'No call stack, and the address it was raised at is not known';
 
 {$IFDEF FPC}
 
@@ -73,29 +87,21 @@ const
   // How many callers Free Pascal records for an exception, at least
   cMaxFrameCount = 64;
 
-function BoldExceptionCallStack(E: Exception): string;
+{ The raise address, then the AFrameCount callers at AFrames, one line each
+  as BackTraceStrFunc writes them }
+function FramesText(AAddress: CodePointer; AFrameCount: Integer; AFrames: PCodePointer): string;
 var
-  Raised: PExceptObject;
-  Frames: PCodePointer;
   Lines: TStringList;
   i: Integer;
 begin
-  Result := '';
-  // The exceptions being handled, the latest first; E is one of them in its
-  // except block
-  Raised := RaiseList;
-  while Assigned(Raised) and (Raised^.FObject <> E) do
-    Raised := Raised^.Next;
-  if not Assigned(Raised) then
-    Exit;
   Lines := TStringList.Create;
   try
-    Lines.Add(Trim(string(BackTraceStrFunc(Raised^.Addr))));
-    Frames := Raised^.Frames;
-    for i := 0 to Raised^.Framecount - 1 do
+    if Assigned(AAddress) then
+      Lines.Add(Trim(string(BackTraceStrFunc(AAddress))));
+    for i := 0 to AFrameCount - 1 do
     begin
-      Lines.Add(Trim(string(BackTraceStrFunc(Frames^))));
-      Inc(Frames);
+      Lines.Add(Trim(string(BackTraceStrFunc(AFrames^))));
+      Inc(AFrames);
     end;
     Result := TrimRight(Lines.Text);
   finally
@@ -103,9 +109,29 @@ begin
   end;
 end;
 
+function BoldExceptionCallStack(E: Exception): string;
+var
+  Raised: PExceptObject;
+begin
+  Result := '';
+  // The exceptions being handled, the latest first; E is one of them in its
+  // except block
+  Raised := RaiseList;
+  while Assigned(Raised) and (Raised^.FObject <> E) do
+    Raised := Raised^.Next;
+  if Assigned(Raised) then
+    Result := FramesText(Raised^.Addr, Raised^.Framecount, Raised^.Frames);
+end;
+
 function RaiseAddressText(E: Exception): string;
 begin
   Result := sRaisedAtUnknown;
+end;
+
+function UnhandledCallStack(AObject: TObject; AAddress: Pointer;
+  AFrameCount: Integer; AFrames: Pointer): string;
+begin
+  Result := FramesText(AAddress, AFrameCount, PCodePointer(AFrames));
 end;
 
 {$ELSE}
@@ -194,13 +220,30 @@ end;
 {$ENDIF}
 {$ENDIF}
 
+function AddressText(AAddress: Pointer): string;
+begin
+  Result := Format(sRaisedAt, [AAddress, ModuleBase(AAddress)]);
+end;
+
 function RaiseAddressText(E: Exception): string;
 begin
   // ExceptAddr is the address of the exception being handled
   if (ExceptObject = E) and (ExceptAddr <> nil) then
-    Result := Format(sRaisedAt, [ExceptAddr, ModuleBase(ExceptAddr)])
+    Result := AddressText(ExceptAddr)
   else
     Result := sRaisedAtUnknown;
+end;
+
+function UnhandledCallStack(AObject: TObject; AAddress: Pointer;
+  AFrameCount: Integer; AFrames: Pointer): string;
+begin
+  // Delphi gives ExceptProc no frames: the provider's call stack, if any
+  if AObject is Exception then
+    Result := BoldExceptionCallStack(Exception(AObject))
+  else
+    Result := '';
+  if (Result = '') and (AAddress <> nil) then
+    Result := AddressText(AAddress);
 end;
 
 {$ENDIF}
@@ -213,6 +256,23 @@ begin
   if CallStack = '' then
     CallStack := RaiseAddressText(E);
   Result := E.ClassName + ': ' + E.Message + sLineBreak + CallStack;
+end;
+
+function BoldUnhandledExceptionReport(AObject: TObject; AAddress: Pointer;
+  AFrameCount: Integer; AFrames: Pointer): string;
+var
+  CallStack: string;
+begin
+  CallStack := UnhandledCallStack(AObject, AAddress, AFrameCount, AFrames);
+  if CallStack = '' then
+    CallStack := sNoCallStack;
+  if AObject is Exception then
+    Result := AObject.ClassName + ': ' + Exception(AObject).Message
+  else if Assigned(AObject) then
+    Result := AObject.ClassName
+  else
+    Result := 'nil';
+  Result := Result + sLineBreak + CallStack;
 end;
 
 procedure BoldLogException(E: Exception; const AContext: string);

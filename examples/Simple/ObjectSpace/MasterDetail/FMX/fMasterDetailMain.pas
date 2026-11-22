@@ -53,7 +53,6 @@ uses
   BoldHandles,
   BoldListHandle,
   BoldDataSet,
-  BoldLogInterfaces,
   dmMasterDetail;
 
 type
@@ -105,9 +104,9 @@ type
     FDatabase: string;
     FSelfTest: Boolean;
     FSelfTestException: Boolean;
-    // Bold's log in <program>.log, which gets the exceptions with their
-    // call stacks (#130)
-    FLogSink: IBoldLogSink;
+    // The self-test's own exception in the event loop (#130)
+    FExceptionExpected: Boolean;
+    FExpectedExceptionSeen: Boolean;
     procedure OpenData;
     procedure SystemOpened;
     procedure OpenDataSets;
@@ -118,7 +117,6 @@ type
     procedure ShowStatus;
     procedure Settle;
     procedure SelfTestException(Sender: TObject; E: Exception);
-    procedure AppException(Sender: TObject; E: Exception);
   public
     { Drives the form as a user would, through its navigators, datasets and
       buttons, checks what the grids show, and returns the number of failed
@@ -150,8 +148,10 @@ uses
   FMX.DialogService,
   FMX.DialogService.Sync,
   BoldQueue,
+  BoldLogInterfaces,
   BoldLogSinks,
   BoldExceptionTrace,
+  BoldExceptionLog,
   BoldSystem,
   DemoClasses;
 
@@ -195,22 +195,18 @@ end;
 procedure TfrmMasterDetailMain.FormCreate(Sender: TObject);
 begin
   FSelfTest := IsSelfTestRun;
+  // Exceptions go to <program>.log next to the program with their call
+  // stacks, then to the user: BoldExceptionLogFMX, named in the .dpr (#130)
   if FSelfTest then
   begin
-    // No window to show an error in: the log gets it, and the exit code is 100
+    // No window to show an error in: the self-test log gets it, and the exit
+    // code is 100. The exception log still logs it first, but not to its file
     Application.OnException := SelfTestException;
+    BoldExceptionLogSink.Enabled := False;
     FDatabase := TPath.Combine(TPath.GetTempPath, 'MasterDetailFMX-selftest-' + TGUID.NewGuid.ToString + '.db');
   end
   else
     FDatabase := ChangeFileExt(ParamStr(0), '.db');
-  if not FSelfTest then
-  begin
-    // Exceptions go to <program>.log next to the program with their call
-    // stacks (#130), then to the user
-    FLogSink := TBoldFileLogSink.Create(ChangeFileExt(ParamStr(0), '.log'));
-    BoldLogManager.RegisterSink(FLogSink);
-    Application.OnException := AppException;
-  end;
   SelfTestTrace('form created; database ' + FDatabase);
   OpenData;
   SelfTestTrace('system open');
@@ -232,8 +228,6 @@ end;
 
 procedure TfrmMasterDetailMain.FormDestroy(Sender: TObject);
 begin
-  if Assigned(FLogSink) then
-    BoldLogManager.UnregisterSink(FLogSink);
   Application.OnIdle := nil;
   // Details before masters, datasets before their handles, all before the system
   FreeAndNil(bdsTasks);
@@ -384,6 +378,11 @@ end;
 
 procedure TfrmMasterDetailMain.SelfTestException(Sender: TObject; E: Exception);
 begin
+  if FExceptionExpected then
+  begin
+    FExpectedExceptionSeen := True;
+    Exit;
+  end;
   // No Halt: the dpr frees the form before Bold's units are finalized
   SelfTestTrace('EXCEPTION ' + BoldExceptionReport(E));
   FSelfTestException := True;
@@ -402,12 +401,6 @@ begin
   ShowStatus;
 end;
 
-procedure TfrmMasterDetailMain.AppException(Sender: TObject; E: Exception);
-begin
-  BoldLogException(E, ExtractFileName(ParamStr(0)));
-  Application.ShowException(E);
-end;
-
 { Raises for the self-test's check of the call stack }
 procedure RaiseForTheSelfTest;
 begin
@@ -419,6 +412,8 @@ var
   Log: TStringList;
   Failures: Integer;
   Report: string;
+  Memory: TBoldMemoryLogSink;
+  MemoryRef: IBoldLogSink;
 
   procedure Check(const AWhat: string; APassed: Boolean; const AActual: string);
   begin
@@ -613,6 +608,34 @@ begin
     Check('the report of an exception gives where it was raised (no provider)',
       Pos('Raised at $', Report) > 0, Report);
     {$ENDIF}
+
+    // An exception in the event loop goes to Bold's log with its call stack,
+    // then to the program's own handler, here SelfTestException: the hook of
+    // BoldExceptionLogFMX took that handler over when the event loop started
+    Memory := TBoldMemoryLogSink.Create;
+    MemoryRef := Memory;
+    BoldLogManager.RegisterSink(MemoryRef);
+    FExceptionExpected := True;
+    try
+      try
+        RaiseForTheSelfTest;
+      except
+        // What FMX's event loop does with an exception
+        Application.HandleException(Self);
+      end;
+    finally
+      FExceptionExpected := False;
+      BoldLogManager.UnregisterSink(MemoryRef);
+    end;
+    {$IFDEF BOLD_STACKER}
+    Check('an exception in the event loop goes to the log with its call stack',
+      Pos('RAISEFORTHESELFTEST', UpperCase(Memory.Lines.Text)) > 0, Memory.Lines.Text);
+    {$ELSE}
+    Check('an exception in the event loop goes to the log with where it was raised',
+      Pos('Raised at $', Memory.Lines.Text) > 0, Memory.Lines.Text);
+    {$ENDIF}
+    MemoryRef := nil;
+    Check('and then to the program''s own handler', FExpectedExceptionSeen, BoolToStr(FExpectedExceptionSeen, True));
     Check('no exception in the event loop', not FSelfTestException, BoolToStr(FSelfTestException, True));
   except
     on E: Exception do

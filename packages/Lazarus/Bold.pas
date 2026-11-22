@@ -12,7 +12,7 @@ uses
   BoldListHandleFollower, BoldListListControlPack, BoldStringControlPack, 
   BoldExceptionHandlers, BoldGUI, BoldGuiResourceStrings, BoldBase, 
   BoldContainers, BoldDefs, BoldStreams, BoldThreadSafeQueue, BoldEnvironment, 
-  BoldExceptionTrace, BoldLogHandler, BoldLogInterfaces, BoldLogReceiverInterface, BoldLogSinks, 
+  BoldExceptionLog, BoldExceptionTrace, BoldLogHandler, BoldLogInterfaces, BoldLogReceiverInterface, BoldLogSinks, 
   BoldThreadSafeLog, BoldAbstractDequeuer, BoldEventQueue, BoldQueue, 
   BoldPerformanceStub, BoldStubDefs, BoldStubs, BoldTraceLog, BoldDeriver, 
   BoldExpressionSubscriber, BoldSubscribableCollection, BoldSubscription, 

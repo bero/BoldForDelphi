@@ -155,11 +155,14 @@ window, so the row checks read the dataset behind each grid.
 ## Exceptions and their call stacks
 
 An exception that reaches the application's exception handler goes to
-`InvoicingLCL.log` next to the program, with its call stack, and is then shown
-(`BoldExceptionTrace`, #130; see `docs/concepts/logging.md`). The project is
-compiled with `-gl`, so the frames name routine, line and file. The self-test
-writes the call stack of an unexpected exception to its log and checks the
-report of one.
+`InvoicingLCL.log` next to the program, with its call stack, and is then shown;
+so does one that no handler takes. The program names `BoldExceptionLogLCL` in
+its uses clause, which does that (#130; see `docs/concepts/logging.md`, also
+for where the log goes when the program's folder cannot be written). The
+project is compiled with `-gl`, so the frames name routine, line and file. The
+self-test writes the call stack of an unexpected exception to its log, checks
+the report of one, and checks that an exception in the event loop goes to
+Bold's log with its call stack and then to its own handler.
 
 ## Not yet
 

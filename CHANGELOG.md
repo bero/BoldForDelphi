@@ -17,9 +17,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   RTL's own frames, up to 64 instead of the RTL's 16 (`-gl` for names and
   lines). The Free Pascal test programs
   are now compiled with `-gl`.
+- `BoldExceptionLog` (#130): naming one unit early in a program's uses clause
+  switches on its exception log. `BoldExceptionLogVCL`, `BoldExceptionLogFMX`
+  or `BoldExceptionLogLCL` in a GUI program, `BoldExceptionLog` alone in a
+  console program. The exceptions the application's message loop handles go
+  to the log with their call stacks before they are shown; a handler the
+  program sets in `Application.OnException` at start-up is called instead of
+  the dialog. An exception that no handler takes (the program's main block, a
+  console program) is logged by the RTL's last-resort handler
+  (`System.ExceptProc`) before the program ends. The log file is
+  `<program>.log` next to the program, `<program>-<process id>.log` when
+  another instance holds that file, and the same two in the user's folder for
+  logs when the program's folder cannot be written. `TBoldFileLogSink` takes
+  several files and writes to the first that opens;
+  `BoldUnhandledExceptionReport` gives the report of an unhandled exception;
+  `BoldCurrentProcessId` is new in `BoldPlatform`.
 - The model editor's clients write their exceptions with call stacks to a log
-  file next to the program (#130).
-- So do the examples' clients (Invoicing LCL and FMX, Master-Detail FMX); the
+  file next to the program (#130), now through `BoldExceptionLogLCL` and
+  `BoldExceptionLogFMX`; `TdmModelEditor.StartLogFile` and `LogException` are
+  gone.
+- So do the examples' clients (Invoicing LCL and FMX, Master-Detail FMX), each
+  through the framework unit of `BoldExceptionLog`; the
   Invoicing console runner prints the call stack of an exception that stops
   it (#130).
 - The FMX programs of this repository take Stacker as their stack-trace
