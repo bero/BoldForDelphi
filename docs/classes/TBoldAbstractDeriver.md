@@ -99,7 +99,10 @@ next read.
 ### Code-Derived Members
 
 For a derived attribute without an OCL derivation expression, the code generator declares a derive method in the
-business classes; you write its body. The method is named `_<MemberName>_DeriveAndSubscribe`:
+business classes; you write its body. The method is named `_<MemberName>_DeriveAndSubscribe`. The `DefaultSubscribe`
+calls below are needed in a build without AutoSubscription, the default of this repository; with AutoSubscription,
+Bold subscribes to every member the method reads (see
+[Derived Attributes](../concepts/derived-attributes.md#code-derivation)):
 
 ```pascal
 procedure TOrder._Total_DeriveAndSubscribe(

@@ -26,7 +26,7 @@ Associations can be derived as well: a derived single link or multi link is comp
 | Aspect | OCL expression | Object Pascal code |
 |--------|----------------|--------------------|
 | **Simplicity** | Short expressions in the model | Any logic |
-| **Subscriptions** | Placed by Bold | Placed by your code (`DefaultSubscribe`) |
+| **Subscriptions** | Placed by Bold | Placed by Bold with AutoSubscription, otherwise by your code (`DefaultSubscribe`); see [Code Derivation](#code-derivation) |
 | **Debugging** | Harder to debug | Full debugger support |
 | **Where the logic lives** | In the model | In the generated `.inc` file of the business classes |
 
@@ -174,10 +174,21 @@ implement:
 procedure TOrder._Total_DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
 ```
 
-The method sets the member's value and subscribes to every value it reads, by calling `DefaultSubscribe(Subscriber)`
-on those members. Subscribe to a link or list with `breReSubscribe` when the method also subscribes to the objects in
-it: a changed link or a list with a new element then places the subscriptions again. With the default
-`breReEvaluate`, Bold only computes the value again and keeps the old subscriptions.
+The method sets the member's value. Who subscribes to the values it reads depends on whether Bold is built with
+AutoSubscription:
+
+- **With AutoSubscription**, Bold records every member that the method reads, and when the method returns, it
+  subscribes the derivation to each of them. The method needs no `DefaultSubscribe` calls. A changed link or a list
+  with a new element needs no special care either: the next derivation reads the new objects, and Bold subscribes to
+  them as well.
+- **Without AutoSubscription**, the method subscribes itself, by calling `DefaultSubscribe(Subscriber)` on every
+  member it reads. Subscribe to a link or list with `breReSubscribe` when the method also subscribes to the objects in
+  it: a changed link or a list with a new element then places the subscriptions again. With the default
+  `breReEvaluate`, Bold only computes the value again and keeps the old subscriptions.
+
+`bold.inc` turns AutoSubscription off with `NoAutoSubscription` unless `Attracs` is defined, so a build of this
+repository runs without it (see [Compiler directives](../development/index.md#compiler-directives)). The examples
+below subscribe themselves, so they work in both builds.
 
 ### Derived Attributes in Code
 
