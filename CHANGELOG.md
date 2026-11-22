@@ -34,6 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   several files and writes to the first that opens;
   `BoldUnhandledExceptionReport` gives the report of an unhandled exception;
   `BoldCurrentProcessId` is new in `BoldPlatform`.
+- `TBoldDbValidator`: an exception in one of its worker threads still goes
+  to `Errors`, and now also to Bold's log with its call stack (#130). A
+  thread's exception never reaches the global exception handler: the RTL
+  keeps it in the thread's `FatalException`.
 - The model editor's clients write their exceptions with call stacks to a log
   file next to the program (#130), now through `BoldExceptionLogLCL` and
   `BoldExceptionLogFMX`; `TdmModelEditor.StartLogFile` and `LogException` are

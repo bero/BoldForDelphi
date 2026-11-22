@@ -115,6 +115,7 @@ uses
 
   BoldPMappers,
   BoldLogHandler,
+  BoldExceptionTrace,
   BoldNameExpander,
   BoldDefs,
   BoldCoreConsts,
@@ -570,9 +571,13 @@ begin
       end;
     except
       // An exception leaving Execute would only reach FatalException, which
-      // nothing reads - report it with the run instead.
+      // nothing reads - report it with the run instead, and to Bold's log
+      // with its call stack, which is gone once this block ends (#130).
       on E: Exception do
+      begin
         AddError(Format('%s: %s', [E.ClassName, E.Message]));
+        BoldLogException(E, ClassName + '.Execute');
+      end;
     end;
   finally
     BoldCoUninitialize;

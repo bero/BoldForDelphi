@@ -64,6 +64,13 @@ type
     [Category('DB')]
     {$ENDIF}
     procedure TestWorkerExceptionIsLoggedAsError;
+    // A worker's exception goes to Bold's log (BoldLogManager, where the
+    // exception log of BoldExceptionLog writes) with its call stack, which is
+    // gone once the thread's except block ends (#130)
+    {$IFNDEF FPC}
+    [Category('DB')]
+    {$ENDIF}
+    procedure TestWorkerExceptionGoesToBoldsLogWithItsCallStack;
     {$IFNDEF FPC}
     [Category('DB')]
     {$ENDIF}
@@ -94,6 +101,10 @@ uses
   StrUtils,
   BoldDefs,
   BoldCoreConsts,
+  // Before BoldLogHandler: BoldLogInterfaces has a BoldLog of its own, and
+  // this unit uses BoldLogHandler's
+  BoldLogInterfaces,
+  BoldLogSinks,
   BoldLogHandler,
   BoldLogReceiverInterface,
   BoldSystem,
@@ -801,6 +812,48 @@ begin
       Validator.Errors[0]);
   finally
     Validator.Free;
+  end;
+end;
+
+procedure TTestBoldDbValidatorEndToEnd.TestWorkerExceptionGoesToBoldsLogWithItsCallStack;
+var
+  Validator: TRaisingDbValidator;
+  Memory: TBoldMemoryLogSink;
+  MemoryRef: IBoldLogSink;
+  Waited: Integer;
+  Logged: string;
+begin
+  TRaisingValidatorThread.Reset;
+  Memory := TBoldMemoryLogSink.Create;
+  MemoryRef := Memory;
+  BoldLogManager.RegisterSink(MemoryRef);
+  Validator := TRaisingDbValidator.Create(nil);
+  try
+    Validator.PersistenceHandle := dmUndoRedo.BoldPersistenceHandleDB2;
+    Validator.ThreadCount := 1;
+    Validator.OnComplete := HandleComplete;
+    Validator.Execute;
+    Assert.AreEqual(Ord(wrSignaled), Ord(FDone.WaitFor(10000)),
+      'the validator must complete and call OnComplete');
+    Waited := 0;
+    while (TRaisingValidatorThread.InstanceCount > 0) and (Waited < 5000) do
+    begin
+      Sleep(50);
+      Inc(Waited, 50);
+    end;
+    Logged := Memory.Lines.Text;
+    Assert.Contains(Logged, 'EBold: boom', 'the class and the message in Bold''s log: ' + Logged);
+    {$IFDEF FPC}
+    // Free Pascal's frames of the worker thread, with the file of the raising
+    // routine (the test program has -gl); the context line has no file
+    Assert.Contains(Logged, 'Test.BoldDbValidator.pas', 'the frame of the raising routine: ' + Logged);
+    {$ELSE}
+    // The test program has no stack-trace provider
+    Assert.Contains(Logged, 'Raised at $', 'where it was raised: ' + Logged);
+    {$ENDIF}
+  finally
+    Validator.Free;
+    BoldLogManager.UnregisterSink(MemoryRef);
   end;
 end;
 
