@@ -238,6 +238,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldFileLogSink` on Linux and macOS (#130): Delphi could not open a log
+  file that already existed (a read lock on a file opened for writing), so a
+  program logged only on the run that created the file; with Free Pascal two
+  processes could open the same file and overwrite each other's entries. The
+  file is now locked exclusively there (readers take no lock, so they still
+  read it); on Windows others can still read it while it is written.
 - `TBoldDataSet` moved its handle's current element with every row while the
   dataset was read with the controls disabled, as LiveBindings reads it to fill
   an FMX grid, so the handles rooted on it followed every row (#128). With a

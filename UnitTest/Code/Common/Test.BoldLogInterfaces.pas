@@ -1,4 +1,4 @@
-unit Test.BoldLogInterfaces;
+﻿unit Test.BoldLogInterfaces;
 
 interface
 
@@ -13,6 +13,7 @@ type
   private
     FTempDir: string;
     function GetTempLogFile(const Suffix: string): string;
+    function UnreachableLogFile: string;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -28,6 +29,14 @@ type
     procedure TestLogLevelMethods;
     procedure TestGlobalBoldLogProcedure;
     procedure TestMemorySinkMaxLines;
+    // The next run of the program adds to the file the last run left
+    procedure TestFileSinkAppendsToAnExistingFile;
+    // A file sink with several files writes to the first that opens (#130)
+    procedure TestFileSinkPassesOverAFolderThatCannotBeCreated;
+    // A file another sink holds, as another instance of the program does
+    procedure TestFileSinkPassesOverAFileAnotherSinkHolds;
+    procedure TestFileSinkRaisesWhenNoFileOpens;
+    procedure TestFileSinkNeedsAFileName;
   end;
 
 implementation
@@ -55,6 +64,16 @@ end;
 function TTestBoldLogInterfaces.GetTempLogFile(const Suffix: string): string;
 begin
   Result := IncludeTrailingPathDelimiter(FTempDir) + ('test_' + Suffix + '.log');
+end;
+
+{ A log file whose folder cannot be created: the folder would be under a file }
+function TTestBoldLogInterfaces.UnreachableLogFile: string;
+var
+  Blocker: string;
+begin
+  Blocker := GetTempLogFile('blocker');
+  TFileStream.Create(Blocker, fmCreate).Free;
+  Result := Blocker + PathDelim + 'folder' + PathDelim + 'test_unreachable.log';
 end;
 
 procedure TTestBoldLogInterfaces.TestLogManagerSingleton;
@@ -166,6 +185,95 @@ begin
 
   Content := BoldTestReadAllText(LogFile);
   Assert.Contains(Content, 'File log entry');
+end;
+
+procedure TTestBoldLogInterfaces.TestFileSinkAppendsToAnExistingFile;
+var
+  LogFile: string;
+  Sink: IBoldLogSink;
+  Content: string;
+begin
+  LogFile := GetTempLogFile('existing');
+  Sink := TBoldFileLogSink.Create(LogFile);
+  Sink.WriteLog('First run', llInfo, Now, 0);
+  Sink := nil;
+  Sink := TBoldFileLogSink.Create(LogFile);
+  Sink.WriteLog('Second run', llInfo, Now, 0);
+  Sink := nil;
+  Content := BoldTestReadAllText(LogFile);
+  Assert.Contains(Content, 'First run');
+  Assert.Contains(Content, 'Second run');
+end;
+
+procedure TTestBoldLogInterfaces.TestFileSinkPassesOverAFolderThatCannotBeCreated;
+var
+  Unreachable, LogFile: string;
+  Sink: TBoldFileLogSink;
+  SinkRef: IBoldLogSink;
+begin
+  Unreachable := UnreachableLogFile;
+  LogFile := GetTempLogFile('reachable');
+  Sink := TBoldFileLogSink.Create([Unreachable, LogFile]);
+  SinkRef := Sink;
+  Assert.AreEqual(Unreachable, Sink.FileName, 'the first file before the first entry');
+  SinkRef.WriteLog('Entry', llInfo, Now, 0);
+  Assert.AreEqual(LogFile, Sink.FileName, 'the file it writes to');
+  SinkRef := nil;
+  Assert.Contains(BoldTestReadAllText(LogFile), 'Entry');
+end;
+
+procedure TTestBoldLogInterfaces.TestFileSinkPassesOverAFileAnotherSinkHolds;
+var
+  First, Second: string;
+  Holder, Sink: TBoldFileLogSink;
+  HolderRef, SinkRef: IBoldLogSink;
+begin
+  First := GetTempLogFile('program');
+  Second := GetTempLogFile('program-2');
+  // The first instance of the program writes to the first file and keeps it
+  // open
+  Holder := TBoldFileLogSink.Create([First, Second]);
+  HolderRef := Holder;
+  HolderRef.WriteLog('First instance', llInfo, Now, 0);
+  Sink := TBoldFileLogSink.Create([First, Second]);
+  SinkRef := Sink;
+  SinkRef.WriteLog('Second instance', llInfo, Now, 0);
+  Assert.AreEqual(First, Holder.FileName, 'the first instance''s file');
+  Assert.AreEqual(Second, Sink.FileName, 'the second instance''s file');
+  HolderRef := nil;
+  SinkRef := nil;
+  Assert.IsFalse(Pos('Second instance', BoldTestReadAllText(First)) > 0,
+    'the second instance did not write to the first file: ' + BoldTestReadAllText(First));
+  Assert.Contains(BoldTestReadAllText(Second), 'Second instance');
+end;
+
+procedure TTestBoldLogInterfaces.TestFileSinkRaisesWhenNoFileOpens;
+var
+  Sink: IBoldLogSink;
+  Raised: Boolean;
+begin
+  Sink := TBoldFileLogSink.Create([UnreachableLogFile]);
+  Raised := False;
+  try
+    Sink.WriteLog('Entry', llInfo, Now, 0);
+  except
+    Raised := True;
+  end;
+  Assert.IsTrue(Raised, 'no file could be opened, and the entry was not written');
+end;
+
+procedure TTestBoldLogInterfaces.TestFileSinkNeedsAFileName;
+var
+  Raised: string;
+begin
+  Raised := '';
+  try
+    TBoldFileLogSink.Create([]).Free;
+  except
+    on E: Exception do
+      Raised := E.ClassName;
+  end;
+  Assert.AreEqual('EArgumentException', Raised, 'a file sink without a file');
 end;
 
 procedure TTestBoldLogInterfaces.TestLogLevelMethods;
