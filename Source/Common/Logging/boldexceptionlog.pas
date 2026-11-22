@@ -15,9 +15,13 @@ unit BoldExceptionLog;
   - The RTL's last-resort handler (System.ExceptProc): an exception that no
     handler takes (in the program's main block, in a console program) goes
     to the log with its call stack, then the handler that was there reports
-    it and the program ends. One raised in a unit's initialization is logged
-    under Free Pascal only: Delphi finalizes the units, this one among them,
-    before it reports it.
+    it and the program ends.
+  - An exception raised in the initialization or the finalization of a unit
+    initialized after this one: Free Pascal hands it to the last-resort
+    handler. Delphi finalizes the (remaining) units first and then reports
+    only "Runtime error 217 at <address>"; it is still in flight while this
+    unit is finalized, which logs it with its class, message and call stack
+    then.
 
   A GUI program names BoldExceptionLogVCL, BoldExceptionLogFMX or
   BoldExceptionLogLCL instead. Each names this unit and also logs the
@@ -110,6 +114,8 @@ uses
 
 resourcestring
   sUnhandled = '%s: an exception that no handler took; the program ends';
+  sEndsDuringException = '%s: the program ends during an exception that no handler logged ' +
+    '(raised in a unit''s initialization or finalization, or handled by a block that called Halt)';
 
 var
   GFileSink: TBoldFileLogSink;
@@ -229,6 +235,10 @@ end;
 
 { The last-resort handler }
 
+var
+  // The last-resort handler has logged an exception: the program ends with it
+  GUnhandledLogged: Boolean;
+
 procedure BoldLogUnhandledException(AObject: TObject; AAddress: Pointer;
   AFrameCount: Integer; AFrames: Pointer);
 begin
@@ -248,6 +258,7 @@ var
 procedure LogUnhandledException(Obj: TObject; Addr: CodePointer; FrameCount: Longint;
   Frames: PCodePointer);
 begin
+  GUnhandledLogged := True;
   BoldLogUnhandledException(Obj, Addr, FrameCount, Frames);
   if Assigned(GPreviousExceptProc) then
     GPreviousExceptProc(Obj, Addr, FrameCount, Frames);
@@ -274,6 +285,7 @@ var
 
 procedure LogUnhandledException(Obj: TObject; Addr: Pointer);
 begin
+  GUnhandledLogged := True;
   BoldLogUnhandledException(Obj, Addr, 0, nil);
   if Assigned(GPreviousExceptProc) then
     TBoldExceptProc(GPreviousExceptProc)(Obj, Addr);
@@ -292,6 +304,26 @@ begin
 end;
 {$ENDIF}
 
+{ An exception in flight while this unit is finalized, which the last-resort
+  handler has not logged: under Delphi one raised in the initialization or
+  the finalization of a unit after this one (InitUnits and FinalizeUnits
+  finalize the remaining units before they reraise it), or one handled by a
+  block that called Halt }
+procedure LogTheExceptionInFlight;
+begin
+  if GUnhandledLogged or (ExceptObject = nil) then
+    Exit;
+  try
+    BoldLogManager.Error(Format(sEndsDuringException, [ExtractFileName(ParamStr(0))]) + sLineBreak +
+      {$IFDEF FPC}
+      BoldUnhandledExceptionReport(ExceptObject, ExceptAddr, ExceptFrameCount, ExceptFrames));
+      {$ELSE}
+      BoldUnhandledExceptionReport(ExceptObject, ExceptAddr, 0, nil));
+      {$ENDIF}
+  except
+  end;
+end;
+
 initialization
   GFileSink := TBoldFileLogSink.Create(BoldExceptionLogFileNames);
   GSink := GFileSink;
@@ -299,6 +331,7 @@ initialization
   InstallExceptProc;
 
 finalization
+  LogTheExceptionInFlight;
   UninstallExceptProc;
   BoldLogManager.UnregisterSink(GSink);
   GSink := nil;

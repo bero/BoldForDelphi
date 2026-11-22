@@ -367,9 +367,14 @@ What it does from its initialization on:
   the unit takes the handler over when the message loop starts.
 - **The last resort.** An exception that no handler takes (in the program's main block, in a console
   program) goes to the log through the RTL's last-resort handler (`System.ExceptProc`) with its call
-  stack; then the handler that was there reports it and the program ends. One raised in a unit's
-  initialization is logged under Free Pascal only: Delphi finalizes the units, `BoldExceptionLog` among
-  them, before it reports such an exception.
+  stack; then the handler that was there reports it and the program ends.
+- **A unit's initialization or finalization.** An exception raised in the initialization or the
+  finalization of a unit initialized after `BoldExceptionLog` goes to the log as well. Free Pascal hands
+  it to the last-resort handler. Delphi finalizes the (remaining) units first and then reports only
+  `Runtime error 217 at <address>` (Win64 then ends with an access violation); the exception is still in
+  flight while `BoldExceptionLog` is finalized, which logs it then, so the log has its class, message and
+  call stack. An exception in a unit initialized before it (the RTL, the stack-trace provider, the units
+  it uses) cannot be logged: name the unit right after the provider.
 
 Not covered: an exception that ends a thread. The RTL keeps it in the thread's `FatalException` and calls no
 handler, and Free Pascal's frames are gone once the thread's `except` block ends, so a thread logs it in its

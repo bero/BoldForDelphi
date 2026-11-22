@@ -25,7 +25,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   program sets in `Application.OnException` at start-up is called instead of
   the dialog. An exception that no handler takes (the program's main block, a
   console program) is logged by the RTL's last-resort handler
-  (`System.ExceptProc`) before the program ends. The log file is
+  (`System.ExceptProc`) before the program ends; so is one raised in the
+  initialization or the finalization of a unit after it, which Delphi itself
+  reports only as `Runtime error 217 at <address>`. The log file is
   `<program>.log` next to the program, `<program>-<process id>.log` when
   another instance holds that file, and the same two in the user's folder for
   logs when the program's folder cannot be written. `TBoldFileLogSink` takes

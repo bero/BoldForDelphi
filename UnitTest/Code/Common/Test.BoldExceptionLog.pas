@@ -10,9 +10,13 @@ unit Test.BoldExceptionLog;
   The last-resort handler is tried out of process: the test starts this test
   program again with cChildSwitch, its main block calls
   BoldExceptionLogRunChildWhenAsked first, which raises, and the test reads
-  the child's log, its output and its exit code. Raising in a unit's
-  initialization would not do: Delphi finalizes the units, BoldExceptionLog
-  among them, before it reports such an exception.
+  the child's log, its output and its exit code. With cChildInitSwitch the
+  child raises in the initialization of this unit instead, which comes after
+  BoldExceptionLog's, and with cChildFinalSwitch it ends its main block and
+  raises in the finalization of this unit, which comes before
+  BoldExceptionLog's: Free Pascal hands those exceptions to the last-resort
+  handler, Delphi finalizes the (remaining) units first and BoldExceptionLog
+  logs them then.
 
   This unit switches the exception log's own file off in the test programs:
   the tests that write to Bold's log would otherwise leave a log next to the
@@ -26,6 +30,12 @@ uses
 
 type
   EBoldExceptionLogTest = class(Exception);
+  // The exceptions of the children that raise in a unit's initialization and
+  // finalization (found by the VM's check_memory). Their classes name them;
+  // they have no message, so they own no string that FastMM4 would report:
+  // Delphi finalizes FastMM4 while they are still in flight
+  EBoldExceptionLogInitTest = class(Exception);
+  EBoldExceptionLogFinalTest = class(Exception);
 
   {$IFNDEF FPC}
   [Category('Common')]
@@ -57,6 +67,12 @@ type
     // Out of process: while this process holds the program's log, a second
     // process writes to <program>-<process id>.log
     procedure TestASecondProcessWritesItsOwnLog;
+    // Out of process: an exception in the initialization of a unit after
+    // BoldExceptionLog goes to the log, then the RTL reports it
+    procedure TestAnExceptionInAUnitsInitializationGoesToTheLog;
+    // Out of process: an exception in the finalization of a unit finalized
+    // before BoldExceptionLog goes to the log, then the RTL reports it
+    procedure TestAnExceptionInAUnitsFinalizationGoesToTheLog;
   end;
 
 { The test program's main block calls this first. Started with cChildSwitch
@@ -88,6 +104,8 @@ const
   cMessage = 'raised in the message loop';
   cChildSwitch = '--bold-exception-log-child';
   cChildMessage = 'raised in the main block of the child';
+  cChildInitSwitch = '--bold-exception-log-child-init';
+  cChildFinalSwitch = '--bold-exception-log-child-final';
   // How long the child may take
   cChildTimeout = 60000;
 
@@ -259,31 +277,86 @@ begin
   E := EBoldExceptionLogTest.Create(cChildMessage);
   {$IFNDEF FPC}
   {$IFDEF MSWINDOWS}
-  // The program ends without freeing it: FastMM4's leak report
-  // (check_memory.ps1, Windows) is told so. The message is a literal, no
-  // copy. Delphi declares RegisterExpectedMemoryLeak on Windows only
+  // In case the program ends before it is freed: FastMM4's leak report
+  // (check_memory.ps1, Windows) is told so. Delphi declares
+  // RegisterExpectedMemoryLeak on Windows only
   RegisterExpectedMemoryLeak(E);
   {$ENDIF}
   {$ENDIF}
   raise E;
 end;
 
+procedure RaiseInTheChildsInitialization;
+var
+  E: EBoldExceptionLogInitTest;
+begin
+  E := EBoldExceptionLogInitTest.Create('');
+  {$IFNDEF FPC}
+  {$IFDEF MSWINDOWS}
+  // Delphi Win64 ends this program with an access violation after its
+  // runtime error 217: no Windows Error Reporting dialog that would hold the
+  // child in a desktop session
+  SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOGPFAULTERRORBOX);
+  RegisterExpectedMemoryLeak(E);
+  {$ENDIF}
+  {$ENDIF}
+  raise E;
+end;
+
+procedure RaiseInTheChildsFinalization;
+var
+  E: EBoldExceptionLogFinalTest;
+begin
+  E := EBoldExceptionLogFinalTest.Create('');
+  {$IFNDEF FPC}
+  {$IFDEF MSWINDOWS}
+  // As in RaiseInTheChildsInitialization
+  SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOGPFAULTERRORBOX);
+  RegisterExpectedMemoryLeak(E);
+  {$ENDIF}
+  {$ENDIF}
+  raise E;
+end;
+
+var
+  // Started with cChildFinalSwitch: this unit's finalization raises
+  RaiseInFinalization: Boolean = False;
+
+{ Started with cChildFinalSwitch: switches the log file on and has this unit's
+  finalization raise. A routine of its own, so that the temporaries of
+  ParamStr and BoldExceptionLogSink are released before the caller calls
+  Halt, which skips the end of the routine it is called in: an interface
+  reference left there keeps the exception log's sink alive after its unit is
+  finalized, which FastMM4 reports as leaks }
+function PrepareTheFinalizationChild: Boolean;
+begin
+  Result := ParamStr(1) = cChildFinalSwitch;
+  if Result then
+  begin
+    BoldExceptionLogSink.Enabled := True;
+    RaiseInFinalization := True;
+  end;
+end;
+
 procedure BoldExceptionLogRunChildWhenAsked;
 begin
+  if PrepareTheFinalizationChild then
+    // The units are finalized; this one raises
+    Halt(0);
   if ParamStr(1) <> cChildSwitch then
     Exit;
   BoldExceptionLogSink.Enabled := True;
   RaiseInTheChild;
 end;
 
-{ Starts this test program with cChildSwitch and waits for it: its exit code,
-  and in AOutput what it wrote to standard output and standard error }
-function RunTheChild(out AOutput: string): Integer;
+{ Starts this test program with ASwitch and waits for it: its exit code, and
+  in AOutput what it wrote to standard output and standard error }
+function RunTheChild(const ASwitch: string; out AOutput: string): Integer;
 {$IFDEF FPC}
 var
   Captured: AnsiString;
 begin
-  RunCommandIndir('', AnsiString(ParamStr(0)), [cChildSwitch], Captured, Result, [poStderrToOutPut]);
+  RunCommandIndir('', AnsiString(ParamStr(0)), [AnsiString(ASwitch)], Captured, Result, [poStderrToOutPut]);
   {$IFDEF UNIX}
   // The wait status, of which the exit code is the second byte (WEXITSTATUS)
   Result := (Result shr 8) and $FF;
@@ -315,7 +388,7 @@ begin
     Startup.hStdInput := GetStdHandle(STD_INPUT_HANDLE);
     Startup.hStdOutput := OutputHandle;
     Startup.hStdError := OutputHandle;
-    CommandLine := '"' + ParamStr(0) + '" ' + cChildSwitch;
+    CommandLine := '"' + ParamStr(0) + '" ' + ASwitch;
     UniqueString(CommandLine);
     if not CreateProcess(nil, PChar(CommandLine), nil, nil, True, CREATE_NO_WINDOW, nil, nil, Startup, Info) then
       RaiseLastOSError;
@@ -343,7 +416,7 @@ var
   Status: Integer;
 begin
   OutputFile := BoldTestTempFileName('.txt');
-  Status := _system(MarshaledAString(UTF8String('"' + ParamStr(0) + '" ' + cChildSwitch +
+  Status := _system(MarshaledAString(UTF8String('"' + ParamStr(0) + '" ' + ASwitch +
     ' > "' + OutputFile + '" 2>&1')));
   // WEXITSTATUS
   Result := (Status shr 8) and $FF;
@@ -370,6 +443,24 @@ begin
     until FindNext(Found) <> 0;
   finally
     SysUtils.FindClose(Found);
+  end;
+end;
+
+{ How many entries of Bold's log AText has: each starts with its level }
+function EntriesIn(const AText: string): Integer;
+var
+  Lines: TStringList;
+  i: Integer;
+begin
+  Result := 0;
+  Lines := TStringList.Create;
+  try
+    Lines.Text := AText;
+    for i := 0 to Lines.Count - 1 do
+      if Pos('[ERROR]', Lines[i]) > 0 then
+        Inc(Result);
+  finally
+    Lines.Free;
   end;
 end;
 
@@ -605,10 +696,12 @@ begin
     Assert.Pass('only in a console test program');
   DeleteTheChildLogs;
   try
-    Code := RunTheChild(Output);
+    Code := RunTheChild(cChildSwitch, Output);
     Log := TextIfThere(BoldExceptionLogFileNames[0]);
     Assert.Contains(Log, 'no handler took', 'the child''s log; its output: ' + Output);
     Assert.Contains(Log, 'EBoldExceptionLogTest: ' + cChildMessage, 'the class and the message');
+    // Once: the finalization does not log it again
+    Assert.AreEqual(1, EntriesIn(Log), 'one entry: ' + Log);
     {$IFDEF FPC}
     Assert.Contains(UpperCase(Log), 'RAISEINTHECHILD', 'the frames Free Pascal gives ExceptProc: ' + Log);
     // Then SysUtils' handler, which was there before: it reports the
@@ -640,7 +733,7 @@ begin
     // This process holds the program's log, as a first instance does
     Holder := TBoldFileLogSink.Create([BoldExceptionLogFileNames[0]]);
     Holder.WriteLog('the first instance', llInfo, Now, 0);
-    RunTheChild(Output);
+    RunTheChild(cChildSwitch, Output);
     SecondLog := TheSecondProcessesLog;
     Assert.IsTrue(SecondLog <> '', 'a log <program>-<process id>.log; the child''s output: ' + Output);
     Assert.Contains(TextIfThere(SecondLog), cChildMessage, 'the second process''s exception in it');
@@ -653,8 +746,83 @@ begin
   end;
 end;
 
+procedure TTestBoldExceptionLog.TestAnExceptionInAUnitsInitializationGoesToTheLog;
+var
+  Output, Log: string;
+  Code: Integer;
+begin
+  if not IsConsole then
+    Assert.Pass('only in a console test program');
+  DeleteTheChildLogs;
+  try
+    Code := RunTheChild(cChildInitSwitch, Output);
+    Log := TextIfThere(BoldExceptionLogFileNames[0]);
+    Assert.Contains(Log, 'EBoldExceptionLogInitTest: ',
+      'the class in the child''s log: ' + Log + '; its output: ' + Output);
+    Assert.AreEqual(1, EntriesIn(Log), 'one entry: ' + Log);
+    Assert.IsTrue(Code <> 0, 'the program ended with an error: ' + IntToStr(Code));
+    {$IFDEF FPC}
+    // The last-resort handler, with the frames
+    Assert.Contains(Log, 'no handler took', 'the last-resort handler');
+    Assert.Contains(UpperCase(Log), 'RAISEINTHECHILDSINITIALIZATION', 'the frames: ' + Log);
+    Assert.Contains(Output, 'An unhandled exception occurred', 'the RTL''s report: ' + Output);
+    {$ELSE}
+    // Logged while the units are finalized; then Delphi's own report, which
+    // has neither the class nor the message
+    Assert.Contains(Log, 'the program ends during an exception', 'logged while the units are finalized');
+    Assert.Contains(Log, 'Raised at $', 'where it was raised: ' + Log);
+    Assert.Contains(Output, 'Runtime error 217', 'Delphi''s report: ' + Output);
+    {$ENDIF}
+  finally
+    DeleteTheChildLogs;
+  end;
+end;
+
+procedure TTestBoldExceptionLog.TestAnExceptionInAUnitsFinalizationGoesToTheLog;
+var
+  Output, Log: string;
+  Code: Integer;
+begin
+  if not IsConsole then
+    Assert.Pass('only in a console test program');
+  DeleteTheChildLogs;
+  try
+    Code := RunTheChild(cChildFinalSwitch, Output);
+    Log := TextIfThere(BoldExceptionLogFileNames[0]);
+    Assert.Contains(Log, 'EBoldExceptionLogFinalTest: ',
+      'the class in the child''s log: ' + Log + '; its output: ' + Output);
+    Assert.AreEqual(1, EntriesIn(Log), 'one entry: ' + Log);
+    Assert.IsTrue(Code <> 0, 'the program ended with an error: ' + IntToStr(Code));
+    {$IFDEF FPC}
+    // The last-resort handler, with the frames
+    Assert.Contains(Log, 'no handler took', 'the last-resort handler');
+    Assert.Contains(UpperCase(Log), 'RAISEINTHECHILDSFINALIZATION', 'the frames: ' + Log);
+    Assert.Contains(Output, 'An unhandled exception occurred', 'the RTL''s report: ' + Output);
+    {$ELSE}
+    // Logged while the remaining units are finalized. What Delphi reports
+    // then is not checked: its FinalizeUnits finalizes the remaining units
+    // in its except block, and in this test program one of them fails there,
+    // with or without the exception log (Runtime error 216 on Win32, an
+    // access violation without a report on Win64)
+    Assert.Contains(Log, 'initialization or finalization', 'logged while the units are finalized: ' + Log);
+    Assert.Contains(Log, 'Raised at $', 'where it was raised: ' + Log);
+    {$ENDIF}
+  finally
+    DeleteTheChildLogs;
+  end;
+end;
+
 initialization
+  // Started by TestAnExceptionInAUnitsInitializationGoesToTheLog: the log file
+  // stays on, and the units after this one are never initialized
+  if ParamStr(1) = cChildInitSwitch then
+    RaiseInTheChildsInitialization;
   BoldExceptionLogSink.Enabled := False;
   BoldRegisterTest(TTestBoldExceptionLog);
+
+finalization
+  // Started by TestAnExceptionInAUnitsFinalizationGoesToTheLog
+  if RaiseInFinalization then
+    RaiseInTheChildsFinalization;
 
 end.
