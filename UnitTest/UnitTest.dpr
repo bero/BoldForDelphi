@@ -175,5 +175,7 @@ uses
 {$R *.res}
 
 begin
+  // Started by the out-of-process tests of the exception log: raises here
+  BoldExceptionLogRunChildWhenAsked;
   RunTests;
 end.

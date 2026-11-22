@@ -7,6 +7,13 @@ unit Test.BoldExceptionLog;
   BoldExceptionLogLCL install. The hook is tried with a stand-in for the
   application, so these tests need no GUI framework.
 
+  The last-resort handler is tried out of process: the test starts this test
+  program again with cChildSwitch, its main block calls
+  BoldExceptionLogRunChildWhenAsked first, which raises, and the test reads
+  the child's log, its output and its exit code. Raising in a unit's
+  initialization would not do: Delphi finalizes the units, BoldExceptionLog
+  among them, before it reports such an exception.
+
   This unit switches the exception log's own file off in the test programs:
   the tests that write to Bold's log would otherwise leave a log next to the
   test program. }
@@ -43,12 +50,35 @@ type
     // The second hook comes from the application's queue, after the start-up
     procedure TestTheHookIsRepeatedAfterStartUp;
     procedure TestUnhookTakesBackTheQueuedHook;
+    // Out of process: an exception in the main block goes to the log through
+    // the installed last-resort handler, then the handler that was there
+    // reports it and ends the program
+    procedure TestAnExceptionInTheMainBlockGoesToTheLog;
+    // Out of process: while this process holds the program's log, a second
+    // process writes to <program>-<process id>.log
+    procedure TestASecondProcessWritesItsOwnLog;
   end;
+
+{ The test program's main block calls this first. Started with cChildSwitch
+  (by the two out-of-process tests), it switches the exception log's file on
+  and raises; the RTL's last-resort handler ends the program. Otherwise it
+  does nothing }
+procedure BoldExceptionLogRunChildWhenAsked;
 
 implementation
 
 uses
   Classes,
+  {$IFDEF FPC}
+  process,
+  {$ELSE}
+  {$IFDEF MSWINDOWS}
+  Windows,
+  {$ELSE}
+  Posix.Stdlib,
+  Posix.Unistd, // SysUtils.DeleteFile is inlined from it (H2443 without)
+  {$ENDIF}
+  {$ENDIF}
   BoldLogInterfaces,
   BoldLogSinks,
   BoldPlatform,
@@ -56,6 +86,10 @@ uses
 
 const
   cMessage = 'raised in the message loop';
+  cChildSwitch = '--bold-exception-log-child';
+  cChildMessage = 'raised in the main block of the child';
+  // How long the child may take
+  cChildTimeout = 60000;
 
 type
   { Stands in for VCL's, FMX's or the LCL's Application }
@@ -216,6 +250,150 @@ begin
   for i := 0 to Log.Lines.Count - 1 do
     if Pos('EBoldExceptionLogTest: ' + cMessage, Log.Lines[i]) > 0 then
       Inc(Result);
+end;
+
+procedure RaiseInTheChild;
+var
+  E: EBoldExceptionLogTest;
+begin
+  E := EBoldExceptionLogTest.Create(cChildMessage);
+  {$IFNDEF FPC}
+  {$IFDEF MSWINDOWS}
+  // The program ends without freeing it: FastMM4's leak report
+  // (check_memory.ps1, Windows) is told so. The message is a literal, no
+  // copy. Delphi declares RegisterExpectedMemoryLeak on Windows only
+  RegisterExpectedMemoryLeak(E);
+  {$ENDIF}
+  {$ENDIF}
+  raise E;
+end;
+
+procedure BoldExceptionLogRunChildWhenAsked;
+begin
+  if ParamStr(1) <> cChildSwitch then
+    Exit;
+  BoldExceptionLogSink.Enabled := True;
+  RaiseInTheChild;
+end;
+
+{ Starts this test program with cChildSwitch and waits for it: its exit code,
+  and in AOutput what it wrote to standard output and standard error }
+function RunTheChild(out AOutput: string): Integer;
+{$IFDEF FPC}
+var
+  Captured: AnsiString;
+begin
+  RunCommandIndir('', AnsiString(ParamStr(0)), [cChildSwitch], Captured, Result, [poStderrToOutPut]);
+  {$IFDEF UNIX}
+  // The wait status, of which the exit code is the second byte (WEXITSTATUS)
+  Result := (Result shr 8) and $FF;
+  {$ENDIF}
+  AOutput := string(Captured);
+end;
+{$ELSE}
+{$IFDEF MSWINDOWS}
+var
+  OutputFile, CommandLine: string;
+  Security: TSecurityAttributes;
+  OutputHandle: THandle;
+  Startup: TStartupInfo;
+  Info: TProcessInformation;
+  Code: DWORD;
+begin
+  OutputFile := BoldTestTempFileName('.txt');
+  Security.nLength := SizeOf(Security);
+  Security.lpSecurityDescriptor := nil;
+  Security.bInheritHandle := True;
+  OutputHandle := CreateFile(PChar(OutputFile), GENERIC_WRITE, FILE_SHARE_READ, @Security,
+    CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+  if OutputHandle = INVALID_HANDLE_VALUE then
+    RaiseLastOSError;
+  try
+    FillChar(Startup, SizeOf(Startup), 0);
+    Startup.cb := SizeOf(Startup);
+    Startup.dwFlags := STARTF_USESTDHANDLES;
+    Startup.hStdInput := GetStdHandle(STD_INPUT_HANDLE);
+    Startup.hStdOutput := OutputHandle;
+    Startup.hStdError := OutputHandle;
+    CommandLine := '"' + ParamStr(0) + '" ' + cChildSwitch;
+    UniqueString(CommandLine);
+    if not CreateProcess(nil, PChar(CommandLine), nil, nil, True, CREATE_NO_WINDOW, nil, nil, Startup, Info) then
+      RaiseLastOSError;
+    try
+      if WaitForSingleObject(Info.hProcess, cChildTimeout) <> WAIT_OBJECT_0 then
+      begin
+        TerminateProcess(Info.hProcess, 1);
+        raise Exception.Create('the child did not end');
+      end;
+      GetExitCodeProcess(Info.hProcess, Code);
+      Result := Integer(Code);
+    finally
+      CloseHandle(Info.hThread);
+      CloseHandle(Info.hProcess);
+    end;
+  finally
+    CloseHandle(OutputHandle);
+  end;
+  AOutput := BoldTestReadAllText(OutputFile);
+  SysUtils.DeleteFile(OutputFile);
+end;
+{$ELSE}
+var
+  OutputFile: string;
+  Status: Integer;
+begin
+  OutputFile := BoldTestTempFileName('.txt');
+  Status := _system(MarshaledAString(UTF8String('"' + ParamStr(0) + '" ' + cChildSwitch +
+    ' > "' + OutputFile + '" 2>&1')));
+  // WEXITSTATUS
+  Result := (Status shr 8) and $FF;
+  AOutput := BoldTestReadAllText(OutputFile);
+  SysUtils.DeleteFile(OutputFile);
+end;
+{$ENDIF}
+{$ENDIF}
+
+{ The program's log files that a child may leave next to this program:
+  <program>.log and <program>-<process id>.log. SysUtils' routines are named:
+  the Windows unit has a DeleteFile and a FindClose of its own }
+procedure DeleteTheChildLogs;
+var
+  Found: TSearchRec;
+  Folder: string;
+begin
+  Folder := ExtractFilePath(ExpandFileName(ParamStr(0)));
+  SysUtils.DeleteFile(ChangeFileExt(ExpandFileName(ParamStr(0)), '.log'));
+  if FindFirst(ChangeFileExt(ExpandFileName(ParamStr(0)), '') + '-*.log', faAnyFile, Found) = 0 then
+  try
+    repeat
+      SysUtils.DeleteFile(Folder + Found.Name);
+    until FindNext(Found) <> 0;
+  finally
+    SysUtils.FindClose(Found);
+  end;
+end;
+
+{ The text of AFileName; empty when there is no such file }
+function TextIfThere(const AFileName: string): string;
+begin
+  if FileExists(AFileName) then
+    Result := BoldTestReadAllText(AFileName)
+  else
+    Result := '';
+end;
+
+{ The log a second process wrote: <program>-<its process id>.log }
+function TheSecondProcessesLog: string;
+var
+  Found: TSearchRec;
+begin
+  Result := '';
+  if FindFirst(ChangeFileExt(ExpandFileName(ParamStr(0)), '') + '-*.log', faAnyFile, Found) = 0 then
+  try
+    Result := ExtractFilePath(ExpandFileName(ParamStr(0))) + Found.Name;
+  finally
+    SysUtils.FindClose(Found);
+  end;
 end;
 
 function Joined(const ANames: TArray<string>): string;
@@ -414,6 +592,64 @@ begin
     Assert.IsFalse(Assigned(Scene.Application.OnException), 'no handler set');
   finally
     Scene.Free;
+  end;
+end;
+
+procedure TTestBoldExceptionLog.TestAnExceptionInTheMainBlockGoesToTheLog;
+var
+  Output, Log: string;
+  Code: Integer;
+begin
+  // A GUI test program has no main block that knows cChildSwitch
+  if not IsConsole then
+    Assert.Pass('only in a console test program');
+  DeleteTheChildLogs;
+  try
+    Code := RunTheChild(Output);
+    Log := TextIfThere(BoldExceptionLogFileNames[0]);
+    Assert.Contains(Log, 'no handler took', 'the child''s log; its output: ' + Output);
+    Assert.Contains(Log, 'EBoldExceptionLogTest: ' + cChildMessage, 'the class and the message');
+    {$IFDEF FPC}
+    Assert.Contains(UpperCase(Log), 'RAISEINTHECHILD', 'the frames Free Pascal gives ExceptProc: ' + Log);
+    // Then SysUtils' handler, which was there before: it reports the
+    // exception, and the RTL ends the program with 217
+    Assert.Contains(Output, 'An unhandled exception occurred', 'the RTL''s report: ' + Output);
+    Assert.AreEqual(217, Code, 'the exit code');
+    {$ELSE}
+    // The test program has no stack-trace provider
+    Assert.Contains(Log, 'Raised at $', 'where it was raised: ' + Log);
+    // Then SysUtils' handler, which was there before: it reports the
+    // exception and ends the program with 1
+    Assert.Contains(Output, 'EBoldExceptionLogTest', 'the RTL''s report: ' + Output);
+    Assert.AreEqual(1, Code, 'the exit code');
+    {$ENDIF}
+  finally
+    DeleteTheChildLogs;
+  end;
+end;
+
+procedure TTestBoldExceptionLog.TestASecondProcessWritesItsOwnLog;
+var
+  Holder: IBoldLogSink;
+  Output, SecondLog: string;
+begin
+  if not IsConsole then
+    Assert.Pass('only in a console test program');
+  DeleteTheChildLogs;
+  try
+    // This process holds the program's log, as a first instance does
+    Holder := TBoldFileLogSink.Create([BoldExceptionLogFileNames[0]]);
+    Holder.WriteLog('the first instance', llInfo, Now, 0);
+    RunTheChild(Output);
+    SecondLog := TheSecondProcessesLog;
+    Assert.IsTrue(SecondLog <> '', 'a log <program>-<process id>.log; the child''s output: ' + Output);
+    Assert.Contains(TextIfThere(SecondLog), cChildMessage, 'the second process''s exception in it');
+    Holder := nil;
+    Assert.IsFalse(Pos(cChildMessage, TextIfThere(BoldExceptionLogFileNames[0])) > 0,
+      'nothing of the second process in the first one''s log');
+  finally
+    Holder := nil;
+    DeleteTheChildLogs;
   end;
 end;
 

@@ -13,9 +13,11 @@ unit BoldExceptionLog;
     (BoldUserLogFolder). The file is opened at the first entry, so a program
     that logs nothing leaves none.
   - The RTL's last-resort handler (System.ExceptProc): an exception that no
-    handler takes (in the program's main block, in a unit initialized after
-    this one, in a console program) goes to the log with its call stack,
-    then the handler that was there reports it and the program ends.
+    handler takes (in the program's main block, in a console program) goes
+    to the log with its call stack, then the handler that was there reports
+    it and the program ends. One raised in a unit's initialization is logged
+    under Free Pascal only: Delphi finalizes the units, this one among them,
+    before it reports it.
 
   A GUI program names BoldExceptionLogVCL, BoldExceptionLogFMX or
   BoldExceptionLogLCL instead. Each names this unit and also logs the

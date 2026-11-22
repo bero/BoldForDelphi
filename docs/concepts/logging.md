@@ -365,10 +365,11 @@ What it does from its initialization on:
   goes to the log with its call stack, then is shown as before. A handler that the program sets in
   `Application.OnException` during its start-up (in a form's `OnCreate`) is called instead of the dialog:
   the unit takes the handler over when the message loop starts.
-- **The last resort.** An exception that no handler takes (in the program's main block, in a unit
-  initialized later, in a console program) goes to the log through the RTL's last-resort handler
-  (`System.ExceptProc`) with its call stack; then the handler that was there reports it and the program
-  ends.
+- **The last resort.** An exception that no handler takes (in the program's main block, in a console
+  program) goes to the log through the RTL's last-resort handler (`System.ExceptProc`) with its call
+  stack; then the handler that was there reports it and the program ends. One raised in a unit's
+  initialization is logged under Free Pascal only: Delphi finalizes the units, `BoldExceptionLog` among
+  them, before it reports such an exception.
 
 Not covered: an exception that ends a thread. The RTL keeps it in the thread's `FatalException` and calls no
 handler, and Free Pascal's frames are gone once the thread's `except` block ends, so a thread logs it in its

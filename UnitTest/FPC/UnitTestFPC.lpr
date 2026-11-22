@@ -126,6 +126,8 @@ uses
 var
   App: TTestRunner;
 begin
+  // Started by the out-of-process tests of the exception log: raises here
+  BoldExceptionLogRunChildWhenAsked;
   DefaultRunAllTests := True;
   DefaultFormat := fPlain;
   App := TTestRunner.Create(nil);
