@@ -27,6 +27,9 @@ The [Roadmap](roadmap.md) lists what is planned and what is under consideration.
   `UnitTest/FPC/build.sh` (Linux, or Git Bash on Windows); GitHub Actions runs it on every push as well.
 - After a change in `Source`, run `UnitTest/check_no_vcl.ps1`, which checks that the runtime still builds without
   the VCL.
+- Keep existing VCL applications working: building without the VCL must not take anything away from them. When a
+  change still needs an edit in a VCL application, mark its changelog line **Action needed** and add the edit to
+  [Upgrading an existing VCL application](getting-started/installation.md#upgrading-an-existing-vcl-application).
 
 [UnitTest/README.md](https://github.com/bero/BoldForDelphi/blob/develop/UnitTest/README.md) describes each of these
 scripts.

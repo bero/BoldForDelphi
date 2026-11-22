@@ -172,6 +172,56 @@ After installing in Delphi, the Tool Palette has these pages:
 Bold's actions (`TBoldActivateSystemAction`, `TBoldUpdateDBAction`, `TBoldCreateDatabaseAction` and others) are not
 on the palette: add them in the action list editor with **New Standard Action**, category **Bold Actions**.
 
+## Upgrading an existing VCL application
+
+Bold keeps supporting VCL applications, including applications written for an older Bold. To move one to a newer
+release, install the new design-time package in place of the old one, check the project's search path
+([Step 3](#step-3-let-your-projects-find-bolds-source)) and build. Most applications need no other change. The lists
+below name the changes that can need an edit in the application, newest first. The
+[changelog](https://github.com/bero/BoldForDelphi/blob/develop/CHANGELOG.md) marks each new one **Action needed**.
+
+### After release 26.9.1
+
+- **Link the VCL environment.** The Bold core no longer links the VCL. Bold's VCL controls link the VCL environment
+  as before, and the IDE adds `BoldEnvironmentVCL` to the uses clause when it saves a VCL form, frame or data module
+  that holds a non-visual Bold component. Add `BoldEnvironmentVCL` to one uses clause yourself, for example the
+  project file's, when:
+
+    - the application has no Bold-aware control and its forms are not saved again in the IDE, or
+    - it queues display work through its own `TBoldQueueable` descendants or through `AddToPreDisplayQueue` and
+      `AddToPostDisplayQueue`, and links none of the units that import the VCL environment.
+
+    Without it, the application runs on the freestanding environment: Bold's questions to the user (deleting tables
+    when the database is created, the database validator) raise an error that names `BoldEnvironmentVCL`, and
+    informational messages go to the log.
+
+- **`TBoldPersistenceProgressNotifier`** moved to the new unit `BoldPersistenceProgressNotifier` in
+  `Source\Persistence\UtilsGUI`. Add that folder to the search path. The IDE adds the unit to the uses clause when the
+  form is saved; forms load unchanged, because the class name is the same.
+- **`BoldInternalVCLConfiguration`** is renamed `BoldInternalFrameworkConfiguration`.
+
+### Before release 25.12, or from Bold 4
+
+- **Delphi 11.3 or later.** There are packages for Delphi 11.3, 12.x and 13 (see [Requirements](#requirements)).
+- **The search path.** The source moved into subfolders, and projects name them with relative paths instead of
+  environment variables. Replace the Bold part of the search path as [Step 3](#step-3-let-your-projects-find-bolds-source)
+  describes.
+- **Database adapters.** The ADO, BDE, DBExpress, Advantage, IBX and SQLDirect adapters are in `Source\Deprecated`.
+  They are not in the packages and are not maintained. Move the application to a supported adapter, such as FireDAC
+  (see [Adapters](../concepts/persistence.md#adapters)).
+- **CLX and C++Builder** support is removed.
+- **Removed units.** `BoldMath`: its `Floor`, `MaxIntValue`, `MaxValue`, `MinValue` and `MinIntValue` are in
+  `System.Math`. `BoldVersionInfo`: the version is in the package projects only.
+- **Removed `BoldUtils` routines:**
+
+    | Removed | Use instead |
+    |---------|-------------|
+    | `CharInSet`, `DirectoryExists`, `ForceDirectories` | The routines with the same names in `System.SysUtils` |
+    | `BoldTrim` | `Trim` |
+    | `BooleanToString(B)` | `BoolToStr(B, True)` |
+    | `BoldIsPrefix(S, Prefix)` | `StartsStr(Prefix, S)` from `System.StrUtils`; both are case-sensitive |
+    | `BoldParseFormattedDate`, `BoldParseFormattedDateList`, `BoldSeparatedAppend`, `BoldStrEqual`, `BoldStrStringEqual`, `CapitalisedToSpaced`, `SpacedToCapitalised`, `DateToStrFmt`, `EnsureTrailing`, `EnumToStrings`, `FileTimeToDateTime`, `GetComputerNameStr`, `IsLocalMachine` | Removed because Bold did not use them. An application that calls one keeps its own copy, taken from the earlier source |
+
 ## Troubleshooting
 
 ### "bold.inc not found"

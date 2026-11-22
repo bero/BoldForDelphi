@@ -41,6 +41,9 @@ Make Bold a modern, well-documented and reliable model-driven framework and ORM 
 | Planned | macOS (#127) |
 | Planned | Bold-aware user interface components for FMX and LCL |
 
+**VCL**: VCL applications stay supported. The framework-neutral core adds platforms; it does not remove the
+Bold-aware VCL controls or the VCL design-time support.
+
 ## 2. Documentation
 
 | Status | Item |

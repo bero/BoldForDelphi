@@ -95,9 +95,17 @@ Programs (the examples, the tools and the test programs) are built and tested as
 compiles, but is no longer built or tested. The Delphi design-time package (`dclBold`) is built for the 32-bit IDE,
 and for the 64-bit IDE of Delphi 12.3 and 13. macOS is planned
 ([#127](https://github.com/bero/BoldForDelphi/issues/127)).
+
+VCL applications stay supported. Bold's core no longer depends on the VCL, which is what lets it run with FMX, the
+LCL and on Linux, but the VCL support stays: the Bold-aware VCL controls, the VCL environment and the VCL parts of
+the design-time package remain, and an existing VCL application keeps working with new releases. When a release
+needs an edit in such an application, the
+[changelog](https://github.com/bero/BoldForDelphi/blob/develop/CHANGELOG.md) marks it **Action needed**.
 <!-- --8<-- [end:platforms] -->
 
-[Installation](docs/getting-started/installation.md) has the details per toolchain.
+[Installation](docs/getting-started/installation.md) has the details per toolchain, and
+[what to change in an existing VCL application](docs/getting-started/installation.md#upgrading-an-existing-vcl-application)
+when it moves to a newer Bold.
 
 ## Getting started
 
