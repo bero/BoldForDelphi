@@ -22,7 +22,9 @@ ROOT=$(bold_path "$ROOT")
 lazbuild --ws="${LCL_WS:-qt5}" $LAZBUILD_OPTIONS "$HERE/ModelEditorLCL.lpi"
 
 set +e
-"$HERE/bin/ModelEditorLCL" --selftest "$ROOT/examples/Compound/Invoicing/Model/Invoicing.bld"
+"$HERE/bin/ModelEditorLCL" --selftest \
+  --typenames="$ROOT/examples/Simple/ObjectSpace/CustomAttributes/MainForm.dfm" \
+  "$ROOT/examples/Compound/Invoicing/Model/Invoicing.bld"
 RESULT=$?
 cat "$HERE/bin/ModelEditorLCL.selftest.txt"
 exit $RESULT

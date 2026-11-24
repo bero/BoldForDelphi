@@ -170,6 +170,9 @@ object frmModelEditorMain: TfrmModelEditorMain
       object mniGenerate: TMenuItem
         Action = actGenerate
       end
+      object mniTypeNames: TMenuItem
+        Action = actTypeNames
+      end
       object mniFileSep2: TMenuItem
         Caption = '-'
       end
@@ -230,6 +233,11 @@ object frmModelEditorMain: TfrmModelEditorMain
       OnExecute = actGenerateExecute
       ShortCut = 16455
     end
+    object actTypeNames: TAction
+      Caption = '&Type names from form...'
+      Hint = 'Generate code with the attribute types of the TBoldTypeNameHandle on a form (.dfm, .lfm)'
+      OnExecute = actTypeNamesExecute
+    end
     object actExit: TAction
       Caption = 'E&xit'
       Hint = 'Close the model editor'
@@ -281,6 +289,12 @@ object frmModelEditorMain: TfrmModelEditorMain
   object dlgCodeFolder: TSelectDirectoryDialog
     Title = 'Generate the business classes into'
     Left = 760
+    Top = 280
+  end
+  object dlgTypeNames: TOpenDialog
+    Title = 'Type names from the TBoldTypeNameHandle of a form'
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
+    Left = 840
     Top = 280
   end
 end

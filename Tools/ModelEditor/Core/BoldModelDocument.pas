@@ -17,7 +17,12 @@ unit BoldModelDocument;
 
   Modified follows every change of the UML model, through the broadcast of
   member events of its object space (TBoldUMLSupport.SubscribeToEntireModel),
-  so a change made in a client's grid counts as one made in code. }
+  so a change made in a client's grid counts as one made in code.
+
+  The type names (the model's attribute types to Delphi classes, units and
+  mappers) are Bold's own, or those of the TBoldTypeNameHandle of a form
+  (LoadTypeNames): in the IDE a project gives its TBoldModel such a handle
+  for its own attribute types, and the .bld file does not hold them. }
 
 interface
 
@@ -27,6 +32,7 @@ uses
   BoldSubscription,
   BoldMeta,
   BoldModel,
+  BoldTypeNameHandle,
   BoldUMLModel;
 
 type
@@ -37,6 +43,9 @@ type
     FModel: TBoldModel;
     FFileName: string;
     FModified: Boolean;
+    // nil for Bold's own type names
+    FTypeNameHandle: TBoldTypeNameHandle;
+    FTypeNamesFile: string;
     FChangeSubscriber: TBoldPassthroughSubscriber;
     // Above zero while the document changes the model for itself
     FIgnoreChanges: Integer;
@@ -61,6 +70,15 @@ type
       and an include file per class with method stubs, which is only
       written where it does not exist yet, so implemented methods are kept }
     procedure GenerateCode(const AFolder: string);
+    { Reads the type names from the TBoldTypeNameHandle of a text form
+      (.dfm, .lfm, .fmx), as the IDE takes them from the handle its
+      TBoldModel names. Code generation and validation use them until
+      another form is read; New and Open keep them. A form that has no such
+      handle, or more than one, is refused with EBoldModelDocument, and the
+      type names read before stay. }
+    procedure LoadTypeNames(const AFormFile: string);
+    { The form the type names are from; empty for Bold's own }
+    property TypeNamesFile: string read FTypeNamesFile;
     property Model: TBoldModel read FModel;
     property UMLModel: TUMLModel read GetUMLModel;
     { Empty for a new model that was not saved yet }
@@ -84,6 +102,93 @@ const
 resourcestring
   sNoFileName = 'The model has no file name yet; use SaveAs';
   sNoFolder = 'The folder for the generated code does not exist: %s';
+  sNoTypeNameHandle = 'The form %s has no TBoldTypeNameHandle';
+  sSeveralTypeNameHandles = 'The form %s has more than one TBoldTypeNameHandle: %s';
+
+{ The name of the component that a line of a text form starts, as
+  "object BoldTypeNameHandle1: TBoldTypeNameHandle" (also "inherited" and
+  "inline"), when the component is a TBoldTypeNameHandle; empty otherwise }
+function TypeNameHandleOfLine(const ALine: string): string;
+const
+  cKeywords: array[0..2] of string = ('object ', 'inherited ', 'inline ');
+var
+  Line: string;
+  Colon, i: Integer;
+begin
+  Result := '';
+  Line := Trim(ALine);
+  Colon := Pos(':', Line);
+  if (Colon = 0) or not SameText(Trim(Copy(Line, Colon + 1, MaxInt)), TBoldTypeNameHandle.ClassName) then
+    Exit;
+  for i := Low(cKeywords) to High(cKeywords) do
+    if SameText(Copy(Line, 1, Length(cKeywords[i])), cKeywords[i]) then
+      Exit(Trim(Copy(Line, Length(cKeywords[i]) + 1, Colon - Length(cKeywords[i]) - 1)));
+end;
+
+function IndentOf(const ALine: string): Integer;
+begin
+  Result := 0;
+  while (Result < Length(ALine)) and (ALine[Result + 1] = ' ') do
+    Inc(Result);
+end;
+
+{ The text of the one TBoldTypeNameHandle of a text form: its lines up to the
+  "end" with the indent of its first line }
+function TypeNameHandleText(const AFormFile: string): string;
+var
+  Lines, Handle, Names: TStringList;
+  First, Indent, i: Integer;
+begin
+  Lines := TStringList.Create;
+  Handle := TStringList.Create;
+  Names := TStringList.Create;
+  try
+    Lines.LoadFromFile(AFormFile);
+    First := -1;
+    for i := 0 to Lines.Count - 1 do
+      if TypeNameHandleOfLine(Lines[i]) <> '' then
+      begin
+        if First < 0 then
+          First := i;
+        Names.Add(TypeNameHandleOfLine(Lines[i]));
+      end;
+    if Names.Count = 0 then
+      raise EBoldModelDocument.CreateFmt(sNoTypeNameHandle, [AFormFile]);
+    if Names.Count > 1 then
+      raise EBoldModelDocument.CreateFmt(sSeveralTypeNameHandles, [AFormFile, Names.CommaText]);
+    Indent := IndentOf(Lines[First]);
+    Handle.Add(Lines[First]);
+    for i := First + 1 to Lines.Count - 1 do
+    begin
+      Handle.Add(Lines[i]);
+      if (IndentOf(Lines[i]) = Indent) and SameText(Trim(Lines[i]), 'end') then
+        Break;
+    end;
+    Result := Handle.Text;
+  finally
+    Names.Free;
+    Handle.Free;
+    Lines.Free;
+  end;
+end;
+
+{ Reads the text of a TBoldTypeNameHandle into AHandle, as a form is read }
+procedure ReadTypeNameHandle(const AText: string; AHandle: TBoldTypeNameHandle);
+var
+  Text: TBytesStream;
+  Binary: TMemoryStream;
+begin
+  Text := TBytesStream.Create(TEncoding.UTF8.GetBytes(AText));
+  Binary := TMemoryStream.Create;
+  try
+    ObjectTextToBinary(Text, Binary);
+    Binary.Position := 0;
+    Binary.ReadComponent(AHandle);
+  finally
+    Binary.Free;
+    Text.Free;
+  end;
+end;
 
 { TBoldModelDocument }
 
@@ -98,6 +203,7 @@ destructor TBoldModelDocument.Destroy;
 begin
   FreeAndNil(FChangeSubscriber);
   FreeAndNil(FModel);
+  FreeAndNil(FTypeNameHandle);
   inherited;
 end;
 
@@ -108,6 +214,7 @@ begin
   FChangeSubscriber.CancelAllSubscriptions;
   FreeAndNil(FModel);
   FModel := TBoldModel.Create(nil);
+  FModel.TypeNameHandle := FTypeNameHandle;
   if Assigned(AMoldModel) then
     FModel.SetFromModel(AMoldModel);
   TBoldUMLSupport.SubscribeToEntireModel(FModel.EnsuredUMLModel, FChangeSubscriber);
@@ -204,6 +311,25 @@ begin
   finally
     Dec(FIgnoreChanges);
   end;
+end;
+
+procedure TBoldModelDocument.LoadTypeNames(const AFormFile: string);
+var
+  Handle: TBoldTypeNameHandle;
+begin
+  // Read into a handle of its own, so that a form that cannot be read leaves
+  // the type names as they were
+  Handle := TBoldTypeNameHandle.Create(nil);
+  try
+    ReadTypeNameHandle(TypeNameHandleText(AFormFile), Handle);
+  except
+    Handle.Free;
+    raise;
+  end;
+  FModel.TypeNameHandle := Handle;
+  FTypeNameHandle.Free;
+  FTypeNameHandle := Handle;
+  FTypeNamesFile := AFormFile;
 end;
 
 end.

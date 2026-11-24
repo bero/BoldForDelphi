@@ -14,12 +14,17 @@ unit Test.BoldModelDocument;
 interface
 
 uses
-  BoldTestFramework;
+  BoldTestFramework,
+  BoldModelDocument;
 
 type
   TTestBoldModelDocument = class(TBoldTestCase)
   private
     FTempFolder: string;
+    // For the methods WillRaise calls
+    FDocument: TBoldModelDocument;
+    FFormFile: string;
+    procedure LoadTheForm;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -36,6 +41,16 @@ type
     procedure TestGenerateKeepsAnExistingMethodFile;
     // A changed model is saved with the change
     procedure TestSaveKeepsAChange;
+    // The type names (a model's attribute types to Delphi classes and units)
+    // are Bold's until the TBoldTypeNameHandle of a form is read, as the IDE
+    // takes them from the handle on the form of its TBoldModel. The form is
+    // the CustomAttributes example's, which the IDE wrote.
+    procedure TestGenerateUsesTheTypeNamesOfAForm;
+    procedure TestTypeNamesStayWhenAnotherModelIsOpened;
+    // A form that has no handle, or more than one, is refused; the type names
+    // read before stay
+    procedure TestAFormWithoutATypeNameHandleIsRefused;
+    procedure TestAFormWithTwoTypeNameHandlesIsRefused;
   end;
 
 implementation
@@ -44,12 +59,73 @@ uses
   SysUtils,
   Classes,
   BoldUMLModel,
-  BoldModelDocument,
   ModelEditorTestSupport;
 
 const
   // The files the Delphi IDE generated from Invoicing.bld
   cGeneratedFiles: array[0..1] of string = ('InvoicingClasses.pas', 'InvoicingClasses_Interface.inc');
+  cInvoicingModel = 'examples/Compound/Invoicing/Model/Invoicing.bld';
+  // A form with a TBoldTypeNameHandle that maps the model type Coordinate to
+  // TBACoordinate in the unit BACoordinate
+  cTypeNamesForm = 'examples/Simple/ObjectSpace/CustomAttributes/MainForm.dfm';
+  // A form with no TBoldTypeNameHandle
+  cFormWithoutTypeNames = 'Tools/ModelEditor/Core/BoldModelEditorData.dfm';
+  cFormWithTwoTypeNameHandles =
+    'object dmTwo: TDataModule'#13#10 +
+    '  object TypeNamesA: TBoldTypeNameHandle'#13#10 +
+    '    Left = 8'#13#10 +
+    '    Top = 8'#13#10 +
+    '  end'#13#10 +
+    '  object TypeNamesB: TBoldTypeNameHandle'#13#10 +
+    '    Left = 8'#13#10 +
+    '    Top = 64'#13#10 +
+    '  end'#13#10 +
+    'end'#13#10;
+
+function ClassNamed(AModel: TUMLModel; const AName: string): TUMLClass;
+var
+  i: Integer;
+begin
+  for i := 0 to AModel.Classes.Count - 1 do
+    if AModel.Classes[i].Name = AName then
+      Exit(AModel.Classes[i]);
+  Result := nil;
+end;
+
+function AttributeNamed(AClass: TUMLClass; const AName: string): TUMLAttribute;
+var
+  i: Integer;
+begin
+  for i := 0 to AClass.Feature.Count - 1 do
+    if (AClass.Feature[i] is TUMLAttribute) and (AClass.Feature[i].Name = AName) then
+      Exit(TUMLAttribute(AClass.Feature[i]));
+  Result := nil;
+end;
+
+{ Opens the Invoicing model with Address.Street of the type Coordinate, which
+  only the CustomAttributes example's type names know }
+procedure OpenInvoicingWithACoordinate(ADocument: TBoldModelDocument);
+var
+  Street: TUMLAttribute;
+begin
+  ADocument.Open(RepositoryFile(cInvoicingModel));
+  Street := AttributeNamed(ClassNamed(ADocument.UMLModel, 'Address'), 'Street');
+  Assert.IsNotNull(Street, 'the attribute Address.Street');
+  Street.typeName := 'Coordinate';
+end;
+
+procedure WriteText(const AFileName, AText: string);
+var
+  Lines: TStringList;
+begin
+  Lines := TStringList.Create;
+  try
+    Lines.Text := AText;
+    Lines.SaveToFile(AFileName);
+  finally
+    Lines.Free;
+  end;
+end;
 
 { The text without the line that holds the time it was generated }
 function WithoutGeneratedLine(const AText: string): string;
@@ -262,6 +338,86 @@ begin
     Assert.IsNotNull(Customer, 'read back, the class is called Client');
   finally
     Document.Free;
+  end;
+end;
+
+procedure TTestBoldModelDocument.LoadTheForm;
+begin
+  FDocument.LoadTypeNames(FFormFile);
+end;
+
+procedure TTestBoldModelDocument.TestGenerateUsesTheTypeNamesOfAForm;
+var
+  BoldsFolder, FormsFolder, Interface_: string;
+begin
+  BoldsFolder := IncludeTrailingPathDelimiter(FTempFolder) + 'Bolds';
+  FormsFolder := IncludeTrailingPathDelimiter(FTempFolder) + 'Forms';
+  ForceDirectories(BoldsFolder);
+  ForceDirectories(FormsFolder);
+  FDocument := TBoldModelDocument.Create;
+  try
+    OpenInvoicingWithACoordinate(FDocument);
+    Assert.AreEqual('', FDocument.TypeNamesFile, 'Bold''s type names at first');
+    FDocument.GenerateCode(BoldsFolder);
+    FDocument.LoadTypeNames(RepositoryFile(cTypeNamesForm));
+    Assert.AreEqual(RepositoryFile(cTypeNamesForm), FDocument.TypeNamesFile, 'the form the type names are from');
+    FDocument.GenerateCode(FormsFolder);
+  finally
+    FreeAndNil(FDocument);
+  end;
+  Interface_ := TextOf(IncludeTrailingPathDelimiter(BoldsFolder) + 'InvoicingClasses_Interface.inc');
+  Assert.IsFalse(Pos('TBACoordinate', Interface_) > 0, 'Bold''s type names do not know Coordinate');
+  Interface_ := TextOf(IncludeTrailingPathDelimiter(FormsFolder) + 'InvoicingClasses_Interface.inc');
+  Assert.IsTrue(Pos('_Get_M_Street: TBACoordinate;', Interface_) > 0, 'the form''s type names make Street a TBACoordinate');
+  Assert.IsTrue(Pos('  BACoordinate,', Interface_) > 0, 'and add its unit to the uses clause');
+end;
+
+procedure TTestBoldModelDocument.TestTypeNamesStayWhenAnotherModelIsOpened;
+var
+  Folder: string;
+begin
+  Folder := IncludeTrailingPathDelimiter(FTempFolder) + 'Code';
+  ForceDirectories(Folder);
+  FDocument := TBoldModelDocument.Create;
+  try
+    FDocument.LoadTypeNames(RepositoryFile(cTypeNamesForm));
+    FDocument.Open(RepositoryFile('examples/Shared/DemoModel.bld'));
+    OpenInvoicingWithACoordinate(FDocument);
+    Assert.AreEqual(RepositoryFile(cTypeNamesForm), FDocument.TypeNamesFile, 'the form the type names are from');
+    FDocument.GenerateCode(Folder);
+  finally
+    FreeAndNil(FDocument);
+  end;
+  Assert.IsTrue(Pos('_Get_M_Street: TBACoordinate;',
+    TextOf(IncludeTrailingPathDelimiter(Folder) + 'InvoicingClasses_Interface.inc')) > 0,
+    'the type names of the form are still used');
+end;
+
+procedure TTestBoldModelDocument.TestAFormWithoutATypeNameHandleIsRefused;
+begin
+  FDocument := TBoldModelDocument.Create;
+  try
+    FDocument.LoadTypeNames(RepositoryFile(cTypeNamesForm));
+    FFormFile := RepositoryFile(cFormWithoutTypeNames);
+    Assert.WillRaise(LoadTheForm, EBoldModelDocument, 'a form without a TBoldTypeNameHandle');
+    Assert.AreEqual(RepositoryFile(cTypeNamesForm), FDocument.TypeNamesFile, 'the type names read before stay');
+    Assert.AreEqual('BACoordinate', FDocument.Model.TypeNameDictionary.ExactMappingForModelName['Coordinate'].BoldUnitName,
+      'the unit of Coordinate');
+  finally
+    FreeAndNil(FDocument);
+  end;
+end;
+
+procedure TTestBoldModelDocument.TestAFormWithTwoTypeNameHandlesIsRefused;
+begin
+  FFormFile := IncludeTrailingPathDelimiter(FTempFolder) + 'Two.dfm';
+  WriteText(FFormFile, cFormWithTwoTypeNameHandles);
+  FDocument := TBoldModelDocument.Create;
+  try
+    Assert.WillRaise(LoadTheForm, EBoldModelDocument, 'a form with two TBoldTypeNameHandles');
+    Assert.AreEqual('', FDocument.TypeNamesFile, 'still Bold''s type names');
+  finally
+    FreeAndNil(FDocument);
   end;
 end;
 

@@ -1,15 +1,19 @@
-program ModelEditorFMX;
+﻿program ModelEditorFMX;
 
 { The FMX client of the standalone model editor (#128): open a Bold model
   (.bld), edit its classes and their attributes, save it and generate the
   business classes. The FireMonkey twin of ../LCL/ModelEditorLCL.lpr; both
   are built on the data module in ../Core. See ../README.md.
 
-  Usage: ModelEditorFMX [model.bld]
-  Opens the model file when one is named.
+  Usage: ModelEditorFMX [--typenames=form] [model.bld]
+  Opens the model file when one is named. --typenames: generate code with
+  the type names of the TBoldTypeNameHandle on that form (.dfm, .lfm, .fmx),
+  as File > Type names from form does.
 
-  Usage: ModelEditorFMX --selftest model.bld
-  Shows no window. Opens the model, checks that the grids show the classes
+  Usage: ModelEditorFMX --selftest --typenames=form model.bld
+  The self-test expects the form of the CustomAttributes example
+  (examples/Simple/ObjectSpace/CustomAttributes/MainForm.dfm) and the
+  Invoicing model. Shows no window. Opens the model, checks that the grids show the classes
   and the attributes of the selected class and that the commands add,
   delete, save and generate, writes the checks to ModelEditorFMX.selftest.txt
   next to the program and exits with the number of failed checks. The model

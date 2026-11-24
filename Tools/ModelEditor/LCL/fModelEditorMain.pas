@@ -45,6 +45,7 @@ type
     mniSaveAs: TMenuItem;
     mniFileSep1: TMenuItem;
     mniGenerate: TMenuItem;
+    mniTypeNames: TMenuItem;
     mniFileSep2: TMenuItem;
     mniExit: TMenuItem;
     mnuModel: TMenuItem;
@@ -59,6 +60,7 @@ type
     actSave: TAction;
     actSaveAs: TAction;
     actGenerate: TAction;
+    actTypeNames: TAction;
     actExit: TAction;
     actAddClass: TAction;
     actDeleteClass: TAction;
@@ -83,6 +85,7 @@ type
     dlgOpen: TOpenDialog;
     dlgSave: TSaveDialog;
     dlgCodeFolder: TSelectDirectoryDialog;
+    dlgTypeNames: TOpenDialog;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -91,6 +94,7 @@ type
     procedure actSaveExecute(Sender: TObject);
     procedure actSaveAsExecute(Sender: TObject);
     procedure actGenerateExecute(Sender: TObject);
+    procedure actTypeNamesExecute(Sender: TObject);
     procedure actExitExecute(Sender: TObject);
     procedure actAddClassExecute(Sender: TObject);
     procedure actDeleteClassExecute(Sender: TObject);
@@ -148,6 +152,8 @@ resourcestring
   sAttributes = 'Attributes';
   sGenerated = 'Business classes generated into %s';
   sClassCount = '%d classes';
+  sTypeNamesFrom = 'type names: %s';
+  sFormFilter = 'Forms (*.dfm;*.lfm;*.fmx)|*.dfm;*.lfm;*.fmx|All files|*';
 
 var
   SelfTestLog: string = '';
@@ -214,7 +220,7 @@ end;
 
 procedure TfrmModelEditorMain.FormCreate(Sender: TObject);
 var
-  ModelFile: string;
+  ModelFile, TypeNamesFile: string;
 begin
   FSelfTest := IsSelfTestRun;
   FData := TdmModelEditor.Create(Self);
@@ -233,6 +239,10 @@ begin
   dsAttributes.DataSet := FData.bdsAttributes;
   dlgOpen.Filter := 'Bold models (*.bld)|*.bld|All files|*';
   dlgSave.Filter := dlgOpen.Filter;
+  dlgTypeNames.Filter := sFormFilter;
+  TypeNamesFile := TypeNamesFileFromCommandLine;
+  if TypeNamesFile <> '' then
+    FData.LoadTypeNames(TypeNamesFile);
   ModelFile := ModelFileFromCommandLine;
   if ModelFile <> '' then
     FData.Open(ModelFile);
@@ -301,7 +311,8 @@ begin
     sbStatus.SimpleText := FStatus
   else if FData.bdsClasses.Active then
     sbStatus.SimpleText := FData.Document.FileName + '  ' +
-      Format(sClassCount, [FData.bdsClasses.RecordCount]);
+      Format(sClassCount, [FData.bdsClasses.RecordCount]) + '  ' +
+      Format(sTypeNamesFrom, [FData.TypeNamesName]);
 end;
 
 procedure TfrmModelEditorMain.alActionsUpdate(AAction: TBasicAction; var Handled: Boolean);
@@ -358,6 +369,19 @@ begin
   end;
   FData.GenerateCode(Folder);
   FStatus := Format(sGenerated, [Folder]);
+end;
+
+procedure TfrmModelEditorMain.actTypeNamesExecute(Sender: TObject);
+begin
+  if FData.Document.TypeNamesFile <> '' then
+    dlgTypeNames.InitialDir := ExtractFilePath(FData.Document.TypeNamesFile)
+  else
+    dlgTypeNames.InitialDir := FData.DefaultCodeFolder;
+  if dlgTypeNames.Execute then
+  begin
+    FData.LoadTypeNames(dlgTypeNames.FileName);
+    FStatus := '';
+  end;
 end;
 
 procedure TfrmModelEditorMain.actExitExecute(Sender: TObject);
@@ -475,6 +499,8 @@ begin
     Check('the model of the command line is open', ExtractFileName(FData.Document.FileName) = 'Invoicing.bld',
       FData.Document.FileName);
     Check('the window title', Caption = 'Invoicing.bld - ' + cModelEditorTitle, Caption);
+    Check('the type names of the form on the command line', FData.TypeNamesName = 'MainForm.dfm', FData.TypeNamesName);
+    Check('the status bar names them', Pos('type names: MainForm.dfm', sbStatus.SimpleText) > 0, sbStatus.SimpleText);
     Check('the class grid shows the class dataset', grdClasses.DataSource.DataSet = FData.bdsClasses, '');
     Check('the attribute grid shows the attribute dataset', grdAttributes.DataSource.DataSet = FData.bdsAttributes, '');
     ClassCount := FData.Document.UMLModel.Classes.Count;

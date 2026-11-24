@@ -5,10 +5,12 @@ program ModelEditorLCL;
   (.bld), edit its classes and their attributes, save it and generate the
   business classes. See ../README.md.
 
-  Usage: ModelEditorLCL [model.bld]
-  Opens the model file when one is named.
+  Usage: ModelEditorLCL [--typenames=form] [model.bld]
+  Opens the model file when one is named. --typenames: generate code with
+  the type names of the TBoldTypeNameHandle on that form (.dfm, .lfm, .fmx),
+  as File > Type names from form does.
 
-  Usage: ModelEditorLCL --selftest model.bld
+  Usage: ModelEditorLCL --selftest [--typenames=form] model.bld
   Shows no window. Opens the model, checks that the grids show the classes
   and the attributes of the selected class and that the commands add,
   delete, save and generate, writes the checks to ModelEditorLCL.selftest.txt

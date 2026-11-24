@@ -37,6 +37,15 @@ an FMX client built with Delphi, both for Windows and Linux.
   templates, as the IDE's Save and Generate does: the unit named by the
   model's tagged value `Bold.UnitName`, its `_Interface.inc`, and an include
   file with method stubs, which is written only where it does not exist yet.
+- `LoadTypeNames(FormFile)` reads the type names, which map the model's
+  attribute types to Delphi classes, units and persistence mappers, from the
+  `TBoldTypeNameHandle` on a text form (`.dfm`, `.lfm`, `.fmx`), as the IDE
+  takes them from the handle its `TBoldModel` names. The `.bld` file does not
+  hold them. Until a form is read the document uses Bold's own type names,
+  which give an attribute type of the project's own, such as the
+  CustomAttributes example's `Coordinate`, as a string. New and Open keep
+  the type names; a form with no such handle, or with more than one, is
+  refused and the type names stay as they were.
 - `Modified` follows every change of the UML model, made in code or in a
   client's grid, until the next save.
 
@@ -61,7 +70,8 @@ in `Source/UMLModel/Editor`. It holds:
   (name, type, persistent, derived), the `TBoldDataSet`s the clients' grids
   show and edit in place. The superclass column is read-only;
 - the commands: `NewModel`, `Open`, `Save`, `SaveAs`, `GenerateCode`,
-  `AddClass`, `DeleteClass`, `AddAttribute`, `DeleteAttribute`, and what
+  `LoadTypeNames` (with `TypeNamesName`, the form's file name for a status
+  line), `AddClass`, `DeleteClass`, `AddAttribute`, `DeleteAttribute`, and what
   enables them (`CanDeleteClass` ...). A new class gets the Bold tagged
   values and, in a boldified model, the root class as its superclass, as in
   Bold's model editor; a deleted class hands its subclasses to its
@@ -73,7 +83,7 @@ in `Source/UMLModel/Editor`. It holds:
   the model has none yet. A client sets the two events to its own dialogs;
 - the window title (`Title`: the file name, a `*` when modified); the unit
   also has `ModelFileFromCommandLine`, the model file named on the command
-  line.
+  line, and `TypeNamesFileFromCommandLine`, the form of `--typenames=<form>`.
 
 A client adds only its controls: the grids bound to the two datasets, a menu
 item or button per command, and the dialogs.
@@ -89,12 +99,15 @@ Lazarus packages `Bold` and `BoldLCL` (`packages/Lazarus`); `Bold` holds the
 code generator.
 
 ```sh
-ModelEditorLCL [model.bld]
+ModelEditorLCL [--typenames=form.dfm] [model.bld]
 ```
 
-opens the model file when one is named. `sh Tools/ModelEditor/LCL/build.sh`
-builds it with lazbuild and runs `ModelEditorLCL --selftest` on the
-Invoicing model: it shows no window, checks that the grids show the classes
+opens the model file when one is named, with the type names of the form when
+one is named (File > Type names from form does the same; the status bar names
+the form). `sh Tools/ModelEditor/LCL/build.sh` builds it with lazbuild and
+runs `ModelEditorLCL --selftest` on the Invoicing model, with the type names
+of the CustomAttributes example's form: it shows no window, checks that the
+type names are the form's and that the grids show the classes
 and the attributes of the selected class and that the commands add, delete,
 save and generate (into a temporary folder; the model file is not changed),
 writes the checks to `bin/ModelEditorLCL.selftest.txt` and exits with the
@@ -116,8 +129,8 @@ dpr links the resource file with the manifest that the hints need on
 Windows.
 
 ```text
-ModelEditorFMX [model.bld]
-ModelEditorFMX --selftest model.bld
+ModelEditorFMX [--typenames=form.dfm] [model.bld]
+ModelEditorFMX --selftest --typenames=examples\Simple\ObjectSpace\CustomAttributes\MainForm.dfm examples\Compound\Invoicing\Model\Invoicing.bld
 ```
 
 The self-test is the LCL client's, on the grids: it selects a class with

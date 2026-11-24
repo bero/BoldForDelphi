@@ -91,6 +91,11 @@ type
       folder of the model file }
     procedure GenerateCode(const AFolder: string);
     function DefaultCodeFolder: string;
+    { The type names code generation uses, from the TBoldTypeNameHandle of a
+      form (TBoldModelDocument.LoadTypeNames); TypeNamesName is the form's
+      file name, or sBoldTypeNames }
+    procedure LoadTypeNames(const AFormFile: string);
+    function TypeNamesName: string;
 
     { What the clients' New, Open and close do first: True when the model
       may be dropped, as it has no changes, or the user saved them
@@ -136,9 +141,15 @@ type
 const
   cModelEditorTitle = 'Bold Model Editor';
 
+resourcestring
+  sBoldTypeNames = 'Bold''s type names';
+
 { The model file named on the command line: the first parameter that is not
   an option (one starting with - or /, as --selftest); empty when none }
 function ModelFileFromCommandLine: string;
+{ The form named on the command line by --typenames=<form>, for
+  LoadTypeNames; empty when none }
+function TypeNamesFileFromCommandLine: string;
 
 implementation
 
@@ -170,6 +181,22 @@ begin
     Param := ParamStr(i);
     if (Param <> '') and (Param[1] <> '-') {$IFDEF MSWINDOWS}and (Param[1] <> '/'){$ENDIF} then
       Exit(ExpandFileName(Param));
+  end;
+end;
+
+function TypeNamesFileFromCommandLine: string;
+const
+  cOption = '--typenames=';
+var
+  i: Integer;
+  Param: string;
+begin
+  Result := '';
+  for i := 1 to ParamCount do
+  begin
+    Param := ParamStr(i);
+    if SameText(Copy(Param, 1, Length(cOption)), cOption) then
+      Exit(ExpandFileName(Copy(Param, Length(cOption) + 1, MaxInt)));
   end;
 end;
 
@@ -290,6 +317,19 @@ begin
     Result := ExtractFilePath(FDocument.FileName)
   else
     Result := GetCurrentDir;
+end;
+
+procedure TdmModelEditor.LoadTypeNames(const AFormFile: string);
+begin
+  FDocument.LoadTypeNames(AFormFile);
+end;
+
+function TdmModelEditor.TypeNamesName: string;
+begin
+  if FDocument.TypeNamesFile <> '' then
+    Result := ExtractFileName(FDocument.TypeNamesFile)
+  else
+    Result := sBoldTypeNames;
 end;
 
 function TdmModelEditor.CloseModel: Boolean;

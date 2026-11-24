@@ -256,6 +256,9 @@ object frmModelEditorMain: TfrmModelEditorMain
       object mniGenerate: TMenuItem
         Action = actGenerate
       end
+      object mniTypeNames: TMenuItem
+        Action = actTypeNames
+      end
       object mniFileSep2: TMenuItem
         Text = '-'
       end
@@ -315,6 +318,13 @@ object frmModelEditorMain: TfrmModelEditorMain
       Hint = 'Generate the business classes of the model into a folder'
       ShortCut = 16455
       OnExecute = actGenerateExecute
+    end
+    object actTypeNames: TAction
+      Text = '&Type names from form...'
+      Hint =
+        'Generate code with the attribute types of the TBoldTypeNameHandle' +
+        ' on a form (.dfm, .lfm)'
+      OnExecute = actTypeNamesExecute
     end
     object actExit: TAction
       Text = 'E&xit'
@@ -413,6 +423,11 @@ object frmModelEditorMain: TfrmModelEditorMain
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Title = 'Save the model as'
     Left = 680
+    Top = 280
+  end
+  object dlgTypeNames: TOpenDialog
+    Title = 'Type names from the TBoldTypeNameHandle of a form'
+    Left = 760
     Top = 280
   end
 end

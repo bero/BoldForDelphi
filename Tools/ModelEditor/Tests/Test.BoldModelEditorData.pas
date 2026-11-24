@@ -60,6 +60,8 @@ type
     procedure TestCloseModelDiscards;
     procedure TestSaveModelOfANewModelAsksForAFile;
     procedure TestWhatCanBeDone;
+    // The type names of a form, which the clients' status bars name
+    procedure TestTypeNamesOfAForm;
   end;
 
 implementation
@@ -74,6 +76,7 @@ uses
 const
   cInvoicing = 'examples/Compound/Invoicing/Model/Invoicing.bld';
   cDemoModel = 'examples/Shared/DemoModel.bld';
+  cTypeNamesForm = 'examples/Simple/ObjectSpace/CustomAttributes/MainForm.dfm';
 
 { The Name field of every row, sorted, as comma text }
 function SortedNames(ADataSet: TDataSet): string;
@@ -459,6 +462,16 @@ begin
   SelectClassNamed('Payment');
   Assert.IsTrue(FData.CanDeleteClass, 'another class');
   Assert.IsTrue(FData.CanDeleteAttribute, 'the selected attribute of Payment');
+end;
+
+procedure TTestBoldModelEditorData.TestTypeNamesOfAForm;
+begin
+  OpenInvoicing;
+  Assert.AreEqual(sBoldTypeNames, FData.TypeNamesName, 'Bold''s type names at first');
+  FData.LoadTypeNames(RepositoryFile(cTypeNamesForm));
+  Assert.AreEqual(RepositoryFile(cTypeNamesForm), FData.Document.TypeNamesFile, 'the form of the document''s type names');
+  Assert.AreEqual('MainForm.dfm', FData.TypeNamesName, 'the form''s name');
+  Assert.IsFalse(FData.Modified, 'type names are no change of the model');
 end;
 
 initialization
