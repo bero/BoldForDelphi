@@ -41,6 +41,7 @@ uses
   Test.BoldDefs,
   Test.BoldDeriver,
   Test.BoldDirectoryTraverser,
+  Test.BoldFileHandler,
   Test.BoldElements,
   Test.BoldEnvironment,
   Test.BoldEventQueue,

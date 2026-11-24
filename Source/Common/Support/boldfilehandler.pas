@@ -73,7 +73,13 @@ type
     property StringListModified: Boolean read fStringListModified;
   end;
 
-  { TBoldDiskFileHandler }
+  { TBoldDiskFileHandler
+    Writes its file as the Delphi IDE does: UTF-8 with a byte order mark and
+    CRLF line breaks, on every platform. Reads an existing file as UTF-8 after
+    a byte order mark, as UTF-8 without one when its bytes are UTF-8 (as
+    Lazarus and the handler before saved it on Linux), and otherwise in the
+    ANSI code page (as the handler before saved it on Windows), so a file
+    that is changed is converted to UTF-8 with a byte order mark. }
   TBoldDiskFileHandler = class(TBoldFileHandler)
   protected
     procedure DoFlushFile; override;
@@ -339,13 +345,86 @@ end;
 
 { TBoldDiskFileHandler }
 
+const
+  cFileLineBreak = #13#10;
+
+{ True when the bytes are UTF-8: each lead byte followed by its continuation
+  bytes }
+function IsUTF8(const ABytes: TBytes): Boolean;
+var
+  i, Continuations: Integer;
+begin
+  Result := False;
+  i := 0;
+  while i < Length(ABytes) do
+  begin
+    case ABytes[i] of
+      $00..$7F: Continuations := 0;
+      $C2..$DF: Continuations := 1;
+      $E0..$EF: Continuations := 2;
+      $F0..$F4: Continuations := 3;
+    else
+      Exit;
+    end;
+    Inc(i);
+    while Continuations > 0 do
+    begin
+      if (i >= Length(ABytes)) or ((ABytes[i] and $C0) <> $80) then
+        Exit;
+      Inc(i);
+      Dec(Continuations);
+    end;
+  end;
+  Result := True;
+end;
+
+function TextOfFile(const AFileName: string): string;
+var
+  Stream: TFileStream;
+  Bytes, BOM: TBytes;
+begin
+  Stream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
+  try
+    SetLength(Bytes, Stream.Size);
+    if Length(Bytes) > 0 then
+      Stream.ReadBuffer(Bytes[0], Length(Bytes));
+  finally
+    Stream.Free;
+  end;
+  BOM := TEncoding.UTF8.GetPreamble;
+  if (Length(Bytes) >= Length(BOM)) and CompareMem(@Bytes[0], @BOM[0], Length(BOM)) then
+    Result := TEncoding.UTF8.GetString(Bytes, Length(BOM), Length(Bytes) - Length(BOM))
+  else if IsUTF8(Bytes) then
+    Result := TEncoding.UTF8.GetString(Bytes)
+  else
+    Result := TEncoding.ANSI.GetString(Bytes);
+end;
+
+procedure WriteUTF8File(const AFileName: string; ALines: TStrings);
+var
+  Stream: TFileStream;
+  Bytes, BOM: TBytes;
+begin
+  ALines.LineBreak := cFileLineBreak;
+  Bytes := TEncoding.UTF8.GetBytes(ALines.Text);
+  BOM := TEncoding.UTF8.GetPreamble;
+  Stream := TFileStream.Create(AFileName, fmCreate);
+  try
+    Stream.WriteBuffer(BOM[0], Length(BOM));
+    if Length(Bytes) > 0 then
+      Stream.WriteBuffer(Bytes[0], Length(Bytes));
+  finally
+    Stream.Free;
+  end;
+end;
+
 procedure TBoldDiskFileHandler.DoFlushFile;
 begin
   if ExtractFilePath(FileName) = '' then
     fFileName := GetCurrentDir + PathDelim + FileName;
   if CheckWriteable then
   begin
-    StringList.SaveToFile(FileName);
+    WriteUTF8File(FileName, StringList);
     BoldLog.LogFmt(sSaved, [FileName]);
   end
   else
@@ -358,7 +437,7 @@ end;
 procedure TBoldDiskFileHandler.LoadStringList;
 begin
   if FileExists(FileName) then
-    StringList.LoadFromFile(Filename)
+    StringList.Text := TextOfFile(FileName);
 end;
 
 function TBoldFileHandler.CheckWriteable(FName: string = ''): Boolean;
