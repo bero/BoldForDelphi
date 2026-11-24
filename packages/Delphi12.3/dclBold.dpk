@@ -250,6 +250,8 @@ contains
   BoldLogHandler in '..\..\Source\Common\Logging\BoldLogHandler.pas',
   BoldLogHandlerForm in '..\..\Source\Common\Logging\BoldLogHandlerForm.pas',
   BoldLogReceiverInterface in '..\..\Source\Common\Logging\BoldLogReceiverInterface.pas',
+  BoldExceptionTrace in '..\..\Source\Common\Logging\BoldExceptionTrace.pas',
+  BoldLogInterfaces in '..\..\Source\Common\Logging\BoldLogInterfaces.pas',
   BoldLoggableCriticalSection in '..\..\Source\Common\Support\BoldLoggableCriticalSection.pas',
   BoldMLAttributes in '..\..\Source\ObjectSpace\BORepresentation\BoldMLAttributes.pas',
   BoldMLRenderers in '..\..\Source\BoldAwareGUI\ControlPacks\BoldMLRenderers.pas',
