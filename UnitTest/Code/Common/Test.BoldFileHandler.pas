@@ -47,6 +47,23 @@ const
   // Characters of three and four bytes in UTF-8: the euro sign and an emoji
   cEuroAndEmoji = #$20AC' '#$D83D#$DE00;
 
+{ A line as a TStringList, and so a file handler, holds it. Delphi's holds any
+  text. Free Pascal's keeps AnsiStrings in the system code page: UTF-8 on
+  Linux, but on Windows the ANSI code page of a console program such as the
+  test runner, which has no emoji. }
+function AsAStringListHoldsIt(const ALine: string): string;
+var
+  Lines: TStringList;
+begin
+  Lines := TStringList.Create;
+  try
+    Lines.Add(ALine);
+    Result := Lines[0];
+  finally
+    Lines.Free;
+  end;
+end;
+
 function UTF8BOM: TBytes;
 begin
   Result := TEncoding.UTF8.GetPreamble;
@@ -174,7 +191,7 @@ end;
 procedure TTestBoldFileHandler.TestReadsUTF8WithoutBOM;
 begin
   // As an editor on Linux writes it: no byte order mark, LF
-  Assert.AreEqual(cKaer + '|' + cEuroAndEmoji + '|',
+  Assert.AreEqual(AsAStringListHoldsIt(cKaer) + '|' + AsAStringListHoldsIt(cEuroAndEmoji) + '|',
     LinesRead('Lazarus.inc', UTF8(cKaer + #10 + cEuroAndEmoji + #10)), 'the lines read');
 end;
 
