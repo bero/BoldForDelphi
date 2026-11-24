@@ -338,9 +338,11 @@
         <DCCReference Include="..\..\Source\Handles\PessimisticLocking\BoldLockingHandles.pas"/>
         <DCCReference Include="..\..\Source\Handles\IDE\BoldLockingReg.pas"/>
         <DCCReference Include="..\..\Source\Propagator\Common\BoldLockingSupportInterfaces_TLB.pas"/>
+        <DCCReference Include="..\..\Source\Common\Logging\boldexceptiontrace.pas"/>
         <DCCReference Include="..\..\Source\Common\Logging\BoldLogForm.pas"/>
         <DCCReference Include="..\..\Source\Common\Logging\BoldLogHandler.pas"/>
         <DCCReference Include="..\..\Source\Common\Logging\BoldLogHandlerForm.pas"/>
+        <DCCReference Include="..\..\Source\Common\Logging\boldloginterfaces.pas"/>
         <DCCReference Include="..\..\Source\Common\Logging\BoldLogReceiverInterface.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldLoggableCriticalSection.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\BORepresentation\BoldMLAttributes.pas"/>
