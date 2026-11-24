@@ -16,11 +16,6 @@ it in Delphi and let the IDE create a project file. The persistence chain is IBX
 units live under `Source\Deprecated\Persistance\IBX` and belong to no current
 Bold package, so add that folder to the unit search path.
 
-`fMain.dfm` is a binary form file that the repository's `*.dfm text eol=crlf`
-rule inflates on checkout (13660 bytes against 13598 in the object store), so
-it will not stream until you restore it with `git show HEAD:<path> > <path>`,
-run from cmd or Git Bash (the `>` of Windows PowerShell re-encodes the bytes).
-
 `IBDatabase1` has `user_name=sysdba` and `password=masterkey` but **no
 `DatabaseName`**, so fill it in first. Then press **Create DB** and **Open
 system**. On `OnSystemOpened` the form fills an empty `Food` or `School` class

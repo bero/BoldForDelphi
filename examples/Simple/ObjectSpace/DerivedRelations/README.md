@@ -24,12 +24,6 @@ The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
 under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
 so put that folder on the unit search path.
 
-`fDerivedRelationsMain.dfm` is a binary form file that the repository's
-`*.dfm text eol=crlf` rule inflates on checkout (14165 bytes against 14095 in
-the object store), so it will not stream until you restore it with
-`git show HEAD:<path> > <path>`. Run that from cmd or Git Bash; the `>` of
-Windows PowerShell re-encodes the bytes.
-
 ## What is stored and what is computed
 
 Stored:

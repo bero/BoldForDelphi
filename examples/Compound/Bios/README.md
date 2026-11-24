@@ -191,7 +191,7 @@ its form file is a smaller, older layout than the COM form's.
 
 | Path | What it holds |
 | --- | --- |
-| `Core\DMCore.pas` / `.dfm` | the model, the system and persistence handles, the IB database, a filter and a comparer (binary form file) |
+| `Core\DMCore.pas` / `.dfm` | the model, the system and persistence handles, the IB database, a filter and a comparer |
 | `Core\BuildingsAndOwners*.pas`, `.inc`, `.idl`, `.tlb` | generated classes, interfaces and adapters |
 | `Core\Person.inc`, `Building.inc`, `ResidentialBuilding.inc` | the method bodies |
 | `Server\DMServer.pas` / `.dfm` | the two element exporters and the COM server handle |

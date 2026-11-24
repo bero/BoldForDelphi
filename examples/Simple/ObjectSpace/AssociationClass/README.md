@@ -24,13 +24,6 @@ The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
 under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
 so put that folder on the unit search path.
 
-`MainForm.dfm` is a binary form file. The repository's `.gitattributes` applies
-`*.dfm text eol=crlf`, which turns every LF byte in it into CR LF on checkout
-(17408 bytes in the working tree against 17305 in the object store), and the
-form will not stream. Restore the bytes with `git show HEAD:<path> > <path>`
-before opening it. Run that from cmd or Git Bash; the `>` of Windows PowerShell
-re-encodes the bytes.
-
 ## Navigating an association class
 
 One association gives three different things to navigate, and the form shows

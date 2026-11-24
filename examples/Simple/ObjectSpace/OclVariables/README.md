@@ -23,11 +23,6 @@ The Bold IBX units, `BoldDatabaseAdapterIB` and `BoldIBDatabaseAction`, live
 under `Source\Deprecated\Persistance\IBX` and are in no current Bold package,
 so put that folder on the unit search path.
 
-`MainForm.dfm` is a binary form file that the repository's `*.dfm text eol=crlf`
-rule inflates on checkout (8867 bytes against 8825 in the object store), so it
-will not stream until you restore it with `git show HEAD:<path> > <path>`. Run
-that from cmd or Git Bash; the `>` of Windows PowerShell re-encodes the bytes.
-
 ## The one idea
 
 The third column of `BoldGrid1` is

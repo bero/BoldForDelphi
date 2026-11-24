@@ -16,17 +16,6 @@ it in Delphi and let the IDE create a project file. Persistence is IBX
 units live under `Source\Deprecated\Persistance\IBX` and are in no current
 Bold package, so put that folder on the unit search path.
 
-`fMain.dfm` is a binary form file, and the copy in the repository is damaged:
-the commit that normalised line endings collapsed a genuine `0D 0A` pair inside
-it, so it is 10350 bytes against 10351 in the original import, and the
-`*.dfm text eol=crlf` rule inflates it further on checkout. Restoring it from
-`HEAD` is not enough. Recover it from the import, from cmd or Git Bash (the `>`
-of Windows PowerShell re-encodes the bytes):
-
-```
-git show e4dd87f:examples/Delphi/Simple/GUIControls/Renderers/fMain.dfm > fMain.dfm
-```
-
 `IBDatabase1` has credentials but **no `DatabaseName`**, so set it, then press
 **Create DB** and **Open system**. Add people with the navigator;
 `TPerson.CompleteCreate` in `RendererExampleClasses.inc` fills in a random name

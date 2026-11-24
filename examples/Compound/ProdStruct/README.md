@@ -174,6 +174,3 @@ appear.
 | `ProdStructClasses.inc` | the three `_TotalCost_DeriveAndSubscribe` implementations |
 | `ProdStruct.bld` | exported model; the authoritative copy is inside `dm1.dfm` |
 | `*.bmp` | the tree view image list, exported as separate bitmaps |
-
-Both `dm1.dfm` and `main.dfm` are binary form files, so they do not diff
-usefully in git.

@@ -17,12 +17,6 @@ uses the IBX persistence chain (`TBoldDatabaseAdapterIB`,
 `Source\Deprecated\Persistance\IBX` and are in no current Bold package, so put
 that folder on the unit search path by hand.
 
-All four form files are binary, and the repository's `*.dfm text eol=crlf` rule
-inflates them on checkout (`fMain.dfm` is 10584 bytes in the working tree
-against 10548 in the object store), so they will not stream until you restore
-each one with `git show HEAD:<path> > <path>`. Run that from cmd or Git Bash;
-the `>` of Windows PowerShell re-encodes the bytes.
-
 `IBDatabase1` ships with `user_name=sysdba` and `password=masterkey` but **no
 `DatabaseName`**, so fill that in before running. Then press **Create DB**
 (`BoldIBDatabaseAction1`) and **Open system** (`BoldActivateSystemAction1`), and
