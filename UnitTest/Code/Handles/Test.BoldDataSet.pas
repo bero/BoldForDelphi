@@ -345,6 +345,12 @@ var
 begin
   inherited;
   FDataModule := TjehodmBoldTest.Create(nil);
+  // The class list is read before the objects are made, so that it takes each
+  // of them at its end and the rows come in the order of cNames. One that is
+  // first read afterwards is filled from the system's locators in the order
+  // of their hash, the process-wide internal id, and three ids across a
+  // bucket boundary come out rotated.
+  Assert.AreEqual(0, FDataModule.BoldListHandle1.List.Count, 'no ClassA before the test makes its own');
   for i := 0 to High(cNames) do
   begin
     Obj := TClassA.Create(FDataModule.BoldSystemHandle1.System);
