@@ -72,6 +72,9 @@ type
     procedure AttributeNullTest;
     procedure AttributeIndexTest;
     procedure AttributeDerivationTest;
+    // AutoSubscription: a code derivation needs no DefaultSubscribe, the
+    // members it reads are subscribed for it
+    procedure AttributeDerivationWithoutSubscriptionIsRecomputed;
     procedure AttributeOclDerivationTest;
     procedure CheckMultiDerivedAttributes;
     procedure CompareToAsTest;
@@ -272,7 +275,27 @@ uses
   {$IFDEF BoldJson}
   BoldObjectRepresentationJson, // built on Delphi's System.JSON; off under FPC
   {$ENDIF}
+  BoldDeriver,
+  BoldSystemRT,
   dmModel1;
+
+type
+  { A derive method for TClassDerivedA.aDerivedString that reads aString and
+    places no subscription. Bold calls a code derivation with the owning
+    object as Self (TBoldMember.CalculateDerivedMemberWithDeriveMethod), so it
+    uses DerivedObject only. }
+  TDerivationWithoutSubscription = class
+  public
+    procedure DeriveString(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+  end;
+
+procedure TDerivationWithoutSubscription.DeriveString(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+var
+  Derived: TBAString;
+begin
+  Derived := DerivedObject as TBAString;
+  Derived.AsString := (Derived.OwningObject as TClassDerivedA).aString;
+end;
 
 const
   FLOATCONST: Real = 0.1;
@@ -468,6 +491,33 @@ begin
     SetAttributeValues(ObjectSubA);
     CheckDerivedAttributes(ObjectSubA);
   finally
+    ObjectSubA.Delete;
+  end;
+end;
+
+procedure TTestBoldAttributes.AttributeDerivationWithoutSubscriptionIsRecomputed;
+var
+  ObjectSubA: TClassDerivedA;
+  RTInfo: TBoldMemberRTInfo;
+  OldDeriveMethod: Pointer;
+  Derivation: TDerivationWithoutSubscription;
+  Derive: TBoldDeriveAndResubscribe;
+begin
+  ObjectSubA := TClassDerivedA.Create(nil);
+  RTInfo := ObjectSubA.M_aDerivedString.BoldMemberRTInfo;
+  OldDeriveMethod := RTInfo.DeriveMethod;
+  Derivation := TDerivationWithoutSubscription.Create;
+  try
+    Derive := Derivation.DeriveString;
+    RTInfo.DeriveMethod := TMethod(Derive).Code;
+    ObjectSubA.aString := 'first';
+    Assert.AreEqual('first', ObjectSubA.aDerivedString);
+    ObjectSubA.aString := 'second';
+    Assert.AreEqual('second', ObjectSubA.aDerivedString,
+      'the derivation read aString, so AutoSubscription recomputes it when aString changes');
+  finally
+    RTInfo.DeriveMethod := OldDeriveMethod;
+    Derivation.Free;
     ObjectSubA.Delete;
   end;
 end;

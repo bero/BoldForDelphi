@@ -180,9 +180,9 @@ begin
 end;
 ```
 
-Bold derives the value again when a dependency changes. The `DefaultSubscribe` calls are needed in a build without
-AutoSubscription, the default of this repository; with AutoSubscription, Bold subscribes to every member the method
-reads. See [Derived Attributes](../concepts/derived-attributes.md#code-derivation).
+Bold derives the value again when a dependency changes. AutoSubscription is on by default: Bold subscribes the
+derivation to every member the method reads, so the `DefaultSubscribe` calls are needed only in a project that defines
+`NoAutoSubscription`. See [Derived Attributes](../concepts/derived-attributes.md#code-derivation).
 
 ## Common Patterns
 

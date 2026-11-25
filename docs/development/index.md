@@ -84,4 +84,5 @@ describes the Lazarus packages.
 | `BOLD_XMLDOM` | Delphi XML streaming on `Xml.xmldom` (OmniXML) instead of MSXML. Set by `bold.inc` off Windows; define it to test that backend on Windows |
 | `BoldJson` | JSON support (always on) |
 | `BOLD_NO_QUERIES` | Turns off the query mechanism (always on) |
-| `Attracs` | Defined by the Attracs application, not by this repository. Without it, `bold.inc` turns off `SpanFetch`, `CompareToOldValues`, `IDServer`, `NoNegativeDates` and `ConvertZeroDateToDateNil`, and turns on `NoAutoSubscription` and `NoMayUpdate` |
+| `Attracs` | Defined by the Attracs application, not by this repository. Without it, `bold.inc` turns off `SpanFetch`, `CompareToOldValues`, `IDServer`, `NoNegativeDates` and `ConvertZeroDateToDateNil`, and turns on `NoMayUpdate` |
+| `NoAutoSubscription` | Not defined by default. Turns AutoSubscription off, so a code derivation must subscribe to the members it reads with `DefaultSubscribe` itself; see [Derived Attributes](../concepts/derived-attributes.md#code-derivation) |

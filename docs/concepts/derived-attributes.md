@@ -186,9 +186,10 @@ AutoSubscription:
   it: a changed link or a list with a new element then places the subscriptions again. With the default
   `breReEvaluate`, Bold only computes the value again and keeps the old subscriptions.
 
-`bold.inc` turns AutoSubscription off with `NoAutoSubscription` unless `Attracs` is defined, so a build of this
-repository runs without it (see [Compiler directives](../development/index.md#compiler-directives)). The examples
-below subscribe themselves, so they work in both builds.
+AutoSubscription is on by default, with Delphi and Free Pascal, in programs and in the design-time packages alike. A
+project that defines `NoAutoSubscription` runs without it (see
+[Compiler directives](../development/index.md#compiler-directives)). The examples below subscribe themselves, so they
+work in both builds.
 
 ### Derived Attributes in Code
 

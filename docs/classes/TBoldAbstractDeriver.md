@@ -99,9 +99,9 @@ next read.
 ### Code-Derived Members
 
 For a derived attribute without an OCL derivation expression, the code generator declares a derive method in the
-business classes; you write its body. The method is named `_<MemberName>_DeriveAndSubscribe`. The `DefaultSubscribe`
-calls below are needed in a build without AutoSubscription, the default of this repository; with AutoSubscription,
-Bold subscribes to every member the method reads (see
+business classes; you write its body. The method is named `_<MemberName>_DeriveAndSubscribe`. AutoSubscription is
+on by default: Bold subscribes the derivation to every member the method reads, so the `DefaultSubscribe` calls below
+are needed only in a project that defines `NoAutoSubscription` (see
 [Derived Attributes](../concepts/derived-attributes.md#code-derivation)):
 
 ```pascal

@@ -137,7 +137,9 @@ Illegal symbol combination
   // When fetching an object which class list is loaded then search there instead of going to db.
 {$DEFINE FetchFromClassList}
 
-  // Mechanism to automatically place subscriptions for all derivation code in .inc files
+  // AutoSubscription is on: the members a code derivation reads are subscribed
+  // for it, so derivation code in .inc files needs no DefaultSubscribe. Define
+  // NoAutoSubscription in a project to switch it off there.
 {.$DEFINE NoAutoSubscription}
 
   // Mechanism for efficient fetching
@@ -243,7 +245,6 @@ Illegal symbol combination
 // settings for design package
 
 {$IFNDEF Attracs}
-  {$DEFINE NoAutoSubscription}
   {$UNDEF SpanFetch}
   {$UNDEF CompareToOldValues}
   {$DEFINE NoMayUpdate}
