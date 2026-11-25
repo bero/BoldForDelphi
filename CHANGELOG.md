@@ -173,6 +173,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   self-test; `check_no_vcl.ps1` checks that it links no VCL unit.
 
 ### Changed
+- AutoSubscription is on in every build, with Delphi and Free Pascal, in
+  programs and in the design-time packages. `bold.inc` switched it off
+  (`NoAutoSubscription`) in every build without the `Attracs` define, so a code
+  derivation that read members without subscribing to them (`DefaultSubscribe`)
+  was not computed again when they changed; now it is. A project that defines
+  `NoAutoSubscription` switches it off. See `docs/concepts/derived-attributes.md`.
 - The Lazarus package `Bold.lpk` holds the code generator (`BoldGen`, the
   Delphi templates, `BoldTemplateExpander`, `BoldFileHandler`), so a Lazarus
   program can generate the business classes of a model; the standalone model
