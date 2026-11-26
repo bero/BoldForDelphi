@@ -75,6 +75,9 @@ type
     // AutoSubscription: a code derivation needs no DefaultSubscribe, the
     // members it reads are subscribed for it
     procedure AttributeDerivationWithoutSubscriptionIsRecomputed;
+    // A derivation that reads an object and deletes it: the members it read
+    // of that object are not subscribed when the derivation ends
+    procedure AttributeDerivationThatDeletesAnObject;
     procedure AttributeOclDerivationTest;
     procedure CheckMultiDerivedAttributes;
     procedure CompareToAsTest;
@@ -295,6 +298,33 @@ var
 begin
   Derived := DerivedObject as TBAString;
   Derived.AsString := (Derived.OwningObject as TClassDerivedA).aString;
+end;
+
+var
+  // The object TDerivationThatDeletes reads and deletes. A unit variable: Self
+  // of a derive method is the owning object, not an instance of its class.
+  DerivationVictim: TClassA;
+
+type
+  { A derive method for TClassDerivedA.aDerivedString that reads aString of
+    DerivationVictim and then deletes it. AutoSubscription records the member
+    as read; the delete (TBoldObject.Delete) and the destruction of the new
+    object at the derivation's commit (TBoldMember.Destroy) take it off that
+    record again, so MemberDerivationEnd subscribes to no member of the
+    deleted object. }
+  TDerivationThatDeletes = class
+  public
+    procedure DeriveString(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+  end;
+
+procedure TDerivationThatDeletes.DeriveString(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+var
+  Value: string;
+begin
+  Value := DerivationVictim.aString;
+  DerivationVictim.Delete;
+  DerivationVictim := nil;
+  (DerivedObject as TBAString).AsString := Value;
 end;
 
 const
@@ -518,6 +548,39 @@ begin
   finally
     RTInfo.DeriveMethod := OldDeriveMethod;
     Derivation.Free;
+    ObjectSubA.Delete;
+  end;
+end;
+
+procedure TTestBoldAttributes.AttributeDerivationThatDeletesAnObject;
+var
+  ObjectSubA: TClassDerivedA;
+  RTInfo: TBoldMemberRTInfo;
+  OldDeriveMethod: Pointer;
+  Derivation: TDerivationThatDeletes;
+  Derive: TBoldDeriveAndResubscribe;
+begin
+  ObjectSubA := TClassDerivedA.Create(nil);
+  RTInfo := ObjectSubA.M_aDerivedString.BoldMemberRTInfo;
+  OldDeriveMethod := RTInfo.DeriveMethod;
+  Derivation := TDerivationThatDeletes.Create;
+  try
+    Derive := Derivation.DeriveString;
+    RTInfo.DeriveMethod := TMethod(Derive).Code;
+    DerivationVictim := TClassA.Create(nil);
+    DerivationVictim.aString := 'read, then deleted';
+    Assert.AreEqual(2, ObjectSubA.BoldSystem.EvaluateExpressionAsInteger('ClassA.allInstances->size'),
+      'the derived object and the one its derivation deletes');
+    Assert.AreEqual('read, then deleted', ObjectSubA.aDerivedString);
+    Assert.IsTrue(DerivationVictim = nil, 'the derivation should have run');
+    Assert.AreEqual(1, ObjectSubA.BoldSystem.EvaluateExpressionAsInteger('ClassA.allInstances->size'),
+      'the derivation deleted the other object');
+  finally
+    RTInfo.DeriveMethod := OldDeriveMethod;
+    Derivation.Free;
+    if Assigned(DerivationVictim) then
+      DerivationVictim.Delete;
+    DerivationVictim := nil;
     ObjectSubA.Delete;
   end;
 end;
