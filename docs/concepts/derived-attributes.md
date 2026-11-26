@@ -180,7 +180,7 @@ AutoSubscription:
 - **With AutoSubscription**, Bold records every member that the method reads, and when the method returns, it
   subscribes the derivation to each of them. The method needs no `DefaultSubscribe` calls. A changed link or a list
   with a new element needs no special care either: the next derivation reads the new objects, and Bold subscribes to
-  them as well.
+  them as well. Only the members of an object that is deleted or unloaded before the method returns are left out.
 - **Without AutoSubscription**, the method subscribes itself, by calling `DefaultSubscribe(Subscriber)` on every
   member it reads. Subscribe to a link or list with `breReSubscribe` when the method also subscribes to the objects in
   it: a changed link or a list with a new element then places the subscriptions again. With the default

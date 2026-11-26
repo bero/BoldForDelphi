@@ -6001,26 +6001,13 @@ begin
 end;
 
 procedure TBoldMember.InternalDiscard;
-{$IFNDEF NoAutoSubscription}
-  procedure ClearDerivationReferences;
-  var
-    i: integer;
-  begin
-    // Clear any references to member from the list of members acccesed during derivation
-    with BoldSystem.fMembersReadDuringDerivation  do
-      for i := 0 to Count - 1 do
-        if (Items[i] <> nil) and (TBoldMember(Items[i]) = self) then
-          Items[i] := nil;
-  end;
-{$ENDIF}
 begin
+  // A member discarded during a derivation stays among the members the
+  // derivation read (AutoSubscription): it still exists, and the derived
+  // member depends on it. TBoldMember.Destroy takes a freed member off.
   if BoldPersistenceState in [bvpsModified, bvpsTransient] then
   begin
     PreDiscard;
-{$IFNDEF NoAutoSubscription}
-    if Assigned(BoldSystem) and BoldSystem.IsDerivingMembers then
-      ClearDerivationReferences;
-{$ENDIF}
     case BoldPersistenceState of
       bvpsModified: begin
         if not OwningObject.BoldObjectLocator.BoldObjectID.IsStorable then

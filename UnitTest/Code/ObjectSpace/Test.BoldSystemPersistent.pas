@@ -93,7 +93,7 @@ type
   end;
 
   // Uses the SQLite-backed BoldTestDM: AutoSubscription with saved objects. A
-  // derivation unloads what it has read, which needs an object
+  // derivation unloads or discards what it has read, which needs an object
   // that is in the database. The derive method of
   // APersistentClass.aDerivedString is swapped for the test's own, as
   // Test.BoldAttributes does on the jeho model, which has no database.
@@ -108,6 +108,7 @@ type
     procedure TearDown; override;
   published
     procedure TestDerivationThatUnloadsAnObjectItRead;
+    procedure TestDerivationFollowsAMemberItDiscarded;
   end;
 
 implementation
@@ -593,14 +594,16 @@ var
   // What the derive methods below read. Unit variables: Self of a derive
   // method is the owning object, not an instance of its class.
   DerivationReads: TSomeClass;
+  DerivationDiscards: Boolean;
 
 type
   { Derive methods for APersistentClass.aDerivedString that read aString of
-    DerivationReads and then unload the object. They place no subscription:
-    AutoSubscription does. }
+    DerivationReads and then unload the object, or discard the member. They
+    place no subscription: AutoSubscription does. }
   TDerivationsWithSideEffects = class
   public
     procedure ReadThenUnload(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+    procedure ReadThenDiscard(DerivedObject: TObject; Subscriber: TBoldSubscriber);
   end;
 
 procedure TDerivationsWithSideEffects.ReadThenUnload(DerivedObject: TObject; Subscriber: TBoldSubscriber);
@@ -610,6 +613,20 @@ begin
   Value := DerivationReads.aString;
   DerivationReads.BoldObjectLocator.UnloadBoldObject;
   DerivationReads := nil;
+  (DerivedObject as TBAString).AsString := Value;
+end;
+
+procedure TDerivationsWithSideEffects.ReadThenDiscard(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+var
+  Value: string;
+begin
+  Value := DerivationReads.aString;
+  // Only in the first derivation: a recomputation only reads
+  if DerivationDiscards then
+  begin
+    DerivationDiscards := False;
+    DerivationReads.M_aString.Discard;
+  end;
   (DerivedObject as TBAString).AsString := Value;
 end;
 
@@ -660,6 +677,39 @@ begin
     Assert.IsTrue(ReadLocator.BoldObject = nil, 'the derivation unloaded the object it read');
     Assert.AreEqual('saved', (ReadLocator.EnsuredBoldObject as TSomeClass).aString,
       'loaded again, the object has its saved value');
+  finally
+    Derived.M_aDerivedString.BoldMemberRTInfo.DeriveMethod := OldDeriveMethod;
+    Derivations.Free;
+    DerivationReads := nil;
+    GetSystem.Discard;
+  end;
+end;
+
+procedure TTestBoldAutoSubscriptionPersistent.TestDerivationFollowsAMemberItDiscarded;
+var
+  Derived: TAPersistentClass;
+  ReadObject: TSomeClass;
+  Derivations: TDerivationsWithSideEffects;
+  OldDeriveMethod: Pointer;
+begin
+  GetSystem.Discard;
+  Derived := TAPersistentClass.Create(GetSystem);
+  ReadObject := TSomeClass.Create(GetSystem);
+  ReadObject.aString := 'saved';
+  GetSystem.UpdateDatabase;
+  ReadObject.aString := 'edited';
+  DerivationReads := ReadObject;
+  DerivationDiscards := True;
+  Derivations := TDerivationsWithSideEffects.Create;
+  OldDeriveMethod := SwapDeriveMethod(Derived.M_aDerivedString, Derivations.ReadThenDiscard);
+  try
+    Assert.AreEqual('edited', Derived.aDerivedString, 'the derivation read the edited value');
+    Assert.IsFalse(DerivationDiscards, 'the derivation should have discarded aString');
+    Assert.AreEqual('saved', ReadObject.aString, 'the discard brought back the saved value');
+    ReadObject.aString := 'changed after the derivation';
+    Assert.AreEqual('changed after the derivation', Derived.aDerivedString,
+      'the derivation read aString, so AutoSubscription recomputes it when aString changes, '
+      + 'also when the derivation discarded aString after reading it');
   finally
     Derived.M_aDerivedString.BoldMemberRTInfo.DeriveMethod := OldDeriveMethod;
     Derivations.Free;

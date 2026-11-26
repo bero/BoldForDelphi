@@ -268,6 +268,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- AutoSubscription: a member that a code derivation read and then discarded
+  (`TBoldMember.Discard`, the modified member of a saved object) was taken off
+  the members the derivation depends on, so the derived member was not
+  computed again when that member changed later. It now stays one.
 - `TBoldFileLogSink` on Linux and macOS (#130): Delphi could not open a log
   file that already existed (a read lock on a file opened for writing), so a
   program logged only on the run that created the file; with Free Pascal two
