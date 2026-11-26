@@ -92,6 +92,24 @@ type
     procedure TestDiscardPersistent_FanOutReDirty_TerminatesWithinBoundedPasses;
   end;
 
+  // Uses the SQLite-backed BoldTestDM: AutoSubscription with saved objects. A
+  // derivation unloads what it has read, which needs an object
+  // that is in the database. The derive method of
+  // APersistentClass.aDerivedString is swapped for the test's own, as
+  // Test.BoldAttributes does on the jeho model, which has no database.
+  {$IFNDEF FPC}
+  [Category('ObjectSpace')]
+  {$ENDIF}
+  TTestBoldAutoSubscriptionPersistent = class(TBoldTestCase)
+  private
+    function GetSystem: TBoldSystem;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestDerivationThatUnloadsAnObjectItRead;
+  end;
+
 implementation
 
 uses
@@ -99,6 +117,8 @@ uses
   BoldDefs,
   BoldSubscription,
   BoldSystemRT,
+  BoldAttributes,
+  BoldDeriver,
   dmBoldTest,
   BoldTestModel;
 
@@ -567,10 +587,92 @@ begin
   end;
 end;
 
+{ TTestBoldAutoSubscriptionPersistent }
+
+var
+  // What the derive methods below read. Unit variables: Self of a derive
+  // method is the owning object, not an instance of its class.
+  DerivationReads: TSomeClass;
+
+type
+  { Derive methods for APersistentClass.aDerivedString that read aString of
+    DerivationReads and then unload the object. They place no subscription:
+    AutoSubscription does. }
+  TDerivationsWithSideEffects = class
+  public
+    procedure ReadThenUnload(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+  end;
+
+procedure TDerivationsWithSideEffects.ReadThenUnload(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+var
+  Value: string;
+begin
+  Value := DerivationReads.aString;
+  DerivationReads.BoldObjectLocator.UnloadBoldObject;
+  DerivationReads := nil;
+  (DerivedObject as TBAString).AsString := Value;
+end;
+
+function SwapDeriveMethod(AMember: TBoldMember; const ADerive: TBoldDeriveAndResubscribe): Pointer;
+begin
+  Result := AMember.BoldMemberRTInfo.DeriveMethod;
+  AMember.BoldMemberRTInfo.DeriveMethod := TMethod(ADerive).Code;
+end;
+
+procedure TTestBoldAutoSubscriptionPersistent.SetUp;
+begin
+  inherited;
+  EnsureBoldTestDM;
+end;
+
+procedure TTestBoldAutoSubscriptionPersistent.TearDown;
+begin
+  CloseBoldTestDM;
+  inherited;
+end;
+
+function TTestBoldAutoSubscriptionPersistent.GetSystem: TBoldSystem;
+begin
+  Result := BoldTestDM.BoldSystemHandle1.System;
+end;
+
+procedure TTestBoldAutoSubscriptionPersistent.TestDerivationThatUnloadsAnObjectItRead;
+var
+  Derived: TAPersistentClass;
+  ReadLocator: TBoldObjectLocator;
+  Derivations: TDerivationsWithSideEffects;
+  OldDeriveMethod: Pointer;
+begin
+  GetSystem.Discard;
+  Derived := TAPersistentClass.Create(GetSystem);
+  DerivationReads := TSomeClass.Create(GetSystem);
+  DerivationReads.aString := 'saved';
+  GetSystem.UpdateDatabase;
+  ReadLocator := DerivationReads.BoldObjectLocator;
+  Derivations := TDerivationsWithSideEffects.Create;
+  OldDeriveMethod := SwapDeriveMethod(Derived.M_aDerivedString, Derivations.ReadThenUnload);
+  try
+    // AutoSubscription records the member as read; the unload frees it
+    // before the derivation ends (TBoldMember.Destroy takes it off the record),
+    // so MemberDerivationEnd places no subscription on freed memory
+    Assert.AreEqual('saved', Derived.aDerivedString);
+    Assert.IsTrue(DerivationReads = nil, 'the derivation should have run');
+    Assert.IsTrue(ReadLocator.BoldObject = nil, 'the derivation unloaded the object it read');
+    Assert.AreEqual('saved', (ReadLocator.EnsuredBoldObject as TSomeClass).aString,
+      'loaded again, the object has its saved value');
+  finally
+    Derived.M_aDerivedString.BoldMemberRTInfo.DeriveMethod := OldDeriveMethod;
+    Derivations.Free;
+    DerivationReads := nil;
+    GetSystem.Discard;
+  end;
+end;
+
 initialization
   BoldRegisterTest(TTestBoldSystemDirtyObjectsPersistent);
   BoldRegisterTest(TTestBoldSystemPreUpdatePersistent);
   BoldRegisterTest(TTestBoldClassListFillFromSuperClass);
   BoldRegisterTest(TTestBoldSystemDiscardPersistentStall);
+  BoldRegisterTest(TTestBoldAutoSubscriptionPersistent);
 
 end.

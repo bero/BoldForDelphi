@@ -73,15 +73,21 @@ type
     function _Get_M_aString: TBAString;
     function _GetaString: String;
     procedure _SetaString(const NewValue: String);
+    function _Get_M_aDerivedString: TBAString;
+    function _GetaDerivedString: String;
     function _Getone: TATransientClass;
     function _Get_M_one: TBoldObjectReference;
     procedure _Setone(const value: TATransientClass);
   protected
+    procedure _aDerivedString_DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber); virtual;
+    function GetDeriveMethodForMember(MemberIndex: Integer): TBoldDeriveAndResubscribe; override;
   public
     function ValuesAreEqual(Value1: IBoldValue; Value2: IBoldValue; MemberExpressionName: string): Boolean; 
     property M_aString: TBAString read _Get_M_aString;
+    property M_aDerivedString: TBAString read _Get_M_aDerivedString;
     property M_one: TBoldObjectReference read _Get_M_one;
     property aString: String read _GetaString write _SetaString;
+    property aDerivedString: String read _GetaDerivedString;
     property one: TATransientClass read _Getone write _Setone;
   end;
 

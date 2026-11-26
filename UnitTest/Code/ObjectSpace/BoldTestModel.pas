@@ -94,10 +94,21 @@ begin
   M_aString.AsString := NewValue;
 end;
 
+function TAPersistentClass._Get_M_aDerivedString: TBAString;
+begin
+  assert(ValidateMember('TAPersistentClass', 'aDerivedString', 1, TBAString));
+  Result := TBAString(BoldMembers[1]);
+end;
+
+function TAPersistentClass._GetaDerivedString: String;
+begin
+  Result := M_aDerivedString.AsString;
+end;
+
 function TAPersistentClass._Get_M_one: TBoldObjectReference;
 begin
-  assert(ValidateMember('TAPersistentClass', 'one', 1, TBoldObjectReference));
-  Result := TBoldObjectReference(BoldMembers[1]);
+  assert(ValidateMember('TAPersistentClass', 'one', 2, TBoldObjectReference));
+  Result := TBoldObjectReference(BoldMembers[2]);
 end;
 
 function TAPersistentClass._Getone: TATransientClass;
@@ -160,6 +171,14 @@ begin
 end;
 
 {$ENDIF UseBoldListEnumerator}
+
+function TAPersistentClass.GetDeriveMethodForMember(MemberIndex: Integer): TBoldDeriveAndResubscribe;
+begin
+  case MemberIndex of
+    1: result := _aDerivedString_DeriveAndSubscribe;
+  else result := inherited GetDeriveMethodForMember(MemberIndex);
+  end;
+end;
 
 { TATransientClass }
 
@@ -899,7 +918,7 @@ end;
 
 function GeneratedCodeCRC: String;
 begin
-  result := '156520488';
+  result := '1212012267';
 end;
 
 procedure InstallObjectListClasses(BoldObjectListClasses: TBoldGeneratedClassList);

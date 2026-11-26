@@ -78,6 +78,12 @@ begin
   end;
 end;
 
+procedure TAPersistentClass._aDerivedString_DeriveAndSubscribe(DerivedObject: TObject; Subscriber: TBoldSubscriber);
+begin
+  M_aString.DefaultSubscribe(Subscriber);
+  M_aDerivedString.AsString := aString;
+end;
+
 function TATransientClass.ValuesAreEqual(Value1: IBoldValue; Value2: IBoldValue; MemberExpressionName: string): Boolean;
 begin
   Result := false;
