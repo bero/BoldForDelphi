@@ -99,7 +99,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `UnitTest\check_memory.ps1` runs the Delphi suite under FastMM4 in
     FullDebugMode (build configuration `DebugFastMM4`). FastMM4 is an optional
     dependency through the `FastMM4` environment variable, not distributed
-    with Bold; normal builds do not need it.
+    with Bold; normal builds do not need it. `-Run <filter>` (or
+    `--run:<filter>`, in any shell) checks a part of the suite; a run in which
+    no test ran fails.
   - `BOLD_HEAPTRC=1 sh UnitTest/FPC/build.sh` runs the Free Pascal suite under
     heaptrc, which the GitHub Actions job does on every push.
 - XML streaming builds on Delphi's cross-platform `Xml.xmldom` with the OmniXML

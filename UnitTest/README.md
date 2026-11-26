@@ -271,7 +271,7 @@ at exit reported together with the line that allocated it.
 ```powershell
 $env:FastMM4 = 'C:\path\to\FastMM4'                # a clone of https://github.com/pleriche/FastMM4
 .\check_memory.ps1                                 # build DebugFastMM4/Win64, run the suite, check the log
-.\check_memory.ps1 --run:Test.BoldXMLStreaming.    # a spot check: runner arguments pass through
+.\check_memory.ps1 -Run Test.BoldXMLStreaming.     # a spot check: only the tests the filter names
 .\check_memory.ps1 -FreedBlocks                    # check writes to freed blocks instead
 ```
 
@@ -283,7 +283,8 @@ do not need FastMM4. An interface released after its object was freed, or a
 virtual call on a freed object, is caught and logged with its stack trace, and
 at exit FastMM4 logs every block still allocated with the stack trace of its
 allocation, with unit and line from the detailed map file. The script prints
-those entries and fails on any leak, any memory error and any failed test. The
+those entries and fails on any leak, any memory error and any failed test, and
+when no test ran (a filter that matches nothing). The
 full suite takes about a minute and a half. There is no Delphi CI, so run it in
 every cycle, like `check_no_vcl.ps1`.
 

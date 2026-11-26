@@ -22,7 +22,7 @@
 #
 # USAGE:
 #   .\check_memory.ps1 [-Platform Win64] [-DelphiVersion 37.0] [-SkipBuild] [-FreedBlocks]
-#                      [-TimeoutMinutes 30] [runner arguments, e.g. --run:Test.BoldXMLStreaming.]
+#                      [-TimeoutMinutes 30] [-Run Test.BoldXMLStreaming.] [runner options]
 #
 # PARAMETERS:
 #   -Platform       : Win32 or Win64 (default: Win64).
@@ -34,20 +34,49 @@
 #                     because releasing an interface after its object was freed is the
 #                     mistake the suite has actually made.
 #   -TimeoutMinutes : Kill the run after this many minutes (default: 30).
-#   Anything else is passed to the runner, after --consolemode:Quiet --exit:Continue.
+#   -Run            : Run only the tests this filter names (the runner's --run), e.g.
+#                     Test.BoldXMLStreaming. for one unit.
+#   Anything else is passed to the runner, after --consolemode:Quiet --exit:Continue, and
+#   must be a runner option (--name:value). No parameter is positional, so a word without
+#   a parameter name is refused. --run:<filter> works as well as -Run, in every shell.
+#   Any other runner option does not survive "pwsh -File", which hands the script --name
+#   and value apart: the script refuses it there; call it inside a session or through
+#   Windows PowerShell instead.
 #
-# EXIT CODE: 0 when every test passes and the event log has no leak and no error;
-# 1 otherwise.
+# EXIT CODE: 0 when at least one test ran, every test passes and the event log has no
+# leak and no error; 1 otherwise.
 
+[CmdletBinding(PositionalBinding = $false)]
 param(
     [string]$Platform = "Win64",
     [string]$DelphiVersion = "",
     [switch]$SkipBuild,
     [switch]$FreedBlocks,
     [int]$TimeoutMinutes = 30,
+    [string]$Run = "",
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$RunnerArgs = @()
 )
+
+# The test filter. "pwsh -File" hands --run:<filter> to the script as -Run <filter>; every
+# other way of calling leaves it among the runner options.
+$GivenFilters = @($RunnerArgs | Where-Object { $_ -like '--run:*' })
+if ($Run -and $GivenFilters.Count -gt 0) {
+    Write-Host "ERROR: the test filter is given twice: -Run $Run and $($GivenFilters -join ' ')" -ForegroundColor Red
+    exit 1
+}
+if ($Run) {
+    $RunnerArgs = @("--run:$Run") + $RunnerArgs
+}
+
+# A runner option starts with -, / or @ (DUnitX.CommandLine.Parser). Anything else is a
+# stray word, or the value that "pwsh -File" split off a --name:value option; the runner
+# would then run nothing, or everything.
+$Stray = @($RunnerArgs | Where-Object { $_ -notmatch '^[-/@]' })
+if ($Stray.Count -gt 0) {
+    Write-Host "ERROR: not a runner option: $($Stray -join ' '). A runner option is written --name:value; the test filter is -Run <filter>." -ForegroundColor Red
+    exit 1
+}
 
 $BuildScript = "C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -150,6 +179,13 @@ $Seconds = [int]$Watch.Elapsed.TotalSeconds
 $Output = @(Get-Content $StdOutFile -ErrorAction SilentlyContinue)
 $Summary = @($Output | Where-Object { $_ -match '^Tests (Found|Passed|Failed|Errored)\s*:' } | ForEach-Object { $_.Trim() })
 $Failing = @($Output | Where-Object { $_ -match '^\s+(Test\.\S+|Message: .*)$' } | ForEach-Object { $_.Trim() })
+# -1: the runner printed no summary
+$Found = -1
+foreach ($Line in $Output) {
+    if ($Line -match '^Tests Found\s*:\s*(\d+)') {
+        $Found = [int]$Matches[1]
+    }
+}
 
 # The event log holds one entry per leak or error, each preceded by a line of dashes with a time stamp.
 $Leaks = @()
@@ -174,7 +210,13 @@ if ($Failing.Count -gt 0) {
     $Failing | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
 }
 
-if ($RunExit -ne 0 -or $Leaks.Count -gt 0 -or $Errors.Count -gt 0 -or $Summary.Count -eq 0) {
+if ($Found -lt 0) {
+    Write-Host "ERROR: no test ran: the runner printed no summary" -ForegroundColor Red
+} elseif ($Found -eq 0) {
+    Write-Host "ERROR: no test ran: the filter matches no test" -ForegroundColor Red
+}
+
+if ($RunExit -ne 0 -or $Leaks.Count -gt 0 -or $Errors.Count -gt 0 -or $Found -le 0) {
     Write-Host "ERROR: memory check failed (log: $LogFile)" -ForegroundColor Red
     exit 1
 }
