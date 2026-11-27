@@ -771,7 +771,14 @@ begin
     // has neither the class nor the message
     Assert.Contains(Log, 'the program ends during an exception', 'logged while the units are finalized');
     Assert.Contains(Log, 'Raised at $', 'where it was raised: ' + Log);
+    // Not on Win64 with Delphi 11: InitUnits finalizes the units, the memory
+    // manager with them, before it reraises, and the reraise reads the freed
+    // exception object, an access violation before the report. Delphi 12 and
+    // 13 report first and end with that access violation after it (the same
+    // in a program without Bold)
+    {$IF not (defined(MSWINDOWS) and defined(CPUX64)) or (CompilerVersion >= 36)}
     Assert.Contains(Output, 'Runtime error 217', 'Delphi''s report: ' + Output);
+    {$IFEND}
     {$ENDIF}
   finally
     DeleteTheChildLogs;
