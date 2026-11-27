@@ -69,6 +69,7 @@ BoldClientHandlerExportHandle
 BoldClientHandles
 BoldClientNotifierHandler
 BoldClientQueue
+BoldClock
 BoldCodePlugins
 BoldCollections
 BoldComAdapter
@@ -180,6 +181,8 @@ BoldEventQueue
 BoldEvolutionAliasDialog
 BoldExceptionHandlers
 BoldExceptionHandlersCom
+BoldExceptionLog
+BoldExceptionTrace
 BoldExpert
 BoldExpertMenus
 BoldExpressionHandle
@@ -310,7 +313,9 @@ BoldLogForm
 BoldLogHandler
 BoldLogHandlerForm
 BoldLogHandlerSimple
+BoldLogInterfaces
 BoldLogReceiverInterface
+BoldLogSinks
 BoldLoggableCriticalSection
 BoldLowEndPropagatorClasses
 BoldLowEndPropagatorMainForm
@@ -446,6 +451,7 @@ BoldPersistenceOperationXMLStreaming
 BoldPlaceableListSubscriber
 BoldPlaceableSubscriber
 BoldPlaceableSubscriberCom
+BoldPlatform
 BoldPriorityListEnlister
 BoldPriorityQueue
 BoldProgressBar
@@ -482,6 +488,7 @@ BoldRawSQLHandle
 BoldReferenceHandle
 BoldReferenceHandleCom
 BoldReg
+BoldRegEx
 BoldRegionDefinitionParser
 BoldRegionDefinitions
 BoldRegistry

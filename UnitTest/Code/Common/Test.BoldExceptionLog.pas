@@ -60,18 +60,35 @@ type
     // The second hook comes from the application's queue, after the start-up
     procedure TestTheHookIsRepeatedAfterStartUp;
     procedure TestUnhookTakesBackTheQueuedHook;
+    // The tests out of process are in the category OutOfProcess, which
+    // run_coverage.ps1 leaves out: the coverage tool debugs the child too, so
+    // Windows hands the child's unhandled exception to the tool instead of
+    // the child's last-resort handler, and it measures no line of the child
+
     // Out of process: an exception in the main block goes to the log through
     // the installed last-resort handler, then the handler that was there
     // reports it and ends the program
+    {$IFNDEF FPC}
+    [Category('OutOfProcess')]
+    {$ENDIF}
     procedure TestAnExceptionInTheMainBlockGoesToTheLog;
     // Out of process: while this process holds the program's log, a second
     // process writes to <program>-<process id>.log
+    {$IFNDEF FPC}
+    [Category('OutOfProcess')]
+    {$ENDIF}
     procedure TestASecondProcessWritesItsOwnLog;
     // Out of process: an exception in the initialization of a unit after
     // BoldExceptionLog goes to the log, then the RTL reports it
+    {$IFNDEF FPC}
+    [Category('OutOfProcess')]
+    {$ENDIF}
     procedure TestAnExceptionInAUnitsInitializationGoesToTheLog;
     // Out of process: an exception in the finalization of a unit finalized
     // before BoldExceptionLog goes to the log, then the RTL reports it
+    {$IFNDEF FPC}
+    [Category('OutOfProcess')]
+    {$ENDIF}
     procedure TestAnExceptionInAUnitsFinalizationGoesToTheLog;
   end;
 

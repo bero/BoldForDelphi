@@ -56,6 +56,9 @@
 # (open in another program) costs only the log, and a run that could not be
 # carried out is a FAIL row without counts.
 
+# No positional parameters: a loose word (a filter without -Filter) is an
+# error, not an engine
+[CmdletBinding(PositionalBinding = $false)]
 param(
     [string[]]$Engines = @("SQLite", "SQLServer"),
     [string]$Filter = "",

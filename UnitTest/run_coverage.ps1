@@ -1,5 +1,6 @@
 # Bold for Delphi - Code Coverage Script
-# Uses DelphiBuildDPROJ.ps1 for flexible Delphi version detection
+# Builds UnitTest Win32 with the newest Delphi in the registry, with a MAP file,
+# and runs it under DelphiCodeCoverage
 #
 # USAGE:
 #   .\run_coverage.ps1 [-SkipBuild] [-OpenReport:$false] [-Upload]
@@ -14,7 +15,14 @@
 #   .\run_coverage.ps1 -SkipBuild         # Skip build, run coverage, open report
 #   .\run_coverage.ps1 -OpenReport:$false # Build, run coverage, don't open report
 #   .\run_coverage.ps1 -Upload            # Build, run coverage, open report, upload
+#
+# The tests in the category OutOfProcess are left out: DelphiCodeCoverage debugs
+# the processes the test program starts too, so Windows hands a child's
+# unhandled exception to it instead of the child's last-resort handler, and it
+# measures no line of a child.
 
+# No positional parameters: a loose word is an error, not a value for -OpenReport
+[CmdletBinding(PositionalBinding = $false)]
 param(
     [switch]$SkipBuild,
     [bool]$OpenReport = $true,
@@ -30,15 +38,14 @@ $Executable = "$ProjectName.exe"
 $MapFile = "$ProjectName.map"
 $SourceDir = "..\Source"
 $OutputDir = "coverage_report"
-$BuildScript = "C:\Attracs\DelphiStandards\DelphiBuildDPROJ.ps1"
 
-# UnitTest project directory
-$ProjectDir = "C:\Attracs\BoldForDelphi\UnitTest"
+# UnitTest project directory: this script's folder
+$ProjectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Push-Location $ProjectDir
 
 try {
     Write-Host "Bold for Delphi - Code Coverage" -ForegroundColor Cyan
-    Write-Host "=" * 50 -ForegroundColor DarkGray
+    Write-Host ("=" * 50) -ForegroundColor DarkGray
     Write-Host ""
 
     # Check for CodeCoverage tool
@@ -52,11 +59,6 @@ try {
     if (-not $SkipBuild) {
         Write-Host "[BUILD] Building $ProjectName with MAP file..." -ForegroundColor Yellow
         Write-Host ""
-
-        if (-not (Test-Path $BuildScript)) {
-            Write-Host "ERROR: Build script not found: $BuildScript" -ForegroundColor Red
-            exit 1
-        }
 
         $ProjectPath = Join-Path $ProjectDir "$ProjectName.dproj"
 
@@ -172,9 +174,12 @@ try {
     Write-Host "[COVERAGE] Running tests with code coverage..." -ForegroundColor Yellow
     Write-Host ""
 
+    # Full paths: where NoDefaultCurrentDirectoryInExePath is set, Windows does
+    # not look for a bare program name in the current folder, and the tool
+    # then runs no test and ends with exit code 0
     $CoverageArgs = @(
-        "-e", $Executable,
-        "-m", $MapFile,
+        "-e", (Join-Path $ProjectDir $Executable),
+        "-m", (Join-Path $ProjectDir $MapFile),
         "-sd", $SourceDir,
         "-lcl", "3",
         "-spf", "coverage_source_paths.lst",
@@ -183,25 +188,44 @@ try {
         "-html",
         "-xml",
         "-od", $OutputDir,
-        "-tec"  # Pass through test executable exit code
+        "-tec",  # Pass through test executable exit code
+        # Arguments for the test program, last: -a takes the arguments up to the
+        # next one that starts with "-", and "^" escapes that dash
+        "-a", "^--exclude:OutOfProcess"
     )
 
-    & $CoverageExe @CoverageArgs
+    # The tool passes the test program's output on; it is kept to see that
+    # tests ran, because a tool that could not start the program ends with 0
+    & $CoverageExe @CoverageArgs | Tee-Object -Variable CoverageOutput
     $TestExitCode = $LASTEXITCODE
+    $Found = -1
+    foreach ($Line in $CoverageOutput) {
+        if ("$Line" -match '^Tests Found\s*:\s*(\d+)') {
+            $Found = [int]$Matches[1]
+        }
+    }
 
     Write-Host ""
 
     if ($TestExitCode -ne 0) {
-        Write-Host "=" * 50 -ForegroundColor DarkGray
+        Write-Host ("=" * 50) -ForegroundColor DarkGray
         Write-Host " ERROR: Tests failed with exit code $TestExitCode" -ForegroundColor Red
-        Write-Host "=" * 50 -ForegroundColor DarkGray
+        Write-Host ("=" * 50) -ForegroundColor DarkGray
         Write-Host ""
         exit $TestExitCode
     }
 
-    Write-Host "=" * 50 -ForegroundColor DarkGray
+    if ($Found -le 0) {
+        Write-Host ("=" * 50) -ForegroundColor DarkGray
+        Write-Host " ERROR: no test ran (the coverage report is not new)" -ForegroundColor Red
+        Write-Host ("=" * 50) -ForegroundColor DarkGray
+        Write-Host ""
+        exit 1
+    }
+
+    Write-Host ("=" * 50) -ForegroundColor DarkGray
     Write-Host " Report: $OutputDir\CodeCoverage_summary.html" -ForegroundColor Green
-    Write-Host "=" * 50 -ForegroundColor DarkGray
+    Write-Host ("=" * 50) -ForegroundColor DarkGray
     Write-Host ""
 
     # Open report if requested
