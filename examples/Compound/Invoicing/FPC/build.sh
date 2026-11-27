@@ -19,15 +19,16 @@ UNITPATHS=$(find "$ROOT/Source" -type d \
   -not -path '*/EnvironmentLCL*' -not -path '*/IDELazarus*' \
   | sed 's/^/-Fu/')
 
+# -vm4104,4105: no implicit string conversion warnings (see bold.inc)
 # shellcheck disable=SC2086
-fpc -Mdelphiunicode -vew \
+fpc -Mdelphiunicode -vew -vm4104,4105 \
   -Fi"$ROOT/Source/Common/Include" $UNITPATHS \
   -Fi"$INV/Model" -Fu"$INV/Model" -Fu"$INV/Tests" \
   -FE"$OUT" -FU"$OUT" \
   "$HERE/InvoicingFPC.lpr"
 
 # shellcheck disable=SC2086
-fpc -Mdelphiunicode -vew \
+fpc -Mdelphiunicode -vew -vm4104,4105 \
   -Fi"$ROOT/Source/Common/Include" $UNITPATHS \
   -Fi"$INV/Model" -Fu"$INV/Model" -Fu"$INV/Tests" \
   -FE"$OUT" -FU"$OUT" \

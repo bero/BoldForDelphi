@@ -6,6 +6,19 @@
 {$WARN UNSUPPORTED_CONSTRUCT OFF}  // dispinterface deprecated in Delphi 12+; Free Pascal has no such warning
 {$ENDIF}
 
+// Free Pascal 3.2's RTL and database units use AnsiString, Bold UnicodeString
+// (-Mdelphiunicode), so every string handed between them is an implicit
+// conversion: 4104 from AnsiString or ShortString to UnicodeString, which
+// loses nothing, and 4105 back, which can lose characters outside the ANSI
+// code page on Windows (on Linux that code page is UTF-8). Thousands of them
+// hide the warnings that matter; the tests check the text that has to survive.
+// The Free Pascal builds of the repository pass -vm4104,4105 as well, for the
+// units that do not include this file.
+{$IFDEF FPC}
+{$WARN 4104 OFF}
+{$WARN 4105 OFF}
+{$ENDIF}
+
 {$WARNINGS ON}
 {$HINTS ON}
 

@@ -27,8 +27,9 @@ UNITPATHS=$( { find "$ROOT/Source" -type d \
 
 # shellcheck disable=SC2086
 # -gl: line information, so that the call stacks of exceptions name their
-# routines (#130)
-fpc -Mdelphiunicode -vew -gl \
+# routines (#130). -vm4104,4105: no implicit string conversion warnings (see
+# bold.inc)
+fpc -Mdelphiunicode -vew -vm4104,4105 -gl \
   -Fi"$ROOT/Source/Common/Include" $UNITPATHS \
   -Fu"$ROOT/UnitTest/Code/Common" \
   -Fu"$EDITOR/Core" -Fu"$EDITOR/Tests" \
