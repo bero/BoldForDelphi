@@ -272,7 +272,6 @@ uses
   BoldValueInterfaces,
   BoldIndexableList,
   BoldSystemRT,
-  Math,
   BoldObjectListControllers,
   BoldLogHandler;
 
@@ -291,8 +290,9 @@ type
     procedure SetOrderNo(NewOrder: Integer);
   protected
     procedure AssignContentValue(const Source: IBoldValue); override;
-    class function MakeProxy(ProxedMember: TBoldMember; Mode:  TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
     property DirectSingleLInkController: TBoldDirectSingleLinkController read GetDirectSingleLinkController;
+  public
+    class function MakeProxy(ProxedMember: TBoldMember; Mode:  TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
   end;
 
   { TBoldIndirectSingleLinkController_Proxy }
@@ -322,6 +322,7 @@ type
   protected
     procedure AssignContentValue(const Source: IBoldValue); override;
     property DirectMultiLinkController: TBoldDirectMultiLinkController read GetDirectMultiLinkController;
+  public
     class function MakeProxy(ProxedMember: TBoldMember; Mode:  TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
   end;
 

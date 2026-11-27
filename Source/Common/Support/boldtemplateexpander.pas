@@ -103,8 +103,7 @@ implementation
 uses
   SysUtils,
 
-  BoldCoreConsts,
-  BoldUtils;
+  BoldCoreConsts;
 
 var
   IX_TemplateVariables: integer = -1;

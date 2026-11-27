@@ -71,9 +71,7 @@ implementation
 
 uses
   SysUtils,
-  BoldTraceLog,
   BoldPerformanceStub,
-  BoldStubDefs,
   {$IFDEF SpanFetch}
   BoldSpanFetchManager,
   {$ENDIF}

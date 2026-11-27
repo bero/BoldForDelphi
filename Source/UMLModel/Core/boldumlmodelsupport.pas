@@ -119,7 +119,6 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  BoldUtils,
   BoldSystemRT,
   BoldNameExpander,
   BoldUMLTaggedValues,

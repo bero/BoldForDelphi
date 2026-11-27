@@ -60,6 +60,7 @@ function AnsiBytes(const Bytes: array of Byte): TBoldAnsiString;
 var
   I: Integer;
 begin
+  Result := '';
   SetLength(Result, Length(Bytes));
   for I := 0 to High(Bytes) do
     Result[I + 1] := AnsiChar(Bytes[I]);

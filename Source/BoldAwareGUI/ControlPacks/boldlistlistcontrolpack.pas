@@ -76,13 +76,11 @@ type
 implementation
 
 uses
-  SysUtils,
-  BoldUtils,
   {$IFNDEF BOLDCOMCLIENT}
   BoldSystem,
   BoldGUI,
   {$ENDIF}
-  Math;
+  SysUtils;
 
 var
   DefaultListAsFollowerListRenderer: TBoldListAsFollowerListRenderer;

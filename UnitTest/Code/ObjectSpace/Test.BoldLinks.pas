@@ -19,7 +19,6 @@ uses
   BoldPMappers,
   BoldPMappersDefault,
   BoldPMappersLinkDefault,
-  BoldPersistenceHandle,
   BoldPersistenceHandleDB,
   BoldTestModel,
   BoldDBInterfaces,

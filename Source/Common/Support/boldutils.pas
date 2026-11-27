@@ -71,7 +71,6 @@ var BoldRunningAsDesignTimePackage: boolean = false;
 implementation
 
 uses
-  BoldCoreConsts,
   BoldPlatform,
   BoldRev;
 

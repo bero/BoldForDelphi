@@ -604,7 +604,6 @@ uses
 {$IFDEF BOLD_UnitLog}
   BoldUnitLog,
 {$ENDIF}
-  BoldUtils,
   BoldPlatform,
   BoldIsoDateTime,
   BoldRegEx;
@@ -1783,8 +1782,6 @@ begin
       exit;
     end;
 end;
-
-type TCollectionAccess = class(TCollection);
 
 procedure TBoldBatchDataSetWrapper.ReplaceParamMarkers(sql: TStrings;
   const Source, Dest: IBoldExecQuery);

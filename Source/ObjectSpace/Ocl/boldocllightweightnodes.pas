@@ -288,7 +288,6 @@ uses
 const
   OCLConditionStreamName = 'OCLCondition';
   OLWNodeListStreamName = 'OLWNodeList';
-  OLWNodeStreamName = 'OLWNode';
   OLWTypeNodeStreamName = 'OLWTypeNode';
   OLWListCoercionStreamName = 'OLWListCoercion';
   OLWOperationStreamName = 'OLWOperation';

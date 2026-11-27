@@ -154,7 +154,6 @@ implementation
 uses
   SysUtils,
   BoldCoreConsts,
-  BoldUtils,
   BoldNameExpander,
   BoldTaggedValueSupport,
   BoldSystemRT,
@@ -588,9 +587,6 @@ begin
   ValidateLanguage(Language, ClassName + '.SubscribeToLanguage');
   GetStringBylanguage(Language).DefaultSubscribe(Subscriber, requestedEvent);
 end;
-
-type
-  charArray = array of char;
 
 function TBAMLString.GetStreamName: string;
 begin

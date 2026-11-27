@@ -12,12 +12,10 @@ uses
   BoldDomainElement,
   BoldAttributes,
   BoldId,
-  BoldPersistenceHandle,
   BoldPersistenceHandleDB,
   BoldSubscription,
   BoldHandles,
   BoldSystemHandle,
-  BoldAbstractModel,
   BoldModel,
   BoldUndoHandler,
   BoldTestModel,
@@ -25,7 +23,6 @@ uses
   BoldValueInterfaces,
   BoldValueSpaceInterfaces,
   BoldElements,
-  BoldSQLDatabaseConfig,
   BoldPSDescriptionsSQL,
   maan_UndoRedoTestCaseUtils,
   BoldAbstractPersistenceHandleDB;
@@ -127,7 +124,6 @@ implementation
 {$R maan_UndoRedo.dfm}
 
 uses
-  BoldUndoInterfaces,
   BoldDBInterfaces;
 
 var

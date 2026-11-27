@@ -113,7 +113,6 @@ implementation
 
 uses
   SysUtils,
-  BoldUtils,
   BoldControllerListControlPack,
   BoldListListControlPack;
 

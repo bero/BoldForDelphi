@@ -140,6 +140,7 @@ type
   TBSS_SQLLike = class(TBSS_BinarySymbol)
   protected
     function GetSQLName: String; override;
+  public
     procedure BuildWCFOrQuery(OperationNode: TBoldSQLOperation; NameSpace: TBoldSqlNameSpace); override;
   end;
 

@@ -347,10 +347,8 @@ implementation
 
 uses
   DateUtils,
-  Math,
   BoldClock,
   BoldOcl,
-  BoldOclError,
   BoldSystemRT;
 
 { TTestBoldOclEvaluation }

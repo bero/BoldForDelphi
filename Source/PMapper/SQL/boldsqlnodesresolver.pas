@@ -46,11 +46,9 @@ implementation
 
 uses
   SysUtils,
-  BoldUtils,
   BoldPMappersLinkDefault,
   BoldPMappers,
-  BoldIndex,
-  BoldIndexableList;
+  BoldIndex;
 
 { TBoldSqlNodeResolver }
 

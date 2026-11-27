@@ -141,14 +141,12 @@ uses
   BoldObjectSpaceExternalEvents,
   BoldValueSpaceInterfaces,
   BoldSystemRT,
-  {$IFDEF MSWINDOWS}
+  {$IF defined(MSWINDOWS) and not defined(FPC)}
   Windows,
-  {$ENDIF}
+  {$IFEND}
   BoldElements,
   BoldMetaElementList,
-  BoldIndex,
-  BoldIndexableList,
-  BoldHashIndexes;
+  BoldIndex;
 
 { TBoldDequeuer }
 

@@ -138,7 +138,6 @@ implementation
 
 uses
   SysUtils,
-  BoldUtils,
   BoldDefs,
   BoldIsoDateTime,
   BoldPlatform;

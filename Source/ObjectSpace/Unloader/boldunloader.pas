@@ -71,7 +71,6 @@ uses
   BoldPlatform,
 
   DateUtils,
-  BoldUtils,
   BoldCoreConsts,
   BoldSystemRT,
   BoldIndex,

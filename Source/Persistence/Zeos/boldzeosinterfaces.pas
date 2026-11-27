@@ -240,8 +240,7 @@ uses
   ZExceptions,
   ZSqlProcessor,
 
-  BoldUtils,
-  BoldGuard;
+  BoldUtils;
 
 type
   TStringsAccess = class(TStrings);
@@ -379,6 +378,7 @@ var
   Bytes: TBytes;
 begin
   Bytes := fZParam.AsBytes;
+  Result := '';
   SetLength(Result, Length(Bytes));
   if Length(Bytes) > 0 then
     Move(Bytes[0], Result[1], Length(Bytes));

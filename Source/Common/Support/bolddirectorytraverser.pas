@@ -38,8 +38,7 @@ implementation
 
 uses
   BoldCoreConsts,
-  BoldDefs,
-  BoldUtils;
+  BoldDefs;
 
 { TBoldDirectoryTraverser }
 

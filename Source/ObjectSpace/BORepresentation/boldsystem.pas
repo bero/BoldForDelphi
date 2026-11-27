@@ -12,7 +12,6 @@ uses
   BoldStreams,
   BoldSystemRT,
   BoldDefs,
-  BoldContainers,
   BoldIndexableList,
   BoldSubscription,
   BoldElements,

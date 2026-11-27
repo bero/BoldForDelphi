@@ -30,7 +30,6 @@ implementation
 
 uses
   SysUtils,
-  BoldUtils,
   BoldDefs;
 
 { TBoldDefaultMappingInfo }

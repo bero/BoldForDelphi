@@ -382,7 +382,6 @@ uses
   BoldTypeList, // circular reference BoldElements->BoldTypelist->BoldSystem->BoldElements
   BoldAttributes,
   BoldOclVariables,
-  BoldUtils,
   SysUtils,
   Variants,
   Typinfo,
@@ -390,7 +389,6 @@ uses
 
 const
   sOCLResultError = 'Expression: ''%s '' returned incorrect result. Expected: %s. Currently: %s.';
-  beModifiedValueHolderDestroying = 303;
 var
   G_ExternalModifiedValueHolders: TBoldExternalizedReferenceList;
 

@@ -214,6 +214,7 @@ type
     procedure SetPublisherFlag(Flag: TBoldPublisherFlag; Value: Boolean);
     function GetPublisherFlag(Flag: TBoldPublisherFlag): Boolean;
     function GetContextString: string; virtual;
+  protected
     function GetDebugInfo: string; override;
   public
     constructor Create(var APublisherReference);

@@ -180,7 +180,6 @@ uses
   BoldCoreConsts,
   BoldIndex,
   BoldLogHandler,
-  BoldUtils,
   BoldHashIndexes,
   BoldPMapperLists,
   BoldPMappers

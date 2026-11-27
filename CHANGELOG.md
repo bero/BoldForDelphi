@@ -185,6 +185,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   base class, managed results are set before `SetLength`,
   `FormatSettings.DecimalSeparator`, and the .NET-only
   `UNSAFE_CODE`/`UNSAFE_CAST` directives are gone.
+- Free Pascal's hints and notes too. `bold.inc` (and the `-vm` of the
+  repository's Free Pascal builds) switches off the kinds that are noise in
+  Bold, saying why: unused parameters (5024, nearly all in overrides and
+  callbacks), RTL routines the compiler does not inline (6058), the variables
+  of Bold's guard (`G := TBoldGuard.Create(List1, List2)`: 5057, 5091, 5027)
+  and pointer/ordinal casts (4055); the Lazarus packages also 5023 for their
+  generated main units. The rest were fixed: 79 unused units are gone from
+  uses clauses (`BoldTraceLog` in `BoldOcl` stays for the `ATTRACS` build;
+  for Delphi only, `Types` stays in six units, which Delphi needs to inline
+  `TList.Remove`, and `Windows` in `BoldExternalObjectSpaceEventHandler`),
+  unused constants and types are gone, overrides have their
+  parent's visibility, and routines that only write a parameter declare it
+  `out`. What remains is in generated code, in data modules whose uses clause
+  the Delphi IDE keeps, and in Free Pascal's `Generics.Collections`.
 - AutoSubscription is on in every build, with Delphi and Free Pascal, in
   programs and in the design-time packages. `bold.inc` switched it off
   (`NoAutoSubscription`) in every build without the `Attracs` define, so a code

@@ -5,8 +5,7 @@ unit BoldGlobalId;
 interface
 
 uses
-  BoldId,
-  BoldStreams;
+  BoldId;
     
 const
   BOLDGLOBALIDNAME = 'BoldGlobalId';
@@ -38,7 +37,6 @@ uses
   BoldXMLStreaming,
   BoldDefaultXMLStreaming,
   BoldDefaultStreamNames,
-  BoldUtils,
   BoldHashIndexes,
   BoldBase;
 

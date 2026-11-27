@@ -111,6 +111,7 @@ type
 
 function TBoldOCLSortArray.Get(Index: Integer): TBoldOCLSortData;
 begin
+  Result := Default(TBoldOCLSortData);
   inherited Get(Index,Result);
 end;
 

@@ -22,9 +22,6 @@ uses
   SysUtils;
 
 const
-  Release = '<#Version Delimiter=.>';
-  Comment = '<#Comments>';
-  Timestamp = '<#DateTime "Format=yyyy-mm-dd">';
   ID_BUILD_VERSION = 1;
   ID_PRODUCT_VERSION = 2;
   ID_PRODUCT_NAME_SHORT = 3;

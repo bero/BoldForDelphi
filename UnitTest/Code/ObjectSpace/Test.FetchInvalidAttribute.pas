@@ -25,8 +25,6 @@ uses
   BoldHandles,
   BoldSystemHandle,
   BoldModel,
-  BoldTypeNameHandle,
-  BoldAbstractModel,
   jehoBCBoldTest,
   jehoBoldTestDataModule;
 

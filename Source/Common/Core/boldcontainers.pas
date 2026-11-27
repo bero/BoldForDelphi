@@ -602,6 +602,7 @@ end;
 
 function TBoldPointerArray.Get(Index: Integer): Pointer;
 begin
+  Result := nil;
   inherited Get(Index,Result);
 end;
 
@@ -649,6 +650,7 @@ end;
 
 function TBoldObjectArray.Get(Index: Integer): TObject;
 begin
+  Result := nil;
   inherited Get(Index,Result);
 end;
 
@@ -761,6 +763,7 @@ end;
 
 function TBoldIntegerArray.Get(Index: Integer): integer;
 begin
+  Result := 0;
   inherited Get(Index, Result);
 end;
 

@@ -21,9 +21,6 @@ uses
   BoldSharedStrings,
   BoldOclError;
 
-type
-  TBoldOclCollectionType = (tboNoCollection, tboBag, tboSet, tboSequence, tboCollection, tboCopyArg1, tboMinCollection);
-
 
 {$I BoldOclConstructors.inc}
 

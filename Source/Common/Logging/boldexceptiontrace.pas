@@ -77,7 +77,9 @@ uses
   BoldLogInterfaces;
 
 resourcestring
+  {$IFNDEF FPC}
   sRaisedAt = 'Raised at $%p (module loaded at $%p); no call stack: the program has no stack-trace provider';
+  {$ENDIF}
   sRaisedAtUnknown = 'No call stack: the program has no stack-trace provider, and the exception is not the one being handled';
   sNoCallStack = 'No call stack, and the address it was raised at is not known';
 

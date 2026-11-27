@@ -11,7 +11,6 @@ uses
   BoldElements,
   BoldHandles,
   BoldSystemHandle,
-  BoldListHandle,
   BoldOclVariables,
   BoldAttributes,
   BoldDefs,
@@ -132,8 +131,7 @@ implementation
 
 uses
   BoldOcl,
-  BoldAbstractListHandle,
-  BoldRootedHandles;
+  BoldAbstractListHandle;
 
 type
   // Cracker class to access protected Loaded method

@@ -55,7 +55,7 @@
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Other>
-      <CustomOptions Value="-Mdelphiunicode -vm3018,4104,4105,5033"/>
+      <CustomOptions Value="-Mdelphiunicode -vm3018,4055,4104,4105,5024,5027,5033,5057,5091,6058"/>
     </Other>
   </CompilerOptions>
 </CONFIG>

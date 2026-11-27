@@ -22,7 +22,6 @@ uses
   BoldElements,
   BoldSubscription,
   BoldValueSpaceInterfaces,
-  BoldTypeNameHandle,
   BoldElementList,
   BoldTypeList,
   TestModel1,

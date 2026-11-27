@@ -5,7 +5,6 @@ unit BoldDbEvolutorScript;
 interface
 
 uses
-  db,
   Classes,
   BoldDefs,
   BoldBase,

@@ -124,7 +124,6 @@ implementation
 
 uses
   SysUtils,
-  BoldUtils,
   BoldIsoDateTime,
   BoldGuard,
   BoldEnvironment;

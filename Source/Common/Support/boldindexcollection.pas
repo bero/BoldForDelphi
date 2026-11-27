@@ -54,8 +54,7 @@ implementation
 
 uses
   SysUtils,
-  BoldNameExpander,
-  BoldTaggedValueSupport;
+  BoldNameExpander;
 
 { TBoldTypeNameDictionary }
 

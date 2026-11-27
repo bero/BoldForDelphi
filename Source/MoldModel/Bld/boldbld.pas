@@ -35,7 +35,6 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  BoldUtils,
   BoldBase,
   BoldTaggedValueSupport,
   BoldDefaultTaggedValues,
@@ -43,8 +42,6 @@ uses
   BoldUMLTypes;
 
 const
-  LINKEXTENSION: string = '.bld';
-  LINKDESC: string = 'Bold Proprietary Format';
   CURRENTVERSION = 19;
   SPACE = #32;
   TAB = #9;

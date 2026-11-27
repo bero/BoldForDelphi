@@ -123,8 +123,10 @@ const
   cChildMessage = 'raised in the main block of the child';
   cChildInitSwitch = '--bold-exception-log-child-init';
   cChildFinalSwitch = '--bold-exception-log-child-final';
+  {$IF not defined(FPC) and defined(MSWINDOWS)}
   // How long the child may take
   cChildTimeout = 60000;
+  {$IFEND}
 
 type
   { Stands in for VCL's, FMX's or the LCL's Application }

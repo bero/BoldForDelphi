@@ -94,7 +94,6 @@ type
 implementation
 
 uses
-  Db,
   SysUtils,
 
   BoldDefs,

@@ -408,16 +408,16 @@ type
   TBOS_or = class(TBoldOclSymbol)
   protected
     procedure Init; override;
-    function GetShortCircuitType: ShortCircuitType; override;
   public
+    function GetShortCircuitType: ShortCircuitType; override;
     procedure Evaluate(const Params: TBoldOclSymbolParameters); override;
   end;
 
   TBOS_and = class(TBoldOclSymbol)
   protected
     procedure Init; override;
-    function GetShortCircuitType: ShortCircuitType; override;
   public
+    function GetShortCircuitType: ShortCircuitType; override;
     procedure Evaluate(const Params: TBoldOclSymbolParameters); override;
   end;
 
@@ -445,8 +445,8 @@ type
   TBOS_if = class(TBoldOclSymbol)
   protected
     procedure Init; override;
-    function GetShortCircuitType: ShortCircuitType; override;
   public
+    function GetShortCircuitType: ShortCircuitType; override;
     procedure Evaluate(const Params: TBoldOclSymbolParameters); override;
   end;
 
@@ -1038,8 +1038,8 @@ type
   TBOS_BoldIDIn = class(TBoldOclSymbol)
   protected
     procedure Init; override;
-    function GetShortCircuitType: ShortCircuitType; override;
   public
+    function GetShortCircuitType: ShortCircuitType; override;
     procedure Evaluate(const Params: TBoldOclSymbolParameters); override;
   end;
 
@@ -1047,8 +1047,8 @@ type
   TBOS_NamedIdIn = class(TBoldOclSymbol)
   protected
     procedure Init; override;
-    function GetShortCircuitType: ShortCircuitType; override;
   public
+    function GetShortCircuitType: ShortCircuitType; override;
     procedure Evaluate(const Params: TBoldOclSymbolParameters); override;
   end;
 

@@ -63,7 +63,7 @@ type
     fCount: Integer;
   public
     constructor Create(MaxCount: Integer);
-    function TimeForTimestamp(Timestamp: TBoldTimestampType; var ClockTime: TDateTime): Boolean;
+    function TimeForTimestamp(Timestamp: TBoldTimestampType; out ClockTime: TDateTime): Boolean;
     function TimestampForTime(ClockTime: TDateTime; var Timestamp: TBoldTimestampType): Boolean;
     procedure Add(Timestamp: TBoldTimestampType; ClockTime: TDateTime);
   end;
@@ -714,6 +714,7 @@ end;
 function TBoldSystemPersistenceHandler.GetTimestampForTime(
   ClockTime: TDateTime): TBoldTimestampType;
 begin
+  Result := 0;
   PersistenceController.PMTimestampForTime(ClockTime, result);
 end;
 
@@ -757,7 +758,7 @@ begin
 end;
 
 function TBoldTimeMappingCache.TimeForTimestamp(
-  Timestamp: TBoldTimestampType; var ClockTime: TDateTime): Boolean;
+  Timestamp: TBoldTimestampType; out ClockTime: TDateTime): Boolean;
 var
   i: Integer;
 begin

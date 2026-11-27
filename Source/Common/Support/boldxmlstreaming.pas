@@ -248,8 +248,7 @@ uses
   {$IFDEF OXML}OXmlUtils,{$ENDIF}
   {$IFDEF FPC}XMLRead, XMLWrite,{$ENDIF}
   {$IFDEF BOLD_XMLDOM}Xml.omnixmldom,{$ENDIF}
-  BoldBase64,
-  BoldUtils;
+  BoldBase64;
 
 const
   BoldNodeName_Year = 'Year';

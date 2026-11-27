@@ -49,7 +49,6 @@ uses
 
   BoldCoreConsts,
   BoldSystemRT,
-  BoldTraceLog,
   {$IFDEF ATTRACS}
   BoldPerformanceStub,
   BoldStubDefs,

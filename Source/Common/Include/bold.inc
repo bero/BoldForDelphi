@@ -28,7 +28,30 @@
 {$WARN 3018 OFF}
 {$WARN 5033 OFF}
 {$ENDIF}
-// The repository's Free Pascal builds pass -vm3018,4104,4105,5033 as well: for
+
+// Free Pascal's hints and notes that are noise in Bold, also switched off:
+// 5024, a parameter that is not used: nearly all of them are in overrides
+// and in callbacks, whose signature another declaration fixes (Delphi has no
+// such hint);
+// 6058, an inline routine of the RTL (Variant conversions, AnsiCompareText)
+// that the compiler does not inline at a call: a missed optimization only;
+// 5057 and 5091, a local variable that may be read before it is set, and
+// 5027, a local variable that is set and never read: Bold's guard,
+// G := TBoldGuard.Create(List1, List2), takes the lists as var parameters
+// before they are created and keeps G only to free them, so every guard
+// gives these;
+// 4055, a conversion between a pointer and an ordinal: Free Pascal says it
+// of every such cast, PtrUInt as well; Bold's are deliberate (the hash of a
+// class, the bookmarks of TBoldDataSet).
+{$IFDEF FPC}
+{$WARN 4055 OFF}
+{$WARN 5024 OFF}
+{$WARN 5027 OFF}
+{$WARN 5057 OFF}
+{$WARN 5091 OFF}
+{$WARN 6058 OFF}
+{$ENDIF}
+// The repository's Free Pascal builds pass these numbers with -vm as well: for
 // the units that do not include this file, and because Free Pascal 3.2.2
 // loses these settings in some units of a large build (seen in units whose
 // interface uses clause compiles other units first; the cause is not found).

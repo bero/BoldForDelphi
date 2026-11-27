@@ -20,11 +20,8 @@ uses
   BoldSystemHandle,
   BoldSubscription,
   BoldModel,
-  BoldTypeNameHandle,
   BoldDefs,
   BoldAttributes,
-  BoldAbstractModel,
-  BoldListHandle,
   jehoBoldTestDataModule;
 
 type

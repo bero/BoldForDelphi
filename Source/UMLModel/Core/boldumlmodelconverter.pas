@@ -58,8 +58,6 @@ uses
   BoldUMLModelSupport,
   BoldUMLTypes,
   BoldFreeStandingValueFactories,
-  BoldFreeStandingValues,
-  BoldValueInterfaces,
   BoldDomainElement;
 
 class function TBoldModelConverter.UMLModelToMold(UMLModel: TUMLModel): TMoldModel;

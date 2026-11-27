@@ -39,8 +39,10 @@ type
 
 implementation
 
+{$IFNDEF FPC}
 uses
-  Types;
+  Types; // TList.Remove is inlined from it (H2443 without)
+{$ENDIF}
 
 var
   G_BoldExceptionHandlers: TList = nil;

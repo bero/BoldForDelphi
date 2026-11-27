@@ -76,8 +76,7 @@ type
 implementation
 
 uses
-  SysUtils,
-  BoldUtils;
+  SysUtils;
 
 
 { TBoldMD5 }

@@ -197,7 +197,6 @@ uses
   BoldUtils,
   BoldPSParamsSQL,
   BoldNameExpander,
-  BoldValueInterfaces,
   BoldDefaultStreamNames;
   
 {---TBoldSystemSQLMapper---}

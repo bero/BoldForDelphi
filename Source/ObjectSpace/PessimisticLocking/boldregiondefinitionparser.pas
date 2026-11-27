@@ -59,8 +59,7 @@ implementation
 
 uses
   BoldCoreConsts,
-  BoldTaggedValueSupport,
-  BoldUtils;
+  BoldTaggedValueSupport;
 
 const
   SPACE = #32;

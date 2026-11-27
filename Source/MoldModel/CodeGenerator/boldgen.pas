@@ -117,7 +117,6 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  BoldUtils,
   BoldMetaSupport,
   BoldNameExpander,
   BoldGUIDUtils,

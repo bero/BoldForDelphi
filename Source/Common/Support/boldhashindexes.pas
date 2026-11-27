@@ -101,7 +101,6 @@ type
 implementation
 
 uses
-  BoldUtils,
   SysUtils;
 
 class function TBoldStringKey.HashString(const KeyString: String; CompareMode: TBoldStringCompareMode): Cardinal;

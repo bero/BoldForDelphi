@@ -850,7 +850,7 @@ type
   private
     class var fLastUsed: array[TBoldDomainElementProxyMode] of TBoldMember_Proxy;
     class var fLastUsedAsInterface: array[TBoldDomainElementProxyMode] of IBoldValue;
-  protected
+  public
     class function MakeProxy(ProxedMember: TBoldMember; Mode:  TBoldDomainElementProxyMode): TBoldMember_Proxy; override;
   end;
 
@@ -929,8 +929,8 @@ type
     function GetContentAsInteger: Integer;
     procedure SetContentAsInteger(NewValue: Integer);
     procedure SetContentAsString(const NewValue: String);
-    function GetContentAsString: String; override;
   protected
+    function GetContentAsString: String; override;
     property ProxedValueSet: TBAValueSet read GetProxedValueSet;
   end;
 
@@ -4947,11 +4947,13 @@ var
   ResType: TBoldElementTypeInfo;
 const
   sInvalidConstraint = 'Invalid Constraint: %s %s%s';
-  sInvalidConstraintMessage = 'Invalid Constraint message: %s %s%s';
   sUnknownConstraintType = 'unknown type of constraint expression: %s (in context: %s)';
-  sUnknownConstraintMessageType = 'unknown type of constraint message: %s (in context: %s)';
   sConstraintNotBoolean = 'Constraint is not Boolean: %s (in context %s)';
+  {$IFDEF OCLConstraintMessages}
+  sInvalidConstraintMessage = 'Invalid Constraint message: %s %s%s';
+  sUnknownConstraintMessageType = 'unknown type of constraint message: %s (in context: %s)';
   sConstraintMessageString = 'Constraint message is not String: %s (in context %s)';
+  {$ENDIF}
 begin
   fOwningElement := OwningElement;
   if assigned(fOwningElement) then

@@ -519,9 +519,7 @@ uses
   SysUtils,
 
   BoldCoreConsts,
-  BoldUtils,
   BoldIndex,
-  BoldHashIndexes,
   BoldFreeStandingValueFactories,
   BoldDefaultStreamNames,
   BoldGuard,

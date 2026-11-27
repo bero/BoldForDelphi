@@ -42,15 +42,16 @@ type
     procedure SetDeriverState(Value: TBoldDeriverState);
     procedure SetInternalDeriverState(const Value: TBoldDeriverState); virtual; abstract;
     function GetInternalDeriverState: TBoldDeriverState; virtual; abstract;
-    procedure Receive(Originator: TObject; OriginalEvent: TBoldEvent;
-      RequestedEvent: TBoldRequestedEvent); override;
     property DeriverState: TBoldDeriverState read GetInternalDeriverState write SetDeriverState;
     procedure DoDeriveAndSubscribe(subscribe: Boolean); virtual; abstract;
     procedure DoNotifyOutOfDate; virtual;
     procedure DoReverseDerive; virtual;
     function GetCanReverseDerive: Boolean; virtual; abstract;    
     property InternalDeriverState: TBoldDeriverState read GetInternalDeriverState write SetInternalDeriverState;
-    function GetContextString: string; override;    
+  protected
+    procedure Receive(Originator: TObject; OriginalEvent: TBoldEvent;
+      RequestedEvent: TBoldRequestedEvent); override;
+    function GetContextString: string; override;
   public
     procedure MarkSubscriptionOutOfdate;
     procedure MarkOutOfdate;

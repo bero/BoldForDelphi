@@ -215,7 +215,6 @@ end;
 
 procedure TBoldLCLQueue.ActivateDisplayQueue;
 begin
-  inherited;
   if fBoldQueueActiveNesting > 0 then
     Dec(fBoldQueueActiveNesting);
   if (fBoldQueueActiveNesting = 0) and not fIdleHandlerAdded then
@@ -227,7 +226,6 @@ end;
 
 procedure TBoldLCLQueue.DeActivateDisplayQueue;
 begin
-  inherited;
   Inc(fBoldQueueActiveNesting);
   RemoveIdleHandler;
 end;

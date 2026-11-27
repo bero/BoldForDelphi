@@ -183,7 +183,6 @@ const
   RawSQLConditionName = 'RawSQLCondition';
   ClassConditionName = 'ClassCondition';
   TimestampConditionName = 'TimestampCondition';
-  OclConditionName = 'OclCondition';
   ChangePointConditionName = 'ChangePointCondition';
 
 { TBoldConditionWithClass }

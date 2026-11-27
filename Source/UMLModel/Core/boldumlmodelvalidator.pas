@@ -152,11 +152,9 @@ resourcestring
   sUMVBoldColumnReservedWord = 'Column name "%s" in "%s" is a "bold reserved" word';
   sUMVDuplicateAssociationEndName = 'AssociationEnds in Association %s are both named %s';
   sUMVVersionedClassWithNonVersionedSuperClass = 'Class "%s" is versioned, but its superclass is not';
-  sUMVAssociationEndIsSingleAndNotNAvigable = 'AssociationEnd %s is single and not navigable';
   sUMVAssociationEndIllegalQualifier = 'Qualifier %s in associationEnd %s does not have matching attribute in class of other end';
   sUMVAssociationEndQualifiedAndMulti = 'AssociationEnd %s is qualified and multi. Not supported';
   sUMVRootClassMissing = 'Root Class %s is missing';
-  sUMVRootClassMustHaveName = 'Root class must have name';
   sUMVLinkClassWithSuperClassAsEnd = 'LinkClass (%s) must not inherit from any of the ends (%s)';
   sUMVAssociationAndClassNotEquallyPersistent = 'Association (%s) and its association class are not equally persistent';
   sUMVClassNameClashWithAttribute = 'Class "%s" has same name as Attribute type';

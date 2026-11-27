@@ -103,9 +103,7 @@ uses
   BoldPSDescriptionsDefault,
   BoldLogHandler,
   BoldDefs,
-  BoldUtils,
-  Math,
-  BoldGuard;
+  Math;
 
 const
   Field_BOLD_ID = 'BOLD_ID';
@@ -1021,8 +1019,6 @@ begin
     end;
   UnlinkFromDeleteObject(IdList, Mapper);
 end;
-
-type TBoldNonEmbeddedLinkDefaultMapperAccess = Class(TBoldNonEmbeddedLinkDefaultMapper);
 
 procedure TBoldDbDataValidatorThread.UnlinkFromDeleteObject(IdList: TStrings;
   ObjectSQLMapper: TBoldObjectSQLMapper);

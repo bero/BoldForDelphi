@@ -47,9 +47,7 @@ uses
 
   BoldCoreConsts,
   BoldDefs,
-  BoldTraceLog,
   BoldPerformanceStub,
-  BoldStubDefs,
   BoldSystemRT;
 
 { TBoldCursorhandle }

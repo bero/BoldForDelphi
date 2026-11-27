@@ -17,12 +17,10 @@ uses
   BoldBase,
   BoldOcl,
   BoldOclClasses,
-  BoldOclVariables,
   BoldId,
   BoldTypeList,
   BoldExternalObjectSpaceEventHandler,
-  BoldExpressionHandle,
-  BoldComponentValidator;
+  BoldExpressionHandle;
 
 type
   TExpressionSubscriber = class;
@@ -84,8 +82,9 @@ type
     fParentNode: TBoldObjectSpan;
   private
     procedure SetParentNode(NewOwner: TBoldObjectSpan);
-  strict protected
+  protected
     function GetDebugInfo: string; override;
+  strict protected
     function GetIsDerived: Boolean; virtual; abstract;
     function GetHasDerivedPart: Boolean; virtual; abstract;
     function GetAlwaysCall: Boolean; virtual;
@@ -214,6 +213,7 @@ type
   TBoldAsStringNode = class(TBoldObjectSpan)
   strict protected
     function GetIsDerived: Boolean; override;
+  protected
     function GetAlwaysCall: Boolean; override;
   public
     constructor Create(UmlClass: TBoldClassTypeInfo);
@@ -227,7 +227,8 @@ type
     fLoadedOnly: Boolean;
   strict protected
     function GetIsDerived: Boolean; override;
-     function GetAlwaysCall: Boolean; override;
+  protected
+    function GetAlwaysCall: Boolean; override;
   public
     constructor Create(AClass: TBoldClassTypeInfo; LoadedOnly: Boolean);
     function GetAsString: string; override;

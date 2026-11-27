@@ -118,7 +118,6 @@ implementation
 
 uses
   SysUtils,
-  BoldUtils,
   BoldIndex
   ;
 

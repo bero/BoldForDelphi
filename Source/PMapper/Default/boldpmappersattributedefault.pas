@@ -306,7 +306,6 @@ uses
 
   BoldCoreConsts,
   BoldDefs,
-  BoldUtils,
   BoldValueInterfaces,
   BoldPMapperLists,
   BoldDefaultStreamNames;

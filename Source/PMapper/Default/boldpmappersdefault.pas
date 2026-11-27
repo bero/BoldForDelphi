@@ -198,7 +198,7 @@ type
     function GetObjectPersistenceMapper: TBoldObjectDefaultMapper;
   protected
     FColumnIndex: Boolean;
-    function CheckEitherNull(const field: IBoldField; const Value: IBoldValue; var Equal: Boolean): Boolean;
+    function CheckEitherNull(const field: IBoldField; const Value: IBoldValue; out Equal: Boolean): Boolean;
     function GetAllowNullAsSQL: string; override;
     procedure GetChangePoints(ObjectIDList: TBoldObjectIdList; Condition: TBoldChangePointCondition; NameSpace: TBoldSqlnameSpace); virtual;
     function CompareFields(const ObjectContent: IBoldObjectContents; const DataSet: IBoldDataSet; const ValueSpace: IBoldValueSpace; TranslationList: TBoldIdTranslationList): Boolean;
@@ -3460,7 +3460,7 @@ begin
 end;
 
 function TBoldMemberDefaultMapper.CheckEitherNull(const field: IBoldField;
-  const Value: IBoldValue; var Equal: Boolean): Boolean;
+  const Value: IBoldValue; out Equal: Boolean): Boolean;
 begin
   Equal := false;
   result := false;

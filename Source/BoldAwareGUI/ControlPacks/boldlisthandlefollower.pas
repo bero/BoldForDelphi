@@ -49,8 +49,6 @@ implementation
 
 uses
   SysUtils,
-  BoldControlPackDefs,
-  BoldUtils,
   BoldDefs;
 
 { TBoldElementHandleFollower }

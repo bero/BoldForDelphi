@@ -15,7 +15,6 @@ uses
   BoldId,  // includes TBoldInternalObjectId
   BoldSubscription,
   BoldUndoHandler,
-  BoldUndoInterfaces,
   BoldFreeStandingValues,
   BoldValueInterfaces,
   BoldValueSpaceInterfaces,

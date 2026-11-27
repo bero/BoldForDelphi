@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib/dclBold/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
-        <CustomOptions Value="-Mdelphiunicode -vm3018,4104,4105,5033"/>
+        <CustomOptions Value="-Mdelphiunicode -vm3018,4055,4104,4105,5023,5024,5027,5033,5057,5091,6058"/>
       </Other>
     </CompilerOptions>
     <Description Value="Bold for Delphi, design time for Lazarus: puts Bold's non-visual components (handles, model, persistence handles, TBoldDataSet) on the component palette, with the OCL editor as property editor of the expressions."/>

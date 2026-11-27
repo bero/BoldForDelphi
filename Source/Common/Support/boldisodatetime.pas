@@ -29,8 +29,7 @@ implementation
 uses
   SysUtils,
 
-  BoldCoreConsts,
-  BoldUtils;
+  BoldCoreConsts;
 
 var
   FormatSettings: TFormatSettings;

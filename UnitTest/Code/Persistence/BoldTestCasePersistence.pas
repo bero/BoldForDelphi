@@ -32,7 +32,6 @@ uses
   BoldHandles,
   BoldModel,
   BoldAbstractModel,
-  BoldPersistenceHandle,
   BoldPersistenceHandleDB,
   BoldAbstractPersistenceHandleDB,
   BoldAbstractDatabaseAdapter,

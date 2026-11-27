@@ -189,11 +189,12 @@ uses
   BoldOclSemantics,
   BoldOclSymbolImplementations,
   BoldORed,
+  {$IFDEF ATTRACS}
   BoldTraceLog,
+  {$ENDIF}
   BoldSSExcept,
   BoldSSLexU,
-  BoldSSYaccU,
-  BoldGuard;
+  BoldSSYaccU;
 
 var
   G_OclScannerTable: SSLexTable = nil;

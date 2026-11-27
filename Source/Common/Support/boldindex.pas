@@ -222,7 +222,9 @@ var
 implementation
 
 uses
-  Types,
+  {$IFNDEF FPC}
+  Types, // TList.Remove is inlined from it (H2443 without)
+  {$ENDIF}
   SysUtils,
   BoldDefs;
 

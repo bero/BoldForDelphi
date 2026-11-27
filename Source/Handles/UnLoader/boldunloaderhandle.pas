@@ -11,7 +11,6 @@ uses
   BoldUnloader,
   BoldSubscription,
   BoldSystem,
-  BoldSystemHandle,
   BoldHandles,
   Classes;
 
@@ -79,11 +78,7 @@ implementation
 uses
   SysUtils,
   DateUtils,
-  BoldClock,
-  BoldUtils;
-const
-  breHandleDestroyed = 42;
-  breSystemChanged = 43;
+  BoldClock;
 
 { TBoldUnloaderHandle }
 

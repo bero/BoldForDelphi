@@ -55,9 +55,7 @@ implementation
 uses
   SysUtils,
   BoldDefs,
-  BoldTraceLog,
   BoldPerformanceStub,
-  BoldStubDefs,
   BoldSystemRT,
   BoldElementList;
 

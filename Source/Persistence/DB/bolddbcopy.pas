@@ -82,7 +82,9 @@ uses
   {$ENDIF}
   DateUtils,
   Math,
+  {$IFNDEF FPC}
   Types, // Remove inline hint H2443
+  {$ENDIF}
 
   {$IFDEF UniDAC} Uni,{$ENDIF}
 
