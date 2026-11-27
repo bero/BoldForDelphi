@@ -1024,6 +1024,7 @@ var
   DataString: string;
   Decoder: TBase64;
 begin
+  Result := '';
   DataString := ReadString;
   if HasBase64Data then
   begin

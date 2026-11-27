@@ -319,9 +319,9 @@ begin
 //  value := TBAFloat.Create(nil);
   try
     TempFloatString := Float.Lexeme.Buffer;
-    if {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator <> '.' then
+    if FormatSettings.DecimalSeparator <> '.' then
     begin
-      TempFloatString[POs('.', TempFloatString)] := {$IFDEF BOLD_DELPHI16_OR_LATER}FormatSettings.{$ENDIF}DecimalSeparator;
+      TempFloatString[POs('.', TempFloatString)] := FormatSettings.DecimalSeparator;
     end;
     Node.FloatValue := StrTofloat( TempFloatString );
   except

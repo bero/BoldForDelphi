@@ -885,17 +885,17 @@ end;
 
 procedure TTestBoldElementBase.TestCompareErrorWithElement_Raiser;
 begin
-  TBoldElementCracker(TTestBoldElement(fRaiseElement1)).CompareError(TTestBoldElement(fRaiseElement2));
+  TBoldElementCracker(TBoldElement(fRaiseElement1)).CompareError(TTestBoldElement(fRaiseElement2));
 end;
 
 procedure TTestBoldElementBase.TestCompareErrorWithNil_Raiser;
 begin
-  TBoldElementCracker(TTestBoldElement(fRaiseElement)).CompareError(nil);
+  TBoldElementCracker(TBoldElement(fRaiseElement)).CompareError(nil);
 end;
 
 procedure TTestBoldElementBase.TestMutableErrorRaises_Raiser;
 begin
-  TBoldElementCracker(TTestBoldElement(fRaiseElement)).MutableError('NewValue');
+  TBoldElementCracker(TBoldElement(fRaiseElement)).MutableError('NewValue');
 end;
 
 procedure TTestBoldElementBase.TestEnsureValidStringRaises_Raiser;
@@ -922,22 +922,22 @@ end;
 
 procedure TTestBoldElementBase.TestAssignErrorWithElement_Raiser;
 begin
-  TBoldElementCracker(TTestBoldElement(fRaiseElement1)).AssignError(TTestBoldElement(fRaiseElement2));
+  TBoldElementCracker(TBoldElement(fRaiseElement1)).AssignError(TTestBoldElement(fRaiseElement2));
 end;
 
 procedure TTestBoldElementBase.TestAssignErrorWithNil_Raiser;
 begin
-  TBoldElementCracker(TTestBoldElement(fRaiseElement)).AssignError(nil);
+  TBoldElementCracker(TBoldElement(fRaiseElement)).AssignError(nil);
 end;
 
 procedure TTestBoldElementBase.TestCompareTypeError_Raiser;
 begin
-  TBoldElementCracker(TTestBoldElement(fRaiseElement1)).CompareTypeError(ctDefault, TTestBoldElement(fRaiseElement2));
+  TBoldElementCracker(TBoldElement(fRaiseElement1)).CompareTypeError(ctDefault, TTestBoldElement(fRaiseElement2));
 end;
 
 procedure TTestBoldElementBase.TestCompareTypeErrorWithNil_Raiser;
 begin
-  TBoldElementCracker(TTestBoldElement(fRaiseElement)).CompareTypeError(ctDefault, nil);
+  TBoldElementCracker(TBoldElement(fRaiseElement)).CompareTypeError(ctDefault, nil);
 end;
 
 procedure TTestBoldElementBase.TestGetStringRepresentationRaises_Raiser;
@@ -1723,7 +1723,7 @@ begin
   Element := TTestBoldElement.Create;
   try
     // GetContextString returns DisplayName, which returns ClassName when BoldType is nil
-    Assert.AreEqual('TTestBoldElement', TBoldElementCracker(Element).GetContextString, 'Should return DisplayName');
+    Assert.AreEqual('TTestBoldElement', TBoldElementCracker(TBoldElement(Element)).GetContextString, 'Should return DisplayName');
   finally
     Element.Free;
   end;
@@ -1736,7 +1736,7 @@ var
 begin
   Element := TTestBoldElement.Create;
   try
-    Clone := TBoldElementCracker(Element).CloneIfPossible;
+    Clone := TBoldElementCracker(TBoldElement(Element)).CloneIfPossible;
     Assert.IsNull(Clone, 'Default CloneIfPossible returns nil');
   finally
     Element.Free;

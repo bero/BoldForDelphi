@@ -1318,7 +1318,7 @@ begin
     bfsDirty:
     begin
       if not ResultElementOutOfDate and Assigned(fIndirectElement.Value)
-         and TBoldFlaggedObjectAccess(fIndirectElement.Value).GetElementFlag(befHasModifiedValueHolder)
+         and TBoldFlaggedObjectAccess(TBoldFlaggedObject(fIndirectElement.Value)).GetElementFlag(befHasModifiedValueHolder)
          and (fIndirectElement.Value.ModifiedValueHolder = Subscriber) then
            AssertedController.ReleaseChangedValue(self);
       RemoveFromApplyList;
@@ -1541,7 +1541,7 @@ begin
   if not assigned(AElement) or (AElement <> fElement) then
   begin
     Assert(not (not ResultElementOutOfDate and Assigned(fIndirectElement.Value)
-       and TBoldFlaggedObjectAccess(fIndirectElement.Value).GetElementFlag(befHasModifiedValueHolder)
+       and TBoldFlaggedObjectAccess(TBoldFlaggedObject(fIndirectElement.Value)).GetElementFlag(befHasModifiedValueHolder)
        and (fIndirectElement.Value.ModifiedValueHolder = Subscriber)));
     fElement := AElement;
     ElementValid := true;
@@ -1868,6 +1868,7 @@ var
   CellFollower: TBoldFollower;
   RowFollower, ListFollower: TBoldFollower;
 begin
+  Result := nil;
   FirstToEnsure := 0;
   LastToEnsure := -1;
   // This actully only works for an array, and maybe a treewiew, but that is what we are trying to optimize anyway
@@ -1916,6 +1917,7 @@ begin
   if (Controller = MatchController) and Assigned(Element) and
     (State in bfsOutOfDate) and (MostPrioritizedQueuable = nil) then
   begin
+    Result := nil;
     SetLength(Result, Length(Followers) + 1);
     for i := 0 to Length(Followers) - 1 do
       Result[i] := Followers[i];

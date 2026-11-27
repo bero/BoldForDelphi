@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib/BoldLCL/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
-        <CustomOptions Value="-Mdelphiunicode -vm4104,4105"/>
+        <CustomOptions Value="-Mdelphiunicode -vm3018,4104,4105,5033"/>
       </Other>
     </CompilerOptions>
     <Description Value="Bold for Delphi, the LCL side of the runtime: BoldEnvironmentLCL, which drains Bold's display queue from the LCL's idle handling and shows LCL dialogs, BoldExceptionLogLCL, which logs the exceptions of the LCL's message loop with their call stacks, and Bold's OCL editor as an LCL dialog."/>

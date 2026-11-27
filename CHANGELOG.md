@@ -175,6 +175,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   self-test; `check_no_vcl.ps1` checks that it links no VCL unit.
 
 ### Changed
+- The Free Pascal builds compile Bold without warnings; a clean build of the
+  test program had 2684. 2633 of them were four kinds that `bold.inc` now
+  switches off for Free Pascal, saying why: the implicit string conversions
+  between Free Pascal 3.2's AnsiString RTL and Bold's UnicodeString (4104,
+  4105), constructors that are not public (3018) and the result of a function
+  that only raises (5033); the repository's Free Pascal builds pass them with
+  `-vm` as well. The other 51 were fixed: casts to crackers go through their
+  base class, managed results are set before `SetLength`,
+  `FormatSettings.DecimalSeparator`, and the .NET-only
+  `UNSAFE_CODE`/`UNSAFE_CAST` directives are gone.
 - AutoSubscription is on in every build, with Delphi and Free Pascal, in
   programs and in the design-time packages. `bold.inc` switched it off
   (`NoAutoSubscription`) in every build without the `Attracs` define, so a code
@@ -270,6 +280,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- Three results that could hold leftovers, found through Free Pascal's
+  warnings: `TBoldSQLIndexDescription.CreateBDEIndex` gave `IndexDefs.Add`
+  index options that were never initialized (a stray `ixPrimary` also dropped
+  the index name); `TBoldFollower.CollectMatchingSiblings` returned its
+  caller's old array when it left early; `TBoldObject.GetGlobalId` returned
+  whatever the caller's string held.
 - AutoSubscription: a member that a code derivation read and then discarded
   (`TBoldMember.Discard`, the modified member of a saved object) was taken off
   the members the derivation depends on, so the derived member was not

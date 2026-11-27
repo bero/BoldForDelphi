@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
-        <CustomOptions Value="-Mdelphiunicode -vm4104,4105"/>
+        <CustomOptions Value="-Mdelphiunicode -vm3018,4104,4105,5033"/>
       </Other>
     </CompilerOptions>
     <Description Value="Bold for Delphi, runtime: the framework-neutral units that build with Free Pascal (object space, OCL, handles, persistence, TBoldDataSet). No LCL unit and no database library."/>

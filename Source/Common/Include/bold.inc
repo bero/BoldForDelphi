@@ -12,12 +12,26 @@
 // loses nothing, and 4105 back, which can lose characters outside the ANSI
 // code page on Windows (on Linux that code page is UTF-8). Thousands of them
 // hide the warnings that matter; the tests check the text that has to survive.
-// The Free Pascal builds of the repository pass -vm4104,4105 as well, for the
-// units that do not include this file.
 {$IFDEF FPC}
 {$WARN 4104 OFF}
 {$WARN 4105 OFF}
 {$ENDIF}
+
+// Two more Free Pascal warnings that Bold's design sets off on purpose:
+// 3018, a constructor that is not public: Bold hides the constructors that
+// only its own unit may call (locators, members, RT infos, proxies);
+// 5033, a function result that is not set: Free Pascal says it of every
+// function whose body only raises, Bold's abstract stand-ins and its
+// "not supported here" methods. Delphi warns (W1035) where a result can be
+// undefined, and its builds of Bold have no warnings.
+{$IFDEF FPC}
+{$WARN 3018 OFF}
+{$WARN 5033 OFF}
+{$ENDIF}
+// The repository's Free Pascal builds pass -vm3018,4104,4105,5033 as well: for
+// the units that do not include this file, and because Free Pascal 3.2.2
+// loses these settings in some units of a large build (seen in units whose
+// interface uses clause compiles other units first; the cause is not found).
 
 {$WARNINGS ON}
 {$HINTS ON}

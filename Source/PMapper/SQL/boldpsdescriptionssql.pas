@@ -805,6 +805,7 @@ var
 begin
   SQLName := GeneratedName;
   BoldLog.LogFmt(sAddingIndex, [SQLName, IndexedFields], ltDetail);
+  ActualOptions := [];
   //Conversion of TIndexOptionsEx to TIndexOptions
   if ixPrimary in IndexOptions then begin
     ActualOptions := ActualOptions + [db.ixPrimary];

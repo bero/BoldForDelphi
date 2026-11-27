@@ -19,16 +19,17 @@ UNITPATHS=$(find "$ROOT/Source" -type d \
   -not -path '*/EnvironmentLCL*' -not -path '*/IDELazarus*' \
   | sed 's/^/-Fu/')
 
-# -vm4104,4105: no implicit string conversion warnings (see bold.inc)
+# -vm3018,4104,4105,5033: the warnings bold.inc switches off for Free Pascal
+# (it says why), also for the units that do not include it
 # shellcheck disable=SC2086
-fpc -Mdelphiunicode -vew -vm4104,4105 \
+fpc -Mdelphiunicode -vew -vm3018,4104,4105,5033 \
   -Fi"$ROOT/Source/Common/Include" $UNITPATHS \
   -Fi"$INV/Model" -Fu"$INV/Model" -Fu"$INV/Tests" \
   -FE"$OUT" -FU"$OUT" \
   "$HERE/InvoicingFPC.lpr"
 
 # shellcheck disable=SC2086
-fpc -Mdelphiunicode -vew -vm4104,4105 \
+fpc -Mdelphiunicode -vew -vm3018,4104,4105,5033 \
   -Fi"$ROOT/Source/Common/Include" $UNITPATHS \
   -Fi"$INV/Model" -Fu"$INV/Model" -Fu"$INV/Tests" \
   -FE"$OUT" -FU"$OUT" \

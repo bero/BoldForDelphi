@@ -508,6 +508,7 @@ begin
   aList := TList.Create;
   try
     (Indexes[IX_ClassAndMemberExpressionNameIndex] as TBoldMemberMappingIndex).FindAllByExpressionNames(ClassExpressionName, MemberName, aList);
+    Result := nil;
     SetLength(result, aList.Count);
     for i := 0 to aList.Count-1 do
       result[i] := aList[i];
@@ -538,6 +539,7 @@ begin
   aList := TList.Create;
   try
     (Indexes[IX_ClassExpressionNameIndex] as TBoldStringHashIndex).FindAllByString(ClassExpressionName, aList);
+    Result := nil;
     SetLength(result, aList.Count);
     for i := 0 to aList.Count-1 do
       result[i] := aList[i];

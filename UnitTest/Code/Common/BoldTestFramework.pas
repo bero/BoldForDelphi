@@ -791,6 +791,7 @@ var
 {$IFEND}
 begin
   {$IF defined(FPC)}
+  Result := 0;
   raise Exception.Create('BoldTestAllocatedBlocks: the Free Pascal heap manager does not count ' +
     'blocks; use BoldTestAllocatedBytes');
   {$ELSEIF defined(MSWINDOWS)}

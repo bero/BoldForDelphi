@@ -305,6 +305,7 @@ begin
   AllTables := TStringList.Create;
   PersistenceHandle.DataBaseInterface.AllTableNames('', true, AllTables);
   AllTables.CaseSensitive := false;
+  TableName := '';
   for i := 0 to OldColumns.Count - 1 do
   begin
     dotIndex := pos('.', OldColumns[i]);

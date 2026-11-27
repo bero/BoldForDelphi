@@ -1488,7 +1488,7 @@ const
   cisUnique = 'isUnique';
   cFieldNotFoundMessage = 'Field %s not found in IndexInfoQuery result set.';
 begin
-  SetLength(result, 0);
+  Result := nil;
   DbQuery := GetQuery;
   lastIndexName := '';
   try
@@ -1616,7 +1616,7 @@ var
   I: integer;
   IndexDef: TIndexDef;
 begin
-  SetLength(result, 0);
+  Result := nil;
   DbTable := GetTable;
   try
     DbTable.Tablename := TableName;

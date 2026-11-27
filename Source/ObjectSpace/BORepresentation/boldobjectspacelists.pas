@@ -412,6 +412,7 @@ var
   concatval: String;
 begin
   FAttributeList := Attributes;
+  concatval := '';
   for i := 0 to FAttributeList.Count - 1 do
     concatval := concatval + FAttributeList[i].AsString;
   FHash := TBoldStringKey.HashString(concatval, StringCompareMode);

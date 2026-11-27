@@ -181,9 +181,7 @@ var
 begin
   for i := 0 to TopOfStack - 1 do
   begin
-{$WARN UNSAFE_CODE OFF}
     Element := PArray^[i];
-{$WARN UNSAFE_CODE ON}
     if Element.RefDec then
       Element.Free;
   end;
@@ -723,9 +721,7 @@ begin
   Size := TheSize;
   Incr := TheInc;
   Count := 0;
-{$WARN UNSAFE_CODE OFF}
   GetMem(PArray, Size * SizeOf(Integer));
-{$WARN UNSAFE_CODE ON}
 end;
 
 function SSSetOfLongint.Insert(TheItem: Integer): Boolean;
@@ -747,14 +743,10 @@ begin
     if Count >= Size then
     begin
       NewSize := Size + Incr;
-{$WARN UNSAFE_CODE OFF}
       GetMem(PNewArray, NewSize * SizeOf(Integer));
-{$WARN UNSAFE_CODE ON}
       for i := 0 to Count - 1 do
         PNewArray[i] := PArray[i];
-{$WARN UNSAFE_CODE OFF}
       FreeMem(PArray, Size * SizeOf(Integer));
-{$WARN UNSAFE_CODE ON}
       Size := NewSize;
       PArray := PNewArray;
     end;
@@ -778,9 +770,7 @@ end;
 
 destructor SSSetOfLongint.Destroy;
 begin
-{$WARN UNSAFE_CODE OFF}
   FreeMem(PArray, Size * SizeOf(Integer));
-{$WARN UNSAFE_CODE ON}
   inherited Destroy;
 end;
 
@@ -795,9 +785,7 @@ begin
     Result := nil
   else
   begin
-{$WARN UNSAFE_CAST OFF}
     Result := SSLexLexeme(List[0]);
-{$WARN UNSAFE_CAST ON}
     Result.RefDec;
     Delete(0);
     Pack;
@@ -806,9 +794,7 @@ end;
 
 procedure SSYaccLexemeCache.Enqueue(TheLexeme: SSLexLexeme);
 begin
-{$WARN UNSAFE_CAST OFF}
   Add(Pointer(TheLexeme));
-{$WARN UNSAFE_CAST ON}
   TheLexeme.RefInc;
 end;
 
@@ -817,9 +803,7 @@ begin
   if (Count = 0) or (TheIndex = MaxInt) then
     Result := nil
   else
-{$WARN UNSAFE_CAST OFF}
     Result := SSLexLexeme(Items[TheIndex]);
-{$WARN UNSAFE_CAST ON}
 end;
 
 destructor SSYaccLexemeCache.Destroy;

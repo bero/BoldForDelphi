@@ -76,6 +76,7 @@ end;
 
 function JoinBytes(const A, B: TBytes): TBytes;
 begin
+  Result := nil;
   SetLength(Result, Length(A) + Length(B));
   if Length(A) > 0 then
     Move(A[0], Result[0], Length(A));
@@ -112,6 +113,7 @@ var
 begin
   Stream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone);
   try
+    Result := nil;
     SetLength(Result, Stream.Size);
     if Length(Result) > 0 then
       Stream.ReadBuffer(Result[0], Length(Result));

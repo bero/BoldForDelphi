@@ -27,9 +27,9 @@ UNITPATHS=$( { find "$ROOT/Source" -type d \
 
 # shellcheck disable=SC2086
 # -gl: line information, so that the call stacks of exceptions name their
-# routines (#130). -vm4104,4105: no implicit string conversion warnings (see
-# bold.inc)
-fpc -Mdelphiunicode -vew -vm4104,4105 -gl \
+# routines (#130). -vm3018,4104,4105,5033: the warnings bold.inc switches off
+# for Free Pascal (it says why), also for the units that do not include it
+fpc -Mdelphiunicode -vew -vm3018,4104,4105,5033 -gl \
   -Fi"$ROOT/Source/Common/Include" $UNITPATHS \
   -Fu"$ROOT/UnitTest/Code/Common" \
   -Fu"$EDITOR/Core" -Fu"$EDITOR/Tests" \

@@ -1170,10 +1170,10 @@ begin
 
   // What TCustomForm.BeforeDestruction does to the form's components before
   // it calls OnDestroy (the VCL, FMX and the LCL alike)
-  TComponentAccess(FMasterHandle).Destroying;
-  TComponentAccess(FDetailHandle).Destroying;
-  TComponentAccess(FMaster).Destroying;
-  TComponentAccess(FDetail).Destroying;
+  TComponentAccess(TComponent(FMasterHandle)).Destroying;
+  TComponentAccess(TComponent(FDetailHandle)).Destroying;
+  TComponentAccess(TComponent(FMaster)).Destroying;
+  TComponentAccess(TComponent(FDetail)).Destroying;
   FHandleNotifications := 0;
   FMasterHandle.OnBeginValueIdentityChanged := CountHandleNotification;
   FDetailHandle.OnBeginValueIdentityChanged := CountHandleNotification;

@@ -1145,6 +1145,7 @@ var
 begin
   Length1 := Length(Part1);
   Length2 := Length(Part2);
+  Result := nil;
   SetLength(Result, Length1 + Length2);
   for I := 0 to Length1 - 1 do
     Result[i] := Part1[i];

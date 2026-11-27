@@ -198,7 +198,7 @@ end;
 
 class function TBoldClassHashIndex.HashClass(KeyClass: TClass): Cardinal;
 begin
-  Result := Cardinal(KeyClass);
+  Result := Cardinal(NativeUInt(KeyClass));
 end;
 
 function TBoldClassHashIndex.Hash(const Key): Cardinal;

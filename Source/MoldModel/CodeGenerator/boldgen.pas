@@ -774,6 +774,7 @@ begin
 
   Dependencies.Free;
 
+  temp := '';
   for i := 0 to Model.Components.count - 1 do
   begin
     if temp <> '' then

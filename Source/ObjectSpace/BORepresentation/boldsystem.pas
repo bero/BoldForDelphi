@@ -5221,7 +5221,7 @@ end;
 
 function TBoldObject.GetGlobalId: string;
 begin
-
+  Result := '';
 end;
 
 procedure TBoldObject.SetGlobalId(const NewValue: string);

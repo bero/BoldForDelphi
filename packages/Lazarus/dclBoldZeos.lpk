@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib/dclBoldZeos/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
-        <CustomOptions Value="-Mdelphiunicode -vm4104,4105"/>
+        <CustomOptions Value="-Mdelphiunicode -vm3018,4104,4105,5033"/>
       </Other>
     </CompilerOptions>
     <Description Value="Bold for Delphi, design time for Lazarus: puts TBoldDatabaseAdapterZeos on the component palette."/>

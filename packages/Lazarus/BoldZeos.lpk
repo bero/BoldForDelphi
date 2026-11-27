@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib/BoldZeos/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
-        <CustomOptions Value="-Mdelphiunicode -vm4104,4105"/>
+        <CustomOptions Value="-Mdelphiunicode -vm3018,4104,4105,5033"/>
       </Other>
     </CompilerOptions>
     <Description Value="Bold for Delphi, the database adapter for Zeos (ZeosLib 8.0): TBoldDatabaseAdapterZeos, which Bold uses for SQL databases under Free Pascal."/>

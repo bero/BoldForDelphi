@@ -1309,11 +1309,11 @@ procedure RepairUpdateCounts(Query: TBoldZeosQuery);
 begin
   while BoldStringsUpdating(Query.SQLStrings) do
     Query.SQLStrings.EndUpdate;
-  while TCollectionAccess(Query.Params).UpdateCount > 0 do
+  while TCollectionAccess(TCollection(Query.Params)).UpdateCount > 0 do
     Query.Params.EndUpdate;
   while TStringsAccess(Query.SQLStrings).UpdateCount < 0 do
     Query.SQLStrings.BeginUpdate;
-  while TCollectionAccess(Query.Params).UpdateCount < 0 do
+  while TCollectionAccess(TCollection(Query.Params)).UpdateCount < 0 do
     Query.Params.BeginUpdate;
 end;
 
