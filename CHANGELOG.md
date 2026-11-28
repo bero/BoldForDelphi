@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- The IDE's **Bold** menu has an item **Bold for Delphi GitHub**, before
+  **About**, that opens https://github.com/bero/BoldForDelphi in the browser
+  (`URLBoldForDelphi` in `BoldDefsDT` pointed to Embarcadero's repository).
 - `BoldExceptionTrace` (`Source/Common/Logging`, #130): an exception with its
   call stack, for Bold's log (`BoldLogException`, `BoldExceptionReport`,
   `BoldExceptionCallStack`). Bold names no stack-trace library: under Delphi it
@@ -292,12 +295,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Removed
 - `BoldEnvironmentAllowBothUseVCL`, which needed the removed CLX environment and
   did not compile (#118)
+- The Getting Started expert (`BoldGettingStartedExpert`,
+  `BoldGettingStartedForm`, and `BoldExpertMenus` from dclBold): no package
+  contained it, so the IDE never loaded it, and the HTML guide it opened
+  (`doc\frames\getting_started_f.html`) is not part of Bold. With it
+  go the constants `GETTINGSTARTEDPATH`, `GETTINGSTARTEDDOCNAME`,
+  `sInitExpertFailed` and `sGettingStartedNotFound`.
 
 ### Fixed
-- The IDE's About box and the Getting Started expert told `GetModuleFileName`
-  that their buffers were twice as large as they are (the size in bytes, where
-  Windows expects characters), so a package path longer than 260 characters
-  would have been written past the end of the buffer (#101). `BoldModuleFileName` in
+- The IDE's About box told `GetModuleFileName` that its buffer was twice as
+  large as it is (the size in bytes, where Windows expects characters), so a
+  package path longer than 260 characters would have been written past the end
+  of the buffer (#101). `BoldModuleFileName` in
   `BoldPlatform`, which `GetModuleFileNameAsString` now uses, already passed
   the right size.
 - `TBoldSystemTypeInfo.FindElement` returned the first role of the model for

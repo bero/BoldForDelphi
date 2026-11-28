@@ -592,7 +592,6 @@
         <DCCReference Include="..\..\Source\Samples\BoldCheckListBox\BoldCheckListBoxReg.pas"/>
         <DCCReference Include="..\..\Source\Samples\BoldCheckListBox\BoldSelectionListBox.pas"/>
         <DCCReference Include="..\..\Source\Handles\IDECOM\BoldComElementHandleReg.pas"/>
-        <DCCReference Include="..\..\Source\Common\IDE\BoldExpertMenus.pas"/>
         <DCCReference Include="..\..\Source\Common\IDE\BoldIDESupport.pas"/>
         <DCCReference Include="..\..\Source\Common\IDE\BoldOTAFileHandler.pas"/>
         <DCCReference Include="..\..\Source\Samples\BoldCheckListBox\BoldSelectionListBoxReg.pas"/>

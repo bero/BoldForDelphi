@@ -511,7 +511,6 @@ contains
   BoldCheckListBoxReg in '..\..\Source\Samples\BoldCheckListBox\BoldCheckListBoxReg.pas',
   BoldSelectionListBox in '..\..\Source\Samples\BoldCheckListBox\BoldSelectionListBox.pas',
   BoldComElementHandleReg in '..\..\Source\Handles\IDECOM\BoldComElementHandleReg.pas',
-  BoldExpertMenus in '..\..\Source\Common\IDE\BoldExpertMenus.pas',
   BoldIDESupport in '..\..\Source\Common\IDE\BoldIDESupport.pas',
   BoldOTAFileHandler in '..\..\Source\Common\IDE\BoldOTAFileHandler.pas',
   BoldSelectionListBoxReg in '..\..\Source\Samples\BoldCheckListBox\BoldSelectionListBoxReg.pas',

@@ -1216,10 +1216,6 @@ const
 // BoldUMLModel
   sConstraintCannotBeRemoved = 'Constraint cannot be removed.';
 
-// BoldGettingStartedExpert
-  sInitExpertFailed = 'InitExpert: %s';
-  sGettingStartedNotFound = 'Could not find Bold for Delphi''s GettingStarted document: %s';
-
 // BoldLicenseTextForm
   sSelectLicenseAgreement = 'You must first select either "I Agree" or "I do not Agree"';
 

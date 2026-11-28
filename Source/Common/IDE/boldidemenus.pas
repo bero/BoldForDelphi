@@ -150,6 +150,7 @@ begin
 
   // About section
   AddMenuItem('BoldAboutDelimiterMenu', '-', nil); // do not localize
+  AddMenuItem('BoldGitHubMenu', sCompanyHomePage, ActionURLBfD);
   AddMenuItem('BoldAboutMenu', sAbout, ActionAbout);
 
   MainMenu.Items.Insert(I, fBoldMenu);

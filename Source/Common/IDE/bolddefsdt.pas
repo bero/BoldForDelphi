@@ -18,11 +18,8 @@ const
   ATTRIBUTEWIZARDHELPFILE = 'boldattributewizard.hlp';
   MODELEDITORHELPFILE = 'boldmodeleditor.hlp';
 
-  URLBoldForDelphi = 'https://github.com/Embarcadero/BoldForDelphi/tree/develop';
+  URLBoldForDelphi = 'https://github.com/bero/BoldForDelphi';
   URLSupport = 'http://www.forum.boldfordelphi.com';
-
-  GETTINGSTARTEDPATH = '\doc\frames\';
-  GETTINGSTARTEDDOCNAME = 'getting_started_f.html';
 
   regPath = 'Path';
   regPathRoot = 'RootDir';

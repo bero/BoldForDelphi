@@ -184,7 +184,6 @@ BoldExceptionHandlersCom
 BoldExceptionLog
 BoldExceptionTrace
 BoldExpert
-BoldExpertMenus
 BoldExpressionHandle
 BoldExpressionHandleCom
 BoldExpressionSubscriber
@@ -223,8 +222,6 @@ BoldGeneratorTemplatesCPP
 BoldGeneratorTemplatesDelphi
 BoldGenericListControlPack
 BoldGenericListControlPackCom
-BoldGettingStartedExpert
-BoldGettingStartedForm
 BoldGlobalId
 BoldGrid
 BoldGridCom
