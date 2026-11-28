@@ -185,11 +185,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The standalone model editor's class and attribute grids are read-only;
   a class and an attribute are added and changed in a dialog of each client
   (#128), opened by Add, Edit or a double click: the class dialog edits the
-  name, persistent and abstract and shows the superclass, the attribute
+  name, the superclass (any class but the class itself and its subclasses;
+  the root class of a boldified model keeps none), persistent and abstract,
+  the attribute
   dialog the name, the type (picked from the type names, or typed),
   persistent and derived. Cancel on Add adds nothing. The shared data module
   fills and takes the dialogs' values (`ClassValues`, `NewClassValues`,
-  `ApplyClassValues`, `AddClass(Values)`, the same for attributes,
+  `ApplyClassValues`, `AddClass(Values)`, `GetSuperclassNames`, the same for
+  attributes,
   `GetTypeNames`).
 
 ### Changed

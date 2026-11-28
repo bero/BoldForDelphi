@@ -29,14 +29,18 @@ object frmModelEditorClass: TfrmModelEditorClass
     Height = 17
     Top = 50
     Width = 70
-    Caption = 'Superclass'
+    Caption = '&Superclass'
+    FocusControl = cbSuperclass
   end
-  object lblSuperclassName: TLabel
+  object cbSuperclass: TComboBox
     Left = 110
-    Height = 17
-    Top = 50
-    Width = 40
-    Caption = '(none)'
+    Height = 28
+    Top = 44
+    Width = 256
+    DropDownCount = 20
+    ItemHeight = 0
+    Style = csDropDownList
+    TabOrder = 1
   end
   object chkPersistent: TCheckBox
     Left = 110
@@ -44,7 +48,7 @@ object frmModelEditorClass: TfrmModelEditorClass
     Top = 78
     Width = 90
     Caption = '&Persistent'
-    TabOrder = 1
+    TabOrder = 2
   end
   object chkAbstract: TCheckBox
     Left = 110
@@ -52,7 +56,7 @@ object frmModelEditorClass: TfrmModelEditorClass
     Top = 104
     Width = 80
     Caption = '&Abstract'
-    TabOrder = 2
+    TabOrder = 3
   end
   object btnOK: TButton
     Left = 196
@@ -62,7 +66,7 @@ object frmModelEditorClass: TfrmModelEditorClass
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 3
+    TabOrder = 4
   end
   object btnCancel: TButton
     Left = 284
@@ -72,6 +76,6 @@ object frmModelEditorClass: TfrmModelEditorClass
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 4
+    TabOrder = 5
   end
 end

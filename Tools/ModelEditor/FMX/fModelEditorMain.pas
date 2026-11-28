@@ -52,6 +52,7 @@ uses
   Fmx.Bind.Grid,
   Fmx.Bind.Editors,
   System.Bindings.Outputs,
+  BoldUMLModel,
   BoldModelEditorData;
 
 type
@@ -161,12 +162,13 @@ type
     FExpectedExceptionSeen: Boolean;
     // Where the self-test saves and generates, instead of asking
     FSelfTestFolder: string;
-    // What the self-test's dialogs answer: OK or Cancel, and a name that
-    // replaces the one in the dialog when it is not empty
+    // What the self-test's dialogs answer: OK or Cancel, and a name and a
+    // superclass that replace those in the dialog when they are not empty
     FSelfTestDialogOK: Boolean;
     FSelfTestName: string;
+    FSelfTestSuperclass: string;
     FStatus: string;
-    function EditClass(const ACaption: string; var AValues: TModelEditorClassValues): Boolean;
+    function EditClass(const ACaption: string; AClass: TUMLClass; var AValues: TModelEditorClassValues): Boolean;
     function EditAttribute(const ACaption: string; var AValues: TModelEditorAttributeValues): Boolean;
     function AskSave(const ADocumentName: string): TModelEditorSaveAnswer;
     function ChooseSaveFile(var AFileName: string): Boolean;
@@ -203,7 +205,6 @@ uses
   BoldLogSinks,
   BoldExceptionTrace,
   BoldExceptionLog,
-  BoldUMLModel,
   fModelEditorClass,
   fModelEditorAttribute;
 
@@ -439,15 +440,26 @@ begin
   Close;
 end;
 
-function TfrmModelEditorMain.EditClass(const ACaption: string; var AValues: TModelEditorClassValues): Boolean;
+function TfrmModelEditorMain.EditClass(const ACaption: string; AClass: TUMLClass; var AValues: TModelEditorClassValues): Boolean;
+var
+  SuperclassNames: TStringList;
 begin
   if FSelfTest then
   begin
     if FSelfTestName <> '' then
       AValues.Name := FSelfTestName;
+    if FSelfTestSuperclass <> '' then
+      AValues.Superclass := FSelfTestSuperclass;
     Exit(FSelfTestDialogOK);
   end;
-  Result := EditClassValues(ACaption, AValues);
+  SuperclassNames := TStringList.Create;
+  try
+    // AClass is nil for a new class
+    FData.GetSuperclassNames(AClass, SuperclassNames);
+    Result := EditClassValues(ACaption, SuperclassNames, AValues);
+  finally
+    SuperclassNames.Free;
+  end;
 end;
 
 function TfrmModelEditorMain.EditAttribute(const ACaption: string; var AValues: TModelEditorAttributeValues): Boolean;
@@ -474,7 +486,7 @@ var
   Values: TModelEditorClassValues;
 begin
   Values := FData.NewClassValues;
-  if EditClass(sAddClass, Values) then
+  if EditClass(sAddClass, nil, Values) then
     FData.AddClass(Values);
 end;
 
@@ -485,7 +497,7 @@ begin
   if not FData.CanEditClass then
     Exit;
   Values := FData.ClassValues(FData.CurrentClass);
-  if EditClass(Format(sEditClass, [Values.Name]), Values) then
+  if EditClass(Format(sEditClass, [Values.Name]), FData.CurrentClass(), Values) then
     FData.ApplyClassValues(FData.CurrentClass, Values);
 end;
 
@@ -652,6 +664,7 @@ var
   ClassDialog: TfrmModelEditorClass;
   AttributeDialog: TfrmModelEditorAttribute;
   ClassValues: TModelEditorClassValues;
+  SuperclassNames: TStringList;
   AttributeValues: TModelEditorAttributeValues;
   TypeNames: TStringList;
 begin
@@ -742,6 +755,17 @@ begin
       FSelfTestDialogOK := True;
       Settle;
       Check('Add class, then Cancel, adds nothing', grdClasses.RowCount = ClassCount, IntToStr(grdClasses.RowCount));
+      FSelfTestName := 'Subtype';
+      FSelfTestSuperclass := 'Customer';
+      actAddClass.Execute;
+      FSelfTestName := '';
+      FSelfTestSuperclass := '';
+      Settle;
+      Check('Add class, then OK, adds the class under the superclass the dialog chose',
+        (SelectedCell(grdClasses, 'Name') = 'Subtype') and (SelectedCell(grdClasses, 'Superclass') = 'Customer'),
+        SelectedCell(grdClasses, 'Name') + ' ' + SelectedCell(grdClasses, 'Superclass'));
+      actDeleteClass.Execute;
+      Settle;
 
       // The two dialogs show the values and give them back; created, not
       // shown. A text set in code does not fire OnChangeTracking, so the
@@ -749,23 +773,38 @@ begin
       grdClasses.SelectRow(RowNamed(grdClasses, 'Customer'));
       Settle;
       ClassDialog := TfrmModelEditorClass.Create(nil);
+      SuperclassNames := TStringList.Create;
       try
         ClassValues := FData.ClassValues(FData.CurrentClass());
-        ClassDialog.LoadValues(ClassValues);
+        FData.GetSuperclassNames(FData.CurrentClass(), SuperclassNames);
+        ClassDialog.LoadValues(ClassValues, SuperclassNames);
         Check('the class dialog shows the name', ClassDialog.edtName.Text = 'Customer', ClassDialog.edtName.Text);
-        Check('and the superclass', ClassDialog.lblSuperclassName.Text = ClassValues.Superclass,
-          ClassDialog.lblSuperclassName.Text);
+        Check('and the superclass', ClassDialog.SelectedSuperclassText = ClassValues.Superclass,
+          ClassDialog.SelectedSuperclassText);
+        Check('the superclass box offers the other classes, not the class itself',
+          ClassDialog.cbSuperclass.Enabled and (ClassDialog.cbSuperclass.Items.IndexOf('Invoice') >= 0) and
+          (ClassDialog.cbSuperclass.Items.IndexOf('Customer') < 0), IntToStr(ClassDialog.cbSuperclass.Items.Count));
         Check('and persistent', ClassDialog.chkPersistent.IsChecked = ClassValues.Persistent, '');
         Check('OK is enabled for a class with a name', ClassDialog.btnOK.Enabled, '');
         ClassDialog.edtName.Text := '';
         ClassDialog.edtNameChange(ClassDialog.edtName);
         Check('and disabled for one without', not ClassDialog.btnOK.Enabled, '');
         ClassDialog.edtName.Text := 'Client';
+        ClassDialog.cbSuperclass.ItemIndex := ClassDialog.cbSuperclass.Items.IndexOf('Invoice');
         ClassDialog.chkAbstract.IsChecked := True;
         ClassDialog.SaveValues(ClassValues);
-        Check('the class dialog gives the values back', (ClassValues.Name = 'Client') and ClassValues.Abstract,
-          ClassValues.Name);
+        Check('the class dialog gives the values back', (ClassValues.Name = 'Client') and ClassValues.Abstract and
+          (ClassValues.Superclass = 'Invoice'), ClassValues.Name + ' ' + ClassValues.Superclass);
+        grdClasses.SelectRow(RowNamed(grdClasses, 'InvoicingRoot'));
+        Settle;
+        FData.GetSuperclassNames(FData.CurrentClass(), SuperclassNames);
+        ClassDialog.LoadValues(FData.ClassValues(FData.CurrentClass()), SuperclassNames);
+        Check('the root class has no superclass to pick', not ClassDialog.cbSuperclass.Enabled and
+          (ClassDialog.SelectedSuperclassText = '(none)'), ClassDialog.SelectedSuperclassText);
+        grdClasses.SelectRow(RowNamed(grdClasses, 'Customer'));
+        Settle;
       finally
+        SuperclassNames.Free;
         ClassDialog.Free;
       end;
       AttributeDialog := TfrmModelEditorAttribute.Create(nil);

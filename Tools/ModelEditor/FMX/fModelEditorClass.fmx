@@ -36,13 +36,13 @@ object frmModelEditorClass: TfrmModelEditorClass
     Size.PlatformDefault = False
     Text = 'Superclass'
   end
-  object lblSuperclassName: TLabel
+  object cbSuperclass: TComboBox
     Position.X = 110.000000000000000000
-    Position.Y = 52.000000000000000000
+    Position.Y = 48.000000000000000000
     Size.Width = 276.000000000000000000
-    Size.Height = 20.000000000000000000
+    Size.Height = 26.000000000000000000
     Size.PlatformDefault = False
-    Text = '(none)'
+    TabOrder = 1
   end
   object chkPersistent: TCheckBox
     Position.X = 110.000000000000000000
@@ -50,7 +50,7 @@ object frmModelEditorClass: TfrmModelEditorClass
     Size.Width = 160.000000000000000000
     Size.Height = 20.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 1
+    TabOrder = 2
     Text = 'Persistent'
   end
   object chkAbstract: TCheckBox
@@ -59,7 +59,7 @@ object frmModelEditorClass: TfrmModelEditorClass
     Size.Width = 160.000000000000000000
     Size.Height = 20.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 2
+    TabOrder = 3
     Text = 'Abstract'
   end
   object btnOK: TButton

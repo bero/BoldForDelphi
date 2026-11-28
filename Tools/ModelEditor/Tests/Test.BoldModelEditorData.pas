@@ -34,6 +34,9 @@ type
     // For WillRaise: a class and an attribute given an empty name
     procedure ApplyAnEmptyClassName;
     procedure ApplyAnEmptyAttributeName;
+    // For WillRaise: Customer given its subclass Sub, or no superclass
+    procedure MakeCustomerASubclassOfSub;
+    procedure TakeCustomersSuperclass;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -55,6 +58,16 @@ type
     procedure TestNewClassValuesHaveANameNoClassHas;
     procedure TestAddClassWithTheValuesOfADialog;
     procedure TestAClassNeedsAName;
+    // The superclass is chosen in the class dialog: of every class but the
+    // class itself and its subclasses, so no cycle can be chosen
+    procedure TestSuperclassNamesLeaveOutTheClassAndItsSubclasses;
+    procedure TestTheRootClassHasNoSuperclassToChoose;
+    procedure TestAddClassUnderTheChosenSuperclass;
+    procedure TestApplyClassValuesMovesTheClass;
+    procedure TestASuperclassThatMakesACycleIsRefused;
+    procedure TestAClassOfABoldifiedModelNeedsASuperclass;
+    // A model that is not boldified, as a new one, allows no superclass
+    procedure TestANewModelAllowsNoSuperclass;
     procedure TestAttributeValues;
     procedure TestNewAttributeValues;
     procedure TestAddAttributeWithTheValuesOfADialog;
@@ -219,6 +232,24 @@ begin
   Values := FData.ClassValues(FData.CurrentClass);
   Values.Name := ' ';
   FData.ApplyClassValues(FData.CurrentClass, Values);
+end;
+
+procedure TTestBoldModelEditorData.MakeCustomerASubclassOfSub;
+var
+  Values: TModelEditorClassValues;
+begin
+  Values := FData.ClassValues(ClassNamed(FData.Document.UMLModel, 'Customer'));
+  Values.Superclass := 'Sub';
+  FData.ApplyClassValues(ClassNamed(FData.Document.UMLModel, 'Customer'), Values);
+end;
+
+procedure TTestBoldModelEditorData.TakeCustomersSuperclass;
+var
+  Values: TModelEditorClassValues;
+begin
+  Values := FData.ClassValues(ClassNamed(FData.Document.UMLModel, 'Customer'));
+  Values.Superclass := '';
+  FData.ApplyClassValues(ClassNamed(FData.Document.UMLModel, 'Customer'), Values);
 end;
 
 procedure TTestBoldModelEditorData.ApplyAnEmptyAttributeName;
@@ -386,12 +417,11 @@ begin
   Values.Name := 'Client';
   Values.Abstract := not Values.Abstract;
   Values.Persistent := not Values.Persistent;
-  Values.Superclass := 'Invoice';
   FData.ApplyClassValues(FData.CurrentClass, Values);
   Assert.AreEqual('Client', FData.CurrentClass.name, 'the new name');
   Assert.AreEqual(Values.Abstract, FData.CurrentClass.isAbstract, 'abstract changed');
   Assert.AreEqual(Values.Persistent, FData.CurrentClass.persistent, 'persistent changed');
-  Assert.AreEqual('InvoicingRoot', FData.CurrentClass.superclass.name, 'the superclass is not changed');
+  Assert.AreEqual('InvoicingRoot', FData.CurrentClass.superclass.name, 'the same superclass');
 end;
 
 procedure TTestBoldModelEditorData.TestNewClassValuesHaveANameNoClassHas;
@@ -432,6 +462,125 @@ begin
   SelectClassNamed('Customer');
   Assert.WillRaise(ApplyAnEmptyClassName, EBoldModelEditor, 'an empty name is refused');
   Assert.AreEqual('Customer', FData.CurrentClass.name, 'the name stays');
+end;
+
+{ Customer gets a subclass Sub, and Sub a subclass SubSub }
+procedure AddSubclassesOfCustomer(AData: TdmModelEditor);
+var
+  Values: TModelEditorClassValues;
+begin
+  Values := AData.NewClassValues;
+  Values.Name := 'Sub';
+  Values.Superclass := 'Customer';
+  AData.AddClass(Values);
+  Values := AData.NewClassValues;
+  Values.Name := 'SubSub';
+  Values.Superclass := 'Sub';
+  AData.AddClass(Values);
+end;
+
+procedure TTestBoldModelEditorData.TestSuperclassNamesLeaveOutTheClassAndItsSubclasses;
+var
+  Names: TStringList;
+begin
+  Names := TStringList.Create;
+  try
+    OpenInvoicing;
+    AddSubclassesOfCustomer(FData);
+    FData.GetSuperclassNames(ClassNamed(FData.Document.UMLModel, 'Customer'), Names);
+    Assert.IsTrue(Names.IndexOf('Customer') < 0, 'not the class itself: ' + Names.CommaText);
+    Assert.IsTrue(Names.IndexOf('Sub') < 0, 'nor its subclass: ' + Names.CommaText);
+    Assert.IsTrue(Names.IndexOf('SubSub') < 0, 'nor the subclass of that: ' + Names.CommaText);
+    Assert.IsTrue(Names.IndexOf('Invoice') >= 0, 'another class: ' + Names.CommaText);
+    Assert.IsTrue(Names.IndexOf('InvoicingRoot') >= 0, 'the root class: ' + Names.CommaText);
+    Assert.IsTrue(Names.IndexOf('') < 0, 'no "none" in a boldified model');
+    FData.GetSuperclassNames(nil, Names);
+    Assert.AreEqual(FData.Document.UMLModel.Classes.Count, Names.Count, 'every class for a new class');
+  finally
+    Names.Free;
+  end;
+end;
+
+procedure TTestBoldModelEditorData.TestTheRootClassHasNoSuperclassToChoose;
+var
+  Names: TStringList;
+begin
+  Names := TStringList.Create;
+  try
+    OpenInvoicing;
+    FData.GetSuperclassNames(ClassNamed(FData.Document.UMLModel, 'InvoicingRoot'), Names);
+    Assert.AreEqual(0, Names.Count, 'none: ' + Names.CommaText);
+  finally
+    Names.Free;
+  end;
+end;
+
+procedure TTestBoldModelEditorData.TestAddClassUnderTheChosenSuperclass;
+begin
+  OpenInvoicing;
+  AddSubclassesOfCustomer(FData);
+  Assert.AreEqual('SubSub', FData.CurrentClass.name, 'the last class added is selected');
+  Assert.AreEqual('Sub', FData.CurrentClass.superclass.name, 'under the superclass chosen');
+  Assert.AreEqual('Customer', ClassNamed(FData.Document.UMLModel, 'Sub').superclass.name, 'Sub under Customer');
+end;
+
+procedure TTestBoldModelEditorData.TestApplyClassValuesMovesTheClass;
+var
+  Values: TModelEditorClassValues;
+begin
+  OpenInvoicing;
+  SelectClassNamed('Payment');
+  Values := FData.ClassValues(FData.CurrentClass);
+  Values.Superclass := 'Customer';
+  FData.ApplyClassValues(FData.CurrentClass, Values);
+  Assert.AreEqual('Customer', FData.CurrentClass.superclass.name, 'Payment is under Customer now');
+  Assert.IsTrue(ClassNamed(FData.Document.UMLModel, 'Customer').subclasses.IndexOf(FData.CurrentClass) >= 0,
+    'a subclass of Customer');
+  Assert.IsTrue(FData.Modified, 'a change');
+end;
+
+procedure TTestBoldModelEditorData.TestASuperclassThatMakesACycleIsRefused;
+begin
+  OpenInvoicing;
+  AddSubclassesOfCustomer(FData);
+  Assert.WillRaise(MakeCustomerASubclassOfSub, EBoldModelEditor, 'a subclass is refused as the superclass');
+  Assert.AreEqual('InvoicingRoot', ClassNamed(FData.Document.UMLModel, 'Customer').superclass.name,
+    'the superclass stays');
+end;
+
+procedure TTestBoldModelEditorData.TestAClassOfABoldifiedModelNeedsASuperclass;
+begin
+  OpenInvoicing;
+  Assert.WillRaise(TakeCustomersSuperclass, EBoldModelEditor, 'no superclass is refused');
+  Assert.AreEqual('InvoicingRoot', ClassNamed(FData.Document.UMLModel, 'Customer').superclass.name,
+    'the superclass stays');
+end;
+
+procedure TTestBoldModelEditorData.TestANewModelAllowsNoSuperclass;
+var
+  Names: TStringList;
+  Values: TModelEditorClassValues;
+begin
+  Names := TStringList.Create;
+  try
+    FData.NewModel;
+    Values := FData.NewClassValues;
+    Assert.AreEqual('', Values.Superclass, 'a new class of a new model has none');
+    FData.GetSuperclassNames(nil, Names);
+    Assert.IsTrue(Names.IndexOf('') >= 0, '"none" is offered: ' + Names.CommaText);
+    Assert.IsTrue(Names.Count > 1, 'and the classes: ' + Names.CommaText);
+    FData.AddClass(Values);
+    Assert.IsNull(FData.CurrentClass.superclass, 'added without a superclass');
+    Values := FData.ClassValues(FData.CurrentClass);
+    Values.Superclass := Names[1];
+    FData.ApplyClassValues(FData.CurrentClass, Values);
+    Assert.AreEqual(Names[1], FData.CurrentClass.superclass.name, 'given one');
+    Values.Superclass := '';
+    FData.ApplyClassValues(FData.CurrentClass, Values);
+    Assert.IsNull(FData.CurrentClass.superclass, 'and none again');
+  finally
+    Names.Free;
+  end;
 end;
 
 procedure TTestBoldModelEditorData.TestAttributeValues;

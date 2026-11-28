@@ -63,7 +63,8 @@ type
   TModelEditorChooseFileEvent = function(var AFileName: string): Boolean of object;
 
   { What a client's class dialog shows and edits: the columns of bdsClasses.
-    The superclass is shown, not changed. }
+    Superclass is the name of the superclass, empty for none; the dialog
+    offers the names GetSuperclassNames gives. }
   TModelEditorClassValues = record
     Name: string;
     Superclass: string;
@@ -100,6 +101,8 @@ type
     function IsRootClass(AClass: TUMLClass): Boolean;
     function RequiredClass: TUMLClass;
     procedure SetClassValues(AClass: TUMLClass; const AValues: TModelEditorClassValues);
+    function ClassNamed(const AName: string): TUMLClass;
+    procedure CheckSuperclass(AClass: TUMLClass; const AName: string);
     procedure SetAttributeValues(AAttribute: TUMLAttribute; const AValues: TModelEditorAttributeValues);
   public
     constructor Create(AOwner: TComponent); override;
@@ -147,9 +150,17 @@ type
     function ClassValues(AClass: TUMLClass): TModelEditorClassValues;
     { The values a new class gets: a name no class has (NewClass,
       NewClass_1 ...), persistent, the root class of a boldified model as
-      its superclass }
+      its superclass (none in a model that is not boldified) }
     function NewClassValues: TModelEditorClassValues;
-    { Gives a class the values of a client's dialog; a class needs a name }
+    { The superclasses a client's class dialog offers AClass, sorted: every
+      class of the model but AClass and its subclasses at any depth, so no
+      cycle can be chosen; for a new class (nil) every class. An empty name
+      (no superclass) is among them in a model that is not boldified. The
+      root class of a boldified model gets none: it has no superclass. }
+    procedure GetSuperclassNames(AClass: TUMLClass; AList: TStrings);
+    { Gives a class the values of a client's dialog, its superclass among
+      them, which must be one GetSuperclassNames gives; a class needs a
+      name }
     procedure ApplyClassValues(AClass: TUMLClass; const AValues: TModelEditorClassValues);
     { A new class with the values of a client's dialog, in the namespace of
       the selected class (the model when none is selected), selected in
@@ -244,6 +255,8 @@ resourcestring
   sUntitled = 'Untitled';
   sNoClassSelected = 'No class is selected';
   sClassNeedsAName = 'A class needs a name';
+  sNotASuperclass = '"%s" cannot be the superclass of %s';
+  sNotASuperclassOfANewClass = '"%s" cannot be the superclass of a new class';
   sAttributeNeedsAName = 'An attribute needs a name';
   sTheRootClass = 'The root class %s of a boldified model cannot be deleted';
   sNoFindings = 'Consistency check: no findings';
@@ -267,6 +280,15 @@ begin
     Inc(i);
     Result := Format('%s_%d', [ABase, i]);
   end;
+end;
+
+{ The name of a class's superclass, empty when it has none }
+function SuperclassName(AClass: TUMLClass): string;
+begin
+  if Assigned(AClass.superclass) then
+    Result := AClass.superclass.name
+  else
+    Result := '';
 end;
 
 function ModelFileFromCommandLine: string;
@@ -526,10 +548,7 @@ end;
 function TdmModelEditor.ClassValues(AClass: TUMLClass): TModelEditorClassValues;
 begin
   Result.Name := AClass.name;
-  if Assigned(AClass.superclass) then
-    Result.Superclass := AClass.superclass.name
-  else
-    Result.Superclass := '';
+  Result.Superclass := SuperclassName(AClass);
   Result.Persistent := AClass.persistent;
   Result.Abstract := AClass.isAbstract;
 end;
@@ -558,17 +577,101 @@ begin
   Result.Abstract := False;
 end;
 
+function TdmModelEditor.ClassNamed(const AName: string): TUMLClass;
+var
+  Model: TUMLModel;
+  i: Integer;
+begin
+  Model := FDocument.UMLModel;
+  for i := 0 to Model.Classes.Count - 1 do
+    if SameText(Model.Classes[i].name, AName) then
+      Exit(Model.Classes[i]);
+  Result := nil;
+end;
+
+procedure TdmModelEditor.GetSuperclassNames(AClass: TUMLClass; AList: TStrings);
+var
+  Model: TUMLModel;
+  Excluded: TList;
+  Names: TStringList;
+  i: Integer;
+
+  procedure Exclude(AClassifier: TUMLClassifier);
+  var
+    j: Integer;
+  begin
+    if Excluded.IndexOf(AClassifier) >= 0 then
+      Exit;
+    Excluded.Add(AClassifier);
+    for j := 0 to AClassifier.subclasses.Count - 1 do
+      Exclude(AClassifier.subclasses[j]);
+  end;
+
+begin
+  AList.Clear;
+  if IsRootClass(AClass) then
+    Exit;
+  Model := FDocument.UMLModel;
+  Excluded := TList.Create;
+  Names := TStringList.Create;
+  try
+    if Assigned(AClass) then
+      Exclude(AClass);
+    Names.Sorted := True;
+    Names.Duplicates := dupIgnore;
+    Names.CaseSensitive := False;
+    if not TBoldUMLBoldify.IsBoldified(Model) then
+      Names.Add('');
+    for i := 0 to Model.Classes.Count - 1 do
+      if Excluded.IndexOf(Model.Classes[i]) < 0 then
+        Names.Add(Model.Classes[i].name);
+    AList.Assign(Names);
+  finally
+    Names.Free;
+    Excluded.Free;
+  end;
+end;
+
+procedure TdmModelEditor.CheckSuperclass(AClass: TUMLClass; const AName: string);
+var
+  Names: TStringList;
+begin
+  Names := TStringList.Create;
+  try
+    Names.CaseSensitive := False;
+    GetSuperclassNames(AClass, Names);
+    if Names.IndexOf(AName) < 0 then
+    begin
+      if Assigned(AClass) then
+        raise EBoldModelEditor.CreateFmt(sNotASuperclass, [AName, AClass.name]);
+      raise EBoldModelEditor.CreateFmt(sNotASuperclassOfANewClass, [AName]);
+    end;
+  finally
+    Names.Free;
+  end;
+end;
+
 procedure TdmModelEditor.SetClassValues(AClass: TUMLClass; const AValues: TModelEditorClassValues);
 begin
   AClass.name := AValues.Name;
   AClass.persistent := AValues.Persistent;
   AClass.isAbstract := AValues.Abstract;
+  if not SameText(SuperclassName(AClass), AValues.Superclass) then
+  begin
+    if AValues.Superclass = '' then
+      AClass.SetFirstParent(nil)
+    else
+      AClass.SetFirstParent(ClassNamed(AValues.Superclass));
+  end;
 end;
 
 procedure TdmModelEditor.ApplyClassValues(AClass: TUMLClass; const AValues: TModelEditorClassValues);
 begin
   if Trim(AValues.Name) = '' then
     raise EBoldModelEditor.Create(sClassNeedsAName);
+  // Checked before anything changes, so a refused value changes nothing
+  if not SameText(SuperclassName(AClass), AValues.Superclass) then
+    CheckSuperclass(AClass, AValues.Superclass);
   SetClassValues(AClass, AValues);
   Refresh;
 end;
@@ -580,17 +683,17 @@ var
 begin
   if Trim(AValues.Name) = '' then
     raise EBoldModelEditor.Create(sClassNeedsAName);
+  CheckSuperclass(nil, AValues.Superclass);
   PostEdits;
   Model := FDocument.UMLModel;
   Namespace := Model;
   if (CurrentClass <> nil) and Assigned(CurrentClass.namespace_) then
     Namespace := CurrentClass.namespace_;
-  // As Bold's model editor makes a new class
+  // As Bold's model editor makes a new class; SetClassValues gives it the
+  // superclass of the dialog
   Result := TUMLClass.Create(Model.BoldSystem);
   TBoldUMLSupport.EnsureBoldTaggedValues(Result);
   Result.namespace_ := Namespace;
-  if TBoldUMLBoldify.IsBoldified(Model) then
-    Result.SetFirstParent(TBoldUMLBoldify.GetRootClass(Model));
   SetClassValues(Result, AValues);
   SelectClass(Result);
 end;

@@ -90,14 +90,20 @@ in `Source/UMLModel/Editor`. It holds:
   `LoadTypeNames` (with `TypeNamesName`, the form's file name for a status
   line), `AddClass`, `DeleteClass`, `AddAttribute`, `DeleteAttribute`, and what
   enables them (`CanEditClass`, `CanDeleteClass` ...); what the dialogs
-  edit, `TModelEditorClassValues` (name, superclass, which is shown and not
-  changed, persistent, abstract) and `TModelEditorAttributeValues` (name,
+  edit, `TModelEditorClassValues` (name, superclass, persistent, abstract)
+  and `TModelEditorAttributeValues` (name,
   type, persistent, derived), with `ClassValues` and `NewClassValues` (a
   name no class has, NewClass, NewClass_1 ...) to fill a dialog and
   `ApplyClassValues` or `AddClass(Values)` to take its values, the same for
-  attributes, and `GetTypeNames`, the types the attribute dialog offers (the
-  model names of the document's type names, without the abstract ones in
-  angle brackets); a class or an attribute needs a name; `Validate`, the check, with
+  attributes; `GetSuperclassNames`, the superclasses the class dialog offers
+  a class: every class but the class itself and its subclasses at any
+  depth, so no cycle can be chosen (every class for a new one), "none" only
+  in a model that is not boldified, and nothing for the root class of a
+  boldified model, which keeps no superclass; `ApplyClassValues` and
+  `AddClass` refuse any other; and `GetTypeNames`, the types the attribute
+  dialog offers (the model names of the document's type names, without the
+  abstract ones in angle brackets); a class or an attribute needs a name;
+  `Validate`, the check, with
   `ValidationSummary` (the numbers of errors, warnings and hints for a
   status line) and `SelectViolationElement`, which selects what the selected
   finding is about: its class, or its attribute in its class. A new class gets the Bold tagged
