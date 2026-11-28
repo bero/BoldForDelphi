@@ -16,13 +16,18 @@
       When Stacker is not found and not switched off, the build stops before it
       compiles, with a message that says how to get it or how to build without it.
       BoldStackerCommit is the version this repository is tested with.
+
+      The repository is found from the project's folder, not from this file's:
+      the IDE evaluates projects with the older MSBuild engine
+      (Microsoft.Build.Engine), which leaves MSBuildThisFileDirectory empty.
     -->
     <PropertyGroup>
         <BoldStackerRepository>https://codeberg.org/sivv/stacker.git</BoldStackerRepository>
         <BoldStackerCommit>525dc8fe5d5ac36fea8e0e18c2da46188a517276</BoldStackerCommit>
         <BoldStackerOff Condition="'$(STACKER)'=='off'">true</BoldStackerOff>
         <BoldStackerRoot Condition="'$(STACKER)'!='' and '$(BoldStackerOff)'!='true'">$(STACKER)</BoldStackerRoot>
-        <BoldStackerRoot Condition="'$(STACKER)'==''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\stacker'))</BoldStackerRoot>
+        <BoldRepositoryRoot>$([MSBuild]::GetDirectoryNameOfFileAbove('$(MSBuildProjectDirectory)', 'Tools\BoldStacker.targets'))</BoldRepositoryRoot>
+        <BoldStackerRoot Condition="'$(STACKER)'==''">$([System.IO.Path]::GetFullPath('$(BoldRepositoryRoot)\..\stacker'))</BoldStackerRoot>
         <BoldStackerFound Condition="'$(BoldStackerOff)'!='true' and Exists('$(BoldStackerRoot)\build\Stacker.targets')">true</BoldStackerFound>
     </PropertyGroup>
 
