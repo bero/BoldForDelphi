@@ -4,7 +4,7 @@ object frmAboutBold: TfrmAboutBold
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Bold for Delphi'
-  ClientHeight = 419
+  ClientHeight = 449
   ClientWidth = 388
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -29,7 +29,7 @@ object frmAboutBold: TfrmAboutBold
     Left = 4
     Top = 6
     Width = 385
-    Height = 380
+    Height = 404
     ActivePage = TabAbout
     MultiLine = True
     TabOrder = 0
@@ -39,7 +39,7 @@ object frmAboutBold: TfrmAboutBold
         Left = 112
         Top = 52
         Width = 261
-        Height = 65
+        Height = 86
         AutoSize = False
         Caption = 
           '1998 - BoldSoft founded in Stockholm'#13#10'2002 - Boldsoft acquired b' +
@@ -113,8 +113,8 @@ object frmAboutBold: TfrmAboutBold
       object LabelLatestGitURL: TLabel
         Left = 3
         Top = 163
-        Width = 149
-        Height = 13
+        Width = 171
+        Height = 15
         Cursor = crHandPoint
         Caption = 'github.com/bero/BoldForDelphi'
         Font.Charset = DEFAULT_CHARSET
@@ -453,8 +453,8 @@ object frmAboutBold: TfrmAboutBold
       object lblOriginalGitURL: TLabel
         Left = 3
         Top = 203
-        Width = 190
-        Height = 13
+        Width = 217
+        Height = 15
         Cursor = crHandPoint
         Caption = 'github.com/embarcadero/BoldForDelphi'
         Font.Charset = DEFAULT_CHARSET
@@ -503,8 +503,8 @@ object frmAboutBold: TfrmAboutBold
       object lblDiscordSupportURL: TLabel
         Left = 3
         Top = 266
-        Width = 89
-        Height = 13
+        Width = 100
+        Height = 15
         Cursor = crHandPoint
         Caption = 'discord.gg/C6frzsn'
         Font.Charset = DEFAULT_CHARSET
@@ -533,8 +533,8 @@ object frmAboutBold: TfrmAboutBold
       object lblBoldSoftURL: TLabel
         Left = 3
         Top = 319
-        Width = 87
-        Height = 13
+        Width = 101
+        Height = 15
         Cursor = crHandPoint
         Caption = 'www.boldsoft.com'
         Font.Charset = DEFAULT_CHARSET
@@ -558,7 +558,7 @@ object frmAboutBold: TfrmAboutBold
   end
   object BtnOK: TButton
     Left = 284
-    Top = 390
+    Top = 416
     Width = 81
     Height = 25
     Caption = 'OK'
