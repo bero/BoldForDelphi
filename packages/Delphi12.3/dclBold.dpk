@@ -252,6 +252,8 @@ contains
   BoldLogHandlerForm in '..\..\Source\Common\Logging\BoldLogHandlerForm.pas',
   BoldLogInterfaces in '..\..\Source\Common\Logging\boldloginterfaces.pas',
   BoldLogReceiverInterface in '..\..\Source\Common\Logging\BoldLogReceiverInterface.pas',
+  BoldExceptionTrace in '..\..\Source\Common\Logging\BoldExceptionTrace.pas',
+  BoldLogInterfaces in '..\..\Source\Common\Logging\BoldLogInterfaces.pas',
   BoldLoggableCriticalSection in '..\..\Source\Common\Support\BoldLoggableCriticalSection.pas',
   BoldMLAttributes in '..\..\Source\ObjectSpace\BORepresentation\BoldMLAttributes.pas',
   BoldMLRenderers in '..\..\Source\BoldAwareGUI\ControlPacks\BoldMLRenderers.pas',

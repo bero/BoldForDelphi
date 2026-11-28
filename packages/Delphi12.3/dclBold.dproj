@@ -343,6 +343,8 @@
         <DCCReference Include="..\..\Source\Common\Logging\BoldLogHandlerForm.pas"/>
         <DCCReference Include="..\..\Source\Common\Logging\boldloginterfaces.pas"/>
         <DCCReference Include="..\..\Source\Common\Logging\BoldLogReceiverInterface.pas"/>
+        <DCCReference Include="..\..\Source\Common\Logging\BoldExceptionTrace.pas"/>
+        <DCCReference Include="..\..\Source\Common\Logging\BoldLogInterfaces.pas"/>
         <DCCReference Include="..\..\Source\Common\Support\BoldLoggableCriticalSection.pas"/>
         <DCCReference Include="..\..\Source\ObjectSpace\BORepresentation\BoldMLAttributes.pas"/>
         <DCCReference Include="..\..\Source\BoldAwareGUI\ControlPacks\BoldMLRenderers.pas"/>
