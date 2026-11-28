@@ -9,6 +9,7 @@ uses
   BoldMeta,
   BoldSystemRT,
   BoldSystem,
+  BoldHandles,
   jehoBCBoldTest,
   jehoBoldTestDataModule;
 
@@ -19,7 +20,9 @@ type
   TTestBoldMeta = class(TBoldTestCase)
   private
     FDataModule: TjehodmBoldTest;
+    FModel1TypeInfoHandle: TBoldSystemTypeInfoHandle;
     function GetSystem: TBoldSystem;
+    function Model1TypeInfo: TBoldSystemTypeInfo;
     function GetModel: TMoldModel;
   protected
     procedure SetUp; override;
@@ -70,6 +73,9 @@ type
     procedure TestSearchByAttributeName;
     procedure TestSearchPartialMatch;
     procedure TestSearchNotFound;
+    // Roles: on dm_Model1's model, the jeho model has no associations
+    procedure TestSearchRoleByName;
+    procedure TestSearchRoleNotFound;
 
     // BoldSystemRT — ValueTypeNames
     procedure TestGetValueTypeNames;
@@ -96,7 +102,8 @@ uses
   Classes,
   SysUtils,
   BoldElements,
-  BoldMetaElementList;
+  BoldMetaElementList,
+  dmModel1;
 
 { TTestBoldMeta }
 
@@ -107,12 +114,24 @@ end;
 
 procedure TTestBoldMeta.TearDown;
 begin
+  FreeAndNil(FModel1TypeInfoHandle);
   FreeAndNil(FDataModule);
 end;
 
 function TTestBoldMeta.GetSystem: TBoldSystem;
 begin
   Result := FDataModule.BoldSystemHandle1.System;
+end;
+
+function TTestBoldMeta.Model1TypeInfo: TBoldSystemTypeInfo;
+begin
+  if not Assigned(FModel1TypeInfoHandle) then
+  begin
+    Ensuredm_Model;
+    FModel1TypeInfoHandle := TBoldSystemTypeInfoHandle.Create(nil);
+    FModel1TypeInfoHandle.BoldModel := dm_Model1.BoldModel1;
+  end;
+  Result := FModel1TypeInfoHandle.StaticSystemTypeInfo;
 end;
 
 function TTestBoldMeta.GetModel: TMoldModel;
@@ -468,6 +487,29 @@ var
 begin
   Result := GetSystem.BoldSystemTypeInfo.FindElement('NonExistentXYZ', [], [stClass, stAttribute]);
   Assert.IsNull(Result, 'Search for non-existent should return nil');
+end;
+
+procedure TTestBoldMeta.TestSearchRoleByName;
+var
+  Found: TBoldMetaElement;
+begin
+  // Not own: that is the first role the search meets
+  Found := Model1TypeInfo.FindElement('childMapped', [], [stRole]);
+  Assert.IsNotNull(Found, 'Search should find the role childMapped');
+  Assert.AreEqual('childMapped', Found.ExpressionName, 'Found element should be the role childMapped');
+  Assert.IsTrue((Found as TBoldMemberRTInfo).IsRole, 'childMapped is a role');
+end;
+
+procedure TTestBoldMeta.TestSearchRoleNotFound;
+var
+  Found: TBoldMetaElement;
+  FoundName: string;
+begin
+  Found := Model1TypeInfo.FindElement('NonExistentXYZ', [], [stRole]);
+  FoundName := '';
+  if Assigned(Found) then
+    FoundName := Found.ExpressionName;
+  Assert.AreEqual('', FoundName, 'Search for a role that does not exist should find nothing');
 end;
 
 // BoldSystemRT — ValueTypeNames

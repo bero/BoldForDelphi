@@ -294,6 +294,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- `TBoldSystemTypeInfo.FindElement` returned the first role of the model for
+  any text when roles were searched (`stRole`, in the default search types):
+  the name was compared only for attributes. It now finds a role by its name
+  as well, and nothing when no role has it.
 - Three results that could hold leftovers, found through Free Pascal's
   warnings: `TBoldSQLIndexDescription.CreateBDEIndex` gave `IndexDefs.Add`
   index options that were never initialized (a stray `ixPrimary` also dropped

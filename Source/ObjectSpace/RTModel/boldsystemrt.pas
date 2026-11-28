@@ -1058,8 +1058,8 @@ begin
       for MemberRTInfo in ClassTypeInfo.AllMembers do
       begin
         if (((stRole in ASearchTypes) and MemberRTInfo.IsRole)
-        or ((stAttribute in ASearchTypes) and MemberRTInfo.IsAttribute)
-        and StringMatch(MemberRTInfo)) then
+        or ((stAttribute in ASearchTypes) and MemberRTInfo.IsAttribute))
+        and StringMatch(MemberRTInfo) then
         begin
           result := MemberRTInfo;
           exit;
