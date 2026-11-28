@@ -5,7 +5,7 @@ object frmAboutBold: TfrmAboutBold
   BorderStyle = bsDialog
   Caption = 'Bold for Delphi'
   ClientHeight = 449
-  ClientWidth = 388
+  ClientWidth = 496
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -28,7 +28,7 @@ object frmAboutBold: TfrmAboutBold
   object PageControl: TPageControl
     Left = 4
     Top = 6
-    Width = 385
+    Width = 445
     Height = 404
     ActivePage = TabAbout
     MultiLine = True
@@ -87,7 +87,7 @@ object frmAboutBold: TfrmAboutBold
         WordWrap = True
       end
       object LabelLatestGit: TLabel
-        Left = 199
+        Left = 234
         Top = 163
         Width = 185
         Height = 38
@@ -466,7 +466,7 @@ object frmAboutBold: TfrmAboutBold
         OnClick = URLOriginalGitClick
       end
       object lblOriginalGit: TLabel
-        Left = 201
+        Left = 236
         Top = 203
         Width = 185
         Height = 38
@@ -492,7 +492,7 @@ object frmAboutBold: TfrmAboutBold
         WordWrap = True
       end
       object lblDiscordSupport: TLabel
-        Left = 201
+        Left = 236
         Top = 266
         Width = 185
         Height = 38
@@ -546,7 +546,7 @@ object frmAboutBold: TfrmAboutBold
         OnClick = lblBoldSoftURLClick
       end
       object lblBoldSoft: TLabel
-        Left = 201
+        Left = 236
         Top = 310
         Width = 185
         Height = 38

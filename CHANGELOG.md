@@ -9,9 +9,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
-- The IDE's **Bold** menu has an item **Bold for Delphi GitHub**, before
-  **About**, that opens https://github.com/bero/BoldForDelphi in the browser
-  (`URLBoldForDelphi` in `BoldDefsDT` pointed to Embarcadero's repository).
 - `BoldExceptionTrace` (`Source/Common/Logging`, #130): an exception with its
   call stack, for Bold's log (`BoldLogException`, `BoldExceptionReport`,
   `BoldExceptionCallStack`). Bold names no stack-trace library: under Delphi it
