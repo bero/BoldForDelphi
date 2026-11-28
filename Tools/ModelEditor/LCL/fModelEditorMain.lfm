@@ -49,8 +49,16 @@ object frmModelEditorMain: TfrmModelEditorMain
         Action = actAddClass
         TabOrder = 0
       end
-      object btnDeleteClass: TButton
+      object btnEditClass: TButton
         Left = 246
+        Height = 28
+        Top = 4
+        Width = 120
+        Action = actEditClass
+        TabOrder = 2
+      end
+      object btnDeleteClass: TButton
+        Left = 372
         Height = 28
         Top = 4
         Width = 120
@@ -67,8 +75,10 @@ object frmModelEditorMain: TfrmModelEditorMain
       Color = clWindow
       Columns = <>
       DataSource = dsClasses
-      Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgCancelOnExit, dgDisableDelete, dgDisableInsert]
+      Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgRowSelect, dgDisableDelete, dgDisableInsert]
+      ReadOnly = True
       TabOrder = 1
+      OnDblClick = grdClassesDblClick
     end
   end
   object splGrids: TSplitter
@@ -117,8 +127,16 @@ object frmModelEditorMain: TfrmModelEditorMain
         Action = actAddAttribute
         TabOrder = 0
       end
-      object btnDeleteAttribute: TButton
+      object btnEditAttribute: TButton
         Left = 426
+        Height = 28
+        Top = 4
+        Width = 120
+        Action = actEditAttribute
+        TabOrder = 2
+      end
+      object btnDeleteAttribute: TButton
+        Left = 552
         Height = 28
         Top = 4
         Width = 120
@@ -135,8 +153,10 @@ object frmModelEditorMain: TfrmModelEditorMain
       Color = clWindow
       Columns = <>
       DataSource = dsAttributes
-      Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgCancelOnExit, dgDisableDelete, dgDisableInsert]
+      Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgRowSelect, dgDisableDelete, dgDisableInsert]
+      ReadOnly = True
       TabOrder = 1
+      OnDblClick = grdAttributesDblClick
     end
   end
   object splFindings: TSplitter
@@ -247,6 +267,9 @@ object frmModelEditorMain: TfrmModelEditorMain
       object mniAddClass: TMenuItem
         Action = actAddClass
       end
+      object mniEditClass: TMenuItem
+        Action = actEditClass
+      end
       object mniDeleteClass: TMenuItem
         Action = actDeleteClass
       end
@@ -255,6 +278,9 @@ object frmModelEditorMain: TfrmModelEditorMain
       end
       object mniAddAttribute: TMenuItem
         Action = actAddAttribute
+      end
+      object mniEditAttribute: TMenuItem
+        Action = actEditAttribute
       end
       object mniDeleteAttribute: TMenuItem
         Action = actDeleteAttribute
@@ -312,9 +338,14 @@ object frmModelEditorMain: TfrmModelEditorMain
       OnExecute = actExitExecute
     end
     object actAddClass: TAction
-      Caption = 'Add class'
+      Caption = 'Add class...'
       Hint = 'Add a class to the model'
       OnExecute = actAddClassExecute
+    end
+    object actEditClass: TAction
+      Caption = 'Edit class...'
+      Hint = 'Edit the selected class (or double-click it)'
+      OnExecute = actEditClassExecute
     end
     object actDeleteClass: TAction
       Caption = 'Delete class'
@@ -322,9 +353,14 @@ object frmModelEditorMain: TfrmModelEditorMain
       OnExecute = actDeleteClassExecute
     end
     object actAddAttribute: TAction
-      Caption = 'Add attribute'
+      Caption = 'Add attribute...'
       Hint = 'Add an attribute to the selected class'
       OnExecute = actAddAttributeExecute
+    end
+    object actEditAttribute: TAction
+      Caption = 'Edit attribute...'
+      Hint = 'Edit the selected attribute (or double-click it)'
+      OnExecute = actEditAttributeExecute
     end
     object actDeleteAttribute: TAction
       Caption = 'Delete attribute'

@@ -117,6 +117,19 @@ object frmModelEditorMain: TfrmModelEditorMain
         TabOrder = 0
         ShowHint = True
       end
+      object btnEditClass: TButton
+        Action = actEditClass
+        Align = Left
+        Margins.Left = 4.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 4.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        ShowHint = True
+      end
       object btnDeleteClass: TButton
         Action = actDeleteClass
         Align = Left
@@ -127,7 +140,7 @@ object frmModelEditorMain: TfrmModelEditorMain
         Size.Width = 120.000000000000000000
         Size.Height = 28.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 1
+        TabOrder = 2
         ShowHint = True
       end
     end
@@ -143,7 +156,9 @@ object frmModelEditorMain: TfrmModelEditorMain
       Size.PlatformDefault = False
       TabOrder = 1
       RowCount = 0
-      Options = [Editing, ColumnResize, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+      ReadOnly = True
+      Options = [ColumnResize, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+      OnCellDblClick = grdClassesCellDblClick
     end
   end
   object splGrids: TSplitter
@@ -265,6 +280,19 @@ object frmModelEditorMain: TfrmModelEditorMain
         TabOrder = 0
         ShowHint = True
       end
+      object btnEditAttribute: TButton
+        Action = actEditAttribute
+        Align = Left
+        Margins.Left = 4.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 4.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        ShowHint = True
+      end
       object btnDeleteAttribute: TButton
         Action = actDeleteAttribute
         Align = Left
@@ -275,7 +303,7 @@ object frmModelEditorMain: TfrmModelEditorMain
         Size.Width = 120.000000000000000000
         Size.Height = 28.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 1
+        TabOrder = 2
         ShowHint = True
       end
     end
@@ -291,7 +319,9 @@ object frmModelEditorMain: TfrmModelEditorMain
       Size.PlatformDefault = False
       TabOrder = 1
       RowCount = 0
-      Options = [Editing, ColumnResize, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+      ReadOnly = True
+      Options = [ColumnResize, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+      OnCellDblClick = grdAttributesCellDblClick
     end
   end
   object mnuMain: TMainMenu
@@ -332,6 +362,9 @@ object frmModelEditorMain: TfrmModelEditorMain
       object mniAddClass: TMenuItem
         Action = actAddClass
       end
+      object mniEditClass: TMenuItem
+        Action = actEditClass
+      end
       object mniDeleteClass: TMenuItem
         Action = actDeleteClass
       end
@@ -340,6 +373,9 @@ object frmModelEditorMain: TfrmModelEditorMain
       end
       object mniAddAttribute: TMenuItem
         Action = actAddAttribute
+      end
+      object mniEditAttribute: TMenuItem
+        Action = actEditAttribute
       end
       object mniDeleteAttribute: TMenuItem
         Action = actDeleteAttribute
@@ -399,9 +435,14 @@ object frmModelEditorMain: TfrmModelEditorMain
       OnExecute = actExitExecute
     end
     object actAddClass: TAction
-      Text = 'Add class'
+      Text = 'Add class...'
       Hint = 'Add a class to the model'
       OnExecute = actAddClassExecute
+    end
+    object actEditClass: TAction
+      Text = 'Edit class...'
+      Hint = 'Edit the selected class (or double-click it)'
+      OnExecute = actEditClassExecute
     end
     object actDeleteClass: TAction
       Text = 'Delete class'
@@ -409,9 +450,14 @@ object frmModelEditorMain: TfrmModelEditorMain
       OnExecute = actDeleteClassExecute
     end
     object actAddAttribute: TAction
-      Text = 'Add attribute'
+      Text = 'Add attribute...'
       Hint = 'Add an attribute to the selected class'
       OnExecute = actAddAttributeExecute
+    end
+    object actEditAttribute: TAction
+      Text = 'Edit attribute...'
+      Hint = 'Edit the selected attribute (or double-click it)'
+      OnExecute = actEditAttributeExecute
     end
     object actDeleteAttribute: TAction
       Text = 'Delete attribute'

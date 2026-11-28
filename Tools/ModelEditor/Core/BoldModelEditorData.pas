@@ -28,11 +28,14 @@ unit BoldModelEditorData;
   document's model in Connect, after each New and Open: each model has an
   object space of its own (TBoldModel.SystemHandle).
 
-  Classes and attributes are added and deleted by the commands below, not by
-  the datasets: a new class needs its namespace, its Bold tagged values and,
-  in a boldified model, the root class as its superclass, and a deleted one
-  hands its subclasses to its superclass. The two lists are derived, so a
-  grid's own insert does nothing. }
+  Classes and attributes are added, changed and deleted by the commands
+  below, not by the datasets, which are read-only: a client edits a class or
+  an attribute in a dialog of its own, filled from ClassValues or
+  NewClassValues (AttributeValues, NewAttributeValues) and given back to
+  ApplyClassValues or AddClass (ApplyAttributeValues, AddAttribute). A new
+  class needs its namespace, its Bold tagged values and, in a boldified
+  model, the root class as its superclass, and a deleted one hands its
+  subclasses to its superclass. }
 
 interface
 
@@ -59,6 +62,24 @@ type
     user cancels }
   TModelEditorChooseFileEvent = function(var AFileName: string): Boolean of object;
 
+  { What a client's class dialog shows and edits: the columns of bdsClasses.
+    The superclass is shown, not changed. }
+  TModelEditorClassValues = record
+    Name: string;
+    Superclass: string;
+    Persistent: Boolean;
+    Abstract: Boolean;
+  end;
+
+  { What a client's attribute dialog shows and edits: the columns of
+    bdsAttributes }
+  TModelEditorAttributeValues = record
+    Name: string;
+    TypeName: string;
+    Persistent: Boolean;
+    Derived: Boolean;
+  end;
+
   TdmModelEditor = class(TDataModule)
     rhModel: TBoldReferenceHandle;
     lhClasses: TBoldListHandle;
@@ -77,6 +98,9 @@ type
     procedure Disconnect;
     function SelectRow(ADataSet: TBoldDataSet; AElement: TBoldElement): Boolean;
     function IsRootClass(AClass: TUMLClass): Boolean;
+    function RequiredClass: TUMLClass;
+    procedure SetClassValues(AClass: TUMLClass; const AValues: TModelEditorClassValues);
+    procedure SetAttributeValues(AAttribute: TUMLAttribute; const AValues: TModelEditorAttributeValues);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -119,19 +143,48 @@ type
       cancels. }
     function SaveModelAs: Boolean;
 
-    { A new class in the namespace of the selected class (the model when
-      none is selected), selected in bdsClasses }
-    function AddClass: TUMLClass;
+    { The values of a class for a client's dialog }
+    function ClassValues(AClass: TUMLClass): TModelEditorClassValues;
+    { The values a new class gets: a name no class has (NewClass,
+      NewClass_1 ...), persistent, the root class of a boldified model as
+      its superclass }
+    function NewClassValues: TModelEditorClassValues;
+    { Gives a class the values of a client's dialog; a class needs a name }
+    procedure ApplyClassValues(AClass: TUMLClass; const AValues: TModelEditorClassValues);
+    { A new class with the values of a client's dialog, in the namespace of
+      the selected class (the model when none is selected), selected in
+      bdsClasses. Without values: NewClassValues. }
+    function AddClass(const AValues: TModelEditorClassValues): TUMLClass; overload;
+    function AddClass: TUMLClass; overload;
     { Deletes the selected class; its subclasses get its superclass }
     procedure DeleteClass;
-    { A new attribute of the selected class, selected in bdsAttributes }
-    function AddAttribute: TUMLAttribute;
+    { The values of an attribute for a client's dialog }
+    function AttributeValues(AAttribute: TUMLAttribute): TModelEditorAttributeValues;
+    { The values a new attribute of the selected class gets: a name no
+      feature of the class has (NewAttribute ...), the type String,
+      persistent as the class is }
+    function NewAttributeValues: TModelEditorAttributeValues;
+    { Gives an attribute the values of a client's dialog; an attribute needs
+      a name }
+    procedure ApplyAttributeValues(AAttribute: TUMLAttribute; const AValues: TModelEditorAttributeValues);
+    { A new attribute of the selected class with the values of a client's
+      dialog, selected in bdsAttributes. Without values: NewAttributeValues. }
+    function AddAttribute(const AValues: TModelEditorAttributeValues): TUMLAttribute; overload;
+    function AddAttribute: TUMLAttribute; overload;
     procedure DeleteAttribute;
+    { The attribute types a client's attribute dialog offers: the model
+      names of the type names the document uses (Bold's own, or a form's),
+      sorted, without the abstract ones in angle brackets (<Default>,
+      <Numeric>, <Moment>, <ValueSet>). A type that is not among them can
+      still be typed. }
+    procedure GetTypeNames(AList: TStrings);
     function SelectClass(AClass: TUMLClass): Boolean;
     function SelectAttribute(AAttribute: TUMLAttribute): Boolean;
     function CurrentClass: TUMLClass;
     function CurrentAttribute: TUMLAttribute;
     { What the clients enable their commands by }
+    function CanEditClass: Boolean;
+    function CanEditAttribute: Boolean;
     function CanDeleteClass: Boolean;
     function CanAddAttribute: Boolean;
     function CanDeleteAttribute: Boolean;
@@ -180,6 +233,7 @@ implementation
 uses
   BoldSystem,
   BoldQueue,
+  BoldTypeNameDictionary,
   BoldUMLModelSupport;
 
 {%CLASSGROUP 'System.Classes.TPersistent'}
@@ -189,12 +243,31 @@ uses
 resourcestring
   sUntitled = 'Untitled';
   sNoClassSelected = 'No class is selected';
+  sClassNeedsAName = 'A class needs a name';
+  sAttributeNeedsAName = 'An attribute needs a name';
   sTheRootClass = 'The root class %s of a boldified model cannot be deleted';
   sNoFindings = 'Consistency check: no findings';
   sFindings = 'Consistency check: %d errors, %d warnings, %d hints';
 
 const
-  cSuperclassField = 'Superclass';
+  cNewClassName = 'NewClass';
+  cNewAttributeName = 'NewAttribute';
+  cNewAttributeType = 'String';
+
+{ ABase, or ABase_1, ABase_2 ... as TBoldUMLSupport.UniqueName numbers
+  them: the first one that ATaken does not hold, compared without case }
+function UniqueName(const ABase: string; ATaken: TStrings): string;
+var
+  i: Integer;
+begin
+  Result := ABase;
+  i := 0;
+  while ATaken.IndexOf(Result) >= 0 do
+  begin
+    Inc(i);
+    Result := Format('%s_%d', [ABase, i]);
+  end;
+end;
 
 function ModelFileFromCommandLine: string;
 var
@@ -263,11 +336,13 @@ begin
       TBoldNonSystemHandle(Components[i]).StaticSystemHandle := FDocument.Model.SystemHandle;
   rhModel.Value := Model;
   bdsClasses.Open;
-  // The name of another class: shown here, changed with the class
-  bdsClasses.FieldByName(cSuperclassField).ReadOnly := True;
   bdsAttributes.Open;
-  // What the check found: shown, not edited
   bdsViolations.Open;
+  // Shown, not edited: the clients edit classes and attributes in a dialog
+  for i := 0 to bdsClasses.FieldCount - 1 do
+    bdsClasses.Fields[i].ReadOnly := True;
+  for i := 0 to bdsAttributes.FieldCount - 1 do
+    bdsAttributes.Fields[i].ReadOnly := True;
   for i := 0 to bdsViolations.FieldCount - 1 do
     bdsViolations.Fields[i].ReadOnly := True;
   FValidated := False;
@@ -441,11 +516,70 @@ begin
     Result := nil;
 end;
 
-function TdmModelEditor.AddClass: TUMLClass;
+function TdmModelEditor.RequiredClass: TUMLClass;
+begin
+  Result := CurrentClass;
+  if not Assigned(Result) then
+    raise EBoldModelEditor.Create(sNoClassSelected);
+end;
+
+function TdmModelEditor.ClassValues(AClass: TUMLClass): TModelEditorClassValues;
+begin
+  Result.Name := AClass.name;
+  if Assigned(AClass.superclass) then
+    Result.Superclass := AClass.superclass.name
+  else
+    Result.Superclass := '';
+  Result.Persistent := AClass.persistent;
+  Result.Abstract := AClass.isAbstract;
+end;
+
+function TdmModelEditor.NewClassValues: TModelEditorClassValues;
+var
+  Model: TUMLModel;
+  Taken: TStringList;
+  i: Integer;
+begin
+  Model := FDocument.UMLModel;
+  Taken := TStringList.Create;
+  try
+    Taken.CaseSensitive := False;
+    for i := 0 to Model.Classes.Count - 1 do
+      Taken.Add(Model.Classes[i].name);
+    Result.Name := UniqueName(cNewClassName, Taken);
+  finally
+    Taken.Free;
+  end;
+  if TBoldUMLBoldify.IsBoldified(Model) then
+    Result.Superclass := TBoldUMLBoldify.GetRootClass(Model).name
+  else
+    Result.Superclass := '';
+  Result.Persistent := True;
+  Result.Abstract := False;
+end;
+
+procedure TdmModelEditor.SetClassValues(AClass: TUMLClass; const AValues: TModelEditorClassValues);
+begin
+  AClass.name := AValues.Name;
+  AClass.persistent := AValues.Persistent;
+  AClass.isAbstract := AValues.Abstract;
+end;
+
+procedure TdmModelEditor.ApplyClassValues(AClass: TUMLClass; const AValues: TModelEditorClassValues);
+begin
+  if Trim(AValues.Name) = '' then
+    raise EBoldModelEditor.Create(sClassNeedsAName);
+  SetClassValues(AClass, AValues);
+  Refresh;
+end;
+
+function TdmModelEditor.AddClass(const AValues: TModelEditorClassValues): TUMLClass;
 var
   Model: TUMLModel;
   Namespace: TUMLNamespace;
 begin
+  if Trim(AValues.Name) = '' then
+    raise EBoldModelEditor.Create(sClassNeedsAName);
   PostEdits;
   Model := FDocument.UMLModel;
   Namespace := Model;
@@ -455,11 +589,15 @@ begin
   Result := TUMLClass.Create(Model.BoldSystem);
   TBoldUMLSupport.EnsureBoldTaggedValues(Result);
   Result.namespace_ := Namespace;
-  Result.name := TBoldUMLSupport.UniqueName(Result, 'NewClass');
   if TBoldUMLBoldify.IsBoldified(Model) then
     Result.SetFirstParent(TBoldUMLBoldify.GetRootClass(Model));
-  Result.persistent := True;
+  SetClassValues(Result, AValues);
   SelectClass(Result);
+end;
+
+function TdmModelEditor.AddClass: TUMLClass;
+begin
+  Result := AddClass(NewClassValues);
 end;
 
 function TdmModelEditor.IsRootClass(AClass: TUMLClass): Boolean;
@@ -469,6 +607,16 @@ begin
   Model := FDocument.UMLModel;
   Result := Assigned(AClass) and TBoldUMLBoldify.IsBoldified(Model) and
     (TBoldUMLBoldify.GetRootClass(Model) = AClass);
+end;
+
+function TdmModelEditor.CanEditClass: Boolean;
+begin
+  Result := CurrentClass <> nil;
+end;
+
+function TdmModelEditor.CanEditAttribute: Boolean;
+begin
+  Result := CurrentAttribute <> nil;
 end;
 
 function TdmModelEditor.CanDeleteClass: Boolean;
@@ -501,22 +649,91 @@ begin
   Refresh;
 end;
 
-function TdmModelEditor.AddAttribute: TUMLAttribute;
+function TdmModelEditor.AttributeValues(AAttribute: TUMLAttribute): TModelEditorAttributeValues;
+begin
+  Result.Name := AAttribute.name;
+  Result.TypeName := AAttribute.typeName;
+  Result.Persistent := AAttribute.persistent;
+  Result.Derived := AAttribute.derived;
+end;
+
+function TdmModelEditor.NewAttributeValues: TModelEditorAttributeValues;
+var
+  AClass: TUMLClass;
+  Taken: TStringList;
+  i: Integer;
+begin
+  AClass := RequiredClass;
+  Taken := TStringList.Create;
+  try
+    Taken.CaseSensitive := False;
+    for i := 0 to AClass.feature.Count - 1 do
+      Taken.Add(AClass.feature[i].name);
+    Result.Name := UniqueName(cNewAttributeName, Taken);
+  finally
+    Taken.Free;
+  end;
+  Result.TypeName := cNewAttributeType;
+  Result.Persistent := AClass.persistent;
+  Result.Derived := False;
+end;
+
+procedure TdmModelEditor.SetAttributeValues(AAttribute: TUMLAttribute; const AValues: TModelEditorAttributeValues);
+begin
+  AAttribute.name := AValues.Name;
+  AAttribute.typeName := AValues.TypeName;
+  AAttribute.persistent := AValues.Persistent;
+  AAttribute.derived := AValues.Derived;
+end;
+
+procedure TdmModelEditor.ApplyAttributeValues(AAttribute: TUMLAttribute; const AValues: TModelEditorAttributeValues);
+begin
+  if Trim(AValues.Name) = '' then
+    raise EBoldModelEditor.Create(sAttributeNeedsAName);
+  SetAttributeValues(AAttribute, AValues);
+  Refresh;
+end;
+
+function TdmModelEditor.AddAttribute(const AValues: TModelEditorAttributeValues): TUMLAttribute;
 var
   AClass: TUMLClass;
 begin
+  if Trim(AValues.Name) = '' then
+    raise EBoldModelEditor.Create(sAttributeNeedsAName);
   PostEdits;
-  AClass := CurrentClass;
-  if not Assigned(AClass) then
-    raise EBoldModelEditor.Create(sNoClassSelected);
+  AClass := RequiredClass;
   // As Bold's model editor makes a new attribute
   Result := TUMLAttribute.Create(AClass.BoldSystem);
   TBoldUMLSupport.EnsureBoldTaggedValues(Result);
   Result.owner := AClass;
-  Result.name := TBoldUMLSupport.UniqueName(Result, 'NewAttribute');
-  Result.typeName := 'String';
-  Result.persistent := AClass.persistent;
+  SetAttributeValues(Result, AValues);
   SelectAttribute(Result);
+end;
+
+function TdmModelEditor.AddAttribute: TUMLAttribute;
+begin
+  Result := AddAttribute(NewAttributeValues);
+end;
+
+procedure TdmModelEditor.GetTypeNames(AList: TStrings);
+var
+  Dictionary: TBoldTypeNameDictionary;
+  Names: TStringList;
+  i: Integer;
+begin
+  Names := TStringList.Create;
+  try
+    Names.Sorted := True;
+    Names.Duplicates := dupIgnore;
+    Names.CaseSensitive := False;
+    Dictionary := FDocument.Model.TypeNameDictionary;
+    for i := 0 to Dictionary.Count - 1 do
+      if (Dictionary.Mapping[i].ModelName <> '') and (Dictionary.Mapping[i].ModelName[1] <> '<') then
+        Names.Add(Dictionary.Mapping[i].ModelName);
+    AList.Assign(Names);
+  finally
+    Names.Free;
+  end;
 end;
 
 procedure TdmModelEditor.DeleteAttribute;

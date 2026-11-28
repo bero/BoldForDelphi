@@ -1,0 +1,82 @@
+object frmModelEditorAttribute: TfrmModelEditorAttribute
+  Left = 300
+  Height = 178
+  Top = 200
+  Width = 380
+  BorderStyle = bsDialog
+  Caption = 'Attribute'
+  ClientHeight = 178
+  ClientWidth = 380
+  Position = poOwnerFormCenter
+  object lblName: TLabel
+    Left = 12
+    Height = 17
+    Top = 16
+    Width = 40
+    Caption = '&Name'
+    FocusControl = edtName
+  end
+  object edtName: TEdit
+    Left = 110
+    Height = 28
+    Top = 10
+    Width = 256
+    TabOrder = 0
+    OnChange = ValuesChange
+  end
+  object lblType: TLabel
+    Left = 12
+    Height = 17
+    Top = 50
+    Width = 32
+    Caption = '&Type'
+    FocusControl = cbType
+  end
+  object cbType: TComboBox
+    Left = 110
+    Height = 28
+    Top = 44
+    Width = 256
+    DropDownCount = 20
+    ItemHeight = 0
+    Sorted = True
+    TabOrder = 1
+    OnChange = ValuesChange
+  end
+  object chkPersistent: TCheckBox
+    Left = 110
+    Height = 21
+    Top = 82
+    Width = 90
+    Caption = '&Persistent'
+    TabOrder = 2
+  end
+  object chkDerived: TCheckBox
+    Left = 110
+    Height = 21
+    Top = 108
+    Width = 80
+    Caption = '&Derived'
+    TabOrder = 3
+  end
+  object btnOK: TButton
+    Left = 196
+    Height = 30
+    Top = 138
+    Width = 82
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 4
+  end
+  object btnCancel: TButton
+    Left = 284
+    Height = 30
+    Top = 138
+    Width = 82
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 5
+  end
+end

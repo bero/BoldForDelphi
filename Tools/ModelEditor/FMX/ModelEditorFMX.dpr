@@ -31,7 +31,9 @@ uses
   FMX.Forms,
   BoldModelDocument in '..\Core\BoldModelDocument.pas',
   BoldModelEditorData in '..\Core\BoldModelEditorData.pas' {dmModelEditor: TDataModule},
-  fModelEditorMain in 'fModelEditorMain.pas' {frmModelEditorMain};
+  fModelEditorMain in 'fModelEditorMain.pas' {frmModelEditorMain},
+  fModelEditorClass in 'fModelEditorClass.pas' {frmModelEditorClass},
+  fModelEditorAttribute in 'fModelEditorAttribute.pas' {frmModelEditorAttribute};
 
 // The resource file the build makes from the project: on Windows it holds
 // the manifest, whose dependency on the common controls version 6 the hints

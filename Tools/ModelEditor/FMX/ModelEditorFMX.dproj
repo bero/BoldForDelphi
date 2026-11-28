@@ -85,6 +85,14 @@
             <Form>frmModelEditorMain</Form>
             <FormType>fmx</FormType>
         </DCCReference>
+        <DCCReference Include="fModelEditorClass.pas">
+            <Form>frmModelEditorClass</Form>
+            <FormType>fmx</FormType>
+        </DCCReference>
+        <DCCReference Include="fModelEditorAttribute.pas">
+            <Form>frmModelEditorAttribute</Form>
+            <FormType>fmx</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

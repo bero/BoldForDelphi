@@ -4,7 +4,7 @@ unit Test.BoldModelEditorData;
 { Tests of the data module that the model editor's LCL and FMX clients share
   (#128): its datasets show the classes of the model and the attributes of
   the selected class, its commands change the model, and a change made
-  through a dataset, as a grid makes it, is saved and generated. The same
+  through the values of a client's dialog is saved and generated. The same
   source for the Delphi (DUnitX) and the Free Pascal (FPCUnit) test programs.
   No user interface is involved: the data module and its datasets work
   without one. }
@@ -31,6 +31,9 @@ type
     procedure OpenACopyOfInvoicing;
     procedure SelectClassNamed(const AName: string);
     procedure DeleteTheSelectedClass;
+    // For WillRaise: a class and an attribute given an empty name
+    procedure ApplyAnEmptyClassName;
+    procedure ApplyAnEmptyAttributeName;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -43,8 +46,21 @@ type
     procedure TestTheRootClassIsNotDeleted;
     procedure TestAddAttributeToTheSelectedClass;
     procedure TestDeleteAttributeRemovesItsRow;
-    procedure TestAChangeInADataSetIsSaved;
-    procedure TestTheSuperclassIsReadOnly;
+    // A change made through the values of a client's dialog is saved
+    procedure TestAChangeInTheDialogValuesIsSaved;
+    // The grids show and select; the clients edit in a dialog
+    procedure TestTheClassesAndAttributesAreReadOnly;
+    // The values a client's dialogs show, and what they give back
+    procedure TestClassValues;
+    procedure TestNewClassValuesHaveANameNoClassHas;
+    procedure TestAddClassWithTheValuesOfADialog;
+    procedure TestAClassNeedsAName;
+    procedure TestAttributeValues;
+    procedure TestNewAttributeValues;
+    procedure TestAddAttributeWithTheValuesOfADialog;
+    procedure TestAnAttributeNeedsAName;
+    // The attribute types the attribute dialog offers
+    procedure TestTypeNamesForTheAttributeDialog;
     // Generating flattens and boldifies the UML model and undoes it
     procedure TestGenerateIsNoChange;
     // After a change Bold makes its stored model again from the UML model,
@@ -196,6 +212,24 @@ begin
   FData.DeleteClass;
 end;
 
+procedure TTestBoldModelEditorData.ApplyAnEmptyClassName;
+var
+  Values: TModelEditorClassValues;
+begin
+  Values := FData.ClassValues(FData.CurrentClass);
+  Values.Name := ' ';
+  FData.ApplyClassValues(FData.CurrentClass, Values);
+end;
+
+procedure TTestBoldModelEditorData.ApplyAnEmptyAttributeName;
+var
+  Values: TModelEditorAttributeValues;
+begin
+  Values := FData.AttributeValues(FData.CurrentAttribute);
+  Values.Name := '';
+  FData.ApplyAttributeValues(FData.CurrentAttribute, Values);
+end;
+
 procedure TTestBoldModelEditorData.TestOpenShowsTheClasses;
 var
   Names: string;
@@ -296,21 +330,24 @@ begin
   Assert.AreEqual(SortedText('PaymentDate,Amount'), SortedNames(FData.bdsAttributes), 'the attributes left');
 end;
 
-procedure TTestBoldModelEditorData.TestAChangeInADataSetIsSaved;
+procedure TTestBoldModelEditorData.TestAChangeInTheDialogValuesIsSaved;
 var
   Saved: string;
+  ClassValues: TModelEditorClassValues;
+  AttributeValues: TModelEditorAttributeValues;
 begin
   Saved := IncludeTrailingPathDelimiter(FTempFolder) + 'Changed.bld';
   OpenInvoicing;
   SelectClassNamed('Customer');
-  // As a grid changes a cell: the row is edited, and posted when the grid
-  // leaves it, or when the model is saved
-  FData.bdsClasses.Edit;
-  FData.bdsClasses.FieldByName('Name').AsString := 'Client';
-  Assert.IsTrue(FData.Modified, 'a row that is edited is a change');
+  // As a client's class dialog gives a class its values back
+  ClassValues := FData.ClassValues(FData.CurrentClass);
+  ClassValues.Name := 'Client';
+  FData.ApplyClassValues(FData.CurrentClass, ClassValues);
+  Assert.IsTrue(FData.Modified, 'a change');
   FData.bdsAttributes.First;
-  FData.bdsAttributes.Edit;
-  FData.bdsAttributes.FieldByName('Type').AsString := 'Integer';
+  AttributeValues := FData.AttributeValues(FData.CurrentAttribute);
+  AttributeValues.TypeName := 'Integer';
+  FData.ApplyAttributeValues(FData.CurrentAttribute, AttributeValues);
   FData.SaveAs(Saved);
   Assert.IsFalse(FData.Modified, 'saved');
   Assert.AreEqual(Saved, FData.Document.FileName, 'the file name after SaveAs');
@@ -324,12 +361,164 @@ begin
     'read back, the first attribute of Client has the new type');
 end;
 
-procedure TTestBoldModelEditorData.TestTheSuperclassIsReadOnly;
+procedure TTestBoldModelEditorData.TestTheClassesAndAttributesAreReadOnly;
+var
+  i: Integer;
 begin
   OpenInvoicing;
-  Assert.IsTrue(FData.bdsClasses.FieldByName('Superclass').ReadOnly,
-    'the superclass column shows the name of another class');
-  Assert.IsFalse(FData.bdsClasses.FieldByName('Name').ReadOnly, 'the name of the class is edited');
+  for i := 0 to FData.bdsClasses.FieldCount - 1 do
+    Assert.IsTrue(FData.bdsClasses.Fields[i].ReadOnly, 'the class column ' + FData.bdsClasses.Fields[i].FieldName);
+  for i := 0 to FData.bdsAttributes.FieldCount - 1 do
+    Assert.IsTrue(FData.bdsAttributes.Fields[i].ReadOnly, 'the attribute column ' + FData.bdsAttributes.Fields[i].FieldName);
+end;
+
+procedure TTestBoldModelEditorData.TestClassValues;
+var
+  Values: TModelEditorClassValues;
+begin
+  OpenInvoicing;
+  SelectClassNamed('Customer');
+  Values := FData.ClassValues(FData.CurrentClass);
+  Assert.AreEqual('Customer', Values.Name, 'the name');
+  Assert.AreEqual(FData.bdsClasses.FieldByName('Superclass').AsString, Values.Superclass, 'the superclass');
+  Assert.AreEqual(FData.CurrentClass.persistent, Values.Persistent, 'persistent');
+  Assert.AreEqual(FData.CurrentClass.isAbstract, Values.Abstract, 'abstract');
+  Values.Name := 'Client';
+  Values.Abstract := not Values.Abstract;
+  Values.Persistent := not Values.Persistent;
+  Values.Superclass := 'Invoice';
+  FData.ApplyClassValues(FData.CurrentClass, Values);
+  Assert.AreEqual('Client', FData.CurrentClass.name, 'the new name');
+  Assert.AreEqual(Values.Abstract, FData.CurrentClass.isAbstract, 'abstract changed');
+  Assert.AreEqual(Values.Persistent, FData.CurrentClass.persistent, 'persistent changed');
+  Assert.AreEqual('InvoicingRoot', FData.CurrentClass.superclass.name, 'the superclass is not changed');
+end;
+
+procedure TTestBoldModelEditorData.TestNewClassValuesHaveANameNoClassHas;
+var
+  Values: TModelEditorClassValues;
+begin
+  OpenInvoicing;
+  Values := FData.NewClassValues;
+  Assert.AreEqual('NewClass', Values.Name, 'the name of a new class');
+  Assert.AreEqual('InvoicingRoot', Values.Superclass, 'the root class of the boldified model');
+  Assert.IsTrue(Values.Persistent, 'persistent');
+  Assert.IsFalse(Values.Abstract, 'not abstract');
+  FData.AddClass(Values);
+  Assert.AreEqual('NewClass_1', FData.NewClassValues.Name, 'a name no class has');
+end;
+
+procedure TTestBoldModelEditorData.TestAddClassWithTheValuesOfADialog;
+var
+  Values: TModelEditorClassValues;
+  Count: Integer;
+begin
+  OpenInvoicing;
+  Count := FData.bdsClasses.RecordCount;
+  Values := FData.NewClassValues;
+  Values.Name := 'Reminder';
+  Values.Abstract := True;
+  FData.AddClass(Values);
+  Assert.AreEqual(Count + 1, FData.bdsClasses.RecordCount, 'a row more');
+  Assert.AreEqual('Reminder', FData.CurrentClass.name, 'the new class is selected');
+  Assert.IsTrue(FData.CurrentClass.isAbstract, 'abstract, as the dialog said');
+  Assert.AreEqual('InvoicingRoot', FData.CurrentClass.superclass.name, 'under the root class');
+  Assert.IsTrue(FData.Modified, 'a change');
+end;
+
+procedure TTestBoldModelEditorData.TestAClassNeedsAName;
+begin
+  OpenInvoicing;
+  SelectClassNamed('Customer');
+  Assert.WillRaise(ApplyAnEmptyClassName, EBoldModelEditor, 'an empty name is refused');
+  Assert.AreEqual('Customer', FData.CurrentClass.name, 'the name stays');
+end;
+
+procedure TTestBoldModelEditorData.TestAttributeValues;
+var
+  Values: TModelEditorAttributeValues;
+begin
+  OpenInvoicing;
+  SelectClassNamed('Customer');
+  FData.bdsAttributes.First;
+  Values := FData.AttributeValues(FData.CurrentAttribute);
+  Assert.AreEqual(FData.bdsAttributes.FieldByName('Name').AsString, Values.Name, 'the name');
+  Assert.AreEqual(FData.bdsAttributes.FieldByName('Type').AsString, Values.TypeName, 'the type');
+  Values.Name := 'Renamed';
+  Values.TypeName := 'Integer';
+  Values.Derived := not Values.Derived;
+  Values.Persistent := not Values.Persistent;
+  FData.ApplyAttributeValues(FData.CurrentAttribute, Values);
+  Assert.AreEqual('Renamed', FData.CurrentAttribute.name, 'the new name');
+  Assert.AreEqual('Integer', FData.CurrentAttribute.typeName, 'the new type');
+  Assert.AreEqual(Values.Derived, FData.CurrentAttribute.derived, 'derived changed');
+  Assert.AreEqual(Values.Persistent, FData.CurrentAttribute.persistent, 'persistent changed');
+end;
+
+procedure TTestBoldModelEditorData.TestNewAttributeValues;
+var
+  Values: TModelEditorAttributeValues;
+begin
+  OpenInvoicing;
+  SelectClassNamed('Customer');
+  Values := FData.NewAttributeValues;
+  Assert.AreEqual('NewAttribute', Values.Name, 'the name of a new attribute');
+  Assert.AreEqual('String', Values.TypeName, 'the type');
+  Assert.AreEqual(FData.CurrentClass.persistent, Values.Persistent, 'persistent as the class is');
+  Assert.IsFalse(Values.Derived, 'not derived');
+  FData.AddAttribute(Values);
+  Assert.AreEqual('NewAttribute_1', FData.NewAttributeValues.Name, 'a name no attribute of the class has');
+end;
+
+procedure TTestBoldModelEditorData.TestAddAttributeWithTheValuesOfADialog;
+var
+  Values: TModelEditorAttributeValues;
+  Count: Integer;
+begin
+  OpenInvoicing;
+  SelectClassNamed('Customer');
+  Count := FData.bdsAttributes.RecordCount;
+  Values := FData.NewAttributeValues;
+  Values.Name := 'Phone';
+  Values.TypeName := 'Integer';
+  FData.AddAttribute(Values);
+  Assert.AreEqual(Count + 1, FData.bdsAttributes.RecordCount, 'a row more');
+  Assert.AreEqual('Phone', FData.CurrentAttribute.name, 'the new attribute is selected');
+  Assert.AreEqual('Integer', FData.CurrentAttribute.typeName, 'of the type the dialog said');
+  Assert.AreEqual('Customer', TUMLClass(FData.CurrentAttribute.owner).name, 'of the selected class');
+end;
+
+procedure TTestBoldModelEditorData.TestAnAttributeNeedsAName;
+begin
+  OpenInvoicing;
+  SelectClassNamed('Customer');
+  FData.bdsAttributes.First;
+  Assert.WillRaise(ApplyAnEmptyAttributeName, EBoldModelEditor, 'an empty name is refused');
+  Assert.AreNotEqual('', FData.CurrentAttribute.name, 'the name stays');
+end;
+
+procedure TTestBoldModelEditorData.TestTypeNamesForTheAttributeDialog;
+var
+  Names: TStringList;
+  i: Integer;
+begin
+  Names := TStringList.Create;
+  try
+    OpenInvoicing;
+    FData.GetTypeNames(Names);
+    Assert.IsTrue(Names.IndexOf('String') >= 0, 'String: ' + Names.CommaText);
+    Assert.IsTrue(Names.IndexOf('Integer') >= 0, 'Integer: ' + Names.CommaText);
+    Assert.IsTrue(Names.IndexOf('<Default>') < 0, 'not <Default>');
+    Assert.IsTrue(Names.IndexOf('<Moment>') < 0, 'nor the other abstract ones');
+    Assert.IsTrue(Names.IndexOf('Coordinate') < 0, 'Bold''s type names have no Coordinate');
+    for i := 1 to Names.Count - 1 do
+      Assert.IsTrue(AnsiCompareText(Names[i - 1], Names[i]) < 0, 'sorted: ' + Names[i - 1] + ', ' + Names[i]);
+    FData.LoadTypeNames(RepositoryFile(cTypeNamesForm));
+    FData.GetTypeNames(Names);
+    Assert.IsTrue(Names.IndexOf('Coordinate') >= 0, 'the form''s type names have Coordinate: ' + Names.CommaText);
+  finally
+    Names.Free;
+  end;
 end;
 
 procedure TTestBoldModelEditorData.TestGenerateIsNoChange;

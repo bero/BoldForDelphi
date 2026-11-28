@@ -13,9 +13,10 @@
   TStringGrid bound to each dataset through LiveBindings, a TBindSourceDB
   and a TLinkGridToDataSource), an action per command with its menu item and
   button, and the dialogs. The bind sources get their datasets in
-  FormCreate, as the data module is made there. The grids edit the names
-  and the other columns in place; adding and deleting goes through the
-  commands.
+  FormCreate, as the data module is made there. The grids show and select;
+  a class or an attribute is added and changed in its dialog
+  (fModelEditorClass, fModelEditorAttribute), opened by Add, Edit or a
+  double click on a cell (OnCellDblClick), and deleted by its command.
 
   The project defines BOLD_NO_VCL, so Bold's control packs link no VCL
   unit. Nothing drains Bold's display queue by itself under FMX: AppIdle
@@ -68,9 +69,11 @@ type
     mniExit: TMenuItem;
     mnuModel: TMenuItem;
     mniAddClass: TMenuItem;
+    mniEditClass: TMenuItem;
     mniDeleteClass: TMenuItem;
     mniModelSep1: TMenuItem;
     mniAddAttribute: TMenuItem;
+    mniEditAttribute: TMenuItem;
     mniDeleteAttribute: TMenuItem;
     mniModelSep2: TMenuItem;
     mniValidate: TMenuItem;
@@ -83,8 +86,10 @@ type
     actTypeNames: TAction;
     actExit: TAction;
     actAddClass: TAction;
+    actEditClass: TAction;
     actDeleteClass: TAction;
     actAddAttribute: TAction;
+    actEditAttribute: TAction;
     actDeleteAttribute: TAction;
     actValidate: TAction;
     layToolbar: TLayout;
@@ -97,6 +102,7 @@ type
     layClassBar: TLayout;
     lblClasses: TLabel;
     btnAddClass: TButton;
+    btnEditClass: TButton;
     btnDeleteClass: TButton;
     grdClasses: TStringGrid;
     splGrids: TSplitter;
@@ -104,6 +110,7 @@ type
     layAttributeBar: TLayout;
     lblAttributes: TLabel;
     btnAddAttribute: TButton;
+    btnEditAttribute: TButton;
     btnDeleteAttribute: TButton;
     grdAttributes: TStringGrid;
     splFindings: TSplitter;
@@ -135,9 +142,13 @@ type
     procedure actTypeNamesExecute(Sender: TObject);
     procedure actExitExecute(Sender: TObject);
     procedure actAddClassExecute(Sender: TObject);
+    procedure actEditClassExecute(Sender: TObject);
     procedure actDeleteClassExecute(Sender: TObject);
     procedure actAddAttributeExecute(Sender: TObject);
+    procedure actEditAttributeExecute(Sender: TObject);
     procedure actDeleteAttributeExecute(Sender: TObject);
+    procedure grdClassesCellDblClick(const Column: TColumn; const Row: Integer);
+    procedure grdAttributesCellDblClick(const Column: TColumn; const Row: Integer);
     procedure actValidateExecute(Sender: TObject);
     procedure grdFindingsCellDblClick(const Column: TColumn; const Row: Integer);
     procedure alActionsUpdate(Action: TBasicAction; var Handled: Boolean);
@@ -150,7 +161,13 @@ type
     FExpectedExceptionSeen: Boolean;
     // Where the self-test saves and generates, instead of asking
     FSelfTestFolder: string;
+    // What the self-test's dialogs answer: OK or Cancel, and a name that
+    // replaces the one in the dialog when it is not empty
+    FSelfTestDialogOK: Boolean;
+    FSelfTestName: string;
     FStatus: string;
+    function EditClass(const ACaption: string; var AValues: TModelEditorClassValues): Boolean;
+    function EditAttribute(const ACaption: string; var AValues: TModelEditorAttributeValues): Boolean;
     function AskSave(const ADocumentName: string): TModelEditorSaveAnswer;
     function ChooseSaveFile(var AFileName: string): Boolean;
     procedure AppIdle(Sender: TObject; var Done: Boolean);
@@ -186,13 +203,19 @@ uses
   BoldLogSinks,
   BoldExceptionTrace,
   BoldExceptionLog,
-  BoldUMLModel;
+  BoldUMLModel,
+  fModelEditorClass,
+  fModelEditorAttribute;
 
 resourcestring
   sSaveChanges = 'Save the changes of %s?';
   sAttributesOf = 'Attributes of %s';
   sAttributes = 'Attributes';
   sConsistencyCheck = 'Consistency check';
+  sAddClass = 'Add class';
+  sEditClass = 'Edit class %s';
+  sAddAttribute = 'Add attribute to %s';
+  sEditAttribute = 'Edit attribute %s';
   sGenerated = 'Business classes generated into %s';
   sClassCount = '%d classes';
   sTypeNamesFrom = 'type names: %s';
@@ -227,6 +250,7 @@ var
   ModelFile, TypeNamesFile: string;
 begin
   FSelfTest := IsSelfTestRun;
+  FSelfTestDialogOK := True;
   FData := TdmModelEditor.Create(Self);
   // Exceptions go to ModelEditorFMX.log next to the program with their call
   // stacks, then to the user: BoldExceptionLogFMX, named in the .dpr (#130)
@@ -342,8 +366,10 @@ procedure TfrmModelEditorMain.alActionsUpdate(Action: TBasicAction; var Handled:
 begin
   if not Assigned(FData) then
     Exit;
+  actEditClass.Enabled := FData.CanEditClass;
   actDeleteClass.Enabled := FData.CanDeleteClass;
   actAddAttribute.Enabled := FData.CanAddAttribute;
+  actEditAttribute.Enabled := FData.CanEditAttribute;
   actDeleteAttribute.Enabled := FData.CanDeleteAttribute;
 end;
 
@@ -413,12 +439,60 @@ begin
   Close;
 end;
 
-procedure TfrmModelEditorMain.actAddClassExecute(Sender: TObject);
+function TfrmModelEditorMain.EditClass(const ACaption: string; var AValues: TModelEditorClassValues): Boolean;
 begin
-  FData.AddClass;
-  // Ready to type the name of the new class
-  if grdClasses.CanFocus then
-    grdClasses.SetFocus;
+  if FSelfTest then
+  begin
+    if FSelfTestName <> '' then
+      AValues.Name := FSelfTestName;
+    Exit(FSelfTestDialogOK);
+  end;
+  Result := EditClassValues(ACaption, AValues);
+end;
+
+function TfrmModelEditorMain.EditAttribute(const ACaption: string; var AValues: TModelEditorAttributeValues): Boolean;
+var
+  TypeNames: TStringList;
+begin
+  if FSelfTest then
+  begin
+    if FSelfTestName <> '' then
+      AValues.Name := FSelfTestName;
+    Exit(FSelfTestDialogOK);
+  end;
+  TypeNames := TStringList.Create;
+  try
+    FData.GetTypeNames(TypeNames);
+    Result := EditAttributeValues(ACaption, TypeNames, AValues);
+  finally
+    TypeNames.Free;
+  end;
+end;
+
+procedure TfrmModelEditorMain.actAddClassExecute(Sender: TObject);
+var
+  Values: TModelEditorClassValues;
+begin
+  Values := FData.NewClassValues;
+  if EditClass(sAddClass, Values) then
+    FData.AddClass(Values);
+end;
+
+procedure TfrmModelEditorMain.actEditClassExecute(Sender: TObject);
+var
+  Values: TModelEditorClassValues;
+begin
+  if not FData.CanEditClass then
+    Exit;
+  Values := FData.ClassValues(FData.CurrentClass);
+  if EditClass(Format(sEditClass, [Values.Name]), Values) then
+    FData.ApplyClassValues(FData.CurrentClass, Values);
+end;
+
+procedure TfrmModelEditorMain.grdClassesCellDblClick(const Column: TColumn; const Row: Integer);
+begin
+  // The click before selected the row, and the binding moved the dataset
+  actEditClass.Execute;
 end;
 
 procedure TfrmModelEditorMain.actDeleteClassExecute(Sender: TObject);
@@ -427,10 +501,28 @@ begin
 end;
 
 procedure TfrmModelEditorMain.actAddAttributeExecute(Sender: TObject);
+var
+  Values: TModelEditorAttributeValues;
 begin
-  FData.AddAttribute;
-  if grdAttributes.CanFocus then
-    grdAttributes.SetFocus;
+  Values := FData.NewAttributeValues;
+  if EditAttribute(Format(sAddAttribute, [FData.CurrentClass().name]), Values) then
+    FData.AddAttribute(Values);
+end;
+
+procedure TfrmModelEditorMain.actEditAttributeExecute(Sender: TObject);
+var
+  Values: TModelEditorAttributeValues;
+begin
+  if not FData.CanEditAttribute then
+    Exit;
+  Values := FData.AttributeValues(FData.CurrentAttribute);
+  if EditAttribute(Format(sEditAttribute, [Values.Name]), Values) then
+    FData.ApplyAttributeValues(FData.CurrentAttribute, Values);
+end;
+
+procedure TfrmModelEditorMain.grdAttributesCellDblClick(const Column: TColumn; const Row: Integer);
+begin
+  actEditAttribute.Execute;
 end;
 
 procedure TfrmModelEditorMain.actDeleteAttributeExecute(Sender: TObject);
@@ -557,6 +649,11 @@ var
   Report: string;
   Memory: TBoldMemoryLogSink;
   MemoryRef: IBoldLogSink;
+  ClassDialog: TfrmModelEditorClass;
+  AttributeDialog: TfrmModelEditorAttribute;
+  ClassValues: TModelEditorClassValues;
+  AttributeValues: TModelEditorAttributeValues;
+  TypeNames: TStringList;
 begin
   Log := TStringList.Create;
   Failures := 0;
@@ -578,6 +675,9 @@ begin
       Check('the class grid has the columns of the dataset', (ColumnIndex(grdClasses, 'Name') >= 0) and
         (ColumnIndex(grdClasses, 'Superclass') >= 0) and (ColumnIndex(grdClasses, 'Abstract') >= 0) and
         (ColumnIndex(grdClasses, 'Persistent') >= 0), IntToStr(grdClasses.ColumnCount) + ' columns');
+      Check('the class and attribute grids are read-only, the dialogs edit',
+        grdClasses.ReadOnly and grdAttributes.ReadOnly and not (TGridOption.Editing in grdClasses.Options) and
+        not (TGridOption.Editing in grdAttributes.Options), '');
 
       // A class selected in the grid as a click selects it: SelectRow tells
       // the binding, so the dataset follows (setting Row does not)
@@ -607,13 +707,20 @@ begin
         SelectedCell(grdClasses, 'Superclass'));
       Check('the title shows the change', Caption = 'Invoicing.bld* - ' + cModelEditorTitle, Caption);
 
-      // A new name typed as the grid writes it: into the dataset of the grid
-      FData.bdsClasses.Edit;
-      FData.bdsClasses.FieldByName('Name').AsString := 'Reminder';
-      FData.bdsClasses.Post;
+      // A new name as the class dialog gives it
+      FSelfTestName := 'Reminder';
+      actEditClass.Execute;
+      FSelfTestName := '';
       Settle;
-      Check('the new name shows in the grid', RowNamed(grdClasses, 'Reminder') >= 0,
+      Check('Edit class renames the class, and the grid shows it', RowNamed(grdClasses, 'Reminder') >= 0,
         IntToStr(RowNamed(grdClasses, 'Reminder')));
+      FSelfTestDialogOK := False;
+      FSelfTestName := 'Ignored';
+      actEditClass.Execute;
+      FSelfTestDialogOK := True;
+      FSelfTestName := '';
+      Settle;
+      Check('Edit class, then Cancel, keeps the name', FData.CurrentClass().name = 'Reminder', FData.CurrentClass().name);
 
       Check('Add attribute is enabled', actAddAttribute.Enabled, '');
       actAddAttribute.Execute;
@@ -628,6 +735,60 @@ begin
       actDeleteClass.Execute;
       Settle;
       Check('Delete class removes the row', grdClasses.RowCount = ClassCount, IntToStr(grdClasses.RowCount));
+
+      // Add opens the class dialog: Cancel adds nothing
+      FSelfTestDialogOK := False;
+      actAddClass.Execute;
+      FSelfTestDialogOK := True;
+      Settle;
+      Check('Add class, then Cancel, adds nothing', grdClasses.RowCount = ClassCount, IntToStr(grdClasses.RowCount));
+
+      // The two dialogs show the values and give them back; created, not
+      // shown. A text set in code does not fire OnChangeTracking, so the
+      // check of the OK button calls the handler, as typing does
+      grdClasses.SelectRow(RowNamed(grdClasses, 'Customer'));
+      Settle;
+      ClassDialog := TfrmModelEditorClass.Create(nil);
+      try
+        ClassValues := FData.ClassValues(FData.CurrentClass());
+        ClassDialog.LoadValues(ClassValues);
+        Check('the class dialog shows the name', ClassDialog.edtName.Text = 'Customer', ClassDialog.edtName.Text);
+        Check('and the superclass', ClassDialog.lblSuperclassName.Text = ClassValues.Superclass,
+          ClassDialog.lblSuperclassName.Text);
+        Check('and persistent', ClassDialog.chkPersistent.IsChecked = ClassValues.Persistent, '');
+        Check('OK is enabled for a class with a name', ClassDialog.btnOK.Enabled, '');
+        ClassDialog.edtName.Text := '';
+        ClassDialog.edtNameChange(ClassDialog.edtName);
+        Check('and disabled for one without', not ClassDialog.btnOK.Enabled, '');
+        ClassDialog.edtName.Text := 'Client';
+        ClassDialog.chkAbstract.IsChecked := True;
+        ClassDialog.SaveValues(ClassValues);
+        Check('the class dialog gives the values back', (ClassValues.Name = 'Client') and ClassValues.Abstract,
+          ClassValues.Name);
+      finally
+        ClassDialog.Free;
+      end;
+      AttributeDialog := TfrmModelEditorAttribute.Create(nil);
+      TypeNames := TStringList.Create;
+      try
+        FData.bdsAttributes.First;
+        FData.GetTypeNames(TypeNames);
+        AttributeValues := FData.AttributeValues(FData.CurrentAttribute());
+        AttributeDialog.LoadValues(AttributeValues, TypeNames);
+        Check('the attribute dialog shows the name', AttributeDialog.edtName.Text = AttributeValues.Name,
+          AttributeDialog.edtName.Text);
+        Check('and the type', AttributeDialog.cbType.Text = AttributeValues.TypeName, AttributeDialog.cbType.Text);
+        Check('the type box offers the type names', (AttributeDialog.cbType.Items.IndexOf('Integer') >= 0) and
+          (AttributeDialog.cbType.Items.IndexOf('Coordinate') >= 0), IntToStr(AttributeDialog.cbType.Items.Count));
+        AttributeDialog.cbType.Text := 'String';
+        AttributeDialog.chkDerived.IsChecked := True;
+        AttributeDialog.SaveValues(AttributeValues);
+        Check('the attribute dialog gives the values back', (AttributeValues.TypeName = 'String') and
+          AttributeValues.Derived, AttributeValues.TypeName);
+      finally
+        TypeNames.Free;
+        AttributeDialog.Free;
+      end;
 
       actAddClass.Execute;
       actSaveAs.Execute;
@@ -652,9 +813,9 @@ begin
       Check('NewClass is in the class grid', Row >= 0, IntToStr(Row));
       grdClasses.SelectRow(Row);
       Settle;
-      FData.bdsClasses.Edit;
-      FData.bdsClasses.FieldByName('Name').AsString := 'Customer';
-      FData.bdsClasses.Post;
+      FSelfTestName := 'Customer';
+      actEditClass.Execute;
+      FSelfTestName := '';
       grdClasses.SelectRow(RowNamed(grdClasses, 'Invoice'));
       Settle;
       actValidate.Execute;

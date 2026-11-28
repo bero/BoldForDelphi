@@ -1,0 +1,89 @@
+object frmModelEditorAttribute: TfrmModelEditorAttribute
+  Left = 0
+  Top = 0
+  BorderStyle = Single
+  Caption = 'Attribute'
+  ClientHeight = 196
+  ClientWidth = 400
+  Position = OwnerFormCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object lblName: TLabel
+    Position.X = 12.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 90.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Name'
+  end
+  object edtName: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 0
+    Position.X = 110.000000000000000000
+    Position.Y = 12.000000000000000000
+    Size.Width = 276.000000000000000000
+    Size.Height = 26.000000000000000000
+    Size.PlatformDefault = False
+    OnChangeTracking = ValuesChange
+  end
+  object lblType: TLabel
+    Position.X = 12.000000000000000000
+    Position.Y = 52.000000000000000000
+    Size.Width = 90.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Type'
+  end
+  object cbType: TComboEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 1
+    Position.X = 110.000000000000000000
+    Position.Y = 48.000000000000000000
+    Size.Width = 276.000000000000000000
+    Size.Height = 26.000000000000000000
+    Size.PlatformDefault = False
+    OnChangeTracking = ValuesChange
+  end
+  object chkPersistent: TCheckBox
+    Position.X = 110.000000000000000000
+    Position.Y = 86.000000000000000000
+    Size.Width = 160.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'Persistent'
+  end
+  object chkDerived: TCheckBox
+    Position.X = 110.000000000000000000
+    Position.Y = 114.000000000000000000
+    Size.Width = 160.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = 'Derived'
+  end
+  object btnOK: TButton
+    Default = True
+    ModalResult = 1
+    Position.X = 214.000000000000000000
+    Position.Y = 156.000000000000000000
+    Size.Width = 82.000000000000000000
+    Size.Height = 28.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Text = 'OK'
+  end
+  object btnCancel: TButton
+    Cancel = True
+    ModalResult = 2
+    Position.X = 304.000000000000000000
+    Position.Y = 156.000000000000000000
+    Size.Width = 82.000000000000000000
+    Size.Height = 28.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+    Text = 'Cancel'
+  end
+end

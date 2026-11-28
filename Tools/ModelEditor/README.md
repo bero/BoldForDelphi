@@ -83,19 +83,28 @@ in `Source/UMLModel/Editor`. It holds:
   form lists them);
 - `bdsClasses` (name, superclass, abstract, persistent) and `bdsAttributes`
   (name, type, persistent, derived), the `TBoldDataSet`s the clients' grids
-  show and edit in place. The superclass column is read-only. `bdsViolations`
-  (severity, description, element) shows the findings and is read-only;
+  show. They are read-only: a client edits a class or an attribute in a
+  dialog of its own. `bdsViolations` (severity, description, element) shows
+  the findings and is read-only too;
 - the commands: `NewModel`, `Open`, `Save`, `SaveAs`, `GenerateCode`,
   `LoadTypeNames` (with `TypeNamesName`, the form's file name for a status
   line), `AddClass`, `DeleteClass`, `AddAttribute`, `DeleteAttribute`, and what
-  enables them (`CanDeleteClass` ...); `Validate`, the check, with
+  enables them (`CanEditClass`, `CanDeleteClass` ...); what the dialogs
+  edit, `TModelEditorClassValues` (name, superclass, which is shown and not
+  changed, persistent, abstract) and `TModelEditorAttributeValues` (name,
+  type, persistent, derived), with `ClassValues` and `NewClassValues` (a
+  name no class has, NewClass, NewClass_1 ...) to fill a dialog and
+  `ApplyClassValues` or `AddClass(Values)` to take its values, the same for
+  attributes, and `GetTypeNames`, the types the attribute dialog offers (the
+  model names of the document's type names, without the abstract ones in
+  angle brackets); a class or an attribute needs a name; `Validate`, the check, with
   `ValidationSummary` (the numbers of errors, warnings and hints for a
   status line) and `SelectViolationElement`, which selects what the selected
   finding is about: its class, or its attribute in its class. A new class gets the Bold tagged
   values and, in a boldified model, the root class as its superclass, as in
   Bold's model editor; a deleted class hands its subclasses to its
-  superclass; the root class of a boldified model is not deleted. Adding
-  and deleting go through these commands, not through the grids;
+  superclass; the root class of a boldified model is not deleted. Adding,
+  changing and deleting go through these commands, not through the grids;
 - the question about unsaved changes: `CloseModel`, which a client calls
   before New, Open and closing, asks through `OnAskSave` (save, discard or
   cancel), and `SaveModel` asks for a file through `OnChooseSaveFile` when
@@ -104,8 +113,9 @@ in `Source/UMLModel/Editor`. It holds:
   also has `ModelFileFromCommandLine`, the model file named on the command
   line, and `TypeNamesFileFromCommandLine`, the form of `--typenames=<form>`.
 
-A client adds only its controls: the grids bound to the two datasets, a menu
-item or button per command, and the dialogs.
+A client adds only its controls: the grids bound to the datasets, a menu
+item or button per command, and the dialogs: its class and attribute
+dialogs, the question about unsaved changes and the file dialogs.
 
 ## The LCL client
 
@@ -114,8 +124,12 @@ attributes of the selected class below, each on a `TDataSource` on the shared
 dataset, and at the bottom the findings of Model > Check consistency, a
 read-only grid whose label sums them up; a double click on a finding selects
 what it is about. An action per command (`TActionList`) feeds the File and Model menus
-and the buttons, with a hint each. The grids neither insert nor delete rows
-themselves (`dgDisableInsert`, `dgDisableDelete`). The project requires the
+and the buttons, with a hint each. The grids are read-only and select whole
+rows; Add class and Edit class (or a double click on a class) open the class
+dialog (`fModelEditorClass`), Add attribute and Edit attribute (or a double
+click on an attribute) the attribute dialog (`fModelEditorAttribute`), whose
+type box offers the type names and takes a typed one; OK is enabled while
+the name is not empty. Cancel on Add adds nothing. The project requires the
 Lazarus packages `Bold` and `BoldLCL` (`packages/Lazarus`); `Bold` holds the
 code generator.
 
@@ -129,8 +143,11 @@ the form). `sh Tools/ModelEditor/LCL/build.sh` builds it with lazbuild and
 runs `ModelEditorLCL --selftest` on the Invoicing model, with the type names
 of the CustomAttributes example's form: it shows no window, checks that the
 type names are the form's and that the grids show the classes
-and the attributes of the selected class, that the commands add, delete,
-save and generate (into a temporary folder; the model file is not changed)
+and the attributes of the selected class, that the grids are read-only, that
+the commands add, edit (with the dialogs' answers given by the self-test, OK
+or Cancel), delete, save and generate (into a temporary folder; the model
+file is not changed), that the two dialogs, created but not shown, show the
+values and give them back,
 and that the check lists a class renamed to the name of another, whose
 double click selects the class,
 writes the checks to `bin/ModelEditorLCL.selftest.txt` and exits with the
@@ -143,9 +160,11 @@ does for the Qt5 widgetset.
 Win32 still compiles but is not tested): the same three grids, `TStringGrid`s
 bound to the shared datasets through LiveBindings (a `TBindSourceDB` and a
 `TLinkGridToDataSource` each; the form gives the bind sources their datasets
-when it makes the data module). An action per command feeds the File and
-Model menus and the buttons, with a hint each; the boolean columns show
-`True` and `False`. The project defines `BOLD_NO_VCL` and its unit search
+when it makes the data module), read-only, and the same two dialogs
+(`fModelEditorClass`, `fModelEditorAttribute`, the type in a `TComboEdit`),
+opened by the commands or a double click on a cell (`OnCellDblClick`). An
+action per command feeds the File and Model menus and the buttons, with a
+hint each; the boolean columns show `True` and `False`. The project defines `BOLD_NO_VCL` and its unit search
 path leaves out `Source\UMLModel\Editor`; `UnitTest\check_no_vcl.ps1` builds
 it and checks that it links no VCL unit. As in the other FMX clients, the
 dpr links the resource file with the manifest that the hints need on
@@ -206,9 +225,10 @@ The test units are the same source for Delphi (DUnitX) and Free Pascal
 (FPCUnit), through `UnitTest/Code/Common/BoldTestFramework.pas`:
 `Test.BoldModelDocument` (the document, its check among it) and
 `Test.BoldModelEditorData` (the shared data module, with no user interface:
-its datasets, its commands, the question about unsaved changes, a change made
-through a dataset saved and generated, the findings of the check and the
-selection of what they are about). The models are the Invoicing example's and the Master-Detail
+its datasets, its commands, the values of the class and attribute dialogs,
+the question about unsaved changes, a change made through a dialog's values
+saved and generated, the findings of the check and the selection of what
+they are about). The models are the Invoicing example's and the Master-Detail
 demos', found by walking up from the test program to the repository.
 
 ```sh
