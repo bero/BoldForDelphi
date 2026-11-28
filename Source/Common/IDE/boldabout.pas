@@ -195,7 +195,7 @@ var
   LangCharSetString: string;
 begin
   {Get size and allocate buffer for VerInfo}
-  if GetModuleFileName(hInstance, FileName, SizeOf(FileName)) > 0 then
+  if GetModuleFileName(hInstance, FileName, Length(FileName)) > 0 then
   begin
     Size := GetFileVersionInfoSize(FileName, VerHandle);
     if Size > 0 then

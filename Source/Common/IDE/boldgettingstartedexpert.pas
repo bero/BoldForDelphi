@@ -100,7 +100,7 @@ var
  i: integer;
 begin
   SetString(ModuleName, Buffer, Windows.GetModuleFileName(HInstance,
-   Buffer, SizeOf(Buffer)));
+   Buffer, Length(Buffer)));
   ModulePath := ExtractFilePath(ModuleName);
   temp := ExcludeTrailingPathDelimiter(ModulePath);
   i := LastDelimiter(PathDelim, temp);

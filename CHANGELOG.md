@@ -294,6 +294,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   did not compile (#118)
 
 ### Fixed
+- The IDE's About box and the Getting Started expert told `GetModuleFileName`
+  that their buffers were twice as large as they are (the size in bytes, where
+  Windows expects characters), so a package path longer than 260 characters
+  would have been written past the end of the buffer (#101). `BoldModuleFileName` in
+  `BoldPlatform`, which `GetModuleFileNameAsString` now uses, already passed
+  the right size.
 - `TBoldSystemTypeInfo.FindElement` returned the first role of the model for
   any text when roles were searched (`stRole`, in the default search types):
   the name was compared only for attributes. It now finds a role by its name
