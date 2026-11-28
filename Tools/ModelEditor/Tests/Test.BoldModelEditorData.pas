@@ -62,6 +62,17 @@ type
     procedure TestWhatCanBeDone;
     // The type names of a form, which the clients' status bars name
     procedure TestTypeNamesOfAForm;
+    // The consistency check: its findings are the rows of bdsViolations,
+    // the most severe first, and a status line sums them up
+    procedure TestValidateShowsTheFindings;
+    procedure TestValidationSummaryIsEmptyUntilAModelIsChecked;
+    // A finding leads to what it is about
+    procedure TestSelectViolationElementSelectsTheClass;
+    procedure TestSelectViolationElementSelectsTheAttribute;
+    // The findings are of the model checked: a model opened after has none
+    procedure TestOpenDropsTheFindings;
+    // The findings are shown, not edited
+    procedure TestTheFindingsAreReadOnly;
   end;
 
 implementation
@@ -71,6 +82,7 @@ uses
   Classes,
   DB,
   BoldUMLModel,
+  BoldUMLAttributes,
   ModelEditorTestSupport;
 
 const
@@ -472,6 +484,114 @@ begin
   Assert.AreEqual(RepositoryFile(cTypeNamesForm), FData.Document.TypeNamesFile, 'the form of the document''s type names');
   Assert.AreEqual('MainForm.dfm', FData.TypeNamesName, 'the form''s name');
   Assert.IsFalse(FData.Modified, 'type names are no change of the model');
+end;
+
+{ Moves bdsViolations to the first finding whose description has AText }
+function SelectViolationWith(AData: TdmModelEditor; const AText: string): Boolean;
+begin
+  Result := False;
+  AData.bdsViolations.First;
+  while not AData.bdsViolations.Eof do
+  begin
+    if Pos(AText, AData.bdsViolations.FieldByName('Description').AsString) > 0 then
+      Exit(True);
+    AData.bdsViolations.Next;
+  end;
+end;
+
+{ The rows of bdsViolations, one per line, for a failure message }
+function FindingsText(AData: TdmModelEditor): string;
+begin
+  Result := '';
+  AData.bdsViolations.First;
+  while not AData.bdsViolations.Eof do
+  begin
+    Result := Result + AData.bdsViolations.FieldByName('Severity').AsString + ': ' +
+      AData.bdsViolations.FieldByName('Description').AsString + ' (' +
+      AData.bdsViolations.FieldByName('Element').AsString + ')' + sLineBreak;
+    AData.bdsViolations.Next;
+  end;
+end;
+
+procedure TTestBoldModelEditorData.TestValidateShowsTheFindings;
+var
+  Violations: TViolationList;
+begin
+  OpenInvoicing;
+  ClassNamed(FData.Document.UMLModel, 'Address').name := 'Customer';
+  Assert.AreEqual(Ord(sError), Ord(FData.Validate), 'an error');
+  Violations := FData.Document.UMLModel.Validator.Violation;
+  Assert.IsTrue(Violations.Count > 0, 'findings');
+  Assert.AreEqual(Violations.Count, FData.bdsViolations.RecordCount, 'a row per finding: ' + FindingsText(FData));
+  FData.bdsViolations.First;
+  Assert.AreEqual('Error', FData.bdsViolations.FieldByName('Severity').AsString, 'an error first: ' + FindingsText(FData));
+  Assert.IsTrue(SelectViolationWith(FData, 'Duplicate class name'), 'the duplicate class name: ' + FindingsText(FData));
+  Assert.AreEqual('Customer', FData.bdsViolations.FieldByName('Element').AsString, 'the element it is about');
+  Assert.IsTrue(Pos('Consistency check: ', FData.ValidationSummary) = 1, FData.ValidationSummary);
+  Assert.IsTrue(Pos(' errors', FData.ValidationSummary) > 0, 'the summary counts the errors: ' + FData.ValidationSummary);
+end;
+
+procedure TTestBoldModelEditorData.TestValidationSummaryIsEmptyUntilAModelIsChecked;
+begin
+  OpenInvoicing;
+  Assert.AreEqual('', FData.ValidationSummary, 'not checked yet');
+  FData.Validate;
+  Assert.AreNotEqual('', FData.ValidationSummary, 'checked');
+  FData.NewModel;
+  Assert.AreEqual('', FData.ValidationSummary, 'a new model is not checked yet');
+  FData.Validate;
+  Assert.AreEqual('Consistency check: no findings', FData.ValidationSummary, 'nothing wrong with a new model');
+end;
+
+procedure TTestBoldModelEditorData.TestSelectViolationElementSelectsTheClass;
+begin
+  OpenInvoicing;
+  ClassNamed(FData.Document.UMLModel, 'Address').name := 'Customer';
+  FData.Validate;
+  SelectClassNamed('Invoice');
+  Assert.IsTrue(SelectViolationWith(FData, 'Duplicate class name'), 'the duplicate class name: ' + FindingsText(FData));
+  Assert.IsTrue(FData.SelectViolationElement, 'the class is selected');
+  Assert.AreEqual('Customer', FData.CurrentClass.name, 'a class named Customer');
+  Assert.AreSame(FData.CurrentViolation.ModelElement, FData.CurrentClass, 'the class the finding is about');
+end;
+
+procedure TTestBoldModelEditorData.TestSelectViolationElementSelectsTheAttribute;
+var
+  Attribute: TUMLAttribute;
+begin
+  OpenInvoicing;
+  SelectClassNamed('Customer');
+  FData.bdsAttributes.Last;
+  Attribute := FData.CurrentAttribute;
+  Assert.IsNotNull(Attribute, 'an attribute of Customer');
+  Attribute.name := 'begin';
+  SelectClassNamed('Invoice');
+  Assert.AreEqual(Ord(sError), Ord(FData.Validate), 'an error');
+  Assert.IsTrue(SelectViolationWith(FData, 'is a reserved word'), 'the reserved word: ' + FindingsText(FData));
+  Assert.IsTrue(FData.SelectViolationElement, 'the attribute is selected');
+  Assert.AreEqual('Customer', FData.CurrentClass.name, 'in its class');
+  Assert.AreSame(Attribute, FData.CurrentAttribute, 'the attribute the finding is about');
+end;
+
+procedure TTestBoldModelEditorData.TestOpenDropsTheFindings;
+begin
+  OpenInvoicing;
+  ClassNamed(FData.Document.UMLModel, 'Address').name := 'Customer';
+  FData.Validate;
+  Assert.IsTrue(FData.bdsViolations.RecordCount > 0, 'findings');
+  OpenInvoicing;
+  Assert.AreEqual(0, FData.bdsViolations.RecordCount, 'none for the model opened after');
+  Assert.IsNull(FData.CurrentViolation, 'none selected');
+  Assert.IsFalse(FData.SelectViolationElement, 'nothing to select');
+end;
+
+procedure TTestBoldModelEditorData.TestTheFindingsAreReadOnly;
+var
+  i: Integer;
+begin
+  OpenInvoicing;
+  for i := 0 to FData.bdsViolations.FieldCount - 1 do
+    Assert.IsTrue(FData.bdsViolations.Fields[i].ReadOnly, FData.bdsViolations.Fields[i].FieldName + ' is read-only');
 end;
 
 initialization

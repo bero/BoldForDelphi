@@ -7,7 +7,8 @@ classes, for Delphi and Lazarus projects alike, without the Delphi IDE.
 Use it where the Delphi IDE is not at hand: with Lazarus or on Linux. Bold's
 classic model editor (`Source/UMLModel/Editor`) is VCL and runs inside the
 Delphi IDE, through the design package `dclBold`. So far the standalone editor
-edits the classes and their attributes.
+edits the classes and their attributes, and checks the model as Bold's model
+editor does.
 
 It follows the pattern of the Invoicing example: a part without user
 interface, and two programs on top of it, an LCL client built with Lazarus and
@@ -46,6 +47,17 @@ an FMX client built with Delphi, both for Windows and Linux.
   CustomAttributes example's `Coordinate`, as a string. New and Open keep
   the type names; a form with no such handle, or with more than one, is
   refused and the type names stay as they were.
+- `Validate` checks the model with Bold's `TBoldUMLModelValidator` and the
+  document's type names: as the IDE's Tools > Consistency Check does, with
+  the database names of the model's mapper, and with the checks of the
+  Delphi names that the IDE's Save and Generate adds. The findings are the
+  violations of the UML model's validator (`UMLModel.Validator.Violation`),
+  each with a severity, a description and the model element it is about; it
+  returns the highest severity. A model read from a file the IDE saved is
+  flattened and boldified, as the validator needs it, and the check changes
+  nothing. A new model is flattened and boldified for the check and given
+  back as Bold's `TBoldModel` does it; boldifying gives its root class the
+  tagged value `persistence=persistent`, which stays and sets `Modified`.
 - `Modified` follows every change of the UML model, made in code or in a
   client's grid, until the next save.
 
@@ -65,14 +77,21 @@ in `Source/UMLModel/Editor`. It holds:
 - the document, and the Bold handles on its UML model: `rhModel` (the model),
   `lhClasses` (`classes`) and `lhAttributes`, rooted on `lhClasses`
   (`feature->filterOnType(UMLAttribute)`), so the attributes follow the
-  selected class, as in the Master-Detail demo;
+  selected class, as in the Master-Detail demo; `lhViolations` holds the
+  findings of the last check, the most severe first
+  (`validator.violation->orderdescending(severity)`, as the IDE's validation
+  form lists them);
 - `bdsClasses` (name, superclass, abstract, persistent) and `bdsAttributes`
   (name, type, persistent, derived), the `TBoldDataSet`s the clients' grids
-  show and edit in place. The superclass column is read-only;
+  show and edit in place. The superclass column is read-only. `bdsViolations`
+  (severity, description, element) shows the findings and is read-only;
 - the commands: `NewModel`, `Open`, `Save`, `SaveAs`, `GenerateCode`,
   `LoadTypeNames` (with `TypeNamesName`, the form's file name for a status
   line), `AddClass`, `DeleteClass`, `AddAttribute`, `DeleteAttribute`, and what
-  enables them (`CanDeleteClass` ...). A new class gets the Bold tagged
+  enables them (`CanDeleteClass` ...); `Validate`, the check, with
+  `ValidationSummary` (the numbers of errors, warnings and hints for a
+  status line) and `SelectViolationElement`, which selects what the selected
+  finding is about: its class, or its attribute in its class. A new class gets the Bold tagged
   values and, in a boldified model, the root class as its superclass, as in
   Bold's model editor; a deleted class hands its subclasses to its
   superclass; the root class of a boldified model is not deleted. Adding
@@ -92,7 +111,9 @@ item or button per command, and the dialogs.
 
 `LCL/ModelEditorLCL.lpi`: the classes in a `TDBGrid` at the top, the
 attributes of the selected class below, each on a `TDataSource` on the shared
-dataset. An action per command (`TActionList`) feeds the File and Model menus
+dataset, and at the bottom the findings of Model > Check consistency, a
+read-only grid whose label sums them up; a double click on a finding selects
+what it is about. An action per command (`TActionList`) feeds the File and Model menus
 and the buttons, with a hint each. The grids neither insert nor delete rows
 themselves (`dgDisableInsert`, `dgDisableDelete`). The project requires the
 Lazarus packages `Bold` and `BoldLCL` (`packages/Lazarus`); `Bold` holds the
@@ -108,8 +129,10 @@ the form). `sh Tools/ModelEditor/LCL/build.sh` builds it with lazbuild and
 runs `ModelEditorLCL --selftest` on the Invoicing model, with the type names
 of the CustomAttributes example's form: it shows no window, checks that the
 type names are the form's and that the grids show the classes
-and the attributes of the selected class and that the commands add, delete,
-save and generate (into a temporary folder; the model file is not changed),
+and the attributes of the selected class, that the commands add, delete,
+save and generate (into a temporary folder; the model file is not changed)
+and that the check lists a class renamed to the name of another, whose
+double click selects the class,
 writes the checks to `bin/ModelEditorLCL.selftest.txt` and exits with the
 number of failed checks. Without a display, `QT_QPA_PLATFORM=offscreen`
 does for the Qt5 widgetset.
@@ -117,7 +140,7 @@ does for the Qt5 widgetset.
 ## The FMX client
 
 `FMX/ModelEditorFMX.dproj`, for Win64 and Linux64 (Delphi 13 with FmxLinux;
-Win32 still compiles but is not tested): the same two grids, `TStringGrid`s
+Win32 still compiles but is not tested): the same three grids, `TStringGrid`s
 bound to the shared datasets through LiveBindings (a `TBindSourceDB` and a
 `TLinkGridToDataSource` each; the form gives the bind sources their datasets
 when it makes the data module). An action per command feeds the File and
@@ -136,8 +159,9 @@ ModelEditorFMX --selftest --typenames=examples\Simple\ObjectSpace\CustomAttribut
 The self-test is the LCL client's, on the grids: it selects a class with
 `SelectRow`, as a click does (setting `Row` moves the grid but not the
 dataset), and checks that the attribute grid follows, that the commands add,
-delete, save and generate (into a temporary folder), and that the title and
-the status follow; the checks go to `ModelEditorFMX.selftest.txt` next to the
+delete, save and generate (into a temporary folder), that the title and the
+status follow, and that the check finds a duplicate class name whose double
+click selects the class; the checks go to `ModelEditorFMX.selftest.txt` next to the
 program and the exit code is the number of failed checks. It found a bug in
 `TBoldDataSet` (the handle followed every row while LiveBindings filled a grid,
 #128), fixed with its tests in `UnitTest/Code/Handles/Test.BoldDataSet.pas`.
@@ -180,10 +204,11 @@ git -C ..\stacker checkout 525dc8fe5d5ac36fea8e0e18c2da46188a517276
 
 The test units are the same source for Delphi (DUnitX) and Free Pascal
 (FPCUnit), through `UnitTest/Code/Common/BoldTestFramework.pas`:
-`Test.BoldModelDocument` (the document) and `Test.BoldModelEditorData` (the
-shared data module, with no user interface: its datasets, its commands, the
-question about unsaved changes, a change made through a dataset saved and
-generated). The models are the Invoicing example's and the Master-Detail
+`Test.BoldModelDocument` (the document, its check among it) and
+`Test.BoldModelEditorData` (the shared data module, with no user interface:
+its datasets, its commands, the question about unsaved changes, a change made
+through a dataset saved and generated, the findings of the check and the
+selection of what they are about). The models are the Invoicing example's and the Master-Detail
 demos', found by walking up from the test program to the repository.
 
 ```sh

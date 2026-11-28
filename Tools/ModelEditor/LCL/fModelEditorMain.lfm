@@ -1,10 +1,10 @@
 object frmModelEditorMain: TfrmModelEditorMain
   Left = 200
-  Height = 640
-  Top = 120
+  Height = 760
+  Top = 80
   Width = 960
   Caption = 'Bold Model Editor'
-  ClientHeight = 640
+  ClientHeight = 760
   ClientWidth = 960
   Menu = mnuMain
   OnCloseQuery = FormCloseQuery
@@ -82,12 +82,12 @@ object frmModelEditorMain: TfrmModelEditorMain
   end
   object pnlAttributes: TPanel
     Left = 0
-    Height = 311
+    Height = 285
     Top = 306
     Width = 960
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 311
+    ClientHeight = 285
     ClientWidth = 960
     TabOrder = 1
     object pnlAttributeBar: TPanel
@@ -128,7 +128,7 @@ object frmModelEditorMain: TfrmModelEditorMain
     end
     object grdAttributes: TDBGrid
       Left = 0
-      Height = 275
+      Height = 249
       Top = 36
       Width = 960
       Align = alClient
@@ -139,10 +139,72 @@ object frmModelEditorMain: TfrmModelEditorMain
       TabOrder = 1
     end
   end
+  object splFindings: TSplitter
+    Cursor = crVSplit
+    Left = 0
+    Height = 6
+    Top = 591
+    Width = 960
+    Align = alBottom
+    ResizeAnchor = akBottom
+  end
+  object pnlFindings: TPanel
+    Left = 0
+    Height = 140
+    Top = 597
+    Width = 960
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 140
+    ClientWidth = 960
+    TabOrder = 2
+    object pnlFindingBar: TPanel
+      Left = 0
+      Height = 36
+      Top = 0
+      Width = 960
+      Align = alTop
+      BevelOuter = bvNone
+      ClientHeight = 36
+      ClientWidth = 960
+      TabOrder = 0
+      object btnValidate: TButton
+        Left = 8
+        Height = 28
+        Top = 4
+        Width = 160
+        Action = actValidate
+        TabOrder = 0
+      end
+      object lblFindings: TLabel
+        Left = 180
+        Height = 17
+        Top = 10
+        Width = 130
+        Caption = 'Consistency check'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+    end
+    object grdFindings: TDBGrid
+      Left = 0
+      Height = 104
+      Top = 36
+      Width = 960
+      Align = alClient
+      Color = clWindow
+      Columns = <>
+      DataSource = dsFindings
+      Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgRowSelect, dgDisableDelete, dgDisableInsert]
+      ReadOnly = True
+      TabOrder = 1
+      OnDblClick = grdFindingsDblClick
+    end
+  end
   object sbStatus: TStatusBar
     Left = 0
     Height = 23
-    Top = 617
+    Top = 737
     Width = 960
     Panels = <>
     SimplePanel = True
@@ -196,6 +258,12 @@ object frmModelEditorMain: TfrmModelEditorMain
       end
       object mniDeleteAttribute: TMenuItem
         Action = actDeleteAttribute
+      end
+      object mniModelSep2: TMenuItem
+        Caption = '-'
+      end
+      object mniValidate: TMenuItem
+        Action = actValidate
       end
     end
   end
@@ -263,6 +331,11 @@ object frmModelEditorMain: TfrmModelEditorMain
       Hint = 'Delete the selected attribute'
       OnExecute = actDeleteAttributeExecute
     end
+    object actValidate: TAction
+      Caption = '&Check consistency'
+      Hint = 'Check the model as Bold''s model editor does; double-click a finding to select what it is about'
+      OnExecute = actValidateExecute
+    end
   end
   object dsClasses: TDataSource
     Left = 600
@@ -270,6 +343,10 @@ object frmModelEditorMain: TfrmModelEditorMain
   end
   object dsAttributes: TDataSource
     Left = 680
+    Top = 200
+  end
+  object dsFindings: TDataSource
+    Left = 760
     Top = 200
   end
   object dlgOpen: TOpenDialog

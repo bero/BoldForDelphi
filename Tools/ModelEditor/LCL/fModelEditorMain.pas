@@ -2,7 +2,9 @@
 unit fModelEditorMain;
 
 { The LCL client of the standalone model editor (#128): the classes of a
-  model in one grid and the attributes of the selected class in another.
+  model in one grid, the attributes of the selected class in another, and
+  the findings of the consistency check in a third; a double click on a
+  finding selects what it is about.
 
   What it shows and does is in the data module the LCL and the FMX client
   share (../Core/BoldModelEditorData.pas): the model document, the Bold
@@ -54,6 +56,8 @@ type
     mniModelSep1: TMenuItem;
     mniAddAttribute: TMenuItem;
     mniDeleteAttribute: TMenuItem;
+    mniModelSep2: TMenuItem;
+    mniValidate: TMenuItem;
     alActions: TActionList;
     actNew: TAction;
     actOpen: TAction;
@@ -66,6 +70,7 @@ type
     actDeleteClass: TAction;
     actAddAttribute: TAction;
     actDeleteAttribute: TAction;
+    actValidate: TAction;
     pnlClasses: TPanel;
     pnlClassBar: TPanel;
     lblClasses: TLabel;
@@ -79,9 +84,16 @@ type
     btnAddAttribute: TButton;
     btnDeleteAttribute: TButton;
     grdAttributes: TDBGrid;
+    splFindings: TSplitter;
+    pnlFindings: TPanel;
+    pnlFindingBar: TPanel;
+    btnValidate: TButton;
+    lblFindings: TLabel;
+    grdFindings: TDBGrid;
     sbStatus: TStatusBar;
     dsClasses: TDataSource;
     dsAttributes: TDataSource;
+    dsFindings: TDataSource;
     dlgOpen: TOpenDialog;
     dlgSave: TSaveDialog;
     dlgCodeFolder: TSelectDirectoryDialog;
@@ -100,6 +112,8 @@ type
     procedure actDeleteClassExecute(Sender: TObject);
     procedure actAddAttributeExecute(Sender: TObject);
     procedure actDeleteAttributeExecute(Sender: TObject);
+    procedure actValidateExecute(Sender: TObject);
+    procedure grdFindingsDblClick(Sender: TObject);
     procedure alActionsUpdate(AAction: TBasicAction; var Handled: Boolean);
   private
     FData: TdmModelEditor;
@@ -150,6 +164,7 @@ resourcestring
   sSaveChanges = 'Save the changes of %s?';
   sAttributesOf = 'Attributes of %s';
   sAttributes = 'Attributes';
+  sConsistencyCheck = 'Consistency check';
   sGenerated = 'Business classes generated into %s';
   sClassCount = '%d classes';
   sTypeNamesFrom = 'type names: %s';
@@ -237,6 +252,7 @@ begin
   FData.OnChooseSaveFile := ChooseSaveFile;
   dsClasses.DataSet := FData.bdsClasses;
   dsAttributes.DataSet := FData.bdsAttributes;
+  dsFindings.DataSet := FData.bdsViolations;
   dlgOpen.Filter := 'Bold models (*.bld)|*.bld|All files|*';
   dlgSave.Filter := dlgOpen.Filter;
   dlgTypeNames.Filter := sFormFilter;
@@ -254,6 +270,7 @@ procedure TfrmModelEditorMain.FormDestroy(Sender: TObject);
 begin
   Application.OnIdle := nil;
   // The grids let go of the datasets before the data module frees them
+  dsFindings.DataSet := nil;
   dsAttributes.DataSet := nil;
   dsClasses.DataSet := nil;
   FreeAndNil(FData);
@@ -307,6 +324,10 @@ begin
     lblAttributes.Caption := Format(sAttributesOf, [AClass.name])
   else
     lblAttributes.Caption := sAttributes;
+  if FData.ValidationSummary <> '' then
+    lblFindings.Caption := FData.ValidationSummary
+  else
+    lblFindings.Caption := sConsistencyCheck;
   if FStatus <> '' then
     sbStatus.SimpleText := FStatus
   else if FData.bdsClasses.Active then
@@ -420,6 +441,16 @@ begin
   FData.DeleteAttribute;
 end;
 
+procedure TfrmModelEditorMain.actValidateExecute(Sender: TObject);
+begin
+  FData.Validate;
+end;
+
+procedure TfrmModelEditorMain.grdFindingsDblClick(Sender: TObject);
+begin
+  FData.SelectViolationElement;
+end;
+
 procedure TfrmModelEditorMain.SelfTestException(Sender: TObject; E: Exception);
 begin
   if FExceptionExpected then
@@ -474,6 +505,18 @@ var
     begin
       SelfTestTrace('  FAIL  ' + AWhat + ' = ' + AActual);
       Inc(Failures);
+    end;
+  end;
+
+  function SelectFindingWith(const AText: string): Boolean;
+  begin
+    Result := False;
+    FData.bdsViolations.First;
+    while not FData.bdsViolations.Eof do
+    begin
+      if Pos(AText, FData.bdsViolations.FieldByName('Description').AsString) > 0 then
+        Exit(True);
+      FData.bdsViolations.Next;
     end;
   end;
 
@@ -547,6 +590,30 @@ begin
     Settle;
     Check('Generate writes the unit', FileExists(IncludeTrailingPathDelimiter(FSelfTestFolder) + 'InvoicingClasses.pas'), '');
     Check('the status bar tells where', Pos(FSelfTestFolder, sbStatus.SimpleText) > 0, sbStatus.SimpleText);
+
+    // The consistency check: a class renamed to the name of another is a
+    // finding, and a double click on it selects the class
+    Check('the findings grid shows the findings dataset', grdFindings.DataSource.DataSet = FData.bdsViolations, '');
+    Check('the findings grid is read-only', grdFindings.ReadOnly and (dgRowSelect in grdFindings.Options), '');
+    Check('no findings before the check', FData.bdsViolations.RecordCount = 0, IntToStr(FData.bdsViolations.RecordCount));
+    Check('the label before the check', lblFindings.Caption = 'Consistency check', lblFindings.Caption);
+    Check('select NewClass', SelectClassNamed('NewClass'), '');
+    FData.bdsClasses.Edit;
+    FData.bdsClasses.FieldByName('Name').AsString := 'Customer';
+    FData.bdsClasses.Post;
+    Check('select Invoice', SelectClassNamed('Invoice'), '');
+    actValidate.Execute;
+    Settle;
+    Check('the check lists findings', FData.bdsViolations.RecordCount > 0, IntToStr(FData.bdsViolations.RecordCount));
+    Check('the label sums them up', Pos(' errors', lblFindings.Caption) > 0, lblFindings.Caption);
+    Check('a finding for the duplicate class name', SelectFindingWith('Duplicate class name'), '');
+    Check('its severity', FData.bdsViolations.FieldByName('Severity').AsString = 'Error',
+      FData.bdsViolations.FieldByName('Severity').AsString);
+    grdFindingsDblClick(grdFindings);
+    Settle;
+    Check('a double click selects the class it is about',
+      Assigned(FData.CurrentClass) and (TObject(FData.CurrentClass) = TObject(FData.CurrentViolation.ModelElement)),
+      FData.bdsClasses.FieldByName('Name').AsString);
 
     // The report of an exception names the routine that raised it: Free
     // Pascal's own frames, with line information from -gl (#130)

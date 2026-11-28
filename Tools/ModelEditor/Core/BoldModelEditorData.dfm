@@ -1,5 +1,5 @@
 object dmModelEditor: TdmModelEditor
-  Height = 240
+  Height = 304
   Width = 400
   object rhModel: TBoldReferenceHandle
     StaticValueTypeName = 'UMLModel'
@@ -63,5 +63,30 @@ object dmModelEditor: TdmModelEditor
     BoldHandle = lhAttributes
     Left = 160
     Top = 152
+  end
+  object lhViolations: TBoldListHandle
+    RootHandle = rhModel
+    Expression = 'validator.violation->orderdescending(severity)'
+    Left = 40
+    Top = 216
+  end
+  object bdsViolations: TBoldDataSet
+    FieldDescriptions = <
+      item
+        BoldProperties.Expression = 'severity.asString'
+        FieldName = 'Severity'
+      end
+      item
+        BoldProperties.Expression = 'description'
+        FieldName = 'Description'
+      end
+      item
+        BoldProperties.Expression = 'modelElement.name'
+        FieldName = 'Element'
+      end>
+    AutoOpen = False
+    BoldHandle = lhViolations
+    Left = 160
+    Top = 216
   end
 end

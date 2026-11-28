@@ -1,8 +1,10 @@
 ﻿unit fModelEditorMain;
 
 { The FMX client of the standalone model editor (#128), the FireMonkey twin
-  of ../LCL/fModelEditorMain.pas: the classes of a model in one grid and the
-  attributes of the selected class in another.
+  of ../LCL/fModelEditorMain.pas: the classes of a model in one grid, the
+  attributes of the selected class in another, and the findings of the
+  consistency check in a third; a double click on a finding selects what it
+  is about.
 
   What it shows and does is in the data module the two clients share
   (../Core/BoldModelEditorData.pas): the model document, the Bold handles,
@@ -70,6 +72,8 @@ type
     mniModelSep1: TMenuItem;
     mniAddAttribute: TMenuItem;
     mniDeleteAttribute: TMenuItem;
+    mniModelSep2: TMenuItem;
+    mniValidate: TMenuItem;
     alActions: TActionList;
     actNew: TAction;
     actOpen: TAction;
@@ -82,6 +86,7 @@ type
     actDeleteClass: TAction;
     actAddAttribute: TAction;
     actDeleteAttribute: TAction;
+    actValidate: TAction;
     layToolbar: TLayout;
     btnNew: TButton;
     btnOpen: TButton;
@@ -101,13 +106,21 @@ type
     btnAddAttribute: TButton;
     btnDeleteAttribute: TButton;
     grdAttributes: TStringGrid;
+    splFindings: TSplitter;
+    layFindings: TLayout;
+    layFindingBar: TLayout;
+    btnValidate: TButton;
+    lblFindings: TLabel;
+    grdFindings: TStringGrid;
     layStatus: TLayout;
     lblStatus: TLabel;
     bsClasses: TBindSourceDB;
     bsAttributes: TBindSourceDB;
+    bsFindings: TBindSourceDB;
     BindingsList1: TBindingsList;
     lnkClasses: TLinkGridToDataSource;
     lnkAttributes: TLinkGridToDataSource;
+    lnkFindings: TLinkGridToDataSource;
     dlgOpen: TOpenDialog;
     dlgSave: TSaveDialog;
     dlgTypeNames: TOpenDialog;
@@ -125,6 +138,8 @@ type
     procedure actDeleteClassExecute(Sender: TObject);
     procedure actAddAttributeExecute(Sender: TObject);
     procedure actDeleteAttributeExecute(Sender: TObject);
+    procedure actValidateExecute(Sender: TObject);
+    procedure grdFindingsCellDblClick(const Column: TColumn; const Row: Integer);
     procedure alActionsUpdate(Action: TBasicAction; var Handled: Boolean);
   private
     FData: TdmModelEditor;
@@ -177,6 +192,7 @@ resourcestring
   sSaveChanges = 'Save the changes of %s?';
   sAttributesOf = 'Attributes of %s';
   sAttributes = 'Attributes';
+  sConsistencyCheck = 'Consistency check';
   sGenerated = 'Business classes generated into %s';
   sClassCount = '%d classes';
   sTypeNamesFrom = 'type names: %s';
@@ -226,11 +242,14 @@ begin
   // The grids are bound to the datasets of the data module through these
   bsClasses.DataSet := FData.bdsClasses;
   bsAttributes.DataSet := FData.bdsAttributes;
-  // The two headings in bold, over the style's font
+  bsFindings.DataSet := FData.bdsViolations;
+  // The headings in bold, over the style's font
   lblClasses.StyledSettings := lblClasses.StyledSettings - [TStyledSetting.Style];
   lblClasses.TextSettings.Font.Style := [TFontStyle.fsBold];
   lblAttributes.StyledSettings := lblAttributes.StyledSettings - [TStyledSetting.Style];
   lblAttributes.TextSettings.Font.Style := [TFontStyle.fsBold];
+  lblFindings.StyledSettings := lblFindings.StyledSettings - [TStyledSetting.Style];
+  lblFindings.TextSettings.Font.Style := [TFontStyle.fsBold];
   dlgOpen.Filter := 'Bold models (*.bld)|*.bld|All files|*';
   dlgSave.Filter := dlgOpen.Filter;
   dlgTypeNames.Filter := sFormFilter;
@@ -249,6 +268,7 @@ procedure TfrmModelEditorMain.FormDestroy(Sender: TObject);
 begin
   Application.OnIdle := nil;
   // The bindings let go of the datasets before the data module frees them
+  bsFindings.DataSet := nil;
   bsAttributes.DataSet := nil;
   bsClasses.DataSet := nil;
   FreeAndNil(FData);
@@ -307,6 +327,10 @@ begin
     lblAttributes.Text := Format(sAttributesOf, [AClass.name])
   else
     lblAttributes.Text := sAttributes;
+  if FData.ValidationSummary <> '' then
+    lblFindings.Text := FData.ValidationSummary
+  else
+    lblFindings.Text := sConsistencyCheck;
   if FStatus <> '' then
     lblStatus.Text := FStatus
   else if FData.bdsClasses.Active then
@@ -414,6 +438,18 @@ begin
   FData.DeleteAttribute;
 end;
 
+procedure TfrmModelEditorMain.actValidateExecute(Sender: TObject);
+begin
+  FData.Validate;
+end;
+
+procedure TfrmModelEditorMain.grdFindingsCellDblClick(const Column: TColumn; const Row: Integer);
+begin
+  // FMX's TStringGrid publishes OnCellDblClick, not OnDblClick. The click
+  // before selected the row, and the binding moved the dataset
+  FData.SelectViolationElement;
+end;
+
 procedure TfrmModelEditorMain.SelfTestException(Sender: TObject; E: Exception);
 begin
   if FExceptionExpected then
@@ -486,6 +522,19 @@ var
     if Col >= 0 then
       for Row := 0 to AGrid.RowCount - 1 do
         if AGrid.Cells[Col, Row] = AName then
+          Exit(Row);
+    Result := -1;
+  end;
+
+  { The row of a grid whose column AHeader has AText, -1 when there is none }
+  function RowWith(AGrid: TStringGrid; const AHeader, AText: string): Integer;
+  var
+    Col, Row: Integer;
+  begin
+    Col := ColumnIndex(AGrid, AHeader);
+    if Col >= 0 then
+      for Row := 0 to AGrid.RowCount - 1 do
+        if Pos(AText, AGrid.Cells[Col, Row]) > 0 then
           Exit(Row);
     Result := -1;
   end;
@@ -590,6 +639,39 @@ begin
       Settle;
       Check('Generate writes the unit', TFile.Exists(TPath.Combine(FSelfTestFolder, 'InvoicingClasses.pas')), '');
       Check('the status tells where', Pos(FSelfTestFolder, lblStatus.Text) > 0, lblStatus.Text);
+
+      // The consistency check: a class renamed to the name of another is a
+      // finding, and a double click on it selects the class
+      Check('the findings grid has the columns of the dataset', (ColumnIndex(grdFindings, 'Severity') >= 0) and
+        (ColumnIndex(grdFindings, 'Description') >= 0) and (ColumnIndex(grdFindings, 'Element') >= 0),
+        IntToStr(grdFindings.ColumnCount) + ' columns');
+      Check('the findings grid is read-only', grdFindings.ReadOnly, '');
+      Check('no findings before the check', grdFindings.RowCount = 0, IntToStr(grdFindings.RowCount));
+      Check('the label before the check', lblFindings.Text = 'Consistency check', lblFindings.Text);
+      Row := RowNamed(grdClasses, 'NewClass');
+      Check('NewClass is in the class grid', Row >= 0, IntToStr(Row));
+      grdClasses.SelectRow(Row);
+      Settle;
+      FData.bdsClasses.Edit;
+      FData.bdsClasses.FieldByName('Name').AsString := 'Customer';
+      FData.bdsClasses.Post;
+      grdClasses.SelectRow(RowNamed(grdClasses, 'Invoice'));
+      Settle;
+      actValidate.Execute;
+      Settle;
+      Check('the check fills the findings grid', grdFindings.RowCount > 0, IntToStr(grdFindings.RowCount));
+      Check('the label sums them up', Pos(' errors', lblFindings.Text) > 0, lblFindings.Text);
+      Row := RowWith(grdFindings, 'Description', 'Duplicate class name');
+      Check('a finding for the duplicate class name', Row >= 0, IntToStr(Row));
+      grdFindings.SelectRow(Row);
+      Settle;
+      Check('its severity', SelectedCell(grdFindings, 'Severity') = 'Error', SelectedCell(grdFindings, 'Severity'));
+      grdFindingsCellDblClick(nil, grdFindings.Selected);
+      Settle;
+      Check('a double click selects the class it is about',
+        (FData.CurrentClass <> nil) and (FData.CurrentViolation <> nil) and
+        (TObject(FData.CurrentClass()) = TObject(FData.CurrentViolation.ModelElement)),
+        SelectedCell(grdClasses, 'Name'));
 
       // The report of an exception (#130): with Stacker linked it names the
       // routine that raised it; without a provider it gives the address

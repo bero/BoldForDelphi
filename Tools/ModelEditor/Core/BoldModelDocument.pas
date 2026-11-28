@@ -22,7 +22,11 @@ unit BoldModelDocument;
   The type names (the model's attribute types to Delphi classes, units and
   mappers) are Bold's own, or those of the TBoldTypeNameHandle of a form
   (LoadTypeNames): in the IDE a project gives its TBoldModel such a handle
-  for its own attribute types, and the .bld file does not hold them. }
+  for its own attribute types, and the .bld file does not hold them.
+
+  Validate checks the model as the IDE's Tools > Consistency Check and Save
+  and Generate do, with Bold's TBoldUMLModelValidator; its findings are objects of the UML
+  model's own object space (UMLModel.Validator.Violation). }
 
 interface
 
@@ -33,6 +37,7 @@ uses
   BoldMeta,
   BoldModel,
   BoldTypeNameHandle,
+  BoldUMLAttributes,
   BoldUMLModel;
 
 type
@@ -77,6 +82,22 @@ type
       handle, or more than one, is refused with EBoldModelDocument, and the
       type names read before stay. }
     procedure LoadTypeNames(const AFormFile: string);
+    { Checks the model with Bold's TBoldUMLModelValidator and the type
+      names above: as the Delphi IDE's Tools > Consistency Check does, with
+      the database names of the model's mapper, and with the checks of the
+      Delphi names that the IDE's Save and Generate adds, as the code
+      generated from the model is Delphi code. The findings
+      replace those of the check before in UMLModel.Validator.Violation,
+      each with its severity, description and model element. Returns the
+      highest severity, sNone when nothing was found. The validator needs a
+      flattened, boldified model, as one read from a file the IDE saved is.
+      A model that is not, as a new one, is flattened and boldified for the
+      check and unflattened and unboldified after, as TBoldModel does it;
+      boldifying gives classes Bold's tagged values, which unboldifying
+      keeps (the root class of a new model gets persistence=persistent).
+      That is a change of the model and sets Modified; the check itself is
+      not. }
+    function Validate: TSeverity;
     { The form the type names are from; empty for Bold's own }
     property TypeNamesFile: string read FTypeNamesFile;
     property Model: TBoldModel read FModel;
@@ -93,6 +114,9 @@ uses
   BoldBld,
   BoldUMLModelConverter,
   BoldUMLModelSupport,
+  BoldUMLAbstractModelValidator,
+  BoldUMLModelValidator,
+  BoldUMLUtils,
   BoldGen,
   BoldGeneratorTemplatesDelphi; // registers the Delphi templates TBoldGenerator uses
 
@@ -311,6 +335,51 @@ begin
   finally
     Dec(FIgnoreChanges);
   end;
+end;
+
+function TBoldModelDocument.Validate: TSeverity;
+var
+  Model: TUMLModel;
+  WasFlattened, WasBoldified: Boolean;
+  Before: string;
+  Validator: TBoldUMLModelValidator;
+begin
+  Model := UMLModel;
+  WasFlattened := TBoldUMLSupport.IsFlattened(Model);
+  WasBoldified := FModel.Boldify.IsBoldified(Model);
+  if not (WasFlattened and WasBoldified) then
+    Before := AsText;
+  // The violations are objects of the model's object space, and the round
+  // trip below sends events whether or not it changes the model: Modified
+  // is decided by comparing the text after
+  Inc(FIgnoreChanges);
+  try
+    // As TBoldModel.EnsureMoldModelCurrent prepares the model for the
+    // validator, and gives it back after
+    if not WasFlattened then
+      TBoldUMLSupport.Flatten(Model);
+    if not WasBoldified then
+      FModel.Boldify.Boldify(Model);
+    try
+      Validator := TBoldUMLModelValidator.Create(FModel, SQLDataBaseConfigforModel(FModel),
+        BoldDefaultValidatorSourceLanguage);
+      try
+        Validator.Validate(FModel.TypeNameDictionary);
+        Result := Validator.HighestSeverity;
+      finally
+        Validator.Free;
+      end;
+    finally
+      if not WasFlattened then
+        TBoldUMLSupport.UnFlatten(Model);
+      if not WasBoldified then
+        FModel.Boldify.UnBoldify(Model);
+    end;
+  finally
+    Dec(FIgnoreChanges);
+  end;
+  if not (WasFlattened and WasBoldified) and (AsText <> Before) then
+    FModified := True;
 end;
 
 procedure TBoldModelDocument.LoadTypeNames(const AFormFile: string);

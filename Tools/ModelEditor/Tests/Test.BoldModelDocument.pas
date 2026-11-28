@@ -51,6 +51,18 @@ type
     // read before stay
     procedure TestAFormWithoutATypeNameHandleIsRefused;
     procedure TestAFormWithTwoTypeNameHandlesIsRefused;
+    // Validate checks the model as the IDE's Tools > Consistency Check does
+    procedure TestValidateFindsNoErrorInTheInvoicingModel;
+    procedure TestValidateReportsADuplicateClassName;
+    // Bold's own type names map an unknown attribute type to String
+    // (<Default>); the type names of a form without that entry do not
+    procedure TestValidateUsesTheTypeNamesOfAForm;
+    // A model read from a file the IDE saved is flattened and boldified:
+    // the check changes neither the model nor Modified
+    procedure TestValidateLeavesAnOpenedModelAsItWas;
+    // A new model is boldified for the check, which gives its root class
+    // Bold's tagged values: Modified tells whether the model changed
+    procedure TestValidateOfANewModelSetsModifiedWhenBoldifyingChangedIt;
   end;
 
 implementation
@@ -59,6 +71,7 @@ uses
   SysUtils,
   Classes,
   BoldUMLModel,
+  BoldUMLAttributes,
   ModelEditorTestSupport;
 
 const
@@ -79,6 +92,26 @@ const
     '  object TypeNamesB: TBoldTypeNameHandle'#13#10 +
     '    Left = 8'#13#10 +
     '    Top = 64'#13#10 +
+    '  end'#13#10 +
+    'end'#13#10;
+  // A form whose type names know String only: no <Default> entry, so an
+  // attribute of another type has an unknown type
+  cFormWithStringTypeNamesOnly =
+    'object dmStrings: TDataModule'#13#10 +
+    '  object StringTypeNames: TBoldTypeNameHandle'#13#10 +
+    '    Dictionary = <'#13#10 +
+    '      item'#13#10 +
+    '        ModelName = ''String'''#13#10 +
+    '        ExpressionName = ''String'''#13#10 +
+    '        DelphiName = ''TBA<Name>'''#13#10 +
+    '        ContentsName = ''<Name>'''#13#10 +
+    '        MapperName = ''TBoldPM<Name>'''#13#10 +
+    '        Accessor = ''As<Name>'''#13#10 +
+    '        NativeType = ''<Name>'''#13#10 +
+    '        UnitName = ''BoldAttributes'''#13#10 +
+    '      end>'#13#10 +
+    '    Left = 8'#13#10 +
+    '    Top = 8'#13#10 +
     '  end'#13#10 +
     'end'#13#10;
 
@@ -112,6 +145,35 @@ begin
   Street := AttributeNamed(ClassNamed(ADocument.UMLModel, 'Address'), 'Street');
   Assert.IsNotNull(Street, 'the attribute Address.Street');
   Street.typeName := 'Coordinate';
+end;
+
+{ The findings of the last Validate, one per line, for a failure message }
+function ViolationsText(AModel: TUMLModel): string;
+var
+  i: Integer;
+  Violation: TViolation;
+begin
+  Result := '';
+  for i := 0 to AModel.Validator.Violation.Count - 1 do
+  begin
+    Violation := AModel.Validator.Violation[i];
+    Result := Result + Format('[%d] %s', [Ord(Violation.Severity), Violation.Description]);
+    if Assigned(Violation.ModelElement) then
+      Result := Result + ' (' + Violation.ModelElement.Name + ')';
+    Result := Result + sLineBreak;
+  end;
+end;
+
+{ The first finding of the last Validate whose description has AText; nil
+  when none has }
+function ViolationWith(AModel: TUMLModel; const AText: string): TViolation;
+var
+  i: Integer;
+begin
+  for i := 0 to AModel.Validator.Violation.Count - 1 do
+    if Pos(AText, AModel.Validator.Violation[i].Description) > 0 then
+      Exit(AModel.Validator.Violation[i]);
+  Result := nil;
 end;
 
 procedure WriteText(const AFileName, AText: string);
@@ -418,6 +480,97 @@ begin
     Assert.AreEqual('', FDocument.TypeNamesFile, 'still Bold''s type names');
   finally
     FreeAndNil(FDocument);
+  end;
+end;
+
+procedure TTestBoldModelDocument.TestValidateFindsNoErrorInTheInvoicingModel;
+var
+  Document: TBoldModelDocument;
+  Severity: TSeverity;
+begin
+  Document := TBoldModelDocument.Create;
+  try
+    Document.Open(RepositoryFile(cInvoicingModel));
+    Severity := Document.Validate;
+    Assert.IsTrue(Severity < sError, 'no error in the Invoicing model: ' + ViolationsText(Document.UMLModel));
+  finally
+    Document.Free;
+  end;
+end;
+
+procedure TTestBoldModelDocument.TestValidateReportsADuplicateClassName;
+var
+  Document: TBoldModelDocument;
+  Violation: TViolation;
+begin
+  Document := TBoldModelDocument.Create;
+  try
+    Document.Open(RepositoryFile(cInvoicingModel));
+    ClassNamed(Document.UMLModel, 'Address').name := 'Customer';
+    Assert.AreEqual(Ord(sError), Ord(Document.Validate), 'an error: ' + ViolationsText(Document.UMLModel));
+    Violation := ViolationWith(Document.UMLModel, 'Duplicate class name');
+    Assert.IsNotNull(Violation, 'a duplicate class name: ' + ViolationsText(Document.UMLModel));
+    Assert.IsTrue(Violation.ModelElement is TUMLClass, 'about a class');
+    Assert.AreEqual('Customer', Violation.ModelElement.Name, 'named Customer');
+  finally
+    Document.Free;
+  end;
+end;
+
+procedure TTestBoldModelDocument.TestValidateUsesTheTypeNamesOfAForm;
+var
+  FormFile: string;
+begin
+  FormFile := IncludeTrailingPathDelimiter(FTempFolder) + 'Strings.dfm';
+  WriteText(FormFile, cFormWithStringTypeNamesOnly);
+  FDocument := TBoldModelDocument.Create;
+  try
+    OpenInvoicingWithACoordinate(FDocument);
+    FDocument.Validate;
+    Assert.IsNull(ViolationWith(FDocument.UMLModel, 'has unknown type (Coordinate)'),
+      'Bold''s type names take Coordinate as a String: ' + ViolationsText(FDocument.UMLModel));
+    FDocument.LoadTypeNames(FormFile);
+    Assert.AreEqual(Ord(sError), Ord(FDocument.Validate), 'an error with the form''s type names');
+    Assert.IsNotNull(ViolationWith(FDocument.UMLModel, 'has unknown type (Coordinate)'),
+      'the form''s type names do not know Coordinate: ' + ViolationsText(FDocument.UMLModel));
+  finally
+    FreeAndNil(FDocument);
+  end;
+end;
+
+procedure TTestBoldModelDocument.TestValidateLeavesAnOpenedModelAsItWas;
+var
+  Document: TBoldModelDocument;
+  Before: string;
+begin
+  Document := TBoldModelDocument.Create;
+  try
+    Document.Open(RepositoryFile(cInvoicingModel));
+    Before := Document.AsText;
+    Document.Validate;
+    AssertSameText(Before, Document.AsText, 'the model after Validate');
+    Assert.IsFalse(Document.Modified, 'not modified by Validate');
+  finally
+    Document.Free;
+  end;
+end;
+
+procedure TTestBoldModelDocument.TestValidateOfANewModelSetsModifiedWhenBoldifyingChangedIt;
+var
+  Document: TBoldModelDocument;
+  Before, After: string;
+begin
+  Document := TBoldModelDocument.Create;
+  try
+    Before := Document.AsText;
+    Assert.AreEqual(Ord(sNone), Ord(Document.Validate), 'nothing wrong with a new model: ' + ViolationsText(Document.UMLModel));
+    After := Document.AsText;
+    Assert.AreEqual(Before <> After, Document.Modified, 'Modified tells whether the model changed');
+    // A second check finds the model as the first left it
+    Document.Validate;
+    AssertSameText(After, Document.AsText, 'a second check');
+  finally
+    Document.Free;
   end;
 end;
 

@@ -173,6 +173,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (`Tools/ModelEditor/FMX`, Win32, Win64 and Linux64) has the same grids,
   bound to the shared datasets through LiveBindings, the same commands and a
   self-test; `check_no_vcl.ps1` checks that it links no VCL unit.
+- The standalone model editor checks the model (#128): Model > Check
+  consistency runs Bold's `TBoldUMLModelValidator` with the document's type
+  names, as the IDE's Tools > Consistency Check does, with the checks of the
+  Delphi names that the IDE's Save and Generate adds. Both clients list the
+  findings (severity, description, element) in a read-only grid with their
+  numbers in its label, and a double click on a finding selects its class,
+  or its attribute in its class. `TBoldModelDocument.Validate` and the shared
+  data module's `Validate`, `bdsViolations`, `ValidationSummary` and
+  `SelectViolationElement` do it without user interface.
 
 ### Changed
 - The Free Pascal builds compile Bold without warnings; a clean build of the

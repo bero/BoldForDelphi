@@ -18,7 +18,11 @@ unit BoldModelEditorData;
     lhClasses     its classes (classes)
     lhAttributes  the attributes of the class selected in lhClasses
                   (feature->filterOnType(UMLAttribute))
-  bdsClasses and bdsAttributes are TBoldDataSets on the two list handles.
+    lhViolations  the findings of the last consistency check, the most
+                  severe first (validator.violation->orderdescending(severity),
+                  as the IDE's validation form lists them)
+  bdsClasses, bdsAttributes and bdsViolations are TBoldDataSets on the
+  three list handles; bdsViolations is read-only.
   Selecting a row in bdsClasses moves lhClasses, and lhAttributes follows,
   as in the Master-Detail demo. The handles get the object space of the
   document's model in Connect, after each New and Open: each model has an
@@ -41,6 +45,7 @@ uses
   BoldReferenceHandle,
   BoldListHandle,
   BoldDataSet,
+  BoldUMLAttributes,
   BoldUMLModel,
   BoldModelDocument;
 
@@ -60,8 +65,12 @@ type
     lhAttributes: TBoldListHandle;
     bdsClasses: TBoldDataSet;
     bdsAttributes: TBoldDataSet;
+    lhViolations: TBoldListHandle;
+    bdsViolations: TBoldDataSet;
   private
     FDocument: TBoldModelDocument;
+    // A consistency check ran since the model was made or opened
+    FValidated: Boolean;
     FOnAskSave: TModelEditorAskSaveEvent;
     FOnChooseSaveFile: TModelEditorChooseFileEvent;
     procedure Connect;
@@ -127,6 +136,21 @@ type
     function CanAddAttribute: Boolean;
     function CanDeleteAttribute: Boolean;
 
+    { The consistency check (TBoldModelDocument.Validate): its findings are
+      the rows of bdsViolations; the highest severity is returned }
+    function Validate: TSeverity;
+    { The result of the last check for a status line: the number of errors,
+      warnings and hints, or that it found nothing; empty before the first
+      check of a model }
+    function ValidationSummary: string;
+    { The finding selected in bdsViolations; nil when none is }
+    function CurrentViolation: TViolation;
+    { Selects what the selected finding is about: a class in bdsClasses, an
+      attribute in bdsClasses and bdsAttributes, the owner class of another
+      feature, the class at an association end. False when the finding is
+      about something else, as the model, or about an element that is gone }
+    function SelectViolationElement: Boolean;
+
     { The file name of the model, or Untitled, with a * when modified }
     function DocumentName: string;
     { What a client's window title shows }
@@ -166,6 +190,8 @@ resourcestring
   sUntitled = 'Untitled';
   sNoClassSelected = 'No class is selected';
   sTheRootClass = 'The root class %s of a boldified model cannot be deleted';
+  sNoFindings = 'Consistency check: no findings';
+  sFindings = 'Consistency check: %d errors, %d warnings, %d hints';
 
 const
   cSuperclassField = 'Superclass';
@@ -215,6 +241,8 @@ begin
   // then the document with the model's object space
   if Assigned(FDocument) then
     Disconnect;
+  FreeAndNil(bdsViolations);
+  FreeAndNil(lhViolations);
   FreeAndNil(bdsAttributes);
   FreeAndNil(bdsClasses);
   FreeAndNil(lhAttributes);
@@ -238,6 +266,11 @@ begin
   // The name of another class: shown here, changed with the class
   bdsClasses.FieldByName(cSuperclassField).ReadOnly := True;
   bdsAttributes.Open;
+  // What the check found: shown, not edited
+  bdsViolations.Open;
+  for i := 0 to bdsViolations.FieldCount - 1 do
+    bdsViolations.Fields[i].ReadOnly := True;
+  FValidated := False;
 end;
 
 procedure TdmModelEditor.Disconnect;
@@ -245,6 +278,7 @@ var
   i: Integer;
 begin
   CancelEdits;
+  bdsViolations.Close;
   bdsAttributes.Close;
   bdsClasses.Close;
   rhModel.Value := nil;
@@ -495,6 +529,71 @@ begin
   CancelEdits;
   Attribute.Delete;
   Refresh;
+end;
+
+function TdmModelEditor.Validate: TSeverity;
+begin
+  PostEdits;
+  Result := FDocument.Validate;
+  FValidated := True;
+  Refresh;
+end;
+
+function TdmModelEditor.ValidationSummary: string;
+var
+  Violations: TViolationList;
+  Counts: array[TSeverity] of Integer;
+  Severity: TSeverity;
+  i: Integer;
+begin
+  if not FValidated then
+    Exit('');
+  for Severity := Low(TSeverity) to High(TSeverity) do
+    Counts[Severity] := 0;
+  Violations := FDocument.UMLModel.Validator.Violation;
+  for i := 0 to Violations.Count - 1 do
+    Inc(Counts[Violations[i].Severity]);
+  if Violations.Count = 0 then
+    Result := sNoFindings
+  else
+    Result := Format(sFindings, [Counts[sError], Counts[sWarning], Counts[sHint]]);
+end;
+
+function TdmModelEditor.CurrentViolation: TViolation;
+begin
+  if bdsViolations.Active and (bdsViolations.ActiveBoldObject is TViolation) then
+    Result := TViolation(bdsViolations.ActiveBoldObject)
+  else
+    Result := nil;
+end;
+
+function TdmModelEditor.SelectViolationElement: Boolean;
+var
+  Violation: TViolation;
+  Element: TUMLModelElement;
+  OwnerClass: TUMLClassifier;
+begin
+  Result := False;
+  Violation := CurrentViolation;
+  if not Assigned(Violation) then
+    Exit;
+  Element := Violation.ModelElement;
+  if Element is TUMLClass then
+    Exit(SelectClass(TUMLClass(Element)));
+  if Element is TUMLAssociationEnd then
+  begin
+    OwnerClass := TUMLAssociationEnd(Element).type_;
+    Exit((OwnerClass is TUMLClass) and SelectClass(TUMLClass(OwnerClass)));
+  end;
+  if Element is TUMLFeature then
+  begin
+    OwnerClass := TUMLFeature(Element).owner;
+    if not ((OwnerClass is TUMLClass) and SelectClass(TUMLClass(OwnerClass))) then
+      Exit;
+    if Element is TUMLAttribute then
+      Exit(SelectAttribute(TUMLAttribute(Element)));
+    Result := True;
+  end;
 end;
 
 function TdmModelEditor.Modified: Boolean;

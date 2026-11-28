@@ -12,8 +12,9 @@ program ModelEditorLCL;
 
   Usage: ModelEditorLCL --selftest [--typenames=form] model.bld
   Shows no window. Opens the model, checks that the grids show the classes
-  and the attributes of the selected class and that the commands add,
-  delete, save and generate, writes the checks to ModelEditorLCL.selftest.txt
+  and the attributes of the selected class, that the commands add, delete,
+  save and generate and that the consistency check lists a finding that
+  selects its class, writes the checks to ModelEditorLCL.selftest.txt
   next to the program and exits with the number of failed checks. The
   model file itself is not changed: the self-test saves and generates into a
   temporary folder. }

@@ -2,7 +2,7 @@ object frmModelEditorMain: TfrmModelEditorMain
   Left = 0
   Top = 0
   Caption = 'Bold Model Editor'
-  ClientHeight = 680
+  ClientHeight = 820
   ClientWidth = 1000
   FormFactor.Width = 320
   FormFactor.Height = 480
@@ -155,9 +155,70 @@ object frmModelEditorMain: TfrmModelEditorMain
     Size.Height = 6.000000000000000000
     Size.PlatformDefault = False
   end
+  object splFindings: TSplitter
+    Align = Bottom
+    Cursor = crVSplit
+    MinSize = 80.000000000000000000
+    Position.Y = 634.000000000000000000
+    Size.Width = 1000.000000000000000000
+    Size.Height = 6.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object layFindings: TLayout
+    Align = Bottom
+    Position.Y = 640.000000000000000000
+    Size.Width = 1000.000000000000000000
+    Size.Height = 150.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    object layFindingBar: TLayout
+      Align = Top
+      Size.Width = 1000.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object btnValidate: TButton
+        Action = actValidate
+        Align = Left
+        Margins.Left = 8.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 4.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Size.Width = 160.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        ShowHint = True
+      end
+      object lblFindings: TLabel
+        Align = Client
+        Margins.Left = 8.000000000000000000
+        Size.Width = 820.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Consistency check'
+      end
+    end
+    object grdFindings: TStringGrid
+      Align = Client
+      CanFocus = True
+      ClipChildren = True
+      Margins.Left = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Size.Width = 984.000000000000000000
+      Size.Height = 110.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      ReadOnly = True
+      RowCount = 0
+      Options = [ColumnResize, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+      OnCellDblClick = grdFindingsCellDblClick
+    end
+  end
   object layStatus: TLayout
     Align = Bottom
-    Position.Y = 650.000000000000000000
+    Position.Y = 790.000000000000000000
     Size.Width = 1000.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
@@ -283,6 +344,12 @@ object frmModelEditorMain: TfrmModelEditorMain
       object mniDeleteAttribute: TMenuItem
         Action = actDeleteAttribute
       end
+      object mniModelSep2: TMenuItem
+        Text = '-'
+      end
+      object mniValidate: TMenuItem
+        Action = actValidate
+      end
     end
   end
   object alActions: TActionList
@@ -351,6 +418,11 @@ object frmModelEditorMain: TfrmModelEditorMain
       Hint = 'Delete the selected attribute'
       OnExecute = actDeleteAttributeExecute
     end
+    object actValidate: TAction
+      Text = 'Check consistency'
+      Hint = 'Check the model as Bold''s model editor does; double-click a finding to select what it is about'
+      OnExecute = actValidateExecute
+    end
   end
   object bsClasses: TBindSourceDB
     ScopeMappings = <>
@@ -360,6 +432,11 @@ object frmModelEditorMain: TfrmModelEditorMain
   object bsAttributes: TBindSourceDB
     ScopeMappings = <>
     Left = 680
+    Top = 200
+  end
+  object bsFindings: TBindSourceDB
+    ScopeMappings = <>
+    Left = 840
     Top = 200
   end
   object BindingsList1: TBindingsList
@@ -409,6 +486,24 @@ object frmModelEditorMain: TfrmModelEditorMain
         item
           MemberName = 'Derived'
           Width = 100
+        end>
+    end
+    object lnkFindings: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsFindings
+      GridControl = grdFindings
+      Columns = <
+        item
+          MemberName = 'Severity'
+          Width = 90
+        end
+        item
+          MemberName = 'Description'
+          Width = 640
+        end
+        item
+          MemberName = 'Element'
+          Width = 220
         end>
     end
   end
